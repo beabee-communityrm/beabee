@@ -10,7 +10,7 @@ const { log } = require( __js + '/logging' );
 const postcodes = require( __js + '/postcodes' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
-const { getActualAmount, getSubscriptionName } = require( __js + '/utils' );
+const { getActualAmount, getSubscriptionName, cleanEmailAddress } = require( __js + '/utils' );
 
 async function customerToMember(customerId, mandateId) {
 	const customer = await gocardless.customers.get(customerId);
@@ -19,7 +19,7 @@ async function customerToMember(customerId, mandateId) {
 	return {
 		firstname: customer.given_name,
 		lastname: customer.family_name,
-		email: customer.email,
+		email: cleanEmailAddress(customer.email),
 		delivery_optin: false,
 		delivery_address: {
 			line1: customer.address_line1,
