@@ -3,7 +3,7 @@ var	express = require( 'express' ),
 
 var	Members = require( __js + '/database' ).Members;
 
-const { wrapAsync } = require( __js + '/utils' );
+const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 const { hasSchema } = require( __js + '/middleware' );
 const mandrill = require( __js + '/mandrill' );
 const Options = require( __js + '/options' )();
@@ -30,7 +30,7 @@ app.get( '/' , function( req, res ) {
 app.post( '/', hasSchema(getResetCodeSchema).orFlash, wrapAsync( async function( req, res ) {
 	const { body: { email } } = req;
 
-	const member = await Members.findOne( { email: email.toLowerCase() } );
+	const member = await Members.findOne( { email: cleanEmailAddress(email) } );
 
 	if (member) {
 		const code = auth.generateCode();
