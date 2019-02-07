@@ -8,10 +8,12 @@ jobs:
       - checkout
       - run: npm install
       - run: npm run build
+      - run: zip -r build app.js apps/ config/ static/ src/ webhook.js webhook-utils.js package*.json 
   deploy:
     docker:
       - image: circleci/node:8.11.3
     steps:
+      - run: apt-get install -y rsync
       - run: echo Here
 
 workflows:
