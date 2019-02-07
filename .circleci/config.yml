@@ -11,10 +11,14 @@ jobs:
       - run: zip -r build app.js apps/ config/ static/ src/ webhook.js webhook-utils.js package*.json 
   deploy:
     docker:
-      - image: circleci/node:8.11.3
+      - image: instrumentisto/rsync-ssh
     steps:
-      - run: apt-get install -y rsync
+      - run: echo $SSH_REMOTE_HOST_KEY >> ~/.ssh/known_hosts
+      - add_ssh_key:
+        fingerprints:
+          - "54:b0:81:a1:46:6d:9d:26:a3:c5:cc:9f:6a:df:b1:32"
       - run: echo Here
+      - run: which rsync
 
 workflows:
   version: 2
