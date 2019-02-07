@@ -13,6 +13,7 @@ jobs:
     docker:
       - image: instrumentisto/rsync-ssh
     steps:
+      - run: mkdir -p ~/.ssh/
       - run: echo $SSH_REMOTE_HOST_KEY >> ~/.ssh/known_hosts
       - add_ssh_keys:
           fingerprints:
@@ -24,10 +25,10 @@ workflows:
   version: 2
   build_then_deploy:
     jobs:
-      - build
+#     - build
       - deploy:
-          requires:
-            - build
+#         requires:
+#           - build
           filters:
             branches:
               only: wpf-circleci
