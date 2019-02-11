@@ -104,7 +104,18 @@ app.post('/:id', wrapAsync(async (req, res) => {
 			})
 		};
 
-		await mandrill.sendMessage(template, message);
+		if (template === '__custom__') {
+			const {content, subject} = req.body;
+			await mandrill.send({
+				from_email: 'membership@thebristolcable.org',
+				from_name: 'Bristol Cable Membership',
+				text: content,
+				subject,
+				...message
+			});
+		} else {
+			await mandrill.sendTemplate(template, message);
+		}
 		await transactionalEmail.update({$set: {sent: new Date()}});
 
 		req.flash('success', 'transactional-email-sending');

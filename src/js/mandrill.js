@@ -78,6 +78,11 @@ module.exports = {
 			}, resolve, reject);
 		});
 	},
+	send(message) {
+		return new Promise((resolve, reject) => {
+			client.messages.send({message}, resolve, reject);
+		});
+	},
 	listTemplates() {
 		return new Promise((resolve, reject) => {
 			client.templates.list(resolve, reject);
