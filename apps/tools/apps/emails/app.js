@@ -110,6 +110,7 @@ app.post('/:id', wrapAsync(async (req, res) => {
 				from_email: 'membership@thebristolcable.org',
 				from_name: 'Bristol Cable Membership',
 				text: content,
+				auto_html: true,
 				subject,
 				...message
 			});
