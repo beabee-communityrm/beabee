@@ -8,13 +8,19 @@ jobs:
       - checkout
       - run: npm install
       - run: npm run build
-      - run: zip -r build app.js apps/ config/ static/ src/ webhook.js webhook-utils.js package*.json 
+      - run: zip -r build app.js apps/ config/ static/ src/ webhook.js webhook-utils.js package*.json node_modules
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - build.zip
       - store_artifacts:
           path: build.zip
   deploy:
     docker:
       - image: instrumentisto/rsync-ssh
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
       - run: mkdir -p ~/.ssh/
       - run: echo $SSH_REMOTE_HOST_KEY >> ~/.ssh/known_hosts
       - add_ssh_keys:
