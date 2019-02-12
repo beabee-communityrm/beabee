@@ -98,8 +98,7 @@ app.post( '/campaign2019/:code', [
 		required: ['email'],
 		properties: {
 			email: {
-				type: 'string',
-				format: 'email'
+				type: 'string'
 			}
 		}
 	} } ).orFlash
