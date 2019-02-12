@@ -14,6 +14,7 @@ async function getQuery() {
 async function getExport(members) {
 	return members
 		.map(member => ({
+			Id: member.uuid,
 			EmailAddress: member.email,
 			FirstName: member.firstname,
 			LastName: member.lastname
