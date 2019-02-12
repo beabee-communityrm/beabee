@@ -36,6 +36,16 @@ block contents
 							option(value='', selected, disabled) Select a template
 							each template in templates
 								option(value=template.slug)= template.name
+							option(value='__custom__') Custom
+
+				.form-group
+					label(for='subject').control-label.col-md-3 Subject
+					.col-md-6
+						input(type='text' name='subject').form-control
+
+				.form-group
+					.col-md-12
+						textarea(name='content').form-control
 
 				h4 Merge variables
 
