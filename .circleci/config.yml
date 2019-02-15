@@ -22,7 +22,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run: mkdir -p ~/.ssh/
-      - run: echo $SSH_REMOTE_HOSTKEY >> ~/.ssh/known_hosts
+      - run: echo $SSH_REMOTE_HOSTKEY | base64 --decode >> ~/.ssh/known_hosts
       - run: cat ~/.ssh/known_hosts
       - add_ssh_keys:
           fingerprints:
