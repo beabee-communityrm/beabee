@@ -98,15 +98,14 @@ app.post( '/campaign2019/:code', [
 		required: ['email'],
 		properties: {
 			email: {
-				type: 'string',
-				format: 'email'
+				type: 'string'
 			}
 		}
 	} } ).orFlash
 ], wrapAsync( async ( req, res ) => {
 	const member = await Members.findOne( {
 		email: req.body.email.trim().toLowerCase(),
-		pollsCode: req.params.code
+		pollsCode: req.params.code.toUpperCase()
 	} );
 
 	if ( member ) {
