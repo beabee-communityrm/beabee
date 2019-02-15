@@ -8,31 +8,26 @@ jobs:
       - checkout
       - run: npm install
       - run: npm run build
+      - run: zip -r build app.js apps/ config/ static/ src/ webhook.js webhook-utils.js package*.json node_modules
       - persist_to_workspace:
           root: .
           paths:
-            - app.js
-            - apps/
-            - config/
-            - static/
-            - src/
-            - webhook.js
-            - webhook-utils.js
-            - package*.json
-
+            - build.zip
+      - store_artifacts:
+          path: build.zip
   deploy:
     docker:
-      - image: instrumentisto/rsync-ssh
+      - image: circleci/node:8.11.3
     steps:
-      - run: apk add ca-certificates
       - attach_workspace:
           at: /tmp/workspace
-      - run: ls /tmp/workspace
       - run: mkdir -p ~/.ssh/
       - run: echo $SSH_REMOTE_HOST_KEY >> ~/.ssh/known_hosts
       - add_ssh_keys:
           fingerprints:
             - "54:b0:81:a1:46:6d:9d:26:a3:c5:cc:9f:6a:df:b1:32"
+      - run: scp /tmp/workspace/build.zip $SSH_REMOTE_HOST:builds/membership-system_$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM.zip
+      - run: ssh $SSH_REMOTE_HOST "ls build"
 
 workflows:
   version: 2
