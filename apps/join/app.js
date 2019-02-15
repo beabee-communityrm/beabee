@@ -31,7 +31,7 @@ app.get( '/' , function( req, res ) {
 } );
 
 app.get( '/referral/:code', wrapAsync( async function( req, res ) {
-	const referrer = await Members.findOne( { referralCode: req.params.code } );
+	const referrer = await Members.findOne( { referralCode: req.params.code.toUpperCase() } );
 	if ( referrer ) {
 		const jtjInStock = await getJTJInStock();
 		res.render( 'index', { user: req.user, referrer, gifts3, gifts5, jtjInStock } );
