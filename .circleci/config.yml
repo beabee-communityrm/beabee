@@ -26,8 +26,8 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "54:b0:81:a1:46:6d:9d:26:a3:c5:cc:9f:6a:df:b1:32"
-      - run: scp /tmp/workspace/build.zip $SSH_REMOTE_HOST:builds/membership-system_$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM.zip
-      - run: ssh $SSH_REMOTE_HOST "ls builds"
+      - run: ssh $SSH_REMOTE_HOST mkdir membership-system/$CIRCLE_BUILD_NUM
+      - run: scp /tmp/workspace/build.zip $SSH_REMOTE_HOST:membership-system/$CIRCLE_BUILD_NUM
 
 workflows:
   version: 2
