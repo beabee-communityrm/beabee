@@ -101,10 +101,6 @@ function templateLocals( req, res, next ) {
 	res.locals.setupComplete = true;
 	if ( req.user ) {
 		res.locals.setupComplete = req.user.setupComplete;
-		res.cookie('memberId', req.user.uuid, {
-			domain: '.thebristolcable.org',
-			maxAge: 30 * 24 * 60 * 60 * 1000
-		});
 	}
 
 	// Prepare a CSRF token if available

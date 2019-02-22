@@ -107,6 +107,9 @@ html
 			script( src="/static/js/bootstrap.js" )
 			script( src="/static/js/script.js?v=" + git )
 
+
+		script( src="/membership.js" )
+
 		script.
 			var _paq = window._paq || [];
 			/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
@@ -114,9 +117,8 @@ html
 			_paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
 			_paq.push(["setCookieDomain", "*.thebristolcable.org"]);
 
-			var match = /memberId=([a-z0-9-]+)/.exec(document.cookie);
-			if (match && match[1]) {
-				_paq.push(["setUserId", match[1]]);
+			if (Membership.memberId) {
+				_paq.push(["setUserId", Membership.memberId]);
 			}
 
 			_paq.push(['trackPageView']);
@@ -128,6 +130,7 @@ html
 				var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
 				g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
 			})();
+
 		noscript
 			p
 				img(src="https://stats2.xtreamlab.net/piwik.php?idsite=1&amp;rec=1" style="border:0;" alt="")
