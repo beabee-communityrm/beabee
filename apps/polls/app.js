@@ -115,11 +115,7 @@ app.post( '/campaign2019/:code', [
 	if ( member ) {
 		await setAnswer(member, req.body);
 		req.flash( 'success', 'polls-answer-chosen' );
-
-		res.cookie('memberId', member.uuid, {
-			domain: '.thebristolcable.org',
-			maxAge: 30 * 24 * 60 * 60 * 1000
-		});
+		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 	} else {
 		req.flash( 'error', 'polls-unknown-user' );
 		req.log.debug({
