@@ -23,20 +23,25 @@ $c-dark-orange: #623204;
 	}
 }
 
+.poll-share,
 .poll-options {
 	display: flex;
 	flex-wrap: wrap;
 	margin: 0 -0.5rem;
+	& > .btn {
+		margin: 0 0.5rem 1rem;
+		flex: 1 1 calc(50% - 1rem);
+		padding: 2rem;
+	}
+}
 
+.poll-options {
 	& > input {
 		position: absolute;
 		opacity: 0;
 	}
 
 	& > .btn {
-		margin: 0 0.5rem 1rem;
-		flex: 1 1 calc(50% - 1rem);
-		padding: 2rem;
 		opacity: 0.3;
 		background-color: $c-orange;
 		&:hover {

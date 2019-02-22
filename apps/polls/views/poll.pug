@@ -125,13 +125,35 @@ block contents
 
 					hr#vote
 
+					if showShare
+						h3 Thank you!
+
+						include /src/views/partials/flash.pug
+
+						p.
+							Spread the word on social media to get others involved in
+							democratic media.
+
+						.poll-share
+							a(
+								href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fthebristolcable.org%2Fcampaign2019"
+								target="_blank"
+							).btn.btn-fb Facebook
+							a(
+								href="https://www.twitter.com/intent/tweet?text=I've%20just%20voted%20for%20what%20The%20Bristol%20Cable%20should%20campaign%20for%20next.%20You%20can%20too.&url=https%3A%2F%2Fthebristolcable.org%2Fcampaign2019"
+								target="_blank"
+							).btn.btn-tw Twitter
+
+						hr
+
 					h3 Choose a campaign
 
 					p You can change your vote up until 5pm on 27th February.
 
 					form(method='POST' action="#vote")
 						+csrf
-						include /src/views/partials/flash.pug
+						if !showShare
+							include /src/views/partials/flash.pug
 
 						if code
 							h4 Please confirm your email address

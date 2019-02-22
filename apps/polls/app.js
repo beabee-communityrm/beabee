@@ -28,7 +28,8 @@ app.get( '/', ( req, res ) => {
 app.get( '/campaign2019', wrapAsync( async ( req, res ) => {
 	if (req.user) {
 		const answer = await PollAnswers.findOne( { member: req.user } );
-		res.render( 'poll', { answer } );
+		const showShare = !!res.locals.flashes.find(m => m.type === 'success');
+		res.render( 'poll', { answer, showShare } );
 	} else {
 		res.render( 'poll-landing' );
 	}
@@ -38,7 +39,8 @@ app.get( '/campaign2019/:code', wrapAsync( async ( req, res ) => {
 	if ( req.user ) {
 		res.redirect( '/polls/campaign2019' );
 	} else {
-		res.render( 'poll', { code: req.params.code } );
+		const showShare = !!res.locals.flashes.find(m => m.type === 'success');
+		res.render( 'poll', { code: req.params.code, showShare } );
 	}
 } ) );
 
@@ -55,6 +57,8 @@ async function setAnswer( member, { answer, reason, shareable, volunteer, idea }
 			CMPGN2019: answer
 		}
 	} );
+
+	return answer;
 }
 
 const answerSchema = {
@@ -88,7 +92,7 @@ app.post( '/campaign2019', [
 ], wrapAsync( async ( req, res ) => {
 	await setAnswer(req.user, req.body);
 	req.flash( 'success', 'polls-answer-chosen' );
-	res.redirect( '/polls/campaign2019#' );
+	res.redirect( '/polls/campaign2019#vote' );
 } ) );
 
 app.post( '/campaign2019/:code', [
