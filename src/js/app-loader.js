@@ -27,21 +27,6 @@ module.exports = function( app ) {
 
 	// Route apps
 	routeApps(app, apps);
-
-	// Error 404
-	app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars
-		res.status( 404 );
-		res.render( '404' );
-	} );
-
-	// Error 500
-	app.use( function ( err, req, res, next ) { // eslint-disable-line no-unused-vars
-		res.status( 500 );
-		res.render( '500', { error: ( config.dev ? err.stack : undefined ) } );
-		req.log.error({
-			error: err
-		});
-	} );
 };
 
 function loadApps( basePath, overrides ) {
