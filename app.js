@@ -64,7 +64,11 @@ app_loader( app );
 app.use( '/membership.js', (req, res) => {
 	const memberId = req.cookies.memberId;
 	res.set('Content-Type', 'application/javascript');
-	res.send('window.Membership = {memberId: "' + memberId + '"}');
+	if (memberId) {
+		res.send('window.Membership = {memberId: "' + memberId + '"}');
+	} else {
+		res.send('window.Membership = {}');
+	}
 });
 
 // Error 404
