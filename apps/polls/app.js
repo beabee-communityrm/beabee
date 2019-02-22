@@ -103,10 +103,10 @@ app.post( '/campaign2019/:code', [
 		}
 	} } ).orFlash
 ], wrapAsync( async ( req, res ) => {
-	const member = await Members.findOne( {
-		email: req.body.email.trim().toLowerCase(),
-		pollsCode: req.params.code.toUpperCase()
-	} );
+	const email = req.body.email.trim().toLowerCase();
+	const pollsCode = req.params.code.toUpperCase();
+
+	const member = await Members.findOne( { email, pollsCode } );
 
 	if ( member ) {
 		await setAnswer(member, req.body);
@@ -118,6 +118,12 @@ app.post( '/campaign2019/:code', [
 		});
 	} else {
 		req.flash( 'error', 'polls-unknown-user' );
+		req.log.debug({
+			app: 'polls',
+			action: 'vote',
+			error: 'Member not found with emai address/polls code combo',
+			sensitive: { email, pollsCode }
+		});
 	}
 
 	res.redirect( '/polls/campaign2019/' + req.params.code + '#vote' );
