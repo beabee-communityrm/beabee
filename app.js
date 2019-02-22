@@ -61,7 +61,15 @@ app.set( 'view cache', false );
 app_loader( app );
 
 // Setup tracker
-app.use( '/membership.js', express.static( __root + '/src/membership.js' ) );
+app.use( '/membership.js', (req, res) => {
+	const memberId = req.cookies.memberId;
+	res.set('Content-Type', 'application/javascript');
+	if (memberId) {
+		res.send('window.Membership = {memberId: "' + memberId + '"}');
+	} else {
+		res.send('window.Membership = {}');
+	}
+});
 
 // Error 404
 app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars
