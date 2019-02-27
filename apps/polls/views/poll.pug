@@ -51,6 +51,25 @@ block contents
 
 					if poll.closed
 						.alert.alert-warning Voting is now closed
+
+						h3 The result
+
+						.poll-result
+							.poll-result-label
+								b Campaign 1:
+								br
+								| Prevent drug deaths and clean up our streets
+							.poll-result-bar
+								.poll-result-bar2(style='width:' + (123/400*100) + '%')
+								span 123 votes
+						.poll-result
+							.poll-result-label
+								b Campaign 2:
+								br
+								| We want clean air. Lets fight for it
+							.poll-result-bar
+								.poll-result-bar2
+								span 326 votes
 					else
 						p
 							a(href="#vote").btn.poll-btn Go to vote
