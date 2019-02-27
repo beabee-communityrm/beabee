@@ -21,6 +21,12 @@ $c-dark-orange: #623204;
 		background-image: linear-gradient(to bottom, transparent 10%, $c-orange 10%, $c-orange 90%, transparent 90%);
 		color: white;
 	}
+
+	&.poll-title--black > span {
+		background-image: linear-gradient(to bottom, transparent 10%, #4A2503 10%, #4A2503 90%, transparent 90%);
+		background-image: linear-gradient(to bottom, transparent 10%, $c-orange 10%, $c-orange 90%, transparent 90%);
+		color: black;
+	}
 }
 
 .poll-share,
@@ -306,4 +312,32 @@ $c-dark-orange: #623204;
 	@media (min-width: 460px) {
 		overflow: hidden;
 	}
+}
+
+.poll-result {
+	display: flex;
+	align-items: center;
+}
+
+.poll-result-label {
+	font-size: 14px;
+	flex: 0 0 150px;
+	margin-right: 1rem;
+}
+
+.poll-result-bar {
+	flex: 1 1 100%;
+	position: relative;
+	margin-top: 18px;
+	margin-bottom: 2rem;
+	& > span {
+		position: absolute;
+		bottom: 100%;
+	}
+}
+
+.poll-result-bar2 {
+	padding-top: 1rem;
+	background-color: #4A2503;
+	height: 60px;
 }

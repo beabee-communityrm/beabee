@@ -6,6 +6,13 @@ module.exports = {
 		question: {
 			type: String,
 			required: true
+		},
+		slug: {
+			type: String,
+			required: true
+		},
+		closed: {
+			type: Boolean
 		}
 	} )
 };
