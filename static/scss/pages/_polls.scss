@@ -320,8 +320,8 @@ $c-dark-orange: #623204;
 }
 
 .poll-result-label {
-	font-size: 14px;
-	flex: 0 0 150px;
+	font-size: 18px;
+	flex: 0 0 120px;
 	margin-right: 1rem;
 }
 
@@ -340,4 +340,10 @@ $c-dark-orange: #623204;
 	padding-top: 1rem;
 	background-color: #4A2503;
 	height: 60px;
+}
+
+.poll-signup-box {
+	border: 3px $c-orange dotted;
+	padding: 0 1rem;
+	margin-bottom: 2rem;
 }

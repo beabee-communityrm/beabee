@@ -1,10 +1,10 @@
 extends /src/views/base.pug
 
 block prepend meta
-	- shareTitle = 'Vote on our next campaign'
-	- shareDescription = 'We believe journalism is more than information. It’s power. And now it’s time to add your voice to create positive change in Bristol.'
+	- shareTitle = 'Results: Bristol Cable members have chosen our next campaign'
+	- shareDescription = 'Almost 600 members have had their say. They've voted for us to campaign for cleaner air for Bristol'
 	- shareUrl = '/polls/campaign2019'
-	- shareImage = 'https://membership.thebristolcable.org/static/imgs/polls/share.png'
+	- shareImage = 'https://membership.thebristolcable.org/static/imgs/polls/share2.png'
 
 block prepend title
 	- title = 'Vote for our next campaign'
@@ -30,11 +30,12 @@ block body
 
 					h2.poll-title.poll-title--orange
 						span The results
+
 					.poll-result
 						.poll-result-label
 							b Campaign 1:
 							br
-							| Prevent drug deaths and clean up our streets
+							| Safer drug use
 						.poll-result-bar
 							.poll-result-bar2(style='background: #456990; width:' + (186/393*100) + '%')
 							span 186 votes
@@ -42,7 +43,7 @@ block body
 						.poll-result-label
 							b Campaign 2:
 							br
-							| We want clean air. Lets fight for it
+							| Cleaner air
 						.poll-result-bar
 							.poll-result-bar2(style='background: #49BEAA')
 							span 393 votes
@@ -57,18 +58,16 @@ block body
 						and find out how you can help make a difference.
 
 					.row
-						.col-md-9
-							h3.poll-title.poll-title--black
-								span Sign up for updates
-					form(action="https://thebristolcable.us10.list-manage.com/subscribe/post?u=e7981f19933f6043f21e218d9&amp;id=72da826503" method="post" target="_blank").form-horizontal
-						.row(style="padding-bottom: 10px")
-							.col-md-9
-								input(type="email" name="EMAIL" placeholder="email@example.com" required).form-control
+						.col-md-8
+							.poll-signup-box
+								h3.poll-title.poll-title--black
+									span Sign up for updates
 
-						.row
-							.col-md-9
-								p
-									button.btn.poll-btn Sign up
+								form(action="https://thebristolcable.us10.list-manage.com/subscribe/post?u=e7981f19933f6043f21e218d9&amp;id=72da826503" method="post" target="_blank").form-horizontal
+									div(style="padding-bottom: 10px")
+										input(type="email" name="EMAIL" placeholder="email@example.com" required).form-control
+									p
+										button.btn.poll-btn Sign up
 			.row
 				.col-md-offset-2.col-md-8
 					h2.poll-title.poll-title--orange
