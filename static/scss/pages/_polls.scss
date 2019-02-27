@@ -21,6 +21,12 @@ $c-dark-orange: #623204;
 		background-image: linear-gradient(to bottom, transparent 10%, $c-orange 10%, $c-orange 90%, transparent 90%);
 		color: white;
 	}
+
+	&.poll-title--black > span {
+		background-image: linear-gradient(to bottom, transparent 10%, #4A2503 10%, #4A2503 90%, transparent 90%);
+		background-image: linear-gradient(to bottom, transparent 10%, $c-orange 10%, $c-orange 90%, transparent 90%);
+		color: black;
+	}
 }
 
 .poll-share,

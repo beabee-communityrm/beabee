@@ -22,21 +22,10 @@ block body
 	.container
 		if poll.closed
 			.row
-				.col-md-6
-					h2.poll-title.poll-title--orange
-						span Why did we do this?
-					p
-						img(src='/static/imgs/polls/box.svg').poll-ballot-box
-						.
-							We believe journalism isn’t just about information. It’s about
-							empowering our communities and making a difference. In 2017 Bristol
-							Cable members voted to create lasting change through dogged,
-							creative and impactful campaigning journalism. Since then we have
-							chalked up several wins. Over the past months, Cable members have
-							contributed to planning our next campaign, and it’s now time to
-							vote!
-
-				.col-md-6
+				.col-md-offset-2.col-md-8
+					p.h3.
+						Bristol Cable members voted on what we should campaign for this year,
+						they chose air pollution
 					h2.poll-title.poll-title--orange
 						span The results
 					.poll-result
@@ -55,6 +44,58 @@ block body
 						.poll-result-bar
 							.poll-result-bar2
 							span 326 votes
+
+					h2.poll-title.poll-title--orange
+						span What's next
+					p.
+						We will be launching our campaign for cleaner air in Bristol next
+						week.
+					p.
+						You can sign-up to this newsletter to get regular campaign updates
+						and find out how you can help make a difference.
+
+					.row
+						.col-md-9
+							h3.poll-title.poll-title--black
+								span Sign up for updates
+					form(action="https://thebristolcable.us10.list-manage.com/subscribe/post?u=e7981f19933f6043f21e218d9&amp;id=72da826503" method="post" target="_blank").form-horizontal
+						.row(style="padding-bottom: 10px")
+							.col-md-9
+								input(type="email" name="EMAIL" placeholder="email@example.com" required).form-control
+
+						.row
+							.col-md-9
+								p
+									button.btn.poll-btn Sign up
+			.row
+				.col-md-offset-2.col-md-8
+					h2.poll-title.poll-title--orange
+						span Why did we do this?
+					p
+						img(src='/static/imgs/polls/box.svg').poll-ballot-box
+						.
+							We believe that journalism is more than information. It’s about
+							empowering people with the knowledge to push for positive change
+							through creative and dogged reporting.
+
+					p.
+						We’re 100% owned by our 2,000+ members on a democratic basis, who
+						can get stuck into working out how we should campaign and on what
+						issues.
+
+					p.
+						Following successful campaigns on
+						#[a(href="https://thebristolcable.org/2017/11/finally-victory-housing-crisis-transparency/") transparency around affordable]
+						housing mass police surveillance, and the council’s use of
+						bailiffs, we turned to members to help shape what we did next.
+
+					p.
+						In September 2018, #[a(href="https://thebristolcable.org/2018/09/september-members-meeting-choosing-our-next-campaign/") members grappled] with the risks and challenges
+						of campaigning journalism, discussed what makes a good campaign and
+						came up with a few options. In January 2019,
+						#[a(href="https://thebristolcable.org/2019/01/vote-for-the-cables-next-campaign-and-push-for-change-in-the-city/") they voted to decide]
+						which campaign to take forwards.
+
 		else
 			.row
 				.col-md-6
