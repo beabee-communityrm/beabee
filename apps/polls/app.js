@@ -21,42 +21,51 @@ app.use( ( req, res, next ) => {
 	next();
 } );
 
-app.get( '/', ( req, res ) => {
-	res.redirect( '/polls/campaign2019' );
-} );
-
-app.get( '/campaign2019', wrapAsync( async ( req, res ) => {
-	if (req.user) {
-		const answer = await PollAnswers.findOne( { member: req.user } );
-		const showShare = !!res.locals.flashes.find(m => m.type === 'success');
-		res.render( 'poll', { answer, showShare } );
+app.get( '/:slug', wrapAsync( async ( req, res, next ) => {
+	const poll = await Polls.findOne( { slug: req.params.slug } );
+	if (poll) {
+		if (req.user) {
+			const answer = await PollAnswers.findOne( { poll, member: req.user } );
+			const showShare = !!res.locals.flashes.find(m => m.type === 'success');
+			res.render( 'poll', { poll, answer, showShare } );
+		} else {
+			res.render( 'poll-landing', { poll } );
+		}
 	} else {
-		res.render( 'poll-landing' );
+		next();
 	}
 } ) );
 
-app.get( '/campaign2019/:code', wrapAsync( async ( req, res ) => {
+app.get( '/:slug/:code', wrapAsync( async ( req, res, next ) => {
+	const poll = await Polls.findOne( { slug: req.params.slug } );
 	if ( req.user ) {
-		res.redirect( '/polls/campaign2019' );
-	} else {
+		res.redirect( '/polls/' + req.params.slug );
+	} else if ( poll ) {
 		const showShare = !!res.locals.flashes.find(m => m.type === 'success');
-		res.render( 'poll', { code: req.params.code, showShare } );
+		res.render( 'poll', { poll, code: req.params.code, showShare } );
+	} else {
+		next();
 	}
 } ) );
 
-async function setAnswer( member, { answer, reason, shareable, volunteer, idea } ) {
-	const poll = await Polls.findOne();
-	await PollAnswers.findOneAndUpdate( { member: member }, {
-		$set: {
-			poll, member, answer, reason, shareable, volunteer, idea
-		}
-	}, { upsert: true } );
+async function setAnswer( pollSlug, member, { answer, reason, shareable, volunteer, idea } ) {
+	const poll = await Polls.findOne( { slug: pollSlug } );
 
-	await mailchimp.defaultLists.members.update( member.email, {
-		merge_fields: {
-			CMPGN2019: answer
-		}
-	} );
+	if (poll.closed) {
+		throw new Error('Poll is closed');
+	} else {
+		await PollAnswers.findOneAndUpdate( { member: member }, {
+			$set: {
+				poll, member, answer, reason, shareable, volunteer, idea
+			}
+		}, { upsert: true } );
+
+		await mailchimp.defaultLists.members.update( member.email, {
+			merge_fields: {
+				CMPGN2019: answer
+			}
+		} );
+	}
 
 	return answer;
 }
@@ -86,16 +95,16 @@ const answerSchema = {
 	}
 };
 
-app.post( '/campaign2019', [
+app.post( '/:slug', [
 	auth.isLoggedIn,
 	hasSchema( answerSchema ).orFlash,
 ], wrapAsync( async ( req, res ) => {
-	await setAnswer(req.user, req.body);
+	await setAnswer(req.params.slug, req.user, req.body);
 	req.flash( 'success', 'polls-answer-chosen' );
-	res.redirect( '/polls/campaign2019#vote' );
+	res.redirect( `/polls/${req.params.slug}#vote` );
 } ) );
 
-app.post( '/campaign2019/:code', [
+app.post( '/:slug/:code', [
 	hasSchema( answerSchema ).orFlash,
 	hasSchema( { body: {
 		type: 'object',
@@ -113,7 +122,7 @@ app.post( '/campaign2019/:code', [
 	const member = await Members.findOne( { email, pollsCode } );
 
 	if ( member ) {
-		await setAnswer(member, req.body);
+		await setAnswer(req.params.slug, member, req.body);
 		req.flash( 'success', 'polls-answer-chosen' );
 		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 	} else {
@@ -126,7 +135,7 @@ app.post( '/campaign2019/:code', [
 		});
 	}
 
-	res.redirect( '/polls/campaign2019/' + req.params.code + '#vote' );
+	res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
 } ) );
 
 module.exports = config => {
