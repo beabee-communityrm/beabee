@@ -307,3 +307,31 @@ $c-dark-orange: #623204;
 		overflow: hidden;
 	}
 }
+
+.poll-result {
+	display: flex;
+	align-items: center;
+}
+
+.poll-result-label {
+	font-size: 14px;
+	flex: 0 0 150px;
+	margin-right: 1rem;
+}
+
+.poll-result-bar {
+	flex: 1 1 100%;
+	position: relative;
+	margin-top: 18px;
+	& > span {
+		position: absolute;
+		bottom: 100%;
+	}
+}
+
+.poll-result-bar2 {
+	padding-top: 1rem;
+	margin-bottom: 1rem;
+	background-color: #4A2503;
+	height: 60px;
+}

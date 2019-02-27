@@ -20,31 +20,67 @@ block body
 				span Vote for our next campaign
 	
 	.container
-		.row
-			.col-md-6
-				h2.poll-title.poll-title--orange
-					span Why vote?
-				p
-					img(src='/static/imgs/polls/box.svg').poll-ballot-box
-					.
-						We believe journalism isn’t just about information. It’s about
-						empowering our communities and making a difference. In 2017 Bristol
-						Cable members voted to create lasting change through dogged,
-						creative and impactful campaigning journalism. Since then we have
-						chalked up several wins. Over the past months, Cable members have
-						contributed to planning our next campaign, and it’s now time to
-						vote!
+		if poll.closed
+			.row
+				.col-md-6
+					h2.poll-title.poll-title--orange
+						span Why did we do this?
+					p
+						img(src='/static/imgs/polls/box.svg').poll-ballot-box
+						.
+							We believe journalism isn’t just about information. It’s about
+							empowering our communities and making a difference. In 2017 Bristol
+							Cable members voted to create lasting change through dogged,
+							creative and impactful campaigning journalism. Since then we have
+							chalked up several wins. Over the past months, Cable members have
+							contributed to planning our next campaign, and it’s now time to
+							vote!
 
-			.col-md-6.poll-actions
-				.poll-action
-					h2.poll-action-title
-						span Are you a member?
-					a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
+				.col-md-6
+					h2.poll-title.poll-title--orange
+						span The results
+					.poll-result
+						.poll-result-label
+							b Campaign 1:
+							br
+							| Prevent drug deaths and clean up our streets
+						.poll-result-bar
+							.poll-result-bar2(style='width:' + (123/400*100) + '%')
+							span 123 votes
+					.poll-result
+						.poll-result-label
+							b Campaign 2:
+							br
+							| We want clean air. Lets fight for it
+						.poll-result-bar
+							.poll-result-bar2(style='width:' + (326/400*100) + '%')
+							span 326 votes
+		else
+			.row
+				.col-md-6
+					h2.poll-title.poll-title--orange
+						span Why vote?
+					p
+						img(src='/static/imgs/polls/box.svg').poll-ballot-box
+						.
+							We believe journalism isn’t just about information. It’s about
+							empowering our communities and making a difference. In 2017 Bristol
+							Cable members voted to create lasting change through dogged,
+							creative and impactful campaigning journalism. Since then we have
+							chalked up several wins. Over the past months, Cable members have
+							contributed to planning our next campaign, and it’s now time to
+							vote!
 
-				.poll-action
-					h2.poll-action-title
-						span Not a member?
-					a(href="/join").btn.poll-btn Join now
+				.col-md-6.poll-actions
+					.poll-action
+						h2.poll-action-title
+							span Are you a member?
+						a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
+
+					.poll-action
+						h2.poll-action-title
+							span Not a member?
+						a(href="/join").btn.poll-btn Join now
 
 		.row.poll-random-hand-anchor
 			.col-md-12
@@ -132,16 +168,17 @@ block body
 						p.
 							It’s time we all breathed a little easier.
 
-	.poll-footer
-		.container
-			.row
-				.col-md-6
-					.poll-action
-						h2.poll-action-title
-							span Are you a member?
-						a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
-				.col-md-6
-					.poll-action
-						h2.poll-action-title
-							span Not a member?
-						a(href="/join").btn.poll-btn Join now
+	if !poll.closed
+		.poll-footer
+			.container
+				.row
+					.col-md-6
+						.poll-action
+							h2.poll-action-title
+								span Are you a member?
+							a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
+					.col-md-6
+						.poll-action
+							h2.poll-action-title
+								span Not a member?
+							a(href="/join").btn.poll-btn Join now
