@@ -1,7 +1,7 @@
 const express = require( 'express' );
 const passport = require( 'passport' );
 
-const { isValidNextUrl } = require( __js + '/utils' );
+const { isValidNextUrl, getNextParam } = require( __js + '/utils' );
 
 const app = express();
 var app_config = {};
@@ -26,12 +26,14 @@ app.get( '/' , function( req, res ) {
 	}
 } );
 
-app.post( '/', passport.authenticate( 'totp', {
-	failureFlash: '2fa-invalid',
-	failureRedirect: '/otp'
-} ), function ( req, res ) {
-	req.session.method = 'totp';
-	res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
+app.post( '/',function ( req, res ) {
+	passport.authenticate( 'totp', {
+		failureRedirect: '/otp' + getNextParam( req.query.next ),
+		failureFlash: '2fa-invalid'
+	} )( req, res, () => {
+		req.session.method = 'totp';
+		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
+	} );
 } );
 
 app.get( '/cancel', function( req, res ) {

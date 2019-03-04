@@ -1,3 +1,7 @@
+function isValidNextUrl(url) {
+	return /^\/([^/]|$)/.test(url);
+}
+
 module.exports = {
 	getSubscriptionName(amount, period) {
 		return `Membership: £${amount} ${period}`;
@@ -15,7 +19,8 @@ module.exports = {
 			}
 		};
 	},
-	isValidNextUrl(url) {
-		return /^\/([^/]|$)/.test(url);
+	isValidNextUrl,
+	getNextParam( url ) {
+		return isValidNextUrl( url ) ? '?next=' + encodeURIComponent( url ) : '';
 	}
 };

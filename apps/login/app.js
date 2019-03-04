@@ -2,7 +2,7 @@ const express = require( 'express' );
 const passport = require( 'passport' );
 
 const { Members } = require( __js + '/database' );
-const { isValidNextUrl, wrapAsync } = require ( __js + '/utils' );
+const { isValidNextUrl, getNextParam, wrapAsync } = require ( __js + '/utils' );
 
 const app = express();
 var app_config = {};
@@ -20,8 +20,7 @@ app.get( '/' , function( req, res ) {
 		req.flash( 'warning', 'already-logged-in' );
 		res.redirect( '/profile' );
 	} else {
-		const nextUrl = isValidNextUrl( req.query.next ) ? encodeURIComponent( req.query.next ) : '';
-		res.render( 'index', { nextUrl });
+		res.render( 'index', { nextUrl: getNextParam( req.query.next ) } );
 	}
 } );
 
@@ -48,7 +47,7 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 
 app.post( '/', (req, res) => {
 	passport.authenticate( 'local', {
-		failureRedirect: req.originalUrl,
+		failureRedirect: '/login' + getNextParam( req.query.next ),
 		failureFlash: true
 	} )( req, res, async () => {
 		const user = await Members.findById( req.user );

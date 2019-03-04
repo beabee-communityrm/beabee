@@ -1,14 +1,14 @@
-var config = require( __config ),
-	Options = require( __js + '/options.js' )();
+const crypto = require( 'crypto' );
+const base32 = require( 'thirty-two' );
+const passport = require( 'passport' );
+const LocalStrategy = require( 'passport-local' ).Strategy;
+const TotpStrategy = require( 'passport-totp' ).Strategy;
 
-var { Members } = require( __js + '/database' );
+const config = require( __config );
 
-var passport = require( 'passport' ),
-	LocalStrategy = require( 'passport-local' ).Strategy,
-	TotpStrategy = require( 'passport-totp' ).Strategy;
-
-var crypto = require( 'crypto' ),
-	base32 = require( 'thirty-two' );
+const { Members } = require( __js + '/database' );
+const Options = require( __js + '/options.js' )();
+const { getNextParam } = require( __js + '/utils' );
 
 var Authentication = {
 	auth: function( app ) {
@@ -290,7 +290,7 @@ var Authentication = {
 	},
 
 	handleNotAuthed( status, req, res ) {
-		const nextUrl = req.method === 'GET' ? '?next=' + encodeURIComponent(req.originalUrl) : '';
+		const nextUrl = req.method === 'GET' ? getNextParam(req.originalUrl) : '';
 
 		switch ( status ) {
 		case Authentication.REQUIRES_2FA:
