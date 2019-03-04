@@ -46,18 +46,20 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 	}
 } ) );
 
-app.post( '/', passport.authenticate( 'local', {
-	failureRedirect: '/login',
-	failureFlash: true
-} ), wrapAsync( async function ( req, res ) {
-	const user = await Members.findById( req.user );
-	if ( user ) {
-		req.session.method = 'plain';
-		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
-	} else {
-		res.redirect( '/' );
-	}
-} ) );
+app.post( '/', (req, res) => {
+	passport.authenticate( 'local', {
+		failureRedirect: req.originalUrl,
+		failureFlash: true
+	} )( req, res, async () => {
+		const user = await Members.findById( req.user );
+		if ( user ) {
+			req.session.method = 'plain';
+			res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
+		} else {
+			res.redirect( '/' );
+		}
+	} );
+} );
 
 module.exports = function( config ) {
 	app_config = config;
