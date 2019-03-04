@@ -2,7 +2,7 @@ const express = require( 'express' );
 const passport = require( 'passport' );
 
 const { Members } = require( __js + '/database' );
-const { wrapAsync } = require ( __js + '/utils' );
+const { isValidNextUrl, getNextParam, wrapAsync } = require ( __js + '/utils' );
 
 const app = express();
 var app_config = {};
@@ -20,7 +20,7 @@ app.get( '/' , function( req, res ) {
 		req.flash( 'warning', 'already-logged-in' );
 		res.redirect( '/profile' );
 	} else {
-		res.render( 'index' );
+		res.render( 'index', { nextParam: getNextParam( req.query.next ) } );
 	}
 } );
 
@@ -45,28 +45,15 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 	}
 } ) );
 
-app.post( '/', passport.authenticate( 'local', {
-	failureRedirect: '/login',
-	failureFlash: true,
-	successFlash: true
-} ), wrapAsync( async function ( req, res ) {
-	const user = await Members.findById( req.user );
-	if ( user ) {
+app.post( '/', (req, res) => {
+	passport.authenticate( 'local', {
+		failureRedirect: '/login' + getNextParam( req.query.next ),
+		failureFlash: true
+	} )( req, res, async () => {
 		req.session.method = 'plain';
-		if ( user.otp.activated ) {
-			res.redirect( '/otp' );
-		} else {
-			if ( req.session.requestedUrl ) {
-				res.redirect( req.session.requestedUrl );
-				delete req.session.requestedUrl;
-			} else {
-				res.redirect( '/profile' );
-			}
-		}
-	} else {
-		res.redirect( '/' );
-	}
-} ) );
+		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
+	} );
+} );
 
 module.exports = function( config ) {
 	app_config = config;

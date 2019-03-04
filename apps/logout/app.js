@@ -1,9 +1,9 @@
-var	express = require( 'express' ),
-	app = express();
+const express = require( 'express' );
+
+const app = express();
 
 app.get( '/' , function( req, res ) {
 	delete req.session.method;
-	delete req.session.userSetupShown;
 	req.logout();
 	req.flash( 'success', 'logged-out' );
 	res.redirect( '/' );

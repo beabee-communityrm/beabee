@@ -1,8 +1,9 @@
-var	express = require( 'express' ),
-	app = express();
+const express = require( 'express' );
+const passport = require( 'passport' );
 
-var	passport = require( 'passport' );
+const { isValidNextUrl, getNextParam } = require( __js + '/utils' );
 
+const app = express();
 var app_config = {};
 
 app.set( 'views', __dirname + '/views' );
@@ -21,30 +22,22 @@ app.get( '/' , function( req, res ) {
 		req.flash( 'warning', '2fa-already-complete' );
 		res.redirect( '/profile' );
 	} else {
-		res.locals.userSetup = true;
-		req.session.userSetupShown--;
 		res.render( 'index' );
 	}
 } );
 
-app.post( '/', passport.authenticate( 'totp', {
-	failureFlash: '2fa-invalid',
-	failureRedirect: '/otp'
-} ), function ( req, res ) {
-	req.session.method = 'totp';
-	if ( req.session.requestedUrl ) {
-		res.redirect( req.session.requestedUrl );
-		delete req.session.requestedUrl;
-	} else {
-		res.redirect( '/profile' );
-	}
+app.post( '/',function ( req, res ) {
+	passport.authenticate( 'totp', {
+		failureRedirect: '/otp' + getNextParam( req.query.next ),
+		failureFlash: '2fa-invalid'
+	} )( req, res, () => {
+		req.session.method = 'totp';
+		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
+	} );
 } );
 
 app.get( '/cancel', function( req, res ) {
-	delete req.session.method;
-	delete req.session.userSetupShown;
-	req.logout();
-	res.redirect( '/' );
+	res.redirect( '/logout' );
 } );
 
 module.exports = function( config ) {
