@@ -17,8 +17,7 @@ app.use( function( req, res, next ) {
 
 app.get( '/' , function( req, res ) {
 	if ( req.user ) {
-		req.flash( 'warning', 'already-logged-in' );
-		res.redirect( '/profile' );
+		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
 	} else {
 		res.render( 'index', { nextParam: getNextParam( req.query.next ) } );
 	}
