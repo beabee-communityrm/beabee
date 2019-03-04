@@ -14,5 +14,8 @@ module.exports = {
 				next(error);
 			}
 		};
+	},
+	isValidNextUrl(url) {
+		return /^\/([^/]|$)/.test(url);
 	}
 };

@@ -2,7 +2,7 @@ const express = require( 'express' );
 const passport = require( 'passport' );
 
 const { Members } = require( __js + '/database' );
-const { wrapAsync } = require ( __js + '/utils' );
+const { isValidNextUrl, wrapAsync } = require ( __js + '/utils' );
 
 const app = express();
 var app_config = {};
@@ -20,7 +20,8 @@ app.get( '/' , function( req, res ) {
 		req.flash( 'warning', 'already-logged-in' );
 		res.redirect( '/profile' );
 	} else {
-		res.render( 'index' );
+		const nextUrl = isValidNextUrl( req.query.next ) ? encodeURIComponent( req.query.next ) : '';
+		res.render( 'index', { nextUrl });
 	}
 } );
 
@@ -47,22 +48,12 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 
 app.post( '/', passport.authenticate( 'local', {
 	failureRedirect: '/login',
-	failureFlash: true,
-	successFlash: true
+	failureFlash: true
 } ), wrapAsync( async function ( req, res ) {
 	const user = await Members.findById( req.user );
 	if ( user ) {
 		req.session.method = 'plain';
-		if ( user.otp.activated ) {
-			res.redirect( '/otp' );
-		} else {
-			if ( req.session.requestedUrl ) {
-				res.redirect( req.session.requestedUrl );
-				delete req.session.requestedUrl;
-			} else {
-				res.redirect( '/profile' );
-			}
-		}
+		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
 	} else {
 		res.redirect( '/' );
 	}
