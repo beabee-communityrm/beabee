@@ -20,7 +20,7 @@ app.get( '/' , function( req, res ) {
 		req.flash( 'warning', 'already-logged-in' );
 		res.redirect( '/profile' );
 	} else {
-		res.render( 'index', { nextUrl: getNextParam( req.query.next ) } );
+		res.render( 'index', { nextParam: getNextParam( req.query.next ) } );
 	}
 } );
 
@@ -50,13 +50,8 @@ app.post( '/', (req, res) => {
 		failureRedirect: '/login' + getNextParam( req.query.next ),
 		failureFlash: true
 	} )( req, res, async () => {
-		const user = await Members.findById( req.user );
-		if ( user ) {
-			req.session.method = 'plain';
-			res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
-		} else {
-			res.redirect( '/' );
-		}
+		req.session.method = 'plain';
+		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
 	} );
 } );
 
