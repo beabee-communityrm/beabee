@@ -93,10 +93,6 @@ function templateLocals( req, res, next ) {
 
 	res.locals.isLoggedIn = !!req.user;
 
-	// Delete login redirect URL if user navigates to anything other than the login page
-	if ( req.originalUrl != '/login' && req.originalUrl != '/otp' )
-		delete req.session.requestedUrl;
-
 	// Check if user setup is complete
 	res.locals.setupComplete = true;
 	if ( req.user ) {
