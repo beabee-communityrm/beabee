@@ -1,6 +1,6 @@
 module.exports = {
 	apps : [{
-		name: 'app-deploy',
+		name: 'app',
 		script: './app.js',
 		cwd: '/opt/membership-system/active',
 		out_file: '/var/log/membership-system/app-out.log',
@@ -9,7 +9,7 @@ module.exports = {
 			NODE_ENV: 'production'
 		}
 	}, {
-		name: 'webhook-deploy',
+		name: 'webhook',
 		script:  './webhook.js',
 		cwd: '/opt/membership-system/active',
 		out_file: '/var/log/membership-system/webhook-out.log',
