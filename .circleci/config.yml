@@ -41,7 +41,7 @@ jobs:
 
 workflows:
   version: 2
-  build_then_deploy_live:
+  build_then_deploy-live:
     jobs:
       - build:
           filters:
@@ -50,7 +50,7 @@ workflows:
       - deploy-live:
           requires:
             - build
-  build_then_deploy_dev:
+  build_then_deploy-dev:
     jobs:
       - hold:
           type: approval
