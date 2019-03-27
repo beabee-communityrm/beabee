@@ -42,12 +42,12 @@ workflows:
               only: master
   build_then_deploy_dev:
     jobs:
-      - hold
+      - hold:
           type: approval
-      - build
+      - build:
           requires:
             - hold
-      - deploy
+      - deploy:
           requires:
             - build
 
