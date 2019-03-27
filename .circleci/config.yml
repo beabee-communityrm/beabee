@@ -1,5 +1,20 @@
 version: 2
 
+aliases:
+  deploy: &deploy
+    docker:
+      - image: circleci/node:8.11.3
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: mkdir -p ~/.ssh/
+      - run: echo $SSH_REMOTE_HOSTKEY | base64 --decode >> ~/.ssh/known_hosts
+      - add_ssh_keys:
+          fingerprints:
+            - "71:03:6c:64:dd:99:38:c4:bb:ce:07:de:51:32:51:69"
+      - run: scp /tmp/workspace/build.zip $SSH_REMOTE_HOST:membership-system/$CIRCLE_BUILD_NUM.zip
+      - run: ssh $SSH_REMOTE_HOST "echo $STAGE $CIRCLE_BUILD_NUM >membership-system.pipe"
+
 jobs:
   build:
     docker:
@@ -15,19 +30,14 @@ jobs:
             - build.zip
       - store_artifacts:
           path: build.zip
-  deploy:
-    docker:
-      - image: circleci/node:8.11.3
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: mkdir -p ~/.ssh/
-      - run: echo $SSH_REMOTE_HOSTKEY | base64 --decode >> ~/.ssh/known_hosts
-      - add_ssh_keys:
-          fingerprints:
-            - "71:03:6c:64:dd:99:38:c4:bb:ce:07:de:51:32:51:69"
-      - run: scp /tmp/workspace/build.zip $SSH_REMOTE_HOST:membership-system/$CIRCLE_BUILD_NUM.zip
-      - run: ssh $SSH_REMOTE_HOST "echo $CIRCLE_BUILD_NUM >membership-system.pipe"
+  deploy-live:
+    <<: *deploy
+    environment:
+      STAGE: live
+  deploy-dev:
+    <<: *deploy
+    environment:
+      STAGE: dev
 
 workflows:
   version: 2
@@ -37,7 +47,7 @@ workflows:
           filters:
             branches:
               only: master
-      - deploy:
+      - deploy-live:
           requires:
             - build
   build_then_deploy_dev:
@@ -47,7 +57,7 @@ workflows:
       - build:
           requires:
             - hold
-      - deploy:
+      - deploy-dev:
           requires:
             - build
 
