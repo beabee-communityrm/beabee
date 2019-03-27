@@ -1,3 +1,7 @@
+function isValidNextUrl(url) {
+	return /^\/([^/]|$)/.test(url);
+}
+
 module.exports = {
 	getSubscriptionName(amount, period) {
 		return `Membership: £${amount} ${period}`;
@@ -8,11 +12,15 @@ module.exports = {
 	wrapAsync(fn) {
 		return async (req, res, next) => {
 			try {
-				await fn(req, res);
+				await fn(req, res, next);
 			} catch (error) {
 				req.log.error(error);
 				next(error);
 			}
 		};
+	},
+	isValidNextUrl,
+	getNextParam( url ) {
+		return isValidNextUrl( url ) ? '?next=' + encodeURIComponent( url ) : '';
 	}
 };

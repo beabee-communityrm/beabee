@@ -36,6 +36,17 @@ module.exports =  function( app ) {
 	app.use( passport.initialize() );
 	app.use( passport.session() );
 
+	app.use( ( req, res, next ) => {
+		const uuid = req.user && req.user.uuid || req.cookies.memberId;
+		if ( uuid ) {
+			res.cookie('memberId', uuid, {
+				maxAge: 365 * 24 * 60 * 60 * 1000
+			});
+		}
+
+		next();
+	} );
+
 	// CSRF
 	app.use( function( req, res, next ) {
 		if ( req.url.match( /^\/api/i ) ) {

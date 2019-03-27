@@ -93,18 +93,10 @@ function templateLocals( req, res, next ) {
 
 	res.locals.isLoggedIn = !!req.user;
 
-	// Delete login redirect URL if user navigates to anything other than the login page
-	if ( req.originalUrl != '/login' && req.originalUrl != '/otp' )
-		delete req.session.requestedUrl;
-
 	// Check if user setup is complete
 	res.locals.setupComplete = true;
 	if ( req.user ) {
 		res.locals.setupComplete = req.user.setupComplete;
-		res.cookie('memberId', req.user.uuid, {
-			domain: '.thebristolcable.org',
-			maxAge: 30 * 24 * 60 * 60 * 1000
-		});
 	}
 
 	// Prepare a CSRF token if available

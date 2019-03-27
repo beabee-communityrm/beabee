@@ -1,10 +1,10 @@
 extends /src/views/base.pug
 
 block prepend meta
-	- shareTitle = 'Vote on our next campaign'
-	- shareDescription = 'We believe journalism is more than information. It’s power. And now it’s time to add your voice to create positive change in Bristol.'
+	- shareTitle = 'Results: Bristol Cable members have chosen our next campaign'
+	- shareDescription = 'Almost 600 members have had their say. They\'ve voted for us to campaign for cleaner air for Bristol'
 	- shareUrl = '/polls/campaign2019'
-	- shareImage = 'https://membership.thebristolcable.org/static/imgs/polls/share.png'
+	- shareImage = 'https://membership.thebristolcable.org/static/imgs/polls/share2.png'
 
 block prepend title
 	- title = 'Vote for our next campaign'
@@ -20,31 +20,109 @@ block body
 				span Vote for our next campaign
 	
 	.container
-		.row
-			.col-md-6
-				h2.poll-title.poll-title--orange
-					span Why vote?
-				p
-					img(src='/static/imgs/polls/box.svg').poll-ballot-box
-					.
-						We believe journalism isn’t just about information. It’s about
-						empowering our communities and making a difference. In 2017 Bristol
-						Cable members voted to create lasting change through dogged,
-						creative and impactful campaigning journalism. Since then we have
-						chalked up several wins. Over the past months, Cable members have
-						contributed to planning our next campaign, and it’s now time to
-						vote!
+		if poll.closed
+			.row
+				.col-md-offset-2.col-md-8
+					p.h3.
+						Bristol Cable members voted on what we should campaign for in 2019.
+						From the two options crowd-sourced from members, they chose cleaner
+						air for Bristol.
 
-			.col-md-6.poll-actions
-				.poll-action
-					h2.poll-action-title
-						span Are you a member?
-					a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
+					h2.poll-title.poll-title--orange
+						span The results
 
-				.poll-action
-					h2.poll-action-title
-						span Not a member?
-					a(href="/join").btn.poll-btn Join now
+					.poll-result
+						.poll-result-label
+							b Campaign 1:
+							br
+							| Safer drug use
+						.poll-result-bar
+							.poll-result-bar2(style='background: #456990; width:' + (186/393*100) + '%')
+							span 186 votes
+					.poll-result
+						.poll-result-label
+							b Campaign 2:
+							br
+							| Cleaner air
+						.poll-result-bar
+							.poll-result-bar2(style='background: #49BEAA')
+							span 393 votes
+
+					h2.poll-title.poll-title--orange
+						span What's next
+					p.
+						We will be launching our campaign for cleaner air in Bristol next
+						week.
+					p.
+						You can sign-up to this newsletter to get regular campaign updates
+						and find out how you can help make a difference.
+
+					.row
+						.col-md-8
+							.poll-signup-box
+								h3.poll-title.poll-title--black
+									span Sign up for updates
+
+								form(action="https://thebristolcable.us10.list-manage.com/subscribe/post?u=e7981f19933f6043f21e218d9&amp;id=72da826503" method="post" target="_blank").form-horizontal
+									div(style="padding-bottom: 10px")
+										input(type="email" name="EMAIL" placeholder="email@example.com" required).form-control
+									p
+										button.btn.poll-btn Sign up
+			.row
+				.col-md-offset-2.col-md-8
+					h2.poll-title.poll-title--orange
+						span Why did we do this?
+					p
+						img(src='/static/imgs/polls/box.svg').poll-ballot-box
+						.
+							We believe that journalism is more than information. It’s about
+							empowering people with the knowledge to push for positive change
+							through creative and dogged reporting.
+
+					p.
+						We’re 100% owned by our 2,000+ members on a democratic basis, who
+						can get stuck into working out how we should campaign and on what
+						issues.
+
+					p.
+						Following successful campaigns on
+						#[a(href="https://thebristolcable.org/2017/11/finally-victory-housing-crisis-transparency/") transparency around affordable]
+						housing mass police surveillance, and the council’s use of
+						bailiffs, we turned to members to help shape what we did next.
+
+					p.
+						In September 2018, #[a(href="https://thebristolcable.org/2018/09/september-members-meeting-choosing-our-next-campaign/") members grappled] with the risks and challenges
+						of campaigning journalism, discussed what makes a good campaign and
+						came up with a few options. In January 2019,
+						#[a(href="https://thebristolcable.org/2019/01/vote-for-the-cables-next-campaign-and-push-for-change-in-the-city/") they voted to decide]
+						which campaign to take forwards.
+
+		else
+			.row
+				.col-md-6
+					h2.poll-title.poll-title--orange
+						span Why vote?
+					p
+						img(src='/static/imgs/polls/box.svg').poll-ballot-box
+						.
+							We believe journalism isn’t just about information. It’s about
+							empowering our communities and making a difference. In 2017 Bristol
+							Cable members voted to create lasting change through dogged,
+							creative and impactful campaigning journalism. Since then we have
+							chalked up several wins. Over the past months, Cable members have
+							contributed to planning our next campaign, and it’s now time to
+							vote!
+
+				.col-md-6.poll-actions
+					.poll-action
+						h2.poll-action-title
+							span Are you a member?
+						a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
+
+					.poll-action
+						h2.poll-action-title
+							span Not a member?
+						a(href="/join").btn.poll-btn Join now
 
 		.row.poll-random-hand-anchor
 			.col-md-12
@@ -132,16 +210,17 @@ block body
 						p.
 							It’s time we all breathed a little easier.
 
-	.poll-footer
-		.container
-			.row
-				.col-md-6
-					.poll-action
-						h2.poll-action-title
-							span Are you a member?
-						a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
-				.col-md-6
-					.poll-action
-						h2.poll-action-title
-							span Not a member?
-						a(href="/join").btn.poll-btn Join now
+	if !poll.closed
+		.poll-footer
+			.container
+				.row
+					.col-md-6
+						.poll-action
+							h2.poll-action-title
+								span Are you a member?
+							a(href="/login?next=/polls/campaign2019").btn.poll-btn Vote now
+					.col-md-6
+						.poll-action
+							h2.poll-action-title
+								span Not a member?
+							a(href="/join").btn.poll-btn Join now

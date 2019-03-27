@@ -1,14 +1,14 @@
-var config = require( __config ),
-	Options = require( __js + '/options.js' )();
+const crypto = require( 'crypto' );
+const base32 = require( 'thirty-two' );
+const passport = require( 'passport' );
+const LocalStrategy = require( 'passport-local' ).Strategy;
+const TotpStrategy = require( 'passport-totp' ).Strategy;
 
-var { Members } = require( __js + '/database' );
+const config = require( __config );
 
-var passport = require( 'passport' ),
-	LocalStrategy = require( 'passport-local' ).Strategy,
-	TotpStrategy = require( 'passport-totp' ).Strategy;
-
-var crypto = require( 'crypto' ),
-	base32 = require( 'thirty-two' );
+const { Members } = require( __js + '/database' );
+const Options = require( __js + '/options.js' )();
+const { getNextParam } = require( __js + '/utils' );
 
 var Authentication = {
 	auth: function( app ) {
@@ -289,21 +289,29 @@ var Authentication = {
 		return false;
 	},
 
+	handleNotAuthed( status, req, res ) {
+		const nextUrl = req.method === 'GET' ? getNextParam(req.originalUrl) : '';
+
+		switch ( status ) {
+		case Authentication.REQUIRES_2FA:
+			res.redirect( '/otp' + nextUrl );
+			return;
+		default:
+			req.flash( 'error', 'login-required' );
+			res.redirect( '/login' + nextUrl );
+			return;
+		}
+	},
+
 	// Express middleware to redirect logged out users
 	isLoggedIn: function( req, res, next ) {
-		var status = Authentication.loggedIn( req );
+		const status = Authentication.loggedIn( req );
+
 		switch ( status ) {
 		case Authentication.LOGGED_IN:
 			return next();
-		case Authentication.REQUIRES_2FA:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			res.redirect( '/otp' );
-			return;
 		default:
-		case Authentication.NOT_LOGGED_IN:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			req.flash( 'error', 'login-required' );
-			res.redirect( '/login' );
+			Authentication.handleNotAuthed( status, req, res );
 			return;
 		}
 	},
@@ -330,16 +338,8 @@ var Authentication = {
 			req.flash( 'warning', 'inactive-membership' );
 			res.redirect( '/profile' );
 			return;
-		case Authentication.REQUIRES_2FA:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			req.flash( 'warning', '2fa-required' );
-			res.redirect( '/otp' );
-			return;
 		default:
-		case Authentication.NOT_LOGGED_IN:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			req.flash( 'error', 'login-required' );
-			res.redirect( '/login' );
+			Authentication.handleNotAuthed( status, req, res );
 			return;
 		}
 	},
@@ -350,24 +350,12 @@ var Authentication = {
 		switch ( status ) {
 		case Authentication.LOGGED_IN:
 			return next();
-		case Authentication.NOT_MEMBER:
-			req.flash( 'warning', 'inactive-membership' );
-			res.redirect( '/profile' );
-			return;
 		case Authentication.NOT_ADMIN:
 			req.flash( 'warning', '403' );
 			res.redirect( '/profile' );
 			return;
-		case Authentication.REQUIRES_2FA:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			req.flash( 'warning', '2fa-required' );
-			res.redirect( '/otp' );
-			return;
 		default:
-		case Authentication.NOT_LOGGED_IN:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			req.flash( 'error', 'login-required' );
-			res.redirect( '/login' );
+			Authentication.handleNotAuthed( status, req, res );
 			return;
 		}
 	},
@@ -378,24 +366,12 @@ var Authentication = {
 		switch ( status ) {
 		case Authentication.LOGGED_IN:
 			return next();
-		case Authentication.NOT_MEMBER:
-			req.flash( 'warning', 'inactive-membership' );
-			res.redirect( '/profile' );
-			return;
 		case Authentication.NOT_ADMIN:
 			req.flash( 'warning', '403' );
 			res.redirect( '/profile' );
 			return;
-		case Authentication.REQUIRES_2FA:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			req.flash( 'warning', '2fa-required' );
-			res.redirect( '/otp' );
-			return;
 		default:
-		case Authentication.NOT_LOGGED_IN:
-			if ( req.method == 'GET' ) req.session.requestedUrl = req.originalUrl;
-			req.flash( 'error', 'login-required' );
-			res.redirect( '/login' );
+			Authentication.handleNotAuthed( status, req, res );
 			return;
 		}
 	},

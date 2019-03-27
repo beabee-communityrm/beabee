@@ -42,7 +42,7 @@ app.use( helmet() );
 // Handle authentication
 require( __js + '/authentication' ).auth( app );
 
-// Setup static route
+// Setup static route (only used on dev)
 app.use( '/static', express.static( __root + '/static' ) );
 
 // Handle sessions
@@ -59,6 +59,32 @@ app.set( 'view cache', false );
 
 // Load apps
 app_loader( app );
+
+// Setup tracker
+app.use( '/membership.js', (req, res) => {
+	const memberId = req.cookies.memberId;
+	res.set('Content-Type', 'application/javascript');
+	if (memberId) {
+		res.send('window.Membership = {memberId: "' + memberId + '"}');
+	} else {
+		res.send('window.Membership = {}');
+	}
+});
+
+// Error 404
+app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars
+	res.status( 404 );
+	res.render( '404' );
+} );
+
+// Error 500
+app.use( function ( err, req, res, next ) { // eslint-disable-line no-unused-vars
+	res.status( 500 );
+	res.render( '500', { error: ( config.dev ? err.stack : undefined ) } );
+	req.log.error({
+		error: err
+	});
+} );
 
 // Start server
 var server = app.listen( config.port ,config.host, function () {

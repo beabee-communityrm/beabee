@@ -140,7 +140,7 @@ module.exports = {
 	installMiddleware: function (app) {
 		app.use( bunyanMiddleware( {
 			logger: logger,
-			filter: req => req.url.startsWith('/static')
+			filter: req => req.url.startsWith('/static') || req.url === '/membership.js'
 		} ) );
 		app.use( loggingMiddleware );
 	},
