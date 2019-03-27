@@ -33,13 +33,13 @@ workflows:
   version: 2
   build_then_deploy_live:
     jobs:
-      - build
-      - deploy:
-          requires:
-            - build
+      - build:
           filters:
             branches:
               only: master
+      - deploy:
+          requires:
+            - build
   build_then_deploy_dev:
     jobs:
       - hold:
