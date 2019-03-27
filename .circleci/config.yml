@@ -31,7 +31,7 @@ jobs:
 
 workflows:
   version: 2
-  build_then_deploy:
+  build_then_deploy_live:
     jobs:
       - build
       - deploy:
@@ -39,5 +39,15 @@ workflows:
             - build
           filters:
             branches:
-              only: wpf-circleci
+              only: master
+  build_then_deploy_dev:
+    jobs:
+      - hold
+          type: approval
+      - build
+          requires:
+            - hold
+      - deploy
+          requires:
+            - build
 
