@@ -23,7 +23,7 @@ jobs:
       - checkout
       - run: npm install
       - run: npm run build
-      - run: zip -r build app.js apps/ config/ static/ src/ webhook.js webhook-utils.js package*.json node_modules
+      - run: zip -r build app.js apps/ config/ static/ src/ tools/ webhook.js webhook-utils.js package*.json node_modules
       - persist_to_workspace:
           root: .
           paths:
