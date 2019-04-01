@@ -31,9 +31,7 @@ function memberToOperation(listId, member) {
 			merge_fields: {
 				FNAME: member.firstname,
 				LNAME: member.lastname,
-				REFLINK: member.referralLink,
-				CMPGN2019: member.campaign2019Answer,
-				VOTELINK: member.voteLink
+				REFLINK: member.referralLink
 			},
 			status_if_new: 'subscribed'
 		})
