@@ -18,8 +18,13 @@ function isActiveSubscription(subscription) {
 	return subscription.status === 'active';
 }
 
-function isSuccessfulPayment(payment) {
+function isConfirmedPayment(payment) {
 	return ['confirmed', 'paid_out'].indexOf(payment.status) > -1;
+}
+
+function isNotFailedPayment(payment) {
+	return ['pending_submission', 'submitted'].indexOf(payment.status) > -1 ||
+		isConfirmedPayment(payment);
 }
 
 // Heavy lifting methods
@@ -123,7 +128,7 @@ function filterCustomers(customers) {
 }
 
 function getMembershipInfo(customer) {
-	const successfulPayments = customer.payments.filter(isSuccessfulPayment);
+	const successfulPayments = customer.payments.filter(isConfirmedPayment);
 	const latestPayment =
 		getLatestRecord(successfulPayments.length > 0 ? successfulPayments : customer.payments);
 	const latestSubscription = getLatestRecord(customer.subscriptions);
@@ -138,15 +143,24 @@ function getMembershipInfo(customer) {
 	}
 
 	function getStartDate() {
-		const subscription = isSuccessfulPayment(latestPayment) ?
+		const subscription = isConfirmedPayment(latestPayment) ?
 			latestPayment.subscription : latestSubscription;
 		return moment.utc(subscription.created_at);
 	}
 
 	function getExpiryDate() {
-		return isSuccessfulPayment(latestPayment) ?
-			moment.utc(latestPayment.charge_date).add(getSubscriptionDuration(latestPayment.subscription)) :
-			moment.utc(latestSubscription.start_date);
+		const activeSubscription = customer.latestActiveSubscription;
+
+		// Use active subscriptions next payment date, unless it's last payment
+		// was a failure
+		if (activeSubscription &&
+				(!activeSubscription.payments[0] || isNotFailedPayment(activeSubscription.payments[0]))) {
+			return moment.utc(activeSubscription.upcoming_payments[0].charge_date);
+		} else if (isConfirmedPayment(latestPayment)) {
+			return moment.utc(latestPayment.charge_date).add(getSubscriptionDuration(latestPayment.subscription));
+		} else {
+			return moment.utc(latestSubscription.start_date);
+		}
 	}
 
 	function getPendingUpdate() {
