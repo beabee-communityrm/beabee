@@ -5,6 +5,7 @@ global.__js = __root + '/src/js';
 global.__models = __root + '/src/models';
 
 const fs = require('fs');
+const _ = require('lodash');
 const moment = require('moment');
 
 const config = require(__config);
@@ -13,6 +14,22 @@ const db = require(__js + '/database').connect(config.mongo);
 const utils = require('./sync-utils.js');
 const { keyBy } = require('../utils');
 const { createPayment, getSubscriptionPeriod } = require('../../webhook-utils.js');
+
+function checkAndLogUpdates(doc, updates) {
+	let hasUpdates = _(updates)
+		.toPairs()
+		.map(([key, value]) => {
+			if (_.isEqual(doc[key], value)) {
+				return false;
+			} else {
+				console.log(`Updating ${key}: ${doc[key]} -> ${value}`);
+				return true;
+			}
+		})
+		.some();
+
+	return hasUpdates;
+}
 
 async function loadData(file) {
 	console.log( '# Loading data from file...' );
@@ -34,7 +51,7 @@ function processCustomers(customers) {
 	return validCustomers;
 }
 
-async function syncCustomers(validCustomers) {
+async function syncCustomers(dryRun, validCustomers) {
 	console.log('# Syncing with database');
 
 	const permission = await db.Permissions.findOne({slug: 'member'});
@@ -44,7 +61,9 @@ async function syncCustomers(validCustomers) {
 
 	const membersByCustomerId = keyBy(members, m => m.gocardless.customer_id);
 
-	await db.Payments.deleteMany({});
+	if (!dryRun) {
+		await db.Payments.deleteMany({});
+	}
 
 	let created = 0, updated = 0, payments = [];
 
@@ -65,26 +84,35 @@ async function syncCustomers(validCustomers) {
 			const expires = membershipInfo.expires.add(config.gracePeriod).toDate();
 
 			if (member) {
-				// TODO: check if it needs updating
-				member.gocardless = gocardless;
-				member.memberPermission.date_added = membershipInfo.starts.toDate();
-				member.memberPermission.date_expires = expires;
-				await member.save();
-
-				updated++;
-			} else {
-				member = await db.Members.create({
-					firstname: customer.given_name,
-					lastname: customer.family_name,
-					email: customer.email,
-					joined: moment(customer.created_at).toDate(),
+				const memberUpdates = {
 					gocardless,
-					permissions: [{
-						permission,
-						date_added: membershipInfo.starts.toDate(),
-						date_expires: expires
-					}]
-				});
+					'memberPermission.date_added': membershipInfo.starts.toDate(),
+					'memberPermission.date_expires': expires
+				};
+
+				if (checkAndLogUpdates(member, memberUpdates)) {
+					if (!dryRun) {
+						await member.update(memberUpdates);
+					}
+					updated++;
+				}
+
+			} else {
+				if (!dryRun) {
+					member = await db.Members.create({
+						firstname: customer.given_name,
+						lastname: customer.family_name,
+						email: customer.email,
+						joined: moment(customer.created_at).toDate(),
+						gocardless,
+						permissions: [{
+							permission,
+							date_added: membershipInfo.starts.toDate(),
+							date_expires: expires
+						}]
+					});
+				}
+				console.log('Created new member', customer.email);
 				created++;
 			}
 
@@ -109,16 +137,21 @@ async function syncCustomers(validCustomers) {
 	}
 
 	console.log('Inserting', payments.length, 'payments');
-	for (let i = 0; i < payments.length; i += 1000) {
-		await db.Payments.collection.insertMany(payments.slice(i, i + 1000), {ordered: false});
+	if (!dryRun) {
+		for (let i = 0; i < payments.length; i += 1000) {
+			await db.Payments.collection.insertMany(payments.slice(i, i + 1000), {ordered: false});
+		}
 	}
 }
 
 console.log( 'Starting...' );
 
-loadData(process.argv[2])
+const dryRun = process.argv[2] === '-n';
+const dataFile = process.argv[dryRun ? 3 : 2];
+
+loadData(dataFile)
 	.then(processCustomers)
-	.then(syncCustomers)
+	.then(syncCustomers.bind(null, dryRun))
 	.catch(error => {
 		console.error(error);
 	})
