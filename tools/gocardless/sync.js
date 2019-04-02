@@ -49,7 +49,7 @@ async function syncCustomers(dryRun, validCustomers) {
 		await db.Payments.deleteMany({});
 	}
 
-	let created = 0, updated = 0, payments = [];
+	let created = 0, updated = 0, ignored = 0, payments = [];
 
 	for (let customer of validCustomers) {
 		try {
@@ -65,20 +65,32 @@ async function syncCustomers(dryRun, validCustomers) {
 				created++;
 			}
 
-			console.log('Updating member', member._id);
-
 			utils.customerToMemberUpdates(customer, config.gracePeriod).forEach(([key, value]) => {
-				if (!_.isEqual(member[key], value)) {
-					console.log(`Updating ${key}: ${member[key]} -> ${value}`);
-					member[key] = value;
+				// Get around accessing virtual properties and having subdocuments
+				let oldValue = _.get(member, key);
+				if (oldValue.toObject) oldValue = oldValue.toObject();
+
+				if (!_.isEqual(oldValue, value)) {
+					console.log('Updating', key);
+					console.log(JSON.stringify(oldValue), '->', JSON.stringify(value));
+
+					// Set virtual properties correctly
+					const keyParts = key.split('.');
+					const obj = _.initial(keyParts).reduce((a, p) => a[p], member);
+					obj[_.last(keyParts)] = value;
 				}
 			});
 
 			if (member.isModified()) {
+				console.log('Updating member', member.email);
+				console.log();
+
 				if (!dryRun) {
 					await member.save();
 				}
 				updated++;
+			} else {
+				ignored++;
 			}
 
 			payments = [...payments, ...customer.payments.map(payment => ({
@@ -89,12 +101,12 @@ async function syncCustomers(dryRun, validCustomers) {
 
 			delete membersByCustomerId[customer.id];
 		} catch (error) {
-			console.log(customer.id, error.message);
+			console.log(customer.id, error);
 		}
 	}
 
 	console.log('Created', created, 'members');
-	console.log('Updated', updated, 'members');
+	console.log('Updated', updated, 'members, ignored', ignored);
 
 	for (const customerId in membersByCustomerId) {
 		const member = membersByCustomerId[customerId];
@@ -111,8 +123,12 @@ async function syncCustomers(dryRun, validCustomers) {
 
 console.log( 'Starting...' );
 
-const dryRun = process.argv[2] === '-n';
-const dataFile = process.argv[dryRun ? 3 : 2];
+const dryRun = process.argv[2] !== '--danger';
+const dataFile = process.argv[dryRun ? 2 : 3];
+
+if (!dryRun) {
+	console.log('THIS IS NOT A DRY RUN');
+}
 
 loadData(dataFile)
 	.then(processCustomers)
