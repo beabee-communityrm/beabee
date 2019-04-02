@@ -135,7 +135,7 @@ async function startMembership(member, {
 		member.gocardless.period = period;
 		member.memberPermission = {
 			date_added: new Date(),
-			date_expires: moment.utc(subscription.start_date).add(config.gracePeriod).toDate()
+			date_expires: moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod).toDate()
 		};
 		await member.save();
 
