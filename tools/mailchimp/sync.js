@@ -64,13 +64,9 @@ async function fetchMembers(startDate, endDate) {
 		}}
 	});
 
-	const answers = await db.PollAnswers.find({});
-
 	console.log(`Got ${members.length} members`);
 
 	return members.map(member => {
-		const campaign2019Answer = (answers.find(answer => answer.member.equals(member._id)) || {}).answer || '';
-
 		console.log(member.isActiveMember ? 'U' : 'D', member.email);
 
 		return {
@@ -78,9 +74,7 @@ async function fetchMembers(startDate, endDate) {
 			lastname: member.lastname,
 			email: member.email,
 			referralLink: member.referralLink,
-			isActiveMember: member.isActiveMember,
-			campaign2019Answer,
-			voteLink: member.voteLink
+			isActiveMember: member.isActiveMember
 		};
 	});
 }
