@@ -60,7 +60,8 @@ async function syncCustomers(dryRun, validCustomers) {
 					firstname: customer.given_name,
 					lastname: customer.family_name,
 					email: customer.email,
-					joined: moment(customer.created_at).toDate()
+					joined: moment(customer.created_at).toDate(),
+					permissions: [{permission}]
 				});
 				created++;
 			}
@@ -68,7 +69,7 @@ async function syncCustomers(dryRun, validCustomers) {
 			utils.customerToMemberUpdates(customer, config.gracePeriod).forEach(([key, value]) => {
 				// Get around accessing virtual properties and having subdocuments
 				let oldValue = _.get(member, key);
-				if (oldValue.toObject) oldValue = oldValue.toObject();
+				if (oldValue && oldValue.toObject) oldValue = oldValue.toObject();
 
 				if (!_.isEqual(oldValue, value)) {
 					console.log('Updating', key);
