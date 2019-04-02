@@ -161,13 +161,13 @@ async function updatePayment( gcPayment, payment ) {
 async function confirmPayment( payment ) {
 	if ( payment.member && payment.subscription_id ) {
 		const subscription = await gocardless.subscriptions.get(payment.subscription_id);
-		const expiryDate = moment.utc(payment.charge_date)
-			.add(utils.getSubscriptionDuration(subscription))
-			.add(config.gracePeriod);
+		const expiryDate = subscription.upcoming_payments.length > 0 ?
+			moment.utc(subscription.upcoming_payments[0].charge_date) :
+			moment.utc(payment.charge_date).add(utils.getSubscriptionDuration(subscription));
 
 		const member = await Members.findOne( { _id: payment.member } );
 		if (member.memberPermission) {
-			member.memberPermission.date_expires = expiryDate.toDate();
+			member.memberPermission.date_expires = expiryDate.add(config.gracePeriod).toDate();
 			await member.save();
 
 			log.info( {

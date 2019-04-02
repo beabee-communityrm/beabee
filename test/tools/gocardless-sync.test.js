@@ -106,7 +106,7 @@ test('Membership info', t => {
 		amount: 3,
 		period: 'monthly',
 		starts: moment.utc('2017-10-13T15:55:06.730Z'),
-		expires: moment.utc('2018-06-19')
+		expires: moment.utc('2018-06-20')
 	});
 
 	testMembershipInfo(successfulAndFailedPayment, {
@@ -120,7 +120,7 @@ test('Membership info', t => {
 		amount: 1,
 		period: 'annually',
 		starts: moment.utc('2017-02-24T11:11:23.189Z'),
-		expires: moment.utc('2019-03-04')
+		expires: moment.utc('2019-03-03')
 	});
 
 	testMembershipInfo(cancelledSubscription, {
@@ -161,6 +161,6 @@ test('Membership info with pending updates', t => {
 		amount: 4,
 		period: 'monthly',
 		starts: moment.utc('2017-09-19T05:40:54.359Z'),
-		expires: moment.utc('2018-06-24')
+		expires: moment.utc('2018-06-23')
 	});
 });

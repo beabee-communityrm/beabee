@@ -5,6 +5,7 @@ global.__js = __root + '/src/js';
 global.__models = __root + '/src/models';
 
 const fs = require('fs');
+const _ = require('lodash');
 const moment = require('moment');
 
 const config = require(__config);
@@ -34,7 +35,7 @@ function processCustomers(customers) {
 	return validCustomers;
 }
 
-async function syncCustomers(validCustomers) {
+async function syncCustomers(dryRun, validCustomers) {
 	console.log('# Syncing with database');
 
 	const permission = await db.Permissions.findOne({slug: 'member'});
@@ -44,48 +45,53 @@ async function syncCustomers(validCustomers) {
 
 	const membersByCustomerId = keyBy(members, m => m.gocardless.customer_id);
 
-	await db.Payments.deleteMany({});
+	if (!dryRun) {
+		await db.Payments.deleteMany({});
+	}
 
-	let created = 0, updated = 0, payments = [];
+	let created = 0, updated = 0, ignored = 0, payments = [];
 
 	for (let customer of validCustomers) {
 		try {
 			let member = membersByCustomerId[customer.id];
-			const membershipInfo = utils.getMembershipInfo(customer);
-
-			const gocardless = {
-				amount: membershipInfo.amount,
-				period: membershipInfo.period,
-				customer_id: customer.id,
-				...customer.latestActiveMandate && {mandate_id: customer.latestActiveMandate.id},
-				...customer.latestActiveSubscription && {subscription_id: customer.latestActiveSubscription.id},
-				...membershipInfo.cancelledAt && {cancelled_at: membershipInfo.cancelledAt.toDate()}
-			};
-
-			const expires = membershipInfo.expires.add(config.gracePeriod).toDate();
-
-			if (member) {
-				// TODO: check if it needs updating
-				member.gocardless = gocardless;
-				member.memberPermission.date_added = membershipInfo.starts.toDate();
-				member.memberPermission.date_expires = expires;
-				await member.save();
-
-				updated++;
-			} else {
-				member = await db.Members.create({
+			if (!member) {
+				console.log('Creating new member', customer.email);
+				member = db.Members({
 					firstname: customer.given_name,
 					lastname: customer.family_name,
 					email: customer.email,
 					joined: moment(customer.created_at).toDate(),
-					gocardless,
-					permissions: [{
-						permission,
-						date_added: membershipInfo.starts.toDate(),
-						date_expires: expires
-					}]
+					permissions: [{permission}]
 				});
 				created++;
+			}
+
+			utils.customerToMemberUpdates(customer, config.gracePeriod).forEach(([key, value]) => {
+				// Get around accessing virtual properties and having subdocuments
+				let oldValue = _.get(member, key);
+				if (oldValue && oldValue.toObject) oldValue = oldValue.toObject();
+
+				if (!_.isEqual(oldValue, value)) {
+					console.log('Updating', key);
+					console.log(JSON.stringify(oldValue), '->', JSON.stringify(value));
+
+					// Set virtual properties correctly
+					const keyParts = key.split('.');
+					const obj = _.initial(keyParts).reduce((a, p) => a[p], member);
+					obj[_.last(keyParts)] = value;
+				}
+			});
+
+			if (member.isModified()) {
+				console.log('Updating member', member.email);
+				console.log();
+
+				if (!dryRun) {
+					await member.save();
+				}
+				updated++;
+			} else {
+				ignored++;
 			}
 
 			payments = [...payments, ...customer.payments.map(payment => ({
@@ -96,12 +102,12 @@ async function syncCustomers(validCustomers) {
 
 			delete membersByCustomerId[customer.id];
 		} catch (error) {
-			console.log(customer.id, error.message);
+			console.log(customer.id, error);
 		}
 	}
 
 	console.log('Created', created, 'members');
-	console.log('Updated', updated, 'members');
+	console.log('Updated', updated, 'members, ignored', ignored);
 
 	for (const customerId in membersByCustomerId) {
 		const member = membersByCustomerId[customerId];
@@ -109,16 +115,25 @@ async function syncCustomers(validCustomers) {
 	}
 
 	console.log('Inserting', payments.length, 'payments');
-	for (let i = 0; i < payments.length; i += 1000) {
-		await db.Payments.collection.insertMany(payments.slice(i, i + 1000), {ordered: false});
+	if (!dryRun) {
+		for (let i = 0; i < payments.length; i += 1000) {
+			await db.Payments.collection.insertMany(payments.slice(i, i + 1000), {ordered: false});
+		}
 	}
 }
 
 console.log( 'Starting...' );
 
-loadData(process.argv[2])
+const dryRun = process.argv[2] !== '--danger';
+const dataFile = process.argv[dryRun ? 2 : 3];
+
+if (!dryRun) {
+	console.log('THIS IS NOT A DRY RUN');
+}
+
+loadData(dataFile)
 	.then(processCustomers)
-	.then(syncCustomers)
+	.then(syncCustomers.bind(null, dryRun))
 	.catch(error => {
 		console.error(error);
 	})
