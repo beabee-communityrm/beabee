@@ -189,8 +189,26 @@ function getMembershipInfo(customer) {
 	};
 }
 
+function customerToMemberUpdates(customer, gracePeriod) {
+	const membershipInfo = getMembershipInfo(customer);
+
+	return [
+		'memberPermission.date_added', membershipInfo.starts.toDate(),
+		'memberPermission.date_expires', membershipInfo.expires.add(gracePeriod).toDate(),
+		'gocardless', {
+			amount: membershipInfo.amount,
+			period: membershipInfo.period,
+			customer_id: customer.id,
+			...customer.latestActiveMandate && {mandate_id: customer.latestActiveMandate.id},
+			...customer.latestActiveSubscription && {subscription_id: customer.latestActiveSubscription.id},
+			...membershipInfo.cancelledAt && {cancelled_at: membershipInfo.cancelledAt.toDate()}
+		}
+	];
+}
+
 module.exports = {
 	mergeData,
 	filterCustomers,
-	getMembershipInfo
+	getMembershipInfo,
+	customerToMemberUpdates
 };

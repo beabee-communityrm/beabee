@@ -15,22 +15,6 @@ const utils = require('./sync-utils.js');
 const { keyBy } = require('../utils');
 const { createPayment, getSubscriptionPeriod } = require('../../webhook-utils.js');
 
-function checkAndLogUpdates(doc, updates) {
-	let hasUpdates = _(updates)
-		.toPairs()
-		.map(([key, value]) => {
-			if (_.isEqual(doc[key], value)) {
-				return false;
-			} else {
-				console.log(`Updating ${key}: ${doc[key]} -> ${value}`);
-				return true;
-			}
-		})
-		.some();
-
-	return hasUpdates;
-}
-
 async function loadData(file) {
 	console.log( '# Loading data from file...' );
 	const data = JSON.parse(fs.readFileSync(file));
@@ -70,50 +54,31 @@ async function syncCustomers(dryRun, validCustomers) {
 	for (let customer of validCustomers) {
 		try {
 			let member = membersByCustomerId[customer.id];
-			const membershipInfo = utils.getMembershipInfo(customer);
-
-			const gocardless = {
-				amount: membershipInfo.amount,
-				period: membershipInfo.period,
-				customer_id: customer.id,
-				...customer.latestActiveMandate && {mandate_id: customer.latestActiveMandate.id},
-				...customer.latestActiveSubscription && {subscription_id: customer.latestActiveSubscription.id},
-				...membershipInfo.cancelledAt && {cancelled_at: membershipInfo.cancelledAt.toDate()}
-			};
-
-			const expires = membershipInfo.expires.add(config.gracePeriod).toDate();
-
-			if (member) {
-				const memberUpdates = {
-					gocardless,
-					'memberPermission.date_added': membershipInfo.starts.toDate(),
-					'memberPermission.date_expires': expires
-				};
-
-				if (checkAndLogUpdates(member, memberUpdates)) {
-					if (!dryRun) {
-						await member.update(memberUpdates);
-					}
-					updated++;
-				}
-
-			} else {
-				if (!dryRun) {
-					member = await db.Members.create({
-						firstname: customer.given_name,
-						lastname: customer.family_name,
-						email: customer.email,
-						joined: moment(customer.created_at).toDate(),
-						gocardless,
-						permissions: [{
-							permission,
-							date_added: membershipInfo.starts.toDate(),
-							date_expires: expires
-						}]
-					});
-				}
-				console.log('Created new member', customer.email);
+			if (!member) {
+				console.log('Creating new member', customer.email);
+				member = db.Members({
+					firstname: customer.given_name,
+					lastname: customer.family_name,
+					email: customer.email,
+					joined: moment(customer.created_at).toDate()
+				});
 				created++;
+			}
+
+			console.log('Updating member', member._id);
+
+			utils.customerToMemberUpdates(customer, config.gracePeriod).forEach(([key, value]) => {
+				if (!_.isEqual(member[key], value)) {
+					console.log(`Updating ${key}: ${member[key]} -> ${value}`);
+					member[key] = value;
+				}
+			});
+
+			if (member.isModified()) {
+				if (!dryRun) {
+					await member.save();
+				}
+				updated++;
 			}
 
 			payments = [...payments, ...customer.payments.map(payment => ({
