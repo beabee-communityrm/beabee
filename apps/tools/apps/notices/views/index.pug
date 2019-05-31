@@ -1,0 +1,47 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Notices'
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Notices')
+
+			each notice in notices
+				h4= notice.name
+
+	.row
+		.col-md-8
+			h3 Create a new notice
+
+			form(method='POST').form-horizontal
+				+csrf
+				.form-group
+					label(for='name').control-label.col-md-3 Name
+					.col-md-6
+						input(type='text' name='name')#name.form-control
+				.form-group
+					label(for='expires').control-label.col-md-3 Expires
+					.col-md-3
+						input(type='date', name='expiresDate')#expires.form-control
+					.col-md-3
+						input(type='time', name='expiresTime').form-control
+				.form-group
+					label(for='text').control-label.col-md-3 Text
+					.col-md-9
+						input(type='text' name='text')#text.form-control
+				.form-group
+					label(for='url').control-label.col-md-3 Link
+					.col-md-9
+						input(type='text' name='url')#url.form-control
+				.form-group
+					.col-md-offset-3.col-md-6
+						label.checkbox-inline
+							input(type='checkbox' name='enabled' value='true')
+							| Enable notice immediately?
+
+				.form-group
+					.col-md-6.col-md-offset-3
+						button.btn.btn-primary Create notice
+

@@ -179,6 +179,17 @@ module.exports = {
 				type: String,
 				required: true
 			}
+		} ],
+		notices: [ {
+			notice_id: {
+				type: ObjectId,
+				ref: 'Notices',
+				required: true
+			},
+			status: {
+				type: String,
+				required: true
+			}
 		} ]
 	} )
 };
