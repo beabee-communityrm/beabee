@@ -381,4 +381,8 @@ dd {
 a.alert {
 	display: block;
 	color: white;
+
+	&:not([href]) {
+		text-decoration: none;
+	}
 }

@@ -109,6 +109,10 @@
 	"flash-exports-deleted": "Export deleted",
 	"flash-exports-ineligible": "Member is not eligible to be in this export.",
 
+	"flash-notices-created": "Notice created",
+	"flash-notices-updated": "Notice updated",
+	"flash-notices-deleted": "Notice deleted",
+
 	"flash-transactional-email-created": "Transactional email created",
 	"flash-transactional-email-sending": "Transactional email is sending!",
 	"flash-transactional-email-deleted": "Transactional email deleted",
@@ -136,5 +140,6 @@
 
 	"flash-validation-error.email-format": "Email was invalid",
 	"flash-validation-error.postcode-format": "Postcode was invalid",
-	"flash-validation-error.password-format": "Password must be at least 8 characters and with at least one number, lower and upper case letter"
+	"flash-validation-error.password-format": "Password must be at least 8 characters and with at least one number, lower and upper case letter",
+	"flash-validation-error.url-format": "URL was invalid"
 }

@@ -2,6 +2,8 @@ const express = require( 'express' );
 const moment = require( 'moment' );
 
 const auth = require( __js + '/authentication' );
+const { Notices } = require( __js + '/database' );
+const { wrapAsync } = require( __js + '/utils' );
 
 const app = express();
 var app_config = {};
@@ -32,9 +34,10 @@ app.use( function( req, res, next ) {
 	}
 } );
 
-app.get( '/', function( req, res ) {
-	res.render( 'profile', { user: req.user } );
-} );
+app.get( '/', wrapAsync( async ( req, res ) => {
+	const notices = await Notices.find( { enabled: true } ); // TODO: filter for expires
+	res.render( 'profile', { user: req.user, notices } );
+} ) );
 
 module.exports = function( config ) {
 	app_config = config;
