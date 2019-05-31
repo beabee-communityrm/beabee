@@ -1,0 +1,9 @@
+{
+	"title": "Notices",
+	"path": "notices",
+	"permissions": [
+		"superadmin", "admin"
+	],
+	"menu": "main",
+	"priority": 3
+}
