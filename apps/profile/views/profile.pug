@@ -17,7 +17,7 @@ block contents
 
 				each notice in notices
 					if notice.active
-						a(href=notice.url || false).alert.alert-success= notice.text
+						a(href=notice.url || false).alert.alert-success!= notice.text
 
 				p Welcome to your new online Cable membership.
 				p From here you can manage all your account details.
