@@ -36,12 +36,11 @@ function schemaToNotice( data ) {
 
 	const expires = expiresDate && expiresTime && moment.utc(`${expiresDate}T${expiresTime}`);
 
-	return { name, expires, text, url, enabled };
+	return { name, expires, text, url, enabled: !!enabled };
 }
 
 app.post( '/', hasSchema( createNoticeSchema ).orFlash, wrapAsync( async ( req, res ) => {
 	const notice = await Notices.create( schemaToNotice( req.body ) );
-
 	req.flash('success', 'notices-created');
 	res.redirect('/tools/notices/' + notice._id);
 } ) );

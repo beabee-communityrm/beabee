@@ -9,7 +9,8 @@ block contents
 			+page_header('Notices')
 
 			each notice in notices
-				h4= notice.name
+				h4
+					a(href='/tools/notices/' + notice._id)= notice.name
 
 	.row
 		.col-md-8

@@ -14,7 +14,9 @@ block contents
 
 			if notice.active
 				.alert.alert-success This notice is currently active
-			else if notice.expires && notice.enabled
+			else if !notice.enabled
+				.alert.alert-warning This notice is disabled
+			else if notice.expires
 				.alert.alert-warning This notice has expired
 
 			each status in statuses
