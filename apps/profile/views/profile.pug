@@ -15,6 +15,10 @@ block contents
 				.page-header
 					h3 Hello #{ user.firstname }
 
+				each notice in notices
+					if notice.active
+						a(href=notice.url || false).alert.alert-success= notice.text
+
 				p Welcome to your new online Cable membership.
 				p From here you can manage all your account details.
 
