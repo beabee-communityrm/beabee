@@ -62,12 +62,17 @@ app_loader( app );
 
 // Setup tracker
 app.use( '/membership.js', (req, res) => {
-	const memberId = req.cookies.memberId;
-	res.set('Content-Type', 'application/javascript');
-	if (memberId) {
-		res.send('window.Membership = {memberId: "' + memberId + '"}');
+	const referrerUrl = req.get('referer');
+	if (!referrerUrl || config.trackDomains.some(domain => referrerUrl.startsWith(domain))) {
+		const memberId = req.cookies.memberId;
+		res.set('Content-Type', 'application/javascript');
+		if (memberId) {
+			res.send('window.Membership = {memberId: "' + memberId + '"}');
+		} else {
+			res.send('window.Membership = {}');
+		}
 	} else {
-		res.send('window.Membership = {}');
+		res.status(404).send('');
 	}
 });
 
