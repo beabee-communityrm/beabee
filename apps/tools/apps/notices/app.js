@@ -1,8 +1,9 @@
 const express = require( 'express' );
 const moment = require( 'moment' );
+const _ = require( 'lodash' );
 
 const auth = require( __js + '/authentication' );
-const { Notices } = require( __js + '/database' );
+const { Members, Notices } = require( __js + '/database' );
 const { hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
 
@@ -47,7 +48,19 @@ app.post( '/', hasSchema( createNoticeSchema ).orFlash, wrapAsync( async ( req, 
 
 app.get( '/:id', wrapAsync( async ( req, res ) => {
 	const notice = await Notices.findById( req.params.id );
-	res.render( 'notice', { notice } );
+
+	const members = await Members.find(
+		{ notices: { $elemMatch: { notice_id: notice } } },
+		{ 'notices.$.status': 1 }
+	);
+
+	const statuses = _(members)
+		.flatMap('notices')
+		.countBy('status')
+		.map((count, status) => ({ name: status, count }))
+		.valueOf();
+
+	res.render( 'notice', { notice, statuses } );
 } ) );
 
 app.post( '/:id', wrapAsync( async ( req, res ) => {
@@ -58,10 +71,13 @@ app.post( '/:id', wrapAsync( async ( req, res ) => {
 		await notice.update( { $set: schemaToNotice( req.body ) } );
 		req.flash( 'success', 'notices-updated' );
 		res.redirect( '/tools/notices/' + notice._id );
+		break;
+
 	case 'delete':
 		await Notices.deleteOne({_id: notice._id});
 		req.flash( 'success', 'notices-deleted' );
 		res.redirect( '/tools/notices' );
+		break;
 	}
 
 } ) );

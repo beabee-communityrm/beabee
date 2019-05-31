@@ -14,14 +14,15 @@ block contents
 
 			if notice.active
 				.alert.alert-success This notice is currently active
-
-			if notice.expires && moment(notice.expires).isBefore()
+			else if notice.expires && notice.enabled
 				.alert.alert-warning This notice has expired
 
-			form(method='POST')
-				+csrf
+			each status in statuses
 				p
-					button(name='action' value='toggle').btn.btn-danger= notice.enabled ? 'Disable' : 'Enable'
+					= status.name
+					| :
+					|
+					= status.count
 
 	.row
 		.col-md-8
