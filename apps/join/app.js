@@ -117,29 +117,36 @@ app.get( '/complete', [
 }));
 
 app.get('/restart/:code', wrapAsync(async (req, res) => {
-	const {member, customerId, mandateId, joinForm} =
+	const restartFlow =
 		await RestartFlows.findOneAndRemove({'code': req.params.code}).populate('member').exec();
 
-	// Something has created a new subscription in the mean time!
-	if (member.gocardless.subscription_id) {
-		req.flash( 'danger', 'gocardless-subscription-exists' );
-	} else {
-		member.gocardless = {
-			customer_id: customerId,
-			mandate_id: mandateId
-		};
-		await member.save();
+	if (restartFlow) {
+		const {member, customerId, mandateId, joinForm} = restartFlow;
 
-		await startMembership(member, joinForm);
-		req.flash( 'success', 'gocardless-subscription-restarted' );
-	}
+		// Something has created a new subscription in the mean time!
+		if (member.gocardless.subscription_id) {
+			req.flash( 'danger', 'gocardless-subscription-exists' );
+		} else {
+			member.gocardless = {
+				customer_id: customerId,
+				mandate_id: mandateId
+			};
+			await member.save();
 
-	req.login(member, function ( loginError ) {
-		if ( loginError ) {
-			throw loginError;
+			await startMembership(member, joinForm);
+			req.flash( 'success', 'gocardless-subscription-restarted' );
 		}
-		res.redirect('/profile');
-	});
+
+		req.login(member, function ( loginError ) {
+			if ( loginError ) {
+				throw loginError;
+			}
+			res.redirect('/profile');
+		});
+	} else {
+		req.flash( 'error', 'gocardless-subscription-restart-code-err' );
+		res.redirect('/');
+	}
 }));
 
 app.get('/expired-member', (req, res) => {

@@ -79,7 +79,8 @@
 	"flash-gocardless-subscription-updating-err": "Error updating contribution",
 	"flash-gocardless-subscription-exists": "You already have an active contribution",
 	"flash-gocardless-subscription-doesnt-exist": "You don't have an active contribution",
-	"flash-gocardless-subscription-restarted": "You have successfully restarted your contribution",
+	"flash-gocardless-subscription-restarted": "You have successfully restarted your membership",
+	"flash-gocardless-subscription-restart-code-err": "Invalid membership restart code",
 
 	"flash-tag-revoked": "Your tag has been revoked",
 	"flash-discourse-unlinked": "Your Discourse account has been unlinked",
