@@ -18,6 +18,8 @@ jobs:
   build:
     docker:
       - image: circleci/node:8.11.3
+        environment:
+          NODE_ENV: production
     steps:
       - checkout
       - run: npm install
