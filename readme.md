@@ -1,5 +1,7 @@
 # Membership System
 
+[![Known Vulnerabilities](https://snyk.io//test/github/thebristolcable/membership-system/badge.svg?targetFile=package.json)](https://snyk.io//test/github/thebristolcable/membership-system?targetFile=package.json)
+
 This system was originally created for
 [South London Makerspace](http://southlondonmakerspace.org)
 and repurposed by [The Bristol Cable](https://thebristolcable.org).
