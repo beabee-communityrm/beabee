@@ -21,7 +21,6 @@
     "bunyan": "^1.8.12",
     "bunyan-middleware": "^0.8.0",
     "bunyan-slack": "0.0.10",
-    "bunyan-syslog-unixdgram": "^1.0.3",
     "chance": "^1.0.18",
     "connect-busboy": "0.0.2",
     "connect-mongodb-session": "^2.1.1",
