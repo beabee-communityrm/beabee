@@ -11,9 +11,8 @@ aliases:
       - run: echo $SSH_REMOTE_HOSTKEY | base64 --decode >> ~/.ssh/known_hosts
       - add_ssh_keys:
           fingerprints:
-            - "71:03:6c:64:dd:99:38:c4:bb:ce:07:de:51:32:51:69"
-      - run: scp /tmp/workspace/build.zip $SSH_REMOTE_HOST:membership-system/$CIRCLE_BUILD_NUM.zip
-      - run: ssh $SSH_REMOTE_HOST "echo $STAGE $CIRCLE_BUILD_NUM >membership-system.pipe"
+            - "91:82:53:47:f7:25:77:ab:59:9a:d1:62:c0:f9:0e:2b"
+      - run: cat /tmp/workspace/build.zip | ssh $SSH_REMOTE_HOST "$CIRCLE_BUILD_NUM.zip $STAGE"
 
 jobs:
   build:
