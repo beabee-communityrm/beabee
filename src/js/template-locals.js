@@ -1,24 +1,16 @@
-var log = require( __js + '/logging' ).log;
+const moment = require( 'moment' );
+const auth = require( __js + '/authentication' );
 
-var auth = require( __js + '/authentication' );
-
-var config = require( __config );
-
-var moment = require( 'moment' ),
-	gitRev = require( 'git-rev' );
+const config = require( __config );
 
 var apps = [];
 
 var git = '';
-
-gitRev.short( function( str ) {
-	log.debug( {
-		app: 'template-locals',
-		action: 'git-hash',
-		hash: str
-	} );
-	git = str;
-} );
+try {
+	git = require('fs').readFileSync( __root + '/revision.txt' ).toString();
+} catch (e) {
+	require('git-rev').short( str => git = str );
+}
 
 function templateLocals( req, res, next ) {
 	// Process which apps should be shown in menu
