@@ -18,12 +18,11 @@ jobs:
   build:
     docker:
       - image: circleci/node:8.11.3
-        environment:
-          NODE_ENV: production
     steps:
       - checkout
       - run: npm install
-      - run: npm run build
+      - run: NODE_ENV=production npm run build
+      - run: NODE_ENV=production npm prune
       - run: zip -r build app.js apps/ config/ static/ src/ tools/ webhook.js webhook-utils.js package*.json node_modules
       - persist_to_workspace:
           root: .
