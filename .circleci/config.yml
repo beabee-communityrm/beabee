@@ -23,7 +23,7 @@ jobs:
       - run: npm install
       - run: NODE_ENV=production npm run build
       - run: NODE_ENV=production npm prune
-      - run: echo $CIRCLE_SHA1 | cut -c1-7 > revision.txt
+      - run: echo -n ${CIRCLE_SHA1:0:7} > revision.txt
       - run: zip -r build app.js apps/ config/ static/ src/ tools/ webhook.js webhook-utils.js package*.json revision.txt node_modules
       - persist_to_workspace:
           root: .
