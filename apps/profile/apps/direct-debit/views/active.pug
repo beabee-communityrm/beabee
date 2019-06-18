@@ -26,6 +26,11 @@ block contents
 				b= moment(user.memberPermission.date_expires).format('DD/MM/YYYY')
 				| .
 
+			if user.gocardless.next_amount
+				p.alert.alert-success.
+					You changed your contribution, your next payment will be for
+					£#{user.gocardless.nextActualAmount}
+
 			hr
 
 			h3 Change contribution
@@ -45,7 +50,7 @@ block contents
 
 				if user.gocardless.period === 'annually'
 					p
-						| You are on an annual payment cycle and will be charged
+						| You are on an annual payment cycle so will be charged
 						|
 						b
 							| £
@@ -86,12 +91,12 @@ block contents
 									.panel.panel-default.hidden.js-new-amount-prorated-calc
 										.panel-body
 											p.
-												We calculated your one-off payment based on you having
+												We calculated your one-off payment based on having
 												#[b #{monthsLeft} months] left in your payment cycle, with
 												an old contribution of
 												#[b £#{user.gocardless.actualAmount}/year] and a new
 												contribution of
-												#[b £#[span.js-new-amount-annual]/year]
+												#[b £#[span.js-new-amount-annual]/year].
 											table.table.table-condensed.text-right
 												thead
 													tr
@@ -129,5 +134,5 @@ block contents
 			h3 Cancel membership
 			p.
 				If you cancel your membership it will terminate at the end of
-				your current billing cycle.
+				your current payment cycle.
 			a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger.outline Cancel membership

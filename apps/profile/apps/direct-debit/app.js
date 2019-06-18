@@ -1,13 +1,13 @@
 const express = require('express');
-const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const gocardless = require( __js + '/gocardless' );
 const mandrill = require( __js + '/mandrill' );
 const{ hasSchema } = require( __js + '/middleware' );
-const { getSubscriptionName, wrapAsync } = require( __js + '/utils' );
+const { getActualAmount, getSubscriptionName, wrapAsync } = require( __js + '/utils' );
 
 const { cancelSubscriptionSchema, updateSubscriptionSchema } = require('./schemas.json');
+const { calcSubscriptionMonthsLeft } = require('./utils');
 
 const app = express();
 var app_config = {};
@@ -26,7 +26,7 @@ app.use( function( req, res, next ) {
 
 app.get( '/', auth.isLoggedIn,  function ( req, res ) {
 	if ( req.user.gocardless.subscription_id ) {
-		const monthsLeft = moment.utc(req.user.memberPermission.date_expires).diff(moment.utc(), 'months');
+		const monthsLeft = calcSubscriptionMonthsLeft(req.user);
 		res.render( 'active', { user: req.user, monthsLeft } );
 	} else {
 		res.render( 'cancelled' );
@@ -87,35 +87,63 @@ app.get( '/update-subscription', isLoggedInWithSubscription, function( req, res 
 	res.redirect( app.parent.mountpath + app.mountpath );
 } );
 
+async function updateSubscriptionAmount(user, newAmount) {
+	const actualAmount = getActualAmount(newAmount, user.gocardless.period);
+
+	try {
+		await gocardless.subscriptions.update( user.gocardless.subscription_id, {
+			amount: actualAmount * 100,
+			name: getSubscriptionName( actualAmount, user.gocardless.period )
+		} );
+	} catch ( gcError ) {
+		// Can't update subscription names if they are linked to a plan
+		if ( gcError.response && gcError.response.status === 422 ) {
+			await gocardless.subscriptions.update( user.gocardless.subscription_id, {
+				amount: actualAmount * 100
+			} );
+		} else {
+			throw gcError;
+		}
+	}
+}
+
 app.post( '/update-subscription', [
 	isLoggedInWithSubscription,
 	hasSchema(updateSubscriptionSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
-	const { body:  { amount }, user } = req;
+	const { body:  { amount, prorate }, user } = req;
+	const { amount: oldAmount, period, mandate_id: mandateId } = user.gocardless;
 
-	if ( user.gocardless.period !== 'monthly' ) {
-		req.flash( 'danger', 'gocardless-subscription-updating-err' );
+	if (amount === oldAmount) {
+		req.flash('warning', 'gocardless-subscription-updating-same');
 	} else {
 		try {
-			try {
-				await gocardless.subscriptions.update( user.gocardless.subscription_id, {
-					amount: amount * 100,
-					name: getSubscriptionName( amount, user.gocardless.period )
-				} );
-			} catch ( gcError ) {
-				// Can't update subscription names if they are linked to a plan
-				if ( gcError.response && gcError.response.status === 422 ) {
-					await gocardless.subscriptions.update( user.gocardless.subscription_id, {
-						amount: amount * 100
-					} );
-				} else {
-					throw gcError;
-				}
+			await updateSubscriptionAmount(user, amount);
+
+			const subscriptionMonthsLeft = calcSubscriptionMonthsLeft(user);
+			let startSubscriptionNow = period === 'monthly' || subscriptionMonthsLeft < 1;
+
+			if (period === 'annually' && prorate && amount > oldAmount) {
+				await gocardless.payments.create({
+					currency: 'GBP',
+					amount: (amount - oldAmount) * subscriptionMonthsLeft * 100,
+					links: {
+						mandate: mandateId
+					}
+				});
+				startSubscriptionNow = true;
 			}
 
-			await user.update( { $set: {
-				'gocardless.amount': amount
-			} } );
+			if (startSubscriptionNow) {
+				await user.update( {
+					$set: { 'gocardless.amount': amount },
+					$unset: { 'gocardless.next_amount': true }
+				} );
+			} else {
+				await user.update( {
+					$set: { 'gocardless.next_amount': amount }
+				} );
+			}
 
 			req.flash( 'success', 'gocardless-subscription-updated' );
 		} catch ( error ) {
