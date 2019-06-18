@@ -1,4 +1,5 @@
 const express = require('express');
+const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const gocardless = require( __js + '/gocardless' );
@@ -23,15 +24,10 @@ app.use( function( req, res, next ) {
 	next();
 } );
 
-app.get( '/', auth.isLoggedIn, function( req, res ) {
-	const { user } = req;
-
-	if ( user.gocardless.subscription_id ) {
-		const gc = user.gocardless;
-		res.render( 'active', {
-			amount: gc.actualAmount,
-			period: gc.period
-		} );
+app.get( '/', auth.isLoggedIn,  function ( req, res ) {
+	if ( req.user.gocardless.subscription_id ) {
+		const monthsLeft = moment.utc(req.user.memberPermission.date_expires).diff(moment.utc(), 'months');
+		res.render( 'active', { user: req.user, monthsLeft } );
 	} else {
 		res.render( 'cancelled' );
 	}

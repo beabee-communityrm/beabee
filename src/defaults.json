@@ -76,6 +76,7 @@
 	"flash-gocardless-subscription-cancelled": "Contribution cancelled",
 	"flash-gocardless-subscription-cancellation-err": "Error cancelling contribution",
 	"flash-gocardless-subscription-updated": "Contribution updated",
+	"flash-gocardless-subscription-updating-same": "Your contribution amount hasn't changed",
 	"flash-gocardless-subscription-updating-err": "Error updating contribution",
 	"flash-gocardless-subscription-exists": "You already have an active contribution",
 	"flash-gocardless-subscription-doesnt-exist": "You don't have an active contribution",

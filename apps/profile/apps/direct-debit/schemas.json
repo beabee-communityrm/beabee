@@ -22,11 +22,14 @@
 	"updateSubscriptionSchema": {
 		"body": {
 			"type": "object",
-			"required": ["amount"],
+			"required": ["amount", "prorate"],
 			"properties": {
 				"amount": {
 					"type": "integer",
 					"minimum": 1
+				},
+				"prorate": {
+					"type": "boolean"
 				}
 			}
 		}
