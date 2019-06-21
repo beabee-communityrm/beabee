@@ -4,9 +4,10 @@ const auth = require( __js + '/authentication' );
 const gocardless = require( __js + '/gocardless' );
 const mandrill = require( __js + '/mandrill' );
 const{ hasSchema } = require( __js + '/middleware' );
-const { getSubscriptionName, wrapAsync } = require( __js + '/utils' );
+const { getActualAmount, getSubscriptionName, wrapAsync } = require( __js + '/utils' );
 
 const { cancelSubscriptionSchema, updateSubscriptionSchema } = require('./schemas.json');
+const { calcSubscriptionMonthsLeft } = require('./utils');
 
 const app = express();
 var app_config = {};
@@ -23,15 +24,10 @@ app.use( function( req, res, next ) {
 	next();
 } );
 
-app.get( '/', auth.isLoggedIn, function( req, res ) {
-	const { user } = req;
-
-	if ( user.gocardless.subscription_id ) {
-		const gc = user.gocardless;
-		res.render( 'active', {
-			amount: gc.actualAmount,
-			period: gc.period
-		} );
+app.get( '/', auth.isLoggedIn,  function ( req, res ) {
+	if ( req.user.gocardless.subscription_id ) {
+		const monthsLeft = calcSubscriptionMonthsLeft(req.user);
+		res.render( 'active', { user: req.user, monthsLeft } );
 	} else {
 		res.render( 'cancelled' );
 	}
@@ -91,35 +87,89 @@ app.get( '/update-subscription', isLoggedInWithSubscription, function( req, res 
 	res.redirect( app.parent.mountpath + app.mountpath );
 } );
 
+async function updateSubscriptionAmount(user, newAmount) {
+	const actualAmount = getActualAmount(newAmount, user.gocardless.period);
+
+	try {
+		await gocardless.subscriptions.update( user.gocardless.subscription_id, {
+			amount: actualAmount * 100,
+			name: getSubscriptionName( actualAmount, user.gocardless.period )
+		} );
+	} catch ( gcError ) {
+		// Can't update subscription names if they are linked to a plan
+		if ( gcError.response && gcError.response.status === 422 ) {
+			await gocardless.subscriptions.update( user.gocardless.subscription_id, {
+				amount: actualAmount * 100
+			} );
+		} else {
+			throw gcError;
+		}
+	}
+}
+
+async function activateSubscription(user, newAmount, prorate) {
+	const gc = user.gocardless;
+	const subscriptionMonthsLeft = calcSubscriptionMonthsLeft(user);
+
+	if (gc.period === 'annually' && subscriptionMonthsLeft >= 1) {
+		if (prorate && newAmount > gc.amount) {
+			await gocardless.payments.create({
+				amount: (newAmount - gc.amount) * subscriptionMonthsLeft * 100,
+				currency: 'GBP',
+				description: 'One-off payment to start new contribution',
+				links: {
+					mandate: gc.mandate_id
+				}
+			});
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return true;
+	}
+}
+
 app.post( '/update-subscription', [
 	isLoggedInWithSubscription,
 	hasSchema(updateSubscriptionSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
-	const { body:  { amount }, user } = req;
+	const { body:  { amount, prorate }, user } = req;
 
-	if ( user.gocardless.period !== 'monthly' ) {
-		req.flash( 'danger', 'gocardless-subscription-updating-err' );
+	if (amount === user.gocardless.amount) {
+		req.flash('warning', 'gocardless-subscription-updating-same');
 	} else {
 		try {
-			try {
-				await gocardless.subscriptions.update( user.gocardless.subscription_id, {
-					amount: amount * 100,
-					name: getSubscriptionName( amount, user.gocardless.period )
-				} );
-			} catch ( gcError ) {
-				// Can't update subscription names if they are linked to a plan
-				if ( gcError.response && gcError.response.status === 422 ) {
-					await gocardless.subscriptions.update( user.gocardless.subscription_id, {
-						amount: amount * 100
-					} );
-				} else {
-					throw gcError;
-				}
-			}
+			await updateSubscriptionAmount(user, amount);
 
-			await user.update( { $set: {
-				'gocardless.amount': amount
-			} } );
+			req.log.debug( {
+				app: 'direct-debit',
+				action: 'update-subscription',
+				senstive: {
+					user: user._id,
+					amount,
+					oldAmount: user.gocardless.amount,
+				}
+			} );
+
+			if (await activateSubscription(user, amount, prorate)) {
+				req.log.debug( {
+					app: 'direct-debit',
+					action: 'active-subscription-now',
+				} );
+				await user.update( {
+					$set: { 'gocardless.amount': amount },
+					$unset: { 'gocardless.next_amount': true }
+				} );
+			} else {
+				req.log.debug( {
+					app: 'direct-debit',
+					action: 'activate-subscription-later',
+				} );
+				await user.update( {
+					$set: { 'gocardless.next_amount': amount }
+				} );
+			}
 
 			req.flash( 'success', 'gocardless-subscription-updated' );
 		} catch ( error ) {

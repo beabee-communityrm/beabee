@@ -135,6 +135,7 @@ module.exports = {
 			mandate_id: String,
 			subscription_id: String,
 			amount: Number,
+			next_amount: Number,
 			period: {
 				type: String,
 				enum: ['monthly', 'annually']
@@ -205,6 +206,10 @@ module.exports.schema.virtual( 'gravatar' ).get( function() {
 
 module.exports.schema.virtual( 'gocardless.actualAmount' ).get( function () {
 	return getActualAmount(this.gocardless.amount, this.gocardless.period);
+} );
+
+module.exports.schema.virtual( 'gocardless.nextActualAmount' ).get( function () {
+	return getActualAmount(this.gocardless.next_amount, this.gocardless.period);
 } );
 
 module.exports.schema.virtual( 'can_admin' ).get( function() {
