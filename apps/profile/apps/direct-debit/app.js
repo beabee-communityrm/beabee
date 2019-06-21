@@ -7,7 +7,7 @@ const{ hasSchema } = require( __js + '/middleware' );
 const { getActualAmount, getSubscriptionName, wrapAsync } = require( __js + '/utils' );
 
 const { cancelSubscriptionSchema, updateSubscriptionSchema } = require('./schemas.json');
-const { calcSubscriptionMonthsLeft } = require('./utils');
+const { calcSubscriptionMonthsLeft, canChangeSubscription } = require('./utils');
 
 const app = express();
 var app_config = {};
@@ -26,8 +26,11 @@ app.use( function( req, res, next ) {
 
 app.get( '/', auth.isLoggedIn,  function ( req, res ) {
 	if ( req.user.gocardless.subscription_id ) {
-		const monthsLeft = calcSubscriptionMonthsLeft(req.user);
-		res.render( 'active', { user: req.user, monthsLeft } );
+		res.render( 'active', {
+			user: req.user,
+			canChange: canChangeSubscription(req.user),
+			monthsLeft: calcSubscriptionMonthsLeft(req.user)
+		} );
 	} else {
 		res.render( 'cancelled' );
 	}
@@ -111,7 +114,7 @@ async function activateSubscription(user, newAmount, prorate) {
 	const gc = user.gocardless;
 	const subscriptionMonthsLeft = calcSubscriptionMonthsLeft(user);
 
-	if (gc.period === 'annually' && subscriptionMonthsLeft >= 1) {
+	if (subscriptionMonthsLeft > 0) {
 		if (prorate && newAmount > gc.amount) {
 			await gocardless.payments.create({
 				amount: (newAmount - gc.amount) * subscriptionMonthsLeft * 100,
@@ -136,7 +139,9 @@ app.post( '/update-subscription', [
 ], wrapAsync( async ( req, res ) => {
 	const { body:  { amount, prorate }, user } = req;
 
-	if (amount === user.gocardless.amount) {
+	if (!canChangeSubscription(user)) {
+		req.flash('warning', 'gocardless-subscription-updating-not-allowed');
+	} else if (amount === user.gocardless.amount) {
 		req.flash('warning', 'gocardless-subscription-updating-same');
 	} else {
 		try {
