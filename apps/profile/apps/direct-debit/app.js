@@ -146,7 +146,8 @@ app.post( '/update-subscription', [
 				app: 'direct-debit',
 				action: 'update-subscription',
 				senstive: {
-					user, amount,
+					user: user._id,
+					amount,
 					oldAmount: user.gocardless.amount,
 				}
 			} );
