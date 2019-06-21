@@ -167,6 +167,7 @@ async function confirmPayment( payment ) {
 
 		const member = await Members.findOne( { _id: payment.member } );
 		if (member.memberPermission) {
+			member.gocardless.next_amount = undefined;
 			member.memberPermission.date_expires = expiryDate.add(config.gracePeriod).toDate();
 			await member.save();
 
