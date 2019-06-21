@@ -9,15 +9,14 @@ block contents
 			- page = 'direct-debit'
 			include /apps/profile/views/partials/sidebar.pug
 		.col-md-9.col-lg-7
-			+page_header( 'Cancel your membership' )
+			+page_header( 'Cancel your contribution' )
 
 			p.
-				Oh no! We're really sorry that you're cancelling your membership.
+				Oh no! We're really sorry that you're cancelling your contribution.
 
 			p.
-				Thank you for your contributions to building a new model for
-				media and supporting high quality journalism, owned and
-				produced by people in Bristol.
+				Thank you for helping to building a new model for media and supporting
+				high quality journalism, owned and produced by people in Bristol.
 
 			p.
 				We know we have a long way to go, we'd be really grateful if you
@@ -63,4 +62,4 @@ block contents
 						label(for='other').question Do you have any other feedback?
 						input(type='text', name='other').form-control#other
 					p
-						button( role="button").btn.btn-danger.outline Cancel your membership
+						button( role="button").btn.btn-danger.outline Cancel contribution

@@ -1,7 +1,7 @@
 extends /src/views/base.pug
 
 block prepend title
-	- title = 'Your membership'
+	- title = 'Contribution details'
 
 block append js
 		script( src="/static/js/update-contribution.js?v=" + git )
@@ -12,7 +12,7 @@ block contents
 			- page = 'direct-debit'
 			include /apps/profile/views/partials/sidebar.pug
 		.col-md-9.col-lg-7
-			+page_header( 'Membership details' )
+			+page_header( 'Contribution details' )
 			p
 				| You currently contribute
 				|
@@ -21,9 +21,9 @@ block contents
 					= user.gocardless.actualAmount
 					| /
 					= period === 'monthly' ? 'month' : 'year'
-				| . The next payment is scheduled to be automatically taken around the
+				| and the next payment is scheduled to be taken around the
 				|
-				b= moment(user.memberPermission.date_expires).format('DD/MM/YYYY')
+				b= moment(user.memberPermission.date_expires).format('Do MMMM YYYY')
 				| .
 
 			if user.gocardless.next_amount
@@ -131,8 +131,8 @@ block contents
 
 			hr
 
-			h3 Cancel membership
+			h3 Cancel contribution
 			p.
-				If you cancel your membership it will terminate at the end of
+				If you cancel your contribution your membership will finish at the end of
 				your current payment cycle.
-			a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger.outline Cancel membership
+			a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger.outline Cancel contribution
