@@ -32,99 +32,12 @@ block contents
 
 			h3 Change contribution
 
-			form( method='post', action='/profile/direct-debit/update-subscription').form-horizontal
-				+csrf
-
-				.form-group
-					label( for='amount' ).col-md-3.control-label New amount
-					.input-group.col-md-4
-						span.input-group-addon £
-						input( type='number', name='amount', id='amount', value=user.gocardless.amount, required, min=1, step=1 ).form-control.js-new-amount
-						span.input-group-addon / month
-
-				if user.gocardless.period === 'monthly' || monthsLeft < 1
-					input(type='hidden' name='prorate' value='false')
-
-				if user.gocardless.period === 'annually'
-					p
-						| You are on an annual payment cycle so will be charged
-						|
-						b
-							| £
-							span.js-new-amount-annual= user.gocardless.actualAmount
-							| /year
-						| .
-
-					if monthsLeft >= 1
-						p.alert.alert-info.hidden.js-new-amount-less.
-							Your contribution will change on your next payment cycle
-
-						.hidden.js-new-amount-more(data-months=monthsLeft)
-							p.alert.alert-info.
-								Your membership renews in #{monthsLeft} months, if you want to
-								start your new contribution immediately we can take a one-off
-								payment of £#[span.js-new-amount-prorated -].
-							.form-group(style="margin-bottom: 0")
-								.col-md-12
-									.radio
-										label
-											input(type='radio' name='prorate' value='true' required checked)
-											| Yes, take a one-off payment of £
-											span.js-new-amount-prorated -
-											|
-											| to start my new contribution now
-									.radio
-										label
-											input(type='radio' name='prorate' value='false' required)
-											| No, I'll wait until
-											|
-											= moment(user.memberPermission.date_expires).format('DD/MM/YYYY')
-											|
-											| to start my new contribution
-									p
-									p.small
-										a(href="#").js-new-amount-prorated-toggle How is my one-off payment calculated?
-
-									.panel.panel-default.hidden.js-new-amount-prorated-calc
-										.panel-body
-											p.
-												We calculated your one-off payment based on having
-												#[b #{monthsLeft} months] left in your payment cycle, with
-												an old contribution of
-												#[b £#{user.gocardless.actualAmount}/year] and a new
-												contribution of
-												#[b £#[span.js-new-amount-annual]/year].
-											table.table.table-condensed.text-right
-												thead
-													tr
-														th Amount
-														th Calculation
-														th Description
-												tbody
-													tr
-														td £#[span.js-new-amount-prorated-new]
-														td
-															| £
-															span.js-new-amount-annual
-															|
-															| * #{monthsLeft}/12
-														td.text-left Partial payment for new contribution
-													tr
-														td - £#[span.js-new-amount-prorated-old]
-														td £#{user.gocardless.actualAmount} * #{monthsLeft}/12
-														td.text-left Partial refund for old contribution
-													tr
-														td
-															b £#[span.js-new-amount-prorated]
-														td
-														td
-
-				p
-					button.btn.join-btn.js-new-amount-btn Update contribution
-
-				p.
-					To change your payment cycle please contact
-					#[+email('membership@thebristolcable.org')].
+			if canChange
+				include partials/change-subscription
+			else
+				p.alert.alert-warning.
+					You can't change your contribution online at the moment, please
+					contact #[+email('membership@thebristolcable.org')] for support.
 
 			hr
 
