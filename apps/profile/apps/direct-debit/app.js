@@ -142,12 +142,29 @@ app.post( '/update-subscription', [
 		try {
 			await updateSubscriptionAmount(user, amount);
 
+			req.log.debug( {
+				app: 'direct-debit',
+				action: 'update-subscription',
+				senstive: {
+					user, amount,
+					oldAmount: user.gocardless.amount,
+				}
+			} );
+
 			if (await activateSubscription(user, amount, prorate)) {
+				req.log.debug( {
+					app: 'direct-debit',
+					action: 'active-subscription-now',
+				} );
 				await user.update( {
 					$set: { 'gocardless.amount': amount },
 					$unset: { 'gocardless.next_amount': true }
 				} );
 			} else {
+				req.log.debug( {
+					app: 'direct-debit',
+					action: 'activate-subscription-later',
+				} );
 				await user.update( {
 					$set: { 'gocardless.next_amount': amount }
 				} );
