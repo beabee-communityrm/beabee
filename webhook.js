@@ -18,7 +18,10 @@ const mandrill = require( __js + '/mandrill' );
 const utils = require('./webhook-utils');
 
 const app = express();
-const textBodyParser = bodyParser.text( { type: 'application/json' } );
+const textBodyParser = bodyParser.text( {
+	type: 'application/json',
+	limit: '200kb'
+} );
 
 // Add logging capabilities
 require( __js + '/logging' ).installMiddleware( app );
