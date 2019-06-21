@@ -107,34 +107,42 @@ async function updateSubscriptionAmount(user, newAmount) {
 	}
 }
 
+async function activateSubscription(user, newAmount, prorate) {
+	const gc = user.gocardless;
+	const subscriptionMonthsLeft = calcSubscriptionMonthsLeft(user);
+
+	if (gc.period === 'annually' && subscriptionMonthsLeft >= 1) {
+		if (prorate && newAmount > gc.amount) {
+			await gocardless.payments.create({
+				amount: (newAmount - gc.amount) * subscriptionMonthsLeft * 100,
+				currency: 'GBP',
+				description: 'One-off payment to start new contribution',
+				links: {
+					mandate: gc.mandate_id
+				}
+			});
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return true;
+	}
+}
+
 app.post( '/update-subscription', [
 	isLoggedInWithSubscription,
 	hasSchema(updateSubscriptionSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
 	const { body:  { amount, prorate }, user } = req;
-	const { amount: oldAmount, period, mandate_id: mandateId } = user.gocardless;
 
-	if (amount === oldAmount) {
+	if (amount === user.gocardless.amount) {
 		req.flash('warning', 'gocardless-subscription-updating-same');
 	} else {
 		try {
 			await updateSubscriptionAmount(user, amount);
 
-			const subscriptionMonthsLeft = calcSubscriptionMonthsLeft(user);
-			let startSubscriptionNow = period === 'monthly' || subscriptionMonthsLeft < 1;
-
-			if (period === 'annually' && prorate && amount > oldAmount) {
-				await gocardless.payments.create({
-					currency: 'GBP',
-					amount: (amount - oldAmount) * subscriptionMonthsLeft * 100,
-					links: {
-						mandate: mandateId
-					}
-				});
-				startSubscriptionNow = true;
-			}
-
-			if (startSubscriptionNow) {
+			if (await activateSubscription(user, amount, prorate)) {
 				await user.update( {
 					$set: { 'gocardless.amount': amount },
 					$unset: { 'gocardless.next_amount': true }
