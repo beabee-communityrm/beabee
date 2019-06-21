@@ -16,11 +16,8 @@ block contents
 			p
 				| You currently contribute
 				|
-				b
-					| £
-					= user.gocardless.actualAmount
-					| /
-					= period === 'monthly' ? 'month' : 'year'
+				b £#{user.gocardless.actualAmount}/#{period === 'monthly' ? 'month' : 'year'}
+				|
 				| and the next payment is scheduled to be taken around the
 				|
 				b= moment(user.memberPermission.date_expires).format('Do MMMM YYYY')
