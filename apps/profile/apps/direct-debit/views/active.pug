@@ -45,7 +45,7 @@ block contents
 						input( type='number', name='amount', id='amount', value=user.gocardless.amount, required, min=1, step=1 ).form-control.js-new-amount
 						span.input-group-addon / month
 
-				if user.gocardless.period === 'monthly' || monthsLeft < 0
+				if user.gocardless.period === 'monthly' || monthsLeft < 1
 					input(type='hidden' name='prorate' value='false')
 
 				if user.gocardless.period === 'annually'
@@ -58,10 +58,10 @@ block contents
 							| /year
 						| .
 
-					p.alert.alert-info.hidden.js-new-amount-less.
-						Your contribution will change on your next payment cycle
+					if monthsLeft >= 1
+						p.alert.alert-info.hidden.js-new-amount-less.
+							Your contribution will change on your next payment cycle
 
-					if monthsLeft > 0
 						.hidden.js-new-amount-more(data-months=monthsLeft)
 							p.alert.alert-info.
 								Your membership renews in #{monthsLeft} months, if you want to
