@@ -21,7 +21,8 @@ function emailToHash(email) {
 }
 
 function memberToOperation(listId, member) {
-	const path = 'lists/' + listId + '/members/' + emailToHash(member.email);
+	const emailHash = emailToHash(member.email);
+	const path = 'lists/' + listId + '/members/' + emailHash;
 
 	return member.isActiveMember ? {
 		path,
@@ -34,11 +35,12 @@ function memberToOperation(listId, member) {
 				REFLINK: member.referralLink
 			},
 			status_if_new: 'subscribed'
-		})
+		}),
+		operation_id: 'add_' + emailHash
 	} : {
 		path,
 		method: 'DELETE',
-		operation_id: 'delete'
+		operation_id: 'delete_' + emailHash
 	};
 }
 
@@ -140,8 +142,8 @@ async function checkBatchErrors(batch) {
 					.on('data', data => {
 						// Ignore 404s from delete operations
 						if (data.status_code >= 400 &&
-								(data.operation_id !== 'delete' || data.status_code !== 404)) {
-							console.log(data);
+								!(data.operation_id.startsWith('delete') && data.status_code === 404)) {
+							console.error(`Unexpected error for ${data.operation_id}, got ${data.status_code}`);
 						}
 					});
 			} else {
