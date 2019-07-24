@@ -20,7 +20,7 @@ const utils = require('./webhook-utils');
 const app = express();
 const textBodyParser = bodyParser.text( {
 	type: 'application/json',
-	limit: '200kb'
+	limit: '1mb'
 } );
 
 // Add logging capabilities
