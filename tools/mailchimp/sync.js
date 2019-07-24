@@ -36,11 +36,11 @@ function memberToOperation(listId, member) {
 			},
 			status_if_new: 'subscribed'
 		}),
-		operation_id: 'add_' + emailHash
+		operation_id: `add_${listId}_${emailHash}`
 	} : {
 		path,
 		method: 'DELETE',
-		operation_id: 'delete_' + emailHash
+		operation_id: `delete_${listId}_${emailHash}`
 	};
 }
 
