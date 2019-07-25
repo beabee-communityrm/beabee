@@ -20,8 +20,14 @@ function emailToHash(email) {
 	return crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex');
 }
 
+// Ignore 404s from delete operations
+function validateStatus(statusCode, operationId) {
+	return statusCode < 400 || operationId.startsWith('delete') && statusCode === 404;
+}
+
 function memberToOperation(listId, member) {
-	const path = 'lists/' + listId + '/members/' + emailToHash(member.email);
+	const emailHash = emailToHash(member.email);
+	const path = 'lists/' + listId + '/members/' + emailHash;
 
 	return member.isActiveMember ? {
 		path,
@@ -34,11 +40,12 @@ function memberToOperation(listId, member) {
 				REFLINK: member.referralLink
 			},
 			status_if_new: 'subscribed'
-		})
+		}),
+		operation_id: `add_${listId}_${emailHash}`
 	} : {
-		path,
-		method: 'DELETE',
-		operation_id: 'delete'
+		path: path + '/actions/delete-permanent',
+		method: 'POST',
+		operation_id: `delete_${listId}_${emailHash}`
 	};
 }
 
@@ -138,10 +145,8 @@ async function checkBatchErrors(batch) {
 				console.log('Checking file', header.name);
 				stream.pipe(JSONStream.parse('*'))
 					.on('data', data => {
-						// Ignore 404s from delete operations
-						if (data.status_code >= 400 &&
-								(data.operation_id !== 'delete' || data.status_code !== 404)) {
-							console.log(data);
+						if (!validateStatus(data.status_code, data.operation_id)) {
+							console.error(`Unexpected error for ${data.operation_id}, got ${data.status_code}`);
 						}
 					});
 			} else {
@@ -168,10 +173,7 @@ async function dispatchOperations(operations) {
 			method: operation.method,
 			url: operation.path,
 			...operation.body && {data: JSON.parse(operation.body)},
-			validateStatus: status => {
-				return status >= 200 && status < 300 ||
-					operation.operation_id === 'delete' && status === 404;
-			}
+			validateStatus: status => validateStatus(status, operation.operation_id)
 		});
 	}
 }
