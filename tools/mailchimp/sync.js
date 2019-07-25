@@ -43,8 +43,8 @@ function memberToOperation(listId, member) {
 		}),
 		operation_id: `add_${listId}_${emailHash}`
 	} : {
-		path,
-		method: 'DELETE',
+		path: path + '/actions/delete-permanent',
+		method: 'POST',
 		operation_id: `delete_${listId}_${emailHash}`
 	};
 }
