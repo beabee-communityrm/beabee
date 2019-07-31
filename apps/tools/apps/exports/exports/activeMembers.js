@@ -17,7 +17,8 @@ async function getExport(members) {
 			Id: member.uuid,
 			EmailAddress: member.email,
 			FirstName: member.firstname,
-			LastName: member.lastname
+			LastName: member.lastname,
+			ReferralLink: member.referralLink
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }
