@@ -170,12 +170,16 @@ async function checkBatchErrors(batch) {
 
 async function dispatchOperations(operations) {
 	for (const operation of operations) {
-		await mailchimp.instance({
-			method: operation.method,
-			url: operation.path,
-			...operation.body && {data: JSON.parse(operation.body)},
-			validateStatus: status => validateStatus(status, operation.operation_id)
-		});
+		try {
+			await mailchimp.instance({
+				method: operation.method,
+				url: operation.path,
+				...operation.body && {data: JSON.parse(operation.body)},
+				validateStatus: status => validateStatus(status, operation.operation_id)
+			});
+		} catch (err) {
+			console.log(err);
+		}
 	}
 }
 
