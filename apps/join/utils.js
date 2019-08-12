@@ -5,6 +5,7 @@ const config = require( __config );
 const auth = require( __js + '/authentication' );
 const { JoinFlows, JTJStock, Members, Referrals } = require( __js + '/database' );
 const gocardless = require( __js + '/gocardless' );
+const { log } = require( __js + '/logging' );
 const postcodes = require( __js + '/postcodes' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
@@ -156,15 +157,22 @@ async function startMembership(member, {
 			});
 		}
 
-		await mailchimp.defaultLists.members.upsert(member.email, {
-			email_address: member.email,
-			merge_fields: {
-				FNAME: member.firstname,
-				LNAME: member.lastname,
-				REFLINK: member.referralLink
-			},
-			status_if_new: 'subscribed'
-		});
+		try {
+			await mailchimp.defaultLists.members.upsert(member.email, {
+				email_address: member.email,
+				merge_fields: {
+					FNAME: member.firstname,
+					LNAME: member.lastname,
+					REFLINK: member.referralLink
+				},
+				status_if_new: 'subscribed'
+			});
+		} catch (err) {
+			log.error({
+				app: 'join-utils',
+				error: err
+			});
+		}
 	}
 }
 
