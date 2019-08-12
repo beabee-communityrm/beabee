@@ -22,7 +22,8 @@ function emailToHash(email) {
 
 // Ignore 405s from delete operations
 function validateStatus(statusCode, operationId) {
-	return statusCode < 400 || operationId.startsWith('delete') && statusCode === 405;
+	return statusCode < 400 ||
+		operationId.startsWith('delete') && (statusCode === 404 || statusCode === 405);
 }
 
 function memberToOperation(listId, member) {
