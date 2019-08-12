@@ -20,9 +20,9 @@ function emailToHash(email) {
 	return crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex');
 }
 
-// Ignore 404s from delete operations
+// Ignore 405s from delete operations
 function validateStatus(statusCode, operationId) {
-	return statusCode < 400 || operationId.startsWith('delete') && statusCode === 404;
+	return statusCode < 400 || operationId.startsWith('delete') && statusCode === 405;
 }
 
 function memberToOperation(listId, member) {
@@ -31,7 +31,7 @@ function memberToOperation(listId, member) {
 
 	return member.isActiveMember ? {
 		path,
-		method: 'PUT',
+		method: 'PATCH',
 		body: JSON.stringify({
 			email_address: member.email,
 			merge_fields: {
@@ -39,12 +39,12 @@ function memberToOperation(listId, member) {
 				LNAME: member.lastname,
 				REFLINK: member.referralLink
 			},
-			status_if_new: 'subscribed'
+			status: 'subscribed'
 		}),
 		operation_id: `add_${listId}_${emailHash}`
 	} : {
-		path: path + '/actions/delete-permanent',
-		method: 'POST',
+		path,
+		method: 'DELETE',
 		operation_id: `delete_${listId}_${emailHash}`
 	};
 }
@@ -96,7 +96,7 @@ async function processMembers(members) {
 
 	console.log(`Created ${operations.length} operations, ${updates} updates and ${deletes} deletes`);
 
-	if (operations.length > 10) {
+	if (operations.length > 30) {
 		return await createBatch(operations)
 			.then(waitForBatch)
 			.then(checkBatchErrors);
