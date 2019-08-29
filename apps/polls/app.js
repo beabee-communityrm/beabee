@@ -45,13 +45,18 @@ app.get( '/:slug', [
 	hasModel(Polls, 'slug')
 ], wrapAsync( async ( req, res ) => {
 	const answer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
-	const showShare = !!res.locals.flashes.find(m => m.type === 'success');
-	res.render( `polls/${req.model.slug}`, { poll: req.model, answer, showShare } );
+
+	const justAnswered = req.session.justAnswered;
+	delete req.session.justAnswered;
+
+	res.render( `polls/${req.model.slug}`, { answer, poll: req.model, justAnswered } );
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
-	const showShare = !!res.locals.flashes.find(m => m.type === 'success');
-	res.render( 'poll', { poll: req.model, code: req.params.code, showShare } );
+	const justAnswered = req.session.justAnswered;
+	delete req.session.justAnswered;
+
+	res.render( 'poll', { poll: req.model, code: req.params.code, justAnswered } );
 } ) );
 
 async function setAnswer( poll, member, { answer, ...additionalAnswers } ) {
@@ -77,7 +82,7 @@ app.post( '/:slug', [
 	const answerSchema = schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		await setAnswer(req.model, req.user, req.body);
-		req.flash( 'success', 'polls-answer-chosen' );
+		req.session.justAnswered = true;
 		res.redirect( `${req.originalUrl}#vote` );
 	});
 } ) );
@@ -94,7 +99,7 @@ app.post( '/:slug/:code', [
 		const member = await Members.findOne( { email, pollsCode } );
 		if ( member ) {
 			await setAnswer(req.model, member, req.body);
-			req.flash( 'success', 'polls-answer-chosen' );
+			req.session.justAnswered = true;
 			res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 		} else {
 			req.flash( 'error', 'polls-unknown-user' );

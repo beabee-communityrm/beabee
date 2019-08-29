@@ -146,10 +146,11 @@ block contents
 					if !poll.closed
 						hr#vote
 
-						if showShare
+						if justAnswered
 							h3 Thank you!
 
-							include /src/views/partials/flash.pug
+							.alert.alert-success.
+								Thank you for voting, we will be announcing the result after Feburary 27th
 
 							p.
 								Spread the word on social media to get others involved in
@@ -172,8 +173,7 @@ block contents
 
 						form(method='POST' action="#vote")
 							+csrf
-							if !showShare
-								include /src/views/partials/flash.pug
+							include /src/views/partials/flash.pug
 
 							if code
 								h4 Please confirm your email address
