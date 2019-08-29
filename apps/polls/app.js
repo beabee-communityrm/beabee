@@ -3,7 +3,7 @@ const express = require( 'express' );
 const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
 const mailchimp = require( __js + '/mailchimp' );
-const { hasSchema } = require( __js + '/middleware' );
+const { hasSchema, hasModel } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
 
 const schemas = require( './schemas.json' );
@@ -40,21 +40,18 @@ app.get( '/campaign2019', wrapAsync( async ( req, res, next ) => {
 	}
 } ) );
 
-app.get( '/:slug', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
-	const poll = await Polls.findOne( { slug: req.params.slug } );
-	if (poll) {
-		const answer = await PollAnswers.findOne( { poll, member: req.user } );
-		const showShare = !!res.locals.flashes.find(m => m.type === 'success');
-		res.render( `polls/${poll.slug}`, { poll, answer, showShare } );
-	}
+app.get( '/:slug', [
+	auth.isLoggedIn,
+	hasModel(Polls, 'slug')
+], wrapAsync( async ( req, res ) => {
+	const answer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
+	const showShare = !!res.locals.flashes.find(m => m.type === 'success');
+	res.render( `polls/${req.model.slug}`, { poll: req.model, answer, showShare } );
 } ) );
 
-app.get( '/:slug/:code', wrapAsync( async ( req, res ) => {
-	const poll = await Polls.findOne( { slug: req.params.slug } );
-	if ( poll ) {
-		const showShare = !!res.locals.flashes.find(m => m.type === 'success');
-		res.render( 'poll', { poll, code: req.params.code, showShare } );
-	}
+app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
+	const showShare = !!res.locals.flashes.find(m => m.type === 'success');
+	res.render( 'poll', { poll: req.model, code: req.params.code, showShare } );
 } ) );
 
 async function setAnswer( poll, member, { answer, ...additionalAnswers } ) {
@@ -73,44 +70,44 @@ async function setAnswer( poll, member, { answer, ...additionalAnswers } ) {
 	}
 }
 
-app.post( '/:slug', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
-	const poll = await Polls.findOne( { slug: req.params.slug } );
-	if (poll) {
-		const answerSchema = schemas.answerSchemas[poll.slug];
-		hasSchema(answerSchema).orFlash( req, res, async () => {
-			await setAnswer(poll, req.user, req.body);
-			req.flash( 'success', 'polls-answer-chosen' );
-			res.redirect( `${req.originalUrl}#vote` );
-		});
-	}
+app.post( '/:slug', [
+	auth.isLoggedIn,
+	hasModel(Polls, 'slug')
+], wrapAsync( async ( req, res ) => {
+	const answerSchema = schemas.answerSchemas[req.model.slug];
+	hasSchema(answerSchema).orFlash( req, res, async () => {
+		await setAnswer(req.model, req.user, req.body);
+		req.flash( 'success', 'polls-answer-chosen' );
+		res.redirect( `${req.originalUrl}#vote` );
+	});
 } ) );
 
-app.post( '/:slug/:code', hasSchema( schemas.voteLinkSchema ).orFlash, wrapAsync( async ( req, res ) => {
-	const poll = await Polls.findOne( { slug: req.params.slug } );
-	if (poll) {
-		const answerSchema = schemas.answerSchemas[poll.slug];
-		hasSchema(answerSchema).orFlash( req, res, async () => {
-			const email = req.body.email.trim().toLowerCase();
-			const pollsCode = req.params.code.toUpperCase();
+app.post( '/:slug/:code', [
+	hasSchema( schemas.voteLinkSchema ).orFlash,
+	hasModel(Polls, 'slug')
+], wrapAsync( async ( req, res ) => {
+	const answerSchema = schemas.answerSchemas[req.model.slug];
+	hasSchema(answerSchema).orFlash( req, res, async () => {
+		const email = req.body.email.trim().toLowerCase();
+		const pollsCode = req.params.code.toUpperCase();
 
-			const member = await Members.findOne( { email, pollsCode } );
-			if ( member ) {
-				await setAnswer(poll, member, req.body);
-				req.flash( 'success', 'polls-answer-chosen' );
-				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
-			} else {
-				req.flash( 'error', 'polls-unknown-user' );
-				req.log.debug({
-					app: 'polls',
-					action: 'vote',
-					error: 'Member not found with email address/polls code combo',
-					sensitive: { email, pollsCode }
-				});
-			}
+		const member = await Members.findOne( { email, pollsCode } );
+		if ( member ) {
+			await setAnswer(req.model, member, req.body);
+			req.flash( 'success', 'polls-answer-chosen' );
+			res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+		} else {
+			req.flash( 'error', 'polls-unknown-user' );
+			req.log.debug({
+				app: 'polls',
+				action: 'vote',
+				error: 'Member not found with email address/polls code combo',
+				sensitive: { email, pollsCode }
+			});
+		}
 
-			res.redirect( `${req.originalUrl}#vote` );
-		});
-	}
+		res.redirect( `${req.originalUrl}#vote` );
+	});
 } ) );
 
 module.exports = config => {
