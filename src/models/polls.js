@@ -12,7 +12,8 @@ module.exports = {
 			required: true
 		},
 		closed: {
-			type: Boolean
+			type: Boolean,
+			default: false
 		}
 	} )
 };
