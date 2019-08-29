@@ -12,38 +12,42 @@
 	},
 	"answerSchemas": {
 		"campaign2019": {
-			"type": "object",
-			"required": [
-				"answer"
-			],
-			"properties": {
-				"answer": {
-					"type": "string",
-					"enum": ["1", "2"]
-				},
-				"reason": {
-					"type": "string"
-				},
-				"shareable": {
-					"type": "boolean"
-				},
-				"volunteer": {
-					"type": "boolean"
-				},
-				"idea": {
-					"type": "string"
+			"body": {
+				"type": "object",
+				"required": [
+					"answer"
+				],
+				"properties": {
+					"answer": {
+						"type": "string",
+						"enum": ["1", "2"]
+					},
+					"reason": {
+						"type": "string"
+					},
+					"shareable": {
+						"type": "boolean"
+					},
+					"volunteer": {
+						"type": "boolean"
+					},
+					"idea": {
+						"type": "string"
+					}
 				}
 			}
 		},
 		"agm2019": {
-			"type": "object",
-			"required": [
-				"answer"
-			],
-			"properties": {
-				"answer": {
-					"type": "string",
-					"enum": ["yes", "no"]
+			"body": {
+				"type": "object",
+				"required": [
+					"answer"
+				],
+				"properties": {
+					"answer": {
+						"type": "string",
+						"enum": ["yes", "no"]
+					}
 				}
 			}
 		}
