@@ -1,0 +1,21 @@
+{
+	"createPollSchema": {
+		"body": {
+			"type": "object",
+			"required": ["question", "slug", "closed"],
+			"properties": {
+				"question": {
+					"type": "string",
+					"minLength": 1
+				},
+				"slug": {
+					"type": "string",
+					"minLength": 1
+				},
+				"closed": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}

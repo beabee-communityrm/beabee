@@ -116,6 +116,10 @@
 	"flash-notices-updated": "Notice updated",
 	"flash-notices-deleted": "Notice deleted",
 
+	"flash-polls-created": "Poll created",
+	"flash-polls-updated": "Poll updated",
+	"flash-polls-deleted": "Poll deleted",
+
 	"flash-transactional-email-created": "Transactional email created",
 	"flash-transactional-email-sending": "Transactional email is sending!",
 	"flash-transactional-email-deleted": "Transactional email deleted",
