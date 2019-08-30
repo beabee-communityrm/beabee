@@ -69,5 +69,8 @@ module.exports = [
 	{ model: db.Permissions },
 	{ model: db.Payments, properties: payments },
 	{ model: db.Members, properties: members },
-	{ model: db.Referrals, properties: referrals }
+	{ model: db.Referrals, properties: referrals },
+	{ model: db.Notices },
+	{ model: db.Polls },
+	{ model: db.PollAnswers }
 ];
