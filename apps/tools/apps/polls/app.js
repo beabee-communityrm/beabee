@@ -45,7 +45,8 @@ app.post( '/', hasSchema( createPollSchema ).orFlash, wrapAsync( async ( req, re
 
 app.get( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
 	const pollAnswers = await PollAnswers.find( { poll: req.model } );
-	res.render( 'poll', { poll: req.model, pollAnswers } );
+	const answerCounts = _(pollAnswers).groupBy('answer').mapValues('length').valueOf();
+	res.render( 'poll', { poll: req.model, answerCounts } );
 } ) );
 
 app.post( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {

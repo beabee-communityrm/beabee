@@ -15,6 +15,15 @@ block contents
 			if poll.closed
 				.alert.alert-warning This poll is closed
 
+			h4 Answers
+			ul
+				each count, answer in answerCounts
+					li
+						= answer
+						| :
+						|
+						= count
+
 	.row
 		.col-md-8
 			hr
