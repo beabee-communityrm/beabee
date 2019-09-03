@@ -1,5 +1,6 @@
 $c-orange: #f7881f;
 $c-dark-orange: #623204;
+$c-agm2019-purple: #583352;
 
 .poll-title {
 	font-family: "Open Sans Condensed";
@@ -346,4 +347,29 @@ $c-dark-orange: #623204;
 	border: 3px $c-orange dotted;
 	padding: 0 1rem;
 	margin-bottom: 2rem;
+}
+
+// AGM 2019
+.poll-agm2019-title-image {
+	display: block;
+	width: 100%;
+	margin-bottom: 2rem;
+}
+
+.poll-agm2019-options {
+	@extend .poll-options;
+
+	& > .btn {
+		padding: 0.5rem;
+		background-color: $c-agm2019-purple;
+		max-width: 16rem;
+		&:hover {
+			background-color: darken($c-agm2019-purple, 10%);
+		}
+	}
+
+}
+
+.poll-agm2019-end {
+	margin-top: 3rem;
 }

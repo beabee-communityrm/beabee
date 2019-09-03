@@ -14,9 +14,7 @@
 		"campaign2019": {
 			"body": {
 				"type": "object",
-				"required": [
-					"answer"
-				],
+				"required": ["answer"],
 				"properties": {
 					"answer": {
 						"type": "string",
@@ -40,15 +38,40 @@
 		"agm2019": {
 			"body": {
 				"type": "object",
-				"required": [
-					"answer"
-				],
-				"properties": {
-					"answer": {
-						"type": "string",
-						"enum": ["yes", "no"]
+				"required": ["answer"],
+				"oneOf": [
+					{
+						"required": ["creche", "volunteer"],
+						"properties": {
+							"answer": {
+								"type": "const",
+								"const": "yes"
+							},
+							"creche": {
+								"type": "enum",
+								"enum": ["yes", "no"]
+							},
+							"creche_details": {
+								"type": "string"
+							},
+							"accessibility": {
+								"type": "string"
+							},
+							"volunteer": {
+								"type": "enum",
+								"enum": ["yes", "no"]
+							}
+						}
+					},
+					{
+						"properties": {
+							"answer": {
+								"type": "const",
+								"const": "no"
+							}
+						}
 					}
-				}
+				]
 			}
 		}
 	}

@@ -3,6 +3,9 @@ extends /src/views/base.pug
 block prepend title
 	- title = app.title
 
+block append js
+	script(src='/static/js/poll-agm2019.js')
+
 block contents
 	.row
 		.col-md-3
@@ -10,27 +13,42 @@ block contents
 			if access('member')
 				include /apps/profile/views/partials/sidebar.pug
 		.col-md-9
-			+page_header( 'Come to the Cable\'s AGM' )
+			.page-header
+				h3 &nbsp;
 
 			.row
 				.col-md-9
+					img(src='/static/imgs/polls/agm2019/title.png').poll-agm2019-title-image
 					if answer
-						.alert.alert-success
-							| You are
-							|
+						.alert(class='alert-' + (answer.answer === 'yes' ? 'success' : 'warning'))
 							if answer.answer === 'yes'
-								| coming to the AGM!
+								| You are coming to the AGM!
 							else
-								| not coming to the AGM.
+								| You aren't coming to the AGM.
 							if !poll.closed
 								|
-								| You can
 								|
-								a(href="#vote") change your mind
-								|
-								| up until 5pm on February 27th.
+								a(href='#vote') You can change your reply below.
 
-					p Some stuff about the AGM here
+
+					p.
+						We’re pleased to invite you to the Bristol Cable Annual General
+						Meeting 2019, where Cable members help steer the co-op for the year
+						ahead.
+
+					p.
+						The AGM is the most important moment in the Cable year for us all
+						to come together, reflect, celebrate and make big plans for what’s
+						next. We’ll be electing new directors and working through some
+						important questions together. As well as marking the Cable’s 5th
+						Birthday!
+
+					p.
+						The AGM will be a lively event with interactive activities,
+						interesting conversation, cups of tea and delicious snacks! For a
+						flavour of the event take a look at this video of last year. 
+
+					p The event is child-friendly and there will be a creche / play area.
 
 					if !poll.closed
 						hr#vote
@@ -41,10 +59,74 @@ block contents
 							.alert.alert-success.
 								See you at the AGM! or not
 
-						form(method='POST' action="#vote")
+						form(method='POST' action='#vote').js-poll-agm2019-form
 							+csrf
 
 							include /src/views/partials/flash.pug
+
+							h3 Can you come to the AGM?
+
+							.poll-agm2019-options
+								input(type='radio' name='answer' value='yes' required checked=answer.answer === 'yes')#answer1
+								label(for='answer1').btn Yes
+								input(type='radio' name='answer' value='no' required checked=answer.answer === 'no')#answer2
+								label(for='answer2').btn No
+
+							.hidden.js-poll-agm2019-section(data-name='answer' data-value='yes')
+								h3 Great!
+
+								p.
+									Thanks for taking the time out of your evening to come get
+									involved in your media. We have a few quick questions to make
+									sure we have everything we need on the night.
+
+								h4 Do you want to use our free creche?
+
+								.poll-agm2019-options
+									input(type='radio' name='creche' value='yes' required checked=answer.creche === 'yes')#crecheyes
+									label(for='crecheyes').btn Yes
+									input(type='radio' name='creche' value='no' required checked=answer.creche === 'no')#crecheno
+									label(for='crecheno').btn No
+
+								.hidden.js-poll-agm2019-section(data-name='creche' data-value='yes')
+									p Please let us know how many children and their ages:
+									.form-group
+										input(type='text' name='creche_details' value=answer.creche_details required).form-control
+
+								h4 Accessbility
+								p.
+									The venue is wheelchair accessible (with accessible toilets and
+									smoking area). The front of the venue has level paved access
+									and on street parking directly outside.
+									#[b Do you have any other access needs to allow you to take part?]
+								.form-group
+									input(type='text' name='accessibility' value=answer.accessbility).form-control
+
+								h4 Helping out on the night
+								p.
+									We need members to help out on the day and act as volunteers
+									during the AGM to welcome people and help the event go
+									smoothly. This would mean turning up at 5.30pm.
+									#[b Are you interested in volunteering?]
+
+								.poll-agm2019-options
+									input(type='radio' name='volunteer' value='yes' required checked=answer.volunteer === 'yes')#volunteeryes
+									label(for='volunteeryes').btn Yes
+									input(type='radio' name='volunteer' value='no' required checked=answer.volunteer === 'no')#volunteerno
+									label(for='volunteerno').btn No
+
+							.hidden.js-poll-agm2019-section(data-name='answer' data-value='no')
+								h3 No worries!
+
+								p.
+									We understand that people have a lots of time commitments and
+									it isn't possible to be everywhere.
+									
+								p.
+									To try to make it easier to participate, this year we'll be putting
+									lots of the AGM questions online so you'll still be able to let us
+									know what you think. We'll be in touch closer to the time with
+									details.
 
 							if code
 								h4 Please confirm your email address
@@ -57,15 +139,5 @@ block contents
 								.form-group
 									input(type='email' name='email' required).form-control
 
-							h4 Would you like to come to the AGM?
-							.poll-options
-								input(type='radio' name='answer' value='yes' required)#answer1
-								label(for="answer1").btn Yes
-								input(type='radio' name='answer' value='no' required)#answer2
-								label(for="answer2").btn No
-
-							h4 Do you require any child care
-
-							p We provide a free blah
-
-							button.btn.join-btn Reply
+							p.poll-agm2019-end
+								button.btn.join-btn Submit
