@@ -10,19 +10,18 @@ module.exports = {
 			ref: 'Polls',
 			required: true
 		},
-		answer: {
-			type: String,
-			required: true
-		},
-		reason: String,
-		shareable: Boolean,
 		member: {
 			type: ObjectId,
 			ref: 'Members',
 			required: true
 		},
-		volunteer: Boolean,
-		idea: String,
+		answer: {
+			type: String,
+			required: true
+		},
+		additionalAnswers: {
+			type: Object
+		},
 		exports: [ {
 			export_id: {
 				type: ObjectId,

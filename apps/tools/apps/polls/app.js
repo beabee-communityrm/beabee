@@ -1,5 +1,4 @@
 const express = require( 'express' );
-const moment = require( 'moment' );
 const _ = require( 'lodash' );
 
 const auth = require( __js + '/authentication' );

@@ -44,7 +44,9 @@ app.get( '/:slug', [
 	auth.isLoggedIn,
 	hasModel(Polls, 'slug')
 ], wrapAsync( async ( req, res ) => {
-	const answer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
+	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
+
+	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
 
 	const justAnswered = req.session.justAnswered;
 	delete req.session.justAnswered;
@@ -63,8 +65,9 @@ async function setAnswer( poll, member, { answer, ...additionalAnswers } ) {
 	if (poll.closed) {
 		throw new Error('Poll is closed');
 	} else {
+		console.log(answer, additionalAnswers);
 		await PollAnswers.findOneAndUpdate( { member }, {
-			$set: { poll, member, answer, ...additionalAnswers }
+			$set: { poll, member, answer, additionalAnswers }
 		}, { upsert: true } );
 
 		await mailchimp.defaultLists.members.update( member.email, {

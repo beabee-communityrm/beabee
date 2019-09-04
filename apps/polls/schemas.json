@@ -41,14 +41,12 @@
 				"required": ["answer"],
 				"oneOf": [
 					{
-						"required": ["creche", "volunteer"],
 						"properties": {
 							"answer": {
-								"type": "const",
 								"const": "yes"
 							},
 							"creche": {
-								"type": "enum",
+								"type": "string",
 								"enum": ["yes", "no"]
 							},
 							"creche_details": {
@@ -58,7 +56,11 @@
 								"type": "string"
 							},
 							"volunteer": {
-								"type": "enum",
+								"type": "string",
+								"enum": ["yes", "no"]
+							},
+							"before": {
+								"type": "string",
 								"enum": ["yes", "no"]
 							}
 						}
@@ -66,7 +68,6 @@
 					{
 						"properties": {
 							"answer": {
-								"type": "const",
 								"const": "no"
 							}
 						}
