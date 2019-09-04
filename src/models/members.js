@@ -41,6 +41,11 @@ module.exports = {
 			unique: true,
 			sparse: true
 		},
+		pollsCode: {
+			type: String,
+			unique: true,
+			sparse: true
+		},
 		loginOverride: {
 			code: String,
 			expires: Date

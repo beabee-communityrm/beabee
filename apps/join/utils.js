@@ -53,7 +53,7 @@ function joinInfoToSubscription(amount, period, mandateId) {
 	};
 }
 
-function generateReferralCode({firstname, lastname}) {
+function generateMemberCode({firstname, lastname}) {
 	const no = ('000' + Math.floor(Math.random() * 1000)).slice(-3);
 	return (firstname[0] + lastname[0] + no).toUpperCase();
 }
@@ -109,11 +109,12 @@ async function createMember(memberObj) {
 	try {
 		return await Members.create({
 			...memberObj,
-			referralCode: generateReferralCode(memberObj)
+			referralCode: generateMemberCode(memberObj),
+			pollsCode: generateMemberCode(memberObj)
 		});
 	} catch (saveError) {
 		const {code, message} = saveError;
-		if (code === 11000 && message.indexOf('referralCode') > -1) {
+		if (code === 11000 && (message.indexOf('referralCode') > -1 || message.indexOf('pollsCode') > -1)) {
 			// Retry with a different referral code
 			return await createMember(memberObj);
 		}
