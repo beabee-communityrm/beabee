@@ -92,66 +92,71 @@ block contents
 								label(for='answer2').btn No
 
 							.hidden.js-poll-agm2019-section(data-name='answer' data-value='yes')
-								h4 Great! Just a few quick questions...
+								.poll-section
+									h4 Great! Just a few quick questions...
 
-								p.
-									...to make sure we have everything we need on the night.
+									p ...to make sure we have everything we need on the night.
 
-								h4 Are you bringing children to be looked after in the creche?
+								.poll-section
+									h4 1. Are you bringing children to be looked after in the creche?
 
-								p.
-									The creche will be staffed by DBS-checked people, and is in
-									the same room as the AGM.
+									p.
+										The creche will be staffed by DBS-checked people, and is in
+										the same room as the AGM.
 
-								.poll-agm2019-options
-									input(type='radio' name='creche' value='yes' required disabled checked=answer.creche === 'yes')#crecheyes
-									label(for='crecheyes').btn Yes
-									input(type='radio' name='creche' value='no' required disabled checked=answer.creche === 'no')#crecheno
-									label(for='crecheno').btn No
+									.poll-agm2019-options
+										input(type='radio' name='creche' value='yes' required disabled checked=answer.creche === 'yes')#crecheyes
+										label(for='crecheyes').btn Yes
+										input(type='radio' name='creche' value='no' required disabled checked=answer.creche === 'no')#crecheno
+										label(for='crecheno').btn No
 
-								.hidden.js-poll-agm2019-section(data-name='creche' data-value='yes')
-									p Please let us know how many children and their ages:
+									.hidden.js-poll-agm2019-section(data-name='creche' data-value='yes')
+										p Please let us know how many children and their ages:
+										.form-group
+											input(type='text' name='creche_details' value=answer.creche_details required disabled).form-control
+
+								.poll-section
+									h4 2. Accessibility
+									p.
+										The venue is wheelchair accessible (with accessible toilets and
+										smoking area). The front of the venue has level paved access
+										and on street parking directly outside.
+										#[b Do you have any other access needs to allow you to take part?]
 									.form-group
-										input(type='text' name='creche_details' value=answer.creche_details required disabled).form-control
+										input(type='text' name='accessibility' value=answer.accessibility).form-control
 
-								h4 Accessibility
-								p.
-									The venue is wheelchair accessible (with accessible toilets and
-									smoking area). The front of the venue has level paved access
-									and on street parking directly outside.
-									#[b Do you have any other access needs to allow you to take part?]
-								.form-group
-									input(type='text' name='accessibility' value=answer.accessibility).form-control
+								.poll-section
+									h4 3. Would you like to volunteer?
+									p.
+										We need some members to help out on the night to help the
+										event go smoothly. This would mean turning up at 5.30pm.
 
-								h4 Would you like to volunteer?
-								p.
-									We need some members to help out on the night to help the
-									event go smoothly. This would mean turning up at 5.30pm.
+									.poll-agm2019-options
+										input(type='radio' name='volunteer' value='yes' required disabled checked=answer.volunteer === 'yes')#volunteeryes
+										label(for='volunteeryes').btn Yes
+										input(type='radio' name='volunteer' value='no' required disabled checked=answer.volunteer === 'no')#volunteerno
+										label(for='volunteerno').btn No
 
-								.poll-agm2019-options
-									input(type='radio' name='volunteer' value='yes' required disabled checked=answer.volunteer === 'yes')#volunteeryes
-									label(for='volunteeryes').btn Yes
-									input(type='radio' name='volunteer' value='no' required disabled checked=answer.volunteer === 'no')#volunteerno
-									label(for='volunteerno').btn No
+								.poll-section
+									h4 4. Is there anything you'd like to see discussed?
+									p.
+										Your input here will help inform the agenda for the evening.
 
-								h4 Is there anything you like to see discussed?
-								p.
-									Your input here will help inform the agenda for the evening.
+									.form-group
+										input(type='text' name='discuss' value=answer.discuss).form-control
 
-								.form-group
-									input(type='text' name='discuss' value=answer.discuss).form-control
+								.poll-section
+									h4 5. And finally, have you been to a Cable AGM before?
+									p.
+										We’re collecting this information to work out how many of our
+										members we’re engaging and how to include more members in our
+										events.
 
-								h4 And finally, have you been to a Cable AGM before?
-								p.
-									We’re collecting this information to work out how many of our
-									members we’re engaging and how to include more members in our
-									events.
-
-								.poll-agm2019-options
-									input(type='radio' name='before' value='yes' required disabled checked=answer.before === 'yes')#beforeyes
-									label(for='beforeyes').btn Yes
-									input(type='radio' name='before' value='no' required disabled checked=answer.before === 'no')#beforeno
-									label(for='beforeno').btn No
+									.poll-agm2019-options
+										input(type='radio' name='before' value='yes' required disabled checked=answer.before === 'yes')#beforeyes
+										label(for='beforeyes').btn Yes
+										input(type='radio' name='before' value='no' required disabled checked=answer.before === 'no')#beforeno
+										label(for='beforeno').btn No
 
 							.hidden.js-poll-agm2019-section(data-name='answer' data-value='no')
 								h4 No worries!
@@ -160,13 +165,14 @@ block contents
 									We understand that people have a lots of time commitments and
 									it isn't possible to be everywhere.
 
-								h4 Is there anything you like to see discussed?
-								p.
-									Even if you can't come, your input here will help inform the
-									agenda for the evening.
+								.poll-section
+									h4 Is there anything you'd like to see discussed?
+									p.
+										Even if you can't come, your input here will help inform the
+										agenda for the evening.
 
-								.form-group
-									input(type='text' name='discuss' value=answer.discuss).form-control
+									.form-group
+										input(type='text' name='discuss' value=answer.discuss).form-control
 
 							.hidden-js.js-poll-agm2019-submit
 								if code
@@ -180,5 +186,5 @@ block contents
 									.form-group
 										input(type='email' name='email' required).form-control
 
-								p.poll-agm2019-end
+								p
 									button.btn.join-btn Send RSVP

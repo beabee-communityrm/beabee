@@ -349,16 +349,19 @@ $c-agm2019-purple: #583352;
 	margin-bottom: 2rem;
 }
 
+.poll-section {
+	margin-bottom: 4rem;
+}
+
 // AGM 2019
 .poll-agm2019-title-image {
 	display: block;
 	width: 100%;
-	margin-bottom: 2rem;
 }
 
 .poll-agm2019-options {
 	@extend .poll-options;
-	margin-bottom: 2rem;
+	margin-bottom: 3rem;
 
 	& > .btn {
 		padding: 0.5rem;
@@ -368,9 +371,4 @@ $c-agm2019-purple: #583352;
 			background-color: darken($c-agm2019-purple, 10%);
 		}
 	}
-
-}
-
-.poll-agm2019-end {
-	margin-top: 3rem;
 }
