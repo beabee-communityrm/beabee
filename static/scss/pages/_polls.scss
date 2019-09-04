@@ -357,11 +357,11 @@ $c-agm2019-purple: #583352;
 .poll-agm2019-title-image {
 	display: block;
 	width: 100%;
+	margin-bottom: 2rem;
 }
 
 .poll-agm2019-options {
 	@extend .poll-options;
-	margin-bottom: 3rem;
 
 	& > .btn {
 		padding: 0.5rem;
