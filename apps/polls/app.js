@@ -46,7 +46,7 @@ app.get( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 
-	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : null;
+	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
 
 	const justAnswered = !!req.session.newAnswer;
 	delete req.session.newAnswer;
