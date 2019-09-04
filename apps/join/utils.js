@@ -164,7 +164,8 @@ async function startMembership(member, {
 				merge_fields: {
 					FNAME: member.firstname,
 					LNAME: member.lastname,
-					REFLINK: member.referralLink
+					REFLINK: member.referralLink,
+					POLLSCODE: member.pollsCode
 				},
 				status_if_new: 'subscribed'
 			});
