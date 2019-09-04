@@ -72,6 +72,9 @@
 						"properties": {
 							"answer": {
 								"const": "no"
+							},
+							"discuss": {
+								"type": "string"
 							}
 						}
 					}
