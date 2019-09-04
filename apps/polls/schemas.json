@@ -59,6 +59,9 @@
 								"type": "string",
 								"enum": ["yes", "no"]
 							},
+							"discuss": {
+								"type": "string"
+							},
 							"before": {
 								"type": "string",
 								"enum": ["yes", "no"]

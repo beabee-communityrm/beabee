@@ -54,13 +54,18 @@ block contents
 						hr#vote
 
 						if justAnswered
-							if answer.answer === 'yes'
-								.alert.alert-success.
-									See you there!
-							else
-								.alert.alert-warning.
-									Thanks for your reply
-							hr
+							h3 Thanks for your reply
+							
+							p
+								if answer.answer === 'yes'
+									| We look forward to seeing you there! We'll be sending out
+									| more details over the next few weeks.
+								else
+									| We'll be sending out more details on how you can still have
+									| you say over the next few weeks.
+
+							p.
+								If your availability changes you can update your RSVP below.
 
 						form(method='POST' action='#vote').js-poll-agm2019-form
 							+csrf
@@ -103,7 +108,7 @@ block contents
 									and on street parking directly outside.
 									#[b Do you have any other access needs to allow you to take part?]
 								.form-group
-									input(type='text' name='accessibility' value=answer.accessbility).form-control
+									input(type='text' name='accessibility' value=answer.accessibility).form-control
 
 								h4 Helping out on the night
 								p.
@@ -118,11 +123,21 @@ block contents
 									input(type='radio' name='volunteer' value='no' required disabled checked=answer.volunteer === 'no')#volunteerno
 									label(for='volunteerno').btn No
 
+								h4 What would you like to discuss?
+								p.
+									Is there anything in particular you'd like to see discussed
+									at the AGM? We can't promise that everyone's topics will make
+									it on to the agenda but we will do our best to identify key
+									discussion points.
+
+								.form-group
+									input(type='text' name='discuss' value=answer.discuss).form-control
+
 								h4 And finally, have you been to a Cable AGM before?
 								p.
 									We’re collecting this information to work out how many of our
 									members we’re engaging and how to include more members in our
-									events
+									events.
 
 								.poll-agm2019-options
 									input(type='radio' name='before' value='yes' required disabled checked=answer.before === 'yes')#beforeyes
