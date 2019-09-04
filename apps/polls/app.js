@@ -46,19 +46,24 @@ app.get( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 
-	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
+	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : null;
 
-	const justAnswered = req.session.justAnswered;
-	delete req.session.justAnswered;
+	const justAnswered = !!req.session.newAnswer;
+	delete req.session.newAnswer;
 
 	res.render( `polls/${req.model.slug}`, { answer, poll: req.model, justAnswered } );
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
-	const justAnswered = req.session.justAnswered;
-	delete req.session.justAnswered;
+	const newAnswer = req.session.newAnswer;
+	delete req.session.newAnswer;
 
-	res.render( 'poll', { poll: req.model, code: req.params.code, justAnswered } );
+	res.render( `polls/${req.model.slug}`, {
+		poll: req.model,
+		answer: newAnswer || {},
+		code: req.params.code,
+		justAnswered: !!newAnswer
+	} );
 } ) );
 
 async function setAnswer( poll, member, { answer, ...additionalAnswers } ) {
@@ -85,7 +90,7 @@ app.post( '/:slug', [
 	const answerSchema = schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		await setAnswer(req.model, req.user, req.body);
-		req.session.justAnswered = true;
+		req.session.newAnswer = true;
 		res.redirect( `${req.originalUrl}#vote` );
 	});
 } ) );
@@ -102,7 +107,7 @@ app.post( '/:slug/:code', [
 		const member = await Members.findOne( { email, pollsCode } );
 		if ( member ) {
 			await setAnswer(req.model, member, req.body);
-			req.session.justAnswered = true;
+			req.session.newAnswer = req.body;
 			res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 		} else {
 			req.flash( 'error', 'polls-unknown-user' );
