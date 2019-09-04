@@ -66,6 +66,20 @@ function hasSchema( schema ) {
 	};
 }
 
+function hasModel( model, prop ) {
+	return async ( req, res, next ) => {
+		req.model = await model.findOne( { [prop]: req.params[prop] } );
+		if (req.model) {
+			next();
+		} else {
+			res.status(404);
+			res.send('Not found');
+		}
+	};
+
+}
+
 module.exports = {
-	hasSchema
+	hasSchema,
+	hasModel
 };

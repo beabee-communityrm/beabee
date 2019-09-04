@@ -6,14 +6,14 @@ block prepend title
 block contents
 	.row
 		.col-md-3
-			- page = '2fa'
-			if access( 'member')
+			- page = ''
+			if access('member')
 				include /apps/profile/views/partials/sidebar.pug
 		.col-md-9
 			+page_header( 'Vote for the Cable\'s next campaign' )
 			.row
 				.col-md-9
-					if answer
+					if answer.answer
 						.alert.alert-success
 							| You voted to campaign to
 							|
@@ -22,8 +22,9 @@ block contents
 								| prevent drug deaths and clean up our streets
 							else
 								| clean up our air
-							|.
+							| .
 							if !poll.closed
+								|
 								| You can
 								|
 								a(href="#vote") change your mind
@@ -148,10 +149,11 @@ block contents
 					if !poll.closed
 						hr#vote
 
-						if showShare
+						if justAnswered
 							h3 Thank you!
 
-							include /src/views/partials/flash.pug
+							.alert.alert-success.
+								Thank you for voting, we will be announcing the result after Feburary 27th
 
 							p.
 								Spread the word on social media to get others involved in
@@ -174,8 +176,7 @@ block contents
 
 						form(method='POST' action="#vote")
 							+csrf
-							if !showShare
-								include /src/views/partials/flash.pug
+							include /src/views/partials/flash.pug
 
 							if code
 								h4 Please confirm your email address

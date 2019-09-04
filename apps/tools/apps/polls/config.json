@@ -1,0 +1,9 @@
+{
+	"title": "Polls",
+	"path": "polls",
+	"permissions": [
+		"superadmin", "admin"
+	],
+	"menu": "main",
+	"priority": 3
+}

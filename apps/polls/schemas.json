@@ -1,0 +1,82 @@
+{
+	"voteLinkSchema": {
+		"body": {
+			"type": "object",
+			"required": ["email"],
+			"properties": {
+				"email": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"answerSchemas": {
+		"campaign2019": {
+			"body": {
+				"type": "object",
+				"required": ["answer"],
+				"properties": {
+					"answer": {
+						"type": "string",
+						"enum": ["1", "2"]
+					},
+					"reason": {
+						"type": "string"
+					},
+					"shareable": {
+						"type": "boolean"
+					},
+					"volunteer": {
+						"type": "boolean"
+					},
+					"idea": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"agm2019": {
+			"body": {
+				"type": "object",
+				"required": ["answer"],
+				"oneOf": [
+					{
+						"properties": {
+							"answer": {
+								"const": "yes"
+							},
+							"creche": {
+								"type": "string",
+								"enum": ["yes", "no"]
+							},
+							"creche_details": {
+								"type": "string"
+							},
+							"accessibility": {
+								"type": "string"
+							},
+							"volunteer": {
+								"type": "string",
+								"enum": ["yes", "no"]
+							},
+							"discuss": {
+								"type": "string"
+							},
+							"before": {
+								"type": "string",
+								"enum": ["yes", "no"]
+							}
+						}
+					},
+					{
+						"properties": {
+							"answer": {
+								"const": "no"
+							}
+						}
+					}
+				]
+			}
+		}
+	}
+}
