@@ -22,7 +22,7 @@
 	});
 
 	function updateSubmit() {
-		$submit.toggleClass('hidden-js', $formAnswer.filter(':checked').length === 0);
+		$submit.prop('disabled', $formAnswer.filter(':checked').length === 0);
 	}
 
 	$formAnswer.on('input', updateSubmit);

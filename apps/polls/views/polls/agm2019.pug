@@ -83,13 +83,14 @@ block contents
 
 							include /src/views/partials/flash.pug
 
-							h3 Can you come to the AGM?
+							.poll-section
+								h3 Can you come to the AGM?
 
-							.poll-agm2019-options
-								input(type='radio' name='answer' value='yes' required checked=answer.answer === 'yes')#answer1
-								label(for='answer1').btn Yes
-								input(type='radio' name='answer' value='no' required checked=answer.answer === 'no')#answer2
-								label(for='answer2').btn No
+								.poll-agm2019-options
+									input(type='radio' name='answer' value='yes' required checked=answer.answer === 'yes')#answer1
+									label(for='answer1').btn Yes
+									input(type='radio' name='answer' value='no' required checked=answer.answer === 'no')#answer2
+									label(for='answer2').btn No
 
 							.hidden.js-poll-agm2019-section(data-name='answer' data-value='yes')
 								.poll-section
@@ -174,17 +175,16 @@ block contents
 									.form-group
 										input(type='text' name='discuss' value=answer.discuss).form-control
 
-							.hidden-js.js-poll-agm2019-submit
-								if code
-									h4 Please confirm your email address
-									p.
-										For data protection reasons, this must be the email address
-										that we have on record for you.  If you have trouble please
-										email
-										#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
+							if code
+								h4 Please confirm your email address
+								p.
+									For data protection reasons, this must be the email address
+									that we have on record for you.  If you have trouble please
+									email
+									#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
 
-									.form-group
-										input(type='email' name='email' required).form-control
+								.form-group
+									input(type='email' name='email' required).form-control
 
-								p
-									button.btn.join-btn Send RSVP
+							p
+								button.btn.join-btn.js-poll-agm2019-submit Send RSVP
