@@ -1,10 +1,5 @@
 {
 	"gifts3": [{
-		"id": "cable-ticket",
-		"name": "Ticket to Cable gig",
-		"image": "bc-ticket.png",
-		"description": "The Cable has been known to throw a great party. Details to be confirmed but expect a great venue and local acts."
-	}, {
 		"id": "cable-mug",
 		"name": "Cable mug",
 		"image": "bc-mug.png",
