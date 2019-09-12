@@ -101,21 +101,35 @@ async function handleResourceEvent( event ) {
 }
 
 async function handlePaymentResourceEvent( event ) {
-	const gcPayment = await gocardless.payments.get( event.links.payment );
-	const payment =
-		await Payments.findOne( { payment_id: gcPayment.id } ) ||
-		await createPayment( gcPayment );
+	// GC sends a paid_out action per payment when a payout is processed, which
+	// means 1,000s of events.  In the docs they say you should always fetch the
+	// related payment to check it hasn't changed, but if we do that we get rate
+	// limited. It seems like we can pretty safely assume paid out payments
+	// haven't changed though.
+	if ( event.action === 'paid_out' ) {
+		await Payments.update( { payment_id: event.links.payment }, { $set: { status: 'paid_out' } } );
 
-	switch( event.action ) {
-	case 'confirmed': // Collected
-		await confirmPayment( payment );
-	case 'created': // Pending
-	case 'submitted': // Processing
-	case 'cancelled': // Cancelled
-	case 'failed': // Failed
-	case 'paid_out': // Received
-		await updatePayment( gcPayment, payment );
-		break;
+		log.info( {
+			app: 'webhook',
+			action: 'paid-out-payment',
+			payment_id: event.links.payment
+		} );
+	} else {
+		const gcPayment = await gocardless.payments.get( event.links.payment );
+		const payment =
+			await Payments.findOne( { payment_id: gcPayment.id } ) ||
+			await createPayment( gcPayment );
+
+		switch( event.action ) {
+		case 'confirmed': // Collected
+			await confirmPayment( payment );
+		case 'created': // Pending
+		case 'submitted': // Processing
+		case 'cancelled': // Cancelled
+		case 'failed': // Failed
+			await updatePayment( gcPayment, payment );
+			break;
+		}
 	}
 }
 
