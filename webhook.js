@@ -108,6 +108,12 @@ async function handlePaymentResourceEvent( event ) {
 	// haven't changed though.
 	if ( event.action === 'paid_out' ) {
 		await Payments.update( { payment_id: event.links.payment }, { $set: { status: 'paid_out' } } );
+
+		log.info( {
+			app: 'webhook',
+			action: 'paid-out-payment',
+			payment_id: event.links.payment
+		} );
 	} else {
 		const gcPayment = await gocardless.payments.get( event.links.payment );
 		const payment =
