@@ -120,6 +120,13 @@
 	"flash-polls-updated": "Poll updated",
 	"flash-polls-deleted": "Poll deleted",
 
+	"flash-referral-gifts-updated": "Referral gift updated",
+	"flash-referral-gifts-options-updated": "Referral gift options updated",
+	"flash-referral-gifts-stock-updated": "Referral gift stock updated",
+	"flash-referral-gifts-deleted": "Referral gift deleted",
+	"flash-referral-gifts-option-deleted": "Referral gift option deleted",
+	"flash-referral-gifts-stock-deleted": "Referral gift stock deleted",
+
 	"flash-transactional-email-created": "Transactional email created",
 	"flash-transactional-email-sending": "Transactional email is sending!",
 	"flash-transactional-email-deleted": "Transactional email deleted",

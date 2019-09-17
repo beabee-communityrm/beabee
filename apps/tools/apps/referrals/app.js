@@ -40,34 +40,50 @@ app.get( '/gifts/:name', hasModel( ReferralGifts, 'name' ), ( req, res ) => {
 } );
 
 app.post( '/gifts/:name', hasModel( ReferralGifts, 'name' ), wrapAsync( async ( req, res ) => {
-	console.log(req.body);
+	const data = req.body;
 
-	if (req.body['delete-option']) {
-		await req.model.update({$pull: {options: {name: req.body['delete-option']}}});
-	} else if (req.body['delete-stock']) {
-		await req.model.update({$unset: {['stock.' + req.body['delete-stock']]: 1}});
+	if (data['delete-option']) {
+		await req.model.update({$pull: {options: {name: data['delete-option']}}});
+		req.flash( 'success', 'referral-gifts-option-deleted' );
+	} else if (data['delete-stock']) {
+		await req.model.update({$unset: {['stock.' + data['delete-stock']]: 1}});
+		req.flash( 'success', 'referral-gifts-stock-deleted' );
 	} else {
-		switch ( req.body.action ) {
+		switch ( data.action ) {
 		case 'update-gift':
 			await req.model.update({$set: {
-				label: req.body.label,
-				description: req.body.description
+				label: data.label,
+				description: data.description
 			}});
+			req.flash( 'success', 'referral-gifts-updated' );
 			break;
 		case 'update-options': {
-			const options = null;
+			const options = _.zip(data.option_name, data.option_values).map(([name, values]) => ({
+				name,
+				values: values.split(',').map(s => s.trim())
+			})).filter(({name}) => !!name);
 			await req.model.update({$set: {options}});
+			req.flash( 'success', 'referral-gifts-options-updated' );
+			break;
 		}
 		case 'update-stock': {
-			const stock = _.zipObject(req.body.stock_ref, req.body.stock_count.map(Number));
+			const stock = _(data.stock_ref)
+				.zipObject(data.stock_count)
+				.pickBy(ref => !!ref)
+				.mapValues(Number)
+				.valueOf();
 			await req.model.update({$set: {stock}});
+			req.flash( 'success', 'referral-gifts-stock-updated' );
+			break;
 		}
 		case 'delete':
-
+			await req.model.delete();
+			req.flash( 'success', 'referral-gifts-deleted' );
+			break;
 		}
 	}
 
-	res.redirect( req.originalUrl );
+	res.redirect( data.action === 'delete' ? '/tools/referrals' : req.originalUrl );
 } ) );
 
 module.exports = config => {
