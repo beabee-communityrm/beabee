@@ -22,7 +22,7 @@ app.use( function( req, res, next ) {
 
 	if ( req.user ) {
 		if (req.user.memberPermission && req.user.memberPermission.date_expires < moment() &&
-				req.originalUrl !== '/profile/expired') {
+				!req.originalUrl.startsWith('/profile/expired')) {
 			res.redirect('/profile/expired');
 		} else if (!req.user.setupComplete && req.originalUrl !== '/profile/complete') {
 			res.redirect('/profile/complete');
