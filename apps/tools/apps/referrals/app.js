@@ -53,7 +53,8 @@ app.post( '/gifts/:name', hasModel( ReferralGifts, 'name' ), wrapAsync( async ( 
 		case 'update-gift':
 			await req.model.update({$set: {
 				label: data.label,
-				description: data.description
+				description: data.description,
+				minAmount: Number(data.minAmount)
 			}});
 			req.flash( 'success', 'referral-gifts-updated' );
 			break;

@@ -16,9 +16,14 @@ module.exports = {
 			type: String,
 			required: true
 		},
+		minAmount: {
+			type: Number,
+			required: true
+		},
 		options: [{
 			name: {
 				type: String,
+				required: true,
 				unique: true
 			},
 			values: [String]

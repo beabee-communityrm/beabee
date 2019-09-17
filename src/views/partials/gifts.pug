@@ -26,20 +26,20 @@ mixin giftsList(gifts, amount)
 						p.gift-option.small(class='gift-option--' + gift.id)
 							span.gift-option-id= option.id
 							each value in option.values
-								if gift.id === 'jtj-mug'
-									if jtjInStock[value]
-										span.gift-jtj-mug-option-value
-											- img = '/static/imgs/gifts/jtj-mug_' + value + '.jpg'
-											input(
-												type='radio', name='referralGiftOptions[' + option.id + ']',
-												value=value, id='jtj-mug-' + value, data-img=img
-											).js-jtj-mug-option-value
-											label(for='jtj-mug-' + value)
-												img(src=img)
-								else
-									label.gift-option-value
-										input(type='radio', name='referralGiftOptions[' + option.id + ']', value=value)
-										= value
+								if !gift.stock[value] || gift.stock[value] > 0
+										if gift.id === 'jtj-mug'
+											span.gift-jtj-mug-option-value
+												- img = '/static/imgs/gifts/jtj-mug_' + value + '.jpg'
+												input(
+													type='radio', name='referralGiftOptions[' + option.id + ']',
+													value=value, id='jtj-mug-' + value, data-img=img
+												).js-jtj-mug-option-value
+												label(for='jtj-mug-' + value)
+													img(src=img)
+										else
+											label.gift-option-value
+												input(type='radio', name='referralGiftOptions[' + option.id + ']', value=value)
+												= value
 
 .gifts-wrapper
 	+giftsList(gifts5, 5)

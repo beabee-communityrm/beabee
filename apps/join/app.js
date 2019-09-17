@@ -1,7 +1,7 @@
 const express = require( 'express' );
 
 const auth = require( __js + '/authentication' );
-const { Members, RestartFlows } = require( __js + '/database' );
+const { Members, ReferralGifts, RestartFlows } = require( __js + '/database' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
@@ -9,9 +9,8 @@ const { wrapAsync } = require( __js + '/utils' );
 const config = require( __config );
 
 const { processJoinForm, customerToMember, createJoinFlow, completeJoinFlow, createMember,
-	startMembership, getJTJInStock, isGiftAvailable } = require( './utils' );
+	startMembership, isGiftAvailable } = require( './utils' );
 
-const { gifts3, gifts5 } = require( './gifts.json' );
 const { joinSchema, referralSchema, completeSchema } = require( './schemas.json' );
 
 const app = express();
@@ -33,8 +32,10 @@ app.get( '/' , function( req, res ) {
 app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 	const referrer = await Members.findOne( { referralCode: req.params.code.toUpperCase() } );
 	if ( referrer ) {
-		const jtjInStock = await getJTJInStock();
-		res.render( 'index', { user: req.user, referrer, gifts3, gifts5, jtjInStock } );
+		const gifts = await ReferralGifts.find();
+		const gifts3 = gifts.filter(gift => gift.minAmount === 3);
+		const gifts5 = gifts.filter(gift => gift.minAmount === 5);
+		res.render( 'index', { user: req.user, referrer, gifts3, gifts5 } );
 	} else {
 		req.flash('warning', 'referral-code-invalid');
 		res.redirect( '/join' );
