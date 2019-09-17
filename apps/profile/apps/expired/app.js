@@ -58,7 +58,7 @@ app.post( '/', hasSchema( rejoinSchema ).orFlash, wrapAsync( async (req, res) =>
 		req.flash( 'success', 'gocardless-subscription-restarted');
 		res.redirect('/profile');
 	} else {
-		const completeUrl = config.audience + app.mountpath + '/complete';
+		const completeUrl = config.audience + '/profile/expired/complete';
 		const redirectUrl = await createJoinFlow(completeUrl, joinForm);
 		res.redirect( redirectUrl );
 	}
