@@ -1,0 +1,9 @@
+{
+	"title": "Referrals",
+	"path": "referrals",
+	"permissions": [
+		"superadmin", "admin"
+	],
+	"menu": "main",
+	"priority": 3
+}
