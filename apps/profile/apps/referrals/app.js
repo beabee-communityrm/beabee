@@ -28,12 +28,18 @@ app.use( function( req, res, next ) {
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const referrals = await Referrals.find({ referrer: req.user }).populate('referee');
-	res.render( 'index', { referralLink: req.user.referralLink, referrals, giftsById } );
+	const gifts = await ReferralGifts.find();
+	for (const referral of referrals) {
+		referral.referrerGiftDetails = gifts.find(gift => gift.name === referral.referrerGift);
+	}
+
+	res.render( 'index', { referralLink: req.user.referralLink, referrals } );
 } ) );
 
 app.get( '/:id', wrapAsync( async ( req, res ) => {
 	const referral = await Referrals.findOne({ _id: req.params.id, referrer: req.user }).populate('referee');
-	res.render( 'referral', { referral, gifts3, gifts5 } );
+	const gifts = await ReferralGifts.find();
+	res.render( 'referral', { referral, gifts } );
 } ) );
 
 app.post( '/:id', hasSchema(chooseGiftSchema).orFlash, wrapAsync( async ( req, res ) => {

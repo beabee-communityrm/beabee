@@ -23,8 +23,7 @@ module.exports = {
 		options: [{
 			name: {
 				type: String,
-				required: true,
-				unique: true
+				required: true
 			},
 			values: [String]
 		}],

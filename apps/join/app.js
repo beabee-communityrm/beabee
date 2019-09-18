@@ -33,9 +33,7 @@ app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 	const referrer = await Members.findOne( { referralCode: req.params.code.toUpperCase() } );
 	if ( referrer ) {
 		const gifts = await ReferralGifts.find();
-		const gifts3 = gifts.filter(gift => gift.minAmount === 3);
-		const gifts5 = gifts.filter(gift => gift.minAmount === 5);
-		res.render( 'index', { user: req.user, referrer, gifts3, gifts5 } );
+		res.render( 'index', { user: req.user, referrer, gifts } );
 	} else {
 		req.flash('warning', 'referral-code-invalid');
 		res.redirect( '/join' );
