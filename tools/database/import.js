@@ -27,6 +27,11 @@ async function main(importData) {
 	await Promise.all(importData.map(runImport));
 }
 
+if (!config.dev) {
+	console.error('Can\'t import to live database');
+	process.exit(1);
+}
+
 db.connect(config.mongo);
 
 db.mongoose.connection.on('connected', () => {
