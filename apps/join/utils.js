@@ -1,20 +1,16 @@
 const moment = require( 'moment' );
+const _ = require('lodash');
 
 const config = require( __config );
 
 const auth = require( __js + '/authentication' );
-const { JoinFlows, JTJStock, Members, Referrals } = require( __js + '/database' );
+const { JoinFlows, Members, ReferralGifts, Referrals } = require( __js + '/database' );
 const gocardless = require( __js + '/gocardless' );
 const { log } = require( __js + '/logging' );
 const postcodes = require( __js + '/postcodes' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
 const { getActualAmount, getSubscriptionName } = require( __js + '/utils' );
-
-const { gifts3, gifts5 } = require( './gifts.json' );
-const giftsById = {};
-gifts3.forEach(gift => giftsById[gift.id] = {...gift, minAmount: 3});
-gifts5.forEach(gift => giftsById[gift.id] = {...gift, minAmount: 5});
 
 async function customerToMember(customerId, mandateId) {
 	const customer = await gocardless.customers.get(customerId);
@@ -178,27 +174,24 @@ async function startMembership(member, {
 	}
 }
 
-async function getJTJInStock() {
-	const jtjStock = await JTJStock.find({});
-	const jtjInStock = {};
-	jtjStock.forEach(stock => jtjInStock[stock.design] = stock.stock > 0);
-	return jtjInStock;
-}
-
 async function isGiftAvailable({referralGift, referralGiftOptions, amount}) {
 	if (referralGift === '') return true; // No gift option
 
-	const gift = giftsById[referralGift];
-	if (gift && gift.minAmount <= amount) {
-		return referralGift !== 'jtj-mug' ||
-			(await JTJStock.findOne({design: referralGiftOptions.Design})).stock > 0;
+	const gift = await ReferralGifts.findOne({name: referralGift});
+	if (gift && gift.enabled && gift.minAmount <= amount) {
+		const stockRef = _.values(referralGiftOptions).join('/');
+		return !gift.stock || gift.stock.get(stockRef) > 0;
 	}
 	return false;
 }
 
 async function updateGiftStock({referralGift, referralGiftOptions}) {
-	if (referralGift === 'jtj-mug') {
-		await JTJStock.updateOne({design: referralGiftOptions.Design}, {$inc: {stock: -1}});
+	const gift = await ReferralGifts.findOne({name: referralGift});
+	if (gift) {
+		const stockRef = _.values(referralGiftOptions).join('/');
+		if (gift.stock && gift.stock.get(stockRef) > 0) {
+			await gift.update({$inc: {['stock.' + stockRef]: -1}});
+		}
 	}
 }
 
@@ -209,7 +202,6 @@ module.exports = {
 	completeJoinFlow,
 	createMember,
 	startMembership,
-	getJTJInStock,
 	isGiftAvailable,
 	updateGiftStock
 };

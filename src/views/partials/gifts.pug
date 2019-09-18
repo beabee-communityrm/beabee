@@ -6,44 +6,45 @@ mixin giftsList(gifts, amount)
 		else
 			li(data-amount=amount).gifts__note.small.hidden.js-gift-note Only available at £#{amount} or more
 		each gift in gifts
-			- imgClass = gift.id === 'jtj-mug' && 'js-jtj-mug-img'
-			li.gifts__item
-				input(
-					type='radio', id='gift_' + gift.id, name='referralGift', value=gift.id,
-					required, disabled=giftsDisabled, data-amount=amount
-				).js-gift
-				label(for='gift_' + gift.id)
-					img(src='/static/imgs/gifts/' + gift.image, class=imgClass).gift-img
-					small.gift-name= gift.name
-			li(data-id=gift.id).gifts__item-details.hidden.js-gift-details
-				img(src='/static/imgs/gifts/' + gift.image, class=imgClass).gifts__item-details__img
-				h4= gift.name
-				p.gift-description.small!= gift.description
-				if gift.options
-					p.small
-						b Select from…
-					each option in gift.options
-						p.gift-option.small(class='gift-option--' + gift.id)
-							span.gift-option-id= option.id
-							each value in option.values
-								if gift.id === 'jtj-mug'
-									if jtjInStock[value]
-										span.gift-jtj-mug-option-value
-											- img = '/static/imgs/gifts/jtj-mug_' + value + '.jpg'
-											input(
-												type='radio', name='referralGiftOptions[' + option.id + ']',
-												value=value, id='jtj-mug-' + value, data-img=img
-											).js-jtj-mug-option-value
-											label(for='jtj-mug-' + value)
-												img(src=img)
-								else
-									label.gift-option-value
-										input(type='radio', name='referralGiftOptions[' + option.id + ']', value=value)
-										= value
+			if gift.enabled && gift.minAmount === amount
+				- imgClass = gift.name === 'jtj-mug' && 'js-jtj-mug-img'
+				li.gifts__item
+					input(
+						type='radio', id='gift_' + gift.name, name='referralGift', value=gift.name,
+						required, disabled=giftsDisabled, data-amount=amount
+					).js-gift
+					label(for='gift_' + gift.name)
+						img(src='/static/imgs/gifts/' + gift.name + '.jpg', class=imgClass).gift-img
+						small.gift-name= gift.label
+				li(data-id=gift.name).gifts__item-details.hidden.js-gift-details
+					img(src='/static/imgs/gifts/' + gift.name + '.jpg', class=imgClass).gifts__item-details__img
+					h4= gift.label
+					p.gift-description.small!= gift.description
+					if gift.options.length > 0
+						p.small
+							b Select from…
+						each option in gift.options
+							p.gift-option.small(class='gift-option--' + gift.name)
+								span.gift-option-id= option.name
+								each value in option.values
+									if !gift.stock || gift.stock.get(value) > 0
+										if gift.name === 'jtj-mug'
+											span.gift-jtj-mug-option-value
+												- img = '/static/imgs/gifts/jtj-mug_' + value + '.jpg'
+												input(
+													type='radio', name='referralGiftOptions[' + option.name + ']',
+													value=value, id='jtj-mug-' + value, data-img=img
+												).js-jtj-mug-option-value
+												label(for='jtj-mug-' + value)
+													img(src=img)
+										else
+											label.gift-option-value
+												input(type='radio', name='referralGiftOptions[' + option.name + ']', value=value)
+												= value
 
 .gifts-wrapper
-	+giftsList(gifts5, 5)
-	+giftsList(gifts3, 3)
+	+giftsList(gifts, 5)
+	+giftsList(gifts, 3)
 p.gifts-none
 	input(type='radio', id='gift_none', name='referralGift', value='', required).js-gift
 	label(for='gift_none')

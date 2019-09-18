@@ -1,17 +1,13 @@
 const express = require( 'express' );
 
 const auth = require( __js + '/authentication' );
-const { Referrals } = require( __js + '/database' );
+const { ReferralGifts, Referrals } = require( __js + '/database' );
 const { hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
 
-const { gifts3, gifts5 } = require( __apps + '/join/gifts.json' );
-const { getJTJInStock, isGiftAvailable, updateGiftStock } = require( __apps + '/join/utils' );
+const { isGiftAvailable, updateGiftStock } = require( __apps + '/join/utils' );
 
 const { chooseGiftSchema } = require( './schema.json' );
-
-const giftsById = {};
-[...gifts3, ...gifts5].forEach(gift => giftsById[gift.id] = gift);
 
 const app = express();
 var app_config = {};
@@ -32,13 +28,18 @@ app.use( function( req, res, next ) {
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const referrals = await Referrals.find({ referrer: req.user }).populate('referee');
-	res.render( 'index', { referralLink: req.user.referralLink, referrals, giftsById } );
+	const gifts = await ReferralGifts.find();
+	for (const referral of referrals) {
+		referral.referrerGiftDetails = gifts.find(gift => gift.name === referral.referrerGift);
+	}
+
+	res.render( 'index', { referralLink: req.user.referralLink, referrals } );
 } ) );
 
 app.get( '/:id', wrapAsync( async ( req, res ) => {
 	const referral = await Referrals.findOne({ _id: req.params.id, referrer: req.user }).populate('referee');
-	const jtjInStock = await getJTJInStock();
-	res.render( 'referral', { referral, gifts3, gifts5, jtjInStock } );
+	const gifts = await ReferralGifts.find();
+	res.render( 'referral', { referral, gifts } );
 } ) );
 
 app.post( '/:id', hasSchema(chooseGiftSchema).orFlash, wrapAsync( async ( req, res ) => {
