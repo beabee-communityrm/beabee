@@ -178,7 +178,7 @@ async function isGiftAvailable({referralGift, referralGiftOptions, amount}) {
 	if (referralGift === '') return true; // No gift option
 
 	const gift = await ReferralGifts.findOne({name: referralGift});
-	if (gift && gift.minAmount <= amount) {
+	if (gift && gift.enabled && gift.minAmount <= amount) {
 		const stockRef = _.values(referralGiftOptions).join('/');
 		return !gift.stock || gift.stock.get(stockRef) > 0;
 	}

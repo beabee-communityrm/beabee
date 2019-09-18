@@ -1,5 +1,4 @@
 const express = require( 'express' );
-const moment = require( 'moment' );
 const _ = require( 'lodash' );
 
 const auth = require( __js + '/authentication' );
@@ -54,7 +53,8 @@ app.post( '/gifts/:name', hasModel( ReferralGifts, 'name' ), wrapAsync( async ( 
 			await req.model.update({$set: {
 				label: data.label,
 				description: data.description,
-				minAmount: Number(data.minAmount)
+				minAmount: Number(data.minAmount),
+				enabled: data.enabled === 'true'
 			}});
 			req.flash( 'success', 'referral-gifts-updated' );
 			break;
@@ -77,10 +77,6 @@ app.post( '/gifts/:name', hasModel( ReferralGifts, 'name' ), wrapAsync( async ( 
 			req.flash( 'success', 'referral-gifts-stock-updated' );
 			break;
 		}
-		case 'delete':
-			await req.model.delete();
-			req.flash( 'success', 'referral-gifts-deleted' );
-			break;
 		}
 	}
 

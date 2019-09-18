@@ -16,6 +16,11 @@ block contents
 				+input( 'text', 'Label', 'label', { value: gift.label, left: 3, right: 5 } )
 				+input( 'text', 'Description', 'description', { value: gift.description, left: 3, right: 5 } )
 				+input( 'number', 'Min amount', 'minAmount', { value: gift.minAmount, left: 3, right: 5 } )
+				.form-group
+					.col-md-offset-3.col-md-9
+						.checkbox-inline
+							input(type='checkbox' name='enabled' value='true' checked=gift.enabled)
+							| Enabled
 
 				.form-group
 					.col-md-6.col-md-offset-3
@@ -80,14 +85,3 @@ block contents
 							td
 				p
 					button(name='action' value='update-stock').btn.btn-primary Update
-
-			hr
-
-			h3 Delete
-			form(method='POST')
-				+csrf
-				p
-					label.checkbox-inline
-						input(type='checkbox' required)
-						| This change is irreversible, confirm to proceed
-				button(name='action' value='delete').btn.btn-danger.outline Delete

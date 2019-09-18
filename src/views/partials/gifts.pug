@@ -6,7 +6,7 @@ mixin giftsList(gifts, amount)
 		else
 			li(data-amount=amount).gifts__note.small.hidden.js-gift-note Only available at £#{amount} or more
 		each gift in gifts
-			if gift.minAmount === amount
+			if gift.enabled && gift.minAmount === amount
 				- imgClass = gift.name === 'jtj-mug' && 'js-jtj-mug-img'
 				li.gifts__item
 					input(

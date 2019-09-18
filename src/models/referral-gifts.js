@@ -20,6 +20,10 @@ module.exports = {
 			type: Number,
 			required: true
 		},
+		enabled: {
+			type: Boolean,
+			default: true
+		},
 		options: [{
 			name: {
 				type: String,
