@@ -180,7 +180,7 @@ async function isGiftAvailable({referralGift, referralGiftOptions, amount}) {
 	const gift = await ReferralGifts.findOne({name: referralGift});
 	if (gift && gift.minAmount <= amount) {
 		const stockRef = _.values(referralGiftOptions).join('/');
-		return gift.stock[stockRef] > 0;
+		return !gift.stock || gift.stock.get(stockRef) > 0;
 	}
 	return false;
 }
@@ -189,7 +189,7 @@ async function updateGiftStock({referralGift, referralGiftOptions}) {
 	const gift = await ReferralGifts.findOne({name: referralGift});
 	if (gift) {
 		const stockRef = _.values(referralGiftOptions).join('/');
-		if (gift.stock[stockRef] > 0) {
+		if (gift.stock && gift.stock.get(stockRef) > 0) {
 			await gift.update({$inc: {['stock.' + stockRef]: -1}});
 		}
 	}
