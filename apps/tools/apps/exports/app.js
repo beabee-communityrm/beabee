@@ -18,7 +18,6 @@ const exportTypeViews = {
 	'edition': pug.compileFile(viewsPath + '/tables/members.pug'),
 	'join-reasons': pug.compileFile(viewsPath + '/tables/join-reasons.pug'),
 	'poll-letter': () => {},
-	'poll-reasons': () => {},
 	'referrals': () => {}
 };
 
@@ -48,13 +47,18 @@ app.get( '/', wrapAsync( async function( req, res ) {
 		exports: exports.filter(e => e.type === type)
 	}));
 
+	for (const type in exportTypes) {
+		const exportType = exportTypes[type];
+		exportType.params = exportType.getParams ? await exportType.getParams() : [];
+	}
+
 	res.render('index', {exportsByType, exportTypes});
 } ) );
 
 app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {
-	const { body: {type, description} } = req;
+	const { body: {type, description, params} } = req;
 
-	const exportDetails = await Exports.create({type, description});
+	const exportDetails = await Exports.create({type, description, params});
 	req.flash('success', 'exports-created');
 	res.redirect('/tools/exports/' + exportDetails._id);
 } ) );
@@ -64,7 +68,7 @@ app.get( '/:uuid', wrapAsync( async function( req, res ) {
 	const exportType = exportTypes[exportDetails.type];
 
 	const newItems = await exportType.collection.find({
-		...await exportType.getQuery(),
+		...await exportType.getQuery(exportDetails.params),
 		exports: {$not: {$elemMatch: {
 			export_id: exportDetails
 		}}}
@@ -103,7 +107,7 @@ app.post( '/:uuid', hasSchema(updateSchema).orFlash, wrapAsync( async function( 
 
 	if (data.action === 'add') {
 		await exportType.collection.updateMany({
-			...await exportType.getQuery(),
+			...await exportType.getQuery(exportDetails.params),
 			exports: {$not: {$elemMatch: {
 				export_id: exportDetails
 			}}}
@@ -136,7 +140,7 @@ app.post( '/:uuid', hasSchema(updateSchema).orFlash, wrapAsync( async function( 
 		res.redirect('/tools/exports/' + exportDetails._id);
 
 	} else if (data.action === 'export') {
-		const members = await exportType.collection.find({
+		const items = await exportType.collection.find({
 			exports: {$elemMatch: {
 				export_id: exportDetails,
 				...data.status !== '' && {status: data.status}
@@ -144,7 +148,7 @@ app.post( '/:uuid', hasSchema(updateSchema).orFlash, wrapAsync( async function( 
 		});
 
 		const exportName = `export-${exportDetails.description}_${new Date().toISOString()}.csv`;
-		const exportData = await exportType.getExport(members);
+		const exportData = await exportType.getExport(items, exportDetails.params);
 		res.attachment(exportName).send(Papa.unparse(exportData));
 	} else if (data.action === 'delete') {
 		await Exports.deleteOne({_id: exportDetails._id});

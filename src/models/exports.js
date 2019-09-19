@@ -15,6 +15,9 @@ module.exports = {
 			type: Date,
 			default: Date.now,
 			required: true
+		},
+		params: {
+			type: Object
 		}
 	} )
 };
