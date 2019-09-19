@@ -16,10 +16,11 @@ block contents
 			p
 				| There are #{exportItems.length} #{exportType.itemName} in this export.
 
-			dl
-				each value, name in exportDetails.params
-					dt= name
-					dd= value
+			if exportDetails.params
+				dl
+					each value, name in exportDetails.params
+						dt= name
+						dd= value
 
 			.panel-group#items
 				.panel.panel-default
