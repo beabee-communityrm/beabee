@@ -18,7 +18,6 @@ const exportTypeViews = {
 	'edition': pug.compileFile(viewsPath + '/tables/members.pug'),
 	'join-reasons': pug.compileFile(viewsPath + '/tables/join-reasons.pug'),
 	'poll-letter': () => {},
-	'poll-reasons': () => {},
 	'referrals': () => {}
 };
 
