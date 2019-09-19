@@ -1,8 +1,24 @@
-const { Members, Permissions, PollAnswers } = require(__js + '/database');
+const { Members, Permissions, PollAnswers, Polls } = require(__js + '/database');
 const config = require( __config );
 
-async function getQuery() {
-	const pollAnswers = await PollAnswers.find();
+async function getParams() {
+	return [
+		{
+			name: 'pollId',
+			label: 'Poll',
+			type: 'select',
+			values: (await Polls.find()).map(poll => [poll._id, poll.question])
+		}, {
+			name: 'baseURL',
+			label: 'Base URL',
+			type: 'text'
+		}
+	];
+}
+
+async function getQuery({pollId}) {
+	const poll = await Polls.findById(pollId);
+	const pollAnswers = await PollAnswers.find({poll});
 	const memberIds = pollAnswers.map(pollAnswer => pollAnswer.member);
 
 	const permission = await Permissions.findOne( { slug: config.permission.member });
@@ -18,7 +34,7 @@ async function getQuery() {
 	};
 }
 
-async function getExport(members) {
+async function getExport(members, {baseURL}) {
 	return members.map(member => {
 		const addressFields = Object.assign(
 			...['line1', 'line2', 'city', 'postcode']
@@ -31,7 +47,7 @@ async function getExport(members) {
 			'First name': member.firstname,
 			Surname: member.lastname,
 			'Full name': member.fullname,
-			'Custom 1': 'thebristolcable.org/vote2019/' + member.pollsCode,
+			'Custom 1': baseURL + '/' + member.pollsCode,
 			'Custom 2': member.uuid,
 			...addressFields
 		};
@@ -43,6 +59,7 @@ module.exports = {
 	statuses: ['added', 'seen'],
 	collection: Members,
 	itemName: 'members',
+	getParams,
 	getQuery,
 	getExport
 };

@@ -9,6 +9,9 @@
 				},
 				"type": {
 					"type": "string"
+				},
+				"params": {
+					"type": "object"
 				}
 			}
 		}
