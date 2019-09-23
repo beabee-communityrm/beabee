@@ -20,7 +20,8 @@ module.exports = {
 		closed: {
 			type: Boolean,
 			default: false
-		}
+		},
+		allowUpdate: Boolean
 	} )
 };
 
