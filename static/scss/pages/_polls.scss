@@ -30,6 +30,12 @@ $c-agm2019-purple: #583352;
 	}
 }
 
+.poll-title-image {
+	display: block;
+	width: 100%;
+	margin-bottom: 2rem;
+}
+
 .poll-share,
 .poll-options {
 	display: flex;
@@ -354,12 +360,6 @@ $c-agm2019-purple: #583352;
 }
 
 // AGM 2019
-.poll-agm2019-title-image {
-	display: block;
-	width: 100%;
-	margin-bottom: 2rem;
-}
-
 .poll-agm2019-options {
 	@extend .poll-options;
 
@@ -370,5 +370,76 @@ $c-agm2019-purple: #583352;
 		&:hover {
 			background-color: darken($c-agm2019-purple, 10%);
 		}
+	}
+}
+
+// Directors 2019
+.poll-directors2019-candidates {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.poll-directors2019-candidate {
+	display: flex;
+	border-bottom: 2px solid $c-black;
+	margin: 2rem 0;
+	padding: 0 0 2rem;
+
+	&:last-child {
+		border-bottom: 0;
+	}
+}
+
+.poll-directors2019-candidate-image {
+	flex: 0 0 100px;
+	& > img {
+		display: block;
+		width: 100%;
+	}
+}
+
+.poll-directors2019-candidate-bio {
+	flex: 1 1 100%;
+	margin: 0 2rem;
+
+	h4 {
+		margin-top: 0;
+	}
+
+	p:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.poll-directors2019-candidate-vote {
+	position: relative;
+	background-color: transparentize($c-black, 0.95);
+	flex: 0 0 0;
+	align-self: center;
+	cursor: pointer;
+
+	& > input {
+		position: absolute;
+		opacity: 0;
+	}
+
+	& > svg {
+		display: block;
+		border: 3px solid $c-black;
+		width: 86px;
+		height: 86px;
+		transition: all 0.1s ease-out;
+		fill: $c-black;
+		fill-opacity: 0.1;
+	}
+
+	& > input:disabled + svg {
+		opacity: 0.1;
+		cursor: not-allowed;
+	}
+
+	& > input:checked + svg {
+		fill-opacity: 1;
 	}
 }

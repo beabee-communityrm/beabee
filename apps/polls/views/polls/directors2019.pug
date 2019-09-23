@@ -1,0 +1,86 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block append js
+	script(src='/static/js/poll-directors2019.js?v=' + git)
+
+block flashes
+
+mixin candidate(name)
+	li.poll-directors2019-candidate
+		.poll-directors2019-candidate-image
+			img(src='/static/imgs/polls/directors2019/' + name + '.jpg')
+		.poll-directors2019-candidate-bio
+			h4= name
+			block
+		label.poll-directors2019-candidate-vote
+			input(type='checkbox' name='candidates[]' value=name).js-poll-directors2019-candidate
+			svg
+				use(href='#cross')
+
+block contents
+	svg(xmlns="http://www.w3.org/2000/svg" style="display: none")
+		path(id="cross" d="M19 74a2 2 0 0 1-.5-.4c-.2-.2-1.4-2.6-1.4-2.9 0-.2-.2-.2-.8 0a3 3 0 0 1-2.4-.2 8 8 0 0 1-2.5-2.7c-.3-.6 0-1.5.6-2.8l.5-1-.3-.2a3.8 3.8 0 0 1-1.2-2.5c0-1 .3-1.5 2-3.7 3.4-4.5 7-8.8 11.8-14l1.9-2.2-1.4-2.3c-2.6-4.3-5.2-9.8-7.5-15.5-2-5-2.3-6.3-1.7-8.2.8-2.6 1.7-3.5 3-3.2l1.5.8 1.1.7s.3-.4.4-1c.4-1 1-2 1.5-2.5.6-.6 2.3-.3 2.9.6l.9 1.5a113.2 113.2 0 0 0 10.4 15.4l.4.5 1-1a257.4 257.4 0 0 1 21-21c.6-.3 1-.3 1.9.1 1.3.6 2.1 2 2.5 4l.2.6.8.1c1 .1 2.3.7 3 1.4.3.4.3.6.4 1.4 0 1.7 0 2-2.6 4.4A164.5 164.5 0 0 0 47.9 39l-1 1.4L49 43c3.4 4.5 7.4 9.3 10.5 12.8 1.3 1.4 1.5 1.7 1.4 2.8 0 2.2-1 3.5-3 4-.8.1-.8.1-1 .6-.1 1-.9 2.7-1.4 3.3-.5.7-1.2 1.2-1.8 1.2-.5 0-2-.5-2.4-.9l-.4-.3-.2.4c-.5 1-2.5 2.1-3.5 2.1-.3 0-.8 0-1-.2-1.5-.7-5.2-5.4-9-11.3L35.4 55a228.5 228.5 0 0 0-15.3 18.7c-.6.2-.8.3-1 .1z")
+	.row
+		.col-md-3
+			- page = ''
+			if access('member')
+				include /apps/profile/views/partials/sidebar.pug
+		.col-md-9
+			.page-header
+				h3 &nbsp;
+
+			.row
+				.col-md-9
+					img(src='/static/imgs/polls/agm2019/title.png').poll-title-image
+
+					if !poll.closed
+						hr#vote
+
+						if justAnswered
+							img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+							h3 Thank you for voting
+							
+							hr(style='clear: both')
+
+						form(method='POST' action='#vote')
+							+csrf
+
+							include /src/views/partials/flash.pug
+
+							h3 Candidates
+
+							.alert.alert-info Select at most 3 candidates then click Vote
+
+							ul.poll-directors2019-candidates
+								+candidate('Will Franklin')
+									p I've been working at the Cable for ages now, vote for me
+
+								+candidate('Cait Crosse')
+									p I've been working at the Cable for ages now, vote for me
+
+								+candidate('Hannah Vickers')
+									p I've been working at the Cable for ages now, vote for me
+
+								+candidate('Adam Cantwell-Corn')
+									p I've been working at the Cable for ages now, vote for me
+
+								+candidate('Lucas Batt')
+									p I've been working at the Cable for ages now, vote for me
+
+							if code
+								h4 Please confirm your email address
+								p.
+									For data protection reasons, this must be the email address
+									that we have on record for you.  If you have trouble please
+									email
+									#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
+
+								.form-group
+									input(type='email' name='email' required).form-control
+
+							p
+								button(name='answer' value='vote').btn.join-btn.js-poll-directors2019-submit Vote
