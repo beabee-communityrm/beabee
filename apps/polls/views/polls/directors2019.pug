@@ -36,15 +36,30 @@ block contents
 				.col-md-9
 					img(src='/static/imgs/polls/agm2019/title.png').poll-title-image
 
-					if !poll.closed
+					if answer.answer
 						hr#vote
 
-						if justAnswered
-							img(src='/static/imgs/polls/hand3.png').poll-hand3
+						img(src='/static/imgs/polls/hand3.png').poll-hand3
 
-							h3 Thank you for voting
-							
-							hr(style='clear: both')
+						h3 Thank you for voting
+
+						p
+							| You voted for
+							|
+							= answer.candidates.slice(0, -1).join(', ')
+							if answer.candidates.length > 1
+								|
+								| and
+								|
+							= answer.candidates.slice(-1)[0]
+							| .
+						p.
+							We will be annoucing the results at the AGM on October 14th.
+							We really hope to see you there, if you haven't yet RSVPed
+							you can do so here.
+
+					else if !poll.closed
+						hr#vote
 
 						form(method='POST' action='#vote')
 							+csrf
