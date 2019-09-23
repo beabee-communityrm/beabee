@@ -374,6 +374,8 @@ $c-agm2019-purple: #583352;
 }
 
 // Directors 2019
+$bp-directors: 600px;
+
 .poll-directors2019-candidates {
 	list-style: none;
 	margin: 0;
@@ -392,32 +394,60 @@ $c-agm2019-purple: #583352;
 }
 
 .poll-directors2019-candidate-image {
-	flex: 0 0 100px;
 	& > img {
 		display: block;
 		width: 100%;
+	}
+
+	position: absolute;
+	width: 40px;
+	height: 40px;
+
+	@media (min-width: $bp-directors) {
+		position: static;
+		flex: 0 0 100px;
+		width: auto;
+		height: auto;
+		margin-right: 2rem;
 	}
 }
 
 .poll-directors2019-candidate-bio {
 	flex: 1 1 100%;
-	margin: 0 2rem;
 
 	h4 {
 		margin-top: 0;
+		min-height: 40px;
+		margin-left: 50px;
+		display: flex;
+		align-items: center;
 	}
 
 	p:last-child {
 		margin-bottom: 0;
+	}
+
+	@media (min-width: $bp-directors) {
+		margin-left: 0;
+
+		h4 {
+			min-height: 0;
+			margin-left: 0;
+		}
 	}
 }
 
 .poll-directors2019-candidate-vote {
 	position: relative;
 	background-color: transparentize($c-black, 0.95);
+	margin-left: 2rem;
 	flex: 0 0 0;
-	align-self: center;
 	cursor: pointer;
+	align-self: flex-start;
+
+	@media (min-width: $bp-directors) {
+		align-self: center;
+	}
 
 	& > input {
 		position: absolute;
