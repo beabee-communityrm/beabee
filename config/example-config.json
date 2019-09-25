@@ -36,7 +36,9 @@
 	},
 	"stripe": {
 		"public_key": "",
-		"secret_key": ""
+		"secret_key": "",
+		"webhook_secret": "",
+		"port": 3003
 	},
 	"password-tries": 3,
 	"iterations": 50000,

@@ -33,7 +33,8 @@ module.exports = {
 				type: String,
 				required: true
 			},
-		}
+		},
+		completed: Boolean
 	} )
 };
 

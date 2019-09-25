@@ -4,7 +4,7 @@ const stripe = require( __js + '/stripe' );
 const config = require( __config );
 
 const { GiftFlows } = require( __js + '/database' );
-const { hasSchema } = require( __js + '/middleware' );
+const { hasModel, hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
 
 const { createGiftSchema } = require( './schema.json' );
@@ -26,7 +26,7 @@ app.get( '/', ( req, res ) => {
 
 app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async ( req, res ) => {
 	const session = await stripe.checkout.sessions.create({
-		success_url: config.audience + '/gift/thanks?sessionId={CHECKOUT_SESSION_ID}',
+		success_url: config.audience + '/gift/complete?session_id={CHECKOUT_SESSION_ID}',
 		cancel_url: config.audience + '/gift',
 		payment_method_types: ['card'],
 		line_items: [{
@@ -45,9 +45,30 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	res.send({sessionId: session.id});
 } ) );
 
-app.get( '/thanks', wrapAsync( async ( req, res ) => {
-	res.send('');
+app.get( '/complete', wrapAsync( async ( req, res ) => {
+	const giftFlow = await GiftFlows.findOne({sessionId: req.query.session_id});
+	if (giftFlow) {
+		if (giftFlow.completed) {
+			res.redirect('/gift/thanks/' + giftFlow._id);
+		} else {
+			res.redirect('/gift/failed');
+		}
+	} else {
+		res.status(404).send('Not found');
+	}
 } ) );
+
+app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, res ) => {
+	if (!req.model.completed) {
+		return res.redirect('/gift/failed');
+	}
+
+	res.send(req.model);
+} ) );
+
+app.get( '/failed', ( req, res ) => {
+	res.send('failed');
+} );
 
 module.exports = function( config ) {
 	app_config = config;
