@@ -81,5 +81,11 @@
   "browserslist": [
     "last 1 versions",
     "> 1%"
-  ]
+  ],
+  "nodemonConfig": {
+    "ignore": [
+      "static/*",
+      "test/*"
+    ]
+  }
 }
