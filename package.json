@@ -45,6 +45,7 @@
     "pug": "^2.0.3",
     "query-string": "^6.2.0",
     "request": "^2.88.0",
+    "stripe": "^7.9.1",
     "tar-stream": "^2.0.0",
     "thirty-two": "^1.0.2",
     "uuid": "^3.3.2"

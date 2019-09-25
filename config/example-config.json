@@ -34,6 +34,10 @@
 		"sandbox": true,
 		"port": 3002
 	},
+	"stripe": {
+		"public_key": "",
+		"secret_key": ""
+	},
 	"password-tries": 3,
 	"iterations": 50000,
 	"dev": true,
