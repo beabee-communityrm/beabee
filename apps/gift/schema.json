@@ -1,0 +1,30 @@
+{
+	"createGiftSchema": {
+		"body": {
+			"type": "object",
+			"required": ["name", "email", "startDate", "fromName"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"minLength": 1
+				},
+				"email": {
+					"type": "string",
+					"minLength": 1
+				},
+				"startDate": {
+					"type": "string",
+					"format": "date"
+				},
+				"message": {
+					"type": "string",
+					"minLength": 1
+				},
+				"fromName": {
+					"type": "string",
+					"minLength": 1
+				}
+			}
+		}
+	}
+}

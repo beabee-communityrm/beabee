@@ -10,7 +10,7 @@ block prepend title
 	- title = app.title
 
 block append js
-	script(src='/static/js/join.js?v=2')
+	script(src='/static/js/join.js?v=' + git)
 
 block body
 	header.join-header#join
@@ -54,7 +54,7 @@ block body
 				input(type='radio', name='amount', value='other', required, checked=!referrer).js-join-other-amount
 				label
 					.hidden-nojs Or choose an amount…
-					span.join-other-amount-box
+					.join-other-amount-box
 						span £
 						input(type='number', name='amountOther', min=1, step=1, required).join-other-amount-box__input.js-join-other-amount-box
 						span.join-monthly /month
