@@ -11,6 +11,8 @@ block prepend title
 
 block append js
 	script(src='https://js.stripe.com/v3/')
+	script.
+		var stripe = Stripe('#{stripePublicKey}');
 	script(src='/static/js/gift.js?v=' + git)
 
 block body
@@ -53,7 +55,7 @@ block body
 
 			h4 Who shall we say the gift is from?
 			.join-field
-				input(type='text' name='from' required).join-field__input
+				input(type='text' name='fromName' required).join-field__input
 
 			p.join-charge You will be charged #[b £36] today.
 
