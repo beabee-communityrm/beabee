@@ -33,6 +33,12 @@ module.exports = {
 				type: String,
 				required: true
 			},
+			delivery_address: {
+				line1: String,
+				line2: String,
+				city: String,
+				postcode: String
+			}
 		},
 		completed: Boolean
 	} )

@@ -58,12 +58,27 @@ app.get( '/complete', wrapAsync( async ( req, res ) => {
 	}
 } ) );
 
-app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, res ) => {
-	if (!req.model.completed) {
-		return res.redirect('/gift/failed');
+app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
+	if (req.model.completed) {
+		res.render('thanks', req.model.giftForm);
+	} else {
+		res.redirect('/gift/failed');
+	}
+} );
+
+app.post( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, res ) => {
+	if (!req.model.giftForm.delivery_address.line1) {
+		await req.model.update({$set: {
+			'giftForm.delivery_address': {
+				line1: req.body.delivery_line1,
+				line2: req.body.delivery_line2,
+				city: req.body.delivery_city,
+				postcode: req.body.delivery_postcode
+			}
+		}});
 	}
 
-	res.send(req.model);
+	res.redirect( req.originalUrl );
 } ) );
 
 app.get( '/failed', ( req, res ) => {
