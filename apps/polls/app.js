@@ -66,13 +66,16 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 	} );
 } ) );
 
-async function setAnswer( poll, member, { answer, ...additionalAnswers } ) {
+// TODO: remove _csrf in a less hacky way
+async function setAnswer( poll, member, { answer, _csrf, ...additionalAnswers } ) { // eslint-disable-line no-unused-vars
 	if (poll.closed) {
 		throw new Error('Poll is closed');
 	} else {
-		console.log(answer, additionalAnswers);
-		await PollAnswers.findOneAndUpdate( { member }, {
-			$set: { poll, member, answer, additionalAnswers }
+		await PollAnswers.findOneAndUpdate( { poll, member }, {
+			$set: {
+				poll, member, answer,
+				...(Object.keys(additionalAnswers).length > 0 ? {additionalAnswers} : {})
+			}
 		}, { upsert: true } );
 
 		await mailchimp.defaultLists.members.update( member.email, {

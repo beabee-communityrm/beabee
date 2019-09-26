@@ -1,4 +1,4 @@
-/* global $ */
+/* global $, window */
 
 (function () {
 	var $form = $('.js-poll-agm2019-form');
@@ -27,4 +27,15 @@
 
 	$formAnswer.on('input', updateSubmit);
 	updateSubmit();
+
+	$formAnswer.on('input', function () {
+		$.ajax({
+			url: window.location.href,
+			type: 'POST',
+			data: {
+				_csrf: $form.find('input[name=_csrf]').val(),
+				answer: $formAnswer.filter(':checked').val()
+			}
+		});
+	});
 })();
