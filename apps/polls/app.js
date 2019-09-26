@@ -66,7 +66,8 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 	} );
 } ) );
 
-async function setAnswer( poll, member, { answer, _csrf, ...additionalAnswers } ) {
+// TODO: remove _csrf in a less hacky way
+async function setAnswer( poll, member, { answer, _csrf, ...additionalAnswers } ) { // eslint-disable-line no-unused-vars
 	if (poll.closed) {
 		throw new Error('Poll is closed');
 	} else {
