@@ -5,6 +5,11 @@
 	var $formAnswer = $form.find('input[name=answer]');
 	var $submit = $('.js-poll-agm2019-submit');
 
+	if (/answer=/.test(window.location.search)) {
+		var answer = window.location.search.substring(8);
+		$formAnswer.filter('[value=' + answer + ']').prop('checked', true);
+	}
+
 	$('.js-poll-agm2019-section').each(function () {
 		var $section = $(this);
 		var name = $section.data('name');
@@ -34,7 +39,8 @@
 			type: 'POST',
 			data: {
 				_csrf: $form.find('input[name=_csrf]').val(),
-				answer: $formAnswer.filter(':checked').val()
+				answer: $formAnswer.filter(':checked').val(),
+				isAsync: true
 			}
 		});
 	});
