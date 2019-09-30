@@ -163,6 +163,18 @@ $bp-join-why: 768px;
 	}
 }
 
+.join-field-group {
+	@media (min-width: $bp-join-form) {
+		display: flex;
+		margin: 0 -0.5rem;
+
+		& > .join-field {
+			margin-left: 0.5rem;
+			margin-right: 0.5rem;
+		}
+	}
+}
+
 .join-field-info {
 	margin-bottom: 0.5rem;
 }

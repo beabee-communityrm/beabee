@@ -2,9 +2,13 @@
 	"createGiftSchema": {
 		"body": {
 			"type": "object",
-			"required": ["name", "email", "startDate", "fromName"],
+			"required": ["firstname", "lastname", "email", "startDate", "fromName"],
 			"properties": {
-				"name": {
+				"firstname": {
+					"type": "string",
+					"minLength": 1
+				},
+				"lastname": {
 					"type": "string",
 					"minLength": 1
 				},

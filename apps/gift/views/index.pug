@@ -33,8 +33,12 @@ block body
 			h3 What's included?
 
 			h4 Who is the gift for?
-			.join-field
-				input(type='text' name='name' required).join-field__input
+			.join-field-group
+				.join-field
+					input(type='text' name='firstname' placeholder='First name' required).join-field__input
+
+				.join-field
+					input(type='text' name='lastname' placeholder='Last name' required).join-field__input
 
 			h4 What's their email address?
 			.join-field

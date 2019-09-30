@@ -13,7 +13,11 @@ module.exports = {
 			required: true
 		},
 		giftForm: {
-			name: {
+			firstname: {
+				type: String,
+				required: true
+			},
+			lastname: {
 				type: String,
 				required: true
 			},

@@ -14,7 +14,7 @@ block body
 				h1 Thanks#[br]#{fromName}
 
 			p.
-				You've given #{name} the gift of ownership in independent media, but
+				You've given #{firstname} the gift of ownership in independent media, but
 				you've also helped the Cable grow and move closer to sustainability.
 				Thanks for believing in us.
 
@@ -23,7 +23,7 @@ block body
 			.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
 
 				p.
-					We'll start #{name}'s membership on #{moment(startDate).format('MMMM Do')}
+					We'll start #{firstname}'s membership on #{moment(startDate).format('MMMM Do')}
 					and send them a welcome email around midday.
 
 				if delivery_address.line1
@@ -34,7 +34,7 @@ block body
 
 						include /src/views/partials/flash
 
-						.alert.alert-info Do you know #{name}'s delivery detail?
+						.alert.alert-info Do you know #{firstname}'s delivery detail?
 
 						p
 							| We'll send their copies of the Cable print edition to this address.
