@@ -6,15 +6,20 @@ global.__models = __root + '/src/models';
 
 const bodyParser = require('body-parser');
 const express = require( 'express' );
+const moment = require( 'moment' );
 
 const config = require( __config );
 
 const { GiftFlows } = require( __js + '/database' ).connect( config.mongo );
 const log = require( __js + '/logging' ).log;
+const mandrill = require( __js + '/mandrill' );
 const stripe = require( __js + '/stripe' );
 const { wrapAsync } = require( __js + '/utils' );
 
 const app = express();
+
+// TODO: make this not hardcoded
+const giftCardContent = require('fs').readFileSync(__root + '/static/pdfs/gift.pdf').toString('base64');
 
 require( __js + '/logging' ).installMiddleware( app );
 
@@ -66,6 +71,8 @@ const listener = app.listen( config.stripe.port, config.host, function () {
 } );
 
 async function handleCheckoutSessionCompleted(session) {
+	const customer = await stripe.customers.retrieve(session.customer);
+
 	const giftFlow = await GiftFlows.findOne({sessionId: session.id});
 	if (giftFlow) {
 		log.info({
@@ -73,7 +80,35 @@ async function handleCheckoutSessionCompleted(session) {
 			action: 'complete-gift',
 			giftId: giftFlow._id
 		});
+
 		await giftFlow.update({$set: {completed: true}});
+
+		const { fromName, firstname, startDate } = giftFlow.giftForm;
+
+		await mandrill.sendMessage('purchased-gift', {
+			to: [{
+				email: customer.email,
+				name:  fromName
+			}],
+			merge_vars: [{
+				rcpt: customer.email,
+				vars: [{
+					name: 'PURCHASER',
+					content: fromName,
+				}, {
+					name: 'GIFTEE',
+					content: firstname
+				}, {
+					name: 'GIFTDATE',
+					content: moment(startDate).format('MMMM Do')
+				}]
+			}],
+			attachments: [{
+				type: 'application/pdf',
+				name: 'Gift card.pdf',
+				content: giftCardContent
+			}]
+		});
 	} else {
 		log.error({
 			app: 'webhook-stripe',
