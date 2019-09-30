@@ -32,6 +32,14 @@ block body
 
 			h3 What's included?
 
+			ul.join-gift-reasons
+				li
+					h4 Cable membership
+				li
+					h4 4× Cable print editions in the post
+				li
+					h4 Free or discounted tickets to events
+
 			.hidden-js
 				p.
 					Unfortunately you must have JavaScript enabled to buy gifts
@@ -39,7 +47,7 @@ block body
 					#[+email('membership@thebristolcable.org')] if you want to continue.
 
 			.hidden-nojs
-				h4 Who is the gift for?
+				h3 Who is the gift for?
 				.join-field-group
 					.join-field
 						input(type='text' name='firstname' placeholder='First name' required).join-field__input
@@ -47,24 +55,24 @@ block body
 					.join-field
 						input(type='text' name='lastname' placeholder='Last name' required).join-field__input
 
-				h4 What's their email address?
+				h3 What's their email address?
 				.join-field
 					input(type='text' name='email' required).join-field__input
 
-				h4 When should their gift start?
+				h3 When should their gift start?
 				p.join-field-info.
 					We'll activate their membership and send them a welcome email
 					at midday on this date.
 				.join-field.join-field-date
 					input(type='date' name='startDate' required).join-field__input
 
-				h4 Do you want to add a personal message?
+				h3 Do you want to add a personal message?
 				p.join-field-info.
 					We'll send them this as part of the welcome email.
 				.join-field.join-field-message
 					textarea(name='message').join-field__input
 
-				h4 Who shall we say the gift is from?
+				h3 Who shall we say the gift is from?
 				.join-field
 					input(type='text' name='fromName' required).join-field__input
 

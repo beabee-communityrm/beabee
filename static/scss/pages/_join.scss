@@ -329,3 +329,29 @@ $bp-join-why: 768px;
 		background-image: url(/static/imgs/join/footer.jpg);
 	}
 }
+
+.join-gift-reasons {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 1rem;
+	font-weight: bold;
+
+	& > li {
+		position: relative;
+		margin-bottom: 1.5rem;
+		padding-left: calc(24px + 1rem);
+
+		&::before {
+			content: "";
+			position: absolute;
+			left: 0;
+			margin-top: -4px;
+			vertical-align: middle;
+			margin-right: 0.5rem;
+			width: 24px;
+			height: 24px;
+			background: url(/static/imgs/gift.png);
+			background-size: 100% 100%;
+		}
+	}
+}
