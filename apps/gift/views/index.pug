@@ -32,44 +32,51 @@ block body
 
 			h3 What's included?
 
-			h4 Who is the gift for?
-			.join-field-group
+			.hidden-js
+				p.
+					Unfortunately you must have JavaScript enabled to buy gifts
+					online at the moment, please contact
+					#[+email('membership@thebristolcable.org')] if you want to continue.
+
+			.hidden-nojs
+				h4 Who is the gift for?
+				.join-field-group
+					.join-field
+						input(type='text' name='firstname' placeholder='First name' required).join-field__input
+
+					.join-field
+						input(type='text' name='lastname' placeholder='Last name' required).join-field__input
+
+				h4 What's their email address?
 				.join-field
-					input(type='text' name='firstname' placeholder='First name' required).join-field__input
+					input(type='text' name='email' required).join-field__input
 
+				h4 When should their gift start?
+				p.join-field-info.
+					We'll activate their membership and send them a welcome email
+					at midday on this date.
+				.join-field.join-field-date
+					input(type='date' name='startDate' required).join-field__input
+
+				h4 Do you want to add a personal message?
+				p.join-field-info.
+					We'll send them this as part of the welcome email.
+				.join-field.join-field-message
+					textarea(name='message').join-field__input
+
+				h4 Who shall we say the gift is from?
 				.join-field
-					input(type='text' name='lastname' placeholder='Last name' required).join-field__input
+					input(type='text' name='fromName' required).join-field__input
 
-			h4 What's their email address?
-			.join-field
-				input(type='text' name='email' required).join-field__input
+				p.join-charge You will be charged #[b £36] today.
 
-			h4 When should their gift start?
-			p.join-field-info.
-				We'll activate their membership and send them a welcome email
-				at midday on this date.
-			.join-field.join-field-date
-				input(type='date' name='startDate' required).join-field__input
+				p
+					button.btn.join-btn Buy gift
 
-			h4 Do you want to add a personal message?
-			p.join-field-info.
-				We'll send them this as part of the welcome email.
-			.join-field.join-field-message
-				textarea(name='message').join-field__input
-
-			h4 Who shall we say the gift is from?
-			.join-field
-				input(type='text' name='fromName' required).join-field__input
-
-			p.join-charge You will be charged #[b £36] today.
-
-			p
-				button.btn.join-btn Buy gift
-
-			p.join-info.join-secure.small
-				svg(xmlns='http://www.w3.org/2000/svg', viewBox='0 0 24 24')
-					path(fill='currentColor', d='M18 10v-4c0-3.313-2.687-6-6-6s-6 2.687-6 6v4h-3v14h18v-14h-3zm-10 0v-4c0-2.206 1.794-4 4-4s4 1.794 4 4v4h-8z')
-				| Your payment will be processed securely with Stripe.
+				p.join-info.join-secure.small
+					svg(xmlns='http://www.w3.org/2000/svg', viewBox='0 0 24 24')
+						path(fill='currentColor', d='M18 10v-4c0-3.313-2.687-6-6-6s-6 2.687-6 6v4h-3v14h18v-14h-3zm-10 0v-4c0-2.206 1.794-4 4-4s4 1.794 4 4v4h-8z')
+					| Your payment will be processed securely with Stripe.
 
 	.container.join-container
 		.row
