@@ -25,8 +25,10 @@ app.get( '/', ( req, res ) => {
 } );
 
 app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async ( req, res ) => {
+	const gift = await GiftFlows.create({sessionId: 'UNKNOWN', giftForm: req.body});
+
 	const session = await stripe.checkout.sessions.create({
-		success_url: config.audience + '/gift/complete?session_id={CHECKOUT_SESSION_ID}',
+		success_url: config.audience + '/gift/thanks/' + gift._id,
 		cancel_url: config.audience + '/gift',
 		payment_method_types: ['card'],
 		line_items: [{
@@ -37,25 +39,9 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 		}]
 	});
 
-	await GiftFlows.create({
-		sessionId: session.id,
-		giftForm: req.body
-	});
+	await gift.update({sessionId: session.id});
 
 	res.send({sessionId: session.id});
-} ) );
-
-app.get( '/complete', wrapAsync( async ( req, res ) => {
-	const giftFlow = await GiftFlows.findOne({sessionId: req.query.session_id});
-	if (giftFlow) {
-		if (giftFlow.completed) {
-			res.redirect('/gift/thanks/' + giftFlow._id);
-		} else {
-			res.redirect('/gift/failed');
-		}
-	} else {
-		res.status(404).send('Not found');
-	}
 } ) );
 
 app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
