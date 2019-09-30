@@ -55,24 +55,37 @@ app.get( '/:slug', [
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
+	const pollsCode = req.params.code.toUpperCase();
+
+	if (req.query.answer) {
+		const member = await Members.findOne( { pollsCode } );
+		if (member) {
+			await setAnswer( req.model, member, { isAsync: true, answer: req.query.answer } );
+		}
+	}
+
 	const newAnswer = req.session.newAnswer;
 	delete req.session.newAnswer;
 
 	res.render( `polls/${req.model.slug}`, {
 		poll: req.model,
 		answer: newAnswer || {},
-		code: req.params.code,
+		code: pollsCode,
 		justAnswered: !!newAnswer
 	} );
 } ) );
 
-async function setAnswer( poll, member, { answer, ...additionalAnswers } ) {
+// TODO: remove _csrf in a less hacky way
+async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditionalAnswers } ) { // eslint-disable-line no-unused-vars
 	if (poll.closed) {
 		throw new Error('Poll is closed');
 	} else {
-		console.log(answer, additionalAnswers);
-		await PollAnswers.findOneAndUpdate( { member }, {
-			$set: { poll, member, answer, additionalAnswers }
+		const additionalAnswers = isAsync ?
+			{ 'additionalAnswers.isAsync': true } : { 'additionalAnswers': otherAdditionalAnswers };
+		await PollAnswers.findOneAndUpdate( { poll, member }, {
+			$set: {
+				poll, member, answer, ...additionalAnswers
+			}
 		}, { upsert: true } );
 
 		await mailchimp.defaultLists.members.update( member.email, {
@@ -101,10 +114,10 @@ app.post( '/:slug/:code', [
 ], wrapAsync( async ( req, res ) => {
 	const answerSchema = schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
-		const email = req.body.email.trim().toLowerCase();
 		const pollsCode = req.params.code.toUpperCase();
+		const email = req.body.isAsync ? '' : req.body.email.trim().toLowerCase();
 
-		const member = await Members.findOne( { email, pollsCode } );
+		const member = await Members.findOne( req.body.isAsync ? { pollsCode } : { pollsCode, email } );
 		if ( member ) {
 			await setAnswer(req.model, member, req.body);
 			req.session.newAnswer = req.body;
@@ -119,7 +132,7 @@ app.post( '/:slug/:code', [
 			});
 		}
 
-		res.redirect( `${req.originalUrl}#vote` );
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
 	});
 } ) );
 
