@@ -50,7 +50,7 @@ block contents
 						#[b You choose who that will be].
 
 					p.
-						This year we are holding this election online to allow as many
+						This year we are holding the election online to allow as many
 						members as possible to vote.  Please take the time to look through
 						each of the candidates below before making your choices.
 
@@ -66,23 +66,27 @@ block contents
 
 						h3 Thank you for voting
 
-						p
-							| You voted for
-							|
-							= answer.candidates.slice(0, -1).join(', ')
-							if answer.candidates.length > 1
+						if answer.candidates
+							p
+								| You voted for
 								|
-								| and
-								|
-							= answer.candidates.slice(-1)[0]
-							| .
+								= answer.candidates.slice(0, -1).join(', ')
+								if answer.candidates.length > 1
+									|
+									| and
+									|
+								= answer.candidates.slice(-1)[0]
+								| .
+						else
+							p.
+								You abstained from voting for any candidates
 						p.
 							We will be annoucing the results at the AGM on October 14th.
-							#[b We really hope to see you there], if you haven't yet RSVPed
-							click below.
+							#[b We hope to see you there], if you haven't yet RSVPed click
+							below.
 
 						p
-							a(href='/polls/agm2019#vote').btn.join-btn RSVP
+							a(href='/polls/agm2019#vote').btn.join-btn RSVP to AGM
 
 					else if !poll.closed
 						hr#vote

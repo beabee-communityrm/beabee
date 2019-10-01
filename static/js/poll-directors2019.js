@@ -6,7 +6,7 @@
 
 	function update() {
 		var votes = $candidates.filter(':checked').length;
-		$submit.prop('disabled', votes < 1 || votes > 3);
+		$submit.prop('disabled', votes > 3);
 		$candidates.filter(':not(:checked)').prop('disabled', votes >= 3);
 	}
 
