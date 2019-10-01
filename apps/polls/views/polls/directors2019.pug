@@ -9,16 +9,17 @@ block append js
 block flashes
 
 mixin candidate(name)
-	li.poll-directors2019-candidate
-		.poll-directors2019-candidate-image
-			img(src='/static/imgs/polls/directors2019/' + name + '.jpg')
-		.poll-directors2019-candidate-bio
-			h4= name
-			block
-		label.poll-directors2019-candidate-vote
-			input(type='checkbox' name='candidates[]' value=name).js-poll-directors2019-candidate
-			svg
-				use(href='#cross')
+	li
+		label.poll-directors2019-candidate
+			.poll-directors2019-candidate-image
+				img(src='/static/imgs/polls/directors2019/' + name + '.jpg')
+			.poll-directors2019-candidate-bio
+				h3= name
+			.poll-directors2019-candidate-vote
+				input(type='checkbox' name='candidates[]' value=name).js-poll-directors2019-candidate
+				svg
+					use(href='#cross')
+		block
 
 block contents
 	svg(xmlns="http://www.w3.org/2000/svg" style="display: none")
@@ -101,20 +102,115 @@ block contents
 							.alert.alert-info Select at most 3 candidates then click Vote
 
 							ul.poll-directors2019-candidates
-								+candidate('Will Franklin')
-									p I've been working at the Cable for ages now, vote for me
+								+candidate('Alain Demontoux')
+									p.
+										I have been a member of the Bristol Cable for over two
+										years and was co-opted on to the Board to support the
+										Treasurer in November 2018. 
 
-								+candidate('Cait Crosse')
-									p I've been working at the Cable for ages now, vote for me
+									p.
+										I have been in involved in the co-operative sector for over
+										30 years in both Essential Trading, where I was the finance
+										lead, and for the last 12 years as Operations Manager at
+										Co-operative and Community Finance, where we have been
+										providing loan finance to worker coops, employee and
+										community businesses since 1973. I also have experience of
+										the co-operative housing sector and within the voluntary
+										sector as the treasurer of a community centre and an
+										anti-GMO lobby group. I also take a keen interest in the
+										International Development Sector. 
 
-								+candidate('Hannah Vickers')
-									p I've been working at the Cable for ages now, vote for me
+									p.
+										For me the ethics, ethos and democracy of co-operatives
+										have always been the most important factors in business.
+										Integrity and transparency are key. 
 
-								+candidate('Adam Cantwell-Corn')
-									p I've been working at the Cable for ages now, vote for me
+									p.
+										I feel the job the that the Cable do is invaluable, not
+										only in holding local democracy to account by shining a
+										light when these institutions fail but also to support and
+										champion the communities that they serve. The Cable is also
+										a critical and democratic counterbalance to the
+										multinational media sector that forever manipulates the day
+										to day news, affecting everyone’s lives.
 
-								+candidate('Lucas Batt')
-									p I've been working at the Cable for ages now, vote for me
+									p.
+										The world needs more Bristol Cables!
+
+								+candidate('Noelle Rumball')
+									p.
+										Noelle has spent most of the last 10 years working in
+										Higher Education, mostly in business intelligence and
+										statutory regulations, but also in student-facing advice
+										and support.  She has led services of up to 100 people,
+										cross-campus and cross-city, and there aren’t many HR
+										challenges she hasn’t faced – including union negotiations
+										and an employment tribunal. Before moving to HE, she
+										defined and measured success for various public sector
+										bodies and learned to wrangle Excel like nobody’s business.
+										She has led many successful large-scale change projects,
+										including formal restructures.
+
+									p.
+										On evenings and weekends, she is active in Bristol’s
+										community and voluntary sector where, over the years, she’s
+										been involved in service delivery, community development,
+										and campaigning organisations, both as a leader and a
+										member-at-large. Governance is her favourite and most
+										time-consuming hobby, and in addition to being a Director
+										at the Bristol Cable since 2016, she has also been a school
+										governor, and is currently Chair of the University of
+										Bristol Students’ Union and the Treasurer of Up Our Street.
+										She most enjoys supporting organisations through periods of
+										intensive change and/or great challenge, and would love to
+										remain involved with The Bristol Cable through the next few
+										years.
+
+								+candidate('Elisha Sicher-Hearle')
+									p.
+										My appraisal of independent news media to inform and coerce
+										better choices by society is very high.  "I don't know
+										anything about being on a board", however I am very happy
+										to help. My ethos is egalitarian, a proponent of Martin
+										Luther Kings Jr 'radical love' in the public sphere. I am a
+										professional landscape gardener, with my own business in
+										Bristol. I am an amateur in history, philosophy, economy
+										and politics. These have informed by experience living and
+										working within Bristol. I don't have any experience in
+										corporate, or public institutions but I have an insight
+										thorough my partner who works as a fundraising manager for
+										Somerset and North Devon for a large charity. I would be
+										like be part of the cable and my passion for innovative
+										solutions.
+
+								+candidate('Grant Davies')
+									p.
+										I am a former BBC and ITN national TV journalist that has
+										spent the last 20 years running an independent documentary
+										production company specialising in educational programmes.
+										Through this experience I have gained an in-depth and up to
+										date knowledge of the issues around reporting and
+										publishing digital and print  media which if elected as a
+										director I would use to  support the Cable.
+
+									p.
+										I believe the Cable represents an increasingly important
+										means of communicating alternative views and stories in the
+										face of a mainstream media whose reporting is often subject
+										to corporate, political or financial interests. 
+
+									p.
+										As well as being a news and documentary producer, I have
+										also worked as a senior lecturer in digital media at UWE
+										and trained as a secondary teacher in Nailsea. As a
+										lifelong Bristolian I have a lot of contacts in the world
+										of education and I would hope to support the Cable by
+										building on the youth activism momentum started by the
+										likes of Malala Yousafzai and Greta Thunberg to engage
+										students and young people around the city, encouraging them
+										to join the Cable in investigating, questioning and
+										generating their own news rather than passively swallowing
+										other people's stories.
 
 							if code
 								h4 Please confirm your email address
