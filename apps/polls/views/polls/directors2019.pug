@@ -17,7 +17,7 @@ mixin candidate(name)
 				h3= name
 			.poll-directors2019-candidate-vote
 				input(type='checkbox' name='candidates[]' value=name).js-poll-directors2019-candidate
-				svg
+				svg(viewBox="0 0 80 80")
 					use(href='#cross')
 		block
 
@@ -114,7 +114,8 @@ block contents
 
 							.alert.alert-warning.
 								Candidates are listed randomly, you may select up to three
-								choices. #[b You must click Submit for your vote to count.]
+								choices.
+								#[b You must click Submit for your vote to be registered.]
 
 							ul.poll-directors2019-candidates
 								+candidate('Laila G')

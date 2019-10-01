@@ -405,21 +405,18 @@ $bp-directors: 600px;
 }
 
 .poll-directors2019-candidate-image {
+	position: static;
+	flex: 0 0 70px;
+	margin-right: 1rem;
+
+	@media (min-width: $bp-directors) {
+		flex-basis: 86px;
+		margin-right: 2rem;
+	}
+
 	& > img {
 		display: block;
 		width: 100%;
-	}
-
-	position: absolute;
-	width: 40px;
-	height: 40px;
-
-	@media (min-width: $bp-directors) {
-		position: static;
-		flex: 0 0 86px;
-		width: auto;
-		height: auto;
-		margin-right: 2rem;
 	}
 }
 
@@ -447,11 +444,16 @@ $bp-directors: 600px;
 	& > svg {
 		display: block;
 		border: 3px solid $c-black;
-		width: 86px;
-		height: 86px;
 		transition: all 0.1s ease-out;
+		width: 70px;
+		height: 70px;
 		fill: $c-black;
 		fill-opacity: 0.1;
+
+		@media (min-width: $bp-directors) {
+			width: 86px;
+			height: 86px;
+		}
 	}
 
 	.poll-directors2019-candidate:hover & > svg {
