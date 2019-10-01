@@ -435,6 +435,7 @@ $bp-directors: 600px;
 	background-color: white;
 	margin-left: 2rem;
 	flex: 0 0 0;
+	box-shadow: 0 0 5px transparentize($c-black, 0.6);
 
 	& > input {
 		position: absolute;
