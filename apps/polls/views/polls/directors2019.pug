@@ -67,8 +67,8 @@ block contents
 
 						h3 Thank you for voting
 
-						if answer.candidates
-							p
+						p
+							if answer.candidates
 								| You voted for
 								|
 								= answer.candidates.slice(0, -1).join(', ')
@@ -78,16 +78,11 @@ block contents
 									|
 								= answer.candidates.slice(-1)[0]
 								| .
-						else
-							p.
-								You abstained from voting for any candidates
-						p.
-							We will be annoucing the results at the AGM on October 14th.
-							#[b We hope to see you there], if you haven't yet RSVPed click
-							below.
-
-						p
-							a(href='/polls/agm2019#vote').btn.join-btn RSVP to AGM
+							else
+								| You abstained from voting for any candidates.
+							|
+							| We'll be annoucing the reuslts at the AGM on October 14th
+							| and online shortly afterwards.
 
 					else if !poll.closed
 						hr#vote
