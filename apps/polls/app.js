@@ -94,11 +94,13 @@ async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditi
 			$set: { poll, member, answer, ...additionalAnswers }
 		}, { upsert: true } );
 
-		await mailchimp.defaultLists.members.update( member.email, {
-			merge_fields: {
-				[poll.slug.toUpperCase()]: answer
-			}
-		} );
+		if (poll.mergeField) {
+			await mailchimp.defaultLists.members.update( member.email, {
+				merge_fields: {
+					[poll.mergeField]: answer
+				}
+			} );
+		}
 	}
 }
 
