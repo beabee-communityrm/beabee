@@ -2,12 +2,24 @@
 	"voteLinkSchema": {
 		"body": {
 			"type": "object",
-			"required": ["email"],
-			"properties": {
-				"email": {
-					"type": "string"
+			"oneOf": [
+				{
+					"required": ["email"],
+					"properties": {
+						"email": {
+							"type": "string"
+						}
+					}
+				},
+				{
+					"required": ["isAsync"],
+					"properties": {
+						"isAsync": {
+							"type": "boolean"
+						}
+					}
 				}
-			}
+			]
 		}
 	},
 	"answerSchemas": {
@@ -39,6 +51,11 @@
 			"body": {
 				"type": "object",
 				"required": ["answer"],
+				"properties": {
+					"isAsync": {
+						"type": "boolean"
+					}
+				},
 				"oneOf": [
 					{
 						"properties": {
