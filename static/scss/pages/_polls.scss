@@ -377,6 +377,8 @@ $c-agm2019-purple: #583352;
 $bp-directors: 600px;
 
 .poll-directors2019-candidates {
+	display: flex;
+	flex-direction: column;
 	list-style: none;
 	margin: 0;
 	padding: 0;

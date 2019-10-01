@@ -9,7 +9,7 @@ block append js
 block flashes
 
 mixin candidate(name)
-	li
+	li(style="order: " + Math.floor(Math.random() * 100))
 		label.poll-directors2019-candidate
 			.poll-directors2019-candidate-image
 				img(src='/static/imgs/polls/directors2019/' + name + '.jpg')
