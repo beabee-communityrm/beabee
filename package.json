@@ -31,7 +31,7 @@
     "express-flash": "0.0.2",
     "express-session": "^1.15.6",
     "gunzip-maybe": "^1.4.1",
-    "helmet": "^3.15.0",
+    "helmet": "^3.21.1",
     "inquirer": "^6.2.2",
     "lodash": "^4.17.15",
     "mandrill-api": "^1.0.45",

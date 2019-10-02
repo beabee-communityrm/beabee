@@ -31,9 +31,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 function schemaToPoll( data ) {
-	const { question, slug, closed } = data;
+	const { question, description, slug, mergeField, closed, allowUpdate } = data;
 
-	return { question, slug, closed: !!closed };
+	return {
+		question, description, slug, mergeField,
+		closed: !!closed,
+		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate})
+	};
 }
 
 app.post( '/', hasSchema( createPollSchema ).orFlash, wrapAsync( async ( req, res ) => {

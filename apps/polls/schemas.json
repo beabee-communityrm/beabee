@@ -97,6 +97,24 @@
 					}
 				]
 			}
+		},
+		"directors2019": {
+			"body": {
+				"type": "object",
+				"required": ["answer"],
+				"properties": {
+					"answer": {
+						"const": "vote"
+					},
+					"candidates": {
+						"type": "array",
+						"maxItems": 3,
+						"items": {
+							"type": "string"
+						}
+					}
+				}
+			}
 		}
 	}
 }

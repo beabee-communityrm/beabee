@@ -24,6 +24,9 @@ block contents
 						|
 						= count
 
+			if poll.allowUpdate
+				p #[b Note:] Users can update their answer in this poll.
+
 	.row
 		.col-md-8
 			hr
@@ -36,11 +39,19 @@ block contents
 				.form-group
 					label(for='question').control-label.col-md-3 Name
 					.col-md-6
-						input(type='text' name='question' value=poll.question)#question.form-control
+						input(type='text' name='question' value=poll.question required)#question.form-control
+				.form-group
+					label(for='description').control-label.col-md-3 Description
+					.col-md-6
+						input(type='text' name='description' value=poll.description)#description.form-control
 				.form-group
 					label(for='slug').control-label.col-md-3 Slug
 					.col-md-6
-						input(type='text' name='slug' value=poll.slug)#slug.form-control
+						input(type='text' name='slug' value=poll.slug required)#slug.form-control
+				.form-group
+					label(for='mergeField').control-label.col-md-3 Merge field
+					.col-md-6
+						input(type='text' name='mergeField' value=poll.mergeField)#mergeField.form-control
 				.form-group
 					.col-md-offset-3.col-md-9
 						.checkbox-inline

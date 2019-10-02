@@ -56,6 +56,10 @@ a {
 	color: $c-blue;
 }
 
+ul {
+	margin-bottom: 1em;
+}
+
 body.has-js .hidden-js {
 	display: none;
 }

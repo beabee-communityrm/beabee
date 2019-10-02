@@ -12,15 +12,18 @@ module.exports = {
 			type: String,
 			required: true
 		},
+		description: String,
 		slug: {
 			type: String,
 			required: true,
 			unique: true
 		},
+		mergeField: String,
 		closed: {
 			type: Boolean,
 			default: false
-		}
+		},
+		allowUpdate: Boolean
 	} )
 };
 

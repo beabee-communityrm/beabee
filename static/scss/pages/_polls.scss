@@ -30,6 +30,12 @@ $c-agm2019-purple: #583352;
 	}
 }
 
+.poll-title-image {
+	display: block;
+	width: 100%;
+	margin-bottom: 2rem;
+}
+
 .poll-share,
 .poll-options {
 	display: flex;
@@ -111,7 +117,7 @@ $c-agm2019-purple: #583352;
 		bottom: -5px;
 		right: -5px;
 		z-index: -1;
-		background: url(/static/imgs/polls/header.jpg) center;
+		background: url(/static/imgs/polls/campaign2019/header.jpg) center;
 		background-size: cover;
 		filter: blur(5px);
 	}
@@ -354,12 +360,6 @@ $c-agm2019-purple: #583352;
 }
 
 // AGM 2019
-.poll-agm2019-title-image {
-	display: block;
-	width: 100%;
-	margin-bottom: 2rem;
-}
-
 .poll-agm2019-options {
 	@extend .poll-options;
 
@@ -370,5 +370,102 @@ $c-agm2019-purple: #583352;
 		&:hover {
 			background-color: darken($c-agm2019-purple, 10%);
 		}
+	}
+}
+
+// Directors 2019
+$bp-directors: 600px;
+
+.poll-directors2019-candidates {
+	display: flex;
+	flex-direction: column;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+
+	& > li {
+		border: 1px solid $c-black;
+		padding: 1rem;
+		margin-bottom: 2rem;
+		background-color: transparentize($c-black, 0.95);
+	}
+
+	p:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.poll-directors2019-candidate {
+	display: flex;
+	align-items: flex-start;
+	border-bottom: 1px solid $c-black;
+	margin: 0 0 1rem;
+	padding: 0 0 1rem;
+	cursor: pointer;
+}
+
+.poll-directors2019-candidate-image {
+	position: static;
+	flex: 0 0 70px;
+	margin-right: 1rem;
+
+	@media (min-width: $bp-directors) {
+		flex-basis: 86px;
+		margin-right: 2rem;
+	}
+
+	& > img {
+		display: block;
+		width: 100%;
+	}
+}
+
+.poll-directors2019-candidate-bio {
+	flex: 1 1 100%;
+	align-self: center;
+
+	h3 {
+		margin: 0;
+	}
+}
+
+.poll-directors2019-candidate-vote {
+	position: relative;
+	background-color: white;
+	margin-left: 2rem;
+	flex: 0 0 0;
+	box-shadow: 0 0 5px transparentize($c-black, 0.6);
+
+	& > input {
+		position: absolute;
+		opacity: 0;
+	}
+
+	& > svg {
+		display: block;
+		border: 3px solid $c-black;
+		transition: all 0.1s ease-out;
+		width: 70px;
+		height: 70px;
+		fill: $c-black;
+		fill-opacity: 0.1;
+
+		@media (min-width: $bp-directors) {
+			width: 86px;
+			height: 86px;
+		}
+	}
+
+	.poll-directors2019-candidate:hover & > svg {
+		fill-opacity: 0.3;
+	}
+
+	& > input:disabled + svg {
+		opacity: 0.1;
+		cursor: not-allowed;
+	}
+
+	& > input:checked + svg {
+		fill-opacity: 1 !important;
 	}
 }
