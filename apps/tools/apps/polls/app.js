@@ -35,7 +35,8 @@ function schemaToPoll( data ) {
 
 	return {
 		question, description, slug, mergeField,
-		closed: !!closed, allowUpdate: !!allowUpdate
+		closed: !!closed,
+		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate})
 	};
 }
 
