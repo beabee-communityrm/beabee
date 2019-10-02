@@ -52,13 +52,10 @@ block contents
 
 					p.
 						This year we are holding the election online to allow as many
-						members as possible to vote.  Please take the time to look through
-						each of the candidates below before making your choices.
-
-					p.
-						#[b Voting closes on October 14th] and the results will be
-						announced at the AGM and online. If you haven't RSVPed to the AGM
-						you can do so #[a(href='/polls/agm2019') here].
+						members as possible to vote.  #[b Voting closes on October 14th]
+						and the results will be announced at the AGM and online. If you
+						haven't RSVPed to the AGM you can do so
+						#[a(href='/polls/agm2019') here].
 
 					if answer.answer
 						hr#vote
@@ -111,6 +108,10 @@ block contents
 								li Management of organisations of 10+ paid staff
 								li Active engagement and links with networks or community groups in the Bristol area
 								li Not just skills: we need directors who represent members, and communities who aren't yet members.
+
+							p.
+								Please take the time to look through each of the candidates
+								below before making your choices.
 
 							.alert.alert-warning.
 								Candidates are listed randomly, you may select up to three
@@ -259,9 +260,10 @@ block contents
 								.form-group
 									input(type='email' name='email' required).form-control
 
+							p.hidden-nojs.js-poll-directors2019-selected
+
 							p.
-								Please note that once you have submitted your vote you won't be
-								able to change it.
+								Please note that you can't change your vote once you have submitted it.
 
 							p
 								button(name='answer' value='vote').btn.join-btn.js-poll-directors2019-submit Submit
