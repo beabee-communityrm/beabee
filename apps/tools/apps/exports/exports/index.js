@@ -1,13 +1,8 @@
-const activeMembers = require('./activeMembers');
-const edition = require('./edition');
-const joinReasons = require('./joinReasons');
-const pollLetter = require('./pollLetter');
-const referrals = require('./referrals');
-
 module.exports = {
-	'active-members': activeMembers,
-	'edition': edition,
-	'join-reasons': joinReasons,
-	'poll-letter': pollLetter,
-	'referrals': referrals
+	'active-members': require('./activeMembers'),
+	'edition': require('./edition'),
+	'join-reasons': require('./joinReasons'),
+	'poll-answers': require('./pollAnswers'),
+	'poll-letter': require('./pollLetter'),
+	'referrals': require('./referrals')
 };
