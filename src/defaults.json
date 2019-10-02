@@ -112,6 +112,8 @@
 	"flash-exports-deleted": "Export deleted",
 	"flash-exports-ineligible": "Item is not eligible to be in this export.",
 
+	"flash-gifts-date-in-the-past": "The gift start date can't be in the past",
+
 	"flash-notices-created": "Notice created",
 	"flash-notices-updated": "Notice updated",
 	"flash-notices-deleted": "Notice deleted",
