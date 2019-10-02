@@ -54,7 +54,7 @@ app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
 	if (req.model.completed) {
 		res.render('thanks', req.model.giftForm);
 	} else {
-		res.redirect('/gift/failed');
+		res.redirect('/gift/failed/' + req.model._id);
 	}
 } );
 
@@ -73,8 +73,8 @@ app.post( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, re
 	res.redirect( req.originalUrl );
 } ) );
 
-app.get( '/failed', ( req, res ) => {
-	res.send('failed');
+app.get( '/failed/:_id', hasModel(GiftFlows, '_id'), ( req, res ) => {
+	res.render('failed', {id: req.model._id});
 } );
 
 module.exports = function( config ) {

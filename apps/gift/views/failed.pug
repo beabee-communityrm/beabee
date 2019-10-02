@@ -1,0 +1,15 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block contents
+	.row
+		.col-md-8.col-md-offset-2
+			.alert.alert-warning.
+				A problem occured while purchasing your gift
+			p.
+				Please contact #[+email('membership@thebristolcable.org')],
+				quoting the gift ID below
+
+			pre= id
