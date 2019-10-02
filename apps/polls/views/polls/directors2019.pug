@@ -57,9 +57,9 @@ block contents
 						haven't RSVPed to the AGM you can do so
 						#[a(href='/polls/agm2019') here].
 
-					if answer.answer
-						hr#vote
+					hr#vote
 
+					if answer.answer
 						img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 						h3 Thank you for voting
@@ -81,9 +81,9 @@ block contents
 							| We'll be announcing the reuslts at the AGM on October 14th and
 							| online shortly afterwards.
 
-					else if !poll.closed
-						hr#vote
-
+					else if poll.closed
+						.alert.alert-warning Voting is now closed
+					else
 						h3 Vote for your candidates
 
 						form(method='POST' action='#vote')
