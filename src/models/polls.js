@@ -17,10 +17,12 @@ module.exports = {
 			required: true,
 			unique: true
 		},
+		mergeField: String,
 		closed: {
 			type: Boolean,
 			default: false
-		}
+		},
+		allowUpdate: Boolean
 	} )
 };
 

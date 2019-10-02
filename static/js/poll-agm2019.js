@@ -22,7 +22,7 @@
 			$section.find('input').prop('disabled', hidden);
 		}
 
-		$input.on('input', updateSection);
+		$input.on('change', updateSection);
 		updateSection();
 	});
 
@@ -30,10 +30,10 @@
 		$submit.prop('disabled', $formAnswer.filter(':checked').length === 0);
 	}
 
-	$formAnswer.on('input', updateSubmit);
+	$formAnswer.on('change', updateSubmit);
 	updateSubmit();
 
-	$formAnswer.on('input', function () {
+	$formAnswer.on('change', function () {
 		$.ajax({
 			url: window.location.href,
 			type: 'POST',

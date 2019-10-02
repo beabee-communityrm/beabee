@@ -78,21 +78,29 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 // TODO: remove _csrf in a less hacky way
 async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditionalAnswers } ) { // eslint-disable-line no-unused-vars
 	if (poll.closed) {
-		throw new Error('Poll is closed');
+		return 'polls-closed';
 	} else {
+		if (!poll.allowUpdate) {
+			const pollAnswer = await PollAnswers.findOne({ member, poll });
+			if (pollAnswer) {
+				return 'polls-cant-update';
+			}
+		}
+
 		const additionalAnswers = isAsync ?
 			{ 'additionalAnswers.isAsync': true } : { 'additionalAnswers': otherAdditionalAnswers };
+
 		await PollAnswers.findOneAndUpdate( { poll, member }, {
-			$set: {
-				poll, member, answer, ...additionalAnswers
-			}
+			$set: { poll, member, answer, ...additionalAnswers }
 		}, { upsert: true } );
 
-		await mailchimp.defaultLists.members.update( member.email, {
-			merge_fields: {
-				[poll.slug.toUpperCase()]: answer
-			}
-		} );
+		if (poll.mergeField) {
+			await mailchimp.defaultLists.members.update( member.email, {
+				merge_fields: {
+					[poll.mergeField]: answer
+				}
+			} );
+		}
 	}
 }
 
@@ -102,8 +110,12 @@ app.post( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const answerSchema = schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
-		await setAnswer(req.model, req.user, req.body);
-		req.session.newAnswer = true;
+		const error = await setAnswer( req.model, req.user, req.body );
+		if (error) {
+			req.flash( 'error', error );
+		} else {
+			req.session.newAnswer = true;
+		}
 		res.redirect( `${req.originalUrl}#vote` );
 	});
 } ) );
@@ -119,9 +131,13 @@ app.post( '/:slug/:code', [
 
 		const member = await Members.findOne( req.body.isAsync ? { pollsCode } : { pollsCode, email } );
 		if ( member ) {
-			await setAnswer(req.model, member, req.body);
-			req.session.newAnswer = req.body;
-			res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+			const error = await setAnswer( req.model, member, req.body );
+			if (error) {
+				req.flash( 'error', error );
+			} else {
+				req.session.newAnswer = req.body;
+				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+			}
 		} else {
 			req.flash( 'error', 'polls-unknown-user' );
 			req.log.debug({
