@@ -62,6 +62,11 @@ const referrals = {
 	referee: () => new mongoose.Types.ObjectId()
 };
 
+const pollAnswers = {
+	_id: () => new mongoose.Types.ObjectId(),
+	member: () => new mongoose.Types.ObjectId()
+};
+
 module.exports = [
 	{ model: db.Exports },
 	{ model: db.JTJStock },
@@ -72,5 +77,5 @@ module.exports = [
 	{ model: db.Referrals, properties: referrals },
 	{ model: db.Notices },
 	{ model: db.Polls },
-	{ model: db.PollAnswers }
+	{ model: db.PollAnswers, properties: pollAnswers }
 ];
