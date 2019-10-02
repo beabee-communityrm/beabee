@@ -21,11 +21,19 @@ block contents
 				.form-group
 					label(for='question').control-label.col-md-3 Question
 					.col-md-6
-						input(type='text' name='question')#question.form-control
+						input(type='text' name='question' required)#question.form-control
+				.form-group
+					label(for='description').control-label.col-md-3 Description
+					.col-md-6
+						input(type='text' name='description')#description.form-control
 				.form-group
 					label(for='slug').control-label.col-md-3 Slug
 					.col-md-6
-						input(type='text' name='slug')#slug.form-control
+						input(type='text' name='slug' required)#slug.form-control
+				.form-group
+					label(for='mergeField').control-label.col-md-3 Merge field
+					.col-md-6
+						input(type='text' name='mergeField')#mergeField.form-control
 				.form-group
 					.col-md-offset-3.col-md-6
 						label.checkbox-inline
