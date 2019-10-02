@@ -106,11 +106,11 @@
 	"flash-option-reset": "Option reset to default",
 
 	"flash-exports-created": "Export created",
-	"flash-exports-added": "Added members to export",
-	"flash-exports-added-one": "Added member to export",
+	"flash-exports-added": "Added items to export",
+	"flash-exports-added-one": "Added item to export",
 	"flash-exports-updated": "Updated export status",
 	"flash-exports-deleted": "Export deleted",
-	"flash-exports-ineligible": "Member is not eligible to be in this export.",
+	"flash-exports-ineligible": "Item is not eligible to be in this export.",
 
 	"flash-notices-created": "Notice created",
 	"flash-notices-updated": "Notice updated",
