@@ -20,6 +20,9 @@ module.exports = {
 		};
 	},
 	isValidNextUrl,
+	isSocialScraper(req) {
+		return /^(Twitterbot|facebookexternalhit)/.test(req.headers['user-agent']);
+	},
 	getNextParam( url ) {
 		return isValidNextUrl( url ) ? '?next=' + encodeURIComponent( url ) : '';
 	}

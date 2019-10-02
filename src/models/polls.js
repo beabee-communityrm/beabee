@@ -12,6 +12,7 @@ module.exports = {
 			type: String,
 			required: true
 		},
+		description: String,
 		slug: {
 			type: String,
 			required: true,

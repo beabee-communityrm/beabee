@@ -1,0 +1,22 @@
+doctype html
+html
+	head
+		meta( charset="utf-8" )
+
+		// TODO: make this less hacky (currently copied from /src/views/base.pug
+		- shareImage = "https://membership.thebristolcable.org/" + shareImage
+
+		meta(property="og:locale" content="en_GB")
+		meta(property="og:type" content="website")
+		meta(property="og:title" content=shareTitle)
+		meta(property="og:description" content=shareDescription)
+		meta(property="og:url" content="https://membership.thebristolcable.org" + shareUrl)
+		meta(property="og:site_name" content="The Bristol Cable")
+		meta(property="og:image" content=shareImage)
+		meta(property="og:image:secure_url" content=shareImage)
+		meta(name="twitter:card" content="summary_large_image")
+		meta(name="twitter:description" content=shareDescription)
+		meta(name="twitter:title" content=shareTitle)
+		meta(name="twitter:site" content="@TheBristolCable")
+		meta(name="twitter:image" content=shareImage)
+		meta(name="twitter:creator" content="@TheBristolCable")

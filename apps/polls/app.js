@@ -4,7 +4,7 @@ const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
 const mailchimp = require( __js + '/mailchimp' );
 const { hasSchema, hasModel } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
 
 const schemas = require( './schemas.json' );
 
@@ -40,6 +40,23 @@ app.get( '/campaign2019', wrapAsync( async ( req, res, next ) => {
 	}
 } ) );
 
+function pollShareContext(poll) {
+	return {
+		shareTitle: poll.question,
+		shareDescription: poll.description,
+		shareUrl: '/polls/' + poll.slug,
+		shareImage: `/static/imgs/polls/${poll.slug}/share.png`
+	};
+}
+
+app.get('/:slug', hasModel(Polls, 'slug'), ( req, res, next ) => {
+	if (isSocialScraper(req)) {
+		res.render('share', pollShareContext(req.model));
+	} else {
+		next();
+	}
+});
+
 app.get( '/:slug', [
 	auth.isLoggedIn,
 	hasModel(Polls, 'slug')
@@ -51,7 +68,10 @@ app.get( '/:slug', [
 	const justAnswered = !!req.session.newAnswer;
 	delete req.session.newAnswer;
 
-	res.render( `polls/${req.model.slug}`, { answer, poll: req.model, justAnswered } );
+	res.render( `polls/${req.model.slug}`, {
+		answer, poll: req.model, justAnswered,
+		...pollShareContext(req.model)
+	} );
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
@@ -71,7 +91,8 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 		poll: req.model,
 		answer: newAnswer || {},
 		code: pollsCode,
-		justAnswered: !!newAnswer
+		justAnswered: !!newAnswer,
+		...pollShareContext(req.model)
 	} );
 } ) );
 
