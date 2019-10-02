@@ -18,7 +18,7 @@ mixin candidate(name)
 			.poll-directors2019-candidate-vote
 				input(type='checkbox' name='candidates[]' value=name).js-poll-directors2019-candidate
 				svg(viewBox="0 0 80 80")
-					use(href='#cross')
+					use(xlink:href='#cross')
 		block
 
 block contents
@@ -78,8 +78,8 @@ block contents
 							else
 								| You abstained from voting for any candidates.
 							|
-							| We'll be annoucing the reuslts at the AGM on October 14th
-							| and online shortly afterwards.
+							| We'll be announcing the reuslts at the AGM on October 14th and
+							| online shortly afterwards.
 
 					else if !poll.closed
 						hr#vote
