@@ -26,6 +26,6 @@
 		$selected.html('You have selected ' + selectedHTML + '.');
 	}
 
-	$candidates.on('input', update);
+	$candidates.on('change', update);
 	update();
 })();
