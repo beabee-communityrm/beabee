@@ -166,7 +166,7 @@ $bp-join-why: 768px;
 .join-field-group {
 	@media (min-width: $bp-join-form) {
 		display: flex;
-		margin: 0 -0.5rem;
+		margin: 0 -0.5rem -2rem;
 
 		& > .join-field {
 			margin-left: 0.5rem;

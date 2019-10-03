@@ -1,3 +1,5 @@
+const mongoose = require( 'mongoose' );
+
 const ajv = require('./ajv');
 
 const Options = require( './options' )();
@@ -79,7 +81,13 @@ function hasModel( model, prop ) {
 	return async ( req, res, next ) => {
 		// Avoid refetching models as they fall through handlers
 		if (!req.model || req.model[prop] !== req.params[prop]) {
-			req.model = await model.findOne( { [prop]: req.params[prop] } );
+			try {
+				req.model = await model.findOne( { [prop]: req.params[prop] } );
+			} catch (err) {
+				if (!(err instanceof mongoose.CastError)) {
+					throw err;
+				}
+			}
 		}
 
 		if (req.model) {

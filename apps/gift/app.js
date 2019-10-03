@@ -74,7 +74,11 @@ app.post( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, re
 } ) );
 
 app.get( '/failed/:_id', hasModel(GiftFlows, '_id'), ( req, res ) => {
-	res.render('failed', {id: req.model._id});
+	if (req.model.completed) {
+		req.redirect('/gift/thanks/' + req.model._id);
+	} else {
+		res.render('failed', {id: req.model._id});
+	}
 } );
 
 module.exports = function( config ) {
