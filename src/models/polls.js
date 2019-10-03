@@ -30,7 +30,7 @@ module.exports = {
 };
 
 module.exports.schema.virtual( 'active' ).get( function () {
-	return !this.closed && (!this.expires || moment(this.expires).isAfter());
+	return !this.closed && (!this.expires || moment.utc(this.expires).isAfter());
 });
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );
