@@ -1,5 +1,6 @@
 const express = require( 'express' );
 const _ = require( 'lodash' );
+const moment = require( 'moment' );
 
 const auth = require( __js + '/authentication' );
 const { PollAnswers, Polls } = require( __js + '/database' );
@@ -31,10 +32,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 function schemaToPoll( data ) {
-	const { question, description, slug, mergeField, closed, allowUpdate } = data;
+	const { question, description, slug, mergeField, closed, allowUpdate,
+		expiresDate, expiresTime } = data;
+
+	const expires = expiresDate && expiresTime && moment.utc(`${expiresDate}T${expiresTime}`);
 
 	return {
-		question, description, slug, mergeField,
+		question, description, slug, mergeField, expires,
 		closed: !!closed,
 		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate})
 	};

@@ -22,6 +22,14 @@
 				},
 				"closed": {
 					"type": "boolean"
+				},
+				"expiresDate": {
+					"type": "string",
+					"format": "date"
+				},
+				"expiresTime": {
+					"type": "string",
+					"format": "time2"
 				}
 			}
 		}
