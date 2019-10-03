@@ -27,7 +27,7 @@ block contents
 								| You are coming to the AGM!
 							else
 								| You aren't coming to the AGM.
-							if !poll.closed
+							if poll.active
 								|
 								|
 								a(href='#vote') You can change your reply below.
@@ -57,7 +57,7 @@ block contents
 
 					p The event is child-friendly and there will be a creche / play area.
 
-					if !poll.closed
+					if poll.active
 						hr#vote
 
 						if justAnswered

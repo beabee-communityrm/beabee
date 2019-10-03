@@ -20,7 +20,7 @@ block body
 				span Vote for our next campaign
 	
 	.container
-		if poll.closed
+		if !poll.active
 			.row
 				.col-md-offset-2.col-md-8
 					p.h3.
@@ -207,7 +207,7 @@ block body
 						p.
 							It’s time we all breathed a little easier.
 
-	if !poll.closed
+	if poll.active
 		.poll-footer
 			.container
 				.row

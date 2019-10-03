@@ -1,3 +1,4 @@
+const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
 module.exports = {
@@ -23,8 +24,13 @@ module.exports = {
 			type: Boolean,
 			default: false
 		},
+		expires: Date,
 		allowUpdate: Boolean
 	} )
 };
+
+module.exports.schema.virtual( 'active' ).get( function () {
+	return !this.closed && (!this.expires || moment.utc(this.expires).isAfter());
+});
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );

@@ -98,9 +98,7 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 
 // TODO: remove _csrf in a less hacky way
 async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditionalAnswers } ) { // eslint-disable-line no-unused-vars
-	if (poll.closed) {
-		return 'polls-closed';
-	} else {
+	if (poll.active) {
 		if (!poll.allowUpdate) {
 			const pollAnswer = await PollAnswers.findOne({ member, poll });
 			if (pollAnswer) {
@@ -122,6 +120,8 @@ async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditi
 				}
 			} );
 		}
+	} else {
+		return 'polls-closed';
 	}
 }
 
