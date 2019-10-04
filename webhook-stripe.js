@@ -71,8 +71,6 @@ const listener = app.listen( config.stripe.port, config.host, function () {
 } );
 
 async function handleCheckoutSessionCompleted(session) {
-	const customer = await stripe.customers.retrieve(session.customer);
-
 	const giftFlow = await GiftFlows.findOne({sessionId: session.id});
 	if (giftFlow) {
 		log.info({
@@ -83,15 +81,15 @@ async function handleCheckoutSessionCompleted(session) {
 
 		await giftFlow.update({$set: {completed: true}});
 
-		const { fromName, firstname, startDate } = giftFlow.giftForm;
+		const { fromName, fromEmail, firstname, startDate } = giftFlow.giftForm;
 
 		await mandrill.sendMessage('purchased-gift', {
 			to: [{
-				email: customer.email,
+				email: fromEmail,
 				name:  fromName
 			}],
 			merge_vars: [{
-				rcpt: customer.email,
+				rcpt: fromEmail,
 				vars: [{
 					name: 'PURCHASER',
 					content: fromName,

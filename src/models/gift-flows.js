@@ -30,10 +30,13 @@ module.exports = {
 				required: true
 			},
 			message: {
+				type: String
+			},
+			fromName: {
 				type: String,
 				required: true
 			},
-			fromName: {
+			fromEmail: {
 				type: String,
 				required: true
 			},

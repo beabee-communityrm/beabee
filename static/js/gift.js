@@ -16,11 +16,22 @@ function checkDateInput() {
 	var $errors = $('.js-gift-errors');
 	var $startDate = $form.find('[name=startDate]');
 
+	function setErrors(errors) {
+		const errorHTML = errors
+			.map(function (error) {
+				return '<div class="alert alert-danger">' + error + '</div>';
+			})
+			.join('');
+
+		$errors.html(errorHTML);
+		$errors.get(0).scrollIntoView();
+	}
+
 	if (!checkDateInput()) {
 		$startDate.attr({
 			type: 'text',
 			placeholder: 'dd/mm/yyyy',
-			pattern: '[0-3]\\d/[01]\\d/\\d{4}'
+			pattern: '[0-3]?\\d/[01]?\\d/\\d{4}'
 		});
 	}
 
@@ -28,13 +39,20 @@ function checkDateInput() {
 		evt.preventDefault();
 
 		var data;
-		if (!checkDateInput()) {
-			$startDate.prop('disabled', true);
-			data = $form.serialize() + '&startDate=' + $startDate.val().split('/').reverse().join('-');
-			$startDate.prop('disabled', false);
-		} else {
+		if (checkDateInput()) {
 			data = $form.serialize();
+		} else {
+			$startDate.prop('disabled', true);
+			var startDate = $startDate.val() // d?d/m?m/yyyy to yyyy-mm-dd
+				.split('/')
+				.reverse()
+				.map(p => p.length < 2 ? '0' + p : p)
+				.join('-');
+			data = $form.serialize() + '&startDate=' + startDate;
+			$startDate.prop('disabled', false);
 		}
+
+		$form.find('button').prop('disabled', true);
 
 		$.ajax({
 			url: '/gift',
@@ -46,21 +64,12 @@ function checkDateInput() {
 				});
 			},
 			error: function (xhr) {
-				var errors;
+				$form.find('button').prop('disabled', false);
 				try {
-					errors = JSON.parse(xhr.responseText);
+					setErrors(JSON.parse(xhr.responseText));
 				} catch (err) {
-					errors = ['An unknown error occured, please contact membership@thebristolcable.org'];
+					setErrors(['An unknown error occured, please contact membership@thebristolcable.org']);
 				}
-
-				const errorHTML = errors
-					.map(function (error) {
-						return '<div class="alert alert-danger">' + error + '</div>';
-					})
-					.join('');
-
-				$errors.html(errorHTML);
-				$errors.get(0).scrollIntoView();
 			}
 		});
 	});

@@ -35,6 +35,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 		const session = await stripe.checkout.sessions.create({
 			success_url: config.audience + '/gift/thanks/' + gift._id,
 			cancel_url: config.audience + '/gift',
+			customer_email: req.body.fromEmail,
 			payment_method_types: ['card'],
 			line_items: [{
 				name: 'Gift membership',
