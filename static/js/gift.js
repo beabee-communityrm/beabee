@@ -46,7 +46,7 @@ function checkDateInput() {
 			var startDate = $startDate.val() // d?d/m?m/yyyy to yyyy-mm-dd
 				.split('/')
 				.reverse()
-				.map(p => p.length < 2 ? '0' + p : p)
+				.map(function (p) { return p.length < 2 ? '0' + p : p; })
 				.join('-');
 			data = $form.serialize() + '&startDate=' + startDate;
 			$startDate.prop('disabled', false);
