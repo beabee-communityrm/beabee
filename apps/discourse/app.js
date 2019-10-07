@@ -16,14 +16,13 @@ app.get( '/sso', auth.isLoggedIn, async ( req, res ) => {
 		const nonce = sso.getNonce(payload);
 		const params = {
 			nonce,
-			email: 'test@test.com', //req.user.email,
-			external_id: 'hello123', //req.user.uuid,
-			name: 'sam', //req.user.fullname,
-			username: 'samsam', //req.user.email,
-			require_activation: true
+			email: req.user.email,
+			external_id: req.user.uuid,
+			name: req.user.fullname,
+			username: req.user.email
 		};
 		const q = sso.buildLoginString(params);
-		res.send({params, nonce, q});
+		res.redirect(`${config.discourse.url}/session/sso_login?${q}`);
 	} else {
 		res.status(403).send({error: 'Invalid signature'});
 	}
