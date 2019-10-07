@@ -25,6 +25,7 @@
 	"audience": "http://localhost:3001",
 	"discourse": {
 		"url": "https://discourse.example.org",
+		"sso_secret": "",
 		"api_username": "",
 		"api_key": ""
 	},
