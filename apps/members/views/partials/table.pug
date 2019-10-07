@@ -34,8 +34,6 @@
 									if access( 'superadmin' )
 										a.btn.btn-sm.btn-default( title="Edit Profile", href="/members/" + member.uuid + "/profile" )
 											span.glyphicon.glyphicon-pencil
-										a.btn.btn-sm( title="Edit Discourse" href="/members/" + member.uuid + "/discourse", class=( member.discourse.activated ? 'btn-success' : 'btn-default' ) )
-											span.glyphicon.glyphicon-book
 										a.btn.btn-sm( title="Edit GoCardless" href="/members/" + member.uuid + "/gocardless", class=( member.gocardless.subscription_id ? 'btn-success' : 'btn-default' ) )
 											span.glyphicon.glyphicon-piggy-bank
 										a.btn.btn-sm( title="Edit Tag" href="/members/" + member.uuid + "/tag", class=( member.tag.id ? 'btn-success' : 'btn-default' ) )

@@ -25,19 +25,6 @@ form( method="post" ).form-horizontal
 		.col-md-4
 			input( name="event_unauthorised", type="text", value=( permission ? permission.event_unauthorised : '' ) )#event_unauthorised.form-control
 			span.help-block What text should appear in the event log when the user is prevented from using this permission on the API.
-	+page_header( 'Discourse Group' )
-	.form-group
-		label( for="group_id" ).col-md-2 ID:
-		.col-md-4
-			input( name="group_id", type="text", value=( permission ? permission.group.id : '' ) )#group_id.form-control
-	.form-group
-		label( for="group_name" ).col-md-2 Name:
-		.col-md-4
-			input( name="group_name", type="text", value=( permission ? permission.group.name : '' ) )#group_name.form-control
-	.form-group
-		label( for="group_order" ).col-md-2 Primary Group Order:
-		.col-md-4
-			input( name="group_order", type="text", value=( permission ? permission.group.order : '' ) )#group_order.form-control
 	.form-group
 		.col-md-4.col-md-offset-2
 			button.btn.btn-primary #{ action }

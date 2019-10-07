@@ -17,7 +17,6 @@ block contents
 					th Name
 					th Slug
 					th Description
-					th Discourse Group
 					th Edit
 			tbody
 				each permission, p in permissions
@@ -34,10 +33,5 @@ block contents
 								span.label.label-primary Admin
 						td #{ permission.slug }
 						td #{ permission.description }
-						td
-							if permission.group.id && permission.group.name
-								| Linked
-							else
-								| –
 						td: a( href="/settings/permissions/" + permission.slug + "/edit" )
 							span.glyphicon.glyphicon-pencil

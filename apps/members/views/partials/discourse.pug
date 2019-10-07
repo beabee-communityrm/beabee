@@ -1,9 +1,0 @@
-+page_header( 'Discourse' )
-dl.dl-horizontal
-	dt Username
-	dd #{ member.discourse.username ? member.discourse.username : '–' }
-	dt Activated
-	dd #{ member.discourse.activated ? 'Yes' : 'No' }
-	if member.discourse.activation_code
-		dt Activation Code
-		dd On file
