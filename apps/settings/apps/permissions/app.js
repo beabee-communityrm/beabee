@@ -51,11 +51,6 @@ app.post( '/create', auth.isSuperAdmin, function( req, res ) {
 		event_unauthorised: req.body.event_unauthorised,
 		slug: req.body.slug,
 		description: req.body.description,
-		group: {
-			id: req.body.group_id,
-			name: req.body.group_name,
-			order: req.body.group_order
-		}
 	};
 
 	new Permissions( permission ).save( function () {
@@ -98,11 +93,6 @@ app.post( '/:slug/edit', auth.isSuperAdmin, function( req, res ) {
 		event_unauthorised: req.body.event_unauthorised,
 		slug: req.body.slug,
 		description: req.body.description,
-		group: {
-			id: req.body.group_id,
-			name: req.body.group_name,
-			order: req.body.group_order
-		}
 	};
 
 	Permissions.update( { slug: req.params.slug }, permission, function () {

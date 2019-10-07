@@ -126,15 +126,6 @@ module.exports = {
 			default: Date.now,
 			required: true
 		},
-		discourse: {
-			username: String,
-			activated: {
-				type: Boolean,
-				default: false
-			},
-			activation_code: String,
-
-		},
 		gocardless: {
 			customer_id: String,
 			mandate_id: String,
