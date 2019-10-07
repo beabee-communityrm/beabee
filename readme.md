@@ -13,7 +13,7 @@ Browser testing with<br/>
 - GoCardless for direct debits
 - MailChimp for newsletters
 - Mandrill for transactional emails
-- Discourse for forums (not sure what the state of this is)
+- Discourse with SSO for forums
 
 ## Development
 
