@@ -35,6 +35,10 @@ function checkDateInput() {
 		});
 	}
 
+	$startDate.on('invalid', function () {
+		this.setCustomValidity('Date must have the format dd/mm/yyyy');
+	});
+
 	$form.on('submit', function (evt) {
 		evt.preventDefault();
 
