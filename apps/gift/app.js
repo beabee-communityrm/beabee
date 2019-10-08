@@ -39,7 +39,11 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 		});
 		res.status(400).send([Options.getText('flash-gifts-being-implemented')]);
 	} else {
-		const gift = await GiftFlows.create({sessionId: 'UNKNOWN', giftForm: req.body});
+		const gift = await GiftFlows.create({
+			sessionId: 'UNKNOWN',
+			giftForm: req.body,
+			member: req.user
+		});
 
 		const session = await stripe.checkout.sessions.create({
 			success_url: config.audience + '/gift/thanks/' + gift._id,

@@ -12,6 +12,10 @@ module.exports = {
 			type: String,
 			required: true
 		},
+		member: {
+			type: mongoose.Schema.ObjectId,
+			ref: 'Members'
+		},
 		giftForm: {
 			firstname: {
 				type: String,
