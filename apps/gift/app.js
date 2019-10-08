@@ -27,8 +27,17 @@ app.get( '/', ( req, res ) => {
 } );
 
 app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async ( req, res ) => {
-	if (moment(req.body.startDate).endOf('day').isBefore()) {
+	const startDate = moment(req.body.startDate).endOf('day');
+	if (startDate.isBefore()) {
 		res.status(400).send([Options.getText('flash-gifts-date-in-the-past')]);
+	} else if (startDate.isBefore(moment('2019-11-01'))) {
+		req.log.error({
+			app: 'gift',
+			action: 'buy-gift-before-implementation',
+			message: 'Attempted to buy gift before implementation date',
+			sensitive: req.body
+		});
+		res.status(400).send([Options.getText('flash-gifts-being-implemented')]);
 	} else {
 		const gift = await GiftFlows.create({sessionId: 'UNKNOWN', giftForm: req.body});
 
