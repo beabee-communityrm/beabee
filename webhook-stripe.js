@@ -6,6 +6,7 @@ global.__models = __root + '/src/models';
 
 const bodyParser = require('body-parser');
 const express = require( 'express' );
+const hummus = require( 'hummus' );
 const moment = require( 'moment' );
 
 const config = require( __config );
@@ -18,8 +19,31 @@ const { wrapAsync } = require( __js + '/utils' );
 
 const app = express();
 
-// TODO: make this not hardcoded
-const giftCardContent = require('fs').readFileSync(__root + '/static/pdfs/gift.pdf').toString('base64');
+function createGiftCard(code) {
+	const inStream = new hummus.PDFRStreamForFile(__dirname + '/static/pdfs/gift.pdf');
+
+	const outStream = new hummus.PDFWStreamForBuffer();
+
+	const pdfWriter = hummus.createWriterToModify(inStream, outStream);
+	const font = pdfWriter.getFontForFile(__dirname + '/static/fonts/Lato-Regular.ttf');
+
+	const pageModifier = new hummus.PDFPageModifier(pdfWriter, 0, true);
+	const context = pageModifier.startContext().getContext();
+
+	context.cm(-1, 0, 0, -1, 406, 570);
+	context.writeText(
+		'thebristolcable.org/gift/CODE', 0, 0, {
+			font,
+			size: 14,
+			color: 0x000000
+		}
+	);
+
+	pageModifier.endContext().writePage();
+	pdfWriter.end();
+
+	return outStream.buffer;
+}
 
 require( __js + '/logging' ).installMiddleware( app );
 
@@ -83,6 +107,8 @@ async function handleCheckoutSessionCompleted(session) {
 
 		const { fromName, fromEmail, firstname, startDate } = giftFlow.giftForm;
 
+		const giftCard = createGiftCard(giftFlow.setupCode);
+
 		await mandrill.sendMessage('purchased-gift', {
 			to: [{
 				email: fromEmail,
@@ -104,7 +130,7 @@ async function handleCheckoutSessionCompleted(session) {
 			attachments: [{
 				type: 'application/pdf',
 				name: 'Gift card.pdf',
-				content: giftCardContent
+				content: giftCard.toString('base64')
 			}]
 		});
 	} else {
