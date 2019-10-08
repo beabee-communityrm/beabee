@@ -3,7 +3,7 @@ const moment = require( 'moment' );
 
 const config = require( __config );
 
-const { GiftFlows } = require( __js + '/database' );
+const { GiftFlows, Members } = require( __js + '/database' );
 const { hasModel, hasSchema } = require( __js + '/middleware' );
 const stripe = require( __js + '/stripe' );
 const { wrapAsync } = require( __js + '/utils' );
@@ -46,9 +46,11 @@ async function createGiftFlow(giftForm, member) {
 }
 
 app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async ( req, res ) => {
+	let error;
+
 	const startDate = moment(req.body.startDate).endOf('day');
 	if (startDate.isBefore()) {
-		res.status(400).send([Options.getText('flash-gifts-date-in-the-past')]);
+		error = 'flash-gifts-date-in-the-past';
 	} else if (startDate.isBefore(moment('2019-11-01'))) {
 		req.log.error({
 			app: 'gift',
@@ -56,7 +58,16 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 			message: 'Attempted to buy gift before implementation date',
 			sensitive: req.body
 		});
-		res.status(400).send([Options.getText('flash-gifts-being-implemented')]);
+		error = 'flash-gifts-being-implemented';
+	} else {
+		const member = await Members.findOne({email: req.body.email});
+		if (member) {
+			error = 'flash-gifts-email-duplicate';
+		}
+	}
+
+	if (error) {
+		res.status(400).send([Options.getText(error)]);
 	} else {
 		const giftFlow = await createGiftFlow(req.body, req.user);
 

@@ -104,6 +104,7 @@
 
 	"flash-gifts-date-in-the-past": "The gift start date can't be in the past",
 	"flash-gifts-being-implemented": "Due to technical issues gifts can only start from November 1st",
+	"flash-gifts-email-duplicate": "The giftee's email address is already registered",
 
 	"flash-notices-created": "Notice created",
 	"flash-notices-updated": "Notice updated",
