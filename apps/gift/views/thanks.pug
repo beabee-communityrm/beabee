@@ -1,0 +1,50 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block body
+	header.join-header
+		.join-header__bg
+
+		.join-form
+			.join-title
+				div
+					img(src='/static/svg/logo.svg').join-title-logo
+				h1 Thanks#[br]#{fromName}
+
+			p.
+				You've given #{firstname} a stake in co-operatively owned independent
+				media, but you've also given the Cable another member. We'd like to
+				thank you for helping to make the Cable better and more sustainable.
+
+	.container
+		.row
+			.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
+
+				p.
+					We'll start #{firstname}'s membership on #{moment(startDate).format('MMMM Do')}
+					and send them a welcome email around midday.
+
+				if delivery_address.line1
+					p Great, we've got all the details we need.
+				else
+					form( method="post" ).form-horizontal
+						+csrf
+
+						include /src/views/partials/flash
+
+						.alert.alert-info Do you know #{firstname}'s delivery details?
+
+						p
+							| We'll send their copies of the Cable print edition to this address.
+							|
+							b If you don't know their address we'll ask them when they activate their account
+							| .
+
+						+input( 'text', 'Address line 1', 'delivery_line1', { required: true, left: 4, right: 6 } )
+						+input( 'text', 'Address line 2', 'delivery_line2', { left: 4, right: 6 } )
+						+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6 } )
+						+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6 } )
+
+						button.btn.join-btn Save

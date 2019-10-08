@@ -33,6 +33,7 @@
     "express-session": "^1.15.6",
     "gunzip-maybe": "^1.4.1",
     "helmet": "^3.21.1",
+    "hummus": "^1.0.107",
     "inquirer": "^6.2.2",
     "lodash": "^4.17.15",
     "mandrill-api": "^1.0.45",
@@ -46,6 +47,7 @@
     "pug": "^2.0.3",
     "query-string": "^6.2.0",
     "request": "^2.88.0",
+    "stripe": "^7.9.1",
     "tar-stream": "^2.0.0",
     "thirty-two": "^1.0.2",
     "uuid": "^3.3.2"
@@ -82,5 +84,11 @@
   "browserslist": [
     "last 1 versions",
     "> 1%"
-  ]
+  ],
+  "nodemonConfig": {
+    "ignore": [
+      "static/*",
+      "test/*"
+    ]
+  }
 }
