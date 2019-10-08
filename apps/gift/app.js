@@ -90,6 +90,10 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	}
 } ) );
 
+app.get( '/:setupCode', ( req, res ) => {
+	res.render('setup');
+});
+
 app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
 	if (req.model.completed) {
 		res.render('thanks', req.model.giftForm);
