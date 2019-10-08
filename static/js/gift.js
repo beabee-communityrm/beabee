@@ -33,11 +33,16 @@ function checkDateInput() {
 			placeholder: 'dd/mm/yyyy',
 			pattern: '[0-3]?\\d/[01]?\\d/\\d{4}'
 		});
-	}
 
-	$startDate.on('invalid', function () {
-		this.setCustomValidity('Date must have the format dd/mm/yyyy');
-	});
+		$startDate.on('input', function () {
+			this.setCustomValidity('');
+			this.checkValidity();
+		});
+
+		$startDate.on('invalid', function () {
+			this.setCustomValidity('Date must have the format dd/mm/yyyy');
+		});
+	}
 
 	$form.on('submit', function (evt) {
 		evt.preventDefault();
