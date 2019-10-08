@@ -32,7 +32,7 @@ function createGiftCard(code) {
 
 	context.cm(-1, 0, 0, -1, 406, 570);
 	context.writeText(
-		'thebristolcable.org/gift/CODE', 0, 0, {
+		'thebristolcable.org/gift/' + code, 0, 0, {
 			font,
 			size: 14,
 			color: 0x000000
