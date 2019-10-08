@@ -203,5 +203,6 @@ module.exports = {
 	createMember,
 	startMembership,
 	isGiftAvailable,
-	updateGiftStock
+	updateGiftStock,
+	generateMemberCode
 };

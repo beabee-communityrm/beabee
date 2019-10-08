@@ -9,6 +9,8 @@ const stripe = require( __js + '/stripe' );
 const { wrapAsync } = require( __js + '/utils' );
 const Options = require( __js + '/options' )();
 
+const { generateMemberCode } = require( __apps + '/join/utils' );
+
 const { createGiftSchema } = require( './schema.json' );
 
 const app = express();
@@ -26,6 +28,23 @@ app.get( '/', ( req, res ) => {
 	res.render( 'index', { stripePublicKey: config.stripe.public_key } );
 } );
 
+async function createGiftFlow(giftForm, member) {
+	try {
+		return await GiftFlows.create({
+			sessionId: 'UNKNOWN',
+			setupCode: generateMemberCode(giftForm),
+			giftForm,
+			member
+		});
+	} catch (saveError) {
+		const {code, message} = saveError;
+		if (code === 11000 && message.indexOf('setupCode') > -1) {
+			return await createGiftFlow(giftForm, member);
+		}
+		throw saveError;
+	}
+}
+
 app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async ( req, res ) => {
 	const startDate = moment(req.body.startDate).endOf('day');
 	if (startDate.isBefore()) {
@@ -39,14 +58,10 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 		});
 		res.status(400).send([Options.getText('flash-gifts-being-implemented')]);
 	} else {
-		const gift = await GiftFlows.create({
-			sessionId: 'UNKNOWN',
-			giftForm: req.body,
-			member: req.user
-		});
+		const giftFlow = await createGiftFlow(req.body, req.user);
 
 		const session = await stripe.checkout.sessions.create({
-			success_url: config.audience + '/gift/thanks/' + gift._id,
+			success_url: config.audience + '/gift/thanks/' + giftFlow._id,
 			cancel_url: config.audience + '/gift',
 			customer_email: req.body.fromEmail,
 			payment_method_types: ['card'],
@@ -58,7 +73,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 			}]
 		});
 
-		await gift.update({sessionId: session.id});
+		await giftFlow.update({sessionId: session.id});
 
 		res.send({sessionId: session.id});
 	}
