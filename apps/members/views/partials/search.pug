@@ -21,10 +21,5 @@ form( method="get" )
 			label( for="email" ).control-label Email
 			input( type='text', name="email", value=search.email ).form-control#email
 	.form-group
-		label( for="discourse", name="discourse" ).control-label Discourse Username
-		.input-group
-			.input-group-addon @
-			input( type='text', name="discourse", value=search.discourse ).form-control#discourse
-	.form-group
 		input( type='hidden', name="limit", value=pagination.limit )
 		button.btn.btn-primary Search

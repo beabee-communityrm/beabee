@@ -13,9 +13,6 @@ block contents
 			.col-md-10
 				+page_header( member.fullname, { level: 'h2' } )
 				dl.dl-horizontal
-					if member.discourse.activated && discourse != undefined
-						dt Discourse
-						dd: a( target="_blank", href=discourse_path + '/users/' + discourse.user.username ) @#{ discourse.user.username }
 					dt Tag
 					if member.tag.id
 						dd Yes
@@ -39,12 +36,9 @@ block contents
 							include partials/security.pug
 					.row
 						.col-md-6
-							include partials/discourse.pug
+							include partials/codes.pug
 						.col-md-6
 							include partials/gocardless.pug
-				.row
-					.col-md-12
-						include partials/referrals.pug
 				.row
 					.col-md-12
 						include partials/permissions.pug

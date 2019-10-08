@@ -5,7 +5,6 @@ const config = require( __config );
 
 const auth = require( __js + '/authentication' );
 const { Exports, Members, Permissions, Payments } = require( __js + '/database' );
-const discourse = require( __js + '/discourse' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
@@ -104,10 +103,6 @@ app.get( '/', function( req, res ) {
 			search['$and'].push( { email: new RegExp( '.*' + escapeStringRegexp( req.query.email ) + '.*', 'i' ) } );
 			path['email'] = 'email=' + req.query.email;
 		}
-		if ( req.query.discourse ) {
-			search['$and'].push( { 'discourse.username': new RegExp( '.*' + escapeStringRegexp( req.query.discourse ) + '.*', 'i' ) } );
-			path['discourse'] = 'discourse=' + req.query.discourse;
-		}
 		if ( search['$and'].length == 0 ) search = {};
 
 		// Process pagination
@@ -181,7 +176,6 @@ app.get( '/', function( req, res ) {
 				firstname: req.query.firstname,
 				lastname: req.query.lastname,
 				email: req.query.email,
-				discourse: req.query.discourse,
 				show_inactive_members: req.query.show_inactive_members,
 				permission: req.query.permission
 			};
@@ -211,38 +205,29 @@ app.post( '/add', wrapAsync( async function( req, res ) {
 	res.redirect( app.mountpath + '/' + member.uuid );
 } ) );
 
-app.get( '/:uuid', function( req, res ) {
-	Members.findOne( { uuid: req.params.uuid } ).populate( 'permissions.permission' ).exec( function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-		Payments.find( { member: member._id } ).sort( { 'charge_date': -1 } ).exec( function( err, payments ) {
-			res.locals.breadcrumb.push( {
-				name: member.fullname
-			} );
-			discourse.getUsername( member.discourse.username, function( discourse ) {
-				const confirmedPayments = payments
-					.filter(p => ['paid_out', 'confirmed'].indexOf(p.status) > -1)
-					.map(p => p.amount - p.amount_refunded)
-					.filter(amount => !isNaN(amount));
+app.get( '/:uuid', wrapAsync( async function( req, res ) {
+	const member = await Members.findOne( { uuid: req.params.uuid } ).populate( 'permissions.permission' ).exec();
+	const payments = await Payments.find( { member: member._id } ).sort( { 'charge_date': -1 } ).exec();
 
-				const total = confirmedPayments.reduce((a, b) => a + b, 0);
-
-				res.render( 'member', {
-					member: member,
-					payments: payments,
-					discourse: discourse,
-					discourse_path: config.discourse.url,
-					audience: config.audience,
-					password_tries: config['password-tries'],
-					total: total
-				} );
-			} );
-		} );
+	res.locals.breadcrumb.push( {
+		name: member.fullname
 	} );
-} );
+
+	const confirmedPayments = payments
+		.filter(p => ['paid_out', 'confirmed'].indexOf(p.status) > -1)
+		.map(p => p.amount - p.amount_refunded)
+		.filter(amount => !isNaN(amount));
+
+	const total = confirmedPayments.reduce((a, b) => a + b, 0);
+
+	res.render( 'member', {
+		member: member,
+		payments: payments,
+		audience: config.audience,
+		password_tries: config['password-tries'],
+		total: total
+	} );
+} ) );
 
 app.post( '/:uuid', wrapAsync( async function( req, res ) {
 	const member = await Members.findOne( { uuid: req.params.uuid } );
@@ -468,39 +453,6 @@ app.post( '/:uuid/tag', auth.isSuperAdmin, function( req, res ) {
 			}
 			res.redirect( app.mountpath + '/' + req.params.uuid );
 		} );
-	} );
-} );
-
-app.get( '/:uuid/discourse', auth.isSuperAdmin, function( req, res ) {
-	Members.findOne( { uuid: req.params.uuid }, function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-
-		res.locals.breadcrumb.push( {
-			name: member.fullname,
-			url: '/members/' + member.uuid
-		} );
-		res.locals.breadcrumb.push( {
-			name: 'Discourse'
-		} );
-		res.render( 'discourse', { member: member } );
-	} );
-} );
-
-app.post( '/:uuid/discourse', auth.isSuperAdmin, function( req, res ) {
-	var member = {
-		'discourse.username': req.body.username,
-		'discourse.activated': ( req.body.activated ? true : false )
-	};
-
-	if ( req.body.activated ) member['discourse.activation_code'] = null;
-
-	Members.update( { uuid: req.params.uuid }, { $set: member }, function() {
-		req.flash( 'success', 'discourse-updated' );
-		res.redirect( app.mountpath + '/' + req.params.uuid + '/discourse' );
 	} );
 } );
 

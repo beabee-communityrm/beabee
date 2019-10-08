@@ -78,10 +78,10 @@ block contents
 							else
 								| You abstained from voting for any candidates.
 							|
-							| We'll be announcing the reuslts at the AGM on October 14th and
+							| We'll be announcing the results at the AGM on October 14th and
 							| online shortly afterwards.
 
-					else if poll.closed
+					else if !poll.active
 						.alert.alert-warning Voting is now closed
 					else
 						h3 Vote for your candidates

@@ -12,8 +12,12 @@ block contents
 			p.
 				Created #{moment(poll.date).format('DD/MM/YYYY [at] HH:mm')}
 
-			if poll.closed
+			if poll.active
+				.alert.alert-success This poll is currently active
+			else if poll.closed
 				.alert.alert-warning This poll is closed
+			else if poll.expires
+				.alert.alert-warning This poll has expired
 
 			h4 Answers
 			ul
@@ -24,8 +28,14 @@ block contents
 						|
 						= count
 
-			if poll.allowUpdate
-				p #[b Note:] Users can update their answer in this poll.
+			p
+				b Note:
+				|
+				|
+				if poll.allowUpdate
+					| Users can update their answers
+				else
+					| Users can't update their answers
 
 	.row
 		.col-md-8
@@ -37,7 +47,7 @@ block contents
 				input(type='hidden' name='action' value='update')
 				+csrf
 				.form-group
-					label(for='question').control-label.col-md-3 Name
+					label(for='question').control-label.col-md-3 Title
 					.col-md-6
 						input(type='text' name='question' value=poll.question required)#question.form-control
 				.form-group
@@ -52,6 +62,12 @@ block contents
 					label(for='mergeField').control-label.col-md-3 Merge field
 					.col-md-6
 						input(type='text' name='mergeField' value=poll.mergeField)#mergeField.form-control
+				.form-group
+					label(for='expires').control-label.col-md-3 Expires (UTC)
+					.col-md-3
+						input(type='date', name='expiresDate' value=poll.expires ? moment.utc(poll.expires).format('YYYY-MM-DD') : '')#expires.form-control
+					.col-md-3
+						input(type='time', name='expiresTime' value=poll.expires ? moment.utc(poll.expires).format('HH:mm') : '').form-control
 				.form-group
 					.col-md-offset-3.col-md-9
 						.checkbox-inline

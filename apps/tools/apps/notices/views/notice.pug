@@ -40,11 +40,11 @@ block contents
 					.col-md-6
 						input(type='text' name='name' value=notice.name)#name.form-control
 				.form-group
-					label(for='expires').control-label.col-md-3 Expires
+					label(for='expires').control-label.col-md-3 Expires (UTC)
 					.col-md-3
-						input(type='date', name='expiresDate' value=moment(notice.expires).format('YYYY-MM-DD'))#expires.form-control
+						input(type='date', name='expiresDate' value=moment.utc(notice.expires).format('YYYY-MM-DD'))#expires.form-control
 					.col-md-3
-						input(type='time', name='expiresTime' value=moment(notice.expires).format('HH:mm')).form-control
+						input(type='time', name='expiresTime' value=moment.utc(notice.expires).format('HH:mm')).form-control
 				.form-group
 					label(for='text').control-label.col-md-3 Text
 					.col-md-9
