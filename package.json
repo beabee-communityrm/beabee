@@ -53,7 +53,7 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "start": "npm run build && nodemon --exec \"npm run lint && concurrently -c red,green,blue npm:app npm:webhook npm:watch\"",
+    "start": "npm run build && nodemon --exec \"npm run lint && concurrently -c red,,blue npm:app npm:watch\"",
     "app": "node app | bunyan",
     "webhook": "node webhook | bunyan",
     "first-time": "node tools/first-time",
