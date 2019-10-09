@@ -1,0 +1,80 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block append js
+
+block flashes
+
+mixin question(id, question, last)
+	input(type='checkbox' id='next_' + id checked=last).poll-agm2019-membership-next
+	.poll-section
+		hr
+		h4= question
+		block
+		.poll-agm2019-membership-slider
+			input(type='range' min='0' max='100' step='1' name=id required)
+			ul.poll-agm2019-membership-slider-labels
+				li: small Strongly disagree
+				li: small Not sure/#[br]neutral
+				li: small Strongly agree
+
+		h4 Reasons/comments
+		.form-group
+			textarea(name=id + '_reasons').form-control.poll-agm2019-membership-reasons
+
+		p.poll-agm2019-membership-next-btn
+			label(for='next_' + id).btn Next
+
+block contents
+	.row
+		.col-md-3
+			- page = ''
+			if access('member')
+				include /apps/profile/views/partials/sidebar.pug
+		.col-md-9
+			.page-header
+				h3 &nbsp;
+
+			.row
+				.col-md-9
+					img(src='/static/imgs/polls/agm2019/title.png').poll-title-image
+
+					p.
+						Lots of space for stuff here
+
+					hr#vote
+
+					if poll.active
+						form(method='POST' action='#vote')
+							+csrf
+
+							h3 Who can access what?
+
+							p.
+								Go through each question and consider. Put your comments or reasons
+								in the box below, including any ideas you have around each topic.
+
+							.alert.alert-info.
+								There are 5 questions
+
+							include /src/views/partials/flash.pug
+
+							+question('access', '1) Everyone should have access to our journalism for free e.g. free papers, free online content')
+								p.
+									Stuff that should go here
+
+							+question('delivery', '2) Only members who pay £3 or more should have the Cable sent to their home')
+
+							+question('events', '3) All members should get free or discounted tickets to our ticketed public events i.e. not community or members’ meetings')
+
+							+question('participate', '4) Only members should be able to participate in our online polls, forums etc.')
+
+							+question('contribution', '5) We should keep membership minimum contribution at £1/month', true)
+
+							p.poll-agm2019-membership-submit
+								button(name='answer' value='vote').btn.join-btn Submit
+					else
+						.alert.alert-warning Voting is now closed
+

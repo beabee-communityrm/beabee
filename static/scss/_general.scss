@@ -60,6 +60,15 @@ ul {
 	margin-bottom: 1em;
 }
 
+textarea.form-control {
+	border: 1px solid #ddd;
+	font-size: inherit;
+	&,
+	&:focus {
+		box-shadow: none;
+	}
+}
+
 body.has-js .hidden-js {
 	display: none;
 }

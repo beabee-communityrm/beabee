@@ -115,6 +115,53 @@
 					}
 				}
 			}
+		},
+		"agm2019-membership": {
+			"body": {
+				"type": "object",
+				"properties": {
+					"access": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"access_reasons": {
+						"type": "string"
+					},
+					"delivery": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"delivery_reasons": {
+						"type": "string"
+					},
+					"events": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"events_reasons": {
+						"type": "string"
+					},
+					"participate": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"participate_reasons": {
+						"type": "string"
+					},
+					"contribution": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"contribution_reasons": {
+						"type": "string"
+					}
+				}
+			}
 		}
 	}
 }
