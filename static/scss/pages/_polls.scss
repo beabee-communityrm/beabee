@@ -470,6 +470,8 @@ $bp-directors: 600px;
 	}
 }
 
+// AGM 2019: Membership item
+
 .poll-agm2019-membership-slider {
 	margin: 2rem 0;
 	padding: 0 40px;
@@ -504,5 +506,39 @@ $bp-directors: 600px;
 	&:not(:checked) + .poll-section + & + .poll-section,
 	&:not(:checked) + .poll-section + & + .poll-section + .poll-agm2019-membership-submit {
 		display: none;
+	}
+}
+
+// AGM 2019: Editorial item
+
+.poll-agm2019-editorial-strategy {
+	background-color: transparentize($c-agm2019-purple, 0.85);
+	margin-bottom: 2rem;
+	padding: 1rem;
+	@media (min-width: 768px) {
+		padding: 2rem;
+	}
+
+	h4 {
+		margin-top: 0;
+	}
+
+	ul {
+		padding-left: 2rem;
+	}
+
+	:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.poll-agm2019-editorial-options {
+	@extend .poll-options;
+
+	& > .btn {
+		background-color: $c-agm2019-purple;
+		&:hover {
+			background-color: darken($c-agm2019-purple, 10%);
+		}
 	}
 }

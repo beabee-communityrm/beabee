@@ -3,8 +3,6 @@ extends /src/views/base.pug
 block prepend title
 	- title = app.title
 
-block append js
-
 block flashes
 
 mixin question(id, question, last)
@@ -59,6 +57,8 @@ block contents
 						form(method='POST' action='#vote')
 							+csrf
 
+							include /src/views/partials/flash.pug
+
 							h3 Who can access what?
 
 							p.
@@ -67,8 +67,6 @@ block contents
 
 							.alert.alert-info.
 								There are 5 questions
-
-							include /src/views/partials/flash.pug
 
 							+question('access', '1) Everyone should have access to our journalism for free e.g. free papers, free online content')
 								p.
