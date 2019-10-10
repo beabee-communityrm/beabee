@@ -110,6 +110,10 @@
 	"flash-notices-updated": "Notice updated",
 	"flash-notices-deleted": "Notice deleted",
 
+	"flash-pages-created": "Page settings created",
+	"flash-pages-updated": "Page settings updated",
+	"flash-pages-deleted": "Page settings deleted",
+
 	"flash-polls-created": "Poll created",
 	"flash-polls-updated": "Poll updated",
 	"flash-polls-deleted": "Poll deleted",

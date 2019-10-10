@@ -20,13 +20,12 @@ if ( !config.gocardless.sandbox && config.dev ){
 	process.exit(1);
 }
 
-var database = require( __js + '/database' ).connect( config.mongo );
+require( __js + '/database' ).connect( config.mongo );
 
 var express = require( 'express' ),
 	helmet = require( 'helmet' ),
 	flash = require( 'express-flash' ),
-	app = express(),
-	http = require( 'http' ).Server( app );
+	app = express();
 
 var Options = require( __js + '/options' )();
 app.use( Options.load );
@@ -59,6 +58,8 @@ app.set( 'view cache', false );
 
 // Load apps
 app_loader( app );
+
+require( __js + '/page-settings' ).update();
 
 // Setup tracker
 app.use( '/membership.js', (req, res) => {

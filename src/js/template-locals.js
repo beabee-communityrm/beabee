@@ -1,4 +1,5 @@
 const moment = require( 'moment' );
+
 const auth = require( __js + '/authentication' );
 
 const config = require( __config );

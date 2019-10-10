@@ -1,0 +1,51 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Notice'
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Page: ' + page.pattern)
+
+			h3 Update page settings
+
+			form(method='POST').form-horizontal
+				input(type='hidden' name='action' value='update')
+				+csrf
+				.form-group
+					label(for='pattern').control-label.col-md-3 Pattern
+					.col-md-9
+						input(type='text' name='pattern' required value=page.pattern)#pattern.form-control
+				.form-group
+					label(for='shareUrl').control-label.col-md-3 Share URL
+					.col-md-9
+						input(type='text' name='shareUrl' value=page.shareUrl)#shareUrl.form-control
+				.form-group
+					label(for='shareTitle').control-label.col-md-3 Share title
+					.col-md-9
+						input(type='text' name='shareTitle' value=page.shareTitle)#shareTitle.form-control
+				.form-group
+					label(for='shareDescription').control-label.col-md-3 Share description
+					.col-md-9
+						input(type='text' name='shareDescription' value=page.shareDescription)#shareDescription.form-control
+				.form-group
+					label(for='shareImage').control-label.col-md-3 Share image
+					.col-md-9
+						input(type='text' name='shareImage' value=page.shareImage)#shareImage.form-control
+
+				p.col-md-offset-3
+					button.btn Update
+
+			hr
+
+			h3 Delete page settings
+
+			form(method='POST')
+				+csrf
+				input(type='hidden', name='action', value='delete')
+				p
+					label.checkbox-inline
+						input(type='checkbox' required)
+						| This change is irreversible, confirm to proceed
+				button.btn.btn-danger.outline Delete

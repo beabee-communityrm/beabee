@@ -15,6 +15,8 @@ module.exports = function( app ) {
 	// Load template locals;
 	app.use( require( __js + '/template-locals' )( apps ) );
 
+	app.use( require( __js + '/page-settings' ).middleware );
+
 	// Off switch!
 	app.use( ( req, res, next ) => {
 		if ( Options.getBool( 'off-switch' ) && req.originalUrl !== '/login' &&
