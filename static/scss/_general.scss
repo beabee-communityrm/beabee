@@ -305,7 +305,7 @@ select {
 		padding: 0 0.5rem;
 		font-size: inherit;
 		color: inherit;
-		box-shadow: 0 2px 5px transparentize($c-black, 0.8);
+		box-shadow: 0 2px 5px transparentize($c-black, 0.9);
 		&:focus {
 			border-color: $c-black;
 			box-shadow: 0 2px 5px transparentize($c-black, 0.5);
