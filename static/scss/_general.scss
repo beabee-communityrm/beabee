@@ -197,8 +197,7 @@ ul.nav.nav-tabs {
 
 .btn {
 	text-transform: none;
-	box-shadow: none;
-	-webkit-box-shadow: none;
+	box-shadow: 0 2px 5px transparentize($c-black, 0.5);
 	font-family: "Roboto", sans-serif;
 	font-weight: 900;
 	font-size: 24px;
@@ -222,33 +221,6 @@ ul.nav.nav-tabs {
 
 .btn-sm {
 	font-size: 15px;
-}
-
-.btn-success,
-.btn-warning,
-.btn-info,
-.btn-danger,
-.btn-primary,
-.btn-default {
-	&:hover,
-	&:active {
-		box-shadow: none;
-		-webkit-box-shadow: none;
-	}
-}
-
-.btn-success,
-.btn-warning,
-.btn-info,
-.btn-danger,
-.btn-primary {
-	border: 0;
-	&:hover,
-	&:active {
-		border: 0;
-		box-shadow: 0;
-		-webkit-box-shadow: 0;
-	}
 }
 
 .btn-fb {
@@ -329,8 +301,15 @@ input[type=number],
 input[type=email],
 select {
 	&.form-control {
+		border: 1px solid #ddd;
+		padding: 0 0.5rem;
 		font-size: inherit;
 		color: inherit;
+		box-shadow: 0 2px 5px transparentize($c-black, 0.8);
+		&:focus {
+			border-color: $c-black;
+			box-shadow: 0 2px 5px transparentize($c-black, 0.5);
+		}
 	}
 }
 
