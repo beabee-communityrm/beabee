@@ -1,0 +1,26 @@
+{
+	"createPageSchema": {
+		"body": {
+			"type": "object",
+			"required": ["pattern"],
+			"properties": {
+				"pattern": {
+					"type": "string",
+					"minLength": 1
+				},
+				"shareUrl": {
+					"type": "string"
+				},
+				"shareTitle": {
+					"type": "string"
+				},
+				"shareDescription": {
+					"type": "string"
+				},
+				"shareImage": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}

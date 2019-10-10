@@ -40,18 +40,9 @@ app.get( '/campaign2019', wrapAsync( async ( req, res, next ) => {
 	}
 } ) );
 
-function pollShareContext(poll) {
-	return {
-		shareTitle: poll.question,
-		shareDescription: poll.description,
-		shareUrl: '/polls/' + poll.slug,
-		shareImage: `/static/imgs/polls/${poll.slug}/share.png`
-	};
-}
-
-app.get('/:slug', hasModel(Polls, 'slug'), ( req, res, next ) => {
-	if (isSocialScraper(req)) {
-		res.render('share', pollShareContext(req.model));
+app.get('/:slug', hasModel( Polls, 'slug' ), ( req, res, next ) => {
+	if ( isSocialScraper( req ) ) {
+		res.render( 'share' );
 	} else {
 		next();
 	}
@@ -59,7 +50,7 @@ app.get('/:slug', hasModel(Polls, 'slug'), ( req, res, next ) => {
 
 app.get( '/:slug', [
 	auth.isLoggedIn,
-	hasModel(Polls, 'slug')
+	hasModel( Polls, 'slug' )
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 
@@ -69,8 +60,7 @@ app.get( '/:slug', [
 	delete req.session.newAnswer;
 
 	res.render( `polls/${req.model.slug}`, {
-		answer, poll: req.model, justAnswered,
-		...pollShareContext(req.model)
+		answer, poll: req.model, justAnswered
 	} );
 } ) );
 
@@ -91,8 +81,7 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 		poll: req.model,
 		answer: newAnswer || {},
 		code: pollsCode,
-		justAnswered: !!newAnswer,
-		...pollShareContext(req.model)
+		justAnswered: !!newAnswer
 	} );
 } ) );
 

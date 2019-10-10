@@ -4,15 +4,23 @@ global.__config = __root + '/config/config.json';
 global.__js = __root + '/src/js';
 global.__models = __root + '/src/models';
 
-var log = require( __js + '/logging' ).log;
-log.info( {
-	app: 'main',
-	action: 'start'
-} );
+const express = require( 'express' );
+const helmet = require( 'helmet' );
+const flash = require( 'express-flash' );
 
-var config = require( __config );
+const appLoader = require( __js + '/app-loader' );
+const auth = require( __js + '/authentication' );
+const database = require( __js + '/database' );
+const logging = require( __js + '/logging' );
+const Options = require( __js + '/options' )();
+const pageSettings = require( __js + '/page-settings' );
+const quickflash = require( __js + '/quickflash' );
+const sessions = require( __js + '/sessions' );
 
-if ( !config.gocardless.sandbox && config.dev ){
+const config = require( __config );
+const log = logging.log;
+
+if ( !config.gocardless.sandbox && config.dev ) {
 	log.error({
 		app: 'main',
 		error: 'Dev mode enabled but GoCardless is not in sandbox, refusing to start'
@@ -20,45 +28,50 @@ if ( !config.gocardless.sandbox && config.dev ){
 	process.exit(1);
 }
 
-var database = require( __js + '/database' ).connect( config.mongo );
+log.info( {
+	app: 'main',
+	action: 'start'
+} );
 
-var express = require( 'express' ),
-	helmet = require( 'helmet' ),
-	flash = require( 'express-flash' ),
-	app = express(),
-	http = require( 'http' ).Server( app );
+database.connect( config.mongo );
 
-var Options = require( __js + '/options' )();
-app.use( Options.load );
+const app = express();
 
-var app_loader = require( __js + '/app-loader' );
-
-// Add logging capabilities
-require( __js + '/logging' ).installMiddleware( app );
-
-// Use helmet
-app.use( helmet() );
-
-// Handle authentication
-require( __js + '/authentication' ).auth( app );
-
-// Setup static route (only used on dev)
-app.use( '/static', express.static( __root + '/static' ) );
-
-// Handle sessions
-require( __js + '/sessions' )( app );
-
-// Include support for notifications
-app.use( flash() );
-app.use( require( __js + '/quickflash' ) );
-
-// Use PUG to render pages
 app.set( 'views', __root + '/src/views' );
 app.set( 'view engine', 'pug' );
 app.set( 'view cache', false );
 
-// Load apps
-app_loader( app );
+// Setup static route (only used on dev)
+app.use( '/static', express.static( __root + '/static' ) );
+
+// Add logging capabilities
+logging.installMiddleware( app );
+
+// Use helmet
+app.use( helmet() );
+
+// Load options
+app.use( Options.load );
+
+// Handle authentication
+auth.load( app );
+
+// Off switch!
+app.use( ( req, res, next ) => {
+	if ( Options.getBool( 'off-switch' ) && req.originalUrl !== '/login' &&
+			auth.canSuperAdmin( req ) !== auth.LOGGED_IN ) {
+		res.render( 'maintenance' );
+	} else {
+		next();
+	}
+} );
+
+// Handle sessions
+sessions( app );
+
+// Include support for notifications
+app.use( flash() );
+app.use( quickflash );
 
 // Setup tracker
 app.use( '/membership.js', (req, res) => {
@@ -76,6 +89,12 @@ app.use( '/membership.js', (req, res) => {
 	}
 });
 
+// Include page settings
+app.use( pageSettings.middleware );
+
+// Load apps
+appLoader( app );
+
 // Error 404
 app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars
 	res.status( 404 );
@@ -90,6 +109,9 @@ app.use( function ( err, req, res, next ) { // eslint-disable-line no-unused-var
 		error: err
 	});
 } );
+
+// Load page settings
+pageSettings.update();
 
 // Start server
 var server = app.listen( config.port ,config.host, function () {

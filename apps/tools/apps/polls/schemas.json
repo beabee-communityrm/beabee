@@ -8,13 +8,8 @@
 					"type": "string",
 					"minLength": 1
 				},
-				"description": {
-					"type": "string",
-					"minLength": 1
-				},
 				"mergeField": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"slug": {
 					"type": "string",
