@@ -11,7 +11,7 @@ const Options = require( __js + '/options.js' )();
 const { getNextParam } = require( __js + '/utils' );
 
 var Authentication = {
-	auth: function( app ) {
+	load: function( app ) {
 
 		// Add support for local authentication in Passport.js
 		passport.use( new LocalStrategy( {
