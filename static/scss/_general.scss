@@ -320,6 +320,8 @@ input[type=number],
 input[type=email],
 select {
 	&.form-control {
+		border: 1px solid #ddd;
+		padding: 0 0.5rem;
 		font-size: inherit;
 		color: inherit;
 	}
