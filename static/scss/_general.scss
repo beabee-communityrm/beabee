@@ -214,33 +214,6 @@ ul.nav.nav-tabs {
 	font-size: 15px;
 }
 
-.btn-success,
-.btn-warning,
-.btn-info,
-.btn-danger,
-.btn-primary,
-.btn-default {
-	&:hover,
-	&:active {
-		box-shadow: none;
-		-webkit-box-shadow: none;
-	}
-}
-
-.btn-success,
-.btn-warning,
-.btn-info,
-.btn-danger,
-.btn-primary {
-	border: 0;
-	&:hover,
-	&:active {
-		border: 0;
-		box-shadow: 0;
-		-webkit-box-shadow: 0;
-	}
-}
-
 .btn-fb {
 	background-color: #3b5998;
 }
@@ -323,6 +296,11 @@ select {
 		padding: 0 0.5rem;
 		font-size: inherit;
 		color: inherit;
+		box-shadow: 0 2px 5px transparentize($c-black, 0.8);
+		&:focus {
+			border-color: $c-black;
+			box-shadow: 0 2px 5px transparentize($c-black, 0.5);
+		}
 	}
 }
 
