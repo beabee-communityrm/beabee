@@ -32,13 +32,12 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 function schemaToPoll( data ) {
-	const { question, description, slug, mergeField, closed, allowUpdate,
-		expiresDate, expiresTime } = data;
+	const { question, slug, mergeField, closed, allowUpdate, expiresDate, expiresTime } = data;
 
 	const expires = expiresDate && expiresTime && moment.utc(`${expiresDate}T${expiresTime}`);
 
 	return {
-		question, description, slug, mergeField, expires,
+		question, slug, mergeField, expires,
 		closed: !!closed,
 		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate})
 	};
