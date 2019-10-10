@@ -119,7 +119,11 @@
 		"agm2019-membership": {
 			"body": {
 				"type": "object",
+				"required": ["answer"],
 				"properties": {
+					"answer": {
+						"const": "vote"
+					},
 					"access": {
 						"type": "integer",
 						"minimum": 0,
@@ -159,6 +163,24 @@
 					},
 					"contribution_reasons": {
 						"type": "string"
+					}
+				}
+			}
+		},
+		"agm2019-editorial": {
+			"body": {
+				"type": "object",
+				"required": ["answer"],
+				"properties": {
+					"answer": {
+						"type": "string",
+						"enum": ["1", "2"]
+					},
+					"focus": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
 					}
 				}
 			}
