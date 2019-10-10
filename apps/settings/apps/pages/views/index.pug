@@ -1,12 +1,12 @@
 extends /src/views/base.pug
 
 block prepend title
-	- title = 'Pages'
+	- title = 'Page settings'
 
 block contents
 	.row
 		.col-md-12
-			+page_header('Pages')
+			+page_header('Page settings')
 
 			each page in pages
 				h4
@@ -41,5 +41,5 @@ block contents
 
 				.form-group
 					.col-md-6.col-md-offset-3
-						button.btn.btn-primary Create
+						button.btn.btn-primary Add
 
