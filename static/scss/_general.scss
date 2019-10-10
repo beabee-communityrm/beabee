@@ -188,8 +188,7 @@ ul.nav.nav-tabs {
 
 .btn {
 	text-transform: none;
-	box-shadow: none;
-	-webkit-box-shadow: none;
+	box-shadow: 0 2px 5px transparentize($c-black, 0.5);
 	font-family: "Roboto", sans-serif;
 	font-weight: 900;
 	font-size: 24px;
