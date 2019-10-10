@@ -22,6 +22,7 @@ module.exports = {
 		pageSettingsCache = (await PageSettings.find()).map(ps => ({
 			...ps.toObject(), pattern: new RegExp(ps.pattern)
 		}));
+		pathsCache = {};
 	},
 	middleware( req, res, next ) {
 		res.locals._page = getPageSettings( req.path ) || defaultPageSettings;
