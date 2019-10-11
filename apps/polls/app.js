@@ -53,15 +53,8 @@ app.get( '/:slug', [
 	hasModel( Polls, 'slug' )
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
-
 	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
-
-	const justAnswered = !!req.session.newAnswer;
-	delete req.session.newAnswer;
-
-	res.render( `polls/${req.model.slug}`, {
-		answer, poll: req.model, justAnswered
-	} );
+	res.render( `polls/${req.model.slug}`, { answer, poll: req.model } );
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
@@ -74,15 +67,10 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 		}
 	}
 
-	const newAnswer = req.session.newAnswer;
-	delete req.session.newAnswer;
+	const answer = req.session.answer || {};
+	delete req.session.answer;
 
-	res.render( `polls/${req.model.slug}`, {
-		poll: req.model,
-		answer: newAnswer || {},
-		code: pollsCode,
-		justAnswered: !!newAnswer
-	} );
+	res.render( `polls/${req.model.slug}`, { poll: req.model, answer, code: pollsCode } );
 } ) );
 
 // TODO: remove _csrf in a less hacky way
@@ -123,8 +111,6 @@ app.post( '/:slug', [
 		const error = await setAnswer( req.model, req.user, req.body );
 		if (error) {
 			req.flash( 'error', error );
-		} else {
-			req.session.newAnswer = true;
 		}
 		res.redirect( `${req.originalUrl}#vote` );
 	});
@@ -145,7 +131,7 @@ app.post( '/:slug/:code', [
 			if (error) {
 				req.flash( 'error', error );
 			} else {
-				req.session.newAnswer = req.body;
+				req.session.answer = req.body;
 				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 			}
 		} else {
