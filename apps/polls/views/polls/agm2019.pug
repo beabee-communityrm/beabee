@@ -193,13 +193,14 @@ block contents
 						.alert.alert-warning.
 							RSVPs are closed
 
-						p
-							| We're really sorry to say the AGM is now full. However you can still get
-							| involved by
-							|
-							b
-								| voting for
+						if !answer.answer
+							p
+								| We're really sorry to say the AGM is now full. However you can still get
+								| involved by
 								|
-								a(href='/polls/directors2019') next board of directors
-							| , and from Tuesday we'll be putting two AGM topics online for
-							| input. We'll let you know when it opens.
+								b
+									| voting for
+									|
+									a(href='/polls/directors2019') next board of directors
+								| , and from Tuesday we'll be putting two AGM topics online for
+								| input. We'll let you know when it opens.
