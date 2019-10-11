@@ -57,8 +57,9 @@ block contents
 
 					p The event is child-friendly and there will be a creche / play area.
 
+					hr#vote
+
 					if poll.active
-						hr#vote
 
 						if justAnswered
 							img(src='/static/imgs/polls/hand3.png').poll-hand3
@@ -188,3 +189,17 @@ block contents
 
 							p
 								button.btn.join-btn.js-poll-agm2019-submit Send RSVP
+					else
+						.alert.alert-warning.
+							RSVPs are closed
+
+						p
+							| We're really sorry to say the AGM is now full. However you can still get
+							| involved by
+							|
+							b
+								| voting for
+								|
+								a(href='/polls/directors2019') next board of directors
+							| , and from Tuesday we'll be putting two AGM topics online for
+							| input. We'll let you know when it opens.
