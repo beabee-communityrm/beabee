@@ -115,6 +115,75 @@
 					}
 				}
 			}
+		},
+		"agm2019-membership": {
+			"body": {
+				"type": "object",
+				"required": ["answer"],
+				"properties": {
+					"answer": {
+						"const": "vote"
+					},
+					"access": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"access_reasons": {
+						"type": "string"
+					},
+					"delivery": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"delivery_reasons": {
+						"type": "string"
+					},
+					"events": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"events_reasons": {
+						"type": "string"
+					},
+					"participate": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"participate_reasons": {
+						"type": "string"
+					},
+					"contribution": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"contribution_reasons": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"agm2019-editorial": {
+			"body": {
+				"type": "object",
+				"required": ["answer"],
+				"properties": {
+					"answer": {
+						"type": "string",
+						"enum": ["1", "2"]
+					},
+					"focus": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				}
+			}
 		}
 	}
 }

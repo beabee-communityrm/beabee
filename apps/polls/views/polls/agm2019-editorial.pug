@@ -1,0 +1,134 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block flashes
+
+mixin strategy(title)
+	input(type='checkbox' id='next_' + id checked=last).poll-agm2019-membership-next
+	.poll-section
+		hr
+		h4= question
+		block
+		.poll-agm2019-membership-slider
+			input(type='range' min='0' max='100' step='1' name=id required)
+			ul.poll-agm2019-membership-slider-labels
+				li: small Strongly disagree
+				li: small Not sure/#[br]neutral
+				li: small Strongly agree
+
+		h4 Reasons/comments
+		.form-group
+			textarea(name=id + '_reasons').form-control.poll-agm2019-membership-reasons
+
+		p.poll-agm2019-membership-next-btn
+			label(for='next_' + id).btn Next
+
+block contents
+	.row
+		.col-md-3
+			- page = ''
+			if access('member')
+				include /apps/profile/views/partials/sidebar.pug
+		.col-md-9
+			.page-header
+				h3 &nbsp;
+
+			.row
+				.col-md-9
+					img(src='/static/imgs/polls/agm2019/title.png').poll-title-image
+
+					p.
+						Lots of space for stuff here
+
+					hr#vote
+
+					if answer.answer
+						img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+						h3 Thank you!
+
+						p.
+							Thanks for taking the time to share your thoughts. We will
+							release a summary of everyone's feedback in a couple of weeks.
+
+					else if poll.active
+						form(method='POST' action='#vote')
+							+csrf
+
+							include /src/views/partials/flash.pug
+
+							h3 Which editorial strategy should we prioritise?
+
+							.poll-agm2019-editorial-strategy
+								h4 Strategy 1: A “Far and wide” strategy - Video journalism
+
+								p.
+									The Cable needs to focus on growing its digital audience as
+									this will increase membership growth and impact. The use of
+									quality video journalism is an original way for local
+									journalism to reach new and larger audiences.
+
+								p: b What do we mean by video journalism?
+
+								ul
+									li Short investigative documentaries - taking a leaf out of our written reporting but turning it into video content. 
+									li Short ‘myth busting’ videos, debunking fake news, and reporting on matters of public interest 
+									li Short documentaries featuring the unsung stories of local communities, innovation and inspiring work in Bristol
+									li Exclusive video interviews to accompany  articles and bolster digital reach
+									li Short  ‘visual investigation’ videos - using pioneering methods of editing maps, photography, and social media content to tell stories
+
+							.poll-agm2019-editorial-strategy
+								h4 Strategy 2: A “Concentrated and Deep” Strategy - Community journalism
+
+								p.
+									The Cable should prioritise  community engagement in its
+									journalism to build deep relationships with specific
+									communities. Local news organisations rarely do community
+									engagement, meaning we can secure a niche in this area.
+
+								p: b What do we mean by community journalism?
+
+								ul
+									li A roaming newsroom visiting different communities to get tip-offs, feedback on the stories we publish and increase visibility and trust.
+									li A series of articles on the issues affecting specific neighbourhoods and/ or underrepresented communities in media
+									li Co-producing journalism and events with individuals and communities
+									li Roundtable discussions to amplify the voices of local communities on matters of local concern
+									li Speaker events/ workshops hosted in local communities on issues of concern which have been reported on by the Cable
+
+							h3 Choose a strategy
+
+							.poll-agm2019-editorial-options
+								input(type='radio' name='answer' value='1' required)#answer1
+								label(for="answer1").btn Strategy 1
+								input(type='radio' name='answer' value='2' required)#answer2
+								label(for="answer2").btn Strategy 2
+
+							h4 What else do you think the Cable's journalism should be focusing on?
+
+							ol.poll-agm2019-editorial-focus
+								li: input(type='text' name='focus[]').form-control
+								li: input(type='text' name='focus[]').form-control
+								li: input(type='text' name='focus[]').form-control
+
+							if code
+								h4 Please confirm your email address
+								p.
+									For data protection reasons, this must be the email address
+									that we have on record for you.  If you have trouble please
+									email
+									#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
+
+								.form-group
+									input(type='email' name='email' required).form-control
+
+							p.
+								Please note you will not be able to change your answers once
+								you press submit.
+
+							p
+								button.btn.join-btn Submit
+					else
+						.alert.alert-warning Voting is now closed
+
