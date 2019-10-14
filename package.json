@@ -54,7 +54,7 @@
   },
   "scripts": {
     "start": "npm run build && concurrently -c red,blue npm:watch nodemon",
-    "app": "node app | bunyan",
+    "app": "node app 2>&1 | bunyan",
     "webhook": "node webhook | bunyan",
     "first-time": "node tools/first-time",
     "new-user": "node tools/new-user",
