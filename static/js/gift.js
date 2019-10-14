@@ -44,9 +44,25 @@ function checkDateInput() {
 		});
 	}
 
-	$form.on('submit', function (evt) {
-		evt.preventDefault();
+	// Select gift type then submit
+	$('.js-gift-type').on('click', function () {
+		this.previousSibling.checked = true;
+		if ($form.get(0).reportValidity()) {
+			purchaseGift();
+		} else {
+			this.previousSibling.checked = false;
+		}
+	});
 
+	// Allow feedback on invalid inputs, but
+	// must use gift type buttons to submit
+	$form.on('submit', function (evt) {
+		if ($form.get(0).reportValidity()) {
+			evt.preventDefault();
+		}
+	});
+
+	function purchaseGift() {
 		var data;
 		if (checkDateInput()) {
 			data = $form.serialize();
@@ -81,5 +97,5 @@ function checkDateInput() {
 				}
 			}
 		});
-	});
+	}
 })();

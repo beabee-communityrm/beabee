@@ -331,7 +331,7 @@ $bp-join-why: 768px;
 }
 
 .join-gift-included {
-	background-color: transparentize($c-red, 0.5);
+	background-color: transparentize($c-red, 0.3);
 	border-radius: 10px;
 	padding: 2rem;
 
@@ -341,6 +341,7 @@ $bp-join-why: 768px;
 
 	h4 {
 		line-height: 1.2;
+		margin: 0;
 	}
 }
 
@@ -354,6 +355,10 @@ $bp-join-why: 768px;
 		position: relative;
 		margin-bottom: 1.5rem;
 		padding-left: calc(24px + 1rem);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
 
 		&::before {
 			content: "";
