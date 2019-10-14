@@ -375,3 +375,25 @@ $bp-join-why: 768px;
 		}
 	}
 }
+
+.join-gift-submit {
+	position: absolute;
+	opacity: 0;
+}
+
+.join-gift-types {
+	& > .join-options__opt {
+		max-width: none;
+	}
+
+	.join-btn {
+		width: 100%;
+		font-size: 3rem;
+	}
+
+	small {
+		display: block;
+		font-size: 2rem;
+		font-weight: normal;
+	}
+}

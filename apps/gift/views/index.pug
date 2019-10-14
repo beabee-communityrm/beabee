@@ -25,7 +25,6 @@ block body
 				include /src/views/partials/flash.pug
 
 			.join-gift-included
-				h3 £3/month
 				h3 What's included?
 
 				ul.join-gift-reasons
@@ -75,15 +74,21 @@ block body
 				.join-field
 					input(type='email' name='fromEmail' required).join-field__input
 
-				button.js-gift-submit blah
+				button.join-gift-submit blah
 
-				ul.join-options
-					li.join-options__opt
-						input(type='radio' name='type' value='6' required)
-						button(type='button').btn.join-btn.js-gift-type 6 months gift
+				h3 How long would you like the gift to be?
+
+				ul.join-options.join-gift-types
 					li.join-options__opt
 						input(type='radio' name='type' value='12' required)
-						button(type='button').btn.join-btn.js-gift-type 12 months gift
+						button(type='button').btn.join-btn.js-gift-type
+							| 12 months
+							small for £36
+					li.join-options__opt
+						input(type='radio' name='type' value='6' required)
+						button(type='button').btn.join-btn.js-gift-type
+							| 6 months
+							small for £18
 
 				p.join-info.join-secure.small
 					svg(xmlns='http://www.w3.org/2000/svg', viewBox='0 0 24 24')
