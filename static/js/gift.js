@@ -98,4 +98,7 @@ function checkDateInput() {
 			}
 		});
 	}
+
+	$form.find('button').prop('disabled', false);
+	$form.find('[name=type]').prop('checked', false);
 })();
