@@ -16,8 +16,12 @@ function checkDateInput() {
 	var $errors = $('.js-gift-errors');
 	var $startDate = $form.find('[name=startDate]');
 
+	var form = $form.get(0);
+	var validateForm =
+		(form.reportValidity || form.checkValidity || function () { return true; }).bind(form);
+
 	function setErrors(errors) {
-		const errorHTML = errors
+		var errorHTML = errors
 			.map(function (error) {
 				return '<div class="alert alert-danger">' + error + '</div>';
 			})
@@ -44,9 +48,30 @@ function checkDateInput() {
 		});
 	}
 
-	$form.on('submit', function (evt) {
-		evt.preventDefault();
+	// Select gift type then submit
+	$('.js-gift-type').on('click', function () {
+		this.previousSibling.checked = true;
+		if (validateForm()) {
+			purchaseGift();
+		} else {
+			this.previousSibling.checked = false;
+		}
+	});
 
+	// Allow feedback on invalid inputs, but
+	// must use gift type buttons to submit
+	$form.on('submit', function (evt) {
+		if (validateForm()) {
+			evt.preventDefault();
+		}
+	});
+
+	function reset() {
+		$form.find('button').prop('disabled', false);
+		$form.find('[name=type]').prop('checked', false);
+	}
+
+	function purchaseGift() {
 		var data;
 		if (checkDateInput()) {
 			data = $form.serialize();
@@ -73,7 +98,8 @@ function checkDateInput() {
 				});
 			},
 			error: function (xhr) {
-				$form.find('button').prop('disabled', false);
+				reset();
+
 				try {
 					setErrors(JSON.parse(xhr.responseText));
 				} catch (err) {
@@ -81,5 +107,7 @@ function checkDateInput() {
 				}
 			}
 		});
-	});
+	}
+
+	reset();
 })();

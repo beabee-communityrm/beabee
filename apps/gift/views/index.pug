@@ -55,14 +55,14 @@ block body
 
 				h3 When should their gift start?
 				p.join-field-info.
-					We'll activate their membership and send them a welcome email
+					We'll start their membership and send them a welcome email
 					in the morning on this date.
 				.join-field.join-field-date
 					input(type='date' name='startDate' required).join-field__input
 
 				h3 Add an optional personal message
 				p.join-field-info.
-					We'll send them this as part of the welcome email.
+					We'll include this in their welcome email.
 				.join-field.join-field-message
 					textarea(name='message').join-field__input
 
@@ -74,10 +74,21 @@ block body
 				.join-field
 					input(type='email' name='fromEmail' required).join-field__input
 
-				p.join-charge You will be charged #[b £36] today.
+				button.join-gift-submit blah
 
-				p
-					button.btn.join-btn Buy gift
+				h3 How long would you like to gift the Cable for?
+
+				ul.join-options.join-gift-types
+					li.join-options__opt
+						input(type='radio' name='type' value='12' required)
+						button(type='button').btn.join-btn.js-gift-type
+							| 12 months
+							small for £36
+					li.join-options__opt
+						input(type='radio' name='type' value='6' required)
+						button(type='button').btn.join-btn.js-gift-type
+							| 6 months
+							small for £18
 
 				p.join-info.join-secure.small
 					svg(xmlns='http://www.w3.org/2000/svg', viewBox='0 0 24 24')

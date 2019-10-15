@@ -49,6 +49,10 @@ module.exports = {
 				type: String,
 				required: true
 			},
+			type: {
+				type: String,
+				required: true
+			},
 			delivery_address: {
 				line1: String,
 				line2: String,

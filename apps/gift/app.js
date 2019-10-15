@@ -70,6 +70,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 		res.status(400).send([Options.getText(error)]);
 	} else {
 		const giftFlow = await createGiftFlow(req.body, req.user);
+		const isAnnual = req.body.type === '12';
 
 		const session = await stripe.checkout.sessions.create({
 			success_url: config.audience + '/gift/thanks/' + giftFlow._id,
@@ -77,8 +78,8 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 			customer_email: req.body.fromEmail,
 			payment_method_types: ['card'],
 			line_items: [{
-				name: 'Gift membership',
-				amount: 3600,
+				name: 'Gift membership - ' + (isAnnual ? '12 months' : '6 months'),
+				amount: isAnnual ? 3600 : 1800,
 				currency: 'gbp',
 				quantity: 1
 			}]

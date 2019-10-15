@@ -331,7 +331,7 @@ $bp-join-why: 768px;
 }
 
 .join-gift-included {
-	background-color: transparentize($c-red, 0.5);
+	background-color: transparentize($c-blue, 0.3);
 	border-radius: 10px;
 	padding: 2rem;
 
@@ -341,6 +341,7 @@ $bp-join-why: 768px;
 
 	h4 {
 		line-height: 1.2;
+		margin: 0;
 	}
 }
 
@@ -355,6 +356,10 @@ $bp-join-why: 768px;
 		margin-bottom: 1.5rem;
 		padding-left: calc(24px + 1rem);
 
+		&:last-child {
+			margin-bottom: 0;
+		}
+
 		&::before {
 			content: "";
 			position: absolute;
@@ -368,5 +373,27 @@ $bp-join-why: 768px;
 			background: url(/static/imgs/gift.png);
 			background-size: 100% 100%;
 		}
+	}
+}
+
+.join-gift-submit {
+	position: absolute;
+	opacity: 0;
+}
+
+.join-gift-types {
+	& > .join-options__opt {
+		max-width: none;
+	}
+
+	.join-btn {
+		width: 100%;
+		font-size: 3rem;
+	}
+
+	small {
+		display: block;
+		font-size: 2rem;
+		font-weight: normal;
 	}
 }

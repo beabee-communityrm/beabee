@@ -2,7 +2,7 @@
 	"createGiftSchema": {
 		"body": {
 			"type": "object",
-			"required": ["firstname", "lastname", "email", "startDate", "fromName", "fromEmail"],
+			"required": ["firstname", "lastname", "email", "startDate", "fromName", "fromEmail", "type"],
 			"properties": {
 				"firstname": {
 					"type": "string",
@@ -30,6 +30,10 @@
 				"fromEmail": {
 					"type": "string",
 					"format": "email"
+				},
+				"type": {
+					"type": "string",
+					"enum": ["6", "12"]
 				}
 			}
 		}
