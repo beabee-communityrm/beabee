@@ -21,7 +21,7 @@ function checkDateInput() {
 		(form.reportValidity || form.checkValidity || function () { return true; }).bind(form);
 
 	function setErrors(errors) {
-		const errorHTML = errors
+		var errorHTML = errors
 			.map(function (error) {
 				return '<div class="alert alert-danger">' + error + '</div>';
 			})
