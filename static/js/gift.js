@@ -62,6 +62,11 @@ function checkDateInput() {
 		}
 	});
 
+	function reset() {
+		$form.find('button').prop('disabled', false);
+		$form.find('[name=type]').prop('checked', false);
+	}
+
 	function purchaseGift() {
 		var data;
 		if (checkDateInput()) {
@@ -89,7 +94,8 @@ function checkDateInput() {
 				});
 			},
 			error: function (xhr) {
-				$form.find('button').prop('disabled', false);
+				reset();
+
 				try {
 					setErrors(JSON.parse(xhr.responseText));
 				} catch (err) {
@@ -99,6 +105,5 @@ function checkDateInput() {
 		});
 	}
 
-	$form.find('button').prop('disabled', false);
-	$form.find('[name=type]').prop('checked', false);
+	reset();
 })();
