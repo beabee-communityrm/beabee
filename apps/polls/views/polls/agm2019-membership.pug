@@ -53,6 +53,11 @@ block contents
 							Thanks for taking the time to share your thoughts. We will
 							release a summary of everyone's feedback in a couple of weeks.
 
+						p.
+							Proceed to the Editorial feed in
+
+						a.btn(href='/polls/agm2019-editorial' + (code ? '/' + code : '') Go
+
 					else if poll.active
 						form(method='POST' action='#vote')
 							+csrf
