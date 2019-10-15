@@ -16,6 +16,10 @@ function checkDateInput() {
 	var $errors = $('.js-gift-errors');
 	var $startDate = $form.find('[name=startDate]');
 
+	var form = $form.get(0);
+	var validateForm =
+		(form.reportValidity || form.checkValidity || function () { return true; }).bind(form);
+
 	function setErrors(errors) {
 		const errorHTML = errors
 			.map(function (error) {
@@ -47,7 +51,7 @@ function checkDateInput() {
 	// Select gift type then submit
 	$('.js-gift-type').on('click', function () {
 		this.previousSibling.checked = true;
-		if ($form.get(0).reportValidity()) {
+		if (validateForm()) {
 			purchaseGift();
 		} else {
 			this.previousSibling.checked = false;
@@ -57,7 +61,7 @@ function checkDateInput() {
 	// Allow feedback on invalid inputs, but
 	// must use gift type buttons to submit
 	$form.on('submit', function (evt) {
-		if ($form.get(0).reportValidity()) {
+		if (validateForm()) {
 			evt.preventDefault();
 		}
 	});
