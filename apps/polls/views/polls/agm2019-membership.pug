@@ -94,16 +94,9 @@ block contents
 					if answer.answer
 						img(src='/static/imgs/polls/hand3.png').poll-hand3
 
-						h3 Thank you!
+						h3 Proceed to the Editorial feed in
 
-						p.
-							Thanks for taking the time to share your thoughts. We will
-							release a summary of everyone's feedback in a couple of weeks.
-
-						p.
-							Proceed to the Editorial feed in
-
-						a.btn(href='/polls/agm2019-editorial' + (code ? '/' + code : '')) Go
+						a.btn(href='/polls/agm2019-editorial' + (code ? '/' + code : '')) Proceed
 
 					else if poll.active
 						form(method='POST' action='#vote')
