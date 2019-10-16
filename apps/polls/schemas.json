@@ -181,6 +181,9 @@
 						"items": {
 							"type": "string"
 						}
+					},
+					"comments": {
+						"type": "string"
 					}
 				}
 			}
