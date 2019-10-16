@@ -94,9 +94,15 @@ block contents
 					if answer.answer
 						img(src='/static/imgs/polls/hand3.png').poll-hand3
 
-						h3 Proceed to the Editorial feed in
+						h3 Thanks for your input
 
-						a.btn(href='/polls/agm2019-editorial' + (code ? '/' + code : '')) Proceed
+						p.
+							Next, we'd like to know which editorial strategy you think we
+							should prioritise. You'll also have an opportunity to tell us
+							what other things you think we should be focusing our journalism
+							on.
+
+						a.btn(href='/polls/agm2019-editorial' + (code ? '/' + code : '')) See editorial strategies
 
 					else if poll.active
 						form(method='POST' action='#vote')
@@ -114,8 +120,6 @@ block contents
 								There are 5 questions
 
 							+question('access', '1) Everyone should have access to our journalism for free e.g. free papers, free online content')
-								p.
-									Stuff that should go here
 
 							+question('delivery', '2) Only members who pay £3 or more should have the Cable sent to their home')
 
