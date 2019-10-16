@@ -141,9 +141,9 @@ block contents
 							.poll-section
 								.poll-agm2019-editorial-options
 									input(type='radio' name='answer' value='1' required)#answer1
-									label(for="answer1").btn Far and Wide
+									label(for="answer1").btn Strategy 1
 									input(type='radio' name='answer' value='2' required)#answer2
-									label(for="answer2").btn Concentrated and Deep
+									label(for="answer2").btn Strategy 2
 
 							.poll-section
 								h4 What else do you think the Cable's journalism should be focusing on?
@@ -152,6 +152,11 @@ block contents
 									li: input(type='text' name='focus[]').form-control
 									li: input(type='text' name='focus[]').form-control
 									li: input(type='text' name='focus[]').form-control
+
+							.poll-section
+								h4 Do you have any other comments?
+								.form-group
+									textarea(name='comments').form-control.poll-agm2019-membership-reasons
 
 							if code
 								h4 Please confirm your email address
