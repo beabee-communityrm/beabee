@@ -69,11 +69,11 @@ const pollAnswers = {
 
 module.exports = [
 	{ model: db.Exports },
-	{ model: db.JTJStock },
 	{ model: db.Options },
 	{ model: db.Permissions },
 	{ model: db.Payments, properties: payments },
 	{ model: db.Members, properties: members },
+	{ model: db.ReferralGifts },
 	{ model: db.Referrals, properties: referrals },
 	{ model: db.Notices },
 	{ model: db.Polls },
