@@ -11,6 +11,7 @@ const Options = require( __js + '/options' )();
 
 const { generateMemberCode } = require( __apps + '/join/utils' );
 
+const { processGiftFlow } = require( './utils' );
 const { createGiftSchema } = require( './schema.json' );
 
 const app = express();
@@ -83,20 +84,34 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	}
 } ) );
 
-app.get( '/:setupCode', ( req, res ) => {
-	res.render('setup');
-});
+app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req, res ) => {
+	if (req.model.completed) {
+		if (!req.model.processed) {
+			await processGiftFlow(req.model);
+		}
+
+		const member = await Members.findOne({giftCode: req.params.setupCode});
+		req.login(member, function ( loginError ) {
+			if ( loginError ) {
+				throw loginError;
+			}
+			res.redirect('/profile/complete');
+		});
+	} else {
+		res.redirect('/gift/failed/' + req.model._id);
+	}
+} ) );
 
 app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
 	if (req.model.completed) {
-		res.render('thanks', req.model.giftForm);
+		res.render('thanks', {...req.model.giftForm, processed: req.model.processed});
 	} else {
 		res.redirect('/gift/failed/' + req.model._id);
 	}
 } );
 
 app.post( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, res ) => {
-	if (!req.model.giftForm.delivery_address.line1) {
+	if (!req.model.processed && !req.model.giftForm.delivery_address.line1) {
 		await req.model.update({$set: {
 			'giftForm.delivery_address': {
 				line1: req.body.delivery_line1,

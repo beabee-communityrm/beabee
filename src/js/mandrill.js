@@ -44,6 +44,9 @@ const templates = {
 	}, {
 		name: 'MESSAGE',
 		content: message
+	}, {
+		name: 'ACTIVATELINK',
+		content: config.audience + '/gift/' + member.giftCode
 	}]
 };
 

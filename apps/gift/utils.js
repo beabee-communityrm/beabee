@@ -13,7 +13,11 @@ async function processGiftFlow( giftFlow, immediate = false ) {
 		lastname,
 		email,
 		delivery_address,
-		delivery_optin: !!delivery_address.line1
+		delivery_optin: !!delivery_address.line1,
+		gocardless: {
+			amount: 3,
+			period: 'gift'
+		}
 	});
 
 	member.memberPermission = {
