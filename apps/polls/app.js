@@ -4,7 +4,7 @@ const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
 const mailchimp = require( __js + '/mailchimp' );
 const { hasSchema, hasModel } = require( __js + '/middleware' );
-const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
+const { cleanEmailAddress, isSocialScraper, wrapAsync } = require( __js + '/utils' );
 
 const schemas = require( './schemas.json' );
 
@@ -123,7 +123,7 @@ app.post( '/:slug/:code', [
 	const answerSchema = schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		const pollsCode = req.params.code.toUpperCase();
-		const email = req.body.isAsync ? '' : req.body.email.trim().toLowerCase();
+		const email = req.body.isAsync ? '' : cleanEmailAddress(req.body.email);
 
 		const member = await Members.findOne( req.body.isAsync ? { pollsCode } : { pollsCode, email } );
 		if ( member ) {

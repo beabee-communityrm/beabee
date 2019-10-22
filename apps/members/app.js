@@ -7,7 +7,7 @@ const auth = require( __js + '/authentication' );
 const { Exports, Members, Permissions, Payments } = require( __js + '/database' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
 const { createMember, customerToMember, startMembership } = require( __apps + '/join/utils' );
 const { syncMemberDetails } = require( __apps + '/profile/apps/account/utils' );
@@ -281,14 +281,17 @@ app.post( '/:uuid/profile', [
 		params: { uuid }
 	} = req;
 
+	const cleanedEmail = cleanEmailAddress(email);
+
 	const user = await Members.findOne( { uuid } );
 
-	const needsSync = email !== user.email ||
+	const needsSync = cleanedEmail !== user.email ||
 		firstname !== user.firstname ||
 		lastname !== user.lastname;
 
 	const profile = {
-		email, firstname, lastname, delivery_optin,
+		email: cleanedEmail,
+		firstname, lastname, delivery_optin,
 		delivery_address: delivery_optin ? {
 			line1: delivery_line1,
 			line2: delivery_line2,

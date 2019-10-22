@@ -15,9 +15,10 @@ const tar = require( 'tar-stream' );
 
 const mailchimp = require( __js + '/mailchimp' );
 const db = require( __js + '/database' ).connect( config.mongo );
+const { cleanEmailAddress } = require( __js + '/utils' );
 
 function emailToHash(email) {
-	return crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex');
+	return crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
 }
 
 // Ignore 405s from delete operations
