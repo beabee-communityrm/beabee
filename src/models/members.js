@@ -46,6 +46,7 @@ module.exports = {
 			unique: true,
 			sparse: true
 		},
+		giftCode: String,
 		loginOverride: {
 			code: String,
 			expires: Date
