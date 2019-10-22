@@ -37,46 +37,52 @@ const templates = {
 	}, {
 		name: 'ISELIGIBLE',
 		content: isEligible
+	}],
+	'giftee-success': (member, {fromName, message}) => [{
+		name: 'PURCHASER',
+		content: fromName,
+	}, {
+		name: 'MESSAGE',
+		content: message
 	}]
 };
 
-function memberToTemplate(templateId, member, params) {
+function memberToMessage(templateId, member, vars) {
 	return {
-		template_name: templateId,
-		template_content: [],
-		message: {
-			to: [{
-				email: member.email,
-				name: member.fullname
-			}],
-			merge_vars: [{
-				rcpt: member.email,
-				vars: [
-					{
-						name: 'FNAME',
-						content: member.firstname
-					},
-					...templates[templateId](member, params)
-				]
-			}],
-		},
+		to: [{
+			email: member.email,
+			name: member.fullname
+		}],
+		merge_vars: [{
+			rcpt: member.email,
+			vars: [
+				{
+					name: 'FNAME',
+					content: member.firstname
+				},
+				...templates[templateId](member, vars)
+			]
+		}],
 	};
 }
 
+function sendTemplate(templateId, message, send_at=null) {
+	return new Promise((resolve, reject) => {
+		client.messages.sendTemplate({
+			template_name: templateId,
+			template_content: [],
+			message,
+			...(send_at ? {send_at} : {})
+		}, resolve, reject);
+	});
+}
+
 module.exports = {
-	sendToMember(templateId, member, params) {
-		return new Promise((resolve, reject) => {
-			client.messages.sendTemplate(memberToTemplate(templateId, member, params), resolve, reject);
-		});
+	sendToMember(templateId, member, vars, send_at) {
+		return sendTemplate(templateId, memberToMessage(templateId, member, vars), send_at);
 	},
-	sendMessage(templateId, message) {
-		return new Promise((resolve, reject) => {
-			client.messages.sendTemplate({
-				template_name: templateId,
-				template_content: {},
-				message
-			}, resolve, reject);
-		});
+	sendMessage(templateId, message, send_at) {
+		return sendTemplate(templateId, message, send_at);
 	},
 	send(message) {
 		return new Promise((resolve, reject) => {

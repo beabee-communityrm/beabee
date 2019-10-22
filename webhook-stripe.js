@@ -16,6 +16,7 @@ const log = require( __js + '/logging' ).log;
 const mandrill = require( __js + '/mandrill' );
 const stripe = require( __js + '/stripe' );
 const { wrapAsync } = require( __js + '/utils' );
+const { processGiftFlow } = require( __apps + '/gifts/utils' );
 
 const app = express();
 
@@ -133,6 +134,11 @@ async function handleCheckoutSessionCompleted(session) {
 				content: giftCard.toString('base64')
 			}]
 		});
+
+		// Immediately process gifts for today
+		if (moment(startDate).isSame(moment.utc(), 'day')) {
+			await processGiftFlow(giftFlow, true);
+		}
 	} else {
 		log.error({
 			app: 'webhook-stripe',
