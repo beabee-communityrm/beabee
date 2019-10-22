@@ -38,7 +38,7 @@
     "lodash": "^4.17.15",
     "mandrill-api": "^1.0.45",
     "moment": "^2.24.0",
-    "mongoose": "^5.4.10",
+    "mongoose": "^5.7.5",
     "notp": "^2.0.3",
     "papaparse": "^4.6.3",
     "passport": "^0.4.0",
