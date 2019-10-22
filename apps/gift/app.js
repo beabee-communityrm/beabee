@@ -51,14 +51,6 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	const startDate = moment(req.body.startDate).endOf('day');
 	if (startDate.isBefore()) {
 		error = 'flash-gifts-date-in-the-past';
-	} else if (startDate.isBefore(moment('2019-11-01'))) {
-		req.log.error({
-			app: 'gift',
-			action: 'buy-gift-before-implementation',
-			message: 'Attempted to buy gift before implementation date',
-			sensitive: req.body
-		});
-		error = 'flash-gifts-being-implemented';
 	} else {
 		const member = await Members.findOne({email: req.body.email});
 		if (member) {
