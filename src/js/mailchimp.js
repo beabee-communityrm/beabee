@@ -2,7 +2,8 @@ const axios = require('axios');
 const crypto = require('crypto');
 const config = require('../../config/config.json');
 
-const { log } = require('./logging');
+const { log } = require( __js + '/logging' );
+const { cleanEmailAddress } = require( __js + '/utils' );
 
 function createInstance(endpoint) {
 	const instance = axios.create({
@@ -42,7 +43,7 @@ function createInstance(endpoint) {
 }
 
 function emailToHash(email) {
-	return crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex');
+	return crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
 }
 
 

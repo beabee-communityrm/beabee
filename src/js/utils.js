@@ -25,5 +25,8 @@ module.exports = {
 	},
 	getNextParam( url ) {
 		return isValidNextUrl( url ) ? '?next=' + encodeURIComponent( url ) : '';
+	},
+	cleanEmailAddress(email) {
+		return email.trim().toLowerCase();
 	}
 };

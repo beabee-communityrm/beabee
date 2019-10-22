@@ -6,7 +6,7 @@ const { hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
 
 const { updateSchema } = require( './schemas.json' );
-const { syncMemberDetails } = require( './utils' );
+const { cleanEmailAddress, syncMemberDetails } = require( './utils' );
 
 var app_config = {};
 
@@ -31,13 +31,14 @@ app.post( '/', [
 	hasSchema(updateSchema).orFlash
 ], wrapAsync( async function( req, res ) {
 	const { body: { email, firstname, lastname }, user } = req;
+	const cleanedEmail = cleanEmailAddress(email);
 
-	const needsSync = email !== user.email ||
+	const needsSync = cleanedEmail !== user.email ||
 		firstname !== user.firstname ||
 		lastname !== user.lastname;
 
 	if ( needsSync ) {
-		const profile = { email, firstname, lastname };
+		const profile = { email: cleanedEmail, firstname, lastname };
 
 		try {
 			await user.update( { $set: profile }, { runValidators: true } );

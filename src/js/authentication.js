@@ -8,7 +8,7 @@ const config = require( __config );
 
 const { Members } = require( __js + '/database' );
 const Options = require( __js + '/options.js' )();
-const { getNextParam } = require( __js + '/utils' );
+const { cleanEmailAddress, getNextParam } = require( __js + '/utils' );
 
 var Authentication = {
 	load: function( app ) {
@@ -18,7 +18,7 @@ var Authentication = {
 			usernameField: 'email'
 		}, function( email, password, done ) {
 
-			if ( email ) email = email.toLowerCase();
+			if ( email ) email = cleanEmailAddress(email);
 
 			// Search for member by email address
 			Members.findOne( { email: email }, function( err, user ) {
