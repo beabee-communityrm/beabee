@@ -121,7 +121,7 @@ async function createMember(memberObj) {
 async function startMembership(member, {
 	amount, period, referralCode, referralGift, referralGiftOptions
 }) {
-	if (member.gocardless.subscription_id) {
+	if (member.isActiveMember || member.hasActiveSubscription) {
 		throw new Error('Tried to create subscription on member with active subscription');
 	} else {
 		const subscription =

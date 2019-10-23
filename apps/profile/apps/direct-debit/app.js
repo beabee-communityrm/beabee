@@ -25,23 +25,23 @@ app.use( function( req, res, next ) {
 } );
 
 app.get( '/', auth.isLoggedIn,  function ( req, res ) {
-	if ( req.user.gocardless.subscription_id ) {
+	if ( req.user.hasActiveSubscription ) {
 		res.render( 'active', {
 			user: req.user,
 			canChange: canChangeSubscription(req.user),
 			monthsLeft: calcSubscriptionMonthsLeft(req.user)
 		} );
 	} else {
-		res.render( 'cancelled' );
+		res.render( 'cancelled' ); // TODO: change name
 	}
 } );
 
 function isLoggedInWithSubscription( req, res, next ) {
 	auth.isLoggedIn(req, res, () => {
-		if ( req.user.gocardless.subscription_id ) {
+		if ( req.user.hasActiveSubscription ) {
 			next();
 		} else {
-			req.flash( 'danger', 'gocardless-subscription-doesnt-exist' );
+			req.flash( 'danger', 'contribution-doesnt-exist' );
 			res.redirect( app.parent.mountpath + app.mountpath );
 		}
 	});
@@ -72,7 +72,7 @@ app.post( '/cancel-subscription', [
 
 		await mandrill.sendToMember('cancelled-contribution-no-survey', user);
 
-		req.flash( 'success', 'gocardless-subscription-cancelled' );
+		req.flash( 'success', 'contribution-cancelled' );
 	} catch ( error ) {
 		req.log.error( {
 			app: 'direct-debit',
@@ -80,23 +80,19 @@ app.post( '/cancel-subscription', [
 			error
 		});
 
-		req.flash( 'danger', 'gocardless-subscription-cancellation-err' );
+		req.flash( 'danger', 'contribution-cancellation-err' );
 	}
 
 	res.redirect( app.parent.mountpath + app.mountpath );
 } ) );
 
-app.get( '/update-subscription', isLoggedInWithSubscription, function( req, res ) {
-	res.redirect( app.parent.mountpath + app.mountpath );
-} );
-
 async function updateSubscriptionAmount(user, newAmount) {
-	const actualAmount = getActualAmount(newAmount, user.gocardless.period);
+	const actualAmount = getActualAmount(newAmount, user.contributionPeriod);
 
 	try {
 		await gocardless.subscriptions.update( user.gocardless.subscription_id, {
 			amount: actualAmount * 100,
-			name: getSubscriptionName( actualAmount, user.gocardless.period )
+			name: getSubscriptionName( actualAmount, user.contributionPeriod )
 		} );
 	} catch ( gcError ) {
 		// Can't update subscription names if they are linked to a plan
@@ -111,17 +107,16 @@ async function updateSubscriptionAmount(user, newAmount) {
 }
 
 async function activateSubscription(user, newAmount, prorate) {
-	const gc = user.gocardless;
 	const subscriptionMonthsLeft = calcSubscriptionMonthsLeft(user);
 
 	if (subscriptionMonthsLeft > 0) {
-		if (prorate && newAmount > gc.amount) {
+		if (prorate && newAmount > user.contributionMonthlyAmount) {
 			await gocardless.payments.create({
-				amount: (newAmount - gc.amount) * subscriptionMonthsLeft * 100,
+				amount: (newAmount - user.contributionMonthlyAmount) * subscriptionMonthsLeft * 100,
 				currency: 'GBP',
 				description: 'One-off payment to start new contribution',
 				links: {
-					mandate: gc.mandate_id
+					mandate: user.gocardless.mandate_id
 				}
 			});
 			return true;
@@ -140,9 +135,9 @@ app.post( '/update-subscription', [
 	const { body:  { amount, prorate }, user } = req;
 
 	if (!canChangeSubscription(user)) {
-		req.flash('warning', 'gocardless-subscription-updating-not-allowed');
-	} else if (amount === user.gocardless.amount) {
-		req.flash('warning', 'gocardless-subscription-updating-same');
+		req.flash('warning', 'contribution-updating-not-allowed');
+	} else if (amount === user.contributionMonthlyAmount) {
+		req.flash('warning', 'contribution-updating-same');
 	} else {
 		try {
 			await updateSubscriptionAmount(user, amount);
@@ -153,7 +148,7 @@ app.post( '/update-subscription', [
 				senstive: {
 					user: user._id,
 					amount,
-					oldAmount: user.gocardless.amount,
+					oldAmount: user.contributionMonthlyAmount,
 				}
 			} );
 
@@ -176,7 +171,7 @@ app.post( '/update-subscription', [
 				} );
 			}
 
-			req.flash( 'success', 'gocardless-subscription-updated' );
+			req.flash( 'success', 'contribution-updated' );
 		} catch ( error ) {
 			req.log.error( {
 				app: 'direct-debit',
@@ -184,7 +179,7 @@ app.post( '/update-subscription', [
 				error
 			});
 
-			req.flash( 'danger', 'gocardless-subscription-updating-err' );
+			req.flash( 'danger', 'contribution-updating-err' );
 		}
 	}
 

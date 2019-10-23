@@ -6,37 +6,48 @@ block contents
 			.col-md-12
 				.alert.alert-info Admin account
 
-	if user.memberPermission
-		.row
-			.col-md-3
-				- page = 'home'
-				include partials/sidebar.pug
-			.col-md-9
-				.page-header
-					h3 Hello #{ user.firstname }
+	.row
+		.col-md-3
+			- page = 'home'
+			include partials/sidebar.pug
+		.col-md-9
+			.page-header
+				h3 Hello #{ user.firstname }
 
-				each notice in notices
-					if notice.active
-						a(href=notice.url || false).alert.alert-success!= notice.text
+			each notice in notices
+				if notice.active
+					a(href=notice.url || false).alert.alert-success!= notice.text
 
-				p Welcome to your new online Cable membership.
-				p From here you can manage all your account details.
+			p Welcome to your online Cable membership.
 
-				if !user.gocardless.subscription_id
-					.alert.alert-warning
-						| You cancelled your contribution and your membership
-						| will expire on
+			dl
+				dt Joined
+				dd #{ moment( user.joined ).format('Do MMMM YYYY') }
+				dt Contribution
+				dd.
+					£#{ user.contributionAmount }/#{ user.contributionPeriod }
+
+			if user.isActiveMember
+				if !user.hasActiveSubscription
+					if user.contributionPeriod !== 'gift'
+						.alert.alert-warning You cancelled your contribution
+					p
+						| Your membership will expire on
 						|
 						= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
-						| .
-					p.
-						To restart your contribution please contact
-						#[+email('membership@thebristolcable.org')].
 
-				dl
-					dt Joined
-					dd #{ moment( user.joined ).format('Do MMMM YYYY') }
-					if user.memberPermission.date_expires >= moment()
-						dt Contribution
-						dd.
-							£#{ user.gocardless.actualAmount }/#{ user.gocardless.period }
+					p To stop your membership expiring please update your contribution details.
+
+			else
+				.alert.alert-danger Your membership has expired
+
+				if user.hasActiveSubscription
+					p.
+						This is probably because your last payment failed, please
+						contact #[+email('membership@thebristolcable.org')].
+				else
+					p To restart your membership please update your contribution details.
+
+			if !user.hasActiveSubscription
+				p
+					a(href='/profile/direct-debit').btn.join-btn Contribution details

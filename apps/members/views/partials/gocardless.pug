@@ -19,6 +19,3 @@ dl.dl-horizontal
 	dd #{ member.gocardless.amount ? '£' + member.gocardless.amount : '–' }
 	dt Period
 	dd #{ member.gocardless.period ? member.gocardless.period : '–' }
-	if member.gocardless.next_possible_charge_date
-		dt Earliest charge date
-		dd #{ moment( member.gocardless.next_possible_charge_date ).format( 'DD/MM/YYYY' ) }

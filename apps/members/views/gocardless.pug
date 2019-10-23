@@ -12,10 +12,10 @@ block contents
 			+page_header( title )
 
 			h3 Create subscription
-			if member.gocardless.subscription_id
+			if member.hasActiveSubscription
 				p User has a subscription
-			else if !member.gocardless.mandate_id
-				p User does not have an active mandate
+			else if !member.canTakePayment
+				p User does not have an active payment method
 			else
 				form( method="post").form-horizontal
 					+csrf

@@ -1,5 +1,4 @@
 const express = require( 'express' );
-const moment = require( 'moment' );
 
 const auth = require( __js + '/authentication' );
 const gocardless = require( __js + '/gocardless' );
@@ -20,7 +19,7 @@ app.set( 'views', __dirname + '/views' );
 app.use( auth.isLoggedIn );
 
 app.use( function( req, res, next ) {
-	if (req.user.memberPermission && req.user.memberPermission.date_expires >= moment()) {
+	if (req.user.isActiveMember) {
 		res.redirect( '/profile' );
 	} else {
 		res.locals.app = app_config;
@@ -50,12 +49,12 @@ app.post( '/', hasSchema( rejoinSchema ).orFlash, wrapAsync( async (req, res) =>
 	const { body: { useMandate }, user } = req;
 	const joinForm = processJoinForm(req.body);
 	
-	if (user.gocardless.subscription_id) {
-		req.flash( 'danger', 'gocardless-subscription-exists' );
+	if (user.hasActiveSubscription) {
+		req.flash( 'danger', 'contribution-exists' );
 		res.redirect( app.mountpath );
-	} else if (user.gocardless.mandate_id && useMandate) {
+	} else if (user.canTakePayment && useMandate) {
 		await startMembership(user, joinForm);
-		req.flash( 'success', 'gocardless-subscription-restarted');
+		req.flash( 'success', 'contribution-restarted');
 		res.redirect('/profile');
 	} else {
 		const completeUrl = config.audience + '/profile/expired/complete';
@@ -69,7 +68,7 @@ app.get( '/complete', [
 ], wrapAsync( async (req, res) => {
 	const { user } = req;
 
-	if (user.gocardless.subscription_id) {
+	if (user.hasActiveSubscription) {
 		req.flash( 'danger', 'gocardless-subscription-exists' );
 	} else {
 		const {customerId, mandateId, joinForm} = await completeJoinFlow(req.query.redirect_flow_id);

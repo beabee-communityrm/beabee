@@ -16,17 +16,17 @@ block contents
 			p
 				| You currently contribute
 				|
-				b £#{user.gocardless.actualAmount}/#{user.gocardless.period === 'monthly' ? 'month' : 'year'}
+				b £#{user.contributionAmount}/#{user.contributionPeriod === 'monthly' ? 'month' : 'year'}
 				|
 				| and the next payment is scheduled to be taken around the
 				|
 				b= moment(user.memberPermission.date_expires).format('Do MMMM YYYY')
 				| .
 
-			if user.gocardless.next_amount
+			if user.nextContributionAmount
 				p.alert.alert-success.
 					You changed your contribution, your next payment will be for
-					£#{user.gocardless.nextActualAmount}
+					£#{user.nextContributionAmount}
 
 			hr
 

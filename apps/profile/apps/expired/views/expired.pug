@@ -8,7 +8,6 @@ block contents
 		.col-md-12
 			h2.page-header Hello #{user.firstname}
 
-
 	.row
 		.col-sm-8.col-md-7.col-lg-6
 			.alert.alert-warning Your membership expired on #{ moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY') }

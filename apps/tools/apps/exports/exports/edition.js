@@ -5,7 +5,7 @@ const config = require( __config );
 async function getQuery() {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 	return {
-		'gocardless.amount': {$gte: 3},
+		'gocardless.amount': {$gte: 3}, // TODO: switch this to contributionMonthlyAmount
 		permissions: {$elemMatch: {
 			permission,
 			date_expires: {$gte: new Date()}
