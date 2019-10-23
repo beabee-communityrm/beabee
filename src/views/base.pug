@@ -54,6 +54,10 @@ html
 						block heading
 							if heading
 								+page_header( heading )
+						if access( 'admin' )
+							.row
+								.col-md-12
+									.alert.alert-info Admin account
 						block contents
 
 			footer.footer.small
