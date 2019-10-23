@@ -24,17 +24,26 @@ app.use( function( req, res, next ) {
 	next();
 } );
 
-app.get( '/', auth.isLoggedIn,  function ( req, res ) {
-	if ( req.user.hasActiveSubscription ) {
+async function getBankAccount(mandateId) {
+	const mandate = await gocardless.mandates.get(mandateId);
+	return await gocardless.customerBankAccounts.get(mandate.links.customer_bank_account);
+}
+
+app.get( '/', auth.isLoggedIn,  wrapAsync( async function ( req, res ) {
+	const { user } = req;
+
+	if ( user.hasActiveSubscription ) {
 		res.render( 'active', {
-			user: req.user,
-			canChange: canChangeSubscription(req.user),
-			monthsLeft: calcSubscriptionMonthsLeft(req.user)
+			user,
+			canChange: canChangeSubscription(user),
+			monthsLeft: calcSubscriptionMonthsLeft(user)
 		} );
 	} else {
-		res.render( 'inactive', { user: req.user } );
+		const bankAccount = user.gocardless.mandate_id ?
+			await getBankAccount(user.gocardless.mandate_id) : null;
+		res.render( 'inactive', { user: req.user, bankAccount } );
 	}
-} );
+} ) );
 
 function isLoggedInWithSubscription( req, res, next ) {
 	auth.isLoggedIn(req, res, () => {
