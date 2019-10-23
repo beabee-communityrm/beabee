@@ -32,7 +32,7 @@ app.get( '/', auth.isLoggedIn,  function ( req, res ) {
 			monthsLeft: calcSubscriptionMonthsLeft(req.user)
 		} );
 	} else {
-		res.render( 'cancelled' ); // TODO: change name
+		res.render( 'inactive', { user: req.user } );
 	}
 } );
 
