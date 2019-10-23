@@ -87,7 +87,7 @@ app.get( '/complete', [
 			if ( loginError ) {
 				throw loginError;
 			}
-			res.redirect('/profile/complete');
+			res.redirect('/profile');
 		});
 	} catch ( saveError ) {
 		// Duplicate email

@@ -98,7 +98,7 @@ app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req
 				if ( loginError ) {
 					throw loginError;
 				}
-				res.redirect('/profile/complete');
+				res.redirect('/profile');
 			});
 		}
 	} else {
