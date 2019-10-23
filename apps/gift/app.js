@@ -91,12 +91,16 @@ app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req
 		}
 
 		const member = await Members.findOne({giftCode: req.params.setupCode});
-		req.login(member, function ( loginError ) {
-			if ( loginError ) {
-				throw loginError;
-			}
-			res.redirect('/profile/complete');
-		});
+		if (member.setupComplete) {
+			res.redirect('/login');
+		} else {
+			req.login(member, function ( loginError ) {
+				if ( loginError ) {
+					throw loginError;
+				}
+				res.redirect('/profile/complete');
+			});
+		}
 	} else {
 		res.redirect('/gift/failed/' + req.model._id);
 	}

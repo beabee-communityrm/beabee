@@ -8,6 +8,10 @@ async function processGiftFlow( giftFlow, immediate = false ) {
 		message } = giftFlow.giftForm;
 	const now = moment();
 
+	if (giftFlow.processed) return;
+
+	await giftFlow.update({$set: {processed: true}});
+
 	const member = await createMember({
 		firstname,
 		lastname,
@@ -26,8 +30,6 @@ async function processGiftFlow( giftFlow, immediate = false ) {
 	};
 	member.giftCode = giftFlow.setupCode;
 	await member.save();
-
-	await giftFlow.update({$set: {processed: true}});
 
 	const sendAt = immediate ? null : now.clone().set({h: 10, m: 0, s: 0}).format();
 	await mandrill.sendToMember('giftee-success', member, { fromName, message }, sendAt);
