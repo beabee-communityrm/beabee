@@ -2,7 +2,7 @@ const express = require( 'express' );
 const passport = require( 'passport' );
 
 const { Members } = require( __js + '/database' );
-const { isValidNextUrl, getNextParam, wrapAsync } = require ( __js + '/utils' );
+const { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } = require ( __js + '/utils' );
 
 const app = express();
 var app_config = {};
@@ -32,12 +32,7 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 	if (member) {
 		await member.update({$unset: {loginOverride: 1}});
 
-		req.login(member, function ( loginError ) {
-			if ( loginError ) {
-				throw loginError;
-			}
-			res.redirect('/profile');
-		});
+		loginAndRedirect(req, res, member);
 	} else {
 		req.flash('error', 'login-code-invalid');
 		res.redirect( '/login' );

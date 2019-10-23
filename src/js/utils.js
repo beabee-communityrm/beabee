@@ -28,5 +28,14 @@ module.exports = {
 	},
 	cleanEmailAddress(email) {
 		return email.trim().toLowerCase();
+	},
+	loginAndRedirect(req, res, member) {
+		req.login(member, function (loginError) {
+			if (loginError) {
+				throw loginError;
+			} else {
+				res.redirect('/');
+			}
+		});
 	}
 };

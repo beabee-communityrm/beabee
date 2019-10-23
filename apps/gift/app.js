@@ -6,7 +6,7 @@ const config = require( __config );
 const { GiftFlows, Members } = require( __js + '/database' );
 const { hasModel, hasSchema } = require( __js + '/middleware' );
 const stripe = require( __js + '/stripe' );
-const { wrapAsync } = require( __js + '/utils' );
+const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 const Options = require( __js + '/options' )();
 
 const { generateMemberCode } = require( __apps + '/join/utils' );
@@ -94,12 +94,7 @@ app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req
 		if (member.setupComplete) {
 			res.redirect('/login');
 		} else {
-			req.login(member, function ( loginError ) {
-				if ( loginError ) {
-					throw loginError;
-				}
-				res.redirect('/profile');
-			});
+			loginAndRedirect(req, res, member);
 		}
 	} else {
 		res.redirect('/gift/failed/' + req.model._id);

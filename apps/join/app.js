@@ -4,7 +4,7 @@ const auth = require( __js + '/authentication' );
 const { Members, ReferralGifts, RestartFlows } = require( __js + '/database' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 
 const config = require( __config );
 
@@ -80,15 +80,8 @@ app.get( '/complete', [
 	try {
 		const newMember = await createMember(memberObj);
 		await startMembership(newMember, joinForm);
-
 		await mandrill.sendToMember('welcome', newMember);
-
-		req.login(newMember, function ( loginError ) {
-			if ( loginError ) {
-				throw loginError;
-			}
-			res.redirect('/profile');
-		});
+		loginAndRedirect(req, res, newMember);
 	} catch ( saveError ) {
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
@@ -137,12 +130,7 @@ app.get('/restart/:code', wrapAsync(async (req, res) => {
 			req.flash( 'success', 'contribution-restarted' );
 		}
 
-		req.login(member, function ( loginError ) {
-			if ( loginError ) {
-				throw loginError;
-			}
-			res.redirect('/profile');
-		});
+		loginAndRedirect(req, res, member);
 	} else {
 		req.flash( 'error', 'contribution-restart-code-err' );
 		res.redirect('/');

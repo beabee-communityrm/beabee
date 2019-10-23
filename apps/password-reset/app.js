@@ -3,7 +3,7 @@ var	express = require( 'express' ),
 
 var	Members = require( __js + '/database' ).Members;
 
-const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
+const { cleanEmailAddress, loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 const { hasSchema } = require( __js + '/middleware' );
 const mandrill = require( __js + '/mandrill' );
 const Options = require( __js + '/options' )();
@@ -67,10 +67,9 @@ app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash,
 			'password.iterations': password.iterations
 		} } );
 
-		req.login( member, function( ) {
-			req.flash( 'success', 'password-changed' );
-			res.redirect( '/' );
-		} );
+		req.flash( 'success', 'password-changed' );
+
+		loginAndRedirect( req, res, member );
 	} else {
 		req.flash('warning', 'password-reset-code-err');
 		res.redirect( app.mountpath );
