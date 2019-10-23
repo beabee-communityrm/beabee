@@ -120,6 +120,7 @@
 	"flash-polls-closed": "This poll is closed",
 	"flash-polls-unknown-user": "The email address was not valid, please try a different email address or contact membership@thebristolcable.org",
 	"flash-polls-cant-update": "You have already submitted an answer",
+	"flash-polls-expired-user": "Your membership has expired, please restart it to vote",
 
 	"flash-referral-gifts-updated": "Referral gift updated",
 	"flash-referral-gifts-options-updated": "Referral gift options updated",
