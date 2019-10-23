@@ -3,10 +3,10 @@ var	express = require( 'express' ),
 
 const auth = require( __js + '/authentication' );
 const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
 const { updateSchema } = require( './schemas.json' );
-const { cleanEmailAddress, syncMemberDetails } = require( './utils' );
+const { syncMemberDetails } = require( './utils' );
 
 var app_config = {};
 
