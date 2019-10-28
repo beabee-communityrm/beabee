@@ -202,6 +202,7 @@ module.exports = {
 	completeJoinFlow,
 	createMember,
 	startMembership,
+	joinInfoToSubscription,
 	isGiftAvailable,
 	updateGiftStock,
 	generateMemberCode

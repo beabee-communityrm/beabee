@@ -1508,7 +1508,7 @@ select.form-control[disabled],select.form-control[disabled] option,select.form-c
 select.form-control[multiple],select[multiple]{background:0 0}
 .checkbox label,.checkbox-inline label,.radio label,.radio-inline label{padding-left:25px}
 .checkbox input[type=checkbox],.checkbox input[type=radio],.checkbox-inline input[type=checkbox],.checkbox-inline input[type=radio],.radio input[type=checkbox],.radio input[type=radio],.radio-inline input[type=checkbox],.radio-inline input[type=radio]{margin-left:-25px}
-.radio input[type=radio],.radio-inline input[type=radio],input[type=radio]{position:relative;margin-top:6px;margin-right:4px;vertical-align:top;border:none;background-color:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+.radio input[type=radio],.radio-inline input[type=radio],input[type=radio]{position:relative;margin-top:6px;margin-right:8px;vertical-align:top;border:none;background-color:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
 .radio input[type=radio]:focus,.radio-inline input[type=radio]:focus,input[type=radio]:focus{outline:0}
 .radio input[type=radio]:after,.radio input[type=radio]:before,.radio-inline input[type=radio]:after,.radio-inline input[type=radio]:before,input[type=radio]:after,input[type=radio]:before{content:"";display:block;width:18px;height:18px;border-radius:50%;-webkit-transition:240ms;-o-transition:240ms;transition:240ms}
 .radio input[type=radio]:before,.radio-inline input[type=radio]:before,input[type=radio]:before{position:absolute;left:0;top:-3px;background-color:#2196f3;-webkit-transform:scale(0);-ms-transform:scale(0);-o-transform:scale(0);transform:scale(0)}

@@ -30,6 +30,24 @@
 				},
 				"prorate": {
 					"type": "boolean"
+				},
+				"period": {
+					"type": "string",
+					"enum": ["monthly", "annually"]
+				},
+				"useMandate": {
+					"type": "boolean"
+				}
+			}
+		}
+	},
+	"completeFlowSchema": {
+		"query": {
+			"type": "object",
+			"required": ["redirect_flow_id"],
+			"properties": {
+				"redirect_flow_id": {
+					"type": "string"
 				}
 			}
 		}

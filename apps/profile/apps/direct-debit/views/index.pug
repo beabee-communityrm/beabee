@@ -1,0 +1,67 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Contribution details'
+
+block append js
+	script( src="/static/js/update-contribution.js?v=" + git )
+
+block contents
+	.row
+		.col-md-3
+			- page = 'direct-debit'
+			include /apps/profile/views/partials/sidebar.pug
+		.col-md-9.col-lg-7
+			+page_header( 'Contribution details' )
+			if !user.isActiveMember
+				.alert.alert-danger Your membership has expired
+			else if !user.hasActiveSubscription && user.contributionPeriod !== 'gift'
+				.alert.alert-warning You cancelled your contribution
+
+			p
+				| You
+				|
+				if user.contributionPeriod === 'gift'
+					| #{user.isActiveMember ? 'are' : 'were'} on a gift membership
+				else
+					= user.isActiveMember ? 'currently contribute' : 'previously contributed'
+					|
+					| £
+					= user.contributionAmount
+					| /
+					= user.contributionPeriod === 'monthly' ? 'month' : 'year'
+				| ,
+				|
+				if user.hasActiveSubscription
+					| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'}  around
+				else
+					| it #{user.isActiveMember ? 'will expire' : 'expired'} on
+				|
+				|
+				= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
+				| .
+
+			if user.hasActiveSubscription && user.nextContributionAmount
+				p.alert.alert-success.
+					You updated your contribution amount, your next payment will be for
+					£#{user.nextContributionAmount}
+
+			hr
+
+			h3 #{user.isActiveMember ? 'Update' : 'Restart'} contribution
+
+			if canChange
+				include partials/change-subscription
+			else
+				p.alert.alert-warning.
+					You can't change your contribution online at the moment, please
+					contact #[+email('membership@thebristolcable.org')].
+
+			if user.hasActiveSubscription
+				hr
+
+				h3 Cancel contribution
+				p.
+					If you cancel your contribution your membership will finish at the end of
+					your current payment cycle.
+				a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger.outline Cancel contribution
