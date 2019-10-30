@@ -41,7 +41,15 @@ async function main(date) {
 			giftFlowId: giftFlow._id
 		} );
 
-		await processGiftFlow(giftFlow);
+		try {
+			await processGiftFlow(giftFlow);
+		} catch (error) {
+			log.error( {
+				app: 'start-gifts',
+				action: 'process-gift-error',
+				error
+			} );
+		}
 	}
 }
 
