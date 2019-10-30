@@ -135,7 +135,7 @@ module.exports = {
 			next_amount: Number,
 			period: {
 				type: String,
-				enum: ['monthly', 'annually']
+				enum: ['monthly', 'annually', 'gift']
 			},
 			cancelled_at: Date
 		},

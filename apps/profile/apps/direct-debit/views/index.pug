@@ -48,7 +48,7 @@ block contents
 
 			hr
 
-			h3 #{user.isActiveMember ? 'Update' : 'Restart'} contribution
+			h3 #{user.contributionPeriod === 'gift' ? 'Start' : user.isActiveMember ? 'Update' : 'Restart'} contribution
 
 			if canChange
 				include partials/change-subscription
