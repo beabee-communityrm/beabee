@@ -64,7 +64,7 @@ app.post( '/', [
 		} );
 		if ( useMandate && user.canTakePayment ) {
 			await processUpdateSubscription( user, updateForm );
-			req.flash( 'success', 'gocardless-subscription-updated' );
+			req.flash( 'success', 'contribution-updated' );
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
@@ -97,7 +97,7 @@ app.get( '/complete', [
 
 	await processUpdateSubscription(user, joinForm);
 
-	req.flash( 'success', 'gocardless-subscription-updated');
+	req.flash( 'success', 'contribution-updated');
 	res.redirect( app.parent.mountpath + app.mountpath );
 } ) );
 
