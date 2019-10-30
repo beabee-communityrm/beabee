@@ -77,11 +77,12 @@ async function activateSubscription(user, newAmount, prorate, monthsLeft) {
 		}
 	} );
 
-	if (monthsLeft === 0 || newAmount === user.contributionMonthlyAmount) {
+	const prorateAmount = (newAmount - user.contributionMonthlyAmount) * monthsLeft * 100;
+	if (prorateAmount === 0) {
 		return true;
-	} else if (prorate && newAmount > user.contributionMonthlyAmount) {
+	} else if (prorateAmount > 0) {
 		await gocardless.payments.create({
-			amount: (newAmount - user.contributionMonthlyAmount) * monthsLeft * 100,
+			amount: prorateAmount,
 			currency: 'GBP',
 			description: 'One-off payment to start new contribution',
 			links: {
@@ -89,9 +90,9 @@ async function activateSubscription(user, newAmount, prorate, monthsLeft) {
 			}
 		});
 		return true;
+	} else {
+		return false;
 	}
-
-	return false;
 }
 
 async function processUpdateSubscription(user, {amount, period, prorate}) {
