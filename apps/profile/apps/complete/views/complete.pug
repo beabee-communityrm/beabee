@@ -20,15 +20,11 @@ block body
 					img(src='/static/svg/logo.svg').join-title-logo
 				h1 Hello#[br]#{user.firstname}
 
-			h3 Thank you!
-			p.
-				You are now an owner of independent media. With more people like you
-				we can sustain and grow the Cable.
-
 	.container
 		.row
 			.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
-				h2 Almost there...
+				if isGift
+					img(src='/static/imgs/gift-banner.png').poll-title-image
 
 				.alert.alert-info Finish setting up your membership
 
@@ -54,11 +50,22 @@ block body
 						+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6, value: user.delivery_address.city } )
 						+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6, value: user.delivery_address.postcode } )
 
-					if referral && referral.refereeGift
+					if isReferralWithGift
 						.alert.alert-warning We need your address to send you your referral gift
 						+deliveryAddress
 
-					if user.contributionMonthlyAmount >= 3
+					if isGift
+						p
+							| Your gift includes a copy of our quarterly newspaper in the post.
+							|
+							if user.delivery_address.line1
+								| Please check that the delivery address we have for you is
+								| correct
+							else
+								| Please tell us your delivery address.
+						+deliveryAddress
+
+					else if user.contributionMonthlyAmount >= 3
 						p.
 							You are eligible for a
 							#[b free copy of our quarterly newspaper]!
@@ -82,48 +89,55 @@ block body
 							Can we send you very occasional mail? You can
 							change your mind later.
 
-					ul.join-options
-						li.join-options__opt
-							input(type='radio', name='delivery_optin', id='delivery_optin_yes' , value='true', required, checked).js-delivery-opt
-							label(for='delivery_optin_yes').btn Yes
-						li.join-options__opt
-							input(type='radio', name='delivery_optin', id='delivery_optin_no' , value='false', required).js-delivery-opt
-							label(for='delivery_optin_no').btn No
-						li.join-options__opt
+					if isGift
+						input(type='hidden' name='delivery_optin' value='true')
+					else
+						ul.join-options
+							li.join-options__opt
+								input(type='radio', name='delivery_optin', id='delivery_optin_yes' , value='true', required, checked).js-delivery-opt
+								label(for='delivery_optin_yes').btn Yes
+							li.join-options__opt
+								input(type='radio', name='delivery_optin', id='delivery_optin_no' , value='false', required).js-delivery-opt
+								label(for='delivery_optin_no').btn No
+							li.join-options__opt
 
-					unless referral && referral.refereeGift
-						.js-delivery-details
-							+deliveryAddress
+						if !isReferralWithGift
+							.js-delivery-details
+								+deliveryAddress
 
-					h3 And finally…
+					if isGift
+						input(type='hidden' name='reason' value='Gift')
+						input(type='hidden' name='how' value='Gift')
+					else
+						h3 And finally…
 
-					p.
-						Could you tell us what brings you to the Cable? It
-						would really help us understand what we can do to
-						make the the co-operative stronger.
+						p.
+							Could you tell us what brings you to the Cable? It
+							would really help us understand what we can do to
+							make the the co-operative stronger.
 
-					.form-group
-						div.col-md-12
-							h4 Why are you joining today?
-							input(type='text', name='reason', required).form-control
+						.form-group
+							div.col-md-12
+								h4 Why are you joining today?
+								input(type='text', name='reason', required).form-control
 
-					.form-group
-						div.col-md-12
-							h4 How did you hear about the Cable?
-							input(type='text', name='how', required).form-control
+						.form-group
+							div.col-md-12
+								h4 How did you hear about the Cable?
+								input(type='text', name='how', required).form-control
 
-					p.
-						Hearing from members is the most powerful way we can
-						encourage others to join our community. With your
-						permission, we'd like to use your answers and first
-						name in communications.
+						p.
+							Hearing from members is the most powerful way we can
+							encourage others to join our community. With your
+							permission, we'd like to use your answers and first
+							name in communications.
 
-					.form-group
-						.col-md-12
-							.checkbox
-								label
-									input(type='checkbox', name='shareable', value='true')
-									| Yes, you can show my answers and first
-									| name in communications
+						.form-group
+							.col-md-12
+								.checkbox
+									label
+										input(type='checkbox', name='shareable', value='true')
+										| Yes, you can show my answers and first
+										| name in communications
 
 					button.btn.join-btn Save
