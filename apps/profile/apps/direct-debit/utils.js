@@ -8,12 +8,11 @@ const { joinInfoToSubscription, startMembership } = require( __apps + '/join/uti
 
 const config = require( __config );
 
-// Sometimes monthly subscriptions can have slightly longer than a month left
-// if the billing date changes slightly, but we should always count them as
-// having less than a month left
 function calcSubscriptionMonthsLeft(user) {
-	return user.contributionPeriod === 'monthly' ? 0 :
-		Math.max(0, moment.utc(user.memberPermission.date_expires).diff(moment.utc(), 'months'));
+	return Math.max(0,
+		moment.utc(user.memberPermission.date_expires)
+			.subtract(config.gracePeriod).diff(moment.utc(), 'months')
+	);
 }
 
 function canChangeSubscription(user) {
