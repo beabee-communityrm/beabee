@@ -76,23 +76,22 @@ async function activateSubscription(user, newAmount, prorate, monthsLeft) {
 			newAmount, prorate, monthsLeft
 		}
 	} );
-	if (monthsLeft > 0) {
-		if (prorate && newAmount > user.contributionMonthlyAmount) {
-			await gocardless.payments.create({
-				amount: (newAmount - user.contributionMonthlyAmount) * monthsLeft * 100,
-				currency: 'GBP',
-				description: 'One-off payment to start new contribution',
-				links: {
-					mandate: user.gocardless.mandate_id
-				}
-			});
-			return true;
-		} else {
-			return false;
-		}
-	} else {
+
+	if (monthsLeft === 0 || newAmount === user.contributionMonthlyAmount) {
+		return true;
+	} else if (prorate && newAmount > user.contributionMonthlyAmount) {
+		await gocardless.payments.create({
+			amount: (newAmount - user.contributionMonthlyAmount) * monthsLeft * 100,
+			currency: 'GBP',
+			description: 'One-off payment to start new contribution',
+			links: {
+				mandate: user.gocardless.mandate_id
+			}
+		});
 		return true;
 	}
+
+	return false;
 }
 
 async function processUpdateSubscription(user, {amount, period, prorate}) {
