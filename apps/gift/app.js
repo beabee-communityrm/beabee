@@ -91,6 +91,7 @@ app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req
 		}
 
 		const member = await Members.findOne({giftCode: req.params.setupCode});
+		// Effectively expire this link once the member is set up
 		if (member.setupComplete) {
 			res.redirect('/login');
 		} else {
