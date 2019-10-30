@@ -12,7 +12,7 @@
 
 	$('.js-update-form').on('change input', function () {
 		var newAmount = Number($form.find('input[name=amount]').val());
-		var period = $form.find('input[name=period]:checked').val();
+		var period = $form.find('input[name=period]').filter('[type=hidden], [type=radio]:checked').val();
 
 		var isProrated = newAmount > oldAmount && $form.find('input[name=prorate]:checked').val() === 'true';
 		var newActualAmount = newAmount * (period === 'monthly' ? 1 : 12);

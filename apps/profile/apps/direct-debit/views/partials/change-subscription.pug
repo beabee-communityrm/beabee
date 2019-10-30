@@ -14,7 +14,9 @@ form(
 			input( type='number', name='amount', id='amount', value=user.contributionMonthlyAmount, required, min=1, step=1 ).form-control.js-new-amount-input
 			span.input-group-addon / month
 	
-	if !user.hasActiveSubscription
+	if user.hasActiveSubscription
+		input(type='hidden' name='period' value=user.contributionPeriod)
+	else
 		.form-group
 			label.col-md-3.control-label Period
 			.col-md-9
@@ -93,7 +95,7 @@ form(
 								We calculated your one-off payment based on having
 								#[b #{monthsLeft} months] left in your payment cycle, with
 								an old contribution of
-								#[b £#{user.contributionAmount}/month] and a new
+								#[b £#{user.contributionMonthlyAmount}/month] and a new
 								contribution of
 								#[b £#[span.js-new-amount]/month].
 							table.table.table-condensed.text-right

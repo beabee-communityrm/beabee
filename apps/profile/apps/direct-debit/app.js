@@ -54,6 +54,14 @@ app.post( '/', [
 	const { body:  { useMandate, ...updateForm }, user } = req;
 
 	if ( canChangeSubscription( user ) ) {
+		req.log.info( {
+			app: 'direct-debit',
+			action: 'update-subscription',
+			data: {
+				useMandate,
+				updateForm
+			}
+		} );
 		if ( useMandate && user.canTakePayment ) {
 			await processUpdateSubscription( user, updateForm );
 			req.flash( 'success', 'gocardless-subscription-updated' );
