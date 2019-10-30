@@ -50,13 +50,11 @@ async function updateSubscriptionAmount(user, newAmount) {
 	}
 }
 
-async function activateSubscription(user, newAmount, prorate) {
-	const subscriptionMonthsLeft = calcSubscriptionMonthsLeft(user);
-
-	if (subscriptionMonthsLeft > 0) {
+async function activateSubscription(user, newAmount, prorate, monthsLeft) {
+	if (monthsLeft > 0) {
 		if (prorate && newAmount > user.contributionMonthlyAmount) {
 			await gocardless.payments.create({
-				amount: (newAmount - user.contributionMonthlyAmount) * subscriptionMonthsLeft * 100,
+				amount: (newAmount - user.contributionMonthlyAmount) * monthsLeft * 100,
 				currency: 'GBP',
 				description: 'One-off payment to start new contribution',
 				links: {
@@ -78,6 +76,8 @@ async function processUpdateSubscription(user, {amount, period, prorate}) {
 	}
 
 	if (user.isActiveMember) {
+		const monthsLeft = calcSubscriptionMonthsLeft(user);
+
 		if (user.hasActiveSubscription) {
 			if (amount !== user.contributionMonthlyAmount) {
 				await updateSubscriptionAmount(user, amount);
@@ -85,18 +85,18 @@ async function processUpdateSubscription(user, {amount, period, prorate}) {
 		} else {
 			const subscription = await gocardless.subscriptions.create({
 				...joinInfoToSubscription(amount, period, user.gocardless.mandate_id),
-				start_date: moment(user.memberPermission.date_expires).subtract(config.gracePeriod).format('YYYY-MM-DD')
+				start_date: moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod).format('YYYY-MM-DD')
 			});
 
 			user.gocardless.subscription_id = subscription.id;
 			user.gocardless.period = period;
 		}
 
-		if (await activateSubscription(user, amount, prorate)) {
-			user.amount = amount;
-			user.next_amount = undefined;
+		if (await activateSubscription(user, amount, prorate, monthsLeft)) {
+			user.gocardless.amount = amount;
+			user.gocardless.next_amount = undefined;
 		} else {
-			user.next_amount = amount;
+			user.gocardless.next_amount = amount;
 		}
 
 		await user.save();
