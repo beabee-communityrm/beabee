@@ -37,5 +37,8 @@ module.exports = {
 				res.redirect('/');
 			}
 		});
+	},
+	sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
 	}
 };
