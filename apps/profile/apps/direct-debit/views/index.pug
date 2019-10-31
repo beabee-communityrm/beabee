@@ -40,6 +40,10 @@ block contents
 				|
 				= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
 				| .
+				if user.contributionPeriod === 'gift'
+					|
+					| You can start a contribution to continue supporting the Cable
+					| beyond this date.
 
 			if user.hasActiveSubscription && user.nextContributionAmount
 				p.alert.alert-success.
@@ -48,7 +52,7 @@ block contents
 
 			hr
 
-			h3 #{user.contributionPeriod === 'gift' ? 'Start' : user.isActiveMember ? 'Update' : 'Restart'} contribution
+			h3 #{user.contributionPeriod === 'gift' ? 'Start' : user.hasActiveSubscription ? 'Update' : 'Restart'} contribution
 
 			if canChange
 				include partials/change-subscription
