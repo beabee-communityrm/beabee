@@ -546,3 +546,22 @@ $bp-directors: 600px;
 .poll-agm2019-editorial-focus li {
 	margin-bottom: 1rem;
 }
+
+// GE 2019
+
+.poll-ge2019-box {
+	padding: 1rem;
+	background-color: transparentize($c-black, 0.9);
+	margin-bottom: 2rem;
+
+	h4 {
+		line-height: 1.1;
+	}
+
+	textarea {
+		background-color: white;
+		min-width: 100%;
+		max-width: 100%;
+		min-height: 100px;
+	}
+}

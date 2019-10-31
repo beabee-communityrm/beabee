@@ -19,6 +19,9 @@ block contents
 			else if poll.expires
 				.alert.alert-warning This poll has expired
 
+			p
+				a(href='/polls/' + poll.slug) Go to poll
+
 			h4 Answers
 			ul
 				each count, answer in answerCounts
