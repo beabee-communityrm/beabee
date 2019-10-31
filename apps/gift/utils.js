@@ -6,7 +6,7 @@ const { createMember, addToMailingLists } = require( __apps + '/join/utils' );
 async function processGiftFlow( giftFlow, sendImmediately = false ) {
 	const { firstname, lastname, email, delivery_address = {}, type, fromName,
 		message } = giftFlow.giftForm;
-	const now = moment();
+	const now = moment.utc();
 
 	if (giftFlow.processed) return;
 
@@ -21,14 +21,14 @@ async function processGiftFlow( giftFlow, sendImmediately = false ) {
 		gocardless: {
 			amount: 3,
 			period: 'gift'
-		}
+		},
+		giftCode: giftFlow.setupCode
 	});
 
 	member.memberPermission = {
 		date_added: now.toDate(),
 		date_expires: now.clone().add(type === '6' ? 6 : 12, 'months').toDate()
 	};
-	member.giftCode = giftFlow.setupCode;
 	await member.save();
 
 	const sendAt = sendImmediately ? null : now.clone().set({h: 10, m: 0, s: 0}).format();

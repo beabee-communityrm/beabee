@@ -156,6 +156,8 @@ async function startMembership(member, {
 		};
 		await member.save();
 
+		await addToMailingLists(member);
+
 		if (referralCode) {
 			const referrer = await Members.findOne({referralCode});
 			await Referrals.create({
@@ -172,7 +174,6 @@ async function startMembership(member, {
 				refereeName: member.firstname,
 				isEligible: amount >= 3
 			});
-			await addToMailingLists(member);
 		}
 	}
 }
