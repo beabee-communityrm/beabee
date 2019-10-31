@@ -23,8 +23,8 @@ block body
 	.container
 		.row
 			.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
-				if isGift
-					img(src='/static/imgs/gift-banner.png').poll-title-image
+				p.
+					Welcome to the Cable, we're really happy your here.
 
 				.alert.alert-info Finish setting up your membership
 
@@ -60,9 +60,9 @@ block body
 							|
 							if user.delivery_address.line1
 								| Please check that the delivery address we have for you is
-								| correct
+								| correct.
 							else
-								| Please tell us your delivery address.
+								| Please let us know your delivery address.
 						+deliveryAddress
 
 					else if user.contributionMonthlyAmount >= 3
