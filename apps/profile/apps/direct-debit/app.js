@@ -79,6 +79,7 @@ app.post( '/', [
 		}
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );
+		res.redirect( app.parent.mountpath + app.mountpath );
 	}
 } ) );
 
@@ -108,6 +109,7 @@ app.get( '/complete', [
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}
+
 	res.redirect( app.parent.mountpath + app.mountpath );
 } ) );
 

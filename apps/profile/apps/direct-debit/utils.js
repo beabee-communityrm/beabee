@@ -27,12 +27,14 @@ async function canChangeSubscription(user, useMandate=null) {
 		return true;
 	}
 
-	const payments = await Payments.findOne({
-		member: user,
-		status: {$in: ['pending_customer_approval', 'submitted', 'pending_submission']}
+	const payment = await Payments.find({member: user}, ['status', 'charge_date'], {
+		limit: 1,
+		sort: {charge_date: -1}
 	});
 
-	return payments.length === 0;
+	return !payment || [
+		'pending_customer_approval', 'pending_submission', 'submitted'
+	].indexOf(payment[0].status) === -1;
 }
 
 async function getBankAccount(user) {
