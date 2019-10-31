@@ -43,7 +43,7 @@ app.get( '/', wrapAsync( async function ( req, res ) {
 	res.render( 'index', {
 		user: req.user,
 		bankAccount: await getBankAccount(req.user),
-		canChange: canChangeSubscription(req.user),
+		canChange: await canChangeSubscription(req.user),
 		monthsLeft: calcSubscriptionMonthsLeft(req.user)
 	} );
 } ) );
@@ -53,7 +53,7 @@ app.post( '/', [
 ], wrapAsync( async ( req, res ) => {
 	const { body:  { useMandate, ...updateForm }, user } = req;
 
-	if ( canChangeSubscription( user ) ) {
+	if ( await canChangeSubscription( user, useMandate ) ) {
 		req.log.info( {
 			app: 'direct-debit',
 			action: 'update-subscription',
@@ -89,21 +89,25 @@ app.get( '/complete', [
 
 	const { customerId, mandateId, joinForm } = await completeJoinFlow( req.query.redirect_flow_id );
 
-	if ( user.gocardless.mandate_id ) {
-		// Remove subscription before cancelling mandate to stop the
-		// webhook triggering a cancelled email
-		await user.update({$unset: {'gocardless.subscription_id': 1}});
-		await gocardless.mandates.cancel(user.gocardless.mandate_id);
+	if (await canChangeSubscription(user, false)) {
+		if ( user.gocardless.mandate_id ) {
+			// Remove subscription before cancelling mandate to stop the
+			// webhook triggering a cancelled email
+			await user.update({$unset: {'gocardless.subscription_id': 1}});
+			await gocardless.mandates.cancel(user.gocardless.mandate_id);
+		}
+
+		user.gocardless.customer_id = customerId;
+		user.gocardless.mandate_id = mandateId;
+		user.gocardless.subscription_id = undefined;
+		await user.save();
+
+		await processUpdateSubscription(user, joinForm);
+
+		req.flash( 'success', 'contribution-updated');
+	} else {
+		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}
-
-	user.gocardless.customer_id = customerId;
-	user.gocardless.mandate_id = mandateId;
-	user.gocardless.subscription_id = undefined;
-	await user.save();
-
-	await processUpdateSubscription(user, joinForm);
-
-	req.flash( 'success', 'contribution-updated');
 	res.redirect( app.parent.mountpath + app.mountpath );
 } ) );
 

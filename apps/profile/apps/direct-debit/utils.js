@@ -1,6 +1,7 @@
 const moment = require('moment');
 
 const gocardless = require( __js + '/gocardless' );
+const { Payments } = require( __js + '/database' );
 
 const log = require( __js + '/logging' ).log;
 const { getActualAmount, getSubscriptionName } = require( __js + '/utils' );
@@ -15,11 +16,23 @@ function calcSubscriptionMonthsLeft(user) {
 	);
 }
 
-function canChangeSubscription(user) {
-	return user.contributionPeriod === 'monthly' ||
-		!user.hasActiveSubscription ||
-		// TODO: better mechanism to recognise when a payment has already been submitted
-		moment.utc(user.memberPermission.date_expires).diff(moment.utc(), 'weeks') > 2;
+async function canChangeSubscription(user, useMandate=null) {
+	if (!user.hasActiveSubscription) {
+		return true;
+	}
+
+	// Only allow monthly contributors to change mandate when there isn't a payment
+	// approaching to avoid double charging them
+	if (useMandate !== false && user.contributionPeriod === 'monthly') {
+		return true;
+	}
+
+	const payments = await Payments.findOne({
+		member: user,
+		status: {$in: ['pending_customer_approval', 'submitted', 'pending_submission']}
+	});
+
+	return payments.length === 0;
 }
 
 async function getBankAccount(user) {

@@ -68,7 +68,7 @@
 	"flash-contribution-cancelled": "Contribution cancelled",
 	"flash-contribution-cancellation-err": "Error cancelling contribution",
 	"flash-contribution-updated": "Contribution updated",
-	"flash-contribution-updating-not-allowed": "You can't change your contribution at the moment",
+	"flash-contribution-updating-not-allowed": "You can't change your contribution at the moment, please contact membership@thebristolcable.org",
 	"flash-contribution-exists": "You already have an active contribution",
 	"flash-contribution-doesnt-exist": "You don't have an active contribution",
 	"flash-contribution-restarted": "You have successfully restarted your membership",
