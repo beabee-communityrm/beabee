@@ -68,7 +68,7 @@ function processJoinForm({
 	};
 }
 
-async function createJoinFlow(completeUrl, joinForm) {
+async function createJoinFlow(completeUrl, joinForm, redirectFlowParams={}) {
 	const sessionToken = auth.generateCode();
 	const name =
 		getSubscriptionName(getActualAmount(joinForm.amount, joinForm.period), joinForm.period);
@@ -76,7 +76,8 @@ async function createJoinFlow(completeUrl, joinForm) {
 	const redirectFlow = await gocardless.redirectFlows.create({
 		description: name,
 		session_token: sessionToken,
-		success_redirect_url: completeUrl
+		success_redirect_url: completeUrl,
+		...redirectFlowParams
 	});
 
 	await JoinFlows.create({

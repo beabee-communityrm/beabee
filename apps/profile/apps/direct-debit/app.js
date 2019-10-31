@@ -68,7 +68,13 @@ app.post( '/', [
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
-			const redirectUrl = await createJoinFlow( completeUrl, updateForm );
+			const redirectUrl = await createJoinFlow( completeUrl, updateForm, {
+				prefilled_customer: {
+					email: user.email,
+					given_name: user.firstname,
+					family_name: user.lastname
+				}
+			} );
 			res.redirect( redirectUrl );
 		}
 	} else {
