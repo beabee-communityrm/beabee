@@ -4,7 +4,7 @@ const auth = require( __js + '/authentication' );
 const { Members, ReferralGifts, RestartFlows } = require( __js + '/database' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 
 const config = require( __config );
 
@@ -81,18 +81,12 @@ app.get( '/complete', [
 		const newMember = await createMember(memberObj);
 		await startMembership(newMember, joinForm);
 		await mandrill.sendToMember('welcome', newMember);
-
-		req.login(newMember, function ( loginError ) {
-			if ( loginError ) {
-				throw loginError;
-			}
-			res.redirect('/profile/complete');
-		});
+		loginAndRedirect(req, res, newMember);
 	} catch ( saveError ) {
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
 			const oldMember = await Members.findOne({email: memberObj.email});
-			if (oldMember.gocardless.subscription_id) {
+			if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
 				res.redirect( app.mountpath + '/duplicate-email' );
 			} else {
 				const code = auth.generateCode();
@@ -123,8 +117,8 @@ app.get('/restart/:code', wrapAsync(async (req, res) => {
 		const {member, customerId, mandateId, joinForm} = restartFlow;
 
 		// Something has created a new subscription in the mean time!
-		if (member.gocardless.subscription_id) {
-			req.flash( 'danger', 'gocardless-subscription-exists' );
+		if (member.isActiveMember || member.hasActiveSubscription) {
+			req.flash( 'danger', 'contribution-exists' );
 		} else {
 			member.gocardless = {
 				customer_id: customerId,
@@ -133,17 +127,12 @@ app.get('/restart/:code', wrapAsync(async (req, res) => {
 			await member.save();
 
 			await startMembership(member, joinForm);
-			req.flash( 'success', 'gocardless-subscription-restarted' );
+			req.flash( 'success', 'contribution-restarted' );
 		}
 
-		req.login(member, function ( loginError ) {
-			if ( loginError ) {
-				throw loginError;
-			}
-			res.redirect('/profile');
-		});
+		loginAndRedirect(req, res, member);
 	} else {
-		req.flash( 'error', 'gocardless-subscription-restart-code-err' );
+		req.flash( 'error', 'contribution-restart-code-err' );
 		res.redirect('/');
 	}
 }));

@@ -11,7 +11,8 @@ const joinFormFields = {
 	},
 	referralCode: String,
 	referralGift: String,
-	referralGiftOptions: Object
+	referralGiftOptions: Object,
+	prorate: Boolean
 };
 
 module.exports = {

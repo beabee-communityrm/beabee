@@ -22,14 +22,32 @@
 	"updateSubscriptionSchema": {
 		"body": {
 			"type": "object",
-			"required": ["amount", "prorate"],
+			"required": ["amount", "period", "prorate", "useMandate"],
 			"properties": {
 				"amount": {
 					"type": "integer",
 					"minimum": 1
 				},
+				"period": {
+					"type": "string",
+					"enum": ["monthly", "annually"]
+				},
 				"prorate": {
 					"type": "boolean"
+				},
+				"useMandate": {
+					"type": "boolean"
+				}
+			}
+		}
+	},
+	"completeFlowSchema": {
+		"query": {
+			"type": "object",
+			"required": ["redirect_flow_id"],
+			"properties": {
+				"redirect_flow_id": {
+					"type": "string"
 				}
 			}
 		}

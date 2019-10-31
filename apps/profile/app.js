@@ -1,5 +1,4 @@
 const express = require( 'express' );
-const moment = require( 'moment' );
 
 const auth = require( __js + '/authentication' );
 const { Notices } = require( __js + '/database' );
@@ -20,15 +19,8 @@ app.use( function( req, res, next ) {
 	} );
 	res.locals.activeApp = app_config.uid;
 
-	if ( req.user ) {
-		if (req.user.memberPermission && req.user.memberPermission.date_expires < moment() &&
-				!req.originalUrl.startsWith('/profile/expired')) {
-			res.redirect('/profile/expired');
-		} else if (!req.user.setupComplete && req.originalUrl !== '/profile/complete') {
-			res.redirect('/profile/complete');
-		} else {
-			next();
-		}
+	if ( req.user && !req.user.setupComplete && req.originalUrl !== '/profile/complete' ) {
+		res.redirect('/profile/complete');
 	} else {
 		next();
 	}
@@ -36,7 +28,7 @@ app.use( function( req, res, next ) {
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const notices = await Notices.find( { enabled: true } ); // TODO: filter for expires
-	res.render( 'profile', { user: req.user, notices } );
+	res.render( 'index', { user: req.user, notices } );
 } ) );
 
 module.exports = function( config ) {

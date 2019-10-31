@@ -8,7 +8,7 @@ const config = require( __config );
 
 const { Members } = require( __js + '/database' );
 const Options = require( __js + '/options.js' )();
-const { cleanEmailAddress, getNextParam } = require( __js + '/utils' );
+const { cleanEmailAddress, getNextParam, sleep } = require( __js + '/utils' );
 
 var Authentication = {
 	load: function( app ) {
@@ -16,74 +16,60 @@ var Authentication = {
 		// Add support for local authentication in Passport.js
 		passport.use( new LocalStrategy( {
 			usernameField: 'email'
-		}, function( email, password, done ) {
+		}, async function( email, password, done ) {
 
 			if ( email ) email = cleanEmailAddress(email);
 
-			// Search for member by email address
-			Members.findOne( { email: email }, function( err, user ) {
-				// If a user is found validate password
-				if ( user ) {
-
-					// Has account exceeded it's password tries?
-					if ( user.password.tries >= config['password-tries'] ) {
-						return done( null, false, { message: 'account-locked' } );
-					}
-
-					if ( !user.password.salt ) {
-						return done( null, false, { message: 'login-failed' } );
-					}
-
-					// Hash the entered password with the members salt
-					Authentication.hashPassword( password, user.password.salt, user.password.iterations, function( hash ) {
-						// Check the hashes match
-						if ( hash == user.password.hash ) {
-
-							// Clear any pending password resets and notify
-							if ( user.password.reset_code ) {
-								user.password.reset_code = null;
-								user.save( function () {} );
-								return done( null, { _id: user._id }, { message: 'password-reset-attempt' } );
-							}
-
-							// Clear password tries and notify
-							if ( user.password.tries > 0 ) {
-								var attempts = user.password.tries;
-								user.password.tries = 0;
-								user.save( function () {} );
-								return done( null, { _id: user._id }, { message: Options.getText( 'flash-account-attempts' ).replace( '%', attempts ) } );
-							}
-
-							if ( user.password.iterations < config.iterations ) {
-								Authentication.generatePassword( password, function( password ) {
-									console.log( 'Password security upgraded for ' + user.email );
-									user.password = {
-										hash: password.hash,
-										salt: password.salt,
-										iterations: password.iterations
-									};
-									user.save( function () {} );
-								} );
-							}
-
-							// Successful login
-							return done( null, { _id: user._id }, { message: 'logged-in' } );
-						} else {
-							// If password doesn't match, increment tries and save
-							user.password.tries++;
-							user.save( function () {} );
-							// Delay by 1 second to slow down password guessing
-							return setTimeout( function() { return done( null, false, { message: 'login-failed' } ); }, 1000 );
-						}
-					} );
-				} else {
-					// If email address doesn't match
-					// Delay by 1 second to slow down password guessing
-					return setTimeout( function() { return done( null, false, { message: 'login-failed' } ); }, 1000 );
+			const user = await Members.findOne( { email } );
+			if ( user ) {
+				// Has account exceeded it's password tries?
+				if ( user.password.tries >= config['password-tries'] ) {
+					return done( null, false, { message: 'account-locked' } );
 				}
-			} );
-		}
-		) );
+
+				if ( !user.password.salt ) {
+					return done( null, false, { message: 'login-failed' } );
+				}
+
+				const hash = await Authentication.hashPasswordPromise( password, user.password.salt, user.password.iterations );
+				if ( hash === user.password.hash ) {
+
+					if ( user.password.reset_code ) {
+						user.password.reset_code = null;
+						await user.save();
+						return done( null, { _id: user._id }, { message: 'password-reset-attempt' } );
+					}
+
+					if ( user.password.tries > 0 ) {
+						const attempts = user.password.tries;
+						user.password.tries = 0;
+						await user.save();
+						return done( null, { _id: user._id }, { message: Options.getText( 'flash-account-attempts' ).replace( '%', attempts ) } );
+					}
+
+					if ( user.password.iterations < config.iterations ) {
+						const newPassword = await Authentication.generatePasswordPromise( password );
+
+						user.password = {
+							hash: newPassword.hash,
+							salt: newPassword.salt,
+							iterations: newPassword.iterations
+						};
+						await user.save();
+					}
+
+					return done( null, { _id: user._id }, { message: 'logged-in' } );
+				} else {
+					// If password doesn't match, increment tries and save
+					user.password.tries++;
+					await user.save();
+				}
+			}
+
+			// Delay by 1 second to slow down password guessing
+			await sleep(1000);
+			return done( null, false, { message: 'login-failed' } );
+		} ) );
 
 		// Add support for TOTP authentication in Passport.js
 		passport.use( new TotpStrategy( {
@@ -103,39 +89,33 @@ var Authentication = {
 		} );
 
 		// Passport.js deserialise user function
-		passport.deserializeUser( function( data, done ) {
+		passport.deserializeUser( async function( data, done ) {
+			const user = await Members.findById( data._id ).populate( 'permissions.permission' );
+			if ( user ) {
+				// Create array of permissions for user
+				let permissions = [ 'loggedIn' ];
 
-			// Find member details and permissions
-			Members.findById( data._id ).populate( 'permissions.permission' ).exec( function( err, user ) {
+				// Update last seen
+				user.last_seen = new Date();
+				await user.save();
 
-				// If member found
-				if ( user ) {
-
-					// Create array of permissions for user
-					var permissions = [ 'loggedIn' ];
-
-					// Update last seen
-					user.last_seen = new Date();
-					user.save( function() {} );
-
-					// Loop through permissions check they are active right now and add those to the array
-					for ( var p = 0; p < user.permissions.length; p++ ) {
-						if ( user.permissions[p].date_added <= new Date() ) {
-							if ( ! user.permissions[p].date_expires || user.permissions[p].date_expires > new Date() ) {
-								permissions.push( user.permissions[p].permission.slug );
-							}
+				// Loop through permissions check they are active right now and add those to the array
+				for ( var p = 0; p < user.permissions.length; p++ ) {
+					if ( user.permissions[p].date_added <= new Date() ) {
+						if ( ! user.permissions[p].date_expires || user.permissions[p].date_expires > new Date() ) {
+							permissions.push( user.permissions[p].permission.slug );
 						}
 					}
-
-					user.quickPermissions = permissions;
-
-					// Return user data
-					return done( null, user );
-				} else {
-					// Display login required message if user _id not found.
-					return done( null, false, { message: 'login-required' } );
 				}
-			} );
+
+				user.quickPermissions = permissions;
+
+				// Return user data
+				return done( null, user );
+			} else {
+				// Display login required message if user _id not found.
+				return done( null, false, { message: 'login-required' } );
+			}
 		} );
 
 		// Include support for passport and sessions

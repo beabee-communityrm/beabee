@@ -68,7 +68,7 @@ function processJoinForm({
 	};
 }
 
-async function createJoinFlow(completeUrl, joinForm) {
+async function createJoinFlow(completeUrl, joinForm, redirectFlowParams={}) {
 	const sessionToken = auth.generateCode();
 	const name =
 		getSubscriptionName(getActualAmount(joinForm.amount, joinForm.period), joinForm.period);
@@ -76,7 +76,8 @@ async function createJoinFlow(completeUrl, joinForm) {
 	const redirectFlow = await gocardless.redirectFlows.create({
 		description: name,
 		session_token: sessionToken,
-		success_redirect_url: completeUrl
+		success_redirect_url: completeUrl,
+		...redirectFlowParams
 	});
 
 	await JoinFlows.create({
@@ -118,10 +119,30 @@ async function createMember(memberObj) {
 	}
 }
 
+async function addToMailingLists(member) {
+	try {
+		await mailchimp.defaultLists.members.upsert(member.email, {
+			email_address: member.email,
+			merge_fields: {
+				FNAME: member.firstname,
+				LNAME: member.lastname,
+				REFLINK: member.referralLink,
+				POLLSCODE: member.pollsCode
+			},
+			status_if_new: 'subscribed'
+		});
+	} catch (err) {
+		log.error({
+			app: 'join-utils',
+			error: err
+		});
+	}
+}
+
 async function startMembership(member, {
 	amount, period, referralCode, referralGift, referralGiftOptions
 }) {
-	if (member.gocardless.subscription_id) {
+	if (member.isActiveMember || member.hasActiveSubscription) {
 		throw new Error('Tried to create subscription on member with active subscription');
 	} else {
 		const subscription =
@@ -135,6 +156,8 @@ async function startMembership(member, {
 			date_expires: moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod).toDate()
 		};
 		await member.save();
+
+		await addToMailingLists(member);
 
 		if (referralCode) {
 			const referrer = await Members.findOne({referralCode});
@@ -151,24 +174,6 @@ async function startMembership(member, {
 			await mandrill.sendToMember('successful-referral', referrer, {
 				refereeName: member.firstname,
 				isEligible: amount >= 3
-			});
-		}
-
-		try {
-			await mailchimp.defaultLists.members.upsert(member.email, {
-				email_address: member.email,
-				merge_fields: {
-					FNAME: member.firstname,
-					LNAME: member.lastname,
-					REFLINK: member.referralLink,
-					POLLSCODE: member.pollsCode
-				},
-				status_if_new: 'subscribed'
-			});
-		} catch (err) {
-			log.error({
-				app: 'join-utils',
-				error: err
 			});
 		}
 	}
@@ -201,7 +206,9 @@ module.exports = {
 	createJoinFlow,
 	completeJoinFlow,
 	createMember,
+	addToMailingLists,
 	startMembership,
+	joinInfoToSubscription,
 	isGiftAvailable,
 	updateGiftStock,
 	generateMemberCode

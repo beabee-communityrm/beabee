@@ -22,29 +22,34 @@ block body
 		.row
 			.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
 
-				p.
-					We'll start #{firstname}'s membership on #{moment(startDate).format('MMMM Do')}
-					and send them a welcome email around midday.
+				if processed
+					.alert.alert-success.
+						#{firstname}'s gift has now started
 
-				if delivery_address.line1
-					p Great, we've got all the details we need.
 				else
-					form( method="post" ).form-horizontal
-						+csrf
+					p.
+						We'll start #{firstname}'s membership on #{moment(startDate).format('MMMM Do')}
+						and send them a welcome email around midday.
 
-						include /src/views/partials/flash
+					if delivery_address.line1
+						p Great, we've got all the details we need.
+					else
+						form( method="post" ).form-horizontal
+							+csrf
 
-						.alert.alert-info Do you know #{firstname}'s delivery details?
+							include /src/views/partials/flash
 
-						p
-							| We'll send their copies of the Cable print edition to this address.
-							|
-							b If you don't know their address we'll ask them when they activate their account
-							| .
+							.alert.alert-info Do you know #{firstname}'s delivery details?
 
-						+input( 'text', 'Address line 1', 'delivery_line1', { required: true, left: 4, right: 6 } )
-						+input( 'text', 'Address line 2', 'delivery_line2', { left: 4, right: 6 } )
-						+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6 } )
-						+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6 } )
+							p
+								| We'll send their copies of the Cable print edition to this address.
+								|
+								b If you don't know their address we'll ask them when they activate their account
+								| .
 
-						button.btn.join-btn Save
+							+input( 'text', 'Address line 1', 'delivery_line1', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Address line 2', 'delivery_line2', { left: 4, right: 6 } )
+							+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6 } )
+
+							button.btn.join-btn Save

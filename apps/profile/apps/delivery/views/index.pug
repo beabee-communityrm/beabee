@@ -16,7 +16,7 @@ block contents
 			form( method="post" ).form-horizontal
 				+csrf
 
-				if user.gocardless.amount >= 3
+				if user.contributionMonthlyAmount >= 3
 					p.
 						You are eligible for a
 						#[b free copy of our quarterly newspaper]!

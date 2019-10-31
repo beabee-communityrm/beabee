@@ -26,21 +26,25 @@ app.use( function( req, res, next ) {
 	}
 } );
 
-app.get( '/', auth.isLoggedIn, wrapAsync( async function( req, res ) {
+app.use(auth.isLoggedIn);
+
+app.get( '/', wrapAsync( async function( req, res ) {
 	const referral = await Referrals.findOne({ referee: req.user });
-	res.render( 'complete', { user: req.user, referral } );
+
+	const isGift = req.user.contributionPeriod === 'gift';
+	const isReferralWithGift = referral && referral.refereeGift;
+
+	res.render( 'complete', { user: req.user, isReferralWithGift, isGift } );
 } ) );
 
-app.post( '/', [
-	auth.isLoggedIn,
-	hasSchema(completeSchema).orFlash
-], wrapAsync( async function( req, res ) {
+app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( async function( req, res ) {
 	const { body : { password, delivery_optin, delivery_line1, delivery_line2,
 		delivery_city, delivery_postcode, reason, how, shareable }, user } = req;
 
 	const referral = await Referrals.findOne({ referee: req.user });
 
-	const needAddress = delivery_optin || referral && referral.refereeGift;
+	const needAddress = delivery_optin || referral && referral.refereeGift ||
+		user.contributionPeriod === 'gift';
 	const gotAddress = delivery_line1 && delivery_city && delivery_postcode;
 
 	if (needAddress && !gotAddress) {

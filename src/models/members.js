@@ -46,6 +46,7 @@ module.exports = {
 			unique: true,
 			sparse: true
 		},
+		giftCode: String,
 		loginOverride: {
 			code: String,
 			expires: Date
@@ -134,7 +135,7 @@ module.exports = {
 			next_amount: Number,
 			period: {
 				type: String,
-				enum: ['monthly', 'annually']
+				enum: ['monthly', 'annually', 'gift']
 			},
 			cancelled_at: Date
 		},
@@ -233,21 +234,46 @@ module.exports.schema.virtual( 'memberPermission' )
 		}
 	} );
 
-module.exports.schema.virtual( 'isActiveMember' )
-	.get( function () {
-		const now = new Date();
-		return this.memberPermission && this.memberPermission.date_added < now &&
-			(!this.memberPermission.date_expires || this.memberPermission.date_expires > now);
-	} );
+module.exports.schema.virtual( 'isActiveMember' ).get( function () {
+	const now = new Date();
+	return this.memberPermission && this.memberPermission.date_added < now &&
+		(!this.memberPermission.date_expires || this.memberPermission.date_expires > now);
+} );
 
 module.exports.schema.virtual( 'setupComplete' ).get( function() {
-	if ( ! this.password.hash )
-		return false;
-	return true;
+	return !!this.password.hash;
 } );
 
 module.exports.schema.virtual( 'referralLink' ).get( function () {
 	return 'https://thebristolcable.org/refer/' + this.referralCode;
+} );
+
+module.exports.schema.virtual( 'contributionAmount' ).get( function () {
+	return getActualAmount(this.gocardless.amount, this.gocardless.period);
+} );
+
+module.exports.schema.virtual( 'contributionMonthlyAmount' ).get( function () {
+	return this.gocardless.amount;
+} );
+
+module.exports.schema.virtual( 'contributionPeriod' ).get( function () {
+	return this.gocardless.period;
+} );
+
+module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
+	return getActualAmount(this.gocardless.next_amount, this.gocardless.period);
+} );
+
+module.exports.schema.virtual( 'nextContributionMonthlyAmount' ).get( function () {
+	return this.gocardless.next_amount;
+} );
+
+module.exports.schema.virtual( 'hasActiveSubscription' ).get( function () {
+	return !!this.gocardless.subscription_id;
+} );
+
+module.exports.schema.virtual( 'canTakePayment' ).get( function () {
+	return !!this.gocardless.mandate_id;
 } );
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );

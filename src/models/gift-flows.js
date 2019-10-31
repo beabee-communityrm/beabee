@@ -60,7 +60,8 @@ module.exports = {
 				postcode: String
 			}
 		},
-		completed: Boolean
+		completed: Boolean,
+		processed: Boolean
 	} )
 };
 
