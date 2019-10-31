@@ -118,6 +118,26 @@ async function createMember(memberObj) {
 	}
 }
 
+async function addToMailingLists(member) {
+	try {
+		await mailchimp.defaultLists.members.upsert(member.email, {
+			email_address: member.email,
+			merge_fields: {
+				FNAME: member.firstname,
+				LNAME: member.lastname,
+				REFLINK: member.referralLink,
+				POLLSCODE: member.pollsCode
+			},
+			status_if_new: 'subscribed'
+		});
+	} catch (err) {
+		log.error({
+			app: 'join-utils',
+			error: err
+		});
+	}
+}
+
 async function startMembership(member, {
 	amount, period, referralCode, referralGift, referralGiftOptions
 }) {
@@ -152,24 +172,7 @@ async function startMembership(member, {
 				refereeName: member.firstname,
 				isEligible: amount >= 3
 			});
-		}
-
-		try {
-			await mailchimp.defaultLists.members.upsert(member.email, {
-				email_address: member.email,
-				merge_fields: {
-					FNAME: member.firstname,
-					LNAME: member.lastname,
-					REFLINK: member.referralLink,
-					POLLSCODE: member.pollsCode
-				},
-				status_if_new: 'subscribed'
-			});
-		} catch (err) {
-			log.error({
-				app: 'join-utils',
-				error: err
-			});
+			await addToMailingLists(member);
 		}
 	}
 }
@@ -201,6 +204,7 @@ module.exports = {
 	createJoinFlow,
 	completeJoinFlow,
 	createMember,
+	addToMailingLists,
 	startMembership,
 	joinInfoToSubscription,
 	isGiftAvailable,

@@ -1,9 +1,9 @@
 const moment = require( 'moment' );
 
 const mandrill = require( __js + '/mandrill' );
-const { createMember } = require( __apps + '/join/utils' );
+const { createMember, addToMailingLists } = require( __apps + '/join/utils' );
 
-async function processGiftFlow( giftFlow, immediate = false ) {
+async function processGiftFlow( giftFlow, sendImmediately = false ) {
 	const { firstname, lastname, email, delivery_address = {}, type, fromName,
 		message } = giftFlow.giftForm;
 	const now = moment();
@@ -31,8 +31,10 @@ async function processGiftFlow( giftFlow, immediate = false ) {
 	member.giftCode = giftFlow.setupCode;
 	await member.save();
 
-	const sendAt = immediate ? null : now.clone().set({h: 10, m: 0, s: 0}).format();
+	const sendAt = sendImmediately ? null : now.clone().set({h: 10, m: 0, s: 0}).format();
 	await mandrill.sendToMember('giftee-success', member, { fromName, message }, sendAt);
+
+	await addToMailingLists(member);
 }
 
 module.exports = {
