@@ -19,13 +19,9 @@ block contents
 
 					dl
 						dt Joined
-						dd #{ moment( user.joined ).format('Do MMMM YYYY') }
+						dd= moment( user.joined ).format('Do MMMM YYYY')
 						dt Contribution
-						dd
-							if user.contributionPeriod === 'gift'
-								| Gift
-							else
-								| £#{ user.contributionAmount }/#{ user.contributionPeriod }
+						dd= user.contributionDescription
 
 					if !user.isActiveMember
 						.alert.alert-danger Your membership has expired

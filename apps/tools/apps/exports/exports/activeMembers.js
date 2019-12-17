@@ -20,7 +20,9 @@ async function getExport(members) {
 			LastName: member.lastname,
 			ReferralLink: member.referralLink,
 			PollsCode: member.pollsCode,
-			MonthlyAmount: member.contributionMonthlyAmount
+			ContributionMonthlyAmount: member.contributionMonthlyAmount,
+			ContributionPeriod: member.contributionPeriod,
+			ContributionDescription: member.contributionDescription
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }

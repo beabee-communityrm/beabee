@@ -41,7 +41,9 @@ function memberToOperation(listId, member) {
 				LNAME: member.lastname,
 				REFLINK: member.referralLink,
 				POLLSCODE: member.pollsCode,
-				MNTHLYAMT: member.contributionMonthlyAmount
+				C_DESC: member.contributionDescription,
+				C_MNTHAMT: member.contributionMonthlyAmount,
+				C_PERIOD: member.contributionPeriod
 			},
 			status: 'subscribed'
 		}),
