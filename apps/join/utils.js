@@ -127,7 +127,8 @@ async function addToMailingLists(member) {
 				FNAME: member.firstname,
 				LNAME: member.lastname,
 				REFLINK: member.referralLink,
-				POLLSCODE: member.pollsCode
+				POLLSCODE: member.pollsCode,
+				MNTHLYAMT: member.contributionMonthlyAmount
 			},
 			status_if_new: 'subscribed'
 		});
