@@ -261,7 +261,7 @@ module.exports.schema.virtual( 'contributionPeriod' ).get( function () {
 } );
 
 module.exports.schema.virtual( 'contributionDescription' ).get( function () {
-	return this.contributionPeriod === 'gift' ? 'Gift membership' :
+	return this.contributionPeriod === 'gift' ? 'Gift' :
 		`£${this.contributionAmount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
 } );
 
