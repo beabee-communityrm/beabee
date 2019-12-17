@@ -260,6 +260,11 @@ module.exports.schema.virtual( 'contributionPeriod' ).get( function () {
 	return this.gocardless.period;
 } );
 
+module.exports.schema.virtual( 'contributionDescription' ).get( function () {
+	return this.contributionPeriod === 'gift' ? 'Gift membership' :
+		`£${this.contributionAmount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
+} );
+
 module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
 	return getActualAmount(this.gocardless.next_amount, this.gocardless.period);
 } );
