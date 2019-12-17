@@ -19,7 +19,8 @@ async function getExport(members) {
 			FirstName: member.firstname,
 			LastName: member.lastname,
 			ReferralLink: member.referralLink,
-			PollsCode: member.pollsCode
+			PollsCode: member.pollsCode,
+			MonthlyAmount: member.contributionMonthlyAmount
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }
