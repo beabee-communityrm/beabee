@@ -16,11 +16,11 @@ function randomId(len) {
 	return crypto.randomBytes(6).toString('hex').slice(0, len).toUpperCase();
 }
 
-let referralNo = 0;
-function uniqueReferralCode() {
-	referralNo++;
-	const letter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(referralNo / 1000)];
-	const no = referralNo % 1000;
+let codeNo = 0;
+function uniqueCode() {
+	codeNo++;
+	const letter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(codeNo / 1000)];
+	const no = codeNo % 1000;
 	return letter.padStart(2, 'A') + (no + '').padStart(3, '0');
 }
 
@@ -39,7 +39,8 @@ const members = {
 	lastname: () => chance.last(),
 	otp: () => ({}),
 	password: () => ({}),
-	referralCode: uniqueReferralCode,
+	pollsCode: uniqueCode,
+	referralCode: uniqueCode,
 	join_reason: () => chance.sentence(),
 	join_why: () => chance.sentence(),
 	'gocardless.customer_id': () => 'CU' + randomId(12),
