@@ -66,6 +66,9 @@ function lists(listId) {
 			},
 			async delete(email) {
 				await listInstance.delete('/members/' + emailToHash(email));
+			},
+			async permanentlyDelete(email) {
+				await listInstance.post('/members/' + emailToHash(email) + '/actions/delete-permanent');
 			}
 		}
 	};
@@ -106,6 +109,11 @@ module.exports = {
 			async delete(email) {
 				for (let listId of config.mailchimp.lists) {
 					await lists(listId).members.delete(email);
+				}
+			},
+			async permanentlyDelete(email) {
+				for (let listId of config.mailchimp.lists) {
+					await lists(listId).members.permanentlyDelete(email);
 				}
 			}
 		}

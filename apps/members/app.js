@@ -4,7 +4,11 @@ const moment = require( 'moment' );
 const config = require( __config );
 
 const auth = require( __js + '/authentication' );
-const { Exports, Members, Permissions, Payments } = require( __js + '/database' );
+const {
+	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
+	Referrals, RestartFlows
+} = require( __js + '/database' );
+const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
@@ -246,6 +250,18 @@ app.post( '/:uuid', wrapAsync( async function( req, res ) {
 			'password.reset_code': auth.generateCode()
 		}});
 		req.flash('success', 'member-password-reset-generated');
+		break;
+	case 'delete':
+		await Payments.deleteMany( { member } );
+		// TODO: anonymise other data in poll answers
+		await PollAnswers.updateMany( { member }, { $set: { member: null } } );
+		await GiftFlows.updateMany( { member }, { $set: { member: null } } );
+		await RestartFlows.deleteMany( { member } );
+		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
+		await Members.deleteOne( { _id: member._id } );
+		await mailchimp.defaultLists.permanentlyDelete( member.email );
+		// TODO: Delete from GoCardless
+		break;
 	}
 
 	res.redirect(app.mountpath + '/' + req.params.uuid);
