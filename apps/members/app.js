@@ -259,7 +259,8 @@ app.post( '/:uuid', wrapAsync( async function( req, res ) {
 		await RestartFlows.deleteMany( { member } );
 		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
 		await Members.deleteOne( { _id: member._id } );
-		await mailchimp.defaultLists.permanentlyDelete( member.email );
+
+		await mailchimp.defaultLists.members.permanentlyDelete( member.email );
 		// TODO: Delete from GoCardless
 		break;
 	}
