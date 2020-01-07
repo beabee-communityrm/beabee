@@ -15,3 +15,9 @@ dl.dl-horizontal
 			| #{ member.delivery_address.city}
 			br
 			| #{ member.delivery_address.postcode}
+
+h3 Actions
+
+form(method='POST' onsubmit='return confirm("Are you sure? This is completely irreversible")')
+	+csrf
+	button(name='action' value='permanently-delete').btn.btn-sm.btn-danger.outline Permanently delete

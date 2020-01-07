@@ -5,7 +5,7 @@ async function getQuery() {
 }
 
 function memberDetails(member) {
-	return [
+	return member ? [
 		member.email,
 		member.firstname,
 		member.lastname,
@@ -15,7 +15,7 @@ function memberDetails(member) {
 			member.delivery_address.city,
 			member.delivery_address.postcode
 		] : ['', '', '', '']
-	];
+	] : ['', '', '', '', '', '', ''];
 }
 
 async function getExport(referrals) {

@@ -36,6 +36,7 @@
 	"flash-account-attempts": "There has been % attempt(s) to login to your account since you last logged in",
 
 	"flash-member-404": "Member not found",
+	"flash-member-permanently-deleted": "Member permanently deleted",
 	"flash-member-login-override-generated": "Login override code generated",
 	"flash-member-password-reset-generated": "Password reset code generated",
 

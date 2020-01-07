@@ -4,7 +4,12 @@ const moment = require( 'moment' );
 const config = require( __config );
 
 const auth = require( __js + '/authentication' );
-const { Exports, Members, Permissions, Payments } = require( __js + '/database' );
+const {
+	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
+	Referrals, RestartFlows
+} = require( __js + '/database' );
+const gocardless = require( __js + '/gocardless' );
+const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
@@ -240,15 +245,36 @@ app.post( '/:uuid', wrapAsync( async function( req, res ) {
 			}
 		}});
 		req.flash('success', 'member-login-override-generated');
+		res.redirect(app.mountpath + '/' + req.params.uuid);
 		break;
 	case 'password-reset':
 		await member.update({$set: {
 			'password.reset_code': auth.generateCode()
 		}});
 		req.flash('success', 'member-password-reset-generated');
-	}
+		res.redirect(app.mountpath + '/' + req.params.uuid);
+		break;
+	case 'permanently-delete':
+		await Payments.deleteMany( { member } );
+		// TODO: anonymise other data in poll answers
+		await PollAnswers.updateMany( { member }, { $set: { member: null } } );
+		await GiftFlows.updateMany( { member }, { $set: { member: null } } );
+		await RestartFlows.deleteMany( { member } );
+		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
+		await Members.deleteOne( { _id: member._id } );
 
-	res.redirect(app.mountpath + '/' + req.params.uuid);
+		if ( member.gocardless.mandate_id ) {
+			await gocardless.mandates.cancel( member.gocardless.mandate_id );
+		}
+		if ( member.gocardless.customer_id ) {
+			await gocardless.customers.remove( member.gocardless.customer_id );
+		}
+		await mailchimp.defaultLists.members.permanentlyDelete( member.email );
+
+		req.flash('success', 'member-permanently-deleted');
+		res.redirect(app.mountpath);
+		break;
+	}
 } ) );
 
 app.get( '/:uuid/profile', auth.isSuperAdmin, function( req, res ) {
