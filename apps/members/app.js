@@ -8,6 +8,7 @@ const {
 	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
 	Referrals, RestartFlows
 } = require( __js + '/database' );
+const gocardless = require( __js + '/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
@@ -262,8 +263,11 @@ app.post( '/:uuid', wrapAsync( async function( req, res ) {
 		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
 		await Members.deleteOne( { _id: member._id } );
 
+		if ( member.gocardless.customer_id ) {
+			await gocardless.customers.remove( member.gocardless.customer_id );
+		}
 		await mailchimp.defaultLists.members.permanentlyDelete( member.email );
-		// TODO: Delete from GoCardless
+
 		req.flash('success', 'member-permanently-deleted');
 		res.redirect(app.mountpath);
 		break;

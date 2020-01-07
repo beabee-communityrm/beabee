@@ -49,7 +49,7 @@ const STANDARD_METHODS = ['create', 'get', 'update', 'list', 'all'];
 function createMethods(key, allowedMethods, allowedActions=[]) {
 	const endpoint = `/${key}`;
 
-	const standardMethods = {
+	const methods = {
 		async create(data) {
 			const response = await gocardless.post(endpoint, {[key]: data});
 			return response.data[key];
@@ -73,6 +73,10 @@ function createMethods(key, allowedMethods, allowedActions=[]) {
 		async update(id, data) {
 			const response = await gocardless.put(`${endpoint}/${id}`, {[key]: data});
 			return response.data[key];
+		},
+		async remove(id) {
+			const response = await gocardless.delete(`${endpoint}/${id}`);
+			return response.status < 300;
 		}
 	};
 
@@ -84,7 +88,7 @@ function createMethods(key, allowedMethods, allowedActions=[]) {
 	}
 
 	return Object.assign(
-		...allowedMethods.map(method => ({[method]: standardMethods[method]})),
+		...allowedMethods.map(method => ({[method]: methods[method]})),
 		...allowedActions.map(action => ({[action]: actionMethod(action)}))
 	);
 }
@@ -92,7 +96,7 @@ function createMethods(key, allowedMethods, allowedActions=[]) {
 module.exports = {
 	creditors: createMethods('creditors', STANDARD_METHODS),
 	creditorBankAccounts: createMethods('creditor_bank_accounts', ['create', 'get', 'list', 'all'], ['disable']),
-	customers: createMethods('customers', STANDARD_METHODS),
+	customers: createMethods('customers', [...STANDARD_METHODS, 'remove']),
 	customerBankAccounts: createMethods('customer_bank_accounts', STANDARD_METHODS, ['disable']),
 	events: createMethods('events', ['get', 'list', 'all']),
 	mandates: createMethods('mandates', STANDARD_METHODS, ['cancel', 'reinstate']),
