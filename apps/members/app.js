@@ -263,6 +263,9 @@ app.post( '/:uuid', wrapAsync( async function( req, res ) {
 		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
 		await Members.deleteOne( { _id: member._id } );
 
+		if ( member.gocardless.mandate_id ) {
+			await gocardless.mandates.cancel( member.gocardless.mandate_id );
+		}
 		if ( member.gocardless.customer_id ) {
 			await gocardless.customers.remove( member.gocardless.customer_id );
 		}
