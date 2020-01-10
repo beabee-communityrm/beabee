@@ -69,7 +69,7 @@ app.get( '/:uuid', wrapAsync( async function( req, res ) {
 	const exportType = exportTypes[exportDetails.type];
 
 	const newItems = await exportType.collection.find({
-		...await exportType.getQuery(exportDetails.params),
+		...await exportType.getQuery(exportDetails),
 		exports: {$not: {$elemMatch: {
 			export_id: exportDetails
 		}}}
@@ -108,7 +108,7 @@ app.post( '/:uuid', hasSchema(updateSchema).orFlash, wrapAsync( async function( 
 
 	if (data.action === 'add') {
 		await exportType.collection.updateMany({
-			...await exportType.getQuery(exportDetails.params),
+			...await exportType.getQuery(exportDetails),
 			exports: {$not: {$elemMatch: {
 				export_id: exportDetails
 			}}}
@@ -149,7 +149,7 @@ app.post( '/:uuid', hasSchema(updateSchema).orFlash, wrapAsync( async function( 
 		});
 
 		const exportName = `export-${exportDetails.description}_${new Date().toISOString()}.csv`;
-		const exportData = await exportType.getExport(items, exportDetails.params);
+		const exportData = await exportType.getExport(items, exportDetails);
 		res.attachment(exportName).send(Papa.unparse(exportData));
 	} else if (data.action === 'delete') {
 		await Exports.deleteOne({_id: exportDetails._id});

@@ -16,7 +16,7 @@ async function getParams() {
 	];
 }
 
-async function getQuery({pollId}) {
+async function getQuery({params: {pollId}}) {
 	const poll = await Polls.findById(pollId);
 	const pollAnswers = await PollAnswers.find({poll});
 	const memberIds = pollAnswers.map(pollAnswer => pollAnswer.member);
@@ -34,7 +34,7 @@ async function getQuery({pollId}) {
 	};
 }
 
-async function getExport(members, {baseURL}) {
+async function getExport(members, {params: {baseURL}}) {
 	return members.map(member => {
 		const addressFields = Object.assign(
 			...['line1', 'line2', 'city', 'postcode']
