@@ -1,4 +1,6 @@
-const { Members, Permissions } = require(__js + '/database');
+const _ = require('lodash');
+
+const { Exports, Members, Permissions } = require(__js + '/database');
 const { isLocalPostcode } = require( '../utils.js' );
 const config = require( __config );
 
@@ -14,7 +16,17 @@ async function getQuery() {
 	};
 }
 
-async function getExport(members) {
+async function getExport(members, {_id: exportId}) {
+	const exportIds =
+		(await Exports.find({type: 'edition'}).sort({date: 1})).map(e => e._id);
+
+	function getExportNo(id) {
+		const i = exportIds.findIndex(id2 => id.equals(id2));
+		return i > -1 ? i : exportIds.length;
+	}
+
+	const currentExportNo = getExportNo(exportId);
+
 	return members
 		.map(member => {
 			const postcode = (member.delivery_address.postcode || '').trim().toUpperCase();
@@ -25,8 +37,10 @@ async function getExport(members) {
 				Address2: member.delivery_address.line2,
 				City: member.delivery_address.city,
 				Postcode: postcode,
+				ReferralLink: member.referralLink,
 				IsLocal: isLocalPostcode(postcode),
-				ReferralLink: member.referralLink
+				IsGift: member.contributionPeriod === 'gift',
+				IsFirstEdition: _.every(member.exports, e => getExportNo(e.export_id) >= currentExportNo)
 			};
 		})
 		.sort((a, b) => (
