@@ -11,7 +11,7 @@ async function getParams() {
 	];
 }
 
-async function getQuery({pollId}) {
+async function getQuery({params: {pollId}}) {
 	return {poll: pollId};
 }
 

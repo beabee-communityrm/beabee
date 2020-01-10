@@ -391,7 +391,7 @@ app.post( '/:uuid/exports', auth.isSuperAdmin, wrapAsync( async function( req, r
 
 		// Check member is eligible
 		const member = await Members.findOne( {
-			...await exportType.getQuery(),
+			...await exportType.getQuery(exportDetails),
 			exports: {$not: {$elemMatch: {
 				export_id: exportDetails
 			}}},
