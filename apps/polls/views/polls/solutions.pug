@@ -1,0 +1,119 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block flashes
+
+block contents
+	.row
+		.col-md-3
+			- page = ''
+			if access('member')
+				include /apps/profile/views/partials/sidebar.pug
+		.col-md-9
+			.page-header
+				h3 &nbsp;
+
+			.row
+				.col-md-9
+					p: b.
+						In the next edition and beyond, we plan to focus more on
+						highlighting and exploring solutions to some of the biggest issues
+						facing our city.
+
+					p.
+						From policy changes which have worked elsewhere, to individuals
+						doing great work here right now, we want to go beyond the problems
+						and into the answers.
+
+					p.
+						We’re keen to hear from you which issues you think we should look
+						at.
+
+					hr#vote
+
+					if answer.answer
+						img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+						h3 Thank you!
+
+						p.
+							Thanks for taking the time to share your thoughts, your input is
+							really valuable to the Cable.
+							
+						p.
+							We'll be collecting people's feedback over the next couple of
+							weeks and you can expect an update with a summary of the themes
+							and learnings shortly afterwards.
+
+					else if poll.active
+						form(method='POST' action='#vote')
+							+csrf
+
+							include /src/views/partials/flash.pug
+
+							.poll-section
+								h4.
+									1. What issues in Bristol would you personally like to see
+									solutions for, and why?
+								p.
+									You can include up to three, but just one is also fine!
+									Please be as specific as possible.
+								ol.poll-textlist
+									li: input(type='text' name='issues[]').form-control
+									li: input(type='text' name='issues[]').form-control
+									li: input(type='text' name='issues[]').form-control
+
+							.alert.alert-info.
+								The following questions are all optional, you can
+								#[a(href='#submit') skip to the end]
+
+							.poll-section
+								h4.
+									2. Do you know of any potential solutions or ideas of how to
+									address these which could be introduced in Bristol?
+								p.
+									For example these might be policy changes, new forms of
+									activism, business models or tech innovations.
+								.form-group
+									textarea(name='solutions').form-control.poll-textarea
+
+							.poll-section
+								h4.
+									3. Do you know of any organisations or individuals which are
+									already working on any of these solutions?
+								.form-group
+									textarea(name='organisations').form-control.poll-textarea
+
+							.poll-section
+								h4.
+									4. Are you involved in any of these initiatives or have other
+									relevant experience?
+								p.
+									For example, you might work in renewable energy or had your
+									home retrofitted for energy efficiency.
+								.form-group
+									textarea(name='skills').form-control.poll-textarea
+
+							hr#submit
+
+							p.
+								We may be in touch with you at a later point to follow up some
+								of your answers.
+
+							if code
+								h4 Please confirm your email address
+								p.
+									For data protection reasons, this must be the email address
+									that we have on record for you.  If you have trouble please
+									email #[+email('membership@thebristolcable.org')].
+
+								.form-group
+									input(type='email' name='email' required).form-control
+
+							p
+								button(name='answer' value='done').btn.join-btn Submit
+					else
+						.alert.alert-warning Submissions are now closed
+

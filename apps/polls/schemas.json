@@ -187,6 +187,28 @@
 					}
 				}
 			}
+		},
+		"solutions": {
+			"body": {
+				"type": "object",
+				"properties": {
+					"issues": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"solutions": {
+						"type": "string"
+					},
+					"organisations": {
+						"type": "string"
+					},
+					"skills": {
+						"type": "string"
+					}
+				}
+			}
 		}
 	}
 }

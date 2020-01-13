@@ -356,7 +356,17 @@ $c-agm2019-purple: #583352;
 }
 
 .poll-section {
-	margin-bottom: 3rem;
+	margin-bottom: 4rem;
+}
+
+.poll-textarea {
+	min-width: 100%;
+	max-width: 100%;
+	min-height: 100px;
+}
+
+.poll-textlist li {
+	margin-bottom: 1rem;
 }
 
 // AGM 2019
@@ -491,12 +501,6 @@ $bp-directors: 600px;
 	}
 }
 
-.poll-agm2019-membership-reasons {
-	min-width: 100%;
-	max-width: 100%;
-	min-height: 100px;
-}
-
 .poll-agm2019-membership-next {
 	position: fixed !important;
 	opacity: 0;
@@ -541,10 +545,6 @@ $bp-directors: 600px;
 			background-color: darken($c-agm2019-purple, 10%);
 		}
 	}
-}
-
-.poll-agm2019-editorial-focus li {
-	margin-bottom: 1rem;
 }
 
 // GE 2019
