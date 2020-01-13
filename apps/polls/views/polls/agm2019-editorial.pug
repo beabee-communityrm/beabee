@@ -20,7 +20,7 @@ mixin strategy(title)
 
 		h4 Reasons/comments
 		.form-group
-			textarea(name=id + '_reasons').form-control.poll-agm2019-membership-reasons
+			textarea(name=id + '_reasons').form-control.poll-textarea
 
 		p.poll-agm2019-membership-next-btn
 			label(for='next_' + id).btn Next
@@ -153,7 +153,7 @@ block contents
 							.poll-section
 								h4 What else do you think the Cable's journalism should be focusing on?
 
-								ol.poll-agm2019-editorial-focus
+								ol.poll-textlist
 									li: input(type='text' name='focus[]').form-control
 									li: input(type='text' name='focus[]').form-control
 									li: input(type='text' name='focus[]').form-control
@@ -161,7 +161,7 @@ block contents
 							.poll-section
 								h4 Do you have any other comments?
 								.form-group
-									textarea(name='comments').form-control.poll-agm2019-membership-reasons
+									textarea(name='comments').form-control.poll-textarea
 
 							if code
 								h4 Please confirm your email address

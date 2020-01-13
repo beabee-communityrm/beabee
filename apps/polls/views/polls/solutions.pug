@@ -1,0 +1,116 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block flashes
+
+block contents
+	.row
+		.col-md-3
+			- page = ''
+			if access('member')
+				include /apps/profile/views/partials/sidebar.pug
+		.col-md-9
+			.page-header
+				h3 &nbsp;
+
+			.row
+				.col-md-9
+					p.
+						We plan to focus more on highlighting and exploring solutions to
+						some of the biggest issues facing our city. From policy changes
+						that have worked elsewhere, to individuals doing great work here
+						right now, we want to go beyond the issues into the answers.
+
+					p.
+						We’re seeking your input, to draw on your perspective and
+						knowledge.
+
+					hr#vote
+
+					if answer.answer
+						img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+						h3 Thank you!
+
+						p.
+							Thanks for taking the time to share your thoughts, your input is
+							really valuable to the Cable.
+							
+						p.
+							We'll be collecting people's feedback over the next couple of
+							weeks and you can expect an update with a summary of the themes
+							and learnings shortly afterwards.
+
+					else if poll.active
+						form(method='POST' action='#vote')
+							+csrf
+
+							include /src/views/partials/flash.pug
+
+							.poll-section
+								h4 1. Issues which you feel most need solutions presented
+								p.
+									What are three issues in Bristol you’d personally like to see
+									solutions for, and why? Please be as specific as possible.
+								ol.poll-textlist
+									li: input(type='text' name='issues[]').form-control
+									li: input(type='text' name='issues[]').form-control
+									li: input(type='text' name='issues[]').form-control
+
+							.poll-section
+								h4 2. Issues where they’re aware of solutions
+								p.
+									Do you know of any potential solutions or ideas of how to
+									address these that are locally based or that could be
+									introduced in Bristol?
+								.form-group
+									textarea(name='solutions').form-control.poll-textarea
+
+							.poll-section
+								h4 3. Organisations and individuals doing great solutions-orientated work
+								p.
+									What organisations or individuals do you know of which are
+									doing great solutions-orientated work in the city?
+								.form-group
+									textarea(name='organisations').form-control.poll-textarea
+
+							.poll-section
+								h4 4. Expertise or experience they have and would like to tag themselves so we can contact them
+
+								p.
+									We’d like to be able to more easily identify members who have
+									experience or expertise so we can more easily reach out to
+									you when we think you can help with a topic we’re
+									researching. This could be anything from life experience to
+									professional expertise.
+
+								p.
+									Are you involved in any of these initiatives or have other
+									relevant experience? For example, do you work in renewable
+									energy or have you had your home retrofitted for energy
+									efficiency?
+
+								p: b.
+									What areas do you have expertise or experience in which you’d
+									be willing to share with the Cable?
+								.form-group
+									textarea(name='skills').form-control.poll-textarea
+
+							if code
+								h4 Please confirm your email address
+								p.
+									For data protection reasons, this must be the email address
+									that we have on record for you.  If you have trouble please
+									email
+									#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
+
+								.form-group
+									input(type='email' name='email' required).form-control
+
+							p
+								button.btn.join-btn Submit
+					else
+						.alert.alert-warning Voting is now closed
+
