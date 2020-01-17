@@ -93,8 +93,7 @@ function hasModel( model, prop ) {
 		if (req.model) {
 			next();
 		} else {
-			res.status(404);
-			res.send('Not found');
+			next('route');
 		}
 	};
 }
