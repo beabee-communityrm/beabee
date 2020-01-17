@@ -43,9 +43,8 @@ block contents
 							really valuable to the Cable.
 							
 						p.
-							We'll be collecting people's feedback over the next couple of
-							weeks and you can expect an update with a summary of the themes
-							and learnings shortly afterwards.
+							We may be in touch with you at a later point to follow up some
+							of your answers.
 
 					else if poll.active
 						form(method='POST' action='#vote')
@@ -53,17 +52,26 @@ block contents
 
 							include /src/views/partials/flash.pug
 
-							.poll-section
-								h4.
-									1. What issues in Bristol would you personally like to see
-									solutions for, and why?
-								p.
-									You can include up to three, but just one is also fine!
-									Please be as specific as possible.
-								ol.poll-textlist
-									li: input(type='text' name='issues[]').form-control
-									li: input(type='text' name='issues[]').form-control
-									li: input(type='text' name='issues[]').form-control
+							.poll-group
+								.poll-section
+									h4.
+										1. What issues are affecting you which you'd like to see solutions for?
+									p.
+										They could be big or small, and affect you, your friends &
+										family, or your local community.
+									ol.poll-textlist
+										li: input(type='text' name='issues[]').form-control
+										li: input(type='text' name='issues[]').form-control
+										li: input(type='text' name='issues[]').form-control
+
+								.poll-section
+									h4 1.2. How are you personally affected by these issues?
+									textarea(name='affected' required).form-control.poll-textarea
+
+
+								.poll-section
+									h4 1.3. What questions about these issues do you want us to answer?
+									textarea(name='questions' required).form-control.poll-textarea
 
 							.alert.alert-info.
 								The following questions are all optional, you can
@@ -71,30 +79,58 @@ block contents
 
 							.poll-section
 								h4.
-									2. Do you know of any potential solutions or ideas of how to
-									address these which could be introduced in Bristol?
+									2. Do you know of any potential solutions – big or small –
+									that might address these problems and could be introduced in
+									Bristol?
 								p.
-									For example these might be policy changes, new forms of
-									activism, business models or tech innovations.
+									For example these might be community responses, policy
+									changes, new forms of activism, business models or tech
+									innovations.
 								.form-group
 									textarea(name='solutions').form-control.poll-textarea
 
 							.poll-section
 								h4.
-									3. Do you know of any organisations or individuals which are
-									already working on any of these solutions?
+									3. What positive things or solutions do you know of which are
+									being done in Bristol right now?
+								p.
+									These can be about any issue – we want to hear about great
+									local projects, people, or organisations.
 								.form-group
 									textarea(name='organisations').form-control.poll-textarea
 
 							.poll-section
 								h4.
-									4. Are you involved in any of these initiatives or have other
-									relevant experience?
-								p.
-									For example, you might work in renewable energy or had your
-									home retrofitted for energy efficiency.
+									4. Are you personally involved in any of these initiatives,
+									or do you have knowledge or expertise about these issues?
 								.form-group
 									textarea(name='skills').form-control.poll-textarea
+
+							.poll-section
+								h4.
+									5. What area of Bristol do you live in?
+								.form-group
+									input(type='text' name='area').form-control
+
+							hr
+
+							img(src='/static/imgs/polls/hand3.png').poll-hand4
+							.poll-volunteer
+								p
+									| We'd like to publish some of these responses as part of
+									| articles on solutions for Bristol.
+									|
+									b Would you be happy for us to include some of your responses?
+								p.
+									We will attribute your response to your first name, plus
+									first letter of your surname, and the area of Bristol you
+									live in.
+
+								.form-group
+									.checkbox
+										label
+											input(type='checkbox' name='publish' value='true')
+											| Yes, you can include my response
 
 							hr#submit
 

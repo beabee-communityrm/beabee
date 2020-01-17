@@ -198,6 +198,14 @@
 							"type": "string"
 						}
 					},
+					"affected": {
+						"type": "string",
+						"minLength": 1
+					},
+					"questions": {
+						"type": "string",
+						"minLength": 1
+					},
 					"solutions": {
 						"type": "string"
 					},
@@ -206,6 +214,12 @@
 					},
 					"skills": {
 						"type": "string"
+					},
+					"area": {
+						"type": "string"
+					},
+					"publish": {
+						"type": "boolean"
 					}
 				}
 			}
