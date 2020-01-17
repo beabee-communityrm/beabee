@@ -1,11 +1,12 @@
 const express = require( 'express' );
+const _ = require('lodash');
 const Papa = require('papaparse');
 const pug = require( 'pug' );
 
 const auth = require( __js + '/authentication' );
 const { Exports } = require( __js + '/database' );
 const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const { loadParams, wrapAsync } = require( __js + '/utils' );
 
 const { createSchema, updateSchema } = require('./schemas.json');
 
@@ -48,12 +49,11 @@ app.get( '/', wrapAsync( async function( req, res ) {
 		exports: exports.filter(e => e.type === type)
 	}));
 
-	for (const type in exportTypes) {
-		const exportType = exportTypes[type];
-		exportType.params = exportType.getParams ? await exportType.getParams() : [];
-	}
+	const exportTypesWithParams = await loadParams(_.map(exportTypes, (exportType, type) => ({
+		...exportType, type
+	})));
 
-	res.render('index', {exportsByType, exportTypes});
+	res.render('index', {exportsByType, exportTypesWithParams});
 } ) );
 
 app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {

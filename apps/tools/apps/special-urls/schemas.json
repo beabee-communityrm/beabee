@@ -1,0 +1,55 @@
+{
+	"createNoticeSchema": {
+		"body": {
+			"type": "object",
+			"required": ["name", "text"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"minLength": 1
+				},
+				"expiresDate": {
+					"type": "string",
+					"format": "date"
+				},
+				"expiresTime": {
+					"type": "string",
+					"format": "time2"
+				},
+				"text": {
+					"type": "string",
+					"minLength": 1
+				},
+				"url": {
+					"type": "string",
+					"format": "url"
+				},
+				"enabled": {
+					"type": "boolean"
+				}
+			}
+		}
+	},
+	"updateNoticeSchema": {
+		"body": {
+			"type": "object",
+			"required": ["action"],
+			"oneOf": [
+				{
+					"properties": {
+						"action": {
+							"const": "toggle"
+						}
+					}
+				},
+				{
+					"properties": {
+						"action": {
+							"const": "update"
+						}
+					}
+				}
+			]
+		}
+	}
+}

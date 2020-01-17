@@ -1,0 +1,10 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Special URLs'
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Special URLs - ' + specialUrlGroup.name)
+

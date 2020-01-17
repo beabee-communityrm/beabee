@@ -40,5 +40,15 @@ module.exports = {
 	},
 	sleep(ms) {
 		return new Promise(resolve => setTimeout(resolve, ms));
+	},
+	loadParams: async (items) => {
+		const itemsWithParams = [];
+		for (const item of items) {
+			itemsWithParams.push({
+				...item,
+				params: item.getParams ? await item.getParams() : []
+			});
+		}
+		return itemsWithParams;
 	}
 };

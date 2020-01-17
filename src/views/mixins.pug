@@ -74,3 +74,21 @@ mixin flash( status, text, opts )
 
 mixin email( address )
 	a( href='mailto:' + address )= address
+
+mixin paramsInputs(params, namePrefix='params')
+	each param in params
+		- name = namePrefix + '[' + param.name + ']'
+		.form-group
+			label.col-md-3.control-label= param.label
+			.col-md-6
+				if param.type === 'select'
+					select(name=name required disabled).form-control
+						each value in param.values
+							option(value=value[0])= value[1]
+				else if param.type === 'boolean'
+					.checkbox
+						label
+							input(type='checkbox' name=name value='true')
+							| Yes
+				else
+					input(type=param.type name=name required disabled).form-control

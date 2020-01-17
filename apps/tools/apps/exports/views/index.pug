@@ -4,7 +4,7 @@ block prepend title
 	- title = 'Exports'
 
 block append js
-	script(src='/static/js/exports.js?v=' + git)
+	script(src='/static/js/reveal.js?v=' + git)
 
 block contents
 	.row
@@ -28,26 +28,19 @@ block contents
 
 				+input('text', 'Description', 'description', { left: 3, right: 6, required: true })
 
-				.form-group
-					label(for='type').col-md-3.control-label Type
-					.col-md-6
-						select(name='type', id='type' required).form-control.js-export-types
-							option(value='' selected disabled) Select one
-							each exportType, exportId in exportTypes
-								option(value=exportId)= exportType.name
-				
-				each exportType, exportId in exportTypes
-					.hidden.js-export-type(data-type=exportId)
-						each param in exportType.params
-							.form-group
-								label.col-md-3.control-label= param.label
-								.col-md-6
-									if param.type === 'select'
-										select(name='params[' + param.name + ']' required disabled).form-control
-											each value in param.values
-												option(value=value[0])= value[1]
-									else
-										input(type=param.type name='params[' + param.name + ']' required disabled).form-control
+				.js-reveal
+					.form-group
+						label(for='type').col-md-3.control-label Type
+						.col-md-6
+							select(name='type', id='type' required).form-control.js-reveal-types
+								option(value='' selected disabled) Select one
+								each exportType in exportTypesWithParams
+									option(value=exportType.type)= exportType.name
+					
+					each exportType in exportTypesWithParams
+						.hidden.js-reveal-type(data-type=exportType.type)
+							+paramsInputs(exportType.params)
+
 				.form-group
 					.col-md-4.col-md-offset-3
 						button.btn Create export
