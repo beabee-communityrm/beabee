@@ -55,6 +55,18 @@ module.exports = [
 	{
 		name: 'Absorb fee',
 		getUrlParams: () => ({}),
-		run: async ( req, res, params ) => true
+		run: async ( req, res ) => {
+			if ( !req.user ) {
+				res.redirect( '/login?next=' + req.originalUrl );
+				return false;
+			}
+
+			if ( await canChangeSubscription( req.user ) ) {
+				await processUpdateSubscription( req.user, {
+					amount: req.user.contributionMonthlyAmount,
+					payFee: true
+				} );
+			}
+		}
 	}
 ];

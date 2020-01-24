@@ -2,12 +2,15 @@ function isValidNextUrl(url) {
 	return /^\/([^/]|$)/.test(url);
 }
 
+function getActualAmount(amount, period) {
+	return amount * ( period === 'annually'  ? 12 : 1 );
+}
+
 module.exports = {
-	getSubscriptionName(amount, period) {
-		return `Membership: £${amount} ${period}`;
-	},
-	getActualAmount(amount, period) {
-		return amount * ( period === 'annually'  ? 12 : 1 );
+	getActualAmount,
+	getChargeableAmount(amount, period, payFee) {
+		const actualAmount = getActualAmount(amount, period);
+		return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
 	},
 	wrapAsync(fn) {
 		return async (req, res, next) => {

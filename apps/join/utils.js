@@ -10,7 +10,7 @@ const { log } = require( __js + '/logging' );
 const postcodes = require( __js + '/postcodes' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
-const { getActualAmount, getSubscriptionName, cleanEmailAddress } = require( __js + '/utils' );
+const { getActualAmount, getChargeableAmount, cleanEmailAddress } = require( __js + '/utils' );
 
 async function customerToMember(customerId, mandateId) {
 	const customer = await gocardless.customers.get(customerId);
@@ -35,18 +35,17 @@ async function customerToMember(customerId, mandateId) {
 	};
 }
 
-function joinInfoToSubscription(amount, period, mandateId) {
-	const actualAmount = getActualAmount(amount, period);
-
-	return {
-		amount: actualAmount * 100,
+async function createSubscription(amount, period, payFee, mandateId, startDate = null) {
+	return await gocardless.subscriptions.create( {
+		amount: getChargeableAmount(amount, period, payFee),
 		currency: 'GBP',
 		interval_unit: period === 'annually' ? 'yearly' : 'monthly',
-		name: getSubscriptionName(actualAmount, period),
+		name: 'Membership',
 		links: {
 			mandate: mandateId
-		}
-	};
+		},
+		...(startDate ? { start_date: startDate } : {})
+	} );
 }
 
 function generateMemberCode({firstname, lastname}) {
@@ -70,11 +69,10 @@ function processJoinForm({
 
 async function createJoinFlow(completeUrl, joinForm, redirectFlowParams={}) {
 	const sessionToken = auth.generateCode();
-	const name =
-		getSubscriptionName(getActualAmount(joinForm.amount, joinForm.period), joinForm.period);
+	const actualAmount = getActualAmount(joinForm.amount, joinForm.period);
 
 	const redirectFlow = await gocardless.redirectFlows.create({
-		description: name,
+		description: `Membership: ${actualAmount}/${joinForm.period}`,
 		session_token: sessionToken,
 		success_redirect_url: completeUrl,
 		...redirectFlowParams
@@ -143,17 +141,17 @@ async function addToMailingLists(member) {
 }
 
 async function startMembership(member, {
-	amount, period, referralCode, referralGift, referralGiftOptions
+	amount, period, referralCode, referralGift, referralGiftOptions, payFee
 }) {
 	if (member.isActiveMember || member.hasActiveSubscription) {
 		throw new Error('Tried to create subscription on member with active subscription');
 	} else {
-		const subscription =
-			await gocardless.subscriptions.create(joinInfoToSubscription(amount, period, member.gocardless.mandate_id));
+		const subscription = await createSubscription(amount, period, payFee, member.gocardless.mandate_id);
 
 		member.gocardless.subscription_id = subscription.id;
 		member.gocardless.amount = amount;
 		member.gocardless.period = period;
+		member.gocardless.paying_fee = payFee;
 		member.memberPermission = {
 			date_added: new Date(),
 			date_expires: moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod).toDate()
@@ -211,7 +209,7 @@ module.exports = {
 	createMember,
 	addToMailingLists,
 	startMembership,
-	joinInfoToSubscription,
+	createSubscription,
 	isGiftAvailable,
 	updateGiftStock,
 	generateMemberCode

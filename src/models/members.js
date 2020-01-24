@@ -137,7 +137,8 @@ module.exports = {
 				type: String,
 				enum: ['monthly', 'annually', 'gift']
 			},
-			cancelled_at: Date
+			cancelled_at: Date,
+			paying_fee: Boolean
 		},
 		permissions: [ {
 			permission: {

@@ -67,8 +67,8 @@ app.all( '/:groupId/:urlId/:actionNo?', isValidSpecialUrl, wrapAsync( async ( re
 
 	for ( let i = specialUrlActionNo; i < specialUrlActions.length; i++ ) {
 		const action = specialUrlActions[i];
-		const doNextAction = await actionsByName[action.name].run(req, res, action.params);
 
+		const doNextAction = await actionsByName[action.name].run(req, res, action.params);
 		// Actions are expected to handle sending the user a response if they return false
 		if (!doNextAction) {
 			return;
