@@ -67,6 +67,8 @@ module.exports = [
 					payFee: true
 				} );
 			}
+
+			return true;
 		}
 	}
 ];

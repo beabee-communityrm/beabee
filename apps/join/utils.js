@@ -55,7 +55,7 @@ function generateMemberCode({firstname, lastname}) {
 
 // Should return schema defined in joinFormFields
 function processJoinForm({
-	amount, amountOther, period, referralCode, referralGift, referralGiftOptions
+	amount, amountOther, period, referralCode, referralGift, referralGiftOptions, payFee
 }) {
 
 	return {
@@ -63,7 +63,8 @@ function processJoinForm({
 		period,
 		referralCode,
 		referralGift,
-		referralGiftOptions
+		referralGiftOptions,
+		payFee
 	};
 }
 
@@ -72,7 +73,7 @@ async function createJoinFlow(completeUrl, joinForm, redirectFlowParams={}) {
 	const actualAmount = getActualAmount(joinForm.amount, joinForm.period);
 
 	const redirectFlow = await gocardless.redirectFlows.create({
-		description: `Membership: ${actualAmount}/${joinForm.period}`,
+		description: `Membership: £${actualAmount}/${joinForm.period}`,
 		session_token: sessionToken,
 		success_redirect_url: completeUrl,
 		...redirectFlowParams
