@@ -1,4 +1,3 @@
-const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
 const ObjectId = mongoose.Schema.ObjectId;
@@ -14,6 +13,10 @@ module.exports = {
 		expires: Date,
 		actionParams: [Object],
 		openCount: {
+			type: Number,
+			default: 0
+		},
+		completedCount: {
 			type: Number,
 			default: 0
 		}

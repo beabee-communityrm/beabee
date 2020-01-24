@@ -68,10 +68,16 @@ app.all( '/:groupId/:urlId/:actionNo?', isValidSpecialUrl, wrapAsync( async ( re
 	for ( let i = specialUrlActionNo; i < specialUrlActions.length; i++ ) {
 		const action = specialUrlActions[i];
 		const doNextAction = await actionsByName[action.name].run(req, res, action.params);
-		if (!doNextAction) return;
+
+		// Actions are expected to handle sending the user a response if they return false
+		if (!doNextAction) {
+			return;
+		}
 
 		req.session.actionsComplete = i;
 	}
+
+	await specialUrl.update( { $inc: { completedCount: 1 } } );
 	res.redirect( `/s/${req.params.groupId}/${req.params.urlId}/done` );
 } ) );
 
