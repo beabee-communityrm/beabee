@@ -17,10 +17,7 @@ const viewsPath = __dirname + '/views';
 const exportTypeViews = {
 	'active-members': pug.compileFile(viewsPath + '/tables/members.pug'),
 	'edition': pug.compileFile(viewsPath + '/tables/members.pug'),
-	'join-reasons': pug.compileFile(viewsPath + '/tables/join-reasons.pug'),
-	'poll-answers': () => {},
-	'poll-letter': () => {},
-	'referrals': () => {}
+	'join-reasons': pug.compileFile(viewsPath + '/tables/join-reasons.pug')
 };
 
 const app = express();
@@ -90,13 +87,15 @@ app.get( '/:uuid', wrapAsync( async function( req, res ) {
 		items: exportItems.filter(item => item.currentExport.status === status)
 	}));
 
+	const renderItemsFn = exportTypeViews[exportDetails.type] || (() => {});
+
 	res.render('export', {
 		exportDetails,
 		exportType,
 		exportItems,
 		exportItemsByStatus,
 		newItems,
-		renderItems: items => exportTypeViews[exportDetails.type]({items})
+		renderItems: items => renderItemsFn({items})
 	});
 } ) );
 

@@ -19,7 +19,18 @@ module.exports = {
 		completedCount: {
 			type: Number,
 			default: 0
-		}
+		},
+		exports: [ {
+			export_id: {
+				type: ObjectId,
+				ref: 'Exports',
+				required: true
+			},
+			status: {
+				type: String,
+				required: true
+			}
+		} ]
 	}, {
 		timestamps: true
 	} )
