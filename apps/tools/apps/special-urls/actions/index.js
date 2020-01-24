@@ -20,7 +20,11 @@ module.exports = [
 				return false;
 			} else {
 				return await new Promise( resolve => {
-					req.login( member, () => resolve(true) );
+					req.login( member, () => {
+						// Force session to be temporary
+						req.session.cookie.expires = false;
+						resolve(true);
+					} );
 				} );
 			}
 		}
