@@ -152,6 +152,5 @@ module.exports = {
 	calcSubscriptionMonthsLeft,
 	canChangeSubscription,
 	getBankAccount,
-	updateSubscriptionAmount,
 	processUpdateSubscription
 };
