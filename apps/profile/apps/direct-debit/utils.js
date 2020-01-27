@@ -97,7 +97,7 @@ async function activateSubscription(user, newAmount, prorate) {
 	const prorateAmount = (newAmount - user.contributionMonthlyAmount) * monthsLeft * 100;
 	if (prorateAmount === 0) {
 		return true;
-	} else if (prorateAmount > 0) {
+	} else if (prorateAmount > 0 && prorate) {
 		await gocardless.payments.create({
 			amount: prorateAmount,
 			currency: 'GBP',
