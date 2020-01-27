@@ -26,10 +26,11 @@ block contents
 			form(method='POST').form-inline
 				+csrf
 				p
-					if specialUrlGroup.enabled
-						button(name='action' value='disable').btn.btn-primary.btn-sm Disable
-					else
-						button(name='action' value='enable').btn.btn-primary.btn-sm Enable
+					button(name='action' value='toggle').btn.btn-primary.btn-sm
+						if specialUrlGroup.enabled
+							| Disable
+						else
+							| Enable
 
 			form(method='POST').form-inline
 				+csrf

@@ -13,6 +13,8 @@ const { getSpecialUrlUrl } = require( './utils' );
 const app = express();
 app.set( 'views', __dirname + '/views' );
 
+app.locals.basedir = __root;
+
 const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
 async function hasValidSpecialUrl( req, res, next ) {
@@ -91,7 +93,7 @@ async function hasValidSpecialUrl( req, res, next ) {
 }
 
 app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
-	res.send('done');
+	res.render('done');
 } );
 
 app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {

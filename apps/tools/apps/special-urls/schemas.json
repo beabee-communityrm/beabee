@@ -1,55 +1,54 @@
 {
-	"createNoticeSchema": {
+	"createSpecialUrlsSchema": {
 		"body": {
 			"type": "object",
-			"required": ["name", "text"],
+			"required": ["name", "urlDuration"],
 			"properties": {
 				"name": {
 					"type": "string",
 					"minLength": 1
 				},
 				"expiresDate": {
-					"type": "string",
-					"format": "date"
+					"type": ["string", "null"],
+					"format": "date",
+					"default": null
 				},
 				"expiresTime": {
-					"type": "string",
-					"format": "time2"
+					"type": ["string", "null"],
+					"format": "time2",
+					"default": null
 				},
-				"text": {
-					"type": "string",
-					"minLength": 1
+				"urlDuration": {
+					"type": "integer"
 				},
-				"url": {
-					"type": "string",
-					"format": "url"
-				},
-				"enabled": {
-					"type": "boolean"
+				"actions": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": ["name"],
+						"properties": {
+							"name": {
+								"type": "string"
+							},
+							"params": {
+								"type": "object"
+							}
+						}
+					}
 				}
 			}
 		}
 	},
-	"updateNoticeSchema": {
+	"updateSpecialUrlsSchema": {
 		"body": {
 			"type": "object",
 			"required": ["action"],
-			"oneOf": [
-				{
-					"properties": {
-						"action": {
-							"const": "toggle"
-						}
-					}
-				},
-				{
-					"properties": {
-						"action": {
-							"const": "update"
-						}
-					}
+			"properties": {
+				"action": {
+					"type": "string",
+					"enum": ["toggle", "force-expire", "delete"]
 				}
-			]
+			}
 		}
 	}
 }

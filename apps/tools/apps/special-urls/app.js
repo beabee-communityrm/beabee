@@ -70,7 +70,7 @@ async function createSpecialUrls( data ) {
 	return specialUrlGroup;
 }
 
-app.post( '/', /*hasSchema( createNoticeSchema ).orFlash,*/ wrapAsync( async ( req, res ) => {
+app.post( '/', hasSchema( createSpecialUrlsSchema ).orFlash, wrapAsync( async ( req, res ) => {
 	const specialUrlGroup = await createSpecialUrls( req.body );
 	req.flash('success', 'special-urls-created');
 	res.redirect('/tools/special-urls/' + specialUrlGroup._id);
@@ -81,13 +81,13 @@ app.get( '/:_id', hasModel(SpecialUrlGroups, '_id'), wrapAsync( async ( req, res
 	res.render( 'special-urls', { specialUrlGroup: req.model, specialUrls } );
 } ) );
 
-app.post( '/:_id', hasModel(SpecialUrlGroups, '_id'), wrapAsync( async ( req, res ) => {
+app.post( '/:_id', [
+	hasModel(SpecialUrlGroups, '_id'),
+	hasSchema(updateSpecialUrlsSchema).orFlash
+], wrapAsync( async ( req, res ) => {
 	switch ( req.body.action ) {
-	case 'enable':
-		await req.model.update({$set: {enabled: true}});
-		break;
-	case 'disable':
-		await req.model.update({$set: {enabled: false}});
+	case 'toggle':
+		await req.model.update({$set: {enabled: !req.model.enabled}});
 		break;
 	case 'force-expire':
 		await SpecialUrls.updateMany({group: req.model}, {$set: {expires: moment()}});
