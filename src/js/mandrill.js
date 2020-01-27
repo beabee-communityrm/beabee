@@ -47,6 +47,10 @@ const templates = {
 	}, {
 		name: 'ACTIVATELINK',
 		content: config.audience + '/gift/' + member.giftCode
+	}],
+	'expired-special-url-resend': (member, {url}) => [{
+		name: 'URL',
+		content: url
 	}]
 };
 

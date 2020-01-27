@@ -1,0 +1,11 @@
+extends /src/views/splash.pug
+
+block prepend title
+	- title = 'Expired link'
+
+block splash-contents
+	h3 Link has expired
+	p.
+		This link is no longer active. This is usually for security reasons.
+		Please get in touch with +[email('membership.thebristolcable.org')] if
+		you need help.

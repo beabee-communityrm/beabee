@@ -52,10 +52,14 @@ async function createSpecialUrls( data ) {
 	// TODO: Remove Number
 	const urlExpires = urlDuration && moment.utc().add(Number(urlDuration), 'hours');
 
+	// TODO: support CSV upload
 	const members = await Members.find(await activeMembers.getQuery());
 	for (const member of members) {
 		await SpecialUrls.create({
 			group: specialUrlGroup,
+			email: member.email,
+			firstname: member.firstname,
+			lastname: member.lastname,
 			expires: urlExpires,
 			actionParams: newActions.map(action => actionsByName[action.name].getUrlParams(member))
 		});

@@ -1,8 +1,10 @@
 const express = require( 'express' );
 const _ = require( 'lodash' );
+const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
 const { SpecialUrls } = require( __js + '/database' );
+const mandrill = require( __js + '/mandrill' );
 const { wrapAsync } = require( __js + '/utils' );
 
 const actions = require('./actions');
@@ -24,33 +26,56 @@ async function isValidSpecialUrl( req, res, next ) {
 		}
 	}
 
-	if ( specialUrl ) {
-		if ( specialUrl.group.active ) {
-			const actions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => {
-				return {
-					name: action.name,
-					params: {
-						...action.params,
-						...actionParams
-					}
-				};
-			});
-
-			const actionNo = req.params.actionNo || 0;
-			const actionsComplete = req.session.actionsComplete || 0;
-			if ( actionNo <= actionsComplete ) {
-				req.specialUrl = specialUrl;
-				req.specialUrlActions = actions;
-				req.specialUrlActionNo = actionNo;
-				next();
-			} else {
-				res.status(500).send('error');
-			}
-		} else {
-			res.send('Inactive link');
-		}
-	} else {
+	if ( !specialUrl ) {
 		next('route');
+		return;
+	}
+
+	if ( !specialUrl.group.active ) {
+		res.render('expired');
+		return;
+	}
+
+	if ( moment( specialUrl.expires ).isBefore() ) {
+		await mandrill.sendMessage( 'expired-special-url-resend', {
+			to: [{
+				email: specialUrl.email,
+				name: specialUrl.firstname + ' ' + specialUrl.lastname
+			}],
+			merge_vars: [{
+				rcpt: specialUrl.email,
+				vars: [
+					{
+						name: 'FNAME',
+						content: specialUrl.firstname
+					},
+					{
+						name: 'URL',
+						content: '' // TODO
+					}
+				]
+			}]
+		} );
+		res.render('resend');
+	} else {
+		const actions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
+			name: action.name,
+			params: {
+				...action.params,
+				...actionParams
+			}
+		}));
+
+		const actionNo = req.params.actionNo || 0;
+		const actionsComplete = req.session.actionsComplete || 0;
+		if ( actionNo <= actionsComplete ) {
+			req.specialUrl = specialUrl;
+			req.specialUrlActions = actions;
+			req.specialUrlActionNo = actionNo;
+			next();
+		} else {
+			res.status(500).send('error');
+		}
 	}
 }
 
