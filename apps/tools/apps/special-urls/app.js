@@ -37,11 +37,12 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 async function createSpecialUrls( data ) {
-	const { name, expiresDate, expiresTime, linkDuration, actions: newActions } = data;
+	const { name, expiresDate, expiresTime, urlDuration, actions: newActions } = data;
 
 	const specialUrlGroup = await SpecialUrlGroups.create( {
 		name,
 		expires: expiresDate && moment.utc(`${expiresDate}T${expiresTime}`),
+		urlDuration,
 		enabled: false,
 		actions: newActions
 	} );
@@ -49,13 +50,13 @@ async function createSpecialUrls( data ) {
 	const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
 	// TODO: Remove Number
-	const linkExpires = linkDuration && moment.utc().add(Number(linkDuration), 'hours');
+	const urlExpires = urlDuration && moment.utc().add(Number(urlDuration), 'hours');
 
 	const members = await Members.find(await activeMembers.getQuery());
 	for (const member of members) {
 		await SpecialUrls.create({
 			group: specialUrlGroup,
-			expires: linkExpires,
+			expires: urlExpires,
 			actionParams: newActions.map(action => actionsByName[action.name].getUrlParams(member))
 		});
 	}
