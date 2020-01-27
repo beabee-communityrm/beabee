@@ -1,5 +1,6 @@
 const { SpecialUrlGroups, SpecialUrls } = require(__js + '/database');
-const config = require( __config );
+
+const { getSpecialUrlUrl } = require( __apps + '/tools/apps/special-urls/utils' );
 
 async function getParams() {
 	return [
@@ -17,10 +18,12 @@ async function getQuery({params: {groupId}}) {
 }
 
 async function getExport(specialUrls) {
-	return specialUrls
-		.map(specialUrl => ({
-			URL: config.audience + '/s/' + specialUrl.group + '/' + specialUrl._id
-		}));
+	return specialUrls.map(specialUrl => ({
+		EmailAddress: specialUrl.email,
+		FirstName: specialUrl.firstname,
+		LastName: specialUrl.lastname,
+		URL: getSpecialUrlUrl( specialUrl )
+	}));
 }
 
 module.exports = {

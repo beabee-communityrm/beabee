@@ -1,23 +1,25 @@
 const express = require( 'express' );
 const _ = require( 'lodash' );
+const moment = require( 'mongoose' );
 const mongoose = require( 'mongoose' );
 
 const { SpecialUrls } = require( __js + '/database' );
 const mandrill = require( __js + '/mandrill' );
 const { wrapAsync } = require( __js + '/utils' );
 
-const actions = require('./actions');
+const actions = require( './actions' );
+const { getSpecialUrlUrl } = require( './utils' );
 
 const app = express();
 app.set( 'views', __dirname + '/views' );
 
 const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
-async function isValidSpecialUrl( req, res, next ) {
+async function hasValidSpecialUrl( req, res, next ) {
 	let specialUrl;
 	try {
 		specialUrl = await SpecialUrls.findOne( {
-			_id: req.params.urlId, group: req.params.groupId
+			uuid: req.params.urlId, group: req.params.groupId
 		} ).populate( 'group' );
 	} catch ( err ) {
 		if ( !( err instanceof mongoose.CastError ) ) {
@@ -36,6 +38,15 @@ async function isValidSpecialUrl( req, res, next ) {
 	}
 
 	if ( !specialUrl.active ) {
+		const newSpecialUrl = await SpecialUrls.create( {
+			email: specialUrl.email,
+			group: specialUrl.group,
+			firstname: specialUrl.firstname,
+			lastname: specialUrl.lastname,
+			actionParams: specialUrl.actionParams,
+			expires: moment.utc().add(specialUrl.group.urlDuration, 'hours')
+		} );
+
 		await mandrill.sendMessage( 'expired-special-url-resend', {
 			to: [{
 				email: specialUrl.email,
@@ -50,12 +61,12 @@ async function isValidSpecialUrl( req, res, next ) {
 					},
 					{
 						name: 'URL',
-						content: '' // TODO
+						content: getSpecialUrlUrl( newSpecialUrl )
 					}
 				]
 			}]
 		} );
-		res.render('resend');
+		res.render( 'resend' );
 		return;
 	}
 
@@ -79,11 +90,11 @@ async function isValidSpecialUrl( req, res, next ) {
 	}
 }
 
-app.get( '/:groupId/:urlId/done', isValidSpecialUrl, ( req, res ) => {
+app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
 	res.send('done');
 } );
 
-app.all( '/:groupId/:urlId/:actionNo?', isValidSpecialUrl, wrapAsync( async ( req, res ) => {
+app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 	const { specialUrl, specialUrlActions, specialUrlActionNo } = req;
 
 	if ( !req.params.actionNo ) {

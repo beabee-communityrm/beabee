@@ -1,11 +1,18 @@
 const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
+const uuid = require('uuid/v4');
 
 const ObjectId = mongoose.Schema.ObjectId;
 
 module.exports = {
 	name: 'SpecialUrls',
 	schema: mongoose.Schema( {
+		uuid: {
+			type: String,
+			required: true,
+			unique: true,
+			default: uuid
+		},
 		group: {
 			type: ObjectId,
 			ref: 'SpecialUrlGroups',
