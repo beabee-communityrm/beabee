@@ -31,9 +31,9 @@ block contents
 		.col-md-12
 			+page_header('Special URLs')
 
-			each specialUrlsParent in specialUrlsParents
+			each specialUrlGroup in specialUrlGroups
 				h4
-					a(href='/tools/special-urls/' + specialUrlsParent._id)= specialUrlsParent.name
+					a(href='/tools/special-urls/' + specialUrlGroup._id)= specialUrlGroup.name
 
 	.row
 		.col-md-8

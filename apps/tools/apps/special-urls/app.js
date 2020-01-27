@@ -4,7 +4,7 @@ const _ = require( 'lodash' );
 
 const auth = require( __js + '/authentication' );
 const { Members, SpecialUrlGroups, SpecialUrls } = require( __js + '/database' );
-//const { hasSchema } = require( __js + '/middleware' );
+const { hasModel/*, hasSchema*/ } = require( __js + '/middleware' );
 const { loadParams, wrapAsync } = require( __js + '/utils' );
 
 const activeMembers = require( __apps + '/tools/apps/exports/exports/activeMembers' );
@@ -30,10 +30,10 @@ app.use( ( req, res, next ) => {
 } );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
-	const specialUrlsParents = await SpecialUrls.find();
+	const specialUrlGroups = await SpecialUrlGroups.find();
 	const actionsWithParams = await loadParams(actions);
 
-	res.render( 'index', { specialUrlsParents, actionsWithParams } );
+	res.render( 'index', { specialUrlGroups, actionsWithParams } );
 } ) );
 
 async function createSpecialUrls( data ) {
@@ -69,23 +69,28 @@ app.post( '/', /*hasSchema( createNoticeSchema ).orFlash,*/ wrapAsync( async ( r
 	res.redirect('/tools/special-urls/' + specialUrlGroup._id);
 } ) );
 
-app.get( '/:id', wrapAsync( async ( req, res ) => {
-	const specialUrlGroup = await SpecialUrlGroups.findById( req.params.id );
-	const specialUrls = await SpecialUrls.find( { group: specialUrlGroup } );
-	res.render( 'special-urls', { specialUrlGroup, specialUrls } );
+app.get( '/:_id', hasModel(SpecialUrlGroups, '_id'), wrapAsync( async ( req, res ) => {
+	const specialUrls = await SpecialUrls.find( { group: req.model } );
+	res.render( 'special-urls', { specialUrlGroup: req.model, specialUrls } );
 } ) );
 
-app.post( '/:id', wrapAsync( async ( req, res ) => {
-	const specialUrlGroup = await SpecialUrlGroups.findById( req.params.id );
-
+app.post( '/:id', hasModel(SpecialUrlGroups, '_id'), wrapAsync( async ( req, res ) => {
 	switch ( req.body.action ) {
+	case 'enable':
+		await req.model.update({$set: {enabled: true}});
+		break;
+	case 'disable':
+		await req.model.update({$set: {enabled: false}});
+		break;
 	case 'delete':
-		await SpecialUrls.deleteMany({group: specialUrlGroup});
-		await SpecialUrlGroups.deleteOne({_id: specialUrlGroup._id});
+		await SpecialUrls.deleteMany({group: req.model});
+		await req.model.delete();
 		req.flash( 'success', 'special-urls-deleted' );
 		res.redirect( '/tools/special-urls' );
-		break;
+		return;
 	}
+
+	res.redirect( '/tools/special-urls/' + req.model._id );
 
 } ) );
 

@@ -10,6 +10,7 @@ module.exports = {
 		},
 		enabled: Boolean,
 		expires: Date,
+		urlDuration: Number,
 		actions: [{
 			name: String,
 			params: Object

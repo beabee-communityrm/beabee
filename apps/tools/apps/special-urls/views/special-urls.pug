@@ -8,3 +8,42 @@ block contents
 		.col-md-12
 			+page_header('Special URLs - ' + specialUrlGroup.name)
 
+	.row
+		.col-md-8
+			if specialUrlGroup.active
+				.alert.alert-success URLs are active
+			else
+				.alert.alert-warning URLs are inactive
+
+			if specialUrlGroup.expires
+				p Expires on #{moment(specialUrlGroup.expires).format('HH:mm DD/MM/Y')}
+			else
+				p No expiration date
+
+			if specialUrlGroup.urlDuration
+				p URLs will renew after #{specialUrlGroup.urlDuration} hours
+
+			form(method='POST')
+				+csrf
+				if specialUrlGroup.enabled
+					p: button(name='action' value='disable').btn.btn-primary.btn-sm Disable
+				else
+					p: button(name='action' value='enable').btn.btn-primary.btn-sm Enable
+
+			h4 Actions
+			table.table
+				thead
+					tr
+						th Name
+						th Params
+				tbody
+					each action in specialUrlGroup.actions
+						tr
+							td= action.name
+							td
+								if action.params
+									each value, name in action.params
+										= name
+										| :
+										|
+										= value
