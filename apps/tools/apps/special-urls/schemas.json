@@ -9,14 +9,12 @@
 					"minLength": 1
 				},
 				"expiresDate": {
-					"type": ["string", "null"],
-					"format": "date",
-					"default": null
+					"type": "string",
+					"format": "date"
 				},
 				"expiresTime": {
-					"type": ["string", "null"],
-					"format": "time2",
-					"default": null
+					"type": "string",
+					"format": "time2"
 				},
 				"urlDuration": {
 					"type": "integer"

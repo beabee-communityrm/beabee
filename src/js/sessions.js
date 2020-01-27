@@ -5,6 +5,8 @@ var session = require( 'express-session' ),
 	passport = require( 'passport' );
 var csrf = require( 'csurf' );
 
+const cleanDeep = require( 'clean-deep');
+
 var MongoDBStore = require( 'connect-mongodb-session' )( session );
 
 module.exports =  function( app ) {
@@ -30,6 +32,13 @@ module.exports =  function( app ) {
 
 	// Form Body Parser
 	app.use( body.urlencoded( { extended: true } ) );
+	// Remove empty strings from form submissions
+	app.use( ( req, res, next ) => {
+		if ( req.headers['content-type'] === 'application/x-www-form-urlencoded' ) {
+			req.body = cleanDeep( req.body, { emptyArrays: false, emptyObjects: false } );
+		}
+		next();
+	} );
 	app.use( body.json() );
 
 	// Passport

@@ -22,6 +22,7 @@
     "bunyan-middleware": "^0.8.0",
     "bunyan-slack": "0.0.10",
     "chance": "^1.0.18",
+    "clean-deep": "^3.2.0",
     "connect-busboy": "0.0.2",
     "connect-mongodb-session": "^2.1.1",
     "cookie-parser": "^1.4.3",
