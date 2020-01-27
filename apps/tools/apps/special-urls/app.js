@@ -4,13 +4,14 @@ const _ = require( 'lodash' );
 
 const auth = require( __js + '/authentication' );
 const { Members, SpecialUrlGroups, SpecialUrls } = require( __js + '/database' );
-const { hasModel/*, hasSchema*/ } = require( __js + '/middleware' );
-const { loadParams, wrapAsync } = require( __js + '/utils' );
+const { hasModel, hasSchema } = require( __js + '/middleware' );
+const { loadParams, parseParams, wrapAsync } = require( __js + '/utils' );
 
 const activeMembers = require( __apps + '/tools/apps/exports/exports/activeMembers' );
 
-//const { createNoticeSchema } = require( './schemas.json' );
+const { createSpecialUrlsSchema, updateSpecialUrlsSchema } = require( './schemas.json' );
 const actions = require('./actions');
+const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
 const app = express();
 var app_config = {};
@@ -44,16 +45,17 @@ async function createSpecialUrls( data ) {
 		expires: expiresDate && moment.utc(`${expiresDate}T${expiresTime}`),
 		urlDuration,
 		enabled: false,
-		actions: newActions
+		actions: await Promise.all(newActions.map(async (action) => ({
+			name: action.name,
+			params: await parseParams(actionsByName[action.name], action.params)
+		})))
 	} );
-
-	const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
 	// TODO: Remove Number
 	const urlExpires = urlDuration && moment.utc().add(Number(urlDuration), 'hours');
 
 	// TODO: support CSV upload
-	const members = await Members.find(await activeMembers.getQuery());
+	const members = await Members.find(await activeMembers.getQuery({}));
 	for (const member of members) {
 		await SpecialUrls.create({
 			group: specialUrlGroup,

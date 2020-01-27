@@ -6,6 +6,15 @@ function getActualAmount(amount, period) {
 	return amount * ( period === 'annually'  ? 12 : 1 );
 }
 
+function getParamValue(s, param) {
+	switch (param.type) {
+	case 'number': return Number(s);
+	case 'boolean': return s === 'true';
+	case 'select': return param.values.find(s2 => s === s2);
+	default: return s;
+	}
+}
+
 module.exports = {
 	getActualAmount,
 	getChargeableAmount(amount, period, payFee) {
@@ -53,5 +62,16 @@ module.exports = {
 			});
 		}
 		return itemsWithParams;
+	},
+	parseParams: async (item, data) => {
+		const params = item.getParams ? await item.getParams() : [];
+		let ret = {};
+		for (let paramName in data) {
+			const param = params.find(p => p.name === paramName);
+			if (param) {
+				ret[paramName] = getParamValue(data[paramName], param);
+			}
+		}
+		return ret;
 	}
 };

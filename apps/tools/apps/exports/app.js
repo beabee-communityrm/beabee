@@ -6,7 +6,7 @@ const pug = require( 'pug' );
 const auth = require( __js + '/authentication' );
 const { Exports } = require( __js + '/database' );
 const { hasSchema } = require( __js + '/middleware' );
-const { loadParams, wrapAsync } = require( __js + '/utils' );
+const { loadParams, parseParams, wrapAsync } = require( __js + '/utils' );
 
 const { createSchema, updateSchema } = require('./schemas.json');
 
@@ -56,7 +56,11 @@ app.get( '/', wrapAsync( async function( req, res ) {
 app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {
 	const { body: {type, description, params} } = req;
 
-	const exportDetails = await Exports.create({type, description, params});
+	const exportDetails = await Exports.create({
+		type, description,
+		params: await parseParams(exportTypes[type], params)
+	});
+
 	req.flash('success', 'exports-created');
 	res.redirect('/tools/exports/' + exportDetails._id);
 } ) );

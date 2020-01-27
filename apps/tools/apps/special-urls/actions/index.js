@@ -45,7 +45,7 @@ module.exports = [
 
 			if ( await canChangeSubscription( req.user ) ) {
 				await processUpdateSubscription( req.user, {
-					amount: req.user.contributionMonthlyAmount + Number(amount)
+					amount: req.user.contributionMonthlyAmount + amount
 				} );
 			}
 

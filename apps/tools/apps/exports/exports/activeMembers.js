@@ -1,13 +1,22 @@
 const { Members, Permissions } = require(__js + '/database');
 const config = require( __config );
 
-async function getQuery() {
+async function getParams() {
+	return [{
+		name: 'hasActiveSubscription',
+		label: 'Has active subscription',
+		type: 'boolean'
+	}];
+}
+
+async function getQuery({params: {hasActiveSubscription} = {}}) {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 	return {
 		permissions: {$elemMatch: {
 			permission,
 			date_expires: {$gte: new Date()}
-		}}
+		}},
+		...(hasActiveSubscription ? {'gocardless.subscription_id': {$exists: true, $ne: ''}} : {})
 	};
 }
 
@@ -32,6 +41,7 @@ module.exports = {
 	statuses: ['added', 'seen'],
 	collection: Members,
 	itemName: 'active members',
+	getParams,
 	getQuery,
 	getExport
 };
