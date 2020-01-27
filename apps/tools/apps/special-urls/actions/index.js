@@ -30,6 +30,14 @@ module.exports = [
 		}
 	},
 	{
+		name: 'Log out',
+		run: async ( req ) => {
+			if ( req.user ) {
+				req.logout();
+			}
+		}
+	},
+	{
 		name: 'Change contribution',
 		getParams: async () => [{
 			name: 'amount',
