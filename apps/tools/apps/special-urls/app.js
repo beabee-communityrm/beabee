@@ -79,13 +79,16 @@ app.get( '/:_id', hasModel(SpecialUrlGroups, '_id'), wrapAsync( async ( req, res
 	res.render( 'special-urls', { specialUrlGroup: req.model, specialUrls } );
 } ) );
 
-app.post( '/:id', hasModel(SpecialUrlGroups, '_id'), wrapAsync( async ( req, res ) => {
+app.post( '/:_id', hasModel(SpecialUrlGroups, '_id'), wrapAsync( async ( req, res ) => {
 	switch ( req.body.action ) {
 	case 'enable':
 		await req.model.update({$set: {enabled: true}});
 		break;
 	case 'disable':
 		await req.model.update({$set: {enabled: false}});
+		break;
+	case 'force-expire':
+		await SpecialUrls.updateMany({group: req.model}, {$set: {expires: moment()}});
 		break;
 	case 'delete':
 		await SpecialUrls.deleteMany({group: req.model});

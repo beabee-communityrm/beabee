@@ -1,3 +1,4 @@
+const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
 const ObjectId = mongoose.Schema.ObjectId;
@@ -47,5 +48,9 @@ module.exports = {
 		timestamps: true
 	} )
 };
+
+module.exports.schema.virtual( 'active' ).get( function () {
+	return !this.expires || moment.utc(this.expires).isAfter();
+});
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );

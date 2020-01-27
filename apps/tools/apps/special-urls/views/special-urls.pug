@@ -23,12 +23,38 @@ block contents
 			if specialUrlGroup.urlDuration
 				p URLs will renew after #{specialUrlGroup.urlDuration} hours
 
-			form(method='POST')
+			form(method='POST').form-inline
 				+csrf
-				if specialUrlGroup.enabled
-					p: button(name='action' value='disable').btn.btn-primary.btn-sm Disable
-				else
-					p: button(name='action' value='enable').btn.btn-primary.btn-sm Enable
+				p
+					if specialUrlGroup.enabled
+						button(name='action' value='disable').btn.btn-primary.btn-sm Disable
+					else
+						button(name='action' value='enable').btn.btn-primary.btn-sm Enable
+
+			form(method='POST').form-inline
+				+csrf
+				p
+					button(name='action' value='force-expire').btn.btn-sm.btn-danger.outline Force expire URLs
+					|
+					|
+					label
+						input(type='checkbox' required)
+						| Are you sure?
+
+			- activeUrls = specialUrls.filter(s => s.active).length
+			dl
+				dt Total URLs
+				dd= specialUrls.length
+				dt Active URLs
+				dd= activeUrls
+				dt Expired URLs
+				dd= specialUrls.length - activeUrls
+				dt Opened URLs
+				dd= specialUrls.filter(s => s.openCount > 0).length
+				dt Completed URLs
+				dd= specialUrls.filter(s => s.completedCount > 0).length
+
+			hr
 
 			h4 Actions
 			table.table

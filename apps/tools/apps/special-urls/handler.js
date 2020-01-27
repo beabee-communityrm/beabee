@@ -1,6 +1,5 @@
 const express = require( 'express' );
 const _ = require( 'lodash' );
-const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
 const { SpecialUrls } = require( __js + '/database' );
@@ -36,7 +35,7 @@ async function isValidSpecialUrl( req, res, next ) {
 		return;
 	}
 
-	if ( moment( specialUrl.expires ).isBefore() ) {
+	if ( !specialUrl.active ) {
 		await mandrill.sendMessage( 'expired-special-url-resend', {
 			to: [{
 				email: specialUrl.email,
@@ -57,25 +56,26 @@ async function isValidSpecialUrl( req, res, next ) {
 			}]
 		} );
 		res.render('resend');
-	} else {
-		const actions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
-			name: action.name,
-			params: {
-				...action.params,
-				...actionParams
-			}
-		}));
+		return;
+	}
 
-		const actionNo = req.params.actionNo || 0;
-		const actionsComplete = req.session.actionsComplete || 0;
-		if ( actionNo <= actionsComplete ) {
-			req.specialUrl = specialUrl;
-			req.specialUrlActions = actions;
-			req.specialUrlActionNo = actionNo;
-			next();
-		} else {
-			res.status(500).send('error');
+	const actions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
+		name: action.name,
+		params: {
+			...action.params,
+			...actionParams
 		}
+	}));
+
+	const actionNo = req.params.actionNo || 0;
+	const actionsComplete = req.session.actionsComplete || 0;
+	if ( actionNo <= actionsComplete ) {
+		req.specialUrl = specialUrl;
+		req.specialUrlActions = actions;
+		req.specialUrlActionNo = actionNo;
+		next();
+	} else {
+		res.status(500).send('error');
 	}
 }
 
