@@ -54,7 +54,7 @@ app.get( '/', wrapAsync( async function( req, res ) {
 } ) );
 
 app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {
-	const { body: {type, description, params} } = req;
+	const { body: { type, description, params } } = req;
 
 	const exportDetails = await Exports.create({
 		type, description,
@@ -147,7 +147,7 @@ app.post( '/:uuid', hasSchema(updateSchema).orFlash, wrapAsync( async function( 
 		const items = await exportType.collection.find({
 			exports: {$elemMatch: {
 				export_id: exportDetails,
-				...data.status !== '' && {status: data.status}
+				...data.status && {status: data.status}
 			}}
 		});
 

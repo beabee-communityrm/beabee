@@ -55,11 +55,10 @@
 	"referralSchema": {
 		"body": {
 			"type": "object",
-			"required": ["referralCode", "referralGift"],
+			"required": ["referralCode"],
 			"properties": {
 				"referralCode": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"referralGift": {
 					"type": "string"

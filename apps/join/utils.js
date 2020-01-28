@@ -182,7 +182,7 @@ async function startMembership(member, {
 }
 
 async function isGiftAvailable({referralGift, referralGiftOptions, amount}) {
-	if (referralGift === '') return true; // No gift option
+	if (!referralGift) return true; // No gift option
 
 	const gift = await ReferralGifts.findOne({name: referralGift});
 	if (gift && gift.enabled && gift.minAmount <= amount) {
