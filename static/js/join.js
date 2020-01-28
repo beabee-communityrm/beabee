@@ -4,14 +4,24 @@
 	var $form = $('.js-join-form');
 	var $formMore = $form.find('.js-join-form-more');
 	var $sustain = $form.find('.js-join-sustain');
+
 	var $amount = $form.find('.js-join-amount');
 	var $otherAmount = $form.find('.js-join-other-amount');
 	var $otherAmountBox = $form.find('.js-join-other-amount-box');
+	var $period = $form.find('.js-join-period');
+
 	var $gift = $form.find('.js-gift');
 	var $giftNote = $form.find('.js-gift-note');
 	var $giftDetails = $form.find('.js-gift-details');
-	var $period = $form.find('.js-join-period');
+
+	var $fee = $form.find('.js-join-fee');
+	var $feeOpt = $form.find('.js-join-fee-opt');
+	var $feeForce = $form.find('.js-join-fee-force');
+	var $feeAmount = $form.find('.js-join-fee-amount');
+	var $payFee = $form.find('.js-join-pay-fee');
+
 	var $charge = $form.find('.js-join-charge');
+
 	var $jtjImg = $('.js-jtj-mug-img');
 	var $jtjMugOptionValue = $('.js-jtj-mug-option-value');
 
@@ -24,6 +34,14 @@
 
 		if (!amount) {
 			amount = $otherAmountBox.val();
+		}
+
+		var isAnnual = period === 'annually';
+		var actualAmount = amount * (isAnnual ? 12 : 1);
+
+		$payFee.prop('disabled', isAnnual);
+		if (actualAmount === 1) {
+			$payFee.prop('readonly', true).prop('checked', true);
 		}
 
 		if (amount) {
@@ -46,10 +64,21 @@
 				$(this).toggleClass('hidden', amount >= $(this).data('amount'));
 			});
 
-			$charge.text('£' + (amount * (period === 'annually' ? 12 : 1)));
+			var fee = (Math.floor(actualAmount / 0.99 * 100) + 20) / 100 - actualAmount;
+			$feeAmount.text(Math.round(fee * 100) + 'p');
+			$feeOpt.toggleClass('hidden', actualAmount === 1);
+			$feeForce.toggleClass('hidden', actualAmount > 1);
+
+			var chargeableAmount = $payFee.is(':checked:enabled') ? actualAmount + fee : actualAmount;
+			$charge.text('£' + chargeableAmount.toFixed(2) + '/' + (isAnnual ? 'year' : 'month'));
 		} else {
+			$feeAmount.text('??p');
+			$feeOpt.removeClass('hidden');
+			$feeForce.addClass('hidden');
 			$charge.text('£?');
 		}
+
+		$fee.toggleClass('hidden', isAnnual);
 
 		$giftDetails.each(function () {
 			var $this = $(this);

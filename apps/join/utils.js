@@ -73,7 +73,7 @@ async function createJoinFlow(completeUrl, joinForm, redirectFlowParams={}) {
 	const actualAmount = getActualAmount(joinForm.amount, joinForm.period);
 
 	const redirectFlow = await gocardless.redirectFlows.create({
-		description: `Membership: £${actualAmount}/${joinForm.period}`,
+		description: `Membership: £${actualAmount}/${joinForm.period}${joinForm.payFee ? ' (+ fee)' : ''}`,
 		session_token: sessionToken,
 		success_redirect_url: completeUrl,
 		...redirectFlowParams

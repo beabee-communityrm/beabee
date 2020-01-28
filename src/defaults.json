@@ -144,6 +144,7 @@
 	"flash-validation-error.amount-required": "Contribution amount is required",
 	"flash-validation-error.period-required": "Contribution period is required",
 	"flash-validation-error.amountOther-minimum": "The minimum contribution is £1",
+	"flash-validation-error.payFee-required": "You must absorb the transaction fee for £1 contributions",
 
 	"flash-validation-error.delivery_line1-minLength": "Delivery address line 1 is required",
 	"flash-validation-error.delivery_city-minLength": "Delivery town/city is required",

@@ -397,3 +397,12 @@ $bp-join-why: 768px;
 		font-weight: normal;
 	}
 }
+
+.join-link {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.join-pay-fee[readonly] {
+	opacity: 0.5;
+}
