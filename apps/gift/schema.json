@@ -5,12 +5,10 @@
 			"required": ["firstname", "lastname", "email", "startDate", "fromName", "fromEmail", "type"],
 			"properties": {
 				"firstname": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"lastname": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"email": {
 					"type": "string",
@@ -24,8 +22,7 @@
 					"type": "string"
 				},
 				"fromName": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"fromEmail": {
 					"type": "string",

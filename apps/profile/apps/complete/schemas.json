@@ -14,12 +14,10 @@
 					}
 				},
 				"reason": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"how": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"shareable": {
 					"type": "boolean"
@@ -36,15 +34,13 @@
 							"const": true
 						},
 						"delivery_line1": {
-							"type": "string",
-							"minLength": 1
+							"type": "string"
 						},
 						"delivery_line2": {
 							"type": "string"
 						},
 						"delivery_city": {
-							"type": "string",
-							"minLength": 1
+							"type": "string"
 						},
 						"delivery_postcode": {
 							"type": "string",

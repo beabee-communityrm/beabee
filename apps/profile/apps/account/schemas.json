@@ -9,12 +9,10 @@
 					"format": "email"
 				},
 				"firstname": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"lastname": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				}
 			}
 		}
