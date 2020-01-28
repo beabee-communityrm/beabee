@@ -8,7 +8,7 @@ async function getParams() {
 			name: 'groupId',
 			label: 'Special URLs',
 			type: 'select',
-			values: (await SpecialUrlGroups.find()).map(spg => [spg._id, spg.name])
+			values: (await SpecialUrlGroups.find()).map(spg => [spg._id.toString(), spg.name])
 		}
 	];
 }

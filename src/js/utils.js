@@ -10,7 +10,7 @@ function getParamValue(s, param) {
 	switch (param.type) {
 	case 'number': return Number(s);
 	case 'boolean': return s === 'true';
-	case 'select': return param.values.find(s2 => s === s2);
+	case 'select': return param.values.map(([k]) => k).find(k => s === k);
 	default: return s;
 	}
 }

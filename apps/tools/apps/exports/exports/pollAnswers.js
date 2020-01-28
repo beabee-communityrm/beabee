@@ -6,7 +6,7 @@ async function getParams() {
 			name: 'pollId',
 			label: 'Poll',
 			type: 'select',
-			values: (await Polls.find()).map(poll => [poll._id, poll.question])
+			values: (await Polls.find()).map(poll => [poll._id.toString(), poll.question])
 		}
 	];
 }
