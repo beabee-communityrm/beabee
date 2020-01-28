@@ -1,6 +1,6 @@
 const express = require( 'express' );
 const _ = require( 'lodash' );
-const moment = require( 'mongoose' );
+const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
 const { SpecialUrls } = require( __js + '/database' );
@@ -17,7 +17,7 @@ app.locals.basedir = __root;
 
 const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
-async function hasValidSpecialUrl( req, res, next ) {
+const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 	let specialUrl;
 	try {
 		specialUrl = await SpecialUrls.findOne( {
@@ -39,7 +39,19 @@ async function hasValidSpecialUrl( req, res, next ) {
 		return;
 	}
 
-	if ( !specialUrl.active ) {
+	if ( specialUrl.active ) {
+		const specialUrlActions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
+			name: action.name,
+			params: {
+				...action.params,
+				...actionParams
+			}
+		}));
+
+		req.specialUrl = specialUrl;
+		req.specialUrlActions = specialUrlActions;
+		next();
+	} else {
 		const newSpecialUrl = await SpecialUrls.create( {
 			email: specialUrl.email,
 			group: specialUrl.group,
@@ -68,22 +80,10 @@ async function hasValidSpecialUrl( req, res, next ) {
 				]
 			}]
 		} );
+
 		res.render( 'resend' );
-		return;
 	}
-
-	const specialUrlActions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
-		name: action.name,
-		params: {
-			...action.params,
-			...actionParams
-		}
-	}));
-
-	req.specialUrl = specialUrl;
-	req.specialUrlActions = specialUrlActions;
-	next();
-}
+} );
 
 app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
 	res.render('done');

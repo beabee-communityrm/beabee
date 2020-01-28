@@ -2,6 +2,7 @@ const config = require( __config );
 
 module.exports = {
 	getSpecialUrlUrl(specialUrl) {
-		return config.audience + '/s/' + specialUrl.group + '/' + specialUrl.uuid;
+		const groupId = specialUrl.group._id || specialUrl.group; // Handle populated group
+		return `${config.audience}/s/${groupId}/${specialUrl.uuid}`;
 	}
 };
