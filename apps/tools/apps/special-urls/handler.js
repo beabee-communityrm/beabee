@@ -90,11 +90,11 @@ app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
 } );
 
 app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
-	const { specialUrl, specialUrlActions, specialUrlActionNo } = req;
+	const { specialUrl, specialUrlActions } = req;
 
 	req.log.info( {
 		app: 'special-urls',
-		action: 'open-action',
+		action: 'opened',
 		data: {
 			specialUrl: specialUrl._id,
 			specialUrlActions
@@ -105,7 +105,7 @@ app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( r
 		await specialUrl.update( { $inc: { openCount: 1 } } );
 	}
 
-	for ( let i = specialUrlActionNo; i < specialUrlActions.length; i++ ) {
+	for ( let i = 0; i < specialUrlActions.length; i++ ) {
 		const action = specialUrlActions[i];
 
 		req.log.info( {
@@ -123,14 +123,15 @@ app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( r
 			return;
 		}
 
-		req.log.info( {
-			app: 'special-urls',
-			action: 'completed-action',
-			data: {
-				specialUrl: specialUrl._id,
-			}
-		} );
 	}
+
+	req.log.info( {
+		app: 'special-urls',
+		action: 'completed',
+		data: {
+			specialUrl: specialUrl._id,
+		}
+	} );
 
 	await specialUrl.update( { $inc: { completedCount: 1 } } );
 
