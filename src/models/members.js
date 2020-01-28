@@ -128,7 +128,7 @@ module.exports = {
 				default: Date.now,
 				required: true
 			},
-			tag: {
+			name: {
 				type: String,
 				required: true
 			}

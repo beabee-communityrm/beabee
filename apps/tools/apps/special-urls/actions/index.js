@@ -78,5 +78,23 @@ module.exports = [
 
 			return true;
 		}
+	},
+	{
+		name: 'Set tag',
+		getUrlParams: () => ({}),
+		getParams: async () => [ {
+			name: 'tagName',
+			label: 'Tag',
+			type: 'string'
+		} ],
+		run: async ( req, res, { tagName } ) => {
+			if ( !req.user ) {
+				res.redirect( '/login?next=' + req.originalUrl );
+				return false;
+			}
+
+			await req.user.update( { $push: { tags: { name: tagName } } } );
+			return true;
+		}
 	}
 ];

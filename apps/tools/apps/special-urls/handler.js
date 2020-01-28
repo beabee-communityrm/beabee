@@ -72,7 +72,7 @@ async function hasValidSpecialUrl( req, res, next ) {
 		return;
 	}
 
-	const actions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
+	const specialUrlActions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
 		name: action.name,
 		params: {
 			...action.params,
@@ -84,7 +84,7 @@ async function hasValidSpecialUrl( req, res, next ) {
 	const actionsComplete = req.session.actionsComplete || 0;
 	if ( actionNo <= actionsComplete ) {
 		req.specialUrl = specialUrl;
-		req.specialUrlActions = actions;
+		req.specialUrlActions = specialUrlActions;
 		req.specialUrlActionNo = actionNo;
 		next();
 	} else {
@@ -104,7 +104,7 @@ app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( r
 		action: 'open-action',
 		data: {
 			specialUrl: specialUrl._id,
-			actions
+			specialUrlActions
 		}
 	} );
 
