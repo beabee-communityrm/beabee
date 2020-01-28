@@ -35,7 +35,7 @@ async function hasValidSpecialUrl( req, res, next ) {
 	}
 
 	if ( !specialUrl.group.active ) {
-		res.render('expired');
+		res.render('inactive-group');
 		return;
 	}
 
