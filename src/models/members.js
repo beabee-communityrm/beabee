@@ -122,6 +122,17 @@ module.exports = {
 				required: false
 			}
 		},
+		tags: [{
+			added: {
+				type: Date,
+				default: Date.now,
+				required: true
+			},
+			tag: {
+				type: String,
+				required: true
+			}
+		}],
 		joined: {
 			type: Date,
 			default: Date.now,

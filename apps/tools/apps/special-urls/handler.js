@@ -99,6 +99,15 @@ app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
 app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 	const { specialUrl, specialUrlActions, specialUrlActionNo } = req;
 
+	req.log.info( {
+		app: 'special-urls',
+		action: 'open-action',
+		data: {
+			specialUrl: specialUrl._id,
+			actions
+		}
+	} );
+
 	if ( !req.params.actionNo ) {
 		await specialUrl.update( { $inc: { openCount: 1 } } );
 	}
@@ -106,16 +115,34 @@ app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( r
 	for ( let i = specialUrlActionNo; i < specialUrlActions.length; i++ ) {
 		const action = specialUrlActions[i];
 
+		req.log.info( {
+			app: 'special-urls',
+			action: 'run-action',
+			data: {
+				specialUrl: specialUrl._id,
+				action
+			}
+		} );
+
 		const doNextAction = await actionsByName[action.name].run(req, res, action.params);
 		// Actions are expected to handle sending the user a response if they return false
 		if (!doNextAction) {
 			return;
 		}
 
+		req.log.info( {
+			app: 'special-urls',
+			action: 'completed-action',
+			data: {
+				specialUrl: specialUrl._id,
+			}
+		} );
+
 		req.session.actionsComplete = i;
 	}
 
 	await specialUrl.update( { $inc: { completedCount: 1 } } );
+
 	res.redirect( `/s/${req.params.groupId}/${req.params.urlId}/done` );
 } ) );
 
