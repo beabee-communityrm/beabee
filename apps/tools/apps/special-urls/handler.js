@@ -80,16 +80,9 @@ async function hasValidSpecialUrl( req, res, next ) {
 		}
 	}));
 
-	const actionNo = req.params.actionNo || 0;
-	const actionsComplete = req.session.actionsComplete || 0;
-	if ( actionNo <= actionsComplete ) {
-		req.specialUrl = specialUrl;
-		req.specialUrlActions = specialUrlActions;
-		req.specialUrlActionNo = actionNo;
-		next();
-	} else {
-		res.status(500).send('error');
-	}
+	req.specialUrl = specialUrl;
+	req.specialUrlActions = specialUrlActions;
+	next();
 }
 
 app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
@@ -137,8 +130,6 @@ app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( r
 				specialUrl: specialUrl._id,
 			}
 		} );
-
-		req.session.actionsComplete = i;
 	}
 
 	await specialUrl.update( { $inc: { completedCount: 1 } } );
