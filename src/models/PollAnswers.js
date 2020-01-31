@@ -12,8 +12,7 @@ module.exports = {
 		},
 		member: {
 			type: ObjectId,
-			ref: 'Members',
-			required: true
+			ref: 'Members'
 		},
 		answer: {
 			type: String,
