@@ -51,8 +51,7 @@ async function createSpecialUrls( data ) {
 		})))
 	} );
 
-	// TODO: Remove Number
-	const urlExpires = urlDuration && moment.utc().add(Number(urlDuration), 'hours');
+	const urlExpires = urlDuration && moment.utc().add(urlDuration, 'hours');
 
 	// TODO: support CSV upload
 	const members = await Members.find(await activeMembers.getQuery({}));
