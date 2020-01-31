@@ -5,6 +5,8 @@ global.__js = __root + '/src/js';
 global.__models = __root + '/src/models';
 
 const _ = require('lodash');
+const EJSON = require('mongodb-extended-json');
+
 const config = require( __config );
 const db = require( __js + '/database' );
 const exportTypes = require('./types');
@@ -12,7 +14,7 @@ const exportTypes = require('./types');
 // Anonymise properties but maintain same mapping to keep links
 let valueMap = {};
 function anonymiseProperties(item, properties) {
-	let newItem = JSON.parse(JSON.stringify(item));
+	let newItem = EJSON.parse(EJSON.stringify(item));
 
 	_.forEach(properties, (anonymiseFn, property) => {
 		const value = _.get(item, property);
@@ -25,7 +27,7 @@ function anonymiseProperties(item, properties) {
 	return newItem;
 }
 
-async function runExport({model, properties={}}) {
+async function runExport({model, properties}) {
 	console.error('Fetching', model.modelName);
 
 	// Use native collection to reduce memory usage
@@ -37,7 +39,7 @@ async function runExport({model, properties={}}) {
 	});
 
 	console.error(`Anonymising ${model.modelName}, got ${items.length} items`);
-	const newItems = items.map(item => anonymiseProperties(item, properties));
+	const newItems = properties ? items : items.map(item => anonymiseProperties(item, properties));
 
 	return {
 		modelName: model.modelName,
@@ -47,7 +49,7 @@ async function runExport({model, properties={}}) {
 
 async function main() {
 	const exportData = await Promise.all(exportTypes.map(runExport));
-	console.log(JSON.stringify(exportData));
+	console.log(EJSON.stringify(exportData));
 }
 
 db.connect(config.mongo);

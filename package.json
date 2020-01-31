@@ -39,6 +39,7 @@
     "lodash": "^4.17.15",
     "mandrill-api": "^1.0.45",
     "moment": "^2.24.0",
+    "mongodb-extended-json": "^1.11.0",
     "mongoose": "^5.7.5",
     "notp": "^2.0.3",
     "papaparse": "^4.6.3",
