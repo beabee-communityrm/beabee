@@ -39,7 +39,7 @@ async function runExport({model, properties}) {
 	});
 
 	console.error(`Anonymising ${model.modelName}, got ${items.length} items`);
-	const newItems = properties ? items : items.map(item => anonymiseProperties(item, properties));
+	const newItems = properties ? items.map(item => anonymiseProperties(item, properties)) : items;
 
 	return {
 		modelName: model.modelName,
