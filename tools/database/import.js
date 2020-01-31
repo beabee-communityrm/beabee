@@ -17,7 +17,7 @@ async function runImport({modelName, items}) {
 	const model = modelsByName[modelName];
 	await model.deleteMany({});
 	try {
-		await model.insertMany(items);
+		await model.collection.insertMany(items);
 	} catch (err) {
 		console.error(err);
 	}
