@@ -11,9 +11,9 @@ block contents
 	.row
 		.col-md-8
 			if specialUrlGroup.active
-				.alert.alert-success URLs are active
+				.alert.alert-success These special URLs are active
 			else
-				.alert.alert-warning URLs are inactive
+				.alert.alert-warning These special URLs are inactive
 
 			if specialUrlGroup.expires
 				p Expires on #{moment(specialUrlGroup.expires).format('HH:mm DD/MM/Y')}

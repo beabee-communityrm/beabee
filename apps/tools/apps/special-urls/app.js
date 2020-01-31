@@ -63,7 +63,9 @@ async function createSpecialUrls( data ) {
 			firstname: member.firstname,
 			lastname: member.lastname,
 			expires: urlExpires,
-			actionParams: newActions.map(action => actionsByName[action.name].getUrlParams(member))
+			actionParams: newActions.map(action => (
+				(actionsByName[action.name].getUrlParams || (() => {}))(member)
+			))
 		});
 	}
 

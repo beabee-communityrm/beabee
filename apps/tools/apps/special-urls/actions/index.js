@@ -5,11 +5,11 @@ const { canChangeSubscription, processUpdateSubscription } = require( __apps + '
 module.exports = [
 	{
 		name: 'Log in',
-		getParams: async () => [ {
+		getParams: async () => [ /*{
 			name: 'confirmEmail',
 			label: 'Confirm email?',
 			type: 'boolean'
-		} ],
+		}*/ ],
 		getUrlParams: member => ( { memberId: member._id } ),
 		run: async ( req, res, { memberId, confirmEmail } ) => {
 			const member = await Members.findById( memberId );
@@ -43,9 +43,12 @@ module.exports = [
 			name: 'amount',
 			label: 'Amount',
 			type: 'number'
+		}, {
+			name: 'isAbsolute',
+			label: 'Absolute change?',
+			type: 'boolean'
 		}],
-		getUrlParams: () => ({}),
-		run: async ( req, res, { amount } ) => {
+		run: async ( req, res, { amount, isAbsolute } ) => {
 			if ( !req.user ) {
 				res.redirect( '/login?next=' + req.originalUrl );
 				return false;
@@ -53,7 +56,7 @@ module.exports = [
 
 			if ( await canChangeSubscription( req.user ) ) {
 				await processUpdateSubscription( req.user, {
-					amount: req.user.contributionMonthlyAmount + amount
+					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount
 				} );
 			}
 
@@ -62,7 +65,6 @@ module.exports = [
 	},
 	{
 		name: 'Absorb fee',
-		getUrlParams: () => ({}),
 		run: async ( req, res ) => {
 			if ( !req.user ) {
 				res.redirect( '/login?next=' + req.originalUrl );
@@ -81,7 +83,6 @@ module.exports = [
 	},
 	{
 		name: 'Set tag',
-		getUrlParams: () => ({}),
 		getParams: async () => [ {
 			name: 'tagName',
 			label: 'Tag',
