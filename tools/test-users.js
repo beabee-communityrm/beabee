@@ -35,6 +35,8 @@ async function getFilters() {
 	const membersWithScheduledPayments = scheduledPayments.map(p => p.member);
 	const membersWithFailedPayments = failedPayments.map(p => p.member);
 
+	const permissions = await db.Permissions.find();
+
 	return {
 		isActive: {
 			permissions: {$elemMatch: {
@@ -46,6 +48,11 @@ async function getFilters() {
 			permissions: {$elemMatch: {
 				permission: config.permission.memberId,
 				date_expires: {$lte: now}
+			}}
+		},
+		isSuperAdmin: {
+			permissions: {$elemMatch: {
+				permission: permissions.find(p => p.slug === 'superadmin')
 			}}
 		},
 		isGift: {
@@ -105,6 +112,13 @@ async function main() {
 	await logMember('Inactive, gift membership', {
 		...filters.isInactive,
 		...filters.isGift
+	});
+
+	await logMember('Super admin account', {
+		$and: [
+			filters.isActive,
+			filters.isSuperAdmin
+		]
 	});
 }
 
