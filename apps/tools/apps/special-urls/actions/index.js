@@ -12,13 +12,28 @@ module.exports = [
 		}*/ ],
 		getUrlParams: member => ( { memberId: member._id } ),
 		run: async ( req, res, { memberId } ) => {
-			const member = await Members.findById( memberId );
+			const member = await Members.findById( memberId ).populate('permissions.permission');
 
 			await new Promise( resolve => {
 				req.login( member, () => {
 					// Force session to be temporary
 					req.session.cookie.expires = false;
+
+					// TODO: remove this, currently copied from auth deserializeUser
+					let permissions = [];
+					// Loop through permissions check they are active right now and add those to the array
+					for ( var p = 0; p < member.permissions.length; p++ ) {
+						if ( member.permissions[p].date_added <= new Date() ) {
+							if ( ! member.permissions[p].date_expires || member.permissions[p].date_expires > new Date() ) {
+								permissions.push( member.permissions[p].permission.slug );
+							}
+						}
+					}
+
+					req.user.quickPermissions = permissions;
+
 					resolve();
+
 				} );
 			} );
 
@@ -55,7 +70,7 @@ module.exports = [
 					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount
 				} );
 			} else {
-				res.render( 'change-contribution/cant-change' );
+				res.render( 'actions/cant-change-contribution' );
 				return false;
 			}
 
@@ -76,7 +91,7 @@ module.exports = [
 					payFee: true
 				} );
 			} else {
-				res.render( 'change-contribution/cant-change' );
+				res.render( 'actions/cant-change-contribution' );
 				return false;
 			}
 
