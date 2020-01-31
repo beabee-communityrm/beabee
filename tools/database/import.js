@@ -5,7 +5,9 @@ global.__js = __root + '/src/js';
 global.__models = __root + '/src/models';
 
 const _ = require('lodash');
+const EJSON = require('mongodb-extended-json');
 const fs = require('fs');
+
 const config = require( __config );
 const db = require( __js + '/database' );
 const importTypes = require('./types');
@@ -35,7 +37,7 @@ if (!config.dev) {
 db.connect(config.mongo);
 
 db.mongoose.connection.on('connected', () => {
-	main(JSON.parse(fs.readFileSync(process.argv[2])))
+	main(EJSON.parse(fs.readFileSync(process.argv[2])))
 		.catch(err => console.error(err))
 		.then(() => db.mongoose.disconnect());
 });
