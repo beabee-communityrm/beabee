@@ -1,12 +1,11 @@
 extends /src/views/splash.pug
 
 block prepend title
-	- title = 'Link is invalid'
+	- title = 'Can\'t change contribution'
 
 block splash-contents
-	h3 Link is invalid
+	h3 Unable to change contribution
 	p.
-		This link is no longer valid, this is possibly because it has expired for
-		security reasons.
+		It looks like your direct debit has been cancelled.
 
 	p Contact #[+email('membership.thebristolcable.org')] for support.

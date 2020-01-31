@@ -11,22 +11,18 @@ module.exports = [
 			type: 'boolean'
 		}*/ ],
 		getUrlParams: member => ( { memberId: member._id } ),
-		run: async ( req, res, { memberId, confirmEmail } ) => {
+		run: async ( req, res, { memberId } ) => {
 			const member = await Members.findById( memberId );
 
-			if ( confirmEmail ) {
-				// TODO
-				res.render( 'actions/confirm-email.pug' );
-				return false;
-			} else {
-				return await new Promise( resolve => {
-					req.login( member, () => {
-						// Force session to be temporary
-						req.session.cookie.expires = false;
-						resolve(true);
-					} );
+			await new Promise( resolve => {
+				req.login( member, () => {
+					// Force session to be temporary
+					req.session.cookie.expires = false;
+					resolve();
 				} );
-			}
+			} );
+
+			return true;
 		}
 	},
 	{
@@ -54,10 +50,13 @@ module.exports = [
 				return false;
 			}
 
-			if ( await canChangeSubscription( req.user ) ) {
+			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user ) ) {
 				await processUpdateSubscription( req.user, {
 					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount
 				} );
+			} else {
+				res.render( 'change-contribution/cant-change' );
+				return false;
 			}
 
 			return true;
@@ -71,11 +70,14 @@ module.exports = [
 				return false;
 			}
 
-			if ( await canChangeSubscription( req.user ) ) {
+			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user ) ) {
 				await processUpdateSubscription( req.user, {
 					amount: req.user.contributionMonthlyAmount,
 					payFee: true
 				} );
+			} else {
+				res.render( 'change-contribution/cant-change' );
+				return false;
 			}
 
 			return true;
