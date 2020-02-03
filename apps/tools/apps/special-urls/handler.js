@@ -86,10 +86,14 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 } );
 
 app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
-	res.render('done');
+	res.render( 'done', { specialUrl: req.specialUrl } );
 } );
 
-app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
+app.get( '/:groupId/:urlId', hasValidSpecialUrl, ( req, res ) => {
+	res.render( 'confirm', { specialUrl: req.specialUrl } );
+} );
+
+app.post( '/:groupId/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 	const { specialUrl, specialUrlActions } = req;
 
 	req.log.info( {
