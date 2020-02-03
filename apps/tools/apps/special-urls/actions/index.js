@@ -5,14 +5,13 @@ const { canChangeSubscription, processUpdateSubscription } = require( __apps + '
 module.exports = [
 	{
 		name: 'Log in',
-		getParams: async () => [ /*{
-			name: 'confirmEmail',
-			label: 'Confirm email?',
-			type: 'boolean'
-		}*/ ],
-		getUrlParams: member => ( { memberId: member._id } ),
-		run: async ( req, res, { memberId } ) => {
-			const member = await Members.findById( memberId ).populate('permissions.permission');
+		getUrlParams: recipient => ( { email: recipient.EmailAddress } ),
+		run: async ( req, res, { email } ) => {
+			const member = await Members.findOne( { email } ).populate( 'permissions.permission' );
+
+			if (!member) {
+				throw Error('Unknown member');
+			}
 
 			await new Promise( resolve => {
 				req.login( member, () => {

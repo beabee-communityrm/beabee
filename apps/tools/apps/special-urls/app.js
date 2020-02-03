@@ -1,13 +1,13 @@
+const busboy = require( 'connect-busboy' );
 const express = require( 'express' );
-const moment = require( 'moment' );
 const _ = require( 'lodash' );
+const moment = require( 'moment' );
+const Papa = require('papaparse');
 
 const auth = require( __js + '/authentication' );
-const { Members, SpecialUrlGroups, SpecialUrls } = require( __js + '/database' );
+const { SpecialUrlGroups, SpecialUrls } = require( __js + '/database' );
 const { hasModel, hasSchema } = require( __js + '/middleware' );
 const { loadParams, parseParams, wrapAsync } = require( __js + '/utils' );
-
-const activeMembers = require( __apps + '/tools/apps/exports/exports/activeMembers' );
 
 const { createSpecialUrlsSchema, updateSpecialUrlsSchema } = require( './schemas.json' );
 const actions = require('./actions');
@@ -52,23 +52,6 @@ async function createSpecialUrls( data ) {
 		})))
 	} );
 
-	const urlExpires = urlDuration && moment.utc().add(urlDuration, 'hours');
-
-	// TODO: support CSV upload
-	const members = await Members.find(await activeMembers.getQuery({}));
-	for (const member of members) {
-		await SpecialUrls.create({
-			group: specialUrlGroup,
-			email: member.email,
-			firstname: member.firstname,
-			lastname: member.lastname,
-			expires: urlExpires,
-			actionParams: newActions.map(action => (
-				(actionsByName[action.name].getUrlParams || (() => {}))(member)
-			))
-		});
-	}
-
 	return specialUrlGroup;
 }
 
@@ -103,7 +86,37 @@ app.post( '/:_id', [
 	}
 
 	res.redirect( '/tools/special-urls/' + req.model._id );
+} ) );
 
+app.post( '/:_id/upload', hasModel(SpecialUrlGroups, '_id'), busboy(), wrapAsync( async ( req, res ) => {
+	let recipients;
+
+	req.busboy.on('file', (fieldname, file) => {
+		Papa.parse(file, {
+			header: true,
+			complete: function (results) {
+				recipients = results.data;
+			}
+		});
+	});
+
+	req.busboy.on('finish', async () => {
+		const urlExpires = moment.utc().add(req.model.urlDuration, 'hours');
+
+		for (const recipient of recipients) {
+			await SpecialUrls.create({
+				group: req.model,
+				email: recipient.EmailAddress,
+				firstname: recipient.FirstName,
+				lastname: recipient.LastName,
+				expires: urlExpires
+			});
+		}
+
+		res.redirect( '/tools/special-urls/' + req.model._id );
+	});
+
+	req.pipe(req.busboy);
 } ) );
 
 module.exports = config => {

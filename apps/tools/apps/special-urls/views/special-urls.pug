@@ -43,7 +43,6 @@ block contents
 						| Are you sure?
 
 			- activeUrls = specialUrls.filter(s => s.active).length
-
 			dl
 				dt Total URLs
 				dd= specialUrls.length
@@ -57,6 +56,17 @@ block contents
 				dd= specialUrls.filter(s => s.completedCount > 0).length
 
 			hr
+
+			h4 Add recipients
+
+			form(action='/tools/special-urls/' + specialUrlGroup._id + '/upload?_csrf=' + csrf method='POST' enctype='multipart/form-data').form-horizontal
+				.form-group
+					label(for='file').control-label.col-md-3 Recipient list
+					.col-md-6
+						input(type='file' name='file')#file.form-control
+				.form-group
+					.col-md-6.col-md-offset-3
+						button.btn.btn-primary Upload
 
 			h4 Actions
 			table.table
