@@ -21,7 +21,7 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 	let specialUrl;
 	try {
 		specialUrl = await SpecialUrls.findOne( {
-			uuid: req.params.urlId, group: req.params.groupId
+			uuid: req.params.urlId
 		} ).populate( 'group' );
 	} catch ( err ) {
 		if ( !( err instanceof mongoose.CastError ) ) {
@@ -85,11 +85,15 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 	}
 } );
 
-app.get( '/:groupId/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
-	res.render('done');
+app.get( '/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
+	res.render( 'done', { specialUrl: req.specialUrl } );
 } );
 
-app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
+app.get( '/:urlId', hasValidSpecialUrl, ( req, res ) => {
+	res.render( 'confirm', { specialUrl: req.specialUrl } );
+} );
+
+app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 	const { specialUrl, specialUrlActions } = req;
 
 	req.log.info( {
@@ -101,9 +105,12 @@ app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( r
 		}
 	} );
 
-	if ( !req.params.actionNo ) {
-		await specialUrl.update( { $inc: { openCount: 1 } } );
+	if ( specialUrl.completedCount > 0 ) {
+		res.render( 'already-opened', { specialUrl } );
+		return;
 	}
+
+	await specialUrl.update( { $inc: { openCount: 1 } } );
 
 	for ( let i = 0; i < specialUrlActions.length; i++ ) {
 		const action = specialUrlActions[i];
@@ -135,7 +142,7 @@ app.all( '/:groupId/:urlId/:actionNo?', hasValidSpecialUrl, wrapAsync( async ( r
 
 	await specialUrl.update( { $inc: { completedCount: 1 } } );
 
-	res.redirect( `/s/${req.params.groupId}/${req.params.urlId}/done` );
+	res.redirect( `/s/${req.params.urlId}/done` );
 } ) );
 
 module.exports = app;

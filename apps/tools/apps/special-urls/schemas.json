@@ -2,11 +2,10 @@
 	"createSpecialUrlsSchema": {
 		"body": {
 			"type": "object",
-			"required": ["name", "urlDuration"],
+			"required": ["name", "urlDuration", "thanksMessage"],
 			"properties": {
 				"name": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"expiresDate": {
 					"type": "string",
@@ -18,6 +17,9 @@
 				},
 				"urlDuration": {
 					"type": "integer"
+				},
+				"thanksMessage": {
+					"type": "string"
 				},
 				"actions": {
 					"type": "array",

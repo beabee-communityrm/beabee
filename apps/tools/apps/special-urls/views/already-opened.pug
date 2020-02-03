@@ -1,11 +1,11 @@
 extends /src/views/splash.pug
 
 block prepend title
-	- title = 'Thanks'
+	- title = ''
 
 block login
 
 block splash-contents
 	.text-center
-		h3 Done!
-		p= specialUrl.group.thanksMessage
+		h3= specialUrl.group.name
+		p You have already done this!

@@ -46,6 +46,7 @@ module.exports = [
 			if ( req.user ) {
 				req.logout();
 			}
+			return true;
 		}
 	},
 	{
