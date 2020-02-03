@@ -32,9 +32,7 @@ async function canChangeSubscription(user, useMandate=null) {
 		sort: {charge_date: -1}
 	});
 
-	return payments.length === 0 || [
-		'pending_customer_approval', 'pending_submission', 'submitted'
-	].indexOf(payments[0].status) === -1;
+	return payments.length === 0 || !payments[0].isPending;
 }
 
 async function getBankAccount(user) {

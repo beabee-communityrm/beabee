@@ -1,6 +1,7 @@
 const express = require('express');
 
 const auth = require( __js + '/authentication' );
+const { Payments } = require( __js + '/database' );
 const gocardless = require( __js + '/gocardless' );
 const mandrill = require( __js + '/mandrill' );
 const{ hasSchema } = require( __js + '/middleware' );
@@ -40,8 +41,18 @@ app.use( function( req, res, next ) {
 app.use( auth.isLoggedIn );
 
 app.get( '/', wrapAsync( async function ( req, res ) {
+	let isFirstPayment;
+	if (req.user.contributionPeriod === 'gift') {
+		isFirstPayment = false;
+	} else {
+		// Limit to 2 because if there are 2+ payments it's not their first payment
+		const payments = await Payments.find( { member: req.user }, { limit: 2 } );
+		isFirstPayment = payments.length === 1 && payments[0].isPending;
+	}
+
 	res.render( 'index', {
 		user: req.user,
+		isFirstPayment,
 		bankAccount: await getBankAccount(req.user),
 		canChange: await canChangeSubscription(req.user),
 		monthsLeft: calcSubscriptionMonthsLeft(req.user)
