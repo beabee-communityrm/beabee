@@ -5,6 +5,6 @@ block login
 block splash-contents
 	form(method='POST').text-center
 		+csrf
-		h2= specialUrl.group.name
+		h3= specialUrl.group.name
 		p Please confirm you are happy to continue.
 		button.btn.join-btn Confirm
