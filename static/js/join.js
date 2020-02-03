@@ -39,9 +39,9 @@
 		var isAnnual = period === 'annually';
 		var actualAmount = amount * (isAnnual ? 12 : 1);
 
-		$payFee.prop('disabled', isAnnual);
+		$payFee.prop('disabled', isAnnual).prop('readOnly', actualAmount === 1);
 		if (actualAmount === 1) {
-			$payFee.prop('readonly', true).prop('checked', true);
+			$payFee.prop('checked', true);
 		}
 
 		if (amount) {
