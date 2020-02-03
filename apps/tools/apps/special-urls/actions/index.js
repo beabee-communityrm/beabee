@@ -5,9 +5,8 @@ const { canChangeSubscription, processUpdateSubscription } = require( __apps + '
 module.exports = [
 	{
 		name: 'Log in',
-		getUrlParams: recipient => ( { email: recipient.EmailAddress } ),
-		run: async ( req, res, { email } ) => {
-			const member = await Members.findOne( { email } ).populate( 'permissions.permission' );
+		run: async ( req ) => {
+			const member = await Members.findOne( { email: req.specialUrl.email } ).populate( 'permissions.permission' );
 
 			if (!member) {
 				throw Error('Unknown member');

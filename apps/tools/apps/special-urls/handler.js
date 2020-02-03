@@ -40,16 +40,7 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 	}
 
 	if ( specialUrl.active ) {
-		const specialUrlActions = _.zipWith(specialUrl.group.actions, specialUrl.actionParams, (action, actionParams) => ({
-			name: action.name,
-			params: {
-				...action.params,
-				...actionParams
-			}
-		}));
-
 		req.specialUrl = specialUrl;
-		req.specialUrlActions = specialUrlActions;
 		next();
 	} else {
 		const newSpecialUrl = await SpecialUrls.create( {
@@ -57,7 +48,6 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 			group: specialUrl.group,
 			firstname: specialUrl.firstname,
 			lastname: specialUrl.lastname,
-			actionParams: specialUrl.actionParams,
 			expires: moment.utc().add(specialUrl.group.urlDuration, 'hours')
 		} );
 
@@ -95,14 +85,13 @@ app.get( '/:urlId', hasValidSpecialUrl, ( req, res ) => {
 } );
 
 app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
-	const { specialUrl, specialUrlActions } = req;
+	const { specialUrl } = req;
 
 	req.log.info( {
 		app: 'special-urls',
 		action: 'opened',
 		data: {
-			specialUrl: specialUrl._id,
-			specialUrlActions
+			specialUrl
 		}
 	} );
 
@@ -113,9 +102,7 @@ app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 
 	await specialUrl.update( { $inc: { openCount: 1 } } );
 
-	for ( let i = 0; i < specialUrlActions.length; i++ ) {
-		const action = specialUrlActions[i];
-
+	for ( let action of specialUrl.group.actions ) {
 		req.log.info( {
 			app: 'special-urls',
 			action: 'run-action',
@@ -130,7 +117,6 @@ app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 		if (!doNextAction) {
 			return;
 		}
-
 	}
 
 	req.log.info( {

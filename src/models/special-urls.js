@@ -31,7 +31,6 @@ module.exports = {
 			required: true
 		},
 		expires: Date,
-		actionParams: [Object],
 		openCount: {
 			type: Number,
 			default: 0
