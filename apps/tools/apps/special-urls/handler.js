@@ -86,7 +86,8 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 } );
 
 app.get( '/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
-	res.render( 'done', { specialUrl: req.specialUrl } );
+	const thanksMessage = req.specialUrl.group.thanksMessage.replace('[firstname]', req.specialUrl.firstname);
+	res.render( 'done', { thanksMessage } );
 } );
 
 app.get( '/:urlId', hasValidSpecialUrl, ( req, res ) => {
