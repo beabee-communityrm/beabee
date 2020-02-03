@@ -33,28 +33,30 @@ form(
 					)
 					| Annually
 
-	if bankAccount
-		.form-group
-			label.col-md-3.control-label Bank account
-			.col-md-9
-					.radio
-						label
-							input(type='radio', name='useMandate', value='true', required, checked)
-							span
-								= bankAccount.account_holder_name
-								| ,
-								|
-								= bankAccount.bank_name
-								| , •••••••
-								= bankAccount.account_number_ending
-					.radio
-						label
-							input(type='radio', name='useMandate', value='false', required)
-							span Change bank details
-							br
-							small: i You'll be asked for your new bank details in the next step
-	else
-		input(type='hidden', name='useMandate', value='false')
+	.form-group
+		label.col-md-3.control-label Bank account
+		.col-md-9
+			if bankAccount
+				.radio
+					label
+						input(type='radio', name='useMandate', value='true', required, checked)
+						span
+							= bankAccount.account_holder_name
+							| ,
+							|
+							= bankAccount.bank_name
+							| , •••••••
+							= bankAccount.account_number_ending
+				.radio
+					label
+						input(type='radio', name='useMandate', value='false', required)
+						span Change bank details
+						br
+						small: i You'll be asked for your new bank details in the next step
+			else
+				.form-control-static
+					input(type='hidden', name='useMandate', value='false')
+					i You'll be asked for your bank details in the next step
 
 	if monthsLeft < 1
 		input(type='hidden' name='prorate' value='false')
