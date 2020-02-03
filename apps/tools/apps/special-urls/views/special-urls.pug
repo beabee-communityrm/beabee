@@ -1,0 +1,77 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Special URLs'
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Special URLs - ' + specialUrlGroup.name)
+
+	.row
+		.col-md-8
+			if specialUrlGroup.active
+				.alert.alert-success These special URLs are active
+			else
+				.alert.alert-warning These special URLs are inactive
+
+			if specialUrlGroup.expires
+				p Expires on #{moment(specialUrlGroup.expires).format('HH:mm DD/MM/Y')}
+			else
+				p No expiration date
+
+			if specialUrlGroup.urlDuration
+				p URLs will renew after #{specialUrlGroup.urlDuration} hours
+
+			form(method='POST').form-inline
+				+csrf
+				p
+					button(name='action' value='toggle').btn.btn-primary.btn-sm
+						if specialUrlGroup.enabled
+							| Disable
+						else
+							| Enable
+
+			form(method='POST').form-inline
+				+csrf
+				p
+					button(name='action' value='force-expire').btn.btn-sm.btn-danger.outline Force expire URLs
+					|
+					|
+					label
+						input(type='checkbox' required)
+						| Are you sure?
+
+			- activeUrls = specialUrls.filter(s => s.active).length
+
+			dl
+				dt Total URLs
+				dd= specialUrls.length
+				dt Active URLs
+				dd= activeUrls
+				dt Expired URLs
+				dd= specialUrls.length - activeUrls
+				dt Opened URLs
+				dd= specialUrls.filter(s => s.openCount > 0).length
+				dt Completed URLs
+				dd= specialUrls.filter(s => s.completedCount > 0).length
+
+			hr
+
+			h4 Actions
+			table.table
+				thead
+					tr
+						th Name
+						th Params
+				tbody
+					each action in specialUrlGroup.actions
+						tr
+							td= action.name
+							td
+								if action.params
+									each value, name in action.params
+										= name
+										| :
+										|
+										= value

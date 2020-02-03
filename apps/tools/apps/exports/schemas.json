@@ -44,13 +44,11 @@
 							"type": "string"
 						},
 						"status": {
-							"type": "string",
-							"minLength": 1
+							"type": "string"
 						}
 					}
 				},
 				{
-					"required": ["status"],
 					"properties": {
 						"action": {
 							"const": "export"

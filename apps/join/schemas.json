@@ -7,20 +7,47 @@
 				"period": {
 					"type": "string",
 					"enum": ["monthly", "annually"]
+				},
+				"payFee": {
+					"type": "boolean"
 				}
 			},
 			"oneOf": [
 				{
 					"properties": {
 						"amount": { "type": "integer", "minimum": 1 }
+					},
+					"if":{
+						"properties": {
+							"period": {"const": "monthly"},
+							"amount": {"const": 1}
+						}
+					},
+					"then": {
+						"required": ["payFee"],
+						"properties": {
+							"payFee": {"const": true}
+						}
 					}
 				},
 				{
+					"required": ["amountOther"],
 					"properties": {
 						"amount": { "const": "other" },
 						"amountOther": { "type": "integer", "minimum": 1 }
 					},
-					"required": ["amountOther"]
+					"if": {
+						"properties": {
+							"period": {"const": "monthly"},
+							"amountOther": {"const": 1}
+						}
+					},
+					"then": {
+						"required": ["payFee"],
+						"properties": {
+							"payFee": {"const": true}
+						}
+					}
 				}
 			]
 		}
@@ -28,11 +55,10 @@
 	"referralSchema": {
 		"body": {
 			"type": "object",
-			"required": ["referralCode", "referralGift"],
+			"required": ["referralCode"],
 			"properties": {
 				"referralCode": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"referralGift": {
 					"type": "string"

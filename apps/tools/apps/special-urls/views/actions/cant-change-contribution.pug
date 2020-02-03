@@ -1,0 +1,10 @@
+extends /src/views/splash.pug
+
+block prepend title
+	- title = 'Can\'t change contribution'
+
+block splash-contents
+	h3 Unable to change contribution
+	p.
+		It looks like your direct debit has been cancelled. Please contact
+		#[+email('membership.thebristolcable.org')] for support.

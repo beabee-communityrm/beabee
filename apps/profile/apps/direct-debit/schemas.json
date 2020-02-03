@@ -10,8 +10,7 @@
 					"maximum": 5
 				},
 				"reason": {
-					"type": "string",
-					"minLength": 1
+					"type": "string"
 				},
 				"other": {
 					"type": "string"

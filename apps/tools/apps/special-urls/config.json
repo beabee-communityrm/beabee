@@ -1,0 +1,9 @@
+{
+	"title": "Special URLs",
+	"path": "special-urls",
+	"permissions": [
+		"superadmin", "admin"
+	],
+	"menu": "main",
+	"priority": 3
+}

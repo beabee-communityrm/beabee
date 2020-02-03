@@ -17,6 +17,8 @@ const pageSettings = require( __js + '/page-settings' );
 const quickflash = require( __js + '/quickflash' );
 const sessions = require( __js + '/sessions' );
 
+const specialUrlHandler = require( __apps + '/tools/apps/special-urls/handler' );
+
 const config = require( __config );
 const log = logging.log;
 
@@ -94,6 +96,9 @@ app.use( pageSettings.middleware );
 
 // Load apps
 appLoader( app );
+
+// Hook to handle special URLs
+app.use( '/s', specialUrlHandler );
 
 // Error 404
 app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars

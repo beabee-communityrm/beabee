@@ -1,11 +1,12 @@
 const express = require( 'express' );
+const _ = require('lodash');
 const Papa = require('papaparse');
 const pug = require( 'pug' );
 
 const auth = require( __js + '/authentication' );
 const { Exports } = require( __js + '/database' );
 const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const { loadParams, parseParams, wrapAsync } = require( __js + '/utils' );
 
 const { createSchema, updateSchema } = require('./schemas.json');
 
@@ -16,10 +17,7 @@ const viewsPath = __dirname + '/views';
 const exportTypeViews = {
 	'active-members': pug.compileFile(viewsPath + '/tables/members.pug'),
 	'edition': pug.compileFile(viewsPath + '/tables/members.pug'),
-	'join-reasons': pug.compileFile(viewsPath + '/tables/join-reasons.pug'),
-	'poll-answers': () => {},
-	'poll-letter': () => {},
-	'referrals': () => {}
+	'join-reasons': pug.compileFile(viewsPath + '/tables/join-reasons.pug')
 };
 
 const app = express();
@@ -48,18 +46,21 @@ app.get( '/', wrapAsync( async function( req, res ) {
 		exports: exports.filter(e => e.type === type)
 	}));
 
-	for (const type in exportTypes) {
-		const exportType = exportTypes[type];
-		exportType.params = exportType.getParams ? await exportType.getParams() : [];
-	}
+	const exportTypesWithParams = await loadParams(_.map(exportTypes, (exportType, type) => ({
+		...exportType, type
+	})));
 
-	res.render('index', {exportsByType, exportTypes});
+	res.render('index', {exportsByType, exportTypesWithParams});
 } ) );
 
 app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {
-	const { body: {type, description, params} } = req;
+	const { body: { type, description, params } } = req;
 
-	const exportDetails = await Exports.create({type, description, params});
+	const exportDetails = await Exports.create({
+		type, description,
+		params: await parseParams(exportTypes[type], params)
+	});
+
 	req.flash('success', 'exports-created');
 	res.redirect('/tools/exports/' + exportDetails._id);
 } ) );
@@ -90,13 +91,15 @@ app.get( '/:uuid', wrapAsync( async function( req, res ) {
 		items: exportItems.filter(item => item.currentExport.status === status)
 	}));
 
+	const renderItemsFn = exportTypeViews[exportDetails.type] || (() => {});
+
 	res.render('export', {
 		exportDetails,
 		exportType,
 		exportItems,
 		exportItemsByStatus,
 		newItems,
-		renderItems: items => exportTypeViews[exportDetails.type]({items})
+		renderItems: items => renderItemsFn({items})
 	});
 } ) );
 
@@ -144,7 +147,7 @@ app.post( '/:uuid', hasSchema(updateSchema).orFlash, wrapAsync( async function( 
 		const items = await exportType.collection.find({
 			exports: {$elemMatch: {
 				export_id: exportDetails,
-				...data.status !== '' && {status: data.status}
+				...data.status && {status: data.status}
 			}}
 		});
 

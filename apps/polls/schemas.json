@@ -191,7 +191,11 @@
 		"solutions": {
 			"body": {
 				"type": "object",
+				"required": ["answer"],
 				"properties": {
+					"answer": {
+						"const": "done"
+					},
 					"issues": {
 						"type": "array",
 						"items": {
@@ -199,12 +203,10 @@
 						}
 					},
 					"affected": {
-						"type": "string",
-						"minLength": 1
+						"type": "string"
 					},
 					"questions": {
-						"type": "string",
-						"minLength": 1
+						"type": "string"
 					},
 					"solutions": {
 						"type": "string"

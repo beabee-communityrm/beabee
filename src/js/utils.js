@@ -2,12 +2,24 @@ function isValidNextUrl(url) {
 	return /^\/([^/]|$)/.test(url);
 }
 
+function getActualAmount(amount, period) {
+	return amount * ( period === 'annually'  ? 12 : 1 );
+}
+
+function getParamValue(s, param) {
+	switch (param.type) {
+	case 'number': return Number(s);
+	case 'boolean': return s === 'true';
+	case 'select': return param.values.map(([k]) => k).find(k => s === k);
+	default: return s;
+	}
+}
+
 module.exports = {
-	getSubscriptionName(amount, period) {
-		return `Membership: £${amount} ${period}`;
-	},
-	getActualAmount(amount, period) {
-		return amount * ( period === 'annually'  ? 12 : 1 );
+	getActualAmount,
+	getChargeableAmount(amount, period, payFee) {
+		const actualAmount = getActualAmount(amount, period);
+		return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
 	},
 	wrapAsync(fn) {
 		return async (req, res, next) => {
@@ -40,5 +52,26 @@ module.exports = {
 	},
 	sleep(ms) {
 		return new Promise(resolve => setTimeout(resolve, ms));
+	},
+	loadParams: async (items) => {
+		const itemsWithParams = [];
+		for (const item of items) {
+			itemsWithParams.push({
+				...item,
+				params: item.getParams ? await item.getParams() : []
+			});
+		}
+		return itemsWithParams;
+	},
+	parseParams: async (item, data) => {
+		const params = item.getParams ? await item.getParams() : [];
+		let ret = {};
+		for (let paramName in data) {
+			const param = params.find(p => p.name === paramName);
+			if (param) {
+				ret[paramName] = getParamValue(data[paramName], param);
+			}
+		}
+		return ret;
 	}
 };

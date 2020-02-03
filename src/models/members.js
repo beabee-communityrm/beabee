@@ -122,6 +122,17 @@ module.exports = {
 				required: false
 			}
 		},
+		tags: [{
+			added: {
+				type: Date,
+				default: Date.now,
+				required: true
+			},
+			name: {
+				type: String,
+				required: true
+			}
+		}],
 		joined: {
 			type: Date,
 			default: Date.now,
@@ -137,7 +148,8 @@ module.exports = {
 				type: String,
 				enum: ['monthly', 'annually', 'gift']
 			},
-			cancelled_at: Date
+			cancelled_at: Date,
+			paying_fee: Boolean
 		},
 		permissions: [ {
 			permission: {

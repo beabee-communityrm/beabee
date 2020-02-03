@@ -43,7 +43,7 @@ block contents
 													#[a(href='https://thebristolcable.org/referafriend', target='_blank') (why?)]
 											else if referral.referrerGift
 												p You chose a#[br]#{ referral.referrerGiftDetails.label }
-											else if referral.referrerGift === ''
+											else if referral.referrerGift !== undefined
 												p You chose not to receive a gift
 											else
 												a(href='/profile/referrals/' + referral.id).btn Choose gift

@@ -84,7 +84,28 @@ block body
 						label(for='period_a').btn Annually
 					li.join-options__opt
 
-				p.hidden-nojs.join-charge You will be charged #[b.js-join-charge £12] today.
+				p.js-join-fee
+					| Our payment processor charges us per transaction, which means we receive
+					| less from monthly contributions.
+					|
+					b
+						span.js-join-fee-opt Are you happy to absorb the #[span.js-join-fee-amount 1% + 20p] transaction fee?
+						|
+						|
+						span.js-join-fee-force For £1 contributions you must absorb the fee.
+					|
+					|
+					span.hidden-nojs
+						| Alternatively you could
+						| 
+						label(for='period_a').join-link pay annually
+						| .
+					br
+					label
+						input(type='checkbox' name='payFee' value='true' checked).join-pay-fee.js-join-pay-fee
+						| Yes, I'll absorb the #[span.js-join-fee-amount 1% + 20p] fee.
+
+				p.hidden-nojs.join-charge You will be charged #[b.js-join-charge].
 				p
 					button.btn.join-btn Join
 

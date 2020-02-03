@@ -1,0 +1,52 @@
+{
+	"createSpecialUrlsSchema": {
+		"body": {
+			"type": "object",
+			"required": ["name", "urlDuration"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"minLength": 1
+				},
+				"expiresDate": {
+					"type": "string",
+					"format": "date"
+				},
+				"expiresTime": {
+					"type": "string",
+					"format": "time2"
+				},
+				"urlDuration": {
+					"type": "integer"
+				},
+				"actions": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": ["name"],
+						"properties": {
+							"name": {
+								"type": "string"
+							},
+							"params": {
+								"type": "object"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"updateSpecialUrlsSchema": {
+		"body": {
+			"type": "object",
+			"required": ["action"],
+			"properties": {
+				"action": {
+					"type": "string",
+					"enum": ["toggle", "force-expire", "delete"]
+				}
+			}
+		}
+	}
+}
