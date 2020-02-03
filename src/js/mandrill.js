@@ -85,6 +85,7 @@ function sendTemplate(templateId, message, send_at=null) {
 }
 
 module.exports = {
+	sendTemplate,
 	sendToMember(templateId, member, vars, send_at) {
 		return sendTemplate(templateId, memberToMessage(templateId, member, vars), send_at);
 	},
