@@ -101,7 +101,7 @@ app.post( '/:_id/upload', hasModel(SpecialUrlGroups, '_id'), busboy(), wrapAsync
 	});
 
 	req.busboy.on('finish', async () => {
-		const urlExpires = moment.utc().add(req.model.urlDuration, 'hours');
+		const expires = moment.utc().add(req.model.urlDuration, 'hours');
 
 		for (const recipient of recipients) {
 			await SpecialUrls.create({
@@ -109,7 +109,7 @@ app.post( '/:_id/upload', hasModel(SpecialUrlGroups, '_id'), busboy(), wrapAsync
 				email: recipient.EmailAddress,
 				firstname: recipient.FirstName,
 				lastname: recipient.LastName,
-				expires: urlExpires
+				expires
 			});
 		}
 
