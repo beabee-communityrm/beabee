@@ -38,10 +38,11 @@ html
 								a( href="https://thebristolcable.org/" )
 									img( src="/static/svg/logo.svg" ).header-logo
 							.col-xs-6.text-right
-								if isLoggedIn
-									a( href="/logout" ) Logout
-								else
-									a( href="/login" ) Login
+								block login
+									if isLoggedIn
+										a( href="/logout" ) Logout
+									else
+										a( href="/login" ) Login
 
 
 			main.main
