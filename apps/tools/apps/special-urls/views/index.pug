@@ -55,8 +55,12 @@ block contents
 					label(for='expiresDate').control-label.col-md-3 URL duration
 					.col-md-6
 						.input-group
-							input(type='number' name='urlDuration').form-control
+							input(type='number' name='urlDuration' required).form-control
 							span.input-group-addon hours
+				.form-group
+					label(for='thanksMessage').control-label.col-md-3 Thanks message
+					.col-md-6
+						textarea(name='thanksMessage' required)#thanksMessage.form-control
 				
 				h4 Actions
 

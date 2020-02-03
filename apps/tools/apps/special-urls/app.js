@@ -38,12 +38,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 async function createSpecialUrls( data ) {
-	const { name, expiresDate, expiresTime, urlDuration, actions: newActions } = data;
+	const { name, expiresDate, expiresTime, urlDuration, thanksMessage, actions: newActions } = data;
 
 	const specialUrlGroup = await SpecialUrlGroups.create( {
 		name,
 		expires: expiresDate && moment.utc(`${expiresDate}T${expiresTime}`),
 		urlDuration,
+		thanksMessage,
 		enabled: false,
 		actions: await Promise.all(newActions.map(async (action) => ({
 			name: action.name,

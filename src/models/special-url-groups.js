@@ -11,6 +11,7 @@ module.exports = {
 		enabled: Boolean,
 		expires: Date,
 		urlDuration: Number,
+		thanksMessage: String,
 		actions: [{
 			name: String,
 			params: Object

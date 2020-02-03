@@ -3,7 +3,9 @@ extends /src/views/splash.pug
 block prepend title
 	- title = 'Thanks'
 
+block login
+
 block splash-contents
-	h3 Thanks
-	p.
-		If you are on a public computer you should now close your browser window
+	.text-center
+		h3 Thank you
+		p= specialUrl.group.thanksMessage
