@@ -30,17 +30,20 @@ block contents
 					= user.contributionDescription
 				| ,
 				|
-				if user.hasActiveSubscription
-					| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'}  around
+				if isFirstPayment
+					| we are processing your first payment.
 				else
-					| it #{user.isActiveMember ? 'will expire' : 'expired'} on
-				|
-				|
-				= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
-				| .
+					if user.hasActiveSubscription
+						| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'}  around
+					else
+						| it #{user.isActiveMember ? 'will expire' : 'expired'} on
+					|
+					|
+					= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
+					| .
 				if user.contributionPeriod === 'gift'
 					|
-					| You can start a contribution to continue supporting the Cable
+					| You can start a contribution to continue your Cable membership
 					| beyond this date.
 
 			if user.hasActiveSubscription && user.nextContributionAmount

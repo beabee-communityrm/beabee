@@ -16,25 +16,29 @@ function calcSubscriptionMonthsLeft(user) {
 	);
 }
 
-async function canChangeSubscription(user, useMandate=null) {
+async function canChangeSubscription(user, useExistingMandate=true) {
 	if (!user.hasActiveSubscription) {
 		return true;
 	}
 
-	// Only allow monthly contributors to change mandate when there isn't a payment
-	// approaching to avoid double charging them
-	if (useMandate !== false && user.contributionPeriod === 'monthly') {
-		return true;
+	if (useExistingMandate && !user.canTakePayment) {
+		return false;
 	}
 
-	const payments = await Payments.find({member: user}, ['status', 'charge_date'], {
-		limit: 1,
-		sort: {charge_date: -1}
-	});
+	// Monthly contributors can update their contribution even if they have
+	// pending payments, but they can't always change their mandate as this can
+	// result in double charging
+	if (useExistingMandate && user.contributionPeriod === 'monthly') {
+		return true;
+	} else {
+		const payments = await Payments.find({member: user}, ['status', 'charge_date'], {
+			limit: 1,
+			sort: {charge_date: -1}
+		});
 
-	return payments.length === 0 || [
-		'pending_customer_approval', 'pending_submission', 'submitted'
-	].indexOf(payments[0].status) === -1;
+		// Should always be at least 1 payment, but maybe the webhook is slow?
+		return payments.length > 0 && !payments[0].isPending;
+	}
 }
 
 async function getBankAccount(user) {
@@ -43,7 +47,8 @@ async function getBankAccount(user) {
 			const mandate = await gocardless.mandates.get(user.gocardless.mandate_id);
 			return await gocardless.customerBankAccounts.get(mandate.links.customer_bank_account);
 		} catch (err) {
-			if (!err.response || err.response.status !== 404) {
+			// 404s can happen on dev as we don't use real mandate IDs
+			if (!config.dev || !err.response || err.response.status !== 404) {
 				throw err;
 			}
 			return null;

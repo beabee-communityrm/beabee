@@ -33,4 +33,10 @@ module.exports = {
 	} )
 };
 
+module.exports.schema.virtual( 'isPending' ).get( function() {
+	return [
+		'pending_customer_approval', 'pending_submission', 'submitted'
+	].indexOf(this.status) > -1;
+} );
+
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );
