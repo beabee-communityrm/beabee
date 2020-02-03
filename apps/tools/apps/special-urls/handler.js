@@ -105,9 +105,12 @@ app.post( '/:groupId/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) 
 		}
 	} );
 
-	if ( !req.params.actionNo ) {
-		await specialUrl.update( { $inc: { openCount: 1 } } );
+	if ( specialUrl.completedCount > 0 ) {
+		res.render( 'already-opened', { specialUrl } );
+		return;
 	}
+
+	await specialUrl.update( { $inc: { openCount: 1 } } );
 
 	for ( let i = 0; i < specialUrlActions.length; i++ ) {
 		const action = specialUrlActions[i];
