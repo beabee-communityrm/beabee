@@ -45,10 +45,33 @@
 			"required": ["action"],
 			"properties": {
 				"action": {
-					"type": "string",
-					"enum": ["toggle", "force-expire", "export-urls", "delete"]
+					"type": "string"
 				}
-			}
+			},
+			"oneOf": [
+				{
+					"required": ["name", "thanksMessage"],
+					"properties": {
+						"action": {
+							"const": "update"
+						},
+						"name": {
+							"type": "string"
+						},
+						"thanksMessage": {
+							"type": "string"
+						}
+					}
+				},
+				{
+					"properties": {
+						"action": {
+							"type": "string",
+							"enum": ["toggle", "force-expire", "export-urls", "delete"]
+						}
+					}
+				}
+			]
 		}
 	}
 }

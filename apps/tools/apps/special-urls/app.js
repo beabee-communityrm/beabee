@@ -42,7 +42,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 async function createSpecialUrls( data ) {
 	const { name, expiresDate, expiresTime, urlDuration, thanksMessage, actions: newActions } = data;
 
-	const specialUrlGroup = await SpecialUrlGroups.create( {
+	return await SpecialUrlGroups.create( {
 		name,
 		expires: expiresDate && moment.utc(`${expiresDate}T${expiresTime}`),
 		urlDuration,
@@ -53,8 +53,6 @@ async function createSpecialUrls( data ) {
 			params: await parseParams(actionsByName[action.name], action.params)
 		})))
 	} );
-
-	return specialUrlGroup;
 }
 
 app.post( '/', hasSchema( createSpecialUrlsSchema ).orFlash, wrapAsync( async ( req, res ) => {
@@ -78,6 +76,12 @@ app.post( '/:_id', [
 		break;
 	case 'force-expire':
 		await SpecialUrls.updateMany({group: req.model}, {$set: {expires: moment()}});
+		break;
+	case 'update':
+		await req.model.update({$set: {
+			name: req.body.name,
+			thanksMessage: req.body.thanksMessage
+		}});
 		break;
 	case 'export-urls': {
 		const exportName = `export-${req.model.name}_${new Date().toISOString()}.csv`;
