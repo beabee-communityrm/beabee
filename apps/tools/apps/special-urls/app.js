@@ -9,8 +9,10 @@ const { SpecialUrlGroups, SpecialUrls } = require( __js + '/database' );
 const { hasModel, hasSchema } = require( __js + '/middleware' );
 const { loadParams, parseParams, wrapAsync } = require( __js + '/utils' );
 
-const { createSpecialUrlsSchema, updateSpecialUrlsSchema } = require( './schemas.json' );
 const actions = require('./actions');
+const { createSpecialUrlsSchema, updateSpecialUrlsSchema } = require( './schemas.json' );
+const { getSpecialUrlUrl } = require( './utils.js' );
+
 const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
 const app = express();
@@ -77,6 +79,19 @@ app.post( '/:_id', [
 	case 'force-expire':
 		await SpecialUrls.updateMany({group: req.model}, {$set: {expires: moment()}});
 		break;
+	case 'export-urls': {
+		const exportName = `export-${req.model.name}_${new Date().toISOString()}.csv`;
+		const exportData = (await SpecialUrls.find({group: req.model})).map(specialUrl => ({
+			EmailAddress: specialUrl.email,
+			FirstName: specialUrl.firstname,
+			LastName: specialUrl.lastname,
+			URL: getSpecialUrlUrl(specialUrl),
+			OpenCount: specialUrl.openCount,
+			CompletedCount: specialUrl.completedCount
+		}));
+		res.attachment(exportName).send(Papa.unparse(exportData));
+		return;
+	}
 	case 'delete':
 		await SpecialUrls.deleteMany({group: req.model});
 		await req.model.delete();

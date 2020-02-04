@@ -4,6 +4,5 @@ module.exports = {
 	'join-reasons': require('./joinReasons'),
 	'poll-answers': require('./pollAnswers'),
 	'poll-letter': require('./pollLetter'),
-	'referrals': require('./referrals'),
-	'special-urls': require('./specialUrls')
+	'referrals': require('./referrals')
 };
