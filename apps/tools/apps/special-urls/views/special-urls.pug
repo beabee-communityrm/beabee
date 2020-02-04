@@ -114,3 +114,15 @@ block contents
 										| :
 										|
 										= value
+
+			hr
+
+			h4 Delete
+
+			form(method='POST')
+				+csrf
+				p
+					label.checkbox-inline
+						input(type='checkbox' required)
+						| This change is irreversible, all URLs will stop working
+				button(name='action' value='delete').btn.btn-danger.outline Delete
