@@ -46,7 +46,7 @@
 			"properties": {
 				"action": {
 					"type": "string",
-					"enum": ["toggle", "force-expire", "delete"]
+					"enum": ["toggle", "force-expire", "export-urls", "delete"]
 				}
 			}
 		}

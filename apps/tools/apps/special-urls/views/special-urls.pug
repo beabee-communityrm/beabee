@@ -57,6 +57,12 @@ block contents
 
 			hr
 
+			h4 Export URLs
+
+			form(method='POST')
+				+csrf
+				button(name='action' value='export-urls').btn.btn-primary Export
+
 			h4 Add recipients
 
 			form(action='/tools/special-urls/' + specialUrlGroup._id + '/upload?_csrf=' + csrf method='POST' enctype='multipart/form-data').form-horizontal
