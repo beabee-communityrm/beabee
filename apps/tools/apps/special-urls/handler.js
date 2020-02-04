@@ -80,9 +80,11 @@ app.get( '/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
 	res.render( 'done', { thanksMessage } );
 } );
 
-app.get( '/:urlId', hasValidSpecialUrl, ( req, res ) => {
+app.get( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
+	await req.specialUrl.update( { $inc: { openCount: 1 } } );
+
 	res.render( 'confirm', { specialUrl: req.specialUrl } );
-} );
+} ) );
 
 app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 	const { specialUrl } = req;
@@ -99,8 +101,6 @@ app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 		res.render( 'already-opened', { specialUrl } );
 		return;
 	}
-
-	await specialUrl.update( { $inc: { openCount: 1 } } );
 
 	for ( let action of specialUrl.group.actions ) {
 		req.log.info( {
