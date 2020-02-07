@@ -17,7 +17,7 @@
 
 	var canForceFee = isPayingFee || !isActive;
 
-	function updateUI() {
+	function updateUI(showMessage) {
 		var newAmount = Number($amount.val());
 		var period = $period.filter('[type=hidden], [type=radio]:checked').val();
 
@@ -56,15 +56,14 @@
 			chargeMessage += repeatedChargeMessage;
 		}
 
-		$('.js-new-charge').text(chargeMessage + '.');
+		$('.js-new-charge').text(chargeMessage + '.').toggleClass('hidden', !showMessage);
 	}
 
 	$form.on('change input', function () {
-		updateUI();
-		$('.js-new-charge').removeClass('hidden');
+		updateUI(true);
 	});
 
-	updateUI();
+	updateUI(!isActive);
 
 	$('.js-new-amount-prorated-toggle').on('click', function (evt) {
 		evt.preventDefault();

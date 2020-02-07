@@ -53,11 +53,15 @@ form(
 			p.small.help-block.hidden-nojs
 				a(href="#").js-new-fee-toggle What is this?
 			.panel.panel-default.hidden.js-new-fee-explainer
-				.panel-body.
-					Our payment processor charges us per transaction so we receive less
-					from monthly contributions.
-					#[a(href='mailto:membership@thebristolcable.org') Contact us] to
-					switch to an annual contribution.
+				.panel-body
+					| Our payment processor charges us per transaction so we receive less
+					| from monthly contributions.
+					if user.hasActiveSubscription
+						|
+						|
+						a(href='mailto:membership@thebristolcable.org') Contact us
+						|
+						| to switch to an annual contribution.
 
 	.form-group
 		label.col-md-3.control-label Bank account
