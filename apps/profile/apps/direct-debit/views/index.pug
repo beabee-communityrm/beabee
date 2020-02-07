@@ -28,6 +28,9 @@ block contents
 					|
 					|
 					= user.contributionDescription
+					if user.gocardless.paying_fee
+						|
+						| (+ fee)
 				| ,
 				|
 				if isFirstPayment
