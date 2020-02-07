@@ -2,7 +2,8 @@ form(
 	method='post'
 	data-amount=user.contributionMonthlyAmount
 	data-paying-fee=user.gocardless.paying_fee
-	data-active=user.isActiveMember
+	data-active-member=user.isActiveMember
+	data-active-subscription=user.hasActiveSubscription
 	data-next=moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
 	data-months=monthsLeft
 ).form-horizontal.js-update-form
@@ -30,7 +31,7 @@ form(
 				label.radio-inline
 					input(
 						type='radio' name='period' value='annually' required
-						checked=user.contributionPeriod === 'annually'
+						checked=user.contributionPeriod !== 'monthly'
 					)
 					| Annually
 
@@ -38,18 +39,20 @@ form(
 		label.col-md-3.control-label.
 			Absorb the #[span.js-new-fee-amount] #[span.hidden-js 1% + 20p] transaction fee?
 		.col-md-9
-			label.radio-inline
-				input(
-					type='radio' name='payFee' value='true' required
-					checked=user.gocardless.paying_fee || !user.hasActiveSubscription
-				)
-				| Yes
-			label.radio-inline
-				input(
-					type='radio' name='payFee' value='false' required
-					checked=!user.gocardless.paying_fee && user.hasActiveSubscription
-				)
-				| No
+			.js-new-fee-opt
+				label.radio-inline
+					input(
+						type='radio' name='payFee' value='true' required
+						checked=user.gocardless.paying_fee || !user.hasActiveSubscription
+					)
+					| Yes
+				label.radio-inline
+					input(
+						type='radio' name='payFee' value='false' required
+						checked=!user.gocardless.paying_fee && user.hasActiveSubscription
+					)
+					| No
+			p(style='padding-top:7px;margin:0').js-new-fee-force: i £1/month contributions must absorb the fee
 			p.small.help-block.hidden-nojs
 				a(href="#").js-new-fee-toggle What is this?
 			.panel.panel-default.hidden.js-new-fee-explainer

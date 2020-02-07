@@ -9,13 +9,14 @@
 
 	var oldAmount = Number($form.data('amount'));
 	var monthsLeft = Number($form.data('months'));
-	var isActive = $form.data('active') !== undefined;
+	var isActiveMember = $form.data('active-member') !== undefined;
 	var isPayingFee = $form.data('paying-fee') !== undefined;
+	var hasActiveSubscription = $form.data('active-subscription') !== undefined;
 	var nextPayment = $form.data('next');
 
 	var oldAmountProrate = oldAmount * monthsLeft;
 
-	var canForceFee = isPayingFee || !isActive;
+	var canForceFee = isPayingFee || !hasActiveSubscription;
 
 	function updateUI(showMessage) {
 		var newAmount = Number($amount.val());
@@ -29,6 +30,11 @@
 		$payFee.prop('disabled', isAnnual).prop('readOnly', canForceFee && newActualAmount === 1);
 		if (canForceFee && newActualAmount === 1) {
 			$payFee.filter('[value=true]').prop('checked', true);
+			$('.js-new-fee-force').removeClass('hidden');
+			$('.js-new-fee-opt').addClass('hidden');
+		} else {
+			$('.js-new-fee-force').addClass('hidden');
+			$('.js-new-fee-opt').removeClass('hidden');
 		}
 		$('.js-new-fee').toggleClass('hidden', isAnnual);
 
@@ -43,7 +49,7 @@
 		var repeatedChargeMessage = '£' + chargeableAmount.toFixed(2) + '/' + (isAnnual ? 'year' : 'month');
 
 		var chargeMessage = 'You will be charged ';
-		if (isActive) {
+		if (isActiveMember) {
 			if (isProrating) {
 				var newAmountProrate = newAmount * monthsLeft;
 				var proratedAmount = newAmountProrate - oldAmountProrate;
@@ -63,7 +69,7 @@
 		updateUI(true);
 	});
 
-	updateUI(!isActive);
+	updateUI(!hasActiveSubscription);
 
 	$('.js-new-amount-prorated-toggle').on('click', function (evt) {
 		evt.preventDefault();
