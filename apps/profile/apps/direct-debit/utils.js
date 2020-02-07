@@ -16,13 +16,13 @@ function calcSubscriptionMonthsLeft(user) {
 	);
 }
 
-async function canChangeSubscription(user, useExistingMandate=true) {
-	if (!user.hasActiveSubscription) {
-		return true;
-	}
-
+async function canChangeSubscription(user, useExistingMandate) {
 	if (useExistingMandate && !user.canTakePayment) {
 		return false;
+	}
+
+	if (!user.hasActiveSubscription) {
+		return true;
 	}
 
 	// Monthly contributors can update their contribution even if they have
@@ -136,10 +136,10 @@ async function processUpdateSubscription(user, {amount, period, prorate, payFee}
 		if (await activateSubscription(user, amount, prorate)) {
 			user.gocardless.amount = amount;
 			user.gocardless.next_amount = undefined;
-			user.gocardless.paying_fee = payFee;
 		} else {
 			user.gocardless.next_amount = amount;
 		}
+		user.gocardless.paying_fee = payFee;
 
 		await user.save();
 	} else {

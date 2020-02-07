@@ -21,9 +21,20 @@ async function logMember(type, query) {
 	console.log();
 }
 
-async function logMemberMonthlyAndAnnual(type, query) {
-	await logMember(type + ', monthly', {...query, 'gocardless.period': 'monthly'});
-	await logMember(type + ', annual', {...query, 'gocardless.period': 'annually'});
+async function logMemberVaryContributions(type, query) {
+	const amounts = [1, 3, 5];
+	for (const amount of amounts) {
+		await logMember(`${type}, £${amount}/monthly`, {
+			...query,
+			'gocardless.amount': amount,
+			'gocardless.period': 'monthly'
+		});
+		await logMember(`${type}, £${amount * 12}/year`, {
+			...query,
+			'gocardless.amount': amount,
+			'gocardless.period': 'annually'
+		});
+	}
 }
 
 async function getFilters() {
@@ -79,27 +90,27 @@ async function getFilters() {
 async function main() {
 	const filters = await getFilters();
 
-	await logMemberMonthlyAndAnnual('Active, no scheduled payments', {
+	await logMemberVaryContributions('Active, no scheduled payments', {
 		...filters.isActive,
 		...filters.noScheduledPayments
 	});
 
-	await logMemberMonthlyAndAnnual('Active, has scheduled payments', {
+	await logMemberVaryContributions('Active, has scheduled payments', {
 		...filters.isActive,
 		...filters.hasScheduledPayments
 	});
 
-	await logMemberMonthlyAndAnnual('Inactive due to failed payment', {
+	await logMemberVaryContributions('Inactive due to failed payment', {
 		...filters.isInactive,
 		...filters.hasFailedPayments
 	});
 
-	await logMemberMonthlyAndAnnual('Cancelled active member', {
+	await logMemberVaryContributions('Cancelled active member', {
 		...filters.isActive,
 		...filters.hasCancelled
 	});
 
-	await logMemberMonthlyAndAnnual('Cancelled inactive member', {
+	await logMemberVaryContributions('Cancelled inactive member', {
 		...filters.isInactive,
 		...filters.hasCancelled
 	});

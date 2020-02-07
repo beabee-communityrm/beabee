@@ -41,10 +41,8 @@ app.use( function( req, res, next ) {
 app.use( auth.isLoggedIn );
 
 app.get( '/', wrapAsync( async function ( req, res ) {
-	let isFirstPayment;
-	if (req.user.contributionPeriod === 'gift') {
-		isFirstPayment = false;
-	} else {
+	let isFirstPayment = false;
+	if (req.user.contributionPeriod !== 'gift') {
 		// Limit to 2 because if there are 2+ payments it's not their first payment
 		const payments = await Payments.find( { member: req.user }, { limit: 2 } );
 		isFirstPayment = payments.length === 1 && payments[0].isPending;

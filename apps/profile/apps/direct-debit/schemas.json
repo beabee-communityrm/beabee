@@ -27,6 +27,9 @@
 					"type": "integer",
 					"minimum": 1
 				},
+				"payFee": {
+					"type": "boolean"
+				},
 				"period": {
 					"type": "string",
 					"enum": ["monthly", "annually"]
