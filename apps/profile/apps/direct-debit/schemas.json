@@ -21,7 +21,7 @@
 	"updateSubscriptionSchema": {
 		"body": {
 			"type": "object",
-			"required": ["amount", "payFee", "period", "prorate", "useMandate"],
+			"required": ["amount", "period", "prorate", "useMandate"],
 			"properties": {
 				"amount": {
 					"type": "integer",
