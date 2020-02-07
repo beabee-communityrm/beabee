@@ -20,7 +20,12 @@ block contents
 					for e in member.exports
 						tr
 							td
-								a(href="/tools/exports/" + e.export_id)= e.details.description
+								a(href="/tools/exports/" + e.export_id)
+									= exportTypes[e.details.type].name
+									|
+									| /
+									|
+									= e.details.description
 							td
 								form(method="post").form-inline
 									+csrf
