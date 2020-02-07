@@ -16,7 +16,7 @@ function calcSubscriptionMonthsLeft(user) {
 	);
 }
 
-async function canChangeSubscription(user, useExistingMandate=true) {
+async function canChangeSubscription(user, useExistingMandate) {
 	if (useExistingMandate && !user.canTakePayment) {
 		return false;
 	}

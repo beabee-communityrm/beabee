@@ -64,7 +64,7 @@ module.exports = [
 				return false;
 			}
 
-			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user ) ) {
+			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user, true ) ) {
 				await processUpdateSubscription( req.user, {
 					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount
 				} );
@@ -84,7 +84,7 @@ module.exports = [
 				return false;
 			}
 
-			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user ) ) {
+			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user, true ) ) {
 				await processUpdateSubscription( req.user, {
 					amount: req.user.contributionMonthlyAmount,
 					payFee: true
