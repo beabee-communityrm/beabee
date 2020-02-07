@@ -17,12 +17,12 @@ function calcSubscriptionMonthsLeft(user) {
 }
 
 async function canChangeSubscription(user, useExistingMandate=true) {
-	if (!user.hasActiveSubscription) {
-		return true;
-	}
-
 	if (useExistingMandate && !user.canTakePayment) {
 		return false;
+	}
+
+	if (!user.hasActiveSubscription) {
+		return true;
 	}
 
 	// Monthly contributors can update their contribution even if they have
