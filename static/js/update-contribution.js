@@ -16,7 +16,7 @@
 
 	var oldAmountProrate = oldAmount * monthsLeft;
 
-	var canForceFee = isPayingFee || !hasActiveSubscription;
+	var canForceFee = isPayingFee || !hasActiveSubscription || oldAmount !== 1;
 
 	function updateUI(showMessage) {
 		var newAmount = Number($amount.val());
