@@ -38,11 +38,13 @@
 
 		var isAnnual = period === 'annually';
 		var actualAmount = amount * (isAnnual ? 12 : 1);
+		var fee = (Math.floor(actualAmount / 0.99 * 100) + 20) / 100 - actualAmount;
 
 		$payFee.prop('disabled', isAnnual).prop('readOnly', actualAmount === 1);
 		if (actualAmount === 1) {
 			$payFee.prop('checked', true);
 		}
+		$fee.toggleClass('hidden', isAnnual);
 
 		if (amount) {
 			$formMore.removeClass('hidden-js');
@@ -64,7 +66,6 @@
 				$(this).toggleClass('hidden', amount >= $(this).data('amount'));
 			});
 
-			var fee = (Math.floor(actualAmount / 0.99 * 100) + 20) / 100 - actualAmount;
 			$feeAmount.text(Math.round(fee * 100) + 'p');
 			$feeOpt.toggleClass('hidden', actualAmount === 1);
 			$feeForce.toggleClass('hidden', actualAmount > 1);
@@ -77,8 +78,6 @@
 			$feeForce.addClass('hidden');
 			$charge.text('£?');
 		}
-
-		$fee.toggleClass('hidden', isAnnual);
 
 		$giftDetails.each(function () {
 			var $this = $(this);

@@ -136,10 +136,10 @@ async function processUpdateSubscription(user, {amount, period, prorate, payFee}
 		if (await activateSubscription(user, amount, prorate)) {
 			user.gocardless.amount = amount;
 			user.gocardless.next_amount = undefined;
-			user.gocardless.paying_fee = payFee;
 		} else {
 			user.gocardless.next_amount = amount;
 		}
+		user.gocardless.paying_fee = payFee;
 
 		await user.save();
 	} else {
