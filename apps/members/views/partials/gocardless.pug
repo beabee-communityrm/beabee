@@ -16,6 +16,10 @@ dl.dl-horizontal
 	else
 		dd –
 	dt Amount
-	dd #{ member.gocardless.amount ? '£' + member.gocardless.amount : '–' }
+	dd
+		= member.gocardless.amount ? '£' + member.gocardless.amount : '–'
+		if member.gocardless.paying_fee
+			|
+			| (+ fee)
 	dt Period
-	dd #{ member.gocardless.period ? member.gocardless.period : '–' }
+	dd= member.gocardless.period ? member.gocardless.period : '–'
