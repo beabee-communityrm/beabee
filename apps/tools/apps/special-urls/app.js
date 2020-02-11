@@ -91,6 +91,7 @@ app.post( '/:_id', [
 				EmailAddress: specialUrl.email,
 				FirstName: specialUrl.firstname,
 				LastName: specialUrl.lastname,
+				Expires: specialUrl.expires,
 				URL: getSpecialUrlUrl(specialUrl),
 				OpenCount: specialUrl.openCount,
 				CompletedCount: specialUrl.completedCount
