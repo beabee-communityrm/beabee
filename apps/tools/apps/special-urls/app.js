@@ -85,14 +85,16 @@ app.post( '/:_id', [
 		break;
 	case 'export-urls': {
 		const exportName = `export-${req.model.name}_${new Date().toISOString()}.csv`;
-		const exportData = (await SpecialUrls.find({group: req.model})).map(specialUrl => ({
-			EmailAddress: specialUrl.email,
-			FirstName: specialUrl.firstname,
-			LastName: specialUrl.lastname,
-			URL: getSpecialUrlUrl(specialUrl),
-			OpenCount: specialUrl.openCount,
-			CompletedCount: specialUrl.completedCount
-		}));
+		const exportData = (await SpecialUrls.find({group: req.model}))
+			.filter(specialUrl => !req.body.onlyActive || specialUrl.active)
+			.map(specialUrl => ({
+				EmailAddress: specialUrl.email,
+				FirstName: specialUrl.firstname,
+				LastName: specialUrl.lastname,
+				URL: getSpecialUrlUrl(specialUrl),
+				OpenCount: specialUrl.openCount,
+				CompletedCount: specialUrl.completedCount
+			}));
 		res.attachment(exportName).send(Papa.unparse(exportData));
 		return;
 	}

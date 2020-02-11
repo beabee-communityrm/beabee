@@ -61,6 +61,12 @@ block contents
 
 			form(method='POST')
 				+csrf
+
+				.checkbox
+					label
+						input(type='checkbox' name='onlyActive' value='true')
+						| Only active URLs?
+
 				button(name='action' value='export-urls').btn.btn-primary Export
 
 			hr

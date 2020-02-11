@@ -66,8 +66,18 @@
 				{
 					"properties": {
 						"action": {
+							"const": "export-urls"
+						},
+						"onlyActive": {
+							"type": "boolean"
+						}
+					}
+				},
+				{
+					"properties": {
+						"action": {
 							"type": "string",
-							"enum": ["toggle", "force-expire", "export-urls", "delete"]
+							"enum": ["toggle", "force-expire", "delete"]
 						}
 					}
 				}
