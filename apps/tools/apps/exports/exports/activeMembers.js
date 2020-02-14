@@ -20,6 +20,11 @@ async function getQuery({params: {hasActiveSubscription} = {}}) {
 	};
 }
 
+function anonymisePostcode(postcode) {
+	return postcode &&
+		(postcode[0] + postcode.substr(1, postcode.length - 3).replace(/[A-Za-z0-9]/g, '•') + postcode.substr(-2));
+}
+
 async function getExport(members) {
 	return members
 		.map(member => ({
@@ -31,7 +36,8 @@ async function getExport(members) {
 			PollsCode: member.pollsCode,
 			ContributionMonthlyAmount: member.contributionMonthlyAmount,
 			ContributionPeriod: member.contributionPeriod,
-			ContributionDescription: member.contributionDescription
+			ContributionDescription: member.contributionDescription,
+			Postcode: member.delivery_optin ? anonymisePostcode(member.delivery_address.postcode) : ''
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }
