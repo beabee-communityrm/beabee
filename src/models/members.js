@@ -103,8 +103,9 @@ module.exports = {
 			},
 			postcode: {
 				type: String
-			},
+			}
 		},
+		delivery_copies: Number,
 		billing_location: {
 			lat: Number,
 			lng: Number

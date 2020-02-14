@@ -113,5 +113,22 @@ module.exports = [
 			await req.user.update( { $push: { tags: { name: tagName } } } );
 			return true;
 		}
+	},
+	{
+		name: 'Set number of copies to deliver',
+		getParams: async () => [ {
+			name: 'copies',
+			label: 'Number of copies',
+			type: 'number'
+		} ],
+		run: async ( req, res, { copies } ) => {
+			if ( !req.user ) {
+				res.redirect( '/login?next=' + req.originalUrl );
+				return false;
+			}
+
+			await req.user.update( { $set: { delivery_copies: copies } } );
+			return true;
+		}
 	}
 ];
