@@ -40,7 +40,8 @@ async function getExport(members, {_id: exportId}) {
 				ReferralLink: member.referralLink,
 				IsLocal: isLocalPostcode(postcode),
 				IsGift: member.contributionPeriod === 'gift',
-				IsFirstEdition: _.every(member.exports, e => getExportNo(e.export_id) >= currentExportNo)
+				IsFirstEdition: _.every(member.exports, e => getExportNo(e.export_id) >= currentExportNo),
+				NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies
 			};
 		})
 		.sort((a, b) => (
