@@ -512,7 +512,9 @@ app.post( '/:uuid/gocardless', auth.isSuperAdmin, wrapAsync( async function( req
 		await member.update({ $set: {
 			'gocardless.customer_id': req.body.customer_id,
 			'gocardless.mandate_id': req.body.mandate_id,
-			'gocardless.subscription_id': req.body.subscription_id
+			'gocardless.subscription_id': req.body.subscription_id,
+			'gocardless.amount': Number(req.body.amount),
+			'gocardless.period': req.body.period
 		} });
 		break;
 	}
