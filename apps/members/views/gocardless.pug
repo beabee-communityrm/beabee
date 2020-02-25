@@ -27,7 +27,7 @@ block contents
 					})
 					+form_button( 'Create', 'primary', { left: 3 } )
 
-			h3 Force update
+			h3 Manual update
 			.alert.alert-warning.
 				If done incorrectly this could result in payments being taken but not
 				recorded
@@ -37,4 +37,10 @@ block contents
 				+input( 'text', 'Customer ID', 'customer_id', { value: member.gocardless.customer_id, left: 3, right: 4 } )
 				+input( 'text', 'Mandate ID', 'mandate_id', { value: member.gocardless.mandate_id, left: 3, right: 4 } )
 				+input( 'text', 'Subscription ID', 'subscription_id', { value: member.gocardless.subscription_id, left: 3, right: 4 } )
+				+input( 'number', 'Monthly amount', 'amount', { value: member.gocardless.amount, left: 3, right: 4, before: '£' } )
+				+input( 'radio', 'Period', 'period', {
+					value: member.gocardless.period,
+					left: 3, right: 4,
+					options: {'monthly': 'Monthly', 'annually': 'Annually'}
+				})
 				+form_button( 'Update', 'primary', { left: 3 } )
