@@ -5,4 +5,4 @@ date=$(date -Idate)
 
 echo "Running on $date"
 
-node ./migrate-annual.js $date subscriptions-final.csv
+node ./migrate-annual.js $date ../../../../subscriptions-final.csv
