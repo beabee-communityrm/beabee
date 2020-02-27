@@ -51,6 +51,10 @@ const templates = {
 	'expired-special-url-resend': (member, {url}) => [{
 		name: 'URL',
 		content: url
+	}],
+	'gocardless-email-mo-to-an-feb-2020': (member, {url}) => [{
+		name: 'OPTOUTURL',
+		content: url
 	}]
 };
 
