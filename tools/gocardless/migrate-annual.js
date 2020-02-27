@@ -52,14 +52,15 @@ async function sendReminder(subscriptionId) {
 	console.log('Reminding ' + subscriptionId);
 	console.log('  ' + member.email);
 
+	const optOutUrl = await db.SpecialUrls.create( {
+		email: member.email,
+		group: '5e394cc9403a6961f225f82a',
+		firstname: member.firstname,
+		lastname: member.lastname,
+		expires: moment.utc().add(48, 'hours')
+	} );
+
 	if (!DRY_RUN) {
-		const optOutUrl = await db.SpecialUrls.create( {
-			email: member.email,
-			group: '5e394cc9403a6961f225f82a',
-			firstname: member.firstname,
-			lastname: member.lastname,
-			expires: moment.utc().add(48, 'hours')
-		} );
 		await mandrill.sendToMember('gocardless-email-mo-to-an-feb-2020', member, {
 			url: getSpecialUrlUrl(optOutUrl)
 		});
