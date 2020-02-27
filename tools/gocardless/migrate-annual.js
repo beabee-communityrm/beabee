@@ -19,11 +19,6 @@ const DRY_RUN = process.argv[2] === '-n';
 const DATE = process.argv[DRY_RUN ? 3 : 2];
 const FILENAME = process.argv[DRY_RUN ? 4 : 3];
 
-if (!DRY_RUN) {
-	console.log('NOT A DRY RUN');
-	process.exit(1);
-}
-
 async function getMember(subscriptionId) {
 	const member = await db.Members.findOne({
 		'gocardless.subscription_id' : subscriptionId,
@@ -53,10 +48,11 @@ async function getMember(subscriptionId) {
 
 async function sendReminder(subscriptionId) {
 	const member = await getMember(subscriptionId);
-	if (DRY_RUN) {
-		console.log('Would remind ' + subscriptionId);
-		console.log('  ' + member.email);
-	} else {
+
+	console.log('Reminding ' + subscriptionId);
+	console.log('  ' + member.email);
+
+	if (!DRY_RUN) {
 		const optOutUrl = await db.SpecialUrls.create( {
 			email: member.email,
 			group: '',
@@ -83,10 +79,10 @@ async function migrateToAnnual(subscriptionId) {
 		throw new Error('Has future payments');
 	}
 
-	if (DRY_RUN) {
-		console.log('Would migrate ' + subscriptionId);
-		console.log('  ' + member.email + ', ' + subscription.upcoming_payments[0].charge_date);
-	} else {
+	console.log('Migrating ' + subscriptionId);
+	console.log('  ' + member.email + ', ' + subscription.upcoming_payments[0].charge_date);
+
+	if (!DRY_RUN) {
 		// Unset first to stop cancelled email on webhook
 		await member.update({$unset: {'gocardless.subscription_id': 1}});
 
@@ -113,20 +109,26 @@ async function migrateToAnnual(subscriptionId) {
 async function main() {
 	const blah = Papa.parse(fs.readFileSync(FILENAME).toString(), {header: true});
 
+	let reminders = 0, migrations = 0, errors = 0;
 	for (const row of blah.data) {
 		const days = moment.utc(DATE).diff(row.charge_date, 'days');
 		try {
 			if (days === -10) {
 				await migrateToAnnual(row.subscription_id);
+				migrations++;
 			} else if (days === -12) {
 				await sendReminder(row.subscription_id);
+				reminders++;
 			}
 		} catch (err) {
 			console.error('ERROR: Problem with ' + row.subscription_id);
 			console.error(err);
+			errors++;
 		}
 	}
 
+	console.error(`INFO: Reminded ${reminders} and migrated ${migrations}`);
+	console.error(`INFO: Got ${errors} errors`);
 }
 
 db.connect(config.mongo);
