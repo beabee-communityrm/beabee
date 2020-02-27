@@ -17,9 +17,14 @@ const DRY_RUN = process.argv[2] === '-n';
 const DATE = process.argv[DRY_RUN ? 3 : 2];
 const FILENAME = process.argv[DRY_RUN ? 4 : 3];
 
+if (!DRY_RUN) {
+	console.log('NOT A DRY RUN');
+	process.exit(1);
+}
+
 async function getMember(subscriptionId) {
 	const member = await db.Members.findOne({
-		'gocardess.subscription_id' : subscriptionId,
+		'gocardless.subscription_id' : subscriptionId,
 	});
 
 	if (!member) {
@@ -47,7 +52,7 @@ async function getMember(subscriptionId) {
 async function sendReminder(subscriptionId) {
 	const member = await getMember(subscriptionId);
 	if (DRY_RUN) {
-		console.log('Would migrate ' + subscriptionId);
+		console.log('Would remind ' + subscriptionId);
 		console.log('  ' + member.email);
 	} else {
 		return true; // TODO
@@ -60,9 +65,7 @@ async function migrateToAnnual(subscriptionId) {
 
 	const payments = await gocardless.payments.all({
 		subscription: subscriptionId,
-		charge_date: {
-			gte: DATE
-		}
+		'charge_date[gte]': DATE
 	});
 
 	if (payments.length > 0) {
@@ -97,10 +100,10 @@ async function migrateToAnnual(subscriptionId) {
 }
 
 async function main() {
-	const blah = Papa.parse(fs.readFileSync(FILENAME), {header: true});
+	const blah = Papa.parse(fs.readFileSync(FILENAME).toString(), {header: true});
 
 	for (const row of blah.data) {
-		const days = moment.utc().diff(row.charge_date, 'days');
+		const days = moment.utc(DATE).diff(row.charge_date, 'days');
 		try {
 			if (days === -10) {
 				await migrateToAnnual(row.subscription_id);
