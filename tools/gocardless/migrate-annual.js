@@ -55,12 +55,12 @@ async function sendReminder(subscriptionId) {
 	if (!DRY_RUN) {
 		const optOutUrl = await db.SpecialUrls.create( {
 			email: member.email,
-			group: '',
+			group: '5e394cc9403a6961f225f82a',
 			firstname: member.firstname,
 			lastname: member.lastname,
 			expires: moment.utc().add(48, 'hours')
 		} );
-		await mandrill.sendToMember(member, 'gocardless-email-mo-to-an-feb-2020', {
+		await mandrill.sendToMember('gocardless-email-mo-to-an-feb-2020', member, {
 			url: getSpecialUrlUrl(optOutUrl)
 		});
 	}
