@@ -13,6 +13,8 @@ const db = require( __js + '/database' );
 const gocardless = require(__js + '/gocardless');
 const mandrill = require(__js + '/mandrill');
 
+const { getSpecialUrlUrl } = require( __apps + '/tools/apps/special-urls/utils' );
+
 const DRY_RUN = process.argv[2] === '-n';
 const DATE = process.argv[DRY_RUN ? 3 : 2];
 const FILENAME = process.argv[DRY_RUN ? 4 : 3];
@@ -55,7 +57,16 @@ async function sendReminder(subscriptionId) {
 		console.log('Would remind ' + subscriptionId);
 		console.log('  ' + member.email);
 	} else {
-		return true; // TODO
+		const optOutUrl = await db.SpecialUrls.create( {
+			email: member.email,
+			group: '',
+			firstname: member.firstname,
+			lastname: member.lastname,
+			expires: moment.utc().add(48, 'hours')
+		} );
+		await mandrill.sendToMember(member, 'gocardless-email-mo-to-an-feb-2020', {
+			url: getSpecialUrlUrl(optOutUrl)
+		});
 	}
 }
 
