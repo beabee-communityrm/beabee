@@ -4,6 +4,7 @@ global.__config = __root + '/config/config.json';
 global.__js = __root + '/src/js';
 global.__models = __root + '/src/models';
 
+const axios = require( 'axios' );
 const fs = require( 'fs' );
 const moment = require( 'moment' );
 const Papa = require( 'papaparse' );
@@ -18,6 +19,8 @@ const { getSpecialUrlUrl } = require( __apps + '/tools/apps/special-urls/utils' 
 const DRY_RUN = process.argv[2] === '-n';
 const DATE = process.argv[DRY_RUN ? 3 : 2];
 const FILENAME = process.argv[DRY_RUN ? 4 : 3];
+
+class OptOutError extends Error {}
 
 async function getMember(subscriptionId) {
 	const member = await db.Members.findOne({
@@ -40,7 +43,7 @@ async function getMember(subscriptionId) {
 		throw new Error('Is paying the fee');
 	}
 	if (member.tags.filter(t => t.name === 'OPTOUT1').length > 0) {
-		throw new Error('Has opted out');
+		throw new OptOutError();
 	}
 
 	return member;
@@ -110,7 +113,7 @@ async function migrateToAnnual(subscriptionId) {
 async function main() {
 	const blah = Papa.parse(fs.readFileSync(FILENAME).toString(), {header: true});
 
-	let reminders = 0, migrations = 0, errors = 0;
+	let reminders = 0, migrations = 0, errors = 0, optouts = 0;
 	for (const row of blah.data) {
 		const days = moment.utc(DATE).diff(row.charge_date, 'days');
 		try {
@@ -123,13 +126,22 @@ async function main() {
 			}
 		} catch (err) {
 			console.error('ERROR: Problem with ' + row.subscription_id);
-			console.error(err);
-			errors++;
+			if (err instanceof OptOutError) {
+				console.error(err);
+				errors++;
+			} else {
+				console.error('ERROR: Opted out');
+				optouts++;
+			}
 		}
 	}
 
 	console.error(`INFO: Reminded ${reminders} and migrated ${migrations}`);
-	console.error(`INFO: Got ${errors} errors`);
+	console.error(`INFO: Got ${optouts} opt outs and ${errors} errors`);
+
+	await axios.post(config.migrateSlack.url, {
+		'text': `Reminded ${reminders} and migrated ${migrations}. Got ${optouts} opt outs and ${errors} errors`
+	});
 }
 
 db.connect(config.mongo);
