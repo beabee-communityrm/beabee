@@ -127,11 +127,11 @@ async function main() {
 		} catch (err) {
 			console.error('ERROR: Problem with ' + row.subscription_id);
 			if (err instanceof OptOutError) {
-				console.error(err);
-				errors++;
-			} else {
 				console.error('ERROR: Opted out');
 				optouts++;
+			} else {
+				console.error(err);
+				errors++;
 			}
 		}
 	}
