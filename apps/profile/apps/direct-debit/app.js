@@ -1,4 +1,5 @@
 const express = require('express');
+const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const { Payments } = require( __js + '/database' );
@@ -105,6 +106,14 @@ app.get( '/complete', [
 			// webhook triggering a cancelled email
 			await user.update({$unset: {'gocardless.subscription_id': 1}});
 			await gocardless.mandates.cancel(user.gocardless.mandate_id);
+		}
+
+		// The new mandates first possible charge date could be after the
+		// membership expiry date, if so increase the expiry date
+		const mandate = await gocardless.mandates.get(mandateId);
+		const nextChargeDate = moment.utc(mandate.next_possible_charge_date).add(config.gracePeriod);
+		if (nextChargeDate.isAfter(user.memberPermission.expires)) {
+			user.memberPermission.date_expires = nextChargeDate;
 		}
 
 		user.gocardless.customer_id = customerId;
