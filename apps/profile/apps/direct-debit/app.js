@@ -52,7 +52,7 @@ app.get( '/', wrapAsync( async function ( req, res ) {
 		user: req.user,
 		isFirstPayment,
 		bankAccount: await getBankAccount(req.user),
-		canChange: await canChangeSubscription(req.user),
+		canChange: await canChangeSubscription(req.user, req.user.canTakePayment),
 		monthsLeft: calcSubscriptionMonthsLeft(req.user)
 	} );
 } ) );
