@@ -67,7 +67,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^9.4.7",
-    "ava": "^1.2.1",
+    "ava": "^3.5.1",
     "concurrently": "^4.1.0",
     "eslint": "^5.13.0",
     "git-rev": "^0.2.1",
@@ -75,8 +75,7 @@
     "gulp-postcss": "^8.0.0",
     "gulp-sass": "^4.0.2",
     "gulp-sourcemaps": "^2.6.4",
-    "nodemon": "^1.19.1",
-    "watchify": "^3.11.1"
+    "nodemon": "^2.0.2"
   },
   "ava": {
     "files": [
