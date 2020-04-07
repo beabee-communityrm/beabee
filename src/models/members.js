@@ -173,7 +173,10 @@ module.exports = {
 		} ],
 		last_seen: Date,
 		join_reason: String,
+		join_reason_more: String,
 		join_how: String,
+		join_known: String,
+		join_more: String,
 		join_shareable: Boolean,
 		cancellation: {
 			satisfied: Number,

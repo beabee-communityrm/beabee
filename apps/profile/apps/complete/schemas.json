@@ -2,7 +2,7 @@
 	"completeSchema": {
 		"body": {
 			"type": "object",
-			"required": ["password", "verify", "reason", "how", "delivery_optin"],
+			"required": ["password", "verify", "reason", "how", "known", "delivery_optin"],
 			"properties": {
 				"password": {
 					"type": "string",
@@ -16,7 +16,16 @@
 				"reason": {
 					"type": "string"
 				},
+				"reason_more": {
+					"type": "string"
+				},
 				"how": {
+					"type": "string"
+				},
+				"known": {
+					"type": "string"
+				},
+				"more": {
 					"type": "string"
 				},
 				"shareable": {
