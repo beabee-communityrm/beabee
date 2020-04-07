@@ -38,8 +38,14 @@ app.get( '/', wrapAsync( async function( req, res ) {
 } ) );
 
 app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( async function( req, res ) {
-	const { body : { password, delivery_optin, delivery_line1, delivery_line2,
-		delivery_city, delivery_postcode, reason, how, shareable }, user } = req;
+	const {
+		body: {
+			password, delivery_optin, delivery_line1, delivery_line2,
+			delivery_city, delivery_postcode, reason, reason_more, how, known,
+			more,  shareable
+		},
+		user
+	} = req;
 
 	const referral = await Referrals.findOne({ referee: req.user });
 
@@ -62,8 +68,11 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( async function( req
 				postcode: delivery_postcode
 			} : {},
 			join_reason: reason,
+			join_reason_more: reason_more,
 			join_how: how,
-			join_shareable: !!shareable
+			join_known: known,
+			join_more: more,
+			join_shareable: !!shareable,
 		} } );
 
 		res.redirect( '/profile' );
