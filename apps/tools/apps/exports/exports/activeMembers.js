@@ -37,6 +37,7 @@ async function getExport(members) {
 			ContributionMonthlyAmount: member.contributionMonthlyAmount,
 			ContributionPeriod: member.contributionPeriod,
 			ContributionDescription: member.contributionDescription,
+			ContributionPayingFee: member.gocardless.paying_fee,
 			Postcode: member.delivery_optin ? anonymisePostcode(member.delivery_address.postcode) : ''
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
