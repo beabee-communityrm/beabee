@@ -98,9 +98,9 @@ app.get( '/complete', [
 ], wrapAsync( async (req, res) => {
 	const { user } = req;
 
-	const { customerId, mandateId, joinForm } = await completeJoinFlow( req.query.redirect_flow_id );
-
 	if (await canChangeSubscription(user, false)) {
+		const { customer, mandateId, joinForm } = await completeJoinFlow( req.query.redirect_flow_id );
+
 		if ( user.gocardless.mandate_id ) {
 			// Remove subscription before cancelling mandate to stop the
 			// webhook triggering a cancelled email
@@ -116,7 +116,7 @@ app.get( '/complete', [
 			user.memberPermission.date_expires = nextChargeDate;
 		}
 
-		user.gocardless.customer_id = customerId;
+		user.gocardless.customer_id = customer.id;
 		user.gocardless.mandate_id = mandateId;
 		user.gocardless.subscription_id = undefined;
 		await user.save();

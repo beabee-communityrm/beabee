@@ -14,7 +14,7 @@ const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
-const { createMember, customerToMember, startMembership } = require( __apps + '/join/utils' );
+const { isValidCustomer, createMember, customerToMember, startMembership } = require( __apps + '/join/utils' );
 const { syncMemberDetails } = require( __apps + '/profile/apps/account/utils' );
 const exportTypes = require( __apps + '/tools/apps/exports/exports');
 
@@ -205,9 +205,14 @@ app.get( '/add', function( req, res ) {
 } );
 
 app.post( '/add', wrapAsync( async function( req, res ) {
-	const memberObj = await customerToMember( req.body.customer_id, req.body.mandate_id );
-	const member = await createMember( memberObj );
-	res.redirect( app.mountpath + '/' + member.uuid );
+	const customer = await gocardless.customers.get(req.body.customer_id);
+	if (isValidCustomer(customer)) {
+		const member = await createMember( customerToMember( customer, req.body.mandate_id ) );
+		res.redirect( app.mountpath + '/' + member.uuid );
+	} else {
+		req.flash('error', 'member-add-invalid-direct-debit');
+		res.redirect( app.mountpath + '/add' );
+	}
 } ) );
 
 app.get( '/:uuid', wrapAsync( async function( req, res ) {

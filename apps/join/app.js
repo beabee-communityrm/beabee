@@ -8,8 +8,8 @@ const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 
 const config = require( __config );
 
-const { processJoinForm, customerToMember, createJoinFlow, completeJoinFlow, createMember,
-	startMembership, isGiftAvailable } = require( './utils' );
+const { processJoinForm, customerToMember, createJoinFlow, completeJoinFlow, isValidCustomer,
+	createMember, startMembership, isGiftAvailable } = require( './utils' );
 
 const { joinSchema, referralSchema, completeSchema } = require( './schemas.json' );
 
@@ -73,39 +73,51 @@ app.get( '/complete', [
 	auth.isNotLoggedIn,
 	hasSchema(completeSchema).orRedirect( '/join' )
 ], wrapAsync(async function( req, res ) {
-	const {customerId, mandateId, joinForm} = await completeJoinFlow(req.query.redirect_flow_id);
+	const {customer, mandateId, joinForm} = await completeJoinFlow(req.query.redirect_flow_id);
 
-	const memberObj = await customerToMember(customerId, mandateId);
+	if (isValidCustomer(customer)) {
+		const memberObj = customerToMember(customer, mandateId);
 
-	try {
-		const newMember = await createMember(memberObj);
-		await startMembership(newMember, joinForm);
-		await mandrill.sendToMember('welcome', newMember);
-		loginAndRedirect(req, res, newMember);
-	} catch ( saveError ) {
-		// Duplicate email
-		if ( saveError.code === 11000 ) {
-			const oldMember = await Members.findOne({email: memberObj.email});
-			if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
-				res.redirect( app.mountpath + '/duplicate-email' );
+		try {
+			const newMember = await createMember(memberObj);
+			await startMembership(newMember, joinForm);
+			await mandrill.sendToMember('welcome', newMember);
+			loginAndRedirect(req, res, newMember);
+		} catch ( saveError ) {
+			// Duplicate email
+			if ( saveError.code === 11000 ) {
+				const oldMember = await Members.findOne({email: memberObj.email});
+				if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
+					res.redirect( app.mountpath + '/duplicate-email' );
+				} else {
+					const code = auth.generateCode();
+
+					await RestartFlows.create( {
+						code,
+						member: oldMember._id,
+						customerId: customer.id,
+						mandateId,
+						joinForm
+					} );
+
+					await mandrill.sendToMember('restart-membership', oldMember, {code});
+
+					res.redirect( app.mountpath + '/expired-member' );
+				}
 			} else {
-				const code = auth.generateCode();
-
-				await RestartFlows.create( {
-					code,
-					member: oldMember._id,
-					customerId,
-					mandateId,
-					joinForm
-				} );
-
-				await mandrill.sendToMember('restart-membership', oldMember, {code});
-
-				res.redirect( app.mountpath + '/expired-member' );
+				throw saveError;
 			}
-		} else {
-			throw saveError;
 		}
+	} else {
+		req.log.error({
+			app: 'join',
+			action: 'invalid-direct-debit',
+			data: {
+				customerId: customer.id,
+				joinForm
+			}
+		}, 'Customer tried to sign up with invalid direct debit');
+		res.redirect( app.mountpath + '/invalid-direct-debit' );
 	}
 }));
 
@@ -143,6 +155,10 @@ app.get('/expired-member', (req, res) => {
 
 app.get('/duplicate-email', (req, res) => {
 	res.render('duplicate-email');
+});
+
+app.get('/invalid-direct-debit', (req, res) => {
+	res.render('invalid-direct-debit');
 });
 
 module.exports = function( config ) {
