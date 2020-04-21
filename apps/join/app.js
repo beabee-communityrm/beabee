@@ -109,6 +109,14 @@ app.get( '/complete', [
 			}
 		}
 	} else {
+		req.log.error({
+			app: 'join',
+			action: 'invalid-direct-debit',
+			data: {
+				customerId: customer.id,
+				joinForm
+			}
+		});
 		res.redirect( app.mountpath + '/invalid-direct-debit' );
 	}
 }));
