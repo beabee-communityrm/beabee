@@ -116,7 +116,7 @@ app.get( '/complete', [
 				customerId: customer.id,
 				joinForm
 			}
-		});
+		}, 'Customer tried to sign up with invalid direct debit');
 		res.redirect( app.mountpath + '/invalid-direct-debit' );
 	}
 }));
