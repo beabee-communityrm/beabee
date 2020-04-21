@@ -205,8 +205,8 @@ app.get( '/add', function( req, res ) {
 } );
 
 app.post( '/add', wrapAsync( async function( req, res ) {
-	const memberObj = await customerToMember( req.body.customer_id, req.body.mandate_id );
-	const member = await createMember( memberObj );
+	const customer = await gocardless.customers.get(req.body.customer_id);
+	const member = await createMember( customerToMember( customer, req.body.mandate_id ) );
 	res.redirect( app.mountpath + '/' + member.uuid );
 } ) );
 

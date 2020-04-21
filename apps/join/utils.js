@@ -7,15 +7,11 @@ const auth = require( __js + '/authentication' );
 const { JoinFlows, Members, ReferralGifts, Referrals } = require( __js + '/database' );
 const gocardless = require( __js + '/gocardless' );
 const { log } = require( __js + '/logging' );
-const postcodes = require( __js + '/postcodes' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
 const { getActualAmount, getChargeableAmount, cleanEmailAddress } = require( __js + '/utils' );
 
-async function customerToMember(customerId, mandateId) {
-	const customer = await gocardless.customers.get(customerId);
-	const billing_location = await postcodes.getLocation(customer.postal_code);
-
+function customerToMember(customer, mandateId) {
 	return {
 		firstname: customer.given_name,
 		lastname: customer.family_name,
@@ -27,12 +23,15 @@ async function customerToMember(customerId, mandateId) {
 			city: customer.city,
 			postcode: customer.postal_code
 		},
-		billing_location,
 		gocardless: {
 			customer_id: customer.id,
 			mandate_id: mandateId
 		}
 	};
+}
+
+function isValidCustomer(customer) {
+	return customer.given_name && customer.family_name;
 }
 
 async function createSubscription(amount, period, payFee, mandateId, startDate = null) {
@@ -94,8 +93,10 @@ async function completeJoinFlow(redirect_flow_id) {
 		session_token: joinFlow.sessionToken
 	});
 
+	const customer = await gocardless.customers.get(redirectFlow.links.customer);
+
 	return {
-		customerId: redirectFlow.links.customer,
+		customer,
 		mandateId: redirectFlow.links.mandate,
 		joinForm: joinFlow.joinForm
 	};
@@ -203,8 +204,9 @@ async function updateGiftStock({referralGift, referralGiftOptions}) {
 }
 
 module.exports = {
-	processJoinForm,
 	customerToMember,
+	isValidCustomer,
+	processJoinForm,
 	createJoinFlow,
 	completeJoinFlow,
 	createMember,
