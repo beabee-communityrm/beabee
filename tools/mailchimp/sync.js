@@ -97,7 +97,7 @@ async function processMembers(members) {
 		.map(listId => members.map(memberToOperation.bind(null, listId)))
 		.reduce((a, b) => [...a, ...b], []);
 
-	const updates = operations.filter(o => o.method === 'PUT').length;
+	const updates = operations.filter(o => o.method === 'PATCH').length;
 	const deletes = operations.filter(o => o.method === 'DELETE').length;
 
 	console.log(`Created ${operations.length} operations, ${updates} updates and ${deletes} deletes`);

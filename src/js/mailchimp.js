@@ -35,7 +35,7 @@ function createInstance(endpoint) {
 			app: 'mailchimp' + endpoint,
 			status: error.response.status,
 			data: error.response.data
-		});
+		}, 'MailChimp API returned with status ' + error.response.status);
 		return Promise.reject(error);
 	});
 
