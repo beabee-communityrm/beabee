@@ -1,15 +1,17 @@
 const express = require( 'express' );
 
 const auth = require( __js + '/authentication' );
-const { Members, ReferralGifts, RestartFlows } = require( __js + '/database' );
+const { Members, RestartFlows } = require( __js + '/database' );
 const mandrill = require( __js + '/mandrill' );
 const { hasSchema } = require( __js + '/middleware' );
 const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 
 const config = require( __config );
 
-const { processJoinForm, customerToMember, createJoinFlow, completeJoinFlow, createMember,
-	startMembership, isGiftAvailable } = require( './utils' );
+const JoinFlowService = require(__js + '/services/JoinFlowService');
+const MembersService = require(__js + '/services/MembersService');
+const PaymentService = require(__js + '/services/PaymentService');
+const ReferralsService = require(__js + '/services/ReferralsService');
 
 const { joinSchema, referralSchema, completeSchema } = require( './schemas.json' );
 
@@ -32,7 +34,7 @@ app.get( '/' , function( req, res ) {
 app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 	const referrer = await Members.findOne( { referralCode: req.params.code.toUpperCase() } );
 	if ( referrer ) {
-		const gifts = await ReferralGifts.find();
+		const gifts = await ReferralsService.getGifts();
 		res.render( 'index', { user: req.user, referrer, gifts } );
 	} else {
 		req.flash('warning', 'referral-code-invalid');
@@ -44,10 +46,10 @@ app.post( '/', [
 	auth.isNotLoggedIn,
 	hasSchema(joinSchema).orFlash
 ], wrapAsync(async function( req, res ) {
-	const joinForm = processJoinForm(req.body);
+	const joinForm = JoinFlowService.processJoinForm(req.body);
 
 	const completeUrl = config.audience + app.mountpath + '/complete';
-	const redirectUrl = await createJoinFlow(completeUrl, joinForm);
+	const redirectUrl = await JoinFlowService.createJoinFlow(completeUrl, joinForm);
 
 	res.redirect( redirectUrl );
 }));
@@ -57,11 +59,11 @@ app.post( '/referral/:code', [
 	hasSchema(joinSchema).orFlash,
 	hasSchema(referralSchema).orFlash
 ], wrapAsync( async function ( req, res ) {
-	const joinForm = processJoinForm(req.body);
+	const joinForm = JoinFlowService.processJoinForm(req.body);
 
-	if (await isGiftAvailable(joinForm)) {
+	if (await ReferralsService.isGiftAvailable(joinForm)) {
 		const completeUrl = config.audience + app.mountpath + '/complete';
-		const redirectUrl = await createJoinFlow(completeUrl, joinForm);
+		const redirectUrl = await JoinFlowService.createJoinFlow(completeUrl, joinForm);
 		res.redirect(redirectUrl);
 	} else {
 		req.flash('warning', 'referral-gift-invalid');
@@ -73,13 +75,14 @@ app.get( '/complete', [
 	auth.isNotLoggedIn,
 	hasSchema(completeSchema).orRedirect( '/join' )
 ], wrapAsync(async function( req, res ) {
-	const {customerId, mandateId, joinForm} = await completeJoinFlow(req.query.redirect_flow_id);
+	const {customerId, mandateId, joinForm} =
+		await JoinFlowService.completeJoinFlow(req.query.redirect_flow_id);
 
-	const memberObj = await customerToMember(customerId, mandateId);
+	const memberObj = await PaymentService.customerToMember(customerId, mandateId);
 
 	try {
-		const newMember = await createMember(memberObj);
-		await startMembership(newMember, joinForm);
+		const newMember = await MembersService.createMember(memberObj);
+		await MembersService.startMembership(newMember, joinForm);
 		await mandrill.sendToMember('welcome', newMember);
 		loginAndRedirect(req, res, newMember);
 	} catch ( saveError ) {
@@ -126,7 +129,7 @@ app.get('/restart/:code', wrapAsync(async (req, res) => {
 			};
 			await member.save();
 
-			await startMembership(member, joinForm);
+			await MembersService.startMembership(member, joinForm);
 			req.flash( 'success', 'contribution-restarted' );
 		}
 
