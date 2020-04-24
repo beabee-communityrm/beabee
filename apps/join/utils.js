@@ -138,7 +138,7 @@ async function addToMailingLists(member) {
 		log.error({
 			app: 'join-utils',
 			error: err
-		});
+		}, 'Adding member to MailChimp failed, probably a bad email address: ' + member.uuid);
 	}
 }
 
