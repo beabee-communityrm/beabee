@@ -320,22 +320,23 @@ app.post( '/:uuid/profile', [
 		firstname !== user.firstname ||
 		lastname !== user.lastname;
 
-	const profile = {
-		email: cleanedEmail,
-		firstname, lastname, delivery_optin,
-		delivery_address: delivery_optin ? {
+	try {
+		const oldEmail = user.email;
+
+		user.email = cleanedEmail;
+		user.firstname = firstname;
+		user.lastname = lastname;
+		user.delivery_optin = delivery_optin;
+		user.delivery_address = delivery_optin ? {
 			line1: delivery_line1,
 			line2: delivery_line2,
 			city: delivery_city,
 			postcode: delivery_postcode
-		} : {}
-	};
-
-	try {
-		await Members.updateOne( { uuid }, { $set: profile } );
+		} : {};
+		await user.save();
 
 		if ( needsSync ) {
-			await syncMemberDetails( user, { email, firstname, lastname } );
+			await syncMemberDetails( user, oldEmail );
 		}
 	} catch ( saveError ) {
 		// Duplicate key (on email)

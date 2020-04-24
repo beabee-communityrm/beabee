@@ -41,9 +41,14 @@ app.post( '/', [
 		const profile = { email: cleanedEmail, firstname, lastname };
 
 		try {
-			await user.update( { $set: profile }, { runValidators: true } );
+			const oldEmail = user.email;
 
-			await syncMemberDetails( user, profile );
+			user.email = email;
+			user.firstname = firstname;
+			user.lastname = lastname;
+			await user.save();
+
+			await syncMemberDetails(user, oldEmail);
 
 			req.log.info( {
 				app: 'profile',
