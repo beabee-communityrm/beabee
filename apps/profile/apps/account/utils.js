@@ -3,27 +3,19 @@ const mailchimp = require( __js + '/mailchimp' );
 
 const { addToMailingLists } = require( __apps + '/join/utils' );
 
-async function syncMemberDetails(member, {email, firstname, lastname}) {
+async function syncMemberDetails(member, oldEmail) {
 	if ( member.isActiveMember ) {
 		try {
-			await mailchimp.defaultLists.members.update( member.email, {
-				email_address: email,
+			await mailchimp.defaultLists.members.update( oldEmail, {
+				email_address: member.email,
 				merge_fields: {
-					FNAME: firstname,
-					LNAME: lastname
+					FNAME: member.firstname,
+					LNAME: member.lastname
 				}
 			} );
 		} catch (err) {
 			if (err.response && err.response.status === 404) {
-				// TMPFIX: Insert with old email address then overwrite
 				await addToMailingLists(member);
-				await mailchimp.defaultLists.members.update( member.email, {
-					email_address: email,
-					merge_fields: {
-						FNAME: firstname,
-						LNAME: lastname
-					}
-				} );
 			} else {
 				throw err;
 			}
@@ -32,9 +24,9 @@ async function syncMemberDetails(member, {email, firstname, lastname}) {
 
 	if ( member.gocardless.customer_id ) {
 		await gocardless.customers.update( member.gocardless.customer_id, {
-			email,
-			given_name: firstname,
-			family_name: lastname
+			email: member.email,
+			given_name: member.firstname,
+			family_name: member.lastname
 		} );
 	}
 }
