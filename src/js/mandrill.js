@@ -9,6 +9,7 @@ const templates = {
 		name: 'REFLINK',
 		content: member.referralLink
 	}],
+	'welcome-post-gift': () => [{}],
 	'reset-password': member => [{
 		name: 'RPLINK',
 		content: config.audience + '/password-reset/code/' + member.password.reset_code

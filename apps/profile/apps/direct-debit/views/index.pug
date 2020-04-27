@@ -61,9 +61,9 @@ block contents
 			if canChange
 				include partials/change-subscription
 			else
-				p.alert.alert-warning.
-					You can't change your contribution online at the moment, please
-					contact #[+email('membership@thebristolcable.org')].
+				p.
+					Your contribution is currently processing and can't be changed online right now.
+					Please contact #[+email('membership@thebristolcable.org')] if you wish to do so.
 
 			if user.hasActiveSubscription
 				hr

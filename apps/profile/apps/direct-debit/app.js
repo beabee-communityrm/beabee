@@ -58,6 +58,17 @@ app.get( '/', wrapAsync( async function ( req, res ) {
 	} );
 } ) );
 
+async function handleUpdateSubscription(req, user, form) {
+	const wasGift = user.contributionPeriod === 'gift';
+	await processUpdateSubscription(user, form);
+	if (wasGift) {
+		await mandrill.sendToMember('welcome-post-gift', user);
+		req.flash( 'success', 'contribution-gift-updated' );
+	} else {
+		req.flash( 'success', 'contribution-updated' );
+	}
+}
+
 app.post( '/', [
 	hasSchema(updateSubscriptionSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
@@ -73,8 +84,7 @@ app.post( '/', [
 			}
 		} );
 		if ( useMandate && user.canTakePayment ) {
-			await processUpdateSubscription( user, updateForm );
-			req.flash( 'success', 'contribution-updated' );
+			await handleUpdateSubscription(req, user, updateForm);
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
@@ -121,9 +131,7 @@ app.get( '/complete', [
 		user.gocardless.subscription_id = undefined;
 		await user.save();
 
-		await processUpdateSubscription(user, joinForm);
-
-		req.flash( 'success', 'contribution-updated');
+		await handleUpdateSubscription(req, user, joinForm);
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}
