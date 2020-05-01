@@ -1,13 +1,15 @@
 # Membership System
 
-[![Known Vulnerabilities](https://snyk.io//test/github/thebristolcable/membership-system/badge.svg?targetFile=package.json)](https://snyk.io//test/github/thebristolcable/membership-system?targetFile=package.json)
+This is The Bristol Cable's membership system. We are actively looking for
+people/organisations who are interested in using the system or want to get
+involved.
+
+<b>If you are interested/have any questions please contact
+will@thebristolcable.org, I'd love to hear from you!</b>
 
 This system was originally created for
 [South London Makerspace](http://southlondonmakerspace.org)
 and repurposed by [The Bristol Cable](https://thebristolcable.org).
-
-Browser testing with<br/>
-<a href="https://www.browserstack.com/"><img src="https://user-images.githubusercontent.com/2084823/46341120-52388b00-c62f-11e8-8f41-270915ccc03b.png" width="150" /></a>
 
 ### Integrations
 - GoCardless for direct debits
@@ -15,39 +17,72 @@ Browser testing with<br/>
 - Mandrill for transactional emails
 - Discourse with SSO for forums
 
-## Development
+## Install
+
+[![Deployment](https://circleci.com/gh/thebristolcable/membership-system.svg?style=shield)](https://circleci.com/gh/thebristolcable/membership-system)
+[![Known Vulnerabilities](https://snyk.io/test/github/thebristolcable/membership-system/badge.svg?targetFile=package.json)](https://snyk.io/test/github/thebristolcable/membership-system?targetFile=package.json)
+
+Browser testing with<br/>
+<a href="https://www.browserstack.com/"><img src="https://user-images.githubusercontent.com/2084823/46341120-52388b00-c62f-11e8-8f41-270915ccc03b.png" width="150" /></a>
 
 ### Setup
 
-#### 1. Prerequisites
-Before you can start the server you'll need to ensure:
+#### Prerequisites
+Before you can start the server you'll need to ensure you have the following
+install
 
-- Node.js is installed
-- MongoDB is installed
+- Node.js >= 12.16.1
+- Docker >= 19.03.8
+- Docker Compose >= 1.25.5
 
-#### 2. Before install
-1. Clone the repo into a folder.
-1. Copy the example config in the `config` folder, naming it `config.json`.
-   Complete the details.
+NOTE: Lower non-major versions probably work but haven't been tested
 
-#### 3. New install
-1. Use `npm install` to install the numerous dependencies.
-1. Run `npm run first-time` to create the basic necessary database entries.
-1. [Temporary step] In the config file update `permission.memberId` to match
-   the ID returned by:
+#### Install from scratch
+
+1. Copy and fill in the config file
+   ```bash
+   cp config/example-config.json config/config.json
    ```
-   tools/database/shell.sh
-   db.permissions.findOne({"slug": "member"})._id
+
+1. Set up the basics
+   ```bash
+   docker-compose up -d
+   docker-compose exec app node tools/first-time
    ```
-1. Optionally import data using `node tools/database/import.json` if you have
-   access to an anonymised export.
 
-#### 4. After install
-1. Run `npm run new-user` to create an activated super admin user.
-1. Start the main server using `npm start`.
-1. Open a browser to `http://localhost:3001`.
+1. Set `permission.memberId` in `config/config.json` as indicated
 
-### Creating apps
+1. ```bash
+   docker-compose restart
+   ```
+
+1. Create a new super admin
+   ```bash
+   docker-compose exec app node tools/new-user
+   ```
+
+#### Install with data export
+
+1. Copy and fill in the config file
+   ```bash
+   cp config/example-config.json config/config.json
+   ```
+
+1. Import the data export
+   ```
+   docker-compose exec app node tools/database/import.js <import path>
+   ```
+
+   NOTE: `<import path>` must be inside the repo's root directory so it is
+   visible to the Docker container
+
+## Development
+
+```
+npm start
+```
+
+#### Creating apps
 The system is built around modular apps. If you're looking to add functionality
 to the site the best way to do this would by adding an app to the site rather
 than modifying it's base. This means you're unlikely to mess anything up.
@@ -56,24 +91,13 @@ As an example, let's add a login page.
 
 Stub out your app structure within `app/`, this will include:
 
-	apps/
-		login/
-			views/
-				app.js
-				config.js
+```
+apps/
+	login/
+		views/
+			index.pug
+		app.js
+		config.js
+```
 
 Check out these files to get an idea of how each of these should be structure.
-
-## Deployment
-
-### Setup
-
-Currently setting up a production environment involves following the guide in
-`tools/install.sh`
-
-### Updating
-
-```
-git pull
-pm2 restart config/ecosystem.prod.js
-```
