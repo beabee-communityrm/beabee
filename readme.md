@@ -12,12 +12,11 @@ This system was originally created for
 and repurposed by [The Bristol Cable](https://thebristolcable.org).
 
 ### Integrations
+
 - GoCardless for direct debits
 - MailChimp for newsletters
 - Mandrill for transactional emails
 - Discourse with SSO for forums
-
-## Install
 
 [![Deployment](https://circleci.com/gh/thebristolcable/membership-system.svg?style=shield)](https://circleci.com/gh/thebristolcable/membership-system)
 [![Known Vulnerabilities](https://snyk.io/test/github/thebristolcable/membership-system/badge.svg?targetFile=package.json)](https://snyk.io/test/github/thebristolcable/membership-system?targetFile=package.json)
@@ -25,11 +24,9 @@ and repurposed by [The Bristol Cable](https://thebristolcable.org).
 Browser testing with<br/>
 <a href="https://www.browserstack.com/"><img src="https://user-images.githubusercontent.com/2084823/46341120-52388b00-c62f-11e8-8f41-270915ccc03b.png" width="150" /></a>
 
-### Setup
+## Install
 
-#### Prerequisites
-Before you can start the server you'll need to ensure you have the following
-install
+You must have the following installed:
 
 - Node.js >= 12.16.1
 - Docker >= 19.03.8
@@ -37,7 +34,12 @@ install
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
-#### Install from scratch
+### From scratch (no data export)
+
+1. Install dependencies
+   ```bash
+   npm install
+   ```
 
 1. Copy and fill in the config file
    ```bash
@@ -50,9 +52,9 @@ NOTE: Lower non-major versions probably work but haven't been tested
    docker-compose exec app node tools/first-time
    ```
 
-1. Set `permission.memberId` in `config/config.json` as indicated
-
-1. ```bash
+1. Set `permission.memberId` in `config/config.json` as indicated and apply
+   changes
+   ```bash
    docker-compose restart
    ```
 
@@ -61,11 +63,21 @@ NOTE: Lower non-major versions probably work but haven't been tested
    docker-compose exec app node tools/new-user
    ```
 
-#### Install with data export
+### With data export
+
+1. Install dependencies
+   ```bash
+   npm install
+   ```
 
 1. Copy and fill in the config file
    ```bash
    cp config/example-config.json config/config.json
+   ```
+
+1. Set up the basics
+   ```bash
+   docker-compose up -d
    ```
 
 1. Import the data export
@@ -81,6 +93,8 @@ NOTE: Lower non-major versions probably work but haven't been tested
 ```
 npm start
 ```
+
+Go to `http://localhost:3001`
 
 #### Creating apps
 The system is built around modular apps. If you're looking to add functionality

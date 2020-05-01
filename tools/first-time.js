@@ -1,4 +1,4 @@
-global.__root = __dirname + '/../..';
+global.__root = __dirname + '/..';
 global.__apps = __root + '/apps';
 global.__config = __root + '/config/config.json';
 global.__js = __root + '/src/js';
