@@ -34,8 +34,6 @@ You must have the following installed:
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
-### From scratch (no data export)
-
 1. Install dependencies
    ```bash
    npm install
@@ -49,6 +47,12 @@ NOTE: Lower non-major versions probably work but haven't been tested
 1. Set up the basics
    ```bash
    docker-compose up -d
+   ```
+
+### From scratch (no data export)
+
+1. Run first time script
+   ```bash
    docker-compose exec app node tools/first-time
    ```
 
@@ -64,21 +68,6 @@ NOTE: Lower non-major versions probably work but haven't been tested
    ```
 
 ### With data export
-
-1. Install dependencies
-   ```bash
-   npm install
-   ```
-
-1. Copy and fill in the config file
-   ```bash
-   cp config/example-config.json config/config.json
-   ```
-
-1. Set up the basics
-   ```bash
-   docker-compose up -d
-   ```
 
 1. Import the data export
    ```
