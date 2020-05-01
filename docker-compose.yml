@@ -1,16 +1,16 @@
-version: '3'
+version: '3.2'
+
 services:
-   db:
-     image: mongo:latest
-   membership:
-     build: .
-     depends_on:
-       - db
-       - mailcatcher
-     ports:
-       - "3001:3001"
-       - "3002:3002"
-   mailcatcher:
-     image: ministryofjustice/mailcatcher
-     ports:
-       - "1080:1080"
+  db:
+    image: mongo:3.6.18
+    volumes:
+      - db_data:/data/db
+  app:
+    build: .
+    volumes:
+      - ./.:/membership-system
+    ports:
+      - 3001:3001
+
+volumes:
+  db_data:

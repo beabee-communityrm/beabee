@@ -32,6 +32,7 @@
     "express": "^4.16.4",
     "express-flash": "0.0.2",
     "express-session": "^1.15.6",
+    "git-rev": "^0.2.1",
     "gunzip-maybe": "^1.4.1",
     "helmet": "^3.21.1",
     "hummus": "^1.0.107",
@@ -55,7 +56,7 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "start": "npm run build && concurrently -c red,blue npm:watch nodemon",
+    "start": "docker-compose start && npm run build && concurrently -c red,blue npm:watch nodemon",
     "app": "node app 2>&1 | bunyan",
     "webhook": "node webhook | bunyan",
     "first-time": "node tools/first-time",
@@ -70,7 +71,6 @@
     "ava": "^3.5.1",
     "concurrently": "^4.1.0",
     "eslint": "^5.13.0",
-    "git-rev": "^0.2.1",
     "gulp": "^4.0.2",
     "gulp-postcss": "^8.0.0",
     "gulp-sass": "^4.0.2",
@@ -92,6 +92,6 @@
       "test/*"
     ],
     "signal": "SIGTERM",
-    "exec": "npm run lint && npm run app"
+    "exec": "npm run lint && docker-compose restart app"
   }
 }
