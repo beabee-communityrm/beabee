@@ -1,18 +1,15 @@
-FROM node:8.9-alpine
-RUN apk add --update \
-    python \
-    python-dev \
-    py-pip \
-    build-base
+FROM node:12.16.3
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
-ADD package.json /usr/src/app/package.json
-RUN npm install --devDependencies
-ADD ./ /usr/src/app/
+WORKDIR /
+ADD package.json package-lock.json ./
 
+RUN npm install --only=production
+
+WORKDIR /membership-system
+
+#COPY . /membership-system
+
+ENV NODE_PATH=/node_modules
 
 EXPOSE 3001
-EXPOSE 3002
-
-CMD ["npm","run", "production"]
+CMD ["/bin/bash", "-c", "node app 2>&1 | /node_modules/.bin/bunyan"]
