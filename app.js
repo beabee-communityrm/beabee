@@ -78,9 +78,9 @@ app.use( quickflash );
 // Setup tracker
 app.use( '/membership.js', (req, res) => {
 	const referrerUrl = req.get('referer');
+	res.set('Content-Type', 'application/javascript');
 	if (!referrerUrl || config.trackDomains.some(domain => referrerUrl.startsWith(domain))) {
 		const memberId = req.cookies.memberId;
-		res.set('Content-Type', 'application/javascript');
 		if (memberId) {
 			res.send('window.Membership = {memberId: "' + memberId + '"}');
 		} else {
