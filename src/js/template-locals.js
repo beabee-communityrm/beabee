@@ -86,12 +86,6 @@ function templateLocals( req, res, next ) {
 
 	res.locals.isLoggedIn = !!req.user;
 
-	// Check if user setup is complete
-	res.locals.setupComplete = true;
-	if ( req.user ) {
-		res.locals.setupComplete = req.user.setupComplete;
-	}
-
 	// Prepare a CSRF token if available
 	if ( req.csrfToken ) res.locals.csrf = req.csrfToken();
 
