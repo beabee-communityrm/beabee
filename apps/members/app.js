@@ -206,6 +206,12 @@ app.get( '/add', function( req, res ) {
 
 app.post( '/add', wrapAsync( async function( req, res ) {
 	const customer = await gocardless.customers.get(req.body.customer_id);
+	if (req.body.first_name) {
+		customer.given_name = req.body.first_name;
+	}
+	if (req.body.last_name) {
+		customer.family_name = req.body.last_name;
+	}
 	if (isValidCustomer(customer)) {
 		const member = await createMember( customerToMember( customer, req.body.mandate_id ) );
 		res.redirect( app.mountpath + '/' + member.uuid );

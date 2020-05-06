@@ -39,7 +39,7 @@
 	"flash-member-permanently-deleted": "Member permanently deleted",
 	"flash-member-login-override-generated": "Login override code generated",
 	"flash-member-password-reset-generated": "Password reset code generated",
-	"flash-member-add-invalid-direct-debit": "Invalid direct debit",
+	"flash-member-add-invalid-direct-debit": "Invalid direct debit, you must specify the first and last name",
 
 	"flash-account-updated": "Your account details have been updated",
 	"flash-delivery-updated": "Your delivery details have been updated",
