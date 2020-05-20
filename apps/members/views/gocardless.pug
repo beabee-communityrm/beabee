@@ -43,4 +43,9 @@ block contents
 					left: 3, right: 4,
 					options: {'monthly': 'Monthly', 'annually': 'Annually'}
 				})
+				+input( 'checkbox', 'Paying fee', 'paying_fee', {
+					value: member.gocardless.paying_fee,
+					left: 3, right: 4,
+					options: {'true': 'Yes'}
+				} )
 				+form_button( 'Update', 'primary', { left: 3 } )

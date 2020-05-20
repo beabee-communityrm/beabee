@@ -526,7 +526,8 @@ app.post( '/:uuid/gocardless', auth.isSuperAdmin, wrapAsync( async function( req
 			'gocardless.mandate_id': req.body.mandate_id,
 			'gocardless.subscription_id': req.body.subscription_id,
 			'gocardless.amount': Number(req.body.amount),
-			'gocardless.period': req.body.period
+			'gocardless.period': req.body.period,
+			'gocardless.paying_fee': req.body.paying_fee
 		} });
 		break;
 	}
