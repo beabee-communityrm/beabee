@@ -15,6 +15,7 @@ const gocardless = require( __js + '/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
 const { hasModel, hasSchema } = require( __js + '/middleware' );
+const Options = require( __js + '/options' )();
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
 const { isValidCustomer, createMember, customerToMember, startMembership } = require( __apps + '/join/utils' );
@@ -40,9 +41,14 @@ function fuzzyMatch(s) {
 	return new RegExp( '.*' + escapeStringRegexp( s.trim() ) + '.*', 'i' );
 }
 
+function getAvailableTags() {
+	return Promise.resolve(Options.getText('available-tags').split(',').map(s => s.trim()));
+}
+
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const { query } = req;
 	const permissions = await Permissions.find();
+	const availableTags = await getAvailableTags();
 
 	let search = [];
 
@@ -72,6 +78,9 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	if ( query.email ) {
 		search.push( { email: fuzzyMatch( query.email ) } );
 	}
+	if ( query.tag ) {
+		search.push( { tags: { $elemMatch: { name: query.tag } } } );
+	}
 
 	const filter = search.length > 0 ? { $and: search } : {};
 
@@ -94,10 +103,11 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	};
 
 	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
+
 	res.render( 'index', {
-		members, permissions, pagination, total,
+		permissions, availableTags, search: query,
+		members, pagination, total,
 		count: members ? members.length : 0,
-		search: query
 	} );
 } ) );
 
@@ -141,12 +151,12 @@ memberRouter.get( '/', wrapAsync( async ( req, res ) => {
 
 	const total = confirmedPayments.reduce((a, b) => a + b, 0);
 
+	const availableTags = await getAvailableTags();
+
 	res.render( 'member', {
-		member: member,
-		payments: payments,
+		member, payments, total, availableTags,
 		audience: config.audience,
 		password_tries: config['password-tries'],
-		total: total
 	} );
 } ) );
 

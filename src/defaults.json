@@ -13,6 +13,8 @@
 
 	"membership-support-email": "membership@example.com",
 
+	"available-tags": "",
+
 	"flash-logged-in": "Login successful",
 	"flash-logged-out": "Logged out",
 	"flash-login-failed": "Login unsuccessful",

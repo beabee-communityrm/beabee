@@ -31,8 +31,8 @@ mixin editablePanel(title, id)
 					span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
 	p.hidden.js-edit-member-hidden.form-inline
 		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
-			option Nurse
-			option Health worker
+			each tag in availableTags
+				option= tag
 		|
 		|
 		button(type='button').btn.btn-sm.member-add-tag-btn.js-edit-member-add-tag-btn
