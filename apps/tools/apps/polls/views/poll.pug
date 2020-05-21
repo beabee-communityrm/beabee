@@ -25,36 +25,21 @@ block contents
 		.col-md-12
 			+page_header(poll.name)
 
-			p.
-				Created #{moment(poll.date).format('DD/MM/YYYY [at] HH:mm')}
-
-			if poll.active
-				.alert.alert-success This poll is currently active
-			else if poll.closed
-				.alert.alert-warning This poll is closed
-			else if poll.expires
-				.alert.alert-warning This poll has expired
-
-			p
-				a(href='/polls/' + poll.slug) Go to poll
-
-			h4 Answers
-			ul
-				each count, answer in answerCounts
-					li
-						= answer
-						| :
-						|
-						= count
-
-			p
-				b Note:
-				|
-				|
-				if poll.allowUpdate
-					| Users can update their answers
-				else
-					| Users can't update their answers
+			dl.dl-horizontal
+				dt Status
+				dd
+					if poll.active
+						span.label.label-success Active
+					else if poll.closed
+						span.label.label-warning Closed
+					else if poll.expires
+						span.label.label-warning Expired
+				dt Created
+				dd= moment(poll.date).format('DD/MM/YYYY [at] HH:mm')
+				dt Update answers?
+				dd= poll.allowUpdate ? 'Yes' : 'No'
+				dt URL
+				dd: a(href='/polls/' + poll.slug)= '/polls/' + poll.slug
 
 			hr
 
