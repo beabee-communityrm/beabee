@@ -5,6 +5,14 @@
 				tbody
 					each member, m in members
 						tr
+							td
+								span(
+									style='color: ' + (member.isActiveMember ?
+										(member.hasActiveSubscription ? 'green' : 'orange') : 'red')
+									title=member.isActiveMember ?
+										(member.hasActiveSubscription ? 'Active' : 'Cancelled') : 'Expired'
+								).glyphicon.glyphicon-user
 							td(style='white-space: nowrap')= member.firstname + ' ' + member.lastname
 							td(width="100%")= member.description
+							td
 							td: a(href='/members/' + member.uuid).btn.btn-primary.btn-sm View
