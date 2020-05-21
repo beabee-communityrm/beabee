@@ -68,7 +68,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	if ( query.lastname ) {
 		search.push( { lastname: fuzzyMatch( query.lastname ) } );
 	}
-	if ( query.email && auth.canSuperAdmin( req ) ) {
+	if ( query.email ) {
 		search.push( { email: fuzzyMatch( query.email ) } );
 	}
 

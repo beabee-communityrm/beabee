@@ -1,6 +1,6 @@
 /* global $ */
 
-$('.js-member-edit').on('click', function (evt) {
+$('.js-member-edit').click(function (evt) {
 	evt.preventDefault();
 	var $form = $('.js-member-edit-form' + this.getAttribute('href'));
 	$form.find('input, textarea').prop('readonly', (i, val) => !val);

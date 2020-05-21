@@ -2,14 +2,9 @@
 	.col-md-12
 		.table-responsive
 			table.table.table-striped.table-condensed.table-hover
-				thead
-					tr
-						th Name
-						th(width="60%") Description
-						th Last contact
 				tbody
 					each member, m in members
-						tr( data-href="/members/" + member.uuid, style="cursor: pointer;" )
-							td= member.firstname + ' ' + member.lastname
-							td= member.description
-							td Last contact?
+						tr
+							td(style='white-space: nowrap')= member.firstname + ' ' + member.lastname
+							td(width="100%")= member.description
+							td: a(href='/members/' + member.uuid).btn.btn-primary.btn-sm View
