@@ -1,14 +1,14 @@
 form( method="get" )
-	.form-group
-		label( for="permission" ).control-label Permission
-		select( name="permission" ).form-control
-			option( value="" ) Show all
-			each permission, p in permissions
-				option( value=permission.slug, selected=( search.permission == permission.slug ? true : false ) ) #{ permission.name }
-	if access( 'superadmin' )
+	if access('superadmin')
 		.form-group
-			label( for="show_inactive_members" )
-				input( type="checkbox" name="show_inactive_members", value='true', checked=search.show_inactive_members )#show_inactive_members
+			label( for="permission" ).control-label Permission
+			select( name="permission" ).form-control
+				option( value="" ) Show all
+				each permission, p in permissions
+					option( value=permission.slug, selected=( search.permission == permission.slug ? true : false ) ) #{ permission.name }
+		.form-group
+			label( for="show_inactive" )
+				input( type="checkbox" name="show_inactive", value='true', checked=search.show_inactive )#show_inactive
 				|  Show inactive members
 	.form-group
 		label( for="firstname" ).control-label First name
@@ -20,6 +20,4 @@ form( method="get" )
 		.form-group
 			label( for="email" ).control-label Email
 			input( type='text', name="email", value=search.email ).form-control#email
-	.form-group
-		input( type='hidden', name="limit", value=pagination.limit )
-		button.btn.btn-primary Search
+	button.btn.btn-primary Search
