@@ -45,11 +45,11 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	let search = [];
 
-	console.log('query', query);
-
 	if (query.permission || !query.show_inactive) {
 		const permissionSearch = {
-			permission: query.permission ? permissions.find(p => p.slug === query.permission) : undefined,
+			...(query.permission && {
+				permission: permissions.find(p => p.slug === query.permission)
+			}),
 			...(!query.show_inactive && {
 				date_added: { $lte: new Date() },
 				$or: [
@@ -73,7 +73,6 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	}
 
 	const filter = search.length > 0 ? { $and: search } : {};
-	console.log('filter', filter);
 
 	const total = await Members.count( filter );
 
@@ -92,8 +91,6 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 		pages, page, prev, next,
 		total: pages.length
 	};
-
-	console.log('pagination', pagination);
 
 	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
 	res.render( 'index', {
