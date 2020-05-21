@@ -151,8 +151,35 @@ memberRouter.get( '/', wrapAsync( async ( req, res ) => {
 
 memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model;
+	
+	if (!req.body.action.startsWith('save-') && !auth.canSuperAdmin(req)) {
+		req.flash('error', '403');
+		res.redirect(req.baseUrl);
+		return;
+	}
 
 	switch (req.body.action) {
+	case 'save-about':
+		await member.update({$set: {
+			description: req.body.description,
+			bio: req.body.bio
+		}});
+		// TODO: tags
+		req.flash('success', 'member-updated');
+		break;
+	case 'save-contact':
+		await member.update({$set: {
+			'contact.telephone': req.body.telephone,
+			'contact.twitter': req.body.twitter
+		}});
+		req.flash('success', 'member-updated');
+		break;
+	case 'save-notes':
+		await member.update({$set: {
+			'notes': req.body.notes
+		}});
+		req.flash('success', 'member-updated');
+		break;
 	case 'login-override':
 		await member.update({$set: {
 			loginOverride: {
@@ -161,14 +188,12 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 			}
 		}});
 		req.flash('success', 'member-login-override-generated');
-		res.redirect(req.baseUrl);
 		break;
 	case 'password-reset':
 		await member.update({$set: {
 			'password.reset_code': auth.generateCode()
 		}});
 		req.flash('success', 'member-password-reset-generated');
-		res.redirect(req.baseUrl);
 		break;
 	case 'permanently-delete':
 		await Payments.deleteMany( { member } );
@@ -189,8 +214,10 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 
 		req.flash('success', 'member-permanently-deleted');
 		res.redirect('/members');
-		break;
+		return;
 	}
+
+	res.redirect(req.baseUrl);
 } ) );
 
 const memberAdminRouter = express.Router( { mergeParams: true } );

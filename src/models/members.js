@@ -88,6 +88,13 @@ module.exports = {
 			type: String,
 			required: true
 		},
+		description: String,
+		bio: String,
+		notes: String,
+		contact: {
+			telephone: String,
+			twitter: String
+		},
 		delivery_optin: {
 			type: Boolean
 		},

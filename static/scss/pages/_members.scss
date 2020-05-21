@@ -1,0 +1,21 @@
+.member-about {
+	max-width: 100%;
+	min-width: 100%;
+	min-height: 200px;
+}
+
+.member-tag {
+	display: inline-flex;
+	font-size: 1.8rem;
+	margin-left: 0.5rem;
+	.glyphicon.glyphicon-remove {
+		font-size: 1rem;
+		line-height: 1.8;
+		margin-left: 0.5rem;
+		margin-right: -0.5rem;
+	}
+}
+
+.member-field {
+	margin-bottom: 2rem;
+}

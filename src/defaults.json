@@ -35,6 +35,7 @@
 	"flash-account-locked": "Maximum number of password attempts exceeded",
 	"flash-account-attempts": "There has been % attempt(s) to login to your account since you last logged in",
 
+	"flash-member-updated": "Member details updated",
 	"flash-member-permanently-deleted": "Member permanently deleted",
 	"flash-member-login-override-generated": "Login override code generated",
 	"flash-member-password-reset-generated": "Password reset code generated",
@@ -50,7 +51,6 @@
 	"flash-permission-updated": "Permission updated",
 	"flash-permission-removed": "Permission removed",
 	"flash-permission-expiry-error": "Expiry date must not be the same as or before the start date",
-	"flash-permission-admin-only": "Only admin users can modify permissions",
 	"flash-permission-name-required": "Permissions must have a name",
 	"flash-permission-slug-required": "Permissions must have a slug",
 	"flash-permission-duplicate": "User already has this permission",
