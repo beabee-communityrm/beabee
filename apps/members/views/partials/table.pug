@@ -1,10 +1,10 @@
 .row
 	.col-md-12
 		.table-responsive
-			table.table.table-striped.table-condensed.table-hover
+			table.table.table-striped.table-hover.member-table
 				tbody
 					each member, m in members
-						tr
+						tr(data-href='/members/' + member.uuid)
 							td
 								span(
 									style='color: ' + (member.isActiveMember ?
@@ -14,5 +14,3 @@
 								).glyphicon.glyphicon-user
 							td(style='white-space: nowrap')= member.firstname + ' ' + member.lastname
 							td(width="100%")= member.description
-							td
-							td: a(href='/members/' + member.uuid).btn.btn-primary.btn-sm View
