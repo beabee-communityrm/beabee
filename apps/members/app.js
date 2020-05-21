@@ -129,7 +129,7 @@ memberRouter.use((req, res, next) => {
 	req.model.populate('permissions.permission', next);
 });
 
-memberRouter.get( '/', wrapAsync( async function( req, res ) {
+memberRouter.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model;
 	const payments = await Payments.find( { member: member._id } ).sort( { 'charge_date': -1 } ).exec();
 
@@ -149,7 +149,7 @@ memberRouter.get( '/', wrapAsync( async function( req, res ) {
 	} );
 } ) );
 
-memberRouter.post( '/', wrapAsync( async function( req, res ) {
+memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model;
 
 	switch (req.body.action) {
@@ -198,11 +198,13 @@ memberRouter.use(memberAdminRouter);
 
 memberAdminRouter.use(auth.isSuperAdmin);
 
-memberAdminRouter.get( '/profile', function( req, res ) {
+memberAdminRouter.get( '/profile', ( req, res ) => {
 	res.render( 'update', { member: req.model } );
 } );
 
-memberAdminRouter.post( '/profile', hasSchema(updateProfileSchema).orFlash, wrapAsync( async function( req, res ) {
+memberAdminRouter.post( '/profile', [
+	hasSchema(updateProfileSchema).orFlash
+], wrapAsync( async ( req, res ) => {
 	const {
 		model: member,
 		body: {
@@ -251,13 +253,13 @@ memberAdminRouter.get( '/emails', (req, res) => {
 	res.render( 'emails' , { member: req.model } );
 } );
 
-memberAdminRouter.post( '/emails', wrapAsync( async function ( req, res ) {
+memberAdminRouter.post( '/emails', wrapAsync( async ( req, res ) => {
 	await mandrill.sendToMember(req.body.email, req.model);
 	req.flash( 'success', 'emails-sent');
 	res.redirect(req.baseUrl + '/emails');
 } ) );
 
-memberAdminRouter.get( '/exports', wrapAsync( async function( req, res ) {
+memberAdminRouter.get( '/exports', wrapAsync( async ( req, res ) => {
 	// Only show member-based exports
 	const exports = (await Exports.find()).filter(exportDetails => (
 		exportTypes[exportDetails.type].collection === Members
@@ -268,7 +270,7 @@ memberAdminRouter.get( '/exports', wrapAsync( async function( req, res ) {
 	res.render('exports', {member: req.model, exports, exportTypes});
 } ) );
 
-memberAdminRouter.post( '/exports', wrapAsync( async function( req, res ) {
+memberAdminRouter.post( '/exports', wrapAsync( async ( req, res ) => {
 	if (req.body.action === 'update') {
 		await Members.updateOne( {
 			uuid: req.params.uuid,
@@ -316,7 +318,7 @@ memberAdminRouter.get( '/gocardless', ( req, res ) => {
 	res.render( 'gocardless', { member: req.model } );
 } );
 
-memberAdminRouter.post( '/gocardless', wrapAsync( async function( req, res ) {
+memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
 	const member = req.model;
 
 	switch ( req.body.action ) {
@@ -457,7 +459,7 @@ memberAdminRouter.post( '/2fa', wrapAsync( async ( req, res ) => {
 	res.redirect( req.baseUrl );
 } ) );
 
-module.exports = function( config ) {
+module.exports = ( config ) => {
 	app_config = config;
 	return app;
 };
