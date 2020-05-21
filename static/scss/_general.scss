@@ -312,6 +312,12 @@ select {
 			border-color: $c-black;
 			box-shadow: 0 2px 5px transparentize($c-black, 0.5);
 		}
+		&[readonly] {
+			border-top: 0;
+			border-left: 0;
+			border-right: 0;
+			box-shadow: none;
+		}
 	}
 }
 

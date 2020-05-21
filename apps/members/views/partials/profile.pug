@@ -1,23 +1,81 @@
-+page_header( 'Profile' )
-dl.dl-horizontal
-	dt Email
-	dd  #{ member.email }
-	dt Delivery opt in?
-	dd #{ member.delivery_optin ? 'Yes' : 'No' }
-	if member.delivery_optin
-		dt Delivery address
-		dd
-			| #{ member.delivery_address.line1}
-			br
-			if member.delivery_address.line2
-				| #{ member.delivery_address.line2}
-				br
-			| #{ member.delivery_address.city}
-			br
-			| #{ member.delivery_address.postcode}
+.panel.panel-default
+	.panel-heading
+		h3.panel-title
+			.pull-right
+				a(href='#bio').js-member-edit: span.glyphicon.glyphicon-edit
+			| About
+	.panel-body
+		form(method='POST')#bio.js-member-edit-form
+			+csrf
 
-h3 Actions
+			.member-field
+				label(for="description").control-label Description
+				input(type='text' readonly value=member.description)#description.form-control
 
-form(method='POST' onsubmit='return confirm("Are you sure? This is completely irreversible")')
-	+csrf
-	button(name='action' value='permanently-delete').btn.btn-sm.btn-danger.outline Permanently delete
+			.member-field
+				label(for='about').control-label Bio
+				textarea(name='bio' readonly)#about.form-control.member-about= member.bio
+
+			p
+				| Tags:
+				each tag in ['Nurse', 'Test', 'Blah']
+					span.label.label-info.member-tag
+						input(type='hidden' name='tags[]' value=tag)
+						= tag
+						span.glyphicon.glyphicon-remove
+			p.text-right.hidden.js-member-edit-btn
+				button(name='action' value='update-about').btn.btn-primary Update
+
+.panel.panel-default
+	.panel-heading
+		h3.panel-title
+			.pull-right: span.glyphicon.glyphicon-edit
+			| Contact details
+	.panel-body
+		.row
+			.col-md-12
+				.input-group.member-field
+					span.input-group-addon
+						span.glyphicon.glyphicon-envelope
+					input(type='email' value=member.email readonly).form-control
+		.row
+			.col-md-6
+				.input-group.member-field
+					span.input-group-addon
+						span.glyphicon.glyphicon-earphone
+					input(type='email' value='071231' readonly).form-control
+			.col-md-6
+				.input-group.member-field
+					span.input-group-addon
+						span.glyphicon.glyphicon-twitter
+					input(type='email' value='@dsada' readonly).form-control
+
+.panel.panel-default
+	.panel-heading
+		h3.panel-title
+			.pull-right: span.glyphicon.glyphicon-edit
+			| Notes
+	.panel-body
+		textarea(readonly)#about.form-control.member-about= member.about
+
+if access('superadmin')
+	.panel.panel-default
+		.panel-heading
+			h3.panel-title
+				.pull-right: a(href=`/members/${member.uuid}/profile`): span.glyphicon.glyphicon-edit
+				| Delivery details
+		.panel-body
+			dl.dl-horizontal
+				dt Opt in?
+				dd= member.delivery_optin ? 'Yes' : 'No'
+				if member.delivery_optin
+					dt Address
+					dd
+						=  member.delivery_address.line1
+						br
+						if member.delivery_address.line2
+							= member.delivery_address.line2
+							br
+						= member.delivery_address.city
+						br
+						= member.delivery_address.postcode
