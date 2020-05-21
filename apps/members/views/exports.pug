@@ -20,20 +20,20 @@ block contents
 					for e in member.exports
 						tr
 							td
-								a(href="/tools/exports/" + e.export_id)
-									= exportTypes[e.details.type].name
+								a(href="/tools/exports/" + e.export_id._id)
+									= exportTypes[e.export_id.type].name
 									|
 									| /
 									|
-									= e.details.description
+									= e.export_id.description
 							td
 								form(method="post").form-inline
 									+csrf
 									input(type="hidden" name="action" value="update")
-									input(type="hidden" name="export_id" value=e.export_id)
+									input(type="hidden" name="export_id" value=e.export_id._id)
 									.form-group
 										select(name="status").form-control
-											for status in exportTypes[e.details.type].statuses
+											for status in exportTypes[e.export_id.type].statuses
 												option(selected=status === e.status)= status
 									| &nbsp;&nbsp;
 									button.btn.btn-sm Update
