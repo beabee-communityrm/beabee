@@ -100,11 +100,11 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	} );
 } ) );
 
-app.get( '/add', ( req, res ) => {
+app.get( '/add', auth.isSuperAdmin, ( req, res ) => {
 	res.render( 'add' );
 } );
 
-app.post( '/add', wrapAsync( async ( req, res ) => {
+app.post( '/add', auth.isSuperAdmin, wrapAsync( async ( req, res ) => {
 	const customer = await gocardless.customers.get(req.body.customer_id);
 	if (req.body.first_name) {
 		customer.given_name = req.body.first_name;
