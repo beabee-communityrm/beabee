@@ -4,45 +4,33 @@ block prepend title
 	- title = 'Member'
 	- activeApp = 'members'
 	- page = 'overview'
-	
+
+block append js
+	script( src="/static/js/edit-member.js" )
+
 block contents
-	if ! access( 'admin' )
-		.row
-			.col-md-2
-				img( style="border-radius: 100%", src=member.gravatar + "?s=150&d=mm&r=g" )
-			.col-md-10
-				+page_header( member.fullname, { level: 'h2' } )
-				dl.dl-horizontal
-					dt Tag
-					if member.tag.id
-						dd Yes
-					else
-						dd No
-			.col-md-10.col-md-offset-2
-				include partials/permissions.pug
-	else 
-		.row
-			.col-md-3
-				include partials/sidebar.pug
-			.col-md-9
+	.row
+		.col-md-3
+			include partials/sidebar.pug
+		.col-md-9
+			.row
+				.col-md-12
+					+page_header('Overview')
+					include partials/profile.pug
+			if access( 'superadmin' )
 				.row
-					.col-md-12
-						include partials/profile.pug
-				if access( 'superadmin' )
-					.row
-						.col-md-6
-							include partials/system.pug
-						.col-md-6
-							include partials/security.pug
-					.row
-						.col-md-6
-							include partials/codes.pug
-						.col-md-6
-							include partials/gocardless.pug
+					.col-md-6
+						include partials/system.pug
+					.col-md-6
+						include partials/security.pug
+				.row
+					.col-md-6
+						include partials/codes.pug
+					.col-md-6
+						include partials/gocardless.pug
 				.row
 					.col-md-12
 						include partials/permissions.pug
-				if access( 'superadmin' )
-					.row
-						.col-md-12
-							include partials/payments.pug
+				.row
+					.col-md-12
+						include partials/payments.pug

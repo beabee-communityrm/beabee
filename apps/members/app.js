@@ -1,6 +1,7 @@
 const escapeStringRegexp = require( 'escape-string-regexp' );
 const express = require( 'express' );
 const queryString = require('query-string');
+const _ = require( 'lodash' );
 const moment = require( 'moment' );
 
 const config = require( __config );
@@ -68,7 +69,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	if ( query.lastname ) {
 		search.push( { lastname: fuzzyMatch( query.lastname ) } );
 	}
-	if ( query.email && auth.canSuperAdmin( req ) ) {
+	if ( query.email ) {
 		search.push( { email: fuzzyMatch( query.email ) } );
 	}
 
@@ -129,7 +130,7 @@ memberRouter.use((req, res, next) => {
 	req.model.populate('permissions.permission', next);
 });
 
-memberRouter.get( '/', wrapAsync( async function( req, res ) {
+memberRouter.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model;
 	const payments = await Payments.find( { member: member._id } ).sort( { 'charge_date': -1 } ).exec();
 
@@ -149,10 +150,49 @@ memberRouter.get( '/', wrapAsync( async function( req, res ) {
 	} );
 } ) );
 
-memberRouter.post( '/', wrapAsync( async function( req, res ) {
+memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model;
+	
+	if (!req.body.action.startsWith('save-') && !auth.canSuperAdmin(req)) {
+		req.flash('error', '403');
+		res.redirect(req.baseUrl);
+		return;
+	}
 
 	switch (req.body.action) {
+	case 'save-about': {
+		const exisingTagNames = member.tags.map(tag => tag.name);
+		const newTagNames = _.difference(req.body.tags, exisingTagNames);
+		const deletedTagNames = _.difference(exisingTagNames, req.body.tags);
+
+		for (let tagName of deletedTagNames) {
+			member.tags.find(tag => tag.name === tagName).remove();
+		}
+		for (let tagName of newTagNames) {
+			member.tags.push({name: tagName});
+		}
+
+		member.description = req.body.description;
+		member.bio = req.body.bio;
+
+		await member.save();
+
+		req.flash('success', 'member-updated');
+		break;
+	}
+	case 'save-contact':
+		await member.update({$set: {
+			'contact.telephone': req.body.telephone,
+			'contact.twitter': req.body.twitter
+		}});
+		req.flash('success', 'member-updated');
+		break;
+	case 'save-notes':
+		await member.update({$set: {
+			'notes': req.body.notes
+		}});
+		req.flash('success', 'member-updated');
+		break;
 	case 'login-override':
 		await member.update({$set: {
 			loginOverride: {
@@ -161,14 +201,12 @@ memberRouter.post( '/', wrapAsync( async function( req, res ) {
 			}
 		}});
 		req.flash('success', 'member-login-override-generated');
-		res.redirect(req.baseUrl);
 		break;
 	case 'password-reset':
 		await member.update({$set: {
 			'password.reset_code': auth.generateCode()
 		}});
 		req.flash('success', 'member-password-reset-generated');
-		res.redirect(req.baseUrl);
 		break;
 	case 'permanently-delete':
 		await Payments.deleteMany( { member } );
@@ -189,8 +227,10 @@ memberRouter.post( '/', wrapAsync( async function( req, res ) {
 
 		req.flash('success', 'member-permanently-deleted');
 		res.redirect('/members');
-		break;
+		return;
 	}
+
+	res.redirect(req.baseUrl);
 } ) );
 
 const memberAdminRouter = express.Router( { mergeParams: true } );
@@ -198,11 +238,13 @@ memberRouter.use(memberAdminRouter);
 
 memberAdminRouter.use(auth.isSuperAdmin);
 
-memberAdminRouter.get( '/profile', function( req, res ) {
+memberAdminRouter.get( '/profile', ( req, res ) => {
 	res.render( 'update', { member: req.model } );
 } );
 
-memberAdminRouter.post( '/profile', hasSchema(updateProfileSchema).orFlash, wrapAsync( async function( req, res ) {
+memberAdminRouter.post( '/profile', [
+	hasSchema(updateProfileSchema).orFlash
+], wrapAsync( async ( req, res ) => {
 	const {
 		model: member,
 		body: {
@@ -251,13 +293,13 @@ memberAdminRouter.get( '/emails', (req, res) => {
 	res.render( 'emails' , { member: req.model } );
 } );
 
-memberAdminRouter.post( '/emails', wrapAsync( async function ( req, res ) {
+memberAdminRouter.post( '/emails', wrapAsync( async ( req, res ) => {
 	await mandrill.sendToMember(req.body.email, req.model);
 	req.flash( 'success', 'emails-sent');
 	res.redirect(req.baseUrl + '/emails');
 } ) );
 
-memberAdminRouter.get( '/exports', wrapAsync( async function( req, res ) {
+memberAdminRouter.get( '/exports', wrapAsync( async ( req, res ) => {
 	// Only show member-based exports
 	const exports = (await Exports.find()).filter(exportDetails => (
 		exportTypes[exportDetails.type].collection === Members
@@ -268,7 +310,7 @@ memberAdminRouter.get( '/exports', wrapAsync( async function( req, res ) {
 	res.render('exports', {member: req.model, exports, exportTypes});
 } ) );
 
-memberAdminRouter.post( '/exports', wrapAsync( async function( req, res ) {
+memberAdminRouter.post( '/exports', wrapAsync( async ( req, res ) => {
 	if (req.body.action === 'update') {
 		await Members.updateOne( {
 			uuid: req.params.uuid,
@@ -316,7 +358,7 @@ memberAdminRouter.get( '/gocardless', ( req, res ) => {
 	res.render( 'gocardless', { member: req.model } );
 } );
 
-memberAdminRouter.post( '/gocardless', wrapAsync( async function( req, res ) {
+memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
 	const member = req.model;
 
 	switch ( req.body.action ) {
@@ -457,7 +499,7 @@ memberAdminRouter.post( '/2fa', wrapAsync( async ( req, res ) => {
 	res.redirect( req.baseUrl );
 } ) );
 
-module.exports = function( config ) {
+module.exports = ( config ) => {
 	app_config = config;
 	return app;
 };

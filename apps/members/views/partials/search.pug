@@ -16,8 +16,7 @@ form( method="get" )
 	.form-group
 		label( for="lastname" ).control-label Last name
 		input( type='text', name="lastname", value=search.lastname ).form-control#lastname
-	if access( 'superadmin' )
-		.form-group
-			label( for="email" ).control-label Email
-			input( type='text', name="email", value=search.email ).form-control#email
+	.form-group
+		label( for="email" ).control-label Email
+		input( type='text', name="email", value=search.email ).form-control#email
 	button.btn.btn-primary Search

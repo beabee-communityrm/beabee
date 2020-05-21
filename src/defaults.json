@@ -35,7 +35,7 @@
 	"flash-account-locked": "Maximum number of password attempts exceeded",
 	"flash-account-attempts": "There has been % attempt(s) to login to your account since you last logged in",
 
-	"flash-member-404": "Member not found",
+	"flash-member-updated": "Member details updated",
 	"flash-member-permanently-deleted": "Member permanently deleted",
 	"flash-member-login-override-generated": "Login override code generated",
 	"flash-member-password-reset-generated": "Password reset code generated",
@@ -51,19 +51,9 @@
 	"flash-permission-updated": "Permission updated",
 	"flash-permission-removed": "Permission removed",
 	"flash-permission-expiry-error": "Expiry date must not be the same as or before the start date",
-	"flash-permission-admin-only": "Only admin users can modify permissions",
 	"flash-permission-name-required": "Permissions must have a name",
 	"flash-permission-slug-required": "Permissions must have a slug",
 	"flash-permission-duplicate": "User already has this permission",
-
-	"flash-tag-updated": "Tag updated",
-	"flash-tag-invalid-malformed": "Malformd tag ID",
-	"flash-tag-invalid-visa": "Visa cards cannot be used",
-	"flash-tag-invalid-android": "Android phones cannot be used",
-	"flash-tag-invalid-amex": "AMEX cards cannot be used",
-	"flash-tag-invalid-long-uid": "This tag is not supported",
-	"flash-tag-invalid-not-unique": "This tag is already used by another member",
-	"flash-tag-unchanged": "Tag is unchanged",
 
 	"flash-gocardless-updated": "GoCardless updated",
 
@@ -76,8 +66,6 @@
 	"flash-contribution-doesnt-exist": "You don't have an active contribution",
 	"flash-contribution-restarted": "You have successfully restarted your membership",
 	"flash-contribution-restart-code-err": "Invalid restart code",
-
-	"flash-tag-revoked": "Your tag has been revoked",
 
 	"flash-2fa-disabled": "Two factor authentication has been disabled",
 	"flash-2fa-enabled": "Two factor authentication has been enabled",
