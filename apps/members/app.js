@@ -1,6 +1,8 @@
 const escapeStringRegexp = require( 'escape-string-regexp' );
 const express = require( 'express' );
+const queryString = require('query-string');
 const moment = require( 'moment' );
+
 const config = require( __config );
 
 const auth = require( __js + '/authentication' );
@@ -33,138 +35,71 @@ app.use( ( req, res, next ) => {
 
 app.use( auth.isAdmin );
 
+function fuzzyMatch(s) {
+	return new RegExp( '.*' + escapeStringRegexp( s.trim() ) + '.*', 'i' );
+}
+
 app.get( '/', wrapAsync( async ( req, res ) => {
+	const { query } = req;
 	const permissions = await Permissions.find();
-	var filter_permissions = [];
 
-	// If requested add custom permission to filtering list
-	var permission;
-	if ( req.query.permission ) {
-		permission = permissions.filter( function( permission ) {
-			if ( permission.slug == req.query.permission ) return true;
-			return false;
-		} );
-		if ( permission.length !== 1 ) {
-			permission = null;
-		} else if ( permission.length === 1 ) {
-			permission = permission[0];
-			filter_permissions.push( permission );
-		}
-	}
+	let search = [];
 
-	var path = {};
+	console.log('query', query);
 
-	// Add permission list to search parameters
-	var search = { $and: [] };
-	if ( filter_permissions.length > 0 ) {
-		var filter = [];
-		for ( var fp in filter_permissions ) {
-			filter.push( {
-				permissions: {
-					$elemMatch: {
-						permission: filter_permissions[fp]._id,
-						date_added: { $lte: new Date() },
-						$or: [
-							{ date_expires: null },
-							{ date_expires: { $gt: new Date() } }
-						]
-					}
-				}
-			} );
-		}
-		if ( filter != [] ) search['$and'] = filter;
-		path['permission'] = 'permission=' + req.query.permission;
-	}
-
-	if ( req.query.firstname ) {
-		search['$and'].push( { firstname: new RegExp( '.*' + escapeStringRegexp( req.query.firstname ) + '.*', 'i' ) } );
-		path['firstname'] = 'firstname=' + req.query.firstname;
-	}
-	if ( req.query.lastname ) {
-		search['$and'].push( { lastname: new RegExp( '.*' + escapeStringRegexp( req.query.lastname ) + '.*', 'i' ) } );
-		path['lastname'] = 'lastname=' + req.query.lastname;
-	}
-	if ( req.query.email && auth.canSuperAdmin( req ) == true ) {
-		search['$and'].push( { email: new RegExp( '.*' + escapeStringRegexp( req.query.email ) + '.*', 'i' ) } );
-		path['email'] = 'email=' + req.query.email;
-	}
-	if ( search['$and'].length == 0 ) search = {};
-
-	// Process pagination
-	var limit = 10;
-	if ( req.query.limit && req.query.limit > 0 && req.query.limit <= 1000 )
-		limit = parseInt( req.query.limit );
-
-	var page = 1;
-	if ( req.query.page && req.query.page > 0 )
-		page = parseInt( req.query.page );
-
-	// Perform search
-	Members.count( search, function( err, total ) {
-		if ( req.query.show_inactive_members ) path.show_inactive_members = 'show_inactive_members=true';
-		if ( req.query.limit && req.query.limit > 0 && req.query.limit <= 1000 ) path.limit = 'limit=' + limit;
-		if ( req.query.page && req.query.page > 0 ) path.page = 'page=' + page;
-
-		// Pages
-		var append_path = [];
-		Object.keys( path ).forEach( function( key ) {
-			if ( key != 'page' ) append_path.push( path[key] );
-		} );
-		append_path = append_path.join( '&' );
-
-		var pages = [];
-		for ( var p = 1; p <= Math.ceil( total / limit ); p++ ) {
-			var item = {
-				number: p,
-				path: '?page=' + p + ( append_path ? '&' + append_path : '' )
-			};
-			pages.push( item );
-		}
-		var next = ( page + 1 ) <= pages.length ? pages[ page ] : null;
-		var prev = ( page - 1 ) > 0 ? pages[ page - 2 ] : null;
-		var pagination = {
-			pages: pages,
-			page: page,
-			prev: prev,
-			next: next,
-			total: pages.length
+	if (query.permission || !query.show_inactive) {
+		const permissionSearch = {
+			permission: query.permission ? permissions.find(p => p.slug === query.permission) : undefined,
+			...(!query.show_inactive && {
+				date_added: { $lte: new Date() },
+				$or: [
+					{ date_expires: null },
+					{ date_expires: { $gt: new Date() } }
+				]
+			})
 		};
 
-		// Limit
-		append_path = [];
-		Object.keys( path ).forEach( function( key ) {
-			if ( key == 'page' ) return;
-			append_path.push( path[key] );
-		} );
-		append_path = append_path.join( '&' );
+		search.push( { permissions: { $elemMatch: permissionSearch } } );
+	}
 
-		// Inactive members
-		append_path = [];
-		Object.keys( path ).forEach( function( key ) {
-			if ( key == 'show_inactive_members' ) return;
-			if ( key == 'page' ) return;
-			append_path.push( path[key] );
-		} );
+	if ( query.firstname ) {
+		search.push( { firstname:  fuzzyMatch( query.firstname ) } );
+	}
+	if ( query.lastname ) {
+		search.push( { lastname: fuzzyMatch( query.lastname ) } );
+	}
+	if ( query.email && auth.canSuperAdmin( req ) ) {
+		search.push( { email: fuzzyMatch( query.email ) } );
+	}
 
-		// Search data
-		var search_data = {
-			firstname: req.query.firstname,
-			lastname: req.query.lastname,
-			email: req.query.email,
-			show_inactive_members: req.query.show_inactive_members,
-			permission: req.query.permission
-		};
+	const filter = search.length > 0 ? { $and: search } : {};
+	console.log('filter', filter);
 
-		Members.find( search ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] ).exec( function( err, members ) {
-			res.render( 'index', {
-				members: members,
-				permissions: permissions,
-				pagination: pagination,
-				count: members ? members.length : 0,
-				total: total,
-				search: search_data
-			} );
-		} );
+	const total = await Members.count( filter );
+
+	const limit = 25;
+	const page = query.page ? parseInt( query.page ) : 1;
+
+	const pages = [ ...Array( Math.ceil( total / limit ) ) ].map( ( v, page ) => ( {
+		number: page + 1,
+		path: '/members?' + queryString.stringify( { ...query, page: page + 1 } )
+	} ) );
+
+	const next = page + 1 <= pages.length ? pages[ page ] : null;
+	const prev = page - 1 > 0 ? pages[ page - 2 ] : null;
+
+	const pagination = {
+		pages, page, prev, next,
+		total: pages.length
+	};
+
+	console.log('pagination', pagination);
+
+	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
+	res.render( 'index', {
+		members, permissions, pagination, total,
+		count: members ? members.length : 0,
+		search: query
 	} );
 } ) );
 
@@ -431,7 +366,7 @@ memberAdminRouter.post( '/permissions', wrapAsync( async (req, res ) => {
 		return;
 	}
 
-	const dupe = req.model.permissions.findIndex(p => p.permission.equals(permission)) > -1;
+	const dupe = req.model.permissions.find(p => p.permission.equals(permission));
 	if ( dupe ) {
 		req.flash( 'danger', 'permission-duplicate' );
 		res.redirect( req.originalUrl );
