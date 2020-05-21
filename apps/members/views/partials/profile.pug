@@ -59,7 +59,8 @@ mixin editablePanel(title, id)
 				input(type='text' name='twitter' value=member.contact.twitter readonly).form-control
 
 +editablePanel('Notes', 'notes')
-	textarea(readonly)#about.form-control.member-about= member.about
+	.member-field
+		textarea(name='notes' readonly).form-control.member-about= member.notes
 
 if access('superadmin')
 	.panel.panel-default
