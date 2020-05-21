@@ -13,8 +13,9 @@ block contents
 			+page_header( 'Search' )
 			include partials/search.pug
 			if access('superadmin')
-				+page_header( 'Tools' )
-				a(href="/members/add").btn.btn-primary Add member
+				hr
+				h4 Tools
+				a(href="/members/add").btn.btn-primary.btn-sm Add member
 		.col-md-9
 			+page_header( title, { small: count + ' of ' + total + ' displayed' } )
 			if count > 0
