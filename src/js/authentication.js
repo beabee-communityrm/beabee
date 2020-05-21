@@ -356,23 +356,6 @@ var Authentication = {
 		}
 	},
 
-	// Hashes a members tag with a salt using md5, per the legacy membership system
-	hashTag: function( id ) {
-		var md5 = crypto.createHash( 'md5' );
-		md5.update( config.tag_salt );
-		md5.update( id.toLowerCase() );
-		return md5.digest( 'hex' );
-	},
-
-	validateTag: function( tag ) {
-		if ( tag.match( /^[0-9a-f]{8}$/i ) === null ) return 'tag-invalid-malformed';
-		if ( tag == '21222324' ) return 'tag-invalid-visa';
-		if ( tag == '01020304' ) return 'tag-invalid-android';
-		if ( tag.match( /^0+$/ ) !== null ) return 'tag-invalid-amex';
-		if ( tag.substr( 0, 2 ) == '08' ) return 'tag-invalid-long-uid';
-		return false;
-	},
-
 	// Checks password meets requirements
 	passwordRequirements: function( password ) {
 		if ( ! password )

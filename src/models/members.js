@@ -114,15 +114,6 @@ module.exports = {
 			lat: Number,
 			lng: Number
 		},
-		tag: {
-			id: {
-				type: String
-			},
-			hashed: {
-				type: String,
-				required: false
-			}
-		},
 		tags: [{
 			added: {
 				type: Date,
