@@ -1,0 +1,50 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block append css
+	if poll.active
+		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+
+block append js
+	if poll.active
+		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+		script.
+			Formio.createForm(
+				document.getElementById('form'), !{JSON.stringify(poll.formSchema)},
+				{template: 'bootstrap3'}
+			).then(function (form) {
+				form.on('submit', function (submission) {
+					console.log(submission);
+				});
+			});
+
+block flashes
+
+block contents
+	.row
+		.col-md-3
+			- page = ''
+			if access('member')
+				include /apps/profile/views/partials/sidebar.pug
+		.col-md-9
+			.page-header
+				h3 &nbsp;
+
+
+			if poll.active
+				if answer.answer
+					img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+					h3 Thanks for voting
+					
+					p.
+						We'll let you know the outcome in the next few days!
+				else
+					form(method='POST')
+						+csrf
+						include /src/views/partials/flash.pug
+						#form
+			else
+				.alert.alert-warning Poll is now closed

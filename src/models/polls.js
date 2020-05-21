@@ -9,6 +9,7 @@ module.exports = {
 			required: true,
 			default: Date.now
 		},
+		formSchema: Object,
 		question: {
 			type: String,
 			required: true

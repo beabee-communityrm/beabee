@@ -54,7 +54,7 @@ app.get( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
-	res.render( `polls/${req.model.slug}`, { answer, poll: req.model } );
+	res.render( req.model.schema ? 'poll' : `polls/${req.model.slug}`, { answer, poll: req.model } );
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
@@ -70,7 +70,9 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 	const answer = req.session.answer || {};
 	delete req.session.answer;
 
-	res.render( `polls/${req.model.slug}`, { poll: req.model, answer, code: pollsCode } );
+	res.render( req.model.schema ? 'poll' : `polls/${req.model.slug}`, {
+		poll: req.model, answer, code: pollsCode
+	} );
 } ) );
 
 // TODO: remove _csrf in a less hacky way

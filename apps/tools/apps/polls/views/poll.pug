@@ -4,6 +4,22 @@ block prepend title
 	- title = 'Poll'
 	- activeapp = 'polls'
 
+block append css
+	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+
+block append js
+	script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+	script.
+		Formio.builder(
+			document.getElementById('builder'),
+			!{JSON.stringify(poll.formSchema)},
+			{template: 'bootstrap3'}
+		).then(function (builder) {
+			builder.on('change', function() {
+				$('.js-poll-form-schema').val(JSON.stringify(builder.schema));
+			});
+		});
+
 block contents
 	.row
 		.col-md-12
@@ -40,14 +56,14 @@ block contents
 				else
 					| Users can't update their answers
 
+			hr
+
 	.row
 		.col-md-8
-			hr
 
 			h3 Update poll
 
 			form(method='POST').form-horizontal
-				input(type='hidden' name='action' value='update')
 				+csrf
 				.form-group
 					label(for='question').control-label.col-md-3 Title
@@ -74,17 +90,34 @@ block contents
 							| Closed
 
 				p.col-md-offset-3
-					button.btn Update
+					button(name='action' value='update').btn Update
+
+	.row
+		.col-md-12
+			hr
+
+			h3 Update form
+
+			#builder
 
 			hr
+
+			form(method='POST')
+				+csrf
+				input(type='hidden' name='formSchema' value=JSON.stringify(poll.formSchema)).js-poll-form-schema
+				button(name='action' value='update-form').btn.btn-primary Save
+			
+			hr
+
+	.row
+		.col-md-8
 
 			h3 Delete poll
 
 			form(method='POST')
 				+csrf
-				input(type='hidden', name='action', value='delete')
 				p
 					label.checkbox-inline
 						input(type='checkbox' required)
 						| This change is irreversible, confirm to proceed
-				button.btn.btn-danger.outline Delete
+				button(name='action' value='delete').btn.btn-danger.outline Delete
