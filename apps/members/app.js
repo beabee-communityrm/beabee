@@ -1,6 +1,7 @@
 const escapeStringRegexp = require( 'escape-string-regexp' );
 const express = require( 'express' );
 const queryString = require('query-string');
+const _ = require( 'lodash' );
 const moment = require( 'moment' );
 
 const config = require( __config );
@@ -159,14 +160,26 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 	}
 
 	switch (req.body.action) {
-	case 'save-about':
-		await member.update({$set: {
-			description: req.body.description,
-			bio: req.body.bio
-		}});
-		// TODO: tags
+	case 'save-about': {
+		const exisingTagNames = member.tags.map(tag => tag.name);
+		const newTagNames = _.difference(req.body.tags, exisingTagNames);
+		const deletedTagNames = _.difference(exisingTagNames, req.body.tags);
+
+		for (let tagName of deletedTagNames) {
+			member.tags.find(tag => tag.name === tagName).remove();
+		}
+		for (let tagName of newTagNames) {
+			member.tags.push({name: tagName});
+		}
+
+		member.description = req.body.description;
+		member.bio = req.body.bio;
+
+		await member.save();
+
 		req.flash('success', 'member-updated');
 		break;
+	}
 	case 'save-contact':
 		await member.update({$set: {
 			'contact.telephone': req.body.telephone,

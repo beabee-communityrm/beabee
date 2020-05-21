@@ -3,13 +3,13 @@ mixin editablePanel(title, id)
 		.panel-heading
 			h3.panel-title
 				.pull-right
-					a(href='#' + id).js-member-edit: span.glyphicon.glyphicon-edit
+					a(href='#' + id).js-edit-member: span.glyphicon.glyphicon-edit
 				= title
 		.panel-body
-			form(method='POST' id=id).js-member-edit-form
+			form(method='POST' id=id).js-edit-member-form
 				+csrf
 				block
-				p.text-right.hidden.js-member-edit-btn
+				p.text-right.hidden.js-edit-member-hidden
 					button(name='action' value='save-' + id).btn.btn-primary Save
 
 +editablePanel('About', 'about')
@@ -23,11 +23,21 @@ mixin editablePanel(title, id)
 
 	p
 		| Tags:
-		each tag in ['Nurse', 'Test', 'Blah']
-			span.label.label-info.member-tag
-				input(type='hidden' name='tags[]' value=tag)
-				= tag
-				span.glyphicon.glyphicon-remove
+		span.js-edit-member-tags
+			each tag in member.tags
+				span.label.label-info.member-tag
+					input(type='hidden' name='tags[]' value=tag.name)
+					= tag.name
+					span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
+	p.hidden.js-edit-member-hidden.form-inline
+		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
+			option Nurse
+			option Health worker
+		|
+		|
+		button(type='button').btn.btn-sm.member-add-tag-btn.js-edit-member-add-tag-btn
+			span.glyphicon.glyphicon-plus
+
 
 +editablePanel('Contact details', 'contact')
 	.row
