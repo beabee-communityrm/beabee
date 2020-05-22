@@ -5,7 +5,7 @@
 	$('.js-edit-member').click(function (evt) {
 		evt.preventDefault();
 		var $form = $('.js-edit-member-form' + this.getAttribute('href'));
-		$form.find('input, textarea').prop('readonly', (i, val) => !val);
+		$form.find('input[name], textarea[name]').prop('readonly', (i, val) => !val);
 		$form.find('.js-edit-member-hidden').toggleClass('hidden');
 	});
 

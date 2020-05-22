@@ -45,7 +45,7 @@ mixin editablePanel(title, id)
 			.input-group.member-field
 				span.input-group-addon
 					span.glyphicon.glyphicon-envelope
-				.form-control-static= member.email
+				input(type='text' value=member.email readonly).form-control
 	.row
 		.col-md-6
 			.input-group.member-field
