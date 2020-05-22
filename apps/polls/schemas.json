@@ -22,6 +22,17 @@
 			]
 		}
 	},
+	"formAnswerSchema": {
+		"body": {
+			"type": "object",
+			"required": ["answer"],
+			"properties": {
+				"answer": {
+					"type": "string"
+				}
+			}
+		}
+	},
 	"answerSchemas": {
 		"campaign2019": {
 			"body": {

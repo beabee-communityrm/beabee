@@ -87,8 +87,13 @@ async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditi
 			}
 		}
 
-		const additionalAnswers = isAsync ?
-			{ 'additionalAnswers.isAsync': true } : { 'additionalAnswers': otherAdditionalAnswers };
+		if (poll.formSchema) {
+			otherAdditionalAnswers = JSON.parse(answer);
+			answer = 'Yes';
+		}
+
+		const additionalAnswers = isAsync ?  { 'additionalAnswers.isAsync': true } :
+			{ 'additionalAnswers': otherAdditionalAnswers };
 
 		await PollAnswers.findOneAndUpdate( { poll, member }, {
 			$set: { poll, member, answer, ...additionalAnswers }
@@ -110,7 +115,8 @@ app.post( '/:slug', [
 	auth.isLoggedIn,
 	hasModel(Polls, 'slug')
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = schemas.answerSchemas[req.model.slug];
+	const answerSchema = req.model.formSchema ?
+		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		const error = await setAnswer( req.model, req.user, req.body );
 		if (error) {

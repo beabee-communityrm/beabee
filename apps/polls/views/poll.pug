@@ -16,7 +16,8 @@ block append js
 				{template: 'bootstrap3'}
 			).then(function (form) {
 				form.on('submit', function (submission) {
-					console.log(submission);
+					$('.js-poll-form input[name=answer]').val(JSON.stringify(submission.data));
+					$('.js-poll-form').submit();
 				});
 			});
 
@@ -41,9 +42,20 @@ block contents
 
 					!= poll.thanksText
 				else
-					form(method='POST')
-						+csrf
+					#vote
+						noscript
+							.alert.alert-warning.
+								Unfortunately you currently need JavaScript enabled
+								to participate in callouts. Please contact us on
+								#[+email('membership@thebristolcable.org')] if you've
+								been affected.
+
 						include /src/views/partials/flash.pug
+
 						#form
+
+						form(method='POST').js-poll-form
+							+csrf
+							input(type='hidden' name='answer')
 			else
-				.alert.alert-warning Poll is now closed
+				.alert.alert-warning Callout is now closed
