@@ -30,15 +30,20 @@ block contents
 			h4 Active
 
 	.row
-		each poll in polls
-			if poll.active
+		if activePolls.length > 0
+			each poll in activePolls
 				+pollPanel(poll)
+		else
+			.col-md-9
+				p No active callouts at the moment, check back soon.
 
 	.row
 		.col-md-12
 			h4 Archive
 
 	.row
-		each poll in polls
-			if !poll.active
-				+pollPanel(poll)
+		each poll in inactivePolls
+			+pollPanel(poll)
+		else
+			.col-md-9
+				p No callouts yet

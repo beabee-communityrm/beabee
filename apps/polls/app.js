@@ -1,4 +1,5 @@
 const express = require( 'express' );
+const _ = require('lodash');
 
 const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
@@ -31,7 +32,9 @@ app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
 		poll.answer = pollAnswers.find(pa => pa.poll.equals(poll._id));
 	});
 
-	res.render( 'index', { polls, pollAnswers } );
+	const [activePolls, inactivePolls] = _.partition(polls, p => p.active);
+
+	res.render( 'index', { activePolls, inactivePolls } );
 } ) );
 
 // TODO: move this to the main site
