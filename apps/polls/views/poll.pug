@@ -29,14 +29,17 @@ block contents
 
 	.row
 		.col-md-offset-2.col-md-8
+			!= poll.intro
+
+			hr
+
 			if poll.active
 				if answer.answer
 					img(src='/static/imgs/polls/hand3.png').poll-hand3
 
-					h3 Thanks for voting
-					
-					p.
-						We'll let you know the outcome in the next few days!
+					h4= poll.thanksTitle
+
+					!= poll.thanksText
 				else
 					form(method='POST')
 						+csrf

@@ -25,7 +25,10 @@ module.exports = {
 			default: false
 		},
 		expires: Date,
-		allowUpdate: Boolean
+		allowUpdate: Boolean,
+		intro: String,
+		thanksTitle: String,
+		thanksText: String
 	} )
 };
 
