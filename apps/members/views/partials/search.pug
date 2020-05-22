@@ -7,9 +7,10 @@ form( method='get' )
 				each permission, p in permissions
 					option( value=permission.slug, selected=( search.permission == permission.slug ? true : false ) ) #{ permission.name }
 		.form-group
-			label( for='show_inactive' )
-				input( type='checkbox' name='show_inactive', value='true', checked=search.show_inactive )#show_inactive
-				|  Show inactive members
+			.checkbox
+				label( for='show_inactive' )
+					input( type='checkbox' name='show_inactive', value='true', checked=search.show_inactive )#show_inactive
+					|  Show inactive members
 	.form-group
 		label( for='firstname' ).control-label First name
 		input( type='text', name='firstname', value=search.firstname ).form-control#firstname

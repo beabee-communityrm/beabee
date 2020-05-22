@@ -13,11 +13,11 @@ mixin editablePanel(title, id)
 					button(name='action' value='save-' + id).btn.btn-primary Save
 
 +editablePanel('About', 'about')
-	.member-field
+	.form-group
 		label(for="description").control-label Description
 		input(type='text' name='description' value=member.description readonly)#description.form-control
 
-	.member-field
+	.form-group
 		label(for='bio').control-label Bio
 		textarea(name='bio' readonly)#bio.form-control.member-about= member.bio
 
@@ -35,31 +35,37 @@ mixin editablePanel(title, id)
 				option= tag
 		|
 		|
-		button(type='button').btn.btn-sm.member-add-tag-btn.js-edit-member-add-tag-btn
+		button(type='button').btn.btn-default.btn-xs.member-add-tag-btn.js-edit-member-add-tag-btn
 			span.glyphicon.glyphicon-plus
+			|
+			|
+			| Add
 
 
 +editablePanel('Contact details', 'contact')
 	.row
 		.col-md-12
-			.input-group.member-field
-				span.input-group-addon
-					span.glyphicon.glyphicon-envelope
-				input(type='text' value=member.email readonly).form-control
+			.form-group
+				.input-group
+					span.input-group-addon
+						span.glyphicon.glyphicon-envelope
+					input(type='text' value=member.email readonly).form-control
 	.row
 		.col-md-6
-			.input-group.member-field
-				span.input-group-addon
-					span.glyphicon.glyphicon-earphone
-				input(type='text' name='telephone' value=member.contact.telephone readonly).form-control
+			.form-group
+				.input-group
+					span.input-group-addon
+						span.glyphicon.glyphicon-earphone
+					input(type='text' name='telephone' value=member.contact.telephone readonly).form-control
 		.col-md-6
-			.input-group.member-field
-				span.input-group-addon
-					img(src='/static/imgs/twitter.png')
-				input(type='text' name='twitter' value=member.contact.twitter readonly).form-control
+			.form-group
+				.input-group
+					span.input-group-addon
+						img(src='/static/imgs/twitter.png')
+					input(type='text' name='twitter' value=member.contact.twitter readonly).form-control
 
 +editablePanel('Notes', 'notes')
-	.member-field
+	.form-group
 		textarea(name='notes' readonly).form-control.member-about= member.notes
 
 if access('superadmin')
