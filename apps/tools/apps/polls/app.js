@@ -32,19 +32,23 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 function schemaToPoll( data ) {
-	const { question, slug, mergeField, closed, allowUpdate, expiresDate, expiresTime } = data;
+	const {
+		question, slug, mergeField, closed, allowUpdate, expiresDate, expiresTime,
+		intro, thanksTitle, thanksText
+	} = data;
 
 	const expires = expiresDate && expiresTime && moment.utc(`${expiresDate}T${expiresTime}`);
 
 	return {
 		question, slug, mergeField, expires,
 		closed: !!closed,
-		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate})
+		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate}),
+		intro, thanksTitle, thanksText
 	};
 }
 
 app.post( '/', hasSchema( createPollSchema ).orFlash, wrapAsync( async ( req, res ) => {
-	const poll = await Polls.create( schemaToPoll( req.body ) );
+	const poll = await Polls.create( { ...schemaToPoll( req.body ), closed: true } );
 	req.flash('success', 'polls-created');
 	res.redirect('/tools/polls/' + poll._id);
 } ) );
@@ -61,6 +65,12 @@ app.post( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
 	switch ( req.body.action ) {
 	case 'update':
 		await poll.update( { $set: schemaToPoll( req.body ) } );
+		req.flash( 'success', 'polls-updated' );
+		res.redirect( '/tools/polls/' + poll._id );
+		break;
+
+	case 'edit-form':
+		await poll.update( { $set: { formSchema: JSON.parse(req.body.formSchema) } } );
 		req.flash( 'success', 'polls-updated' );
 		res.redirect( '/tools/polls/' + poll._id );
 		break;

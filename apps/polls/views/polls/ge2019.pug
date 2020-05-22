@@ -7,94 +7,87 @@ block flashes
 
 block contents
 	.row
-		.col-md-3
-			- page = ''
-			if access('member')
-				include /apps/profile/views/partials/sidebar.pug
-		.col-md-9
-			.page-header
-				h3 &nbsp;
+		.col-md-12
+			+page_header(poll.question)
 
-			.row
-				.col-md-9
-					h3 General Election 2019
+	.row
+		.col-md-offset-2.col-md-8
+			p.
+				Want want to know how we can best we can cover the forthcoming
+				General Election as Bristol’s media co-op.
 
+			p.
+				So we need your input on a few important questions about how we
+				prioritise our time and resources, and what you want our general
+				election coverage to be like.
+
+
+			hr#vote
+
+			if poll.active
+				if answer.answer
+					img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+					h3 Thanks for voting
+					
 					p.
-						Want want to know how we can best we can cover the forthcoming
-						General Election as Bristol’s media co-op.
+						We'll let you know the outcome in the next few days!
 
-					p.
-						So we need your input on a few important questions about how we
-						prioritise our time and resources, and what you want our general
-						election coverage to be like.
+				else
+					form(method='POST' action='#vote').js-poll-agm2019-form
+						+csrf
 
+						include /src/views/partials/flash.pug
 
-					hr#vote
-
-					if poll.active
-						if answer.answer
-							img(src='/static/imgs/polls/hand3.png').poll-hand3
-
-							h3 Thanks for voting
-							
+						.poll-ge2019-box
 							p.
-								We'll let you know the outcome in the next few days!
+								In order to cover the General Election well, we would need
+								to push the next edition back by one month (from January to
+								February), as we won't have enough time to work on both.
+							h4.
+								1) Do you think we should push the next edition of the
+								Bristol Cable back by one month so we can focus on covering
+								the General Election?
 
-						else
-							form(method='POST' action='#vote').js-poll-agm2019-form
-								+csrf
+							.poll-agm2019-options
+								input(type='radio' name='answer' value='yes' required)#answer1
+								label(for='answer1').btn Yes
+								input(type='radio' name='answer' value='no' required)#answer2
+								label(for='answer2').btn No
 
-								include /src/views/partials/flash.pug
+							h4 Reasons/comments
+							textarea(name='reasons').form-control
 
-								.poll-ge2019-box
-									p.
-										In order to cover the General Election well, we would need
-										to push the next edition back by one month (from January to
-										February), as we won't have enough time to work on both.
-									h4.
-										1) Do you think we should push the next edition of the
-										Bristol Cable back by one month so we can focus on covering
-										the General Election?
+						.poll-ge2019-box
+							p.
+								The agenda of what ‘the issues’ are in Bristol should be
+								shaped by the needs and concerns of local people.
+							h4.
+								2) What are the key issues for you in this election,
+								locally and nationally?
+							textarea(name='issues').form-control
 
-									.poll-agm2019-options
-										input(type='radio' name='answer' value='yes' required)#answer1
-										label(for='answer1').btn Yes
-										input(type='radio' name='answer' value='no' required)#answer2
-										label(for='answer2').btn No
+						.poll-ge2019-box
+							h4.
+								3) Is there anything else you'd like to add on how the Cable
+								should approach the general election?
+							p.
+								For example, ideas for things we could do or ways members
+								could be involved.
+							textarea(name='approach').form-control
 
-									h4 Reasons/comments
-									textarea(name='reasons').form-control
+						if code
+							h4 Please confirm your email address
+							p.
+								For data protection reasons, this must be the email address
+								that we have on record for you.  If you have trouble please
+								email #[+email('membership@thebristolcable.org')]
 
-								.poll-ge2019-box
-									p.
-										The agenda of what ‘the issues’ are in Bristol should be
-										shaped by the needs and concerns of local people.
-									h4.
-										2) What are the key issues for you in this election,
-										locally and nationally?
-									textarea(name='issues').form-control
+							.form-group
+								input(type='email' name='email' required).form-control
 
-								.poll-ge2019-box
-									h4.
-										3) Is there anything else you'd like to add on how the Cable
-										should approach the general election?
-									p.
-										For example, ideas for things we could do or ways members
-										could be involved.
-									textarea(name='approach').form-control
-
-								if code
-									h4 Please confirm your email address
-									p.
-										For data protection reasons, this must be the email address
-										that we have on record for you.  If you have trouble please
-										email #[+email('membership@thebristolcable.org')]
-
-									.form-group
-										input(type='email' name='email' required).form-control
-
-								p
-									button.btn.join-btn.js-poll-agm2019-submit Submit
-					else
-						.alert.alert-warning.
-							Poll is now closed
+						p
+							button.btn.join-btn.js-poll-agm2019-submit Submit
+			else
+				.alert.alert-warning.
+					Callout is now closed

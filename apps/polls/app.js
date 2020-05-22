@@ -24,8 +24,12 @@ app.use( ( req, res, next ) => {
 } );
 
 app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
-	const polls = await Polls.find();
+	const polls = await Polls.find().sort({date: -1});
 	const pollAnswers = await PollAnswers.find( { member: req.user } );
+
+	polls.forEach(poll => {
+		poll.answer = pollAnswers.find(pa => pa.poll.equals(poll._id));
+	});
 
 	res.render( 'index', { polls, pollAnswers } );
 } ) );
@@ -54,7 +58,7 @@ app.get( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
-	res.render( `polls/${req.model.slug}`, { answer, poll: req.model } );
+	res.render( req.model.formSchema ? 'poll' : `polls/${req.model.slug}`, { answer, poll: req.model } );
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
@@ -70,7 +74,9 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 	const answer = req.session.answer || {};
 	delete req.session.answer;
 
-	res.render( `polls/${req.model.slug}`, { poll: req.model, answer, code: pollsCode } );
+	res.render( req.model.formSchema ? 'poll' : `polls/${req.model.slug}`, {
+		poll: req.model, answer, code: pollsCode
+	} );
 } ) );
 
 // TODO: remove _csrf in a less hacky way
@@ -85,8 +91,13 @@ async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditi
 			}
 		}
 
-		const additionalAnswers = isAsync ?
-			{ 'additionalAnswers.isAsync': true } : { 'additionalAnswers': otherAdditionalAnswers };
+		if (poll.formSchema) {
+			otherAdditionalAnswers = JSON.parse(answer);
+			answer = 'Yes';
+		}
+
+		const additionalAnswers = isAsync ?  { 'additionalAnswers.isAsync': true } :
+			{ 'additionalAnswers': otherAdditionalAnswers };
 
 		await PollAnswers.findOneAndUpdate( { poll, member }, {
 			$set: { poll, member, answer, ...additionalAnswers }
@@ -108,7 +119,8 @@ app.post( '/:slug', [
 	auth.isLoggedIn,
 	hasModel(Polls, 'slug')
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = schemas.answerSchemas[req.model.slug];
+	const answerSchema = req.model.formSchema ?
+		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		const error = await setAnswer( req.model, req.user, req.body );
 		if (error) {

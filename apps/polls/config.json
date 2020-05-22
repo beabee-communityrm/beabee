@@ -1,9 +1,9 @@
 {
-	"title": "Polls",
+	"title": "Callouts",
 	"path": "polls",
 	"permissions": [
-		"loggedIn"
+		"member"
 	],
-	"menu": "none",
-	"priority": 5
+	"menu": "main",
+	"priority": 4
 }

@@ -1,0 +1,61 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = app.title
+
+block append css
+	if poll.active
+		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+
+block append js
+	if poll.active
+		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+		script.
+			Formio.createForm(
+				document.getElementById('form'), !{JSON.stringify(poll.formSchema)},
+				{template: 'bootstrap3'}
+			).then(function (form) {
+				form.on('submit', function (submission) {
+					$('.js-poll-form input[name=answer]').val(JSON.stringify(submission.data));
+					$('.js-poll-form').submit();
+				});
+			});
+
+block flashes
+
+block contents
+	.row
+		.col-md-12
+			+page_header(poll.question)
+
+	.row
+		.col-md-offset-2.col-md-8
+			!= poll.intro
+
+			hr
+
+			if poll.active
+				if answer.answer
+					img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+					h4= poll.thanksTitle
+
+					!= poll.thanksText
+				else
+					#vote
+						noscript
+							.alert.alert-warning.
+								Unfortunately you currently need JavaScript enabled
+								to participate in callouts. Please contact us on
+								#[+email('membership@thebristolcable.org')] if you've
+								been affected.
+
+						include /src/views/partials/flash.pug
+
+						#form
+
+						form(method='POST').js-poll-form
+							+csrf
+							input(type='hidden' name='answer')
+			else
+				.alert.alert-warning Callout is now closed
