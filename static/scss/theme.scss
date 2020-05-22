@@ -1,0 +1,33 @@
+@import "vars";
+
+@import "../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+
+.btn.btn-success {
+	min-width: 200px;
+}
+
+.btn.btn-fb {
+	background-color: #3b5998;
+}
+
+.btn.btn-tw {
+	background-color: #1da1f2;
+}
+
+h1 {
+	font-size: 36px;
+	@media (min-width: 460px) {
+		font-size: 52px;
+	}
+	@media (min-width: 600px) {
+		font-size: 68px;
+	}
+}
+
+a {
+	color: $c-blue;
+}
+
+label {
+	font-weight: normal;
+}

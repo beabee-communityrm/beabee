@@ -1,0 +1,30 @@
+$bp-join-form: 600px;
+
+$c-blue: #048BA8;
+$c-blue--dark1: darken($c-blue, 7%);
+$c-blue--dark2: darken($c-blue, 15%);
+
+$c-green: #4DA167;
+$c-green--dark1: darken($c-green, 5%);
+
+$c-black: #31393C;
+$c-red: #B51724;
+
+// Bootstrap customisations
+
+$grey-base: $c-black;
+$brand-primary: $c-blue;
+$brand-success: $c-green;
+$brand-danger: $c-red;
+
+$state-warning-bg: #F2DC5D;
+$state-warning-text: darken($state-warning-bg, 40%);
+
+$font-size-base: 18px;
+$font-family-sans-serif: 'Source Sans Pro', Helvetica, Arial, sans-serif;
+$headings-font-family: 'Roboto', sans-serif;
+
+$navbar-default-bg: transparent;
+$btn-font-weight: 700;
+
+

@@ -23,6 +23,7 @@ html
 				title #{ Options( 'software-name' ) } &mdash; #{ Options( 'organisation' ) }
 		block head
 			block css
+				link( rel="stylesheet", href="/static/css/theme.css?v=" + git )
 				link( rel="stylesheet", href="/static/css/style.css?v=" + git )
 	body( class=( dev ? 'dev' : '' ) )
 		script.
