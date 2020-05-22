@@ -56,7 +56,7 @@ block contents
 
 			hr
 
-			h3 #{user.contributionPeriod === 'gift' ? 'Start' : user.hasActiveSubscription ? 'Update' : 'Restart'} contribution
+			h4 #{user.contributionPeriod === 'gift' ? 'Start' : user.hasActiveSubscription ? 'Update' : 'Restart'} contribution
 
 			if canChange
 				include partials/change-subscription
@@ -68,7 +68,7 @@ block contents
 			if user.hasActiveSubscription
 				hr
 
-				h3 Cancel contribution
+				h4 Cancel contribution
 				p.
 					If you cancel your contribution your membership will finish at the end of
 					your current payment cycle.
