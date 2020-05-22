@@ -16,7 +16,7 @@ function css() {
 const build = gulp.parallel(css);
 
 function watch() {
-	gulp.watch(['./static/scss/**/*.scss', '!./static/scss/theme.scss'], css);
+	gulp.watch('./static/scss/**/*.scss', css);
 }
 
 module.exports = {

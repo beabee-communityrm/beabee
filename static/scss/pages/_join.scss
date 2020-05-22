@@ -2,37 +2,51 @@ $bp-join-why: 768px;
 
 .join-header {
 	position: relative;
-	background-color:  $c-black;
 	color: white;
 	margin: -22px 0 4rem;
 	overflow: hidden;
 	padding: 2rem;
+	background-color: $c-black;
+
 	@media (min-width: $bp-join-form) {
 		padding: 4rem;
 	}
 }
 
-.join-header__bg {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	padding-bottom: (952 / 1440) * 100%;
-	background: url(/static/imgs/join/header-small.jpg) no-repeat top center;
-	background-size: 100%;
+.join-ts {
+	text-shadow: 0 0 5px $c-black;
+}
 
-	&::after {
-		content: "";
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		width: 100%;
-		height: 40%;
-		background: linear-gradient(#{transparentize($c-black, 1)}, #{$c-black});
+.join-header__bg {
+	padding-bottom: 56.25%;
+	background: url(https://static.thebristolcable.org/uploads/2020/05/AGM19_IMG_7049-%E2%94%AC%C2%AEChelseyCliff-tight-crop-1080x607.jpg) no-repeat top center;
+	background-size: 100%;
+	margin: -2rem -2rem 2rem;
+
+	@media (min-width: $bp-join-form) {
+		margin: -4rem -4rem 2rem;
 	}
 
 	@media (min-width: $bp-join-why) {
-		background-image: url(/static/imgs/join/header.jpg);
+		margin: 0;
+		background-image: url(https://static.thebristolcable.org/uploads/2020/05/AGM19_IMG_7049-%E2%94%AC%C2%AEChelseyCliff-tight-crop-1900x1080.jpg);
+		background-size: cover;
+		background-attachment: fixed;
+
+		&,
+		&::after {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
+
+		&::after {
+			content: "";
+			background-color: $c-black;
+			opacity: 0.2;
+		}
 	}
 }
 
@@ -245,7 +259,7 @@ $bp-join-why: 768px;
 }
 
 .join-info {
-	opacity: 0.5;
+	color: darken(white, 20%);
 
 	& > a {
 		color: inherit;
@@ -278,11 +292,11 @@ $bp-join-why: 768px;
 
 .join-reasons {
 	list-style: none;
-	margin: 0 auto;
+	margin: 2rem auto 6rem;
 	padding: 0;
 
 	li {
-		margin-bottom: 2rem;
+		margin-bottom: 4rem;
 	}
 
 	img {
@@ -294,7 +308,7 @@ $bp-join-why: 768px;
 	.pull-left img,
 	.pull-right img {
 		@media (min-width: $bp-join-why) {
-			margin-top: -53px;
+			margin-top: -46px;
 		}
 	}
 
@@ -303,27 +317,16 @@ $bp-join-why: 768px;
 	}
 }
 
-.join-center-col {
-	float: none;
-	margin: 0 auto;
-
-	@media (min-width: $bp-join-why) {
-		h2 {
-			text-align: center;
-		}
-	}
-}
-
 .join-footer {
 	background-color: $c-black;
-	background: url(/static/imgs/join/footer-small.jpg) no-repeat center;
+	background: url(https://static.thebristolcable.org/uploads/2020/05/Members_meeting_windmillhill2-1080x603.jpg) no-repeat center;
 	background-size: cover;
 	color: white;
 	margin-bottom: -22px;
-	padding: 2rem;
+	padding: 4rem;
 
 	@media (min-width: $bp-join-why) {
-		background-image: url(/static/imgs/join/footer.jpg);
+		background-image: url(https://static.thebristolcable.org/uploads/2020/05/Members_meeting_windmillhill2-1536x858.jpg);
 	}
 }
 
