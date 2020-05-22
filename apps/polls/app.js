@@ -134,15 +134,12 @@ app.post( '/:slug', [
 } ) );
 
 app.post( '/:slug/:code', [
-	hasSchema( schemas.voteLinkSchema ).orFlash,
 	hasModel(Polls, 'slug')
 ], wrapAsync( async ( req, res ) => {
 	const answerSchema = schemas.answerSchemas[req.model.slug];
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		const pollsCode = req.params.code.toUpperCase();
-		const email = req.body.isAsync ? '' : cleanEmailAddress(req.body.email);
-
-		const member = await Members.findOne( req.body.isAsync ? { pollsCode } : { pollsCode, email } );
+		const member = await Members.findOne( { pollsCode } );
 		if ( member ) {
 			const error = await setAnswer( req.model, member, req.body );
 			if (error) {
@@ -157,7 +154,7 @@ app.post( '/:slug/:code', [
 				app: 'polls',
 				action: 'vote',
 				error: 'Member not found with email address/polls code combo',
-				sensitive: { email, pollsCode }
+				sensitive: { pollsCode }
 			});
 		}
 

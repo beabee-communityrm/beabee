@@ -1,27 +1,4 @@
 {
-	"voteLinkSchema": {
-		"body": {
-			"type": "object",
-			"oneOf": [
-				{
-					"required": ["email"],
-					"properties": {
-						"email": {
-							"type": "string"
-						}
-					}
-				},
-				{
-					"required": ["isAsync"],
-					"properties": {
-						"isAsync": {
-							"type": "boolean"
-						}
-					}
-				}
-			]
-		}
-	},
 	"formAnswerSchema": {
 		"body": {
 			"type": "object",
