@@ -2,7 +2,6 @@ extends /src/views/base.pug
 
 block prepend title
 	- title = 'Poll'
-	- activeapp = 'polls'
 
 block append css
 	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
@@ -48,14 +47,14 @@ block contents
 
 	.row
 		.col-md-8
-			h3 Update poll
+			h4 Update poll
 			include partials/poll-form
 
 	.row
 		.col-md-12
 			hr
 
-			h3 Edit form
+			h4 Edit form
 
 			if poll.formSchema === undefined
 				.row
@@ -76,7 +75,7 @@ block contents
 	.row
 		.col-md-8
 
-			h3 Delete poll
+			h4 Delete poll
 
 			form(method='POST')
 				+csrf

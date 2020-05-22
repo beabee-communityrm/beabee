@@ -15,8 +15,9 @@ if isLoggedIn
 			.collapse.navbar-collapse#menu
 				ul.nav.navbar-nav
 					each app, a in apps.main
+						- isActive = currentUrl.startsWith('/' + app.path)
 						if subapps[app.uid].length > 0
-							li.dropdown( class=( activeApp == app.path ? "active" : "" ) )
+							li.dropdown( class=isActive ? "active" : "" )
 									a( href="#", data-toggle="dropdown", role="button", aria-haspopup="true", aria-expanded="false" ).dropdown-toggle #{ app.title }
 										span.caret
 									ul.dropdown-menu
@@ -27,7 +28,7 @@ if isLoggedIn
 											li
 												a( href="/" + app.path + "/" + subapp.path )= subapp.title
 						else
-							li( class=( activeApp == app.path ? "active" : "" ) )
+							li( class=isActive ? "active" : "" )
 								a( href="/" + app.path )= app.title
 				ul.nav.navbar-nav.navbar-right
 					each app, a in apps.secondary

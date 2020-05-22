@@ -15,6 +15,8 @@ try {
 
 function templateLocals( req, res, next ) {
 	// Process which apps should be shown in menu
+
+	res.locals.currentUrl = req.originalUrl;
 	res.locals.apps = {
 		main: [],
 		secondary: []
