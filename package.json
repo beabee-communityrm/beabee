@@ -33,6 +33,7 @@
     "express": "^4.16.4",
     "express-flash": "0.0.2",
     "express-session": "^1.15.6",
+    "flat": "^5.0.0",
     "git-rev": "^0.2.1",
     "gunzip-maybe": "^1.4.1",
     "helmet": "^3.21.1",

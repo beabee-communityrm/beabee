@@ -1,3 +1,5 @@
+const flat = require('flat');
+
 const { PollAnswers, Polls } = require(__js + '/database');
 
 async function getParams() {
@@ -27,7 +29,7 @@ async function getExport(pollAnswers) {
 			'Full name': member.fullname,
 			'Email address': member.email,
 			'Answer': pollAnswer.answer,
-			...pollAnswer.additionalAnswers
+			...flat(pollAnswer.additionalAnswers)
 		};
 	});
 }
