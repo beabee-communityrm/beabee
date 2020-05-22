@@ -1,24 +1,16 @@
-body {
-	padding: 0;
-	color: $c-black;
-	font-size: 18px;
-
-	&.dev {
-		&:before {
-			z-index: 1000;
-			content: '';
-			background: repeating-linear-gradient( 45deg, orange, orange 10px, black 10px, black 20px );
-			position: fixed;
-			top: 0;
-			left: 0;
-			right: 0;
-			height: 3px;
-			color: white;
-			font-weight: bold;
-			text-align: center;
-			box-shadow: 0px 1px 5px rgba( 0, 0, 0, .25 );
-		}
-	}
+body.dev::before {
+	z-index: 1000;
+	content: '';
+	background: repeating-linear-gradient( 45deg, orange, orange 10px, black 10px, black 20px );
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	color: white;
+	font-weight: bold;
+	text-align: center;
+	box-shadow: 0px 1px 5px rgba( 0, 0, 0, .25 );
 }
 
 h1 {
@@ -31,17 +23,6 @@ h1 {
 	}
 }
 
-/*h2 {
-	font-size: 28px;
-	@media (min-width: 460px) {
-		font-size: 42px;
-	}
-}
-
-h3 {
-	font-size: 26px;
-}*/
-
 a {
 	color: $c-blue;
 }
@@ -52,6 +33,18 @@ body.has-js .hidden-js {
 
 body:not(.has-js) .hidden-nojs {
 	display: none;
+}
+
+.btn.btn-success {
+	min-width: 200px;
+}
+
+.btn.btn-fb {
+	background-color: #3b5998;
+}
+
+.btn.btn-tw {
+	background-color: #1da1f2;
 }
 
 .wrapper {
@@ -106,32 +99,4 @@ body:not(.has-js) .hidden-nojs {
 
 label.question {
 	font-weight: 600;
-}
-
-.btn-fb {
-	background-color: #3b5998;
-}
-
-.btn-tw {
-	background-color: #1da1f2;
-}
-
-.list-group-item-danger a {
-	color: red;
-}
-
-.admin-btns .btn {
-	float: none;
-}
-
-@media (max-width:768px) {
-	#menu {
-		margin-left: 0px;
-		padding-left: 1em;
-	}
-}
-
-h4.list-group-item-heading .label {
-	position: relative;
-	top: -3px;
 }
