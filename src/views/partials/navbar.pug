@@ -1,9 +1,16 @@
 nav.navbar.navbar-inverse
 	.container-fluid
 		.navbar-header
-		button( type="button", data-toggle="collapse", data-target="#menu", aria-expanded="false" ).navbar-toggle.collapsed
-			span.glyphicon.glyphicon-menu-hamburger
-			|  Menu
+			button(
+				type="button",
+				data-toggle="collapse",
+				data-target="#menu",
+				aria-expanded="false"
+			).navbar-toggle.collapsed
+				span.sr-only Toggle navigation
+				span.icon-bar
+				span.icon-bar
+				span.icon-bar
 		.collapse.navbar-collapse#menu
 			ul.nav.navbar-nav
 				each app, a in apps.main
@@ -14,13 +21,13 @@ nav.navbar.navbar-inverse
 								ul.dropdown-menu
 									unless app.hidden
 										li
-											a( href="/" + app.path ) #{ app.title }
+											a( href="/" + app.path )= app.title
 									each subapp, s in subapps[app.uid]
 										li
-											a( href="/" + app.path + "/" + subapp.path ) #{ subapp.title }
+											a( href="/" + app.path + "/" + subapp.path )= subapp.title
 					else
 						li( class=( activeApp == app.path ? "active" : "" ) )
-							a( href="/" + app.path ) #{ app.title }
+							a( href="/" + app.path )= app.title
 			ul.nav.navbar-nav.navbar-right
 				each app, a in apps.secondary
-					li: a( href="/" + app.path ) #{ app.title }
+					li: a( href="/" + app.path )= app.title

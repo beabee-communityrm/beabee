@@ -25,14 +25,14 @@ block body
 				include /src/views/partials/flash.pug
 
 			.join-gift-included
-				h3 What's included?
+				h4 What's included?
 
 				ul.join-gift-reasons
-					li: h4 Cable membership: own a share and have a say in your media
-					li: h4 Quarterly magazine in the post: full of public interest journalism and local voices
-					li: h4 Free or discounted tickets to Cable events
-					li: h4 Making independent and investigative media free for all
-					li: h4 Joining a community of thousands of Bristolians to support a new, democratic media
+					li Cable membership: own a share and have a say in your media
+					li Quarterly magazine in the post: full of public interest journalism and local voices
+					li Free or discounted tickets to Cable events
+					li Making independent and investigative media free for all
+					li Joining a community of thousands of Bristolians to support a new, democratic media
 
 			.hidden-js
 				p.
@@ -41,7 +41,7 @@ block body
 					#[+email('membership@thebristolcable.org')] if you want to continue.
 
 			.hidden-nojs
-				h3 Who is the gift for?
+				h4 Who is the gift for?
 				.join-field-group
 					.join-field
 						input(type='text' name='firstname' placeholder='First name' required).join-field__input
@@ -49,44 +49,44 @@ block body
 					.join-field
 						input(type='text' name='lastname' placeholder='Last name' required).join-field__input
 
-				h3 What's their email address?
+				h4 What's their email address?
 				.join-field
 					input(type='email' name='email' required).join-field__input
 
-				h3 When should their gift start?
+				h4 When should their gift start?
 				p.join-field-info.
 					We'll start their membership and send them a welcome email
 					in the morning on this date.
 				.join-field.join-field-date
 					input(type='date' name='startDate' required).join-field__input
 
-				h3 Add an optional personal message
+				h4 Add an optional personal message
 				p.join-field-info.
 					We'll include this in their welcome email.
 				.join-field.join-field-message
 					textarea(name='message').join-field__input
 
-				h3 Who shall we say the gift is from?
+				h4 Who shall we say the gift is from?
 				.join-field
 					input(type='text' name='fromName' required).join-field__input
 
-				h3 What's your email address?
+				h4 What's your email address?
 				.join-field
 					input(type='email' name='fromEmail' required).join-field__input
 
 				button.join-gift-submit blah
 
-				h3 How long would you like to gift the Cable for?
+				h4 How long would you like to gift the Cable for?
 
 				ul.join-options.join-gift-types
 					li.join-options__opt
 						input(type='radio' name='type' value='12' required)
-						button(type='button').btn.join-btn.js-gift-type
+						button(type='button').btn.btn-primary.btn-lg.join-btn.js-gift-type
 							| 12 months
 							small for £36
 					li.join-options__opt
 						input(type='radio' name='type' value='6' required)
-						button(type='button').btn.join-btn.js-gift-type
+						button(type='button').btn.btn-primary.btn-lg.join-btn.js-gift-type
 							| 6 months
 							small for £18
 
