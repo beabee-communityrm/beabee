@@ -5,16 +5,15 @@
 	.navbar.navbar-default.navbar-profile
 		.navbar-header
 			button(
-				type='button',
-				data-toggle='collapse',
-				data-target='#profile-nav'
-			).navbar-open.collapsed
-				| Menu
+				type="button",
+				data-toggle="collapse",
+				data-target="#profile-nav",
+				aria-expanded="false"
+			).navbar-toggle.collapsed
 				span.sr-only Toggle navigation
-				.navbar-toggle
-					span.icon-bar
-					span.icon-bar
-					span.icon-bar
+				span.icon-bar
+				span.icon-bar
+				span.icon-bar
 		.navbar-collapse.collapse#profile-nav
 			ul(role="navigation").nav.nav-pills.nav-stacked
 				li( class=( page == 'home' ? 'active' : '' ) ): a( href="/profile" ) Overview
