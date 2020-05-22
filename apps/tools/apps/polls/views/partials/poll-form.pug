@@ -34,7 +34,9 @@ form(method='POST').form-horizontal
 		.col-md-9
 			textarea(name='thanksText')#thanksText.form-control= poll.thanksText
 
-	if !isNew
+	if isNew
+		input(type='hidden' name='closed' value='true')
+	else
 		.form-group
 			.col-md-offset-3.col-md-9
 				.checkbox-inline
