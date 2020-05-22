@@ -36,9 +36,9 @@ block contents
 											for status in exportTypes[e.export_id.type].statuses
 												option(selected=status === e.status)= status
 									| &nbsp;&nbsp;
-									button.btn.btn-sm Update
+									button.btn.btn-sm.btn-warning Update
 
-			h3 Add to export
+			h4 Add to export
 			form(method="post").form-horizontal
 				+csrf
 				input(type="hidden" name="action" value="add")
@@ -50,4 +50,4 @@ block contents
 							for exportDetails in exports
 								option(value=exportDetails._id)= exportDetails.description
 				.col-md-offset-3.col-md-4
-					button.btn Add
+					button.btn.btn-success Add

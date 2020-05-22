@@ -11,7 +11,7 @@ block contents
 		.col-md-9
 			+page_header( title )
 
-			h3 Create subscription
+			h4 Create subscription
 			if member.hasActiveSubscription
 				p User has a subscription
 			else if !member.canTakePayment
@@ -27,7 +27,7 @@ block contents
 					})
 					+form_button( 'Create', 'primary', { left: 3 } )
 
-			h3 Manual update
+			h4 Manual update
 			.alert.alert-warning.
 				If done incorrectly this could result in payments being taken but not
 				recorded
@@ -48,4 +48,4 @@ block contents
 					left: 3, right: 4,
 					options: {'true': 'Yes'}
 				} )
-				+form_button( 'Update', 'primary', { left: 3 } )
+				+form_button( 'Update', 'danger', { left: 3 } )

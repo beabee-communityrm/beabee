@@ -32,12 +32,12 @@ block contents
 			+page_header('Special URLs')
 
 			each specialUrlGroup in specialUrlGroups
-				h4
+				h5
 					a(href='/tools/special-urls/' + specialUrlGroup._id)= specialUrlGroup.name
 
 	.row
 		.col-md-8
-			h3 Create special URLs
+			h4 Create special URLs
 
 			form(method='POST').form-horizontal
 				+csrf
@@ -62,14 +62,14 @@ block contents
 					.col-md-6
 						textarea(name='thanksMessage' required)#thanksMessage.form-control
 				
-				h4 Actions
+				h5 Actions
 
 				ul.special-urls-actions.js-su-actions
 					li: +action
 					
-				p.text-right: button(type='button').btn.btn-sm.js-su-add-action Add action
+				p.text-right: button(type='button').btn.btn-sm.btn-primary.js-su-add-action Add action
 
 				.form-group
 					.col-md-6
-						button.btn.btn-primary Create
+						button.btn.btn-success Create
 

@@ -15,7 +15,7 @@ block contents
 				| There are #{exportItems.length} #{exportType.itemName} in this export.
 
 			if exportDetails.params
-				dl
+				dl.dl-horizontal
 					each value, name in exportDetails.params
 						dt= name
 						dd= value
@@ -23,7 +23,7 @@ block contents
 			.panel-group#items
 				.panel.panel-default
 					.panel-heading
-						h4.panel-title
+						h5.panel-title
 							a(data-toggle="collapse" data-parent="#items" href="#new_items").
 								New #{exportType.itemName} (#{newItems.length})
 					.panel-collapse.collapse#new_items
@@ -32,7 +32,7 @@ block contents
 				for status in exportItemsByStatus
 					.panel.panel-default
 						.panel-heading
-							h4.panel-title
+							h5.panel-title
 								a(data-toggle="collapse" data-parent="#items" href="#" + status.name + "_items")
 									| Existing #{exportType.itemName} - #{status.name}
 									|
@@ -44,14 +44,14 @@ block contents
 			form(method='POST')
 				+csrf
 				input(type='hidden', name='action', value='add')
-				button(dsiabled=newItems.length === 0).btn Add new
+				button(dsiabled=newItems.length === 0).btn.btn-primary Add new
 
 
 	.row
 		.col-md-8
 			hr
 
-			h3 Run export
+			h4 Run export
 			p Export a CSV of all #{exportType.itemName} with a given status
 			form(method='POST', target='_blank').form-horizontal
 				+csrf
@@ -65,11 +65,11 @@ block contents
 							each status in exportType.statuses
 								option= status
 
-				button.btn Export
+				button.btn.btn-primary Export
 
 			hr
 
-			h3 Update #{exportType.itemName}
+			h4 Update #{exportType.itemName}
 			form(method='POST').form-horizontal
 				+csrf
 				input(type='hidden', name='action', value='update')
@@ -93,11 +93,11 @@ block contents
 						input(type='checkbox' required)
 						| This change is irreversible, confirm to proceed
 
-				button.btn Update
+				button.btn.btn-warning Update
 
 			hr
 
-			h3 Delete export
+			h4 Delete export
 
 			form(method='POST')
 				+csrf

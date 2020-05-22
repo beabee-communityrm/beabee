@@ -1,5 +1,5 @@
 {
-	"title": "Transactional emails",
+	"title": "Emails",
 	"path": "emails",
 	"permissions": [
 		"superadmin", "admin"
