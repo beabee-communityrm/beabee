@@ -24,7 +24,7 @@ app.use( ( req, res, next ) => {
 } );
 
 app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
-	const polls = await Polls.find();
+	const polls = await Polls.find().sort({date: -1});
 	const pollAnswers = await PollAnswers.find( { member: req.user } );
 
 	res.render( 'index', { polls, pollAnswers } );

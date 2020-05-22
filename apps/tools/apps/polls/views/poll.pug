@@ -6,6 +6,8 @@ block prepend title
 
 block append css
 	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+	style.
+		.formcomponents { position: sticky; top: 1rem }
 
 block append js
 	if poll.formSchema !== undefined

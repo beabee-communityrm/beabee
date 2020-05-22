@@ -24,15 +24,11 @@ block flashes
 
 block contents
 	.row
-		.col-md-3
-			- page = ''
-			if access('member')
-				include /apps/profile/views/partials/sidebar.pug
-		.col-md-9
-			.page-header
-				h3 &nbsp;
+		.col-md-12
+			+page_header(poll.question)
 
-
+	.row
+		.col-md-offset-2.col-md-8
 			if poll.active
 				if answer.answer
 					img(src='/static/imgs/polls/hand3.png').poll-hand3

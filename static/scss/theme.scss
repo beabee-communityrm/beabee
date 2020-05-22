@@ -31,3 +31,8 @@ a {
 label {
 	font-weight: normal;
 }
+
+textarea.form-control {
+	min-width: 100%;
+	max-width: 100%;
+}
