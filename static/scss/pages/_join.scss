@@ -115,11 +115,15 @@ $bp-join-why: 768px;
 
 	@media (min-width: $bp-join-form) {
 		margin-bottom: 0;
-		max-width: 200px;
+		max-width: 180px;
 	}
 
 	@include custom-radio {
 		background-color: $c-blue--dark2;
+		border-color: transparent;
+	}
+	@include custom-radio--is(hover) {
+		border-color: transparent;
 	}
 	@include custom-radio--is(focus) {
 		background-color: $c-blue--dark1;
@@ -234,16 +238,9 @@ $bp-join-why: 768px;
 }
 
 .join-btn {
-	background-color: $c-green;
 	width: 100%;
-
 	@media (min-width: $bp-join-form) {
 		width: auto;
-		min-width: 200px;
-	}
-
-	&:hover {
-		background-color: $c-green--dark1;
 	}
 }
 

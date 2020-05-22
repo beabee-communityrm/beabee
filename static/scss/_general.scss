@@ -21,16 +21,6 @@ body {
 	}
 }
 
-h1,
-h2,
-h3,
-h4 {
-	font-family: "Roboto", sans-serif;
-	font-weight: 500;
-	color: inherit;
-	line-height: 1;
-}
-
 h1 {
 	font-size: 36px;
 	@media (min-width: 460px) {
@@ -41,7 +31,7 @@ h1 {
 	}
 }
 
-h2 {
+/*h2 {
 	font-size: 28px;
 	@media (min-width: 460px) {
 		font-size: 42px;
@@ -50,23 +40,10 @@ h2 {
 
 h3 {
 	font-size: 26px;
-}
+}*/
 
 a {
 	color: $c-blue;
-}
-
-ul {
-	margin-bottom: 1em;
-}
-
-textarea.form-control {
-	border: 1px solid #ddd;
-	font-size: inherit;
-	&,
-	&:focus {
-		box-shadow: none;
-	}
 }
 
 body.has-js .hidden-js {
@@ -127,100 +104,8 @@ body:not(.has-js) .hidden-nojs {
 	}
 }
 
-.footer {
-	background-color: #ecf0f4;
-	color: #337ab7;
-	padding: 22px 0;
-	margin-top: 22px;
-
-	a {
-		color: inherit;
-	}
-}
-
-.footer-links {
-	list-style: none;
-	margin: 0 -11px 1em;
-	padding: 0;
-	& > li {
-		padding: 0 11px;
-	}
-
-	@media (min-width: 400px) {
-		columns: 2;
-	}
-
-	@media (min-width: 768px) {
-		float: right;
-	}
-}
-
-.btn-link {
-	border: none;
-	background: transparent;
-	color: #337ab7;
-	padding: 0;
-
-	&:hover {
-		color: #23527c;
-	}
-}
-
-.page-header {
-	margin-top: 0;
-}
-
 label.question {
 	font-weight: 600;
-}
-
-.navbar {
-	box-shadow: none;
-	-webkit-box-shadow: none;
-
-	.container-fluid {
-		padding-left: 0;
-		.collapse.navbar-collapse {
-			padding-left: 0;
-			padding-right: 0;
-		}
-	}
-
-	ul.nav.navbar-nav li a {
-		border-radius: 3px;
-	}
-}
-
-ul.nav.nav-tabs {
-	margin-bottom: 15px;
-}
-
-.btn {
-	text-transform: none;
-	box-shadow: 0 2px 5px transparentize($c-black, 0.5);
-	font-family: "Roboto", sans-serif;
-	font-weight: 900;
-	font-size: 24px;
-	transition: all .2s;
-
-	background-color: $c-blue;
-	&:hover {
-		background-color: $c-blue--dark1;
-	}
-
-	&,
-	&:hover,
-	&:focus {
-		color: white;
-	}
-}
-
-.btn-xs {
-	font-size: 12px;
-}
-
-.btn-sm {
-	font-size: 15px;
 }
 
 .btn-fb {
@@ -231,49 +116,10 @@ ul.nav.nav-tabs {
 	background-color: #1da1f2;
 }
 
-.alert {
-	font-weight: 600;
-	a {
-		color: inherit;
-		text-decoration: underline;
-	}
-}
-
-.btn:after {
-	transition: none;
-}
-
-.btn-group {
-	.btn + .btn {
-		border-left: 0;
-	}
-}
-
 .list-group-item-danger a {
 	color: red;
 }
 
-.panel-default {
-	box-shadow: none;
-	border: 1px solid #ddd;
-}
-
-.btn-danger.outline {
-	background-color: transparent;
-	border: 1px solid red;
-	color: red;
-}
-
-.pagination {
-	margin: 0;
-}
-
-.btn-success {
-	border: 1px solid #54cc54;
-	&:hover {
-		border: 1px solid #54cc54;
-	}
-}
 .admin-btns .btn {
 	float: none;
 }
@@ -288,96 +134,4 @@ ul.nav.nav-tabs {
 h4.list-group-item-heading .label {
 	position: relative;
 	top: -3px;
-}
-
-input[type=text],
-input[type=password],
-input[type=number],
-input[type=date],
-input[type=time],
-input[type=email],
-select {
-	&.form-control {
-		border: 1px solid #ddd;
-		padding: 0 0.5rem;
-		font-size: inherit;
-		color: inherit;
-		box-shadow: 0 2px 5px transparentize($c-black, 0.9);
-		&:focus {
-			border-color: $c-black;
-			box-shadow: 0 2px 5px transparentize($c-black, 0.5);
-		}
-		&[readonly] {
-			border-top: 0;
-			border-left: 0;
-			border-right: 0;
-			box-shadow: none;
-		}
-	}
-}
-
-.form-group {
-	margin-bottom: 30px;
-	& + & {
-		margin-top: -10px;
-	}
-}
-
-dd {
-	margin-bottom: 1rem;
-}
-
-.nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
-	background-color: $c-blue;
-}
-
-.checkbox-inline, .radio-inline {
-	padding-left: 25px;
-	margin-right: 5px;
-}
-
-.radio input[type=radio], .radio-inline input[type=radio], input[type=radio] {
-	margin-top: 7px;
-}
-
-.navbar-open {
-	display: block;
-	width: calc(100% - 30px);
-	border-radius: 3px;
-	outline: 0;
-	border: 0;
-	margin: 0 15px 11px;
-	-webkit-appearance: none;
-	appearance: none;
-	color: white;
-	text-align: left;
-	line-height: 50px;
-	padding-left: 16px;
-	background: $c-blue;
-	font-weight: 600;
-
-	@media (min-width: 768px) {
-		display: none;
-	}
-
-	.navbar-toggle .icon-bar {
-		background: white;
-	}
-
-	.navbar-toggle {
-		margin-right: 0;
-	}
-}
-
-.navbar-profile {
-	margin-bottom: 0;
-}
-
-a.alert {
-	display: block;
-	color: white;
-
-	&:not([href]) {
-		text-decoration: none;
-	}
 }

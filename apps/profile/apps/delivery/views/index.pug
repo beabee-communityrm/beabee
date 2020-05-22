@@ -41,16 +41,16 @@ block contents
 				ul.join-options
 					li.join-options__opt
 						input(type='radio', name='delivery_optin', id='delivery_optin_yes' , value='true', required, checked=user.delivery_optin).js-delivery-opt
-						label(for='delivery_optin_yes').btn Yes
+						label(for='delivery_optin_yes').btn.btn-primary.btn-lg Yes
 					li.join-options__opt
 						input(type='radio', name='delivery_optin', id='delivery_optin_no' , value='false', required, checked=!user.delivery_optin).js-delivery-opt
-						label(for='delivery_optin_no').btn No
+						label(for='delivery_optin_no').btn.btn-primary.btn-lg No
 					li.join-options__opt
 
 				.js-delivery-details(class={'hidden-js': !user.delivery_optin})
-					+input( 'text', 'Address line 1', 'delivery_line1', { value: user.delivery_address.line1, left: 3, right: 5 } )
-					+input( 'text', 'Address line 2', 'delivery_line2', { value: user.delivery_address.line2, left: 3, right: 5 } )
+					+input( 'text', 'Address line 1', 'delivery_line1', { value: user.delivery_address.line1, left: 3, right: 9 } )
+					+input( 'text', 'Address line 2', 'delivery_line2', { value: user.delivery_address.line2, left: 3, right: 9 } )
 					+input( 'text', 'City/town', 'delivery_city', { value: user.delivery_address.city, left: 3, right: 5 } )
 					+input( 'text', 'Postcode', 'delivery_postcode', { value: user.delivery_address.postcode, left: 3, right: 5 } )
 				
-				button.btn.join-btn Save
+				button.btn.btn-lg.btn-success Save
