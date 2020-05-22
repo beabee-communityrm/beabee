@@ -5,7 +5,7 @@ const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
 const mailchimp = require( __js + '/mailchimp' );
 const { hasSchema, hasModel } = require( __js + '/middleware' );
-const { cleanEmailAddress, isSocialScraper, wrapAsync } = require( __js + '/utils' );
+const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
 
 const schemas = require( './schemas.json' );
 
@@ -20,7 +20,6 @@ app.use( ( req, res, next ) => {
 		name: app_config.title,
 		url: app.mountpath
 	} );
-	res.locals.activeApp = app_config.uid;
 	next();
 } );
 

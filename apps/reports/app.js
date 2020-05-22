@@ -10,7 +10,6 @@ app.use( function( req, res, next ) {
 	res.locals.breadcrumb.push( {
 		name: app_config.title
 	} );
-	res.locals.activeApp = app_config.uid;
 	next();
 } );
 

@@ -28,7 +28,6 @@ app.use( ( req, res, next ) => {
 		name: app_config.title,
 		url: app.mountpath
 	} );
-	res.locals.activeApp = 'special-urls';
 	next();
 } );
 
