@@ -27,6 +27,10 @@ app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
 	const polls = await Polls.find().sort({date: -1});
 	const pollAnswers = await PollAnswers.find( { member: req.user } );
 
+	polls.forEach(poll => {
+		poll.answer = pollAnswers.find(pa => pa.poll.equals(poll._id));
+	});
+
 	res.render( 'index', { polls, pollAnswers } );
 } ) );
 

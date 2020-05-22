@@ -8,7 +8,13 @@ mixin pollPanel(poll)
 		.panel.panel-default
 			.panel-body
 				h5= poll.question
-				p.text-right: a(href='/polls/' + poll.slug).btn.btn-primary View
+				.pull-right: a(href='/polls/' + poll.slug).btn.btn-default View
+				if poll.answer
+					p.text-success
+						span.glyphicon.glyphicon-ok
+						|
+						|
+						| Answered
 
 block contents
 	.row
