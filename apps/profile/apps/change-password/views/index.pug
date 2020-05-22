@@ -18,10 +18,10 @@ block contents
 			+page_header( 'Change password' )
 			form( method="post" ).form-horizontal
 				+csrf
-				+input( 'password', 'Current password', 'current', { required: true, left: 3, right: 5 } )
-				+input( 'password', 'New password', 'new', { required: true, class: 'pw-req', left: 3, right: 5 } )
-				+input( 'password', 'Confirm password', 'verify', { required: true, class: 'pw-mat', left: 3, right: 5 } )
+				+input( 'password', 'Current password', 'current', { required: true, left: 4, right: 5 } )
+				+input( 'password', 'New password', 'new', { required: true, class: 'pw-req', left: 4, right: 5 } )
+				+input( 'password', 'Confirm password', 'verify', { required: true, class: 'pw-mat', left: 4, right: 5 } )
 
 				.form-group
-					.col-md-offset-3.col-md-9
+					.col-md-offset-4.col-md-9
 						button.btn.btn-success.btn-lg Save
