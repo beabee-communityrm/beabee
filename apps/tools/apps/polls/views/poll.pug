@@ -8,22 +8,23 @@ block append css
 	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
 
 block append js
-	script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
-	script.
-		Formio.builder(
-			document.getElementById('builder'),
-			!{JSON.stringify(poll.formSchema)},
-			{template: 'bootstrap3'}
-		).then(function (builder) {
-			builder.on('change', function() {
-				$('.js-poll-form-schema').val(JSON.stringify(builder.schema));
+	if poll.formSchema !== undefined
+		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+		script.
+			Formio.builder(
+				document.getElementById('builder'),
+				!{JSON.stringify(poll.formSchema)},
+				{template: 'bootstrap3'}
+			).then(function (builder) {
+				builder.on('change', function() {
+					$('.js-poll-form-schema').val(JSON.stringify(builder.schema));
+				});
 			});
-		});
 
 block contents
 	.row
 		.col-md-12
-			+page_header(poll.name)
+			+page_header(poll.question)
 
 			dl.dl-horizontal
 				dt Status
@@ -52,15 +53,15 @@ block contents
 				+csrf
 				.form-group
 					label(for='question').control-label.col-md-3 Title
-					.col-md-6
+					.col-md-9
 						input(type='text' name='question' value=poll.question required)#question.form-control
 				.form-group
 					label(for='slug').control-label.col-md-3 Slug
-					.col-md-6
+					.col-md-9
 						input(type='text' name='slug' value=poll.slug required readonly)#slug.form-control
 				.form-group
 					label(for='mergeField').control-label.col-md-3 Merge field
-					.col-md-6
+					.col-md-9
 						input(type='text' name='mergeField' maxlength='10' value=poll.mergeField)#mergeField.form-control
 				.form-group
 					label(for='expires').control-label.col-md-3 Expires (UTC)
@@ -81,17 +82,22 @@ block contents
 		.col-md-12
 			hr
 
-			h3 Update form
+			h3 Edit form
 
-			#builder
+			if poll.formSchema === undefined
+				.row
+					.col-md-8
+						.alert.alert-warning This poll's form cannot be edited
+			else
+				#builder
 
-			hr
+				hr
 
-			form(method='POST')
-				+csrf
-				input(type='hidden' name='formSchema' value=JSON.stringify(poll.formSchema)).js-poll-form-schema
-				button(name='action' value='update-form').btn.btn-primary Save
-			
+				form(method='POST')
+					+csrf
+					input(type='hidden' name='formSchema' value=JSON.stringify(poll.formSchema)).js-poll-form-schema
+					button(name='action' value='edit-form').btn.btn-primary Save
+
 			hr
 
 	.row

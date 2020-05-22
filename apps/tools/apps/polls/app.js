@@ -65,7 +65,7 @@ app.post( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
 		res.redirect( '/tools/polls/' + poll._id );
 		break;
 
-	case 'update-form':
+	case 'edit-form':
 		await poll.update( { $set: { formSchema: JSON.parse(req.body.formSchema) } } );
 		req.flash( 'success', 'polls-updated' );
 		res.redirect( '/tools/polls/' + poll._id );
