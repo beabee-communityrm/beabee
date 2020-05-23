@@ -74,3 +74,14 @@ body:not(.has-js) .hidden-nojs {
 label.question {
 	font-weight: 600;
 }
+
+.comma-list > span {
+	display: inline-block;
+	&::after {
+		content: ",";
+		margin-right: 0.5rem;
+	}
+	&:last-child::after {
+		display: none;
+	}
+}

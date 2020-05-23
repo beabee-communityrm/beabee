@@ -42,6 +42,22 @@ block contents
 				dd= poll.allowUpdate ? 'Yes' : 'No'
 				dt URL
 				dd: a(href='/polls/' + poll.slug)= '/polls/' + poll.slug
+				dt Submissions
+				dd
+					= pollAnswers.length
+					|
+					|
+					button(type='button' data-toggle="collapse" data-target="#answers").btn.btn-xs.btn-default Show
+					.collapse#answers
+						p.comma-list
+							each answer in pollAnswers
+								if answer.member
+									span
+										a(href='/members/' + answer.member.uuid)= answer.member.fullname
+										each tag in answer.member.tags
+											|
+											|
+											span.label.label-info= tag.name
 
 			hr
 
@@ -54,7 +70,7 @@ block contents
 		.col-md-12
 			hr
 
-			h4 Edit form
+			h4 Edit poll form
 
 			if poll.formSchema === undefined
 				.row
@@ -62,8 +78,6 @@ block contents
 						.alert.alert-warning This poll's form cannot be edited
 			else
 				#builder
-
-				hr
 
 				form(method='POST')
 					+csrf
