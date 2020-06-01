@@ -3,7 +3,7 @@
 		.table-responsive
 			table.table.table-striped.table-hover.member-table
 				tbody
-					each member, m in members
+					each member in members
 						tr(data-href='/members/' + member.uuid)
 							td
 								span(
@@ -13,4 +13,9 @@
 										(member.hasActiveSubscription ? 'Active' : 'Cancelled') : 'Expired'
 								).glyphicon.glyphicon-user
 							td(style='white-space: nowrap')= member.firstname + ' ' + member.lastname
-							td(width="100%")= member.description
+							td(width="100%")
+								= member.description
+								each tag in member.tags
+									|
+									|
+									.label.label-info= tag.name
