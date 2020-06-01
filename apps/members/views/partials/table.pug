@@ -16,6 +16,7 @@
 							td(width="100%")
 								= member.description
 								each tag in member.tags
-									|
-									|
-									.label.label-info= tag.name
+									if tag.name !== search.tag
+										|
+										|
+										.label.label-info= tag.name
