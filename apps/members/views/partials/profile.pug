@@ -1,16 +1,27 @@
 mixin editablePanel(title, id)
-	.panel.panel-default
+	form(method='POST' id=id).panel.panel-default.js-edit-member
+		+csrf
 		.panel-heading
 			h3.panel-title
 				.pull-right
-					a(href='#' + id).js-edit-member: span.glyphicon.glyphicon-edit
+					a.js-edit-member-toggle: span.glyphicon.glyphicon-edit
 				= title
 		.panel-body
-			form(method='POST' id=id).js-edit-member-form
-				+csrf
-				block
-				p.text-right.hidden.js-edit-member-hidden
-					button(name='action' value='save-' + id).btn.btn-primary Save
+			block
+			p.text-right.hidden.js-edit-member-hidden
+				button(type='button').btn.btn-default.btn-sm.js-edit-member-toggle Cancel
+				|
+				|
+				button(name='action' value='save-' + id).btn.btn-primary.btn-sm Save
+
+mixin memberTag(tag)
+	a(href='/members/?tag=' + encodeURIComponent(tag.name) data-tag=tag.name).label.label-info.member-tag.js-edit-member-tag
+		input(type='hidden' name='tags[]' value=tag.name)
+		= tag.name
+		span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
+
+script(type='text/template').js-edit-member-tag-template
+	+memberTag({name: 'XXX'})
 
 +editablePanel('About', 'about')
 	.form-group
@@ -25,22 +36,12 @@ mixin editablePanel(title, id)
 		| Tags:
 		span.js-edit-member-tags
 			each tag in member.tags
-				span.label.label-info.member-tag
-					input(type='hidden' name='tags[]' value=tag.name)
-					= tag.name
-					span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
+				+memberTag(tag)
 	p.hidden.js-edit-member-hidden.form-inline
 		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
+			option(value='' selected disabled) Add tag
 			each tag in availableTags
 				option= tag
-		|
-		|
-		button(type='button').btn.btn-default.btn-xs.member-add-tag-btn.js-edit-member-add-tag-btn
-			span.glyphicon.glyphicon-plus
-			|
-			|
-			| Add
-
 
 +editablePanel('Contact details', 'contact')
 	.row
