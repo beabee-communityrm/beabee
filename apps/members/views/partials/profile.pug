@@ -47,6 +47,16 @@ script(type='text/template').js-edit-member-tag-template
 	.row
 		.col-md-12
 			.form-group
+				.form-inline
+					label(for='#preferred').control-label Contact preference
+					|
+					|
+					select(name='preferred' disabled)#preferred.form-control
+						each p in ['', 'None', 'Email', 'Telephone', 'Twitter']
+							option(selected=member.contact.preferred === p)= p
+	.row
+		.col-md-12
+			.form-group
 				.input-group
 					span.input-group-addon
 						span.glyphicon.glyphicon-envelope

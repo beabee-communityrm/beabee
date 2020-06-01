@@ -93,7 +93,8 @@ module.exports = {
 		notes: String,
 		contact: {
 			telephone: String,
-			twitter: String
+			twitter: String,
+			preferred: String
 		},
 		delivery_optin: {
 			type: Boolean

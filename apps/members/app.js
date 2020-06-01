@@ -192,7 +192,8 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 	case 'save-contact':
 		await member.update({$set: {
 			'contact.telephone': req.body.telephone,
-			'contact.twitter': req.body.twitter
+			'contact.twitter': req.body.twitter,
+			'contact.preferred': req.body.preferred
 		}});
 		req.flash('success', 'member-updated');
 		break;
