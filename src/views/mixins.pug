@@ -94,15 +94,19 @@ mixin paramsInputs(params, namePrefix='params')
 					input(type=param.type name=name required disabled).form-control
 
 mixin membersTableBasicInfo(member)
-	span(
-		style='color: ' + (member.isActiveMember ?
-			(member.hasActiveSubscription ? 'green' : 'orange') : 'red')
-		title=member.isActiveMember ?
-			(member.hasActiveSubscription ? 'Active' : 'Cancelled') : 'Expired'
-	).glyphicon.glyphicon-user
-	span= member.fullname
+	span.members-table-action
+		a(href='/members/' + member.uuid).btn.btn-xs.btn-default
+			span(
+				style='color: ' + (member.isActiveMember ?
+					(member.hasActiveSubscription ? 'green' : 'orange') : 'red')
+				title=member.isActiveMember ?
+					(member.hasActiveSubscription ? 'Active' : 'Cancelled') : 'Expired'
+			).glyphicon.glyphicon-user
 	span.members-table-row-description
-		= member.description
+		= member.fullname
+		br
+		small= member.description
+	span
 		each tag in member.tags
 			if !search || tag.name !== search.tag
 				|

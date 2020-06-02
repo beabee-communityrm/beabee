@@ -28,14 +28,18 @@ block contents
 		.col-md-12
 			hr
 
-			h4#members
-				a(href='/members?addToProject=' + project._id).btn.btn-xs.btn-default.pull-right
-					span.glyphicon.glyphicon-plus
-					|
-					|
-					| Add
-				| Members
+	.row#members
+		.col-md-6
+			h4 Members
+		.col-md-6.text-right
+			a(href='/members?addToProject=' + project._id).btn.btn-primary
+				span.glyphicon.glyphicon-plus
+				|
+				|
+				| Add
 
+	.row
+		.col-md-12
 			if projectMembers.length > 0
 				.members-table
 					each pm in projectMembers
@@ -46,42 +50,94 @@ block contents
 							if pm.tag
 								span
 									.label.label-primary= pm.tag
-							span
+							span.text-right
+								small Engaged
+								br
 								if pm.engagement.length > 0
+									= moment(pm.engagement[0].date).fromNow()
 								else
-									| Never engaged
-							span.members-table-action
-								a(href='/members/' + pm.member.uuid).btn.btn-xs.btn-default
-									span.glyphicon.glyphicon-user
+									| Never
 						.collapse(id=pmId)
-							div(style='padding: 20px')
+							.projects-member-view
 								.row
-									.col-md-6
-										form(method='POST').form-inline
+									.col-md-3
+										form(method='POST')
 											+csrf
 											input(type='hidden' name='pmId' value=pm._id)
 											.form-group
-												input(type='text' name='tag' id=pmId + '_tag' placeholder='Project tag' size='10' value=pm.tag).form-control
-											|
-											|
-											.form-group
-												button(name='action' value='update-member-tag').btn.btn-primary Save
+												.input-group
+													input(type='text' name='tag' placeholder='Project tag' value=pm.tag).form-control
+													.input-group-btn
+														button(name='action' value='update-member-tag').btn.btn-success
+															span.glyphicon.glyphicon-ok
+									.col-md-9
+										.projects-member-contact
+											.input-group
+												span.input-group-addon
+													span.glyphicon.glyphicon-envelope
+												input(type='text' value=pm.member.email readonly).form-control
+											.input-group
+												span.input-group-addon
+													span.glyphicon.glyphicon-earphone
+												input(type='text' name='telephone' value=pm.member.contact.telephone readonly).form-control
+											.input-group
+												span.input-group-addon
+													img(src='/static/imgs/twitter.png')
+												input(type='text' name='twitter' value=pm.member.contact.twitter readonly).form-control
+										p Preferred contact: #{pm.member.contact.preferred || '-'}
+								.row
 									.col-md-6
-										| Engagement
+										h5 Add engagement
+										form(method='POST')
+											+csrf
+											input(type='hidden' name='pmId' value=pm._id)
+											.form-group
+												label(for=pmId + '_engagement_type').control-label Type
+												input(type='text' name='type' id=pmId + '_engagement_type' placeholder='e.g. Email, Phone, etc.' required).form-control
+											.form-group
+												label(for=pmId + '_engagement_date').control-label Date
+												.form-inline
+													input(type='date' name='date' id=pmId + '_engagement_date').form-control
+													|
+													|
+													input(type='time' name='time').form-control
+												p.help-block If empty current date/time will be used
+											.form-group
+												label(for=pmId + '_engagement_notes').control-label Notes
+												textarea(name='notes' id=pmId + '_engagement_notes').form-control
+											.form-group
+												button(name='action' value='add-member-engagement').btn.btn-primary Add
+									.col-md-6
+										h5 Previous engagement
+										if pm.engagement.length > 0
+											each e in pm.engagement
+												p
+													= e.type
+													|
+													| at
+													|
+													= moment(e.date).format('HH:mm [on] DD/MM/YYYY')
+										else
+											p None
+
 
 			else
 				.alert.alert-info No members
 
 			hr
 
-			h4
-				a(href='/tools/polls/create?addToProject=' + project._id).btn.btn-xs.btn-default.pull-right
-					span.glyphicon.glyphicon-plus
-					|
-					|
-					| Add
-				| Callouts
+	.row#callouts
+		.col-md-6
+			h4 Callouts
+		.col-md-6.text-right
+			a(href='/tools/polls/create?addToProject=' + project._id).btn.btn-primary
+				span.glyphicon.glyphicon-plus
+				|
+				|
+				| Add
 
+	.row
+		.col-md-12
 			if project.polls.length > 0
 				table
 					thead
