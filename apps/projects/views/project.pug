@@ -32,10 +32,10 @@ block contents
 					| Add
 			h4 Members
 
-			if project.members.length > 0
+			if projectMembers.length > 0
 				table.table.table-striped
 					tbody
-						each member in project.members
+						each member in projectMembers
 							tr
 								td= member.member.fullname
 			else
