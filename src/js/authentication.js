@@ -289,7 +289,11 @@ var Authentication = {
 
 		switch ( status ) {
 		case Authentication.LOGGED_IN:
-			return next();
+			if (!req.user.setupComplete && req.originalUrl !== '/profile/complete') {
+				return res.redirect( '/profile/complete' );
+			} else {
+				return next();
+			}
 		default:
 			Authentication.handleNotAuthed( status, req, res );
 			return;

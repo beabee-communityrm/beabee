@@ -17,12 +17,7 @@ app.use( function( req, res, next ) {
 		name: app_config.title,
 		url: app.mountpath
 	} );
-
-	if ( req.user && !req.user.setupComplete && req.originalUrl !== '/profile/complete' ) {
-		res.redirect('/profile/complete');
-	} else {
-		next();
-	}
+	next();
 } );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
