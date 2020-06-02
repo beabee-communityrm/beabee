@@ -80,6 +80,12 @@ app.post( '/:_id', hasModel(Projects, '_id'), wrapAsync( async ( req, res ) => {
 		} );
 		res.redirect( req.originalUrl + '#members' );
 		break;
+	case 'delete':
+		await ProjectMembers.deleteMany( { project: req.model } );
+		await Projects.deleteOne( { _id: req.model._id } );
+		req.flash( 'success', 'project-deleted' );
+		res.redirect( '/projects' );
+		break;
 	}
 } ) );
 
