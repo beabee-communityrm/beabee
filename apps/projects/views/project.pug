@@ -54,9 +54,9 @@ block contents
 								a(href='/members/' + pm.member.uuid).btn.btn-xs.btn-default
 									span.glyphicon.glyphicon-user
 						.collapse(id=pmId)
-							div(style='padding: 20px')
+							.projects-member-view
 								.row
-									.col-md-6
+									.col-md-3
 										form(method='POST').form-inline
 											+csrf
 											input(type='hidden' name='pmId' value=pm._id)
@@ -65,8 +65,25 @@ block contents
 											|
 											|
 											.form-group
-												button(name='action' value='update-member-tag').btn.btn-primary Save
-									.col-md-6
+												button(name='action' value='update-member-tag').btn.btn-success
+													span.glyphicon.glyphicon-ok
+									.col-md-9
+										.projects-member-contact
+											.input-group
+												span.input-group-addon
+													span.glyphicon.glyphicon-envelope
+												input(type='text' value=pm.member.email readonly).form-control
+											.input-group
+												span.input-group-addon
+													span.glyphicon.glyphicon-earphone
+												input(type='text' name='telephone' value=pm.member.contact.telephone readonly).form-control
+											.input-group
+												span.input-group-addon
+													img(src='/static/imgs/twitter.png')
+												input(type='text' name='twitter' value=pm.member.contact.twitter readonly).form-control
+										p Preferred contact: #{pm.member.contact.preferred || '-'}
+								.row
+									.col-md-12
 										| Engagement
 
 			else

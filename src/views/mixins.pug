@@ -100,9 +100,11 @@ mixin membersTableBasicInfo(member)
 		title=member.isActiveMember ?
 			(member.hasActiveSubscription ? 'Active' : 'Cancelled') : 'Expired'
 	).glyphicon.glyphicon-user
-	span= member.fullname
 	span.members-table-row-description
-		= member.description
+		= member.fullname
+		br
+		small= member.description
+	span
 		each tag in member.tags
 			if !search || tag.name !== search.tag
 				|
