@@ -1,41 +1,24 @@
-mixin membersTable()
-	table.table.table-striped.table-hover.member-table
-		tbody
-			each member in members
-				tr(data-href='/members/' + member.uuid)
-					if addToProject
-						td: input(type='checkbox' name='members[]' value=member._id)
-					td
-						span(
-							style='color: ' + (member.isActiveMember ?
-								(member.hasActiveSubscription ? 'green' : 'orange') : 'red')
-							title=member.isActiveMember ?
-								(member.hasActiveSubscription ? 'Active' : 'Cancelled') : 'Expired'
-						).glyphicon.glyphicon-user
-					td(style='white-space: nowrap')= member.firstname + ' ' + member.lastname
-					td(width="100%")
-						= member.description
-						each tag in member.tags
-							if tag.name !== search.tag
-								|
-								|
-								.label.label-info= tag.name
+mixin membersTable
+	.members-table
+		each member in members
+			.members-table-row
+				a(href='/members/' + member.uuid).members-table-row-link
+				if addToProject
+					label.members-table-action
+						input(type='checkbox' name='members[]' value=member._id)
+				+membersTableBasicInfo(member)
 
-.row
-	.col-md-12
-		.table-responsive
-			if addToProject
-				h4= addToProject.title
-				form(method='POST' action='/projects/' + addToProject._id)
-					+csrf
-					p
-						button(name='action' value='add-members').btn.btn-sm.btn-warning
-							span.glyphicon.glyphicon-plus
-							|
-							|
-							| Add members
+if addToProject
+	form(method='POST' action='/projects/' + addToProject._id)
+		+csrf
+		p Select the members to add to #[b= addToProject.title]
+		p
+			button(name='action' value='add-members').btn.btn-sm.btn-warning
+				span.glyphicon.glyphicon-plus
+				|
+				|
+				| Add
 
-					+membersTable()
-			else
-				+membersTable
-
+		+membersTable
+else
+	+membersTable

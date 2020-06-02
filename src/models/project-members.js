@@ -15,13 +15,18 @@ module.exports = {
 			ref: 'Members',
 			required: true
 		},
-		contact: [ {
+		tag: String,
+		engagement: [ {
 			date: {
 				type: Date,
 				required: true,
 				default: Date.now
 			},
-			channel: String
+			type: {
+				type: String,
+				required: true
+			},
+			notes: String
 		} ]
 	} )
 };

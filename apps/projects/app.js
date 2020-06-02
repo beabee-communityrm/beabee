@@ -60,6 +60,10 @@ app.post( '/:_id', hasModel(Projects, '_id'), wrapAsync( async ( req, res ) => {
 		} ) ) );
 		req.flash( 'success', 'project-members-added' );
 		break;
+	case 'update-member-tag':
+		await ProjectMembers.updateOne( { _id: req.body.pmId }, { $set: { tag: req.body.tag } } );
+		res.redirect( req.originalUrl + '#members' );
+		return;
 	}
 
 	res.redirect( req.originalUrl );

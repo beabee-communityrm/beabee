@@ -2,6 +2,10 @@
 
 @import "../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 
+.btn {
+	font-family: $font-family-sans-serif;
+}
+
 .btn.btn-lg.btn-success {
 	min-width: 200px;
 }

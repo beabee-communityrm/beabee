@@ -1,7 +1,11 @@
 extends /src/views/base.pug
 
 block prepend title
-	- title = 'Poll'
+	- title = 'Project'
+
+block append js
+	script.
+		$.support.transition = false;
 
 block contents
 	.row
@@ -14,7 +18,7 @@ block contents
 				dt Description
 				dd= project.description
 				dt Status
-				dd= project.status
+				dd: .label.label-default= project.status
 				dt Created
 				dd= moment(project.date).format('DD/MM/YYYY [at] HH:mm')
 				dt Owner
@@ -24,30 +28,59 @@ block contents
 		.col-md-12
 			hr
 
-			.pull-right
-				a(href='/members?addToProject=' + project._id).btn.btn-xs.btn-default
+			h4#members
+				a(href='/members?addToProject=' + project._id).btn.btn-xs.btn-default.pull-right
 					span.glyphicon.glyphicon-plus
 					|
 					|
 					| Add
-			h4 Members
+				| Members
 
 			if projectMembers.length > 0
-				table.table.table-striped
-					tbody
-						each member in projectMembers
-							tr
-								td= member.member.fullname
+				.members-table
+					each pm in projectMembers
+						- pmId = 'pm_' + pm._id
+						.members-table-row
+							a(href='#' + pmId data-toggle='collapse').members-table-row-link
+							+membersTableBasicInfo(pm.member)
+							if pm.tag
+								span
+									.label.label-primary= pm.tag
+							span
+								if pm.engagement.length > 0
+								else
+									| Never engaged
+							span.members-table-action
+								a(href='/members/' + pm.member.uuid).btn.btn-xs.btn-default
+									span.glyphicon.glyphicon-user
+						.collapse(id=pmId)
+							div(style='padding: 20px')
+								.row
+									.col-md-6
+										form(method='POST').form-inline
+											+csrf
+											input(type='hidden' name='pmId' value=pm._id)
+											.form-group
+												input(type='text' name='tag' id=pmId + '_tag' placeholder='Project tag' size='10' value=pm.tag).form-control
+											|
+											|
+											.form-group
+												button(name='action' value='update-member-tag').btn.btn-primary Save
+									.col-md-6
+										| Engagement
+
 			else
 				.alert.alert-info No members
 
-			.pull-right
-				a(href='/tools/polls/create?addToProject=' + project._id).btn.btn-xs.btn-default
+			hr
+
+			h4
+				a(href='/tools/polls/create?addToProject=' + project._id).btn.btn-xs.btn-default.pull-right
 					span.glyphicon.glyphicon-plus
 					|
 					|
 					| Add
-			h4 Callouts
+				| Callouts
 
 			if project.polls.length > 0
 				table

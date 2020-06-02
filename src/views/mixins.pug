@@ -92,3 +92,19 @@ mixin paramsInputs(params, namePrefix='params')
 							| Yes
 				else
 					input(type=param.type name=name required disabled).form-control
+
+mixin membersTableBasicInfo(member)
+	span(
+		style='color: ' + (member.isActiveMember ?
+			(member.hasActiveSubscription ? 'green' : 'orange') : 'red')
+		title=member.isActiveMember ?
+			(member.hasActiveSubscription ? 'Active' : 'Cancelled') : 'Expired'
+	).glyphicon.glyphicon-user
+	span= member.fullname
+	span.members-table-row-description
+		= member.description
+		each tag in member.tags
+			if !search || tag.name !== search.tag
+				|
+				|
+				a(href='/members/?tag=' + encodeURIComponent(tag.name)).label.label-info.members-table-action= tag.name
