@@ -44,6 +44,7 @@ form(method='POST').form-horizontal
 					input(type='checkbox' name='closed' value='true' checked=poll.closed)
 					| Closed
 
-	.col-md-offset-3.col-md-9
-		button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'
+	.form-group
+		.col-md-offset-3.col-md-9
+			button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'
 

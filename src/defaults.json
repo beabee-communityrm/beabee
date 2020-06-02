@@ -113,6 +113,10 @@
 	"flash-polls-cant-update": "You have already submitted an answer",
 	"flash-polls-expired-user": "Your membership has expired, please restart it to vote",
 
+	"flash-project-created": "Project created",
+	"flash-project-updated": "Project updated",
+	"flash-project-members-added": "Members have been added to project",
+
 	"flash-referral-gifts-updated": "Referral gift updated",
 	"flash-referral-gifts-options-updated": "Referral gift options updated",
 	"flash-referral-gifts-stock-updated": "Referral gift stock updated",

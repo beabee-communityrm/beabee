@@ -9,7 +9,7 @@ const config = require( __config );
 const auth = require( __js + '/authentication' );
 const {
 	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
-	Referrals, RestartFlows
+	Projects, Referrals, RestartFlows
 } = require( __js + '/database' );
 const gocardless = require( __js + '/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
@@ -103,10 +103,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
 
+	const addToProject = query.addToProject && await Projects.findById( query.addToProject );
+
 	res.render( 'index', {
 		permissions, availableTags, search: query,
 		members, pagination, total,
 		count: members ? members.length : 0,
+		addToProject
 	} );
 } ) );
 

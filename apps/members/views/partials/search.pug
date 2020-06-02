@@ -1,4 +1,7 @@
 form( method='get' )
+	if addToProject
+		input( type='hidden' name='addToProject' value=addToProject._id )
+
 	if access('superadmin')
 		.form-group
 			label( for='permission' ).control-label Permission

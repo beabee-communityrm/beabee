@@ -1,0 +1,25 @@
+- isNew = project === undefined
+- project = project || {}
+
+form(method='POST').form-horizontal
+	+csrf
+	.form-group
+		label(for='title').control-label.col-md-3 Title
+		.col-md-9
+			input(type='text' name='title' value=project.title required)#title.form-control
+	.form-group
+		label(for='description').control-label.col-md-3 Description
+		.col-md-9
+			textarea(name='description' required)#intro.form-control= project.description
+	.form-group
+		label(for='description').control-label.col-md-3 Status
+		.col-md-9
+			select(name='status' required).form-control
+				option(value='' selected disabled) Choose one
+				each status in ['New','In progress', 'Finished']
+					option(selected=project.status === status)= status
+
+	.form-group
+		.col-md-offset-3.col-md-9
+			button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'
+

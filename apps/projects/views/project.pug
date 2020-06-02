@@ -1,0 +1,69 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Poll'
+
+block contents
+	.row
+		.col-md-12
+			+page_header(project.title)
+
+	.row
+		.col-md-8
+			dl.dl-horizontal
+				dt Description
+				dd= project.description
+				dt Status
+				dd= project.status
+				dt Created
+				dd= moment(project.date).format('DD/MM/YYYY [at] HH:mm')
+				dt Owner
+				dd: a(href='/members/' + project.owner.uuid)= project.owner.fullname
+	
+	.row
+		.col-md-12
+			hr
+
+			.pull-right
+				a(href='/members?addToProject=' + project._id).btn.btn-xs.btn-default
+					span.glyphicon.glyphicon-plus
+					|
+					|
+					| Add
+			h4 Members
+
+			if project.members.length > 0
+				table.table.table-striped
+					tbody
+						each member in project.members
+							tr
+								td= member.member.fullname
+			else
+				.alert.alert-info No members
+
+			.pull-right
+				a(href='/tools/polls/create?addToProject=' + project._id).btn.btn-xs.btn-default
+					span.glyphicon.glyphicon-plus
+					|
+					|
+					| Add
+			h4 Callouts
+
+			if project.polls.length > 0
+				table
+					thead
+						th Title
+					tbody
+						each poll in project.polls
+							tr
+								td= poll.question
+			else
+				.alert.alert-info No callouts
+
+			hr
+
+	.row
+		.col-md-8
+			h4 Update project
+			include partials/project-form
+
