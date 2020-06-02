@@ -8,7 +8,7 @@ dl.dl-horizontal
 			form(method='POST')
 				+csrf
 				input(type='hidden' name='action' value='login-override')
-				button.btn.btn-sm Generate link
+				button.btn.btn-xs.btn-default Generate link
 	dt Password reset
 	dd
 		if member.password.reset_code
@@ -17,7 +17,7 @@ dl.dl-horizontal
 			form(method='POST')
 				+csrf
 				input(type='hidden' name='action' value='password-reset')
-				button.btn.btn-sm Generate link
+				button.btn.btn-xs.btn-default Generate link
 	dt Password tries
 	dd #{ member.password.tries } #{ member.password.tries >= password_tries ? ' – Locked Out' : '' }
 	dt 2FA
