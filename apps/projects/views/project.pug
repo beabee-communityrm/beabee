@@ -156,3 +156,17 @@ block contents
 			h4 Update project
 			include partials/project-form
 
+	.row
+		.col-md-12
+			hr
+
+			h4 Delete project
+
+			form(method='POST')
+				+csrf
+				p
+					label.checkbox-inline
+						input(type='checkbox' required)
+						| This change is irreversible, confirm to proceed
+				button(name='action' value='delete').btn.btn-danger.outline Delete
+
