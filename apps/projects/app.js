@@ -1,4 +1,5 @@
 const express = require( 'express' );
+const _ = require( 'lodash' );
 const moment = require( 'moment' );
 
 const auth = require( __js + '/authentication' );
@@ -16,9 +17,9 @@ function schemaToProject( data ) {
 
 function schemaToEngagement( data ) {
 	const { type, date, time, notes } = data;
-	const date2 = date && time && moment(`${date}T${time}`);
 	return {
-		type, notes, date: date2
+		type, notes,
+		date: moment(`${date}T${time}`)
 	};
 }
 
@@ -51,7 +52,12 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 
 app.get( '/:_id', hasModel(Projects, '_id'), wrapAsync( async ( req, res ) => {
 	await req.model.populate('owner polls').execPopulate();
-	const projectMembers = await ProjectMembers.find( { project: req.model } ).populate( 'member' );
+	const projectMembers = await ProjectMembers.find( { project: req.model } ).populate( 'member engagement.member' );
+
+	projectMembers.forEach(pm => {
+		pm.engagementByDate = _.sortBy(pm.engagement, 'date');
+		pm.latestEngagement = _.last(pm.engagementByDate);
+	});
 
 	res.render( 'project', { project: req.model, projectMembers } );
 } ) );
@@ -76,7 +82,18 @@ app.post( '/:_id', hasModel(Projects, '_id'), wrapAsync( async ( req, res ) => {
 		break;
 	case 'add-member-engagement':
 		await ProjectMembers.updateOne( { _id: req.body.pmId }, {
-			$push: { engagement: schemaToEngagement( req.body) }
+			$push: { engagement: {
+				...schemaToEngagement( req.body ),
+				member: req.user
+			} }
+		} );
+		res.redirect( req.originalUrl + '#members' );
+		break;
+	case 'delete-member-engagement':
+		await ProjectMembers.updateOne( { _id: req.body.pmId }, {
+			$pull: { engagement: {
+				_id: req.body.eId
+			} }
 		} );
 		res.redirect( req.originalUrl + '#members' );
 		break;

@@ -3,10 +3,6 @@ extends /src/views/base.pug
 block prepend title
 	- title = 'Project'
 
-block append js
-	script.
-		$.support.transition = false;
-
 block contents
 	.row
 		.col-md-12
@@ -45,7 +41,8 @@ block contents
 					each pm in projectMembers
 						- pmId = 'pm_' + pm._id
 						.members-table-row
-							a(href='#' + pmId data-toggle='collapse').members-table-row-link
+							a(href='#' + pmId data-toggle='collapse').members-table-row-link.collapsed
+							span.projects-member-caret: span.caret
 							+membersTableBasicInfo(pm.member)
 							if pm.tag
 								span
@@ -53,10 +50,10 @@ block contents
 							span.text-right
 								small Engaged
 								br
-								if pm.engagement.length > 0
-									= moment(pm.engagement[0].date).fromNow()
+								if pm.latestEngagement
+									.text-success= moment(pm.latestEngagement.date).fromNow()
 								else
-									| Never
+									| No
 						.collapse(id=pmId)
 							.projects-member-view
 								.row
@@ -93,15 +90,17 @@ block contents
 											input(type='hidden' name='pmId' value=pm._id)
 											.form-group
 												label(for=pmId + '_engagement_type').control-label Type
-												input(type='text' name='type' id=pmId + '_engagement_type' placeholder='e.g. Email, Phone, etc.' required).form-control
+												select(name='type' id=pmId + '_engagement_type' required).form-control
+													option(value='' selected disabled) Select
+													each type in ['Email', 'Phone', 'In person', 'WhatsApp', 'Signal']
+														option= type
 											.form-group
 												label(for=pmId + '_engagement_date').control-label Date
 												.form-inline
-													input(type='date' name='date' id=pmId + '_engagement_date').form-control
+													input(type='date' name='date' id=pmId + '_engagement_date' required value=moment().format('YYYY-MM-DD')).form-control
 													|
 													|
-													input(type='time' name='time').form-control
-												p.help-block If empty current date/time will be used
+													input(type='time' name='time' required value=moment().format('HH:mm')).form-control
 											.form-group
 												label(for=pmId + '_engagement_notes').control-label Notes
 												textarea(name='notes' id=pmId + '_engagement_notes').form-control
@@ -109,14 +108,28 @@ block contents
 												button(name='action' value='add-member-engagement').btn.btn-primary Add
 									.col-md-6
 										h5 Previous engagement
-										if pm.engagement.length > 0
-											each e in pm.engagement
-												p
-													= e.type
-													|
-													| at
-													|
-													= moment(e.date).format('HH:mm [on] DD/MM/YYYY')
+										if pm.engagementByDate.length > 0
+											ol
+												each e in pm.engagementByDate
+													li
+														form(method='POST').pull-right
+															+csrf
+															input(type='hidden' name='pmId' value=pm._id)
+															input(type='hidden' name='eId' value=e._id)
+															button(name='action' value='delete-member-engagement').btn.btn-xs.btn-danger
+																span.glyphicon.glyphicon-trash
+														= e.type
+														|
+														| by
+														|
+														a(href='/members/' + e.member.uuid)= e.member.firstname
+														|
+														| at
+														|
+														= moment(e.date).format('HH:mm DD/MM/YYYY')
+														|
+														br
+														small= e.notes
 										else
 											p None
 

@@ -10,3 +10,10 @@
 		margin-left: 10px;
 	}
 }
+
+.projects-member-caret {
+	transform: scaleY(-1);
+	.collapsed + & {
+		transform: scaleY(1);
+	}
+}

@@ -17,6 +17,11 @@ module.exports = {
 		},
 		tag: String,
 		engagement: [ {
+			member: {
+				type: ObjectId,
+				ref: 'Members',
+				required: true
+			},
 			date: {
 				type: Date,
 				required: true,
