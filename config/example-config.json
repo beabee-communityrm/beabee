@@ -36,7 +36,8 @@
 	"mailchimp": {
 		"api_key": "",
 		"datacenter": "",
-		"lists": []
+		"mainList": "",
+		"mainListGroups": []
 	},
 	"mandrill": {
 		"api_key": ""

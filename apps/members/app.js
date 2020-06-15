@@ -236,7 +236,7 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 		if ( member.gocardless.customer_id ) {
 			await gocardless.customers.remove( member.gocardless.customer_id );
 		}
-		await mailchimp.defaultLists.members.permanentlyDelete( member.email );
+		await mailchimp.mainList.permanentlyDeleteMember( member );
 
 		req.flash('success', 'member-permanently-deleted');
 		res.redirect('/members');
