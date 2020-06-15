@@ -110,7 +110,9 @@ module.exports = {
 		async addMember(member) {
 			await mainListInstance.members.upsert(member.email, {
 				...memberToMCMember(member),
-				interests: config.mailchimp.defaultGroups,
+				interests: Object.assign(
+					...config.mailchimp.mainListGroups.map(group => ({[group]: true}))
+				),
 				status_if_new: 'subscribed'
 			});
 		},
