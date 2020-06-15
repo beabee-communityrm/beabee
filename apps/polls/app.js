@@ -106,10 +106,8 @@ async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditi
 		}, { upsert: true } );
 
 		if (poll.mergeField) {
-			await mailchimp.defaultLists.members.update( member.email, {
-				merge_fields: {
-					[poll.mergeField]: answer
-				}
+			await mailchimp.mainList.updateMemberFields( member, {
+				[poll.mergeField]: answer
 			} );
 		}
 	} else {

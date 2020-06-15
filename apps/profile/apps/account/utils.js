@@ -6,13 +6,7 @@ const { addToMailingLists } = require( __apps + '/join/utils' );
 async function syncMemberDetails(member, oldEmail) {
 	if ( member.isActiveMember ) {
 		try {
-			await mailchimp.defaultLists.members.update( oldEmail, {
-				email_address: member.email,
-				merge_fields: {
-					FNAME: member.firstname,
-					LNAME: member.lastname
-				}
-			} );
+			await mailchimp.mainList.updateMemberDetails( member, oldEmail );
 		} catch (err) {
 			if (err.response && err.response.status === 404) {
 				await addToMailingLists(member);
