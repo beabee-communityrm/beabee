@@ -58,6 +58,11 @@ block body
 								+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6, value: user.delivery_address.city } )
 								+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6, value: user.delivery_address.postcode } )
 
+								.alert.alert-warning.
+									Deliveries are currently suspended while we investigate how to
+									continue them safely during the pandemic.
+									#[b We hope to have an update on the print edition in the next few weeks.]
+
 							if isReferralWithGift
 								.alert.alert-warning We need your address to send you your referral gift
 								+deliveryAddress
