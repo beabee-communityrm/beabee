@@ -5,6 +5,7 @@ const Papa = require('papaparse');
 const auth = require( __js + '/authentication' );
 const { TransactionalEmails } = require( __js + '/database' );
 const mandrill = require( __js + '/mandrill' );
+const { hasModel } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
 
 const app = express();
@@ -67,32 +68,29 @@ app.post('/', busboy(), (req, res) => {
 	req.pipe(req.busboy);
 });
 
-app.get('/:id', wrapAsync(async (req, res) => {
-	const transactionalEmail = await TransactionalEmails.findOne({_id: req.params.id});
+app.get('/:_id', hasModel(TransactionalEmails, '_id'), wrapAsync(async (req, res) => {
 	const templates = await mandrill.listTemplates();
 	res.render('email', {
-		transactionalEmail,
-		fields: Object.keys(transactionalEmail.recipients[0]),
+		transactionalEmail: req.model,
+		fields: req.model.recipients.length > 0 ? Object.keys(req.model.recipients[0]) : {},
 		templates
 	});
 }));
 
-app.post('/:id', wrapAsync(async (req, res) => {
+app.post('/:_id', hasModel(TransactionalEmails, '_id'), wrapAsync(async (req, res) => {
 	const { action, emailField, nameField, mergeKeys, mergeFields, template } = req.body;
 
 	if (action === 'send') {
-		const transactionalEmail = await TransactionalEmails.findOne({_id: req.params.id});
-
 		const mergeVars = mergeKeys
 			.map((key, i) => ({key, field: mergeFields[i]}))
 			.filter(({key}) => !!key);
 
 		const message = {
-			to: transactionalEmail.recipients.map(recipient => ({
+			to: req.model.recipients.map(recipient => ({
 				email: recipient[emailField],
 				name: recipient[nameField]
 			})),
-			merge_vars: transactionalEmail.recipients.map(recipient => {
+			merge_vars: req.model.recipients.map(recipient => {
 				return {
 					rcpt: recipient[emailField],
 					vars: mergeVars.map(({key, field}) => ({
@@ -116,12 +114,12 @@ app.post('/:id', wrapAsync(async (req, res) => {
 		} else {
 			await mandrill.sendTemplate(template, message);
 		}
-		await transactionalEmail.update({$set: {sent: new Date()}});
+		await req.model.update({$set: {sent: new Date()}});
 
 		req.flash('success', 'transactional-email-sending');
-		res.redirect('/tools/emails/' + transactionalEmail._id);
+		res.redirect('/tools/emails/' + req.model._id);
 	} else if (action === 'delete') {
-		await TransactionalEmails.deleteOne({_id: req.params.id});
+		await req.model.delete();
 		req.flash('success', 'transactional-email-deleted');
 		res.redirect('/tools/emails');
 	}
