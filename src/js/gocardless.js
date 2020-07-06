@@ -1,6 +1,6 @@
 const axios = require('axios');
 const crypto = require('crypto');
-const uuid = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 
 const { log } = require('./logging');
 
@@ -28,7 +28,7 @@ gocardless.interceptors.request.use(config => {
 	});
 
 	if (config.method === 'post') {
-		config.headers['Idempotency-Key'] = uuid();
+		config.headers['Idempotency-Key'] = uuidv4();
 	}
 	return config;
 });
