@@ -11,7 +11,7 @@
 		$revealType.each(function () {
 			var hidden = this.getAttribute('data-type') !== currentType;
 			$(this).toggleClass('hidden', hidden);
-			$(this).find('input, select').prop('disabled', hidden);
+			$(this).find('input, select, textarea').prop('disabled', hidden);
 		});
 	});
 })();

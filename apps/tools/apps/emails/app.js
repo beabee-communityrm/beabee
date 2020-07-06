@@ -104,10 +104,10 @@ app.post('/:id', wrapAsync(async (req, res) => {
 		};
 
 		if (template === '__custom__') {
-			const {content, subject} = req.body;
+			const {fromEmail, fromName, content, subject} = req.body;
 			await mandrill.send({
-				from_email: 'membership@thebristolcable.org',
-				from_name: 'Bristol Cable Membership',
+				from_email: fromEmail,
+				from_name: fromName,
 				html: content.replace(/\r\n/g, '<br/>'),
 				auto_text: true,
 				subject,
