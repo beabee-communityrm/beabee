@@ -3,6 +3,9 @@ extends /src/views/base.pug
 block prepend title
 	- title = 'Email'
 
+block append js
+	script(src='/static/js/reveal.js?v=' + git)
+
 block contents
 	.row
 		.col-md-12
@@ -25,34 +28,43 @@ block contents
 					|
 					= moment(transactionalEmail.sent).format('Do MMMM YYYY')
 
-			form(method='POST', onsubmit='return confirm(\'Are you sure?!\')').form-horizontal
+			form(method='POST', onsubmit='return confirm(\'Are you sure?!\')').form-horizontal.js-reveal
 				+csrf
 				input(type='hidden', name='action', value='send')
 
 				.form-group
 					label(for='template').control-label.col-md-3 Template
 					.col-md-6
-						select(name='template', required)#template.form-control
+						select(name='template', required)#template.form-control.js-reveal-types
 							option(value='', selected, disabled) Select a template
 							each template in templates
 								option(value=template.slug)= template.name
 							option(value='__custom__') Custom
 
-				.form-group
-					label(for='subject').control-label.col-md-3 Subject
-					.col-md-6
-						input(type='text' name='subject').form-control
-
-				.form-group
-					.col-md-12
-						textarea(name='content').form-control
+				.hidden.js-reveal-type(data-type='__custom__')
+					.form-group
+						label(for='fromEmail').control-label.col-md-3 From email
+						.col-md-6
+							input(type='text' name='fromEmail' required disabled value='membership@thebristolcable.org')#fromEmail.form-control
+					.form-group
+						label(for='fromName').control-label.col-md-3 From name
+						.col-md-6
+							input(type='text' name='fromName' required disabled value='Bristol Cable Membership')#fromName.form-control
+					.form-group
+						label(for='subject').control-label.col-md-3 Subject
+						.col-md-6
+							input(type='text' name='subject' required disabled)#subject.form-control
+					.form-group
+						label(for='content').control-label.col-md-3 Content
+						.col-md-9
+							textarea(name='content' required disabled rows="10")#content.form-control
 
 				h5 Merge variables
 
 				.form-group
 					label.control-label.col-sm-3 Email
 					.col-sm-6
-						select(name='emailField').form-control
+						select(name='emailField' required).form-control
 							option(value='', selected, disabled) Select field
 							each field in fields
 								option= field
@@ -60,7 +72,7 @@ block contents
 				.form-group
 					label.control-label.col-sm-3 Name
 					.col-sm-6
-						select(name='nameField').form-control
+						select(name='nameField' required).form-control
 							option(value='', selected, disabled) Select field
 							each field in fields
 								option= field
@@ -77,9 +89,3 @@ block contents
 
 				p
 					button.btn.btn-primary.outline Send email
-
-block append js
-	script.
-		$('.js-add-merge-var').on('click', function () {
-			$('.js-merge-vars').append($('.js-merge-vars').children().first().clone());
-		});
