@@ -39,7 +39,7 @@
     "helmet": "^3.23.3",
     "hummus": "^1.0.108",
     "inquirer": "^7.3.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.16",
     "mandrill-api": "^1.0.45",
     "moment": "^2.27.0",
     "mongodb-extended-json": "^1.11.0",
