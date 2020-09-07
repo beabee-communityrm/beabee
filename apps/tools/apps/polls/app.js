@@ -46,7 +46,7 @@ function schemaToPoll( data ) {
 }
 
 app.post( '/', hasSchema( createPollSchema ).orFlash, wrapAsync( async ( req, res ) => {
-	const poll = await Polls.create( { ...schemaToPoll( req.body ), closed: true } );
+	const poll = await Polls.create( { ...schemaToPoll( req.body ), closed: true, formSchema: {} } );
 	req.flash('success', 'polls-created');
 	res.redirect('/tools/polls/' + poll._id);
 } ) );
