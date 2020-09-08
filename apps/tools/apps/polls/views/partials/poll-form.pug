@@ -7,11 +7,10 @@ form(method='POST').form-horizontal
 		label(for='question').control-label.col-md-3 Title
 		.col-md-9
 			input(type='text' name='question' value=poll.question required)#question.form-control
-	if isNew
-		.form-group
-			label(for='slug').control-label.col-md-3 Slug
-			.col-md-9
-				input(type='text' name='slug' value=poll.slug required)#slug.form-control
+	.form-group
+		label(for='slug').control-label.col-md-3 Slug
+		.col-md-9
+			input(type='text' name='slug' value=poll.slug required readonly=!isNew)#slug.form-control
 	.form-group
 		label(for='mergeField').control-label.col-md-3 Merge field
 		.col-md-9
