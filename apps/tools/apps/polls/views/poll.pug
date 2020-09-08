@@ -41,7 +41,12 @@ block contents
 				dt Update answers?
 				dd= poll.allowUpdate ? 'Yes' : 'No'
 				dt URL
-				dd: a(href='/polls/' + poll.slug)= '/polls/' + poll.slug
+				dd
+					a(href='/polls/' + poll.slug)= '/polls/' + poll.slug
+					|
+					|
+					if !poll.active
+						a(href='/polls/' + poll.slug + '?preview=1').btn.btn-xs.btn-default Preview
 				dt Submissions
 				dd
 					= pollAnswers.length
