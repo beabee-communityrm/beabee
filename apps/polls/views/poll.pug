@@ -4,11 +4,11 @@ block prepend title
 	- title = app.title
 
 block append css
-	if poll.active
+	if poll.active || preview
 		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
 
 block append js
-	if poll.active
+	if poll.active || preview
 		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
 		script.
 			Formio.createForm(
@@ -34,7 +34,7 @@ block contents
 
 			hr
 
-			if poll.active
+			if poll.active || preview
 				if answer.answer
 					img(src='/static/imgs/polls/hand3.png').poll-hand3
 

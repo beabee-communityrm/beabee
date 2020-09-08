@@ -60,7 +60,11 @@ app.get( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
-	res.render( req.model.formSchema ? 'poll' : `polls/${req.model.slug}`, { answer, poll: req.model } );
+	res.render( req.model.formSchema ? 'poll' : `polls/${req.model.slug}`, {
+		answer,
+		poll: req.model,
+		preview: req.query.preview && auth.canAdmin( req )
+	} );
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
