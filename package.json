@@ -58,13 +58,14 @@
     "uuid": "^8.2.0"
   },
   "scripts": {
-    "start": "docker-compose start && npm run build && concurrently -c red,blue npm:watch nodemon",
+    "start": "docker-compose start && npm run build && concurrently -c red,blue,green npm:watch nodemon npm:logs",
     "app": "node app 2>&1 | bunyan",
     "webhook": "node webhook | bunyan",
     "lint": "eslint apps/ src/ test/ webhook.js",
     "watch": "gulp watch",
     "build": "gulp build",
-    "test": "ava"
+    "test": "ava",
+    "logs": "docker-compose logs -f --tail 10 app"
   },
   "devDependencies": {
     "autoprefixer": "^9.8.4",
