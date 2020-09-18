@@ -378,7 +378,8 @@ memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
 	case 'create-subscription':
 		await startMembership(member, {
 			amount: Number(req.body.amount),
-			period: req.body.period
+			period: req.body.period,
+			payFee: req.body.payFee === 'true'
 		});
 		break;
 
