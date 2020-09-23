@@ -55,7 +55,7 @@ block contents
 
 			hr#vote
 
-			if answer.answer
+			if answer.answer && !preview
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h3 Thank you for voting
@@ -77,7 +77,7 @@ block contents
 					| We'll be announcing the results at the AGM on October 14th and
 					| online shortly afterwards.
 
-			else if !poll.active
+			else if !poll.active && !preview
 				.alert.alert-warning Voting is now closed
 			else
 				h3 Vote for your candidates

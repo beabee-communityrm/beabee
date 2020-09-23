@@ -77,7 +77,7 @@ block contents
 
 			hr#vote
 
-			if answer.answer
+			if answer.answer && !preview
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h3 Thank you!
@@ -91,7 +91,7 @@ block contents
 					weeks and you can expect an update with a summary of the themes
 					and learnings shortly afterwards.
 
-			else if poll.active
+			else if poll.active || preview
 				form(method='POST' action='#vote')
 					+csrf
 

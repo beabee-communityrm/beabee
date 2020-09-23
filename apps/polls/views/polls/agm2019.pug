@@ -22,7 +22,7 @@ block contents
 						| You are coming to the AGM!
 					else
 						| You aren't coming to the AGM.
-					if poll.active
+					if poll.active || preview
 						|
 						|
 						a(href='#vote') You can change your reply below.
@@ -54,7 +54,7 @@ block contents
 
 			hr#vote
 
-			if poll.active
+			if poll.active || preview
 
 				if answer.answer
 					img(src='/static/imgs/polls/hand3.png').poll-hand3

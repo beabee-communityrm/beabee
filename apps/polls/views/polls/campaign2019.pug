@@ -20,7 +20,7 @@ block contents
 					else
 						| clean up our air
 					| .
-					if poll.active
+					if poll.active || preview
 						|
 						| You can
 						|
@@ -47,7 +47,7 @@ block contents
 				#[b And now it's time to have you say and vote for what we do next!]
 				Voting closes on February 27th.
 
-			if !poll.active
+			if !poll.active && !preview
 				.alert.alert-warning Voting is now closed
 
 				h3 The result
@@ -143,7 +143,7 @@ block contents
 			p.
 				It’s time we all breathed a little easier.
 
-			if poll.active
+			if poll.active || preview
 
 				hr#vote
 

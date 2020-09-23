@@ -86,7 +86,7 @@ block contents
 
 			hr#vote
 
-			if answer.answer
+			if answer.answer && !preview
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h3 Thanks for your input
@@ -99,7 +99,7 @@ block contents
 
 				a.btn(href='/polls/agm2019-editorial' + (code ? '/' + code : '')) See editorial strategies
 
-			else if poll.active
+			else if poll.active || preview
 				form(method='POST' action='#vote')
 					+csrf
 
