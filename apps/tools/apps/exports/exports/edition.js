@@ -4,10 +4,21 @@ const { Exports, Members, Permissions } = require(__js + '/database');
 const { isLocalPostcode } = require( '../utils.js' );
 const config = require( __config );
 
-async function getQuery() {
+async function getParams() {
+	return [{
+		name: 'monthlyAmountThreshold',
+		label: 'Monthly contribution amount threshold',
+		type: 'number'
+	}];
+}
+
+async function getQuery({params: {monthlyAmountThreshold} = {}}) {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 	return {
-		'gocardless.amount': {$gte: 3}, // TODO: switch this to contributionMonthlyAmount
+		// TODO: switch this to contributionMonthlyAmount
+		'gocardless.amount': {
+			$gte: monthlyAmountThreshold === undefined ? 3 : monthlyAmountThreshold
+		},
 		permissions: {$elemMatch: {
 			permission,
 			date_expires: {$gte: new Date()}
@@ -41,7 +52,8 @@ async function getExport(members, {_id: exportId}) {
 				IsLocal: isLocalPostcode(postcode),
 				IsGift: member.contributionPeriod === 'gift',
 				IsFirstEdition: _.every(member.exports, e => getExportNo(e.export_id) >= currentExportNo),
-				NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies
+				NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
+				ContributionMonthlyAmount: member.contributionMonthlyAmount
 			};
 		})
 		.sort((a, b) => (
@@ -55,6 +67,7 @@ module.exports = {
 	statuses: ['added', 'sent'],
 	collection: Members,
 	itemName: 'members',
+	getParams,
 	getQuery,
 	getExport
 };
