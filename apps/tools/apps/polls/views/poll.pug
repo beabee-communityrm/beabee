@@ -36,6 +36,8 @@ block contents
 						span.label.label-warning Closed
 					else if poll.expires
 						span.label.label-warning Expired
+					else if poll.starts
+						span.label.label-info Scheduled
 				dt Created
 				dd= moment(poll.date).format('DD/MM/YYYY [at] HH:mm')
 				dt Update answers?

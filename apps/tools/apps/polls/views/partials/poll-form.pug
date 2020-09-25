@@ -16,6 +16,12 @@ form(method='POST').form-horizontal
 		.col-md-9
 			input(type='text' name='mergeField' maxlength='10' value=poll.mergeField)#mergeField.form-control
 	.form-group
+		label(for='starts').control-label.col-md-3 Starts (UTC)
+		.col-md-3
+			input(type='date', name='startsDate' value=poll.starts ? moment.utc(poll.starts).format('YYYY-MM-DD') : '')#starts.form-control
+		.col-md-3
+			input(type='time', name='startsTime' value=poll.starts ? moment.utc(poll.starts).format('HH:mm') : '').form-control
+	.form-group
 		label(for='expires').control-label.col-md-3 Expires (UTC)
 		.col-md-3
 			input(type='date', name='expiresDate' value=poll.expires ? moment.utc(poll.expires).format('YYYY-MM-DD') : '')#expires.form-control

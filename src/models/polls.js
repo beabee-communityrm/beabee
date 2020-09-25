@@ -24,6 +24,7 @@ module.exports = {
 			type: Boolean,
 			default: false
 		},
+		starts: Date,
 		expires: Date,
 		allowUpdate: Boolean,
 		intro: String,
@@ -33,7 +34,9 @@ module.exports = {
 };
 
 module.exports.schema.virtual( 'active' ).get( function () {
-	return !this.closed && (!this.expires || moment.utc(this.expires).isAfter());
+	return !this.closed &&
+		(!this.expires || moment.utc(this.expires).isAfter()) &&
+		(!this.starts || moment.utc(this.starts).isBefore());
 });
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );

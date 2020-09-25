@@ -18,6 +18,14 @@
 				"closed": {
 					"type": "boolean"
 				},
+				"startDate": {
+					"type": "string",
+					"format": "date"
+				},
+				"startTime": {
+					"type": "string",
+					"format": "time2"
+				},
 				"expiresDate": {
 					"type": "string",
 					"format": "date"

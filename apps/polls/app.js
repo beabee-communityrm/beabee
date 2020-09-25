@@ -1,5 +1,6 @@
 const express = require( 'express' );
 const _ = require('lodash');
+const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
@@ -24,7 +25,13 @@ app.use( ( req, res, next ) => {
 } );
 
 app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
-	const polls = await Polls.find().sort({date: -1});
+	const polls = await Polls.find({
+		$or: [
+			{start: {$exists: false}},
+			{start: {$lt: moment.utc()}}
+		]
+	}).sort({date: -1});
+
 	const pollAnswers = await PollAnswers.find( { member: req.user } );
 
 	polls.forEach(poll => {
