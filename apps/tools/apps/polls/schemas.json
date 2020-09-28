@@ -33,6 +33,10 @@
 				"expiresTime": {
 					"type": "string",
 					"format": "time2"
+				},
+				"formTemplate": {
+					"type": "string",
+					"enum": ["custom", "builder"]
 				}
 			}
 		}

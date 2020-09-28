@@ -32,7 +32,8 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 function schemaToPoll( data ) {
 	const {
 		question, slug, mergeField, closed, allowUpdate, startsDate, startsTime,
-		expiresDate, expiresTime, intro, thanksTitle, thanksText
+		expiresDate, expiresTime, intro, thanksTitle, thanksText,
+		formTemplate
 	} = data;
 
 	const starts = startsDate && startsTime && moment.utc(`${startsDate}T${startsTime}`);
@@ -40,13 +41,14 @@ function schemaToPoll( data ) {
 
 	return {
 		question, slug, mergeField, starts, expires, intro, thanksTitle, thanksText,
+		formTemplate,
 		closed: !!closed,
 		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate})
 	};
 }
 
 app.post( '/', hasSchema( createPollSchema ).orFlash, wrapAsync( async ( req, res ) => {
-	const poll = await Polls.create( { ...schemaToPoll( req.body ), closed: true, formSchema: {} } );
+	const poll = await Polls.create( { ...schemaToPoll( req.body ), closed: true } );
 	req.flash('success', 'polls-created');
 	res.redirect('/tools/polls/' + poll._id);
 } ) );

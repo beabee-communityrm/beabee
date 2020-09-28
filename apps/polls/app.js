@@ -4,11 +4,11 @@ const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
-const mailchimp = require( __js + '/mailchimp' );
 const { hasSchema, hasModel } = require( __js + '/middleware' );
 const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
 
 const schemas = require( './schemas.json' );
+const { getPollTemplate, setAnswer } = require( './utils' );
 
 const app = express();
 var app_config = {};
@@ -67,7 +67,8 @@ app.get( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
-	res.render( req.model.formSchema ? 'poll' : `polls/${req.model.slug}`, {
+
+	res.render( getPollTemplate( req.model ), {
 		answer,
 		poll: req.model,
 		preview: req.query.preview && auth.canAdmin( req )
@@ -87,51 +88,18 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 	const answer = req.session.answer || {};
 	delete req.session.answer;
 
-	res.render( req.model.formSchema ? 'poll' : `polls/${req.model.slug}`, {
+	res.render( getPollTemplate( req.model ), {
 		poll: req.model, answer, code: pollsCode
 	} );
 } ) );
-
-// TODO: remove _csrf in a less hacky way
-async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditionalAnswers } ) { // eslint-disable-line no-unused-vars
-	if (!member.isActiveMember) {
-		return 'polls-expired-user';
-	} else if (poll.active) {
-		if (!poll.allowUpdate) {
-			const pollAnswer = await PollAnswers.findOne({ member, poll });
-			if (pollAnswer) {
-				return 'polls-cant-update';
-			}
-		}
-
-		if (poll.formSchema) {
-			otherAdditionalAnswers = JSON.parse(answer);
-			answer = 'Yes';
-		}
-
-		const additionalAnswers = isAsync ?  { 'additionalAnswers.isAsync': true } :
-			{ 'additionalAnswers': otherAdditionalAnswers };
-
-		await PollAnswers.findOneAndUpdate( { poll, member }, {
-			$set: { poll, member, answer, ...additionalAnswers }
-		}, { upsert: true } );
-
-		if (poll.mergeField) {
-			await mailchimp.mainList.updateMemberFields( member, {
-				[poll.mergeField]: answer
-			} );
-		}
-	} else {
-		return 'polls-closed';
-	}
-}
 
 app.post( '/:slug', [
 	auth.isLoggedIn,
 	hasModel(Polls, 'slug')
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = req.model.formSchema ?
+	const answerSchema = req.model.formTemplate === 'builder' ?
 		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
+
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		const error = await setAnswer( req.model, req.user, req.body );
 		if (error) {
@@ -144,7 +112,9 @@ app.post( '/:slug', [
 app.post( '/:slug/:code', [
 	hasModel(Polls, 'slug')
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = schemas.answerSchemas[req.model.slug];
+	const answerSchema = req.model.formTemplate === 'builder' ?
+		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
+
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		const pollsCode = req.params.code.toUpperCase();
 		const member = await Members.findOne( { pollsCode } );

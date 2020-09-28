@@ -9,6 +9,10 @@ module.exports = {
 			required: true,
 			default: Date.now
 		},
+		formTemplate: {
+			type: String,
+			required: true
+		},
 		formSchema: Object,
 		question: {
 			type: String,

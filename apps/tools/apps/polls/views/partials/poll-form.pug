@@ -1,7 +1,7 @@
 - isNew = poll === undefined
 - poll = poll || {}
 
-form(method='POST').form-horizontal
+form(method='POST').form-horizontal.js-reveal
 	+csrf
 	.form-group
 		label(for='question').control-label.col-md-3 Title
@@ -28,17 +28,25 @@ form(method='POST').form-horizontal
 		.col-md-3
 			input(type='time', name='expiresTime' value=poll.expires ? moment.utc(poll.expires).format('HH:mm') : '').form-control
 	.form-group
-		label(for='intro').control-label.col-md-3 Intro text
+		label(for='formTemplate').control-label.col-md-3 Template
 		.col-md-9
-			textarea(name='intro')#intro.form-control= poll.intro
-	.form-group
-		label(for='thanksTitle').control-label.col-md-3 Thank you title
-		.col-md-9
-			input(type='text' name='thanksTitle' value=poll.thanksTitle required)#thanksTitle.form-control
-	.form-group
-		label(for='thanksText').control-label.col-md-3 Thank you text
-		.col-md-9
-			textarea(name='thanksText' required)#thanksText.form-control= poll.thanksText
+			select(name='formTemplate' required)#formTemplate.form-control.js-reveal-types
+				option(value='' disabled selected) Select template
+				each template in ['custom', 'builder']
+					option(value=template selected=template===poll.formTemplate)= template[0].toUpperCase() + template.slice(1)
+	.hidden.js-reveal-type(data-type='builder')
+		.form-group
+			label(for='intro').control-label.col-md-3 Intro text
+			.col-md-9
+				textarea(name='intro' required)#intro.form-control= poll.intro
+		.form-group
+			label(for='thanksTitle').control-label.col-md-3 Thank you title
+			.col-md-9
+				input(type='text' name='thanksTitle' value=poll.thanksTitle required)#thanksTitle.form-control
+		.form-group
+			label(for='thanksText').control-label.col-md-3 Thank you text
+			.col-md-9
+				textarea(name='thanksText' required)#thanksText.form-control= poll.thanksText
 
 	if isNew
 		input(type='hidden' name='closed' value='true')
