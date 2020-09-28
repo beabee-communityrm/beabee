@@ -27,8 +27,8 @@ app.use( ( req, res, next ) => {
 app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
 	const polls = await Polls.find({
 		$or: [
-			{start: {$exists: false}},
-			{start: {$lt: moment.utc()}}
+			{starts: {$exists: false}},
+			{starts: {$lt: moment.utc()}}
 		]
 	}).sort({date: -1});
 
