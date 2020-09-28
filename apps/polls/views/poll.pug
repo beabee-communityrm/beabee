@@ -1,7 +1,7 @@
 extends /src/views/base.pug
 
 block prepend title
-	- title = app.title
+	- title = poll.question
 
 block append css
 	if poll.active || preview
