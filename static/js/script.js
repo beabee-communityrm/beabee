@@ -15,4 +15,6 @@
 			$(this).find('input, select, textarea').prop('disabled', hidden);
 		});
 	});
+
+	$('.js-reveal-types').trigger('input');
 })();
