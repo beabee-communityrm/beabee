@@ -132,7 +132,7 @@ app.post( '/:slug/:code', [
 			}
 		} else {
 			req.flash( 'error', 'polls-unknown-user' );
-			req.log.debug({
+			req.log.error({
 				app: 'polls',
 				action: 'vote',
 				error: 'Member not found with polls code ' + pollsCode
