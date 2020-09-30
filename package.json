@@ -59,7 +59,7 @@
     "uuid": "^8.2.0"
   },
   "scripts": {
-    "start": "docker-compose start && npm run build && concurrently -c red,blue,green npm:watch nodemon npm:logs",
+    "start": "docker-compose start && npm run build && concurrently -c red,blue,green npm:watch nodemon",
     "app": "node app 2>&1 | bunyan",
     "webhook": "node webhook | bunyan",
     "lint": "eslint apps/ src/ test/ webhook.js",
@@ -94,6 +94,6 @@
       "test/*"
     ],
     "signal": "SIGTERM",
-    "exec": "npm run lint && docker-compose restart app"
+    "exec": "npm run lint && docker-compose restart app && docker-compose logs -f --tail 10 app"
   }
 }
