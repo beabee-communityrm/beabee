@@ -134,9 +134,8 @@ app.post( '/:slug/:code', [
 			req.flash( 'error', 'polls-unknown-user' );
 			req.log.error({
 				app: 'polls',
-				action: 'vote',
-				error: 'Member not found with polls code ' + pollsCode
-			});
+				action: 'vote'
+			}, `Member not found with polls code "${pollsCode}"`);
 		}
 
 		res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
