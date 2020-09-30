@@ -135,8 +135,7 @@ app.post( '/:slug/:code', [
 			req.log.debug({
 				app: 'polls',
 				action: 'vote',
-				error: 'Member not found with email address/polls code combo',
-				sensitive: { pollsCode }
+				error: 'Member not found with polls code ' + pollsCode
 			});
 		}
 

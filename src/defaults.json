@@ -109,9 +109,9 @@
 	"flash-polls-updated": "Poll updated",
 	"flash-polls-deleted": "Poll deleted",
 	"flash-polls-closed": "This poll is closed",
-	"flash-polls-unknown-user": "The email address was not valid, please try a different email address or contact membership@thebristolcable.org",
+	"flash-polls-unknown-user": "We weren't able to register your answer, please contact membership@thebristolcable.org",
 	"flash-polls-cant-update": "You have already submitted an answer",
-	"flash-polls-expired-user": "Your membership has expired, please restart it to vote",
+	"flash-polls-expired-user": "Your membership has expired, please restart it to submit your answer",
 
 	"flash-project-created": "Project created",
 	"flash-project-updated": "Project updated",
