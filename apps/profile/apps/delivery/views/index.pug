@@ -41,10 +41,10 @@ block contents
 				ul.join-options
 					li.join-options__opt
 						input(type='radio', name='delivery_optin', id='delivery_optin_yes' , value='true', required, checked=user.delivery_optin).js-delivery-opt
-						label(for='delivery_optin_yes').btn.btn-primary.btn-lg Yes
+						label(for='delivery_optin_yes').btn.btn-primary Yes
 					li.join-options__opt
 						input(type='radio', name='delivery_optin', id='delivery_optin_no' , value='false', required, checked=!user.delivery_optin).js-delivery-opt
-						label(for='delivery_optin_no').btn.btn-primary.btn-lg No
+						label(for='delivery_optin_no').btn.btn-primary No
 					li.join-options__opt
 
 				.js-delivery-details(class={'hidden-js': !user.delivery_optin})
@@ -53,4 +53,4 @@ block contents
 					+input( 'text', 'City/town', 'delivery_city', { value: user.delivery_address.city, left: 3, right: 5 } )
 					+input( 'text', 'Postcode', 'delivery_postcode', { value: user.delivery_address.postcode, left: 3, right: 5 } )
 				
-				button.btn.btn-lg.btn-success Save
+				button.btn.btn-success Save
