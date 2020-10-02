@@ -40,8 +40,7 @@ block contents
 					img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 					h4= poll.thanksTitle
-
-					!= thanksText
+					!= dot.template(poll.thanksText)({answer})
 				else
 					noscript
 						.alert.alert-warning.

@@ -1,7 +1,6 @@
 const express = require( 'express' );
 const _ = require('lodash');
 const moment = require('moment');
-const dot = require('dot');
 
 const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
@@ -69,12 +68,8 @@ app.get( '/:slug', [
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
 
-	const thanksText = req.model.formTemplate === 'builder' && answer ?
-		dot.template(req.model.thanksText)({answer}) : undefined;
-
 	res.render( getPollTemplate( req.model ), {
 		poll: req.model, answer,
-		thanksText,
 		preview: req.query.preview && auth.canAdmin( req )
 	} );
 } ) );

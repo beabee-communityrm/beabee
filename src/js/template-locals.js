@@ -1,4 +1,5 @@
 const moment = require( 'moment' );
+const dot = require('dot');
 
 const auth = require( __js + '/authentication' );
 
@@ -100,6 +101,7 @@ function templateLocals( req, res, next ) {
 
 	// Moment.js
 	res.locals.moment = moment;
+	res.locals.dot = dot;
 
 	next();
 }
