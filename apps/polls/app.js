@@ -104,7 +104,7 @@ app.post( '/:slug', [
 		if (error) {
 			req.flash( 'error', error );
 		}
-		res.redirect( `${req.originalUrl}#vote` );
+		res.redirect( `${req.originalUrl}` );
 	});
 } ) );
 
@@ -133,7 +133,7 @@ app.post( '/:slug/:code', [
 			}, `Member not found with polls code "${pollsCode}"`);
 		}
 
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}` );
 	});
 } ) );
 
