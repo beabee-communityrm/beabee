@@ -23,7 +23,7 @@ async function setAnswers( poll, member, answers, isPartial=false ) {
 	} else if (poll.active) {
 		if (!poll.allowUpdate) {
 			const pollAnswer = await PollAnswers.findOne({ member, poll });
-			if (pollAnswer) {
+			if (pollAnswer && !pollAnswer.isPartial) {
 				throw new PollAnswerError('polls-cant-update');
 			}
 		}

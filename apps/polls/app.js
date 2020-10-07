@@ -65,13 +65,24 @@ app.get( '/:slug', [
 	auth.isLoggedIn,
 	hasModel( Polls, 'slug' )
 ], wrapAsync( async ( req, res ) => {
-	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
+	if (req.query.answers) {
+		try {
+			await setAnswers( req.model, req.user, req.query.answers, true );
+		} catch (err) {
+			if (!(err instanceof PollAnswerError)) {
+				throw err;
+			}
+		}
+		res.redirect( `/polls/${req.params.slug}` );
+	} else {
+		const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 
-	res.render( getPollTemplate( req.model ), {
-		poll: req.model,
-		answers: pollAnswer ? pollAnswer.answers : {},
-		preview: req.query.preview && auth.canAdmin( req )
-	} );
+		res.render( getPollTemplate( req.model ), {
+			poll: req.model,
+			answers: pollAnswer ? pollAnswer.answers : {},
+			preview: req.query.preview && auth.canAdmin( req )
+		} );
+	}
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {

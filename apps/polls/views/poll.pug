@@ -15,6 +15,7 @@ block append js
 				document.getElementById('form'), !{JSON.stringify(poll.formSchema)},
 				{template: 'bootstrap3'}
 			).then(function (form) {
+				form.submission = {data: !{JSON.stringify(answers)}};
 				form.on('submit', function (submission) {
 					$('.js-poll-form input[name=answers]').val(JSON.stringify(submission.data));
 					$('.js-poll-form').submit();
@@ -39,8 +40,8 @@ block contents
 
 			!= poll.intro
 
-
 			#vote
+
 			if poll.active || preview
 				if !answers.submit
 					hr
@@ -60,4 +61,5 @@ block contents
 						+csrf
 						input(type='hidden' name='answers')
 			else
+				hr
 				.alert.alert-warning Callout is now closed
