@@ -8,7 +8,7 @@ const { hasSchema, hasModel } = require( __js + '/middleware' );
 const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
 
 const schemas = require( './schemas.json' );
-const { getPollTemplate, setAnswer } = require( './utils' );
+const { getPollTemplate, setAnswers, PollAnswerError } = require( './utils' );
 
 const app = express();
 var app_config = {};
@@ -66,10 +66,10 @@ app.get( '/:slug', [
 	hasModel( Polls, 'slug' )
 ], wrapAsync( async ( req, res ) => {
 	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
-	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
 
 	res.render( getPollTemplate( req.model ), {
-		poll: req.model, answer,
+		poll: req.model,
+		answers: pollAnswer ? pollAnswer.answers : {},
 		preview: req.query.preview && auth.canAdmin( req )
 	} );
 } ) );
@@ -77,19 +77,28 @@ app.get( '/:slug', [
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
 	const pollsCode = req.params.code.toUpperCase();
 
-	if (req.query.answer) {
+	// Prefill answers from URL
+	if (req.query.answers) {
 		const member = await Members.findOne( { pollsCode } );
 		if (member) {
-			await setAnswer( req.model, member, { isAsync: true, answer: req.query.answer } );
+			try {
+				req.session.answers = await setAnswers( req.model, member, req.query.answers, true );
+			} catch (err) {
+				if (!(err instanceof PollAnswerError)) {
+					throw err;
+				}
+			}
 		}
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}` );
+	} else {
+		res.render( getPollTemplate( req.model ), {
+			poll: req.model,
+			answers: req.session.answers || {},
+			code: pollsCode
+		} );
+
+		delete req.session.answers;
 	}
-
-	const answer = req.session.answer || {};
-	delete req.session.answer;
-
-	res.render( getPollTemplate( req.model ), {
-		poll: req.model, answer, code: pollsCode
-	} );
 } ) );
 
 app.post( '/:slug', [
@@ -98,11 +107,18 @@ app.post( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const answerSchema = req.model.formTemplate === 'builder' ?
 		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
+	const answers = req.model.formTemplate === 'builder' ?
+		JSON.parse(req.body.answers) : req.body.answers;
 
 	hasSchema(answerSchema).orFlash( req, res, async () => {
-		const error = await setAnswer( req.model, req.user, req.body );
-		if (error) {
-			req.flash( 'error', error );
+		try {
+			await setAnswers( req.model, req.user, answers );
+		} catch (error) {
+			if (error instanceof PollAnswerError) {
+				req.flash( 'error', error.message);
+			} else {
+				throw error;
+			}
 		}
 		res.redirect( `${req.originalUrl}` );
 	});
@@ -113,17 +129,20 @@ app.post( '/:slug/:code', [
 ], wrapAsync( async ( req, res ) => {
 	const answerSchema = req.model.formTemplate === 'builder' ?
 		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
+	const answers = req.model.formTemplate === 'builder' ?
+		JSON.parse(req.body.answers) : req.body.answers;
 
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		const pollsCode = req.params.code.toUpperCase();
 		const member = await Members.findOne( { pollsCode } );
 		if ( member ) {
-			const error = await setAnswer( req.model, member, req.body );
-			if (error) {
-				req.flash( 'error', error );
-			} else {
-				req.session.answer = req.body;
+			try {
+				req.session.answers = await setAnswers( req.model, member, answers );
 				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+			} catch (error) {
+				if (error instanceof PollAnswerError) {
+					req.flash( 'error', error );
+				}
 			}
 		} else {
 			req.flash( 'error', 'polls-unknown-user' );
