@@ -47,10 +47,15 @@ form(method='POST').form-horizontal.js-reveal
 			label(for='thanksText').control-label.col-md-3 Thank you text
 			.col-md-9
 				textarea(name='thanksText' required)#thanksText.form-control= poll.thanksText
-
 	if isNew
+		.form-group
+			.col-md-offset-3.col-md-9
+				.checkbox-inline
+					input(type='checkbox' name='allowUpdate' value='true')
+					| Allow users to update their answers
 		input(type='hidden' name='closed' value='true')
 	else
+		input(type='hidden' name='allowUpdate' value=poll.allowUpdate)
 		.form-group
 			.col-md-offset-3.col-md-9
 				.checkbox-inline
