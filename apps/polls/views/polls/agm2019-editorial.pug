@@ -5,26 +5,6 @@ block prepend title
 
 block flashes
 
-mixin strategy(title)
-	input(type='checkbox' id='next_' + id checked=last).poll-agm2019-membership-next
-	.poll-section
-		hr
-		h4= question
-		block
-		.poll-agm2019-membership-slider
-			input(type='range' min='0' max='100' step='1' name=id required)
-			ul.poll-agm2019-membership-slider-labels
-				li: small Strongly disagree
-				li: small Not sure/#[br]neutral
-				li: small Strongly agree
-
-		h4 Reasons/comments
-		.form-group
-			textarea(name=id + '_reasons').form-control.poll-textarea
-
-		p.poll-agm2019-membership-next-btn
-			label(for='next_' + id).btn Next
-
 block contents
 	.row
 		.col-md-12
@@ -77,7 +57,7 @@ block contents
 
 			hr#vote
 
-			if answer.answer && !preview
+			if answers.strategy && !preview
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h3 Thank you!
@@ -140,34 +120,23 @@ block contents
 
 					.poll-section
 						.poll-agm2019-editorial-options
-							input(type='radio' name='answer' value='1' required)#answer1
+							input(type='radio' name='answers[strategy]' value='1' required)#answer1
 							label(for="answer1").btn Strategy 1
-							input(type='radio' name='answer' value='2' required)#answer2
+							input(type='radio' name='answers[strategy]' value='2' required)#answer2
 							label(for="answer2").btn Strategy 2
 
 					.poll-section
 						h4 What else do you think the Cable's journalism should be focusing on?
 
 						ol.poll-textlist
-							li: input(type='text' name='focus[]').form-control
-							li: input(type='text' name='focus[]').form-control
-							li: input(type='text' name='focus[]').form-control
+							li: input(type='text' name='answers[focus][]').form-control
+							li: input(type='text' name='answers[focus][]').form-control
+							li: input(type='text' name='answers[focus][]').form-control
 
 					.poll-section
 						h4 Do you have any other comments?
 						.form-group
-							textarea(name='comments').form-control.poll-textarea
-
-					if code
-						h4 Please confirm your email address
-						p.
-							For data protection reasons, this must be the email address
-							that we have on record for you.  If you have trouble please
-							email
-							#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
-
-						.form-group
-							input(type='email' name='email' required).form-control
+							textarea(name='answers[comments]').form-control.poll-textarea
 
 					p.
 						Please note you will not be able to change your answers once

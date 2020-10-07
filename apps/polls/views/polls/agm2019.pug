@@ -16,9 +16,9 @@ block contents
 	.row
 		.col-md-offset-2.col-md-8
 			img(src='/static/imgs/polls/agm2019/title.png').poll-title-image
-			if answer.answer
-				.alert(class='alert-' + (answer.answer === 'yes' ? 'success' : 'warning'))
-					if answer.answer === 'yes'
+			if answers.rsvp
+				.alert(class='alert-' + (answers.rsvp === 'yes' ? 'success' : 'warning'))
+					if answers.rsvp === 'yes'
 						| You are coming to the AGM!
 					else
 						| You aren't coming to the AGM.
@@ -56,13 +56,13 @@ block contents
 
 			if poll.active || preview
 
-				if answer.answer
+				if answers.rsvp
 					img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 					h3 Thanks for your reply
 					
 					p
-						if answer.answer === 'yes'
+						if answers.rsvp === 'yes'
 							| We look forward to seeing you there! We'll be sending out
 							| more details over the next few weeks.
 						else
@@ -88,12 +88,12 @@ block contents
 						h3 Can you come to the AGM?
 
 						.poll-agm2019-options
-							input(type='radio' name='answer' value='yes' required checked=answer.answer === 'yes')#answer1
+							input(type='radio' name='answers[rsvp]' value='yes' required checked=answers.rsvp === 'yes')#answer1
 							label(for='answer1').btn Yes
-							input(type='radio' name='answer' value='no' required checked=answer.answer === 'no')#answer2
+							input(type='radio' name='answers[rsvp]' value='no' required checked=answers.rsvp === 'no')#answer2
 							label(for='answer2').btn No
 
-					.hidden.js-poll-agm2019-section(data-name='answer' data-value='yes')
+					.hidden.js-poll-agm2019-section(data-name='answers[rsvp]' data-value='yes')
 						.poll-section
 							h4 Great! Just a few quick questions...
 
@@ -107,15 +107,15 @@ block contents
 								the same room as the AGM.
 
 							.poll-agm2019-options
-								input(type='radio' name='creche' value='yes' required disabled checked=answer.creche === 'yes')#crecheyes
+								input(type='radio' name='answers[creche]' value='yes' required disabled checked=answers.creche === 'yes')#crecheyes
 								label(for='crecheyes').btn Yes
-								input(type='radio' name='creche' value='no' required disabled checked=answer.creche === 'no')#crecheno
+								input(type='radio' name='answers[creche]' value='no' required disabled checked=answers.creche === 'no')#crecheno
 								label(for='crecheno').btn No
 
-							.hidden.js-poll-agm2019-section(data-name='creche' data-value='yes')
+							.hidden.js-poll-agm2019-section(data-name='answers[creche]' data-value='yes')
 								p Please let us know how many children and their ages:
 								.form-group
-									input(type='text' name='creche_details' value=answer.creche_details required disabled).form-control
+									input(type='text' name='answers[creche_details]' value=answers.creche_details required disabled).form-control
 
 						.poll-section
 							h4 2. Accessibility
@@ -125,7 +125,7 @@ block contents
 								and on street parking directly outside.
 								#[b Do you have any other access needs to allow you to take part?]
 							.form-group
-								input(type='text' name='accessibility' value=answer.accessibility).form-control
+								input(type='text' name='answers[accessibility]' value=answers.accessibility).form-control
 
 						.poll-section
 							h4 3. Would you like to volunteer?
@@ -134,9 +134,9 @@ block contents
 								event go smoothly. This would mean turning up at 5.30pm.
 
 							.poll-agm2019-options
-								input(type='radio' name='volunteer' value='yes' required disabled checked=answer.volunteer === 'yes')#volunteeryes
+								input(type='radio' name='answers[volunteer]' value='yes' required disabled checked=answers.volunteer === 'yes')#volunteeryes
 								label(for='volunteeryes').btn Yes
-								input(type='radio' name='volunteer' value='no' required disabled checked=answer.volunteer === 'no')#volunteerno
+								input(type='radio' name='answers[volunteer]' value='no' required disabled checked=answers.volunteer === 'no')#volunteerno
 								label(for='volunteerno').btn No
 
 						.poll-section
@@ -145,7 +145,7 @@ block contents
 								Your input here will help inform the agenda for the evening.
 
 							.form-group
-								input(type='text' name='discuss' value=answer.discuss).form-control
+								input(type='text' name='answers[discuss]' value=answers.discuss).form-control
 
 						.poll-section
 							h4 5. And finally, have you been to a Cable AGM before?
@@ -155,12 +155,12 @@ block contents
 								events.
 
 							.poll-agm2019-options
-								input(type='radio' name='before' value='yes' required disabled checked=answer.before === 'yes')#beforeyes
+								input(type='radio' name='answers[before]' value='yes' required disabled checked=answers.before === 'yes')#beforeyes
 								label(for='beforeyes').btn Yes
-								input(type='radio' name='before' value='no' required disabled checked=answer.before === 'no')#beforeno
+								input(type='radio' name='answers[before]' value='no' required disabled checked=answers.before === 'no')#beforeno
 								label(for='beforeno').btn No
 
-					.hidden.js-poll-agm2019-section(data-name='answer' data-value='no')
+					.hidden.js-poll-agm2019-section(data-name='answers[rsvp]' data-value='no')
 						h4 No worries!
 
 						p.
@@ -174,18 +174,7 @@ block contents
 								agenda for the evening.
 
 							.form-group
-								input(type='text' name='discuss' value=answer.discuss).form-control
-
-					if code
-						h4 Please confirm your email address
-						p.
-							For data protection reasons, this must be the email address
-							that we have on record for you.  If you have trouble please
-							email
-							#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
-
-						.form-group
-							input(type='email' name='email' required).form-control
+								input(type='text' name='answers[discuss]' value=answers.discuss).form-control
 
 					p
 						button.btn.join-btn.js-poll-agm2019-submit Send RSVP

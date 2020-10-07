@@ -35,7 +35,7 @@ app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
 	const pollAnswers = await PollAnswers.find( { member: req.user } );
 
 	polls.forEach(poll => {
-		poll.answer = pollAnswers.find(pa => pa.poll.equals(poll._id));
+		poll.userAnswer = pollAnswers.find(pa => pa.poll.equals(poll._id));
 	});
 
 	const [activePolls, inactivePolls] = _.partition(polls, p => p.active);

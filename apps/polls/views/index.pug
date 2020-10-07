@@ -9,7 +9,7 @@ mixin pollPanel(poll)
 			.panel-body
 				h5= poll.question
 				.pull-right: a(href='/polls/' + poll.slug).btn.btn-default View
-				if poll.answer
+				if poll.userAnswer
 					p.text-success
 						span.glyphicon.glyphicon-ok
 						|

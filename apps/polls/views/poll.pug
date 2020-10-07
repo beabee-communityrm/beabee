@@ -16,7 +16,7 @@ block append js
 				{template: 'bootstrap3'}
 			).then(function (form) {
 				form.on('submit', function (submission) {
-					$('.js-poll-form input[name=answer]').val(JSON.stringify(submission.data));
+					$('.js-poll-form input[name=answers]').val(JSON.stringify(submission.data));
 					$('.js-poll-form').submit();
 				});
 			});
@@ -30,11 +30,11 @@ block contents
 
 	.row
 		.col-md-offset-2.col-md-8
-			if answer.answer
+			if answers.submit
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h4= poll.thanksTitle
-				!= dot.template(poll.thanksText)({answer})
+				!= dot.template(poll.thanksText)({answers})
 				hr
 
 			!= poll.intro
@@ -42,7 +42,7 @@ block contents
 
 			#vote
 			if poll.active || preview
-				if !answer.answer
+				if !answers.submit
 					hr
 
 					noscript
@@ -58,6 +58,6 @@ block contents
 
 					form(method='POST').js-poll-form
 						+csrf
-						input(type='hidden' name='answer')
+						input(type='hidden' name='answers')
 			else
 				.alert.alert-warning Callout is now closed

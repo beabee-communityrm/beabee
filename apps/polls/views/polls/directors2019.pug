@@ -16,7 +16,7 @@ mixin candidate(name)
 			.poll-directors2019-candidate-bio
 				h3= name
 			.poll-directors2019-candidate-vote
-				input(type='checkbox' name='candidates[]' value=name).js-poll-directors2019-candidate
+				input(type='checkbox' name='answers[candidates][]' value=name).js-poll-directors2019-candidate
 				svg(viewBox="0 0 80 80")
 					use(xlink:href='#cross')
 		block
@@ -55,21 +55,21 @@ block contents
 
 			hr#vote
 
-			if answer.answer && !preview
+			if answers.candidates && !preview
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h3 Thank you for voting
 
 				p
-					if answer.candidates
+					if answers.candidates
 						| You voted for
 						|
-						= answer.candidates.slice(0, -1).join(', ')
-						if answer.candidates.length > 1
+						= answers.candidates.slice(0, -1).join(', ')
+						if answers.candidates.length > 1
 							|
 							| and
 							|
-						= answer.candidates.slice(-1)[0]
+						= answers.candidates.slice(-1)[0]
 						| .
 					else
 						| You abstained from voting for any candidates.
@@ -281,21 +281,10 @@ block contents
 								generating their own news rather than passively swallowing
 								other people's stories.
 
-					if code
-						h4 Please confirm your email address
-						p.
-							For data protection reasons, this must be the email address
-							that we have on record for you.  If you have trouble please
-							email
-							#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
-
-						.form-group
-							input(type='email' name='email' required).form-control
-
 					p.hidden-nojs.js-poll-directors2019-selected
 
 					p.
 						Please note that you can't change your vote once you have submitted it.
 
 					p
-						button(name='answer' value='vote').btn.join-btn.js-poll-directors2019-submit Submit
+						button.btn.join-btn.js-poll-directors2019-submit Submit
