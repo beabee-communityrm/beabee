@@ -8,41 +8,40 @@ function getPollTemplate(poll) {
 	}
 }
 
-// TODO: remove _csrf in a less hacky way
-async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditionalAnswers } ) { // eslint-disable-line no-unused-vars
+class PollAnswerError extends Error {
+	constructor(message) {
+		super(message);
+		this.name = 'PollAnswerError';
+	}
+}
+
+async function setAnswers( poll, member, answers, isPartial=false ) {
 	if (!member.isActiveMember) {
-		return 'polls-expired-user';
+		throw new PollAnswerError('polls-expired-user');
+	} else if (!poll.active) {
+		throw new PollAnswerError('polls-closed');
 	} else if (poll.active) {
 		if (!poll.allowUpdate) {
 			const pollAnswer = await PollAnswers.findOne({ member, poll });
-			if (pollAnswer) {
-				return 'polls-cant-update';
+			if (pollAnswer && !pollAnswer.isPartial) {
+				throw new PollAnswerError('polls-cant-update');
 			}
 		}
 
-		if (poll.formTemplate === 'builder') {
-			otherAdditionalAnswers = JSON.parse(answer);
-			answer = 'Yes';
-		}
-
-		const additionalAnswers = isAsync ?  { 'additionalAnswers.isAsync': true } :
-			{ 'additionalAnswers': otherAdditionalAnswers };
-
 		await PollAnswers.findOneAndUpdate( { poll, member }, {
-			$set: { poll, member, answer, ...additionalAnswers }
+			$set: { poll, member, answers, isPartial }
 		}, { upsert: true } );
 
 		if (poll.mergeField) {
 			await mailchimp.mainList.updateMemberFields( member, {
-				[poll.mergeField]: answer
+				[poll.mergeField]: answers
 			} );
 		}
-	} else {
-		return 'polls-closed';
 	}
 }
 
 module.exports = {
 	getPollTemplate,
-	setAnswer
+	PollAnswerError,
+	setAnswers
 };

@@ -29,8 +29,7 @@ async function getExport(pollAnswers) {
 			'Full name': member.fullname,
 			'Email address': member.email,
 			'Date': pollAnswer.createdAt,
-			'Answer': pollAnswer.answer,
-			...flat(pollAnswer.additionalAnswers)
+			...flat(pollAnswer.answers)
 		};
 	});
 }

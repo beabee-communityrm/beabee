@@ -2,7 +2,7 @@
 	"formAnswerSchema": {
 		"body": {
 			"type": "object",
-			"required": ["answer"],
+			"required": ["answers"],
 			"properties": {
 				"answer": {
 					"type": "string"
@@ -14,23 +14,26 @@
 		"campaign2019": {
 			"body": {
 				"type": "object",
-				"required": ["answer"],
+				"required": ["answers"],
 				"properties": {
-					"answer": {
-						"type": "string",
-						"enum": ["1", "2"]
-					},
-					"reason": {
-						"type": "string"
-					},
-					"shareable": {
-						"type": "boolean"
-					},
-					"volunteer": {
-						"type": "boolean"
-					},
-					"idea": {
-						"type": "string"
+					"answers": {
+						"type": "object",
+						"campaign": {
+							"type": "string",
+							"enum": ["1", "2"]
+						},
+						"reason": {
+							"type": "string"
+						},
+						"shareable": {
+							"type": "boolean"
+						},
+						"volunteer": {
+							"type": "boolean"
+						},
+						"idea": {
+							"type": "string"
+						}
 					}
 				}
 			}

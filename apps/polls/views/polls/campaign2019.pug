@@ -10,12 +10,12 @@ block contents
 
 	.row
 		.col-md-offset-2.col-md-8
-			if answer.answer
+			if answers
 				.alert.alert-success
 					| You voted to campaign to
 					|
 					|
-					if answer.answer === '1'
+					if answers.campaign === '1'
 						| prevent drug deaths and clean up our streets
 					else
 						| clean up our air
@@ -147,7 +147,7 @@ block contents
 
 				hr#vote
 
-				if answer.answer
+				if answers
 					h3 Thank you!
 
 					.alert.alert-success.
@@ -176,28 +176,17 @@ block contents
 					+csrf
 					include /src/views/partials/flash.pug
 
-					if code
-						h4 Please confirm your email address
-						p.
-							For data protection reasons, this must be the email address
-							that we have on record for you.  If you have trouble please
-							email
-							#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
-
-						.form-group
-							input(type='email' name='email' required).form-control
-
 					h4 Which campaign would you like to vote for?
 					.poll-options
-						input(type='radio' name='answer' value='1' required)#answer1
+						input(type='radio' name='answers[campaign]' value='1' required)#answer1
 						label(for="answer1").btn Campaign 1
-						input(type='radio' name='answer' value='2' required)#answer2
+						input(type='radio' name='answers[campaign]' value='2' required)#answer2
 						label(for="answer2").btn Campaign 2
 
 					h4 Why are you voting for this campaign?
 
 					.form-group
-						input(type='text', name='reason').form-control
+						input(type='text', name='answers[reason]').form-control
 
 					p.
 						With your permission, we'd like to use your voice to encourage
@@ -206,7 +195,7 @@ block contents
 					.form-group
 						.checkbox
 							label
-								input(type='checkbox' name='shareable' value='true')
+								input(type='checkbox' name='answers[shareable]' value='true')
 								| Yes, you can show my reason and first
 								| name in communications
 
@@ -222,7 +211,7 @@ block contents
 						.form-group
 							.checkbox
 								label
-									input(type='checkbox' name='volunteer' value='true')
+									input(type='checkbox' name='answers[volunteer]' value='true')
 									| Yes, I'd like to be contacted about opportunities to get
 									| involved
 

@@ -12,7 +12,7 @@ mixin question(id, question, last)
 		h4= question
 		block
 		.poll-agm2019-membership-slider
-			input(type='range' min='0' max='100' step='1' name=id required)
+			input(type='range' min='0' max='100' step='1' name=`answers[${id}]` required)
 			ul.poll-agm2019-membership-slider-labels
 				li: small Strongly disagree
 				li: small Not sure/#[br]neutral
@@ -20,7 +20,7 @@ mixin question(id, question, last)
 
 		h4 Reasons/comments
 		.form-group
-			textarea(name=id + '_reasons').form-control.poll-textarea
+			textarea(name=`answers[${id}_reasons]`).form-control.poll-textarea
 
 		p.poll-agm2019-membership-next-btn
 			label(for='next_' + id).btn Next
@@ -86,7 +86,7 @@ block contents
 
 			hr#vote
 
-			if answer.answer && !preview
+			if answers.access && !preview
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h3 Thanks for your input
@@ -97,7 +97,7 @@ block contents
 					what other things you think we should be focusing our journalism
 					on.
 
-				a.btn(href='/polls/agm2019-editorial' + (code ? '/' + code : '')) See editorial strategies
+				a(href='/polls/agm2019-editorial' + (code ? '/' + code : '')).btn.btn-default See editorial strategies
 
 			else if poll.active || preview
 				form(method='POST' action='#vote')
@@ -127,22 +127,11 @@ block contents
 					.poll-agm2019-membership-submit
 						hr
 
-						if code
-							h4 Please confirm your email address
-							p.
-								For data protection reasons, this must be the email address
-								that we have on record for you.  If you have trouble please
-								email
-								#[a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org].
-
-							.form-group
-								input(type='email' name='email' required).form-control
-
 						p.
 							Please note you will not be able to change your answers once
 							you press submit.
 						p
-							button(name='answer' value='vote').btn.join-btn Submit
+							button.btn.join-btn Submit
 			else
 				.alert.alert-warning Voting is now closed
 

@@ -28,7 +28,7 @@ block contents
 
 			hr#vote
 
-			if answer.answer && !preview
+			if answers.affected && !preview
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
 				h3 Thank you!
@@ -55,18 +55,18 @@ block contents
 								They could be big or small, and affect you, your friends &
 								family, or your local community.
 							ol.poll-textlist
-								li: input(type='text' name='issues[]').form-control
-								li: input(type='text' name='issues[]').form-control
-								li: input(type='text' name='issues[]').form-control
+								li: input(type='text' name='answers[issues][]').form-control
+								li: input(type='text' name='answers[issues][]').form-control
+								li: input(type='text' name='answers[issues][]').form-control
 
 						.poll-section
 							h4 1.2. How are you personally affected by these issues?
-							textarea(name='affected' required).form-control.poll-textarea
+							textarea(name='answers[affected]' required).form-control.poll-textarea
 
 
 						.poll-section
 							h4 1.3. What questions about these issues do you want us to answer?
-							textarea(name='questions' required).form-control.poll-textarea
+							textarea(name='answers[questions]' required).form-control.poll-textarea
 
 					.alert.alert-info.
 						The following questions are all optional, you can
@@ -82,7 +82,7 @@ block contents
 							changes, new forms of activism, business models or tech
 							innovations.
 						.form-group
-							textarea(name='solutions').form-control.poll-textarea
+							textarea(name='answers[solutions]').form-control.poll-textarea
 
 					.poll-section
 						h4.
@@ -92,20 +92,20 @@ block contents
 							These can be about any issue – we want to hear about great
 							local projects, people, or organisations.
 						.form-group
-							textarea(name='organisations').form-control.poll-textarea
+							textarea(name='answers[organisations]').form-control.poll-textarea
 
 					.poll-section
 						h4.
 							4. Are you personally involved in any of these initiatives,
 							or do you have knowledge or expertise about these issues?
 						.form-group
-							textarea(name='skills').form-control.poll-textarea
+							textarea(name='answers[skills]').form-control.poll-textarea
 
 					.poll-section
 						h4.
 							5. What area of Bristol do you live in?
 						.form-group
-							input(type='text' name='area').form-control
+							input(type='text' name='answers[area]').form-control
 
 					hr
 
@@ -124,7 +124,7 @@ block contents
 						.form-group
 							.checkbox
 								label
-									input(type='checkbox' name='publish' value='true')
+									input(type='checkbox' name='answers[publish]' value='true')
 									| Yes, you can include my response
 
 					hr#submit
@@ -133,18 +133,8 @@ block contents
 						We may be in touch with you at a later point to follow up some
 						of your answers.
 
-					if code
-						h4 Please confirm your email address
-						p.
-							For data protection reasons, this must be the email address
-							that we have on record for you.  If you have trouble please
-							email #[+email('membership@thebristolcable.org')].
-
-						.form-group
-							input(type='email' name='email' required).form-control
-
 					p
-						button(name='answer' value='done').btn.join-btn Submit
+						button.btn.join-btn Submit
 			else
 				.alert.alert-warning Submissions are now closed
 
