@@ -43,7 +43,7 @@ block contents
 			#vote
 
 			if poll.active || preview
-				if !answers.submit
+				if poll.allowUpdate || !answers.submit
 					hr
 
 					noscript
