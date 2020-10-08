@@ -152,7 +152,7 @@ app.post( '/:slug/:code', [
 				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 			} catch (error) {
 				if (error instanceof PollAnswerError) {
-					req.flash( 'error', error );
+					req.flash( 'error', error.message );
 				}
 			}
 		} else {
