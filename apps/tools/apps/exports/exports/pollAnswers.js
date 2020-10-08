@@ -28,6 +28,7 @@ async function getExport(pollAnswers) {
 			Surname: member.lastname,
 			'Full name': member.fullname,
 			'Email address': member.email,
+			'Date': pollAnswer.createdAt,
 			...flat(pollAnswer.answers)
 		};
 	});
