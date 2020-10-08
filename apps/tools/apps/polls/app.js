@@ -69,7 +69,12 @@ app.post( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
 		break;
 
 	case 'edit-form':
-		await poll.update( { $set: { formSchema: JSON.parse(req.body.formSchema) } } );
+		await poll.update( {
+			$set: {
+				formSchema: poll.formTemplate === 'builder' ?
+					JSON.parse(req.body.formSchema) : req.body.formSchema
+			}
+		} );
 		req.flash( 'success', 'polls-updated' );
 		res.redirect( '/tools/polls/' + poll._id );
 		break;
