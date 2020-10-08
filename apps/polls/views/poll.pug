@@ -4,23 +4,21 @@ block prepend title
 	- title = poll.question
 
 block append css
-	if poll.active || preview
-		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
 
 block append js
-	if poll.active || preview
-		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
-		script.
-			Formio.createForm(
-				document.getElementById('form'), !{JSON.stringify(poll.formSchema)},
-				{template: 'bootstrap3'}
-			).then(function (form) {
-				form.submission = {data: !{JSON.stringify(answers)}};
-				form.on('submit', function (submission) {
-					$('.js-poll-form input[name=answers]').val(JSON.stringify(submission.data));
-					$('.js-poll-form').submit();
-				});
+	script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+	script.
+		Formio.createForm(
+			document.getElementById('form'), !{JSON.stringify(poll.formSchema)},
+			{template: 'bootstrap3'}
+		).then(function (form) {
+			form.submission = {data: !{JSON.stringify(answers)}};
+			form.on('submit', function (submission) {
+				$('.js-poll-form input[name=answers]').val(JSON.stringify(submission.data));
+				$('.js-poll-form').submit();
 			});
+		});
 
 block flashes
 
@@ -40,12 +38,10 @@ block contents
 
 			!= poll.intro
 
-			#vote
+			hr#vote
 
 			if poll.active || preview
 				if poll.allowUpdate || !answers.submit
-					hr
-
 					noscript
 						.alert.alert-warning.
 							Unfortunately you currently need JavaScript enabled
@@ -60,6 +56,7 @@ block contents
 					form(method='POST').js-poll-form
 						+csrf
 						input(type='hidden' name='answers')
+				else
+					.alert.alert-info You have already answered this callout
 			else
-				hr
 				.alert.alert-warning Callout is now closed
