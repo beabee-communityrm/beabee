@@ -8,6 +8,25 @@ block append css
 	style.
 		.formcomponents { position: sticky; top: 1rem }
 
+mixin candidateSchema(candidateNo, candidate)
+	li.js-repeater-item
+		.form-group
+			label.control-label.col-md-2 Name
+			.col-md-10
+				input(type='text' name=`formSchema[candidates][${candidateNo}][name]` value=candidate.name required).form-control
+		.form-group
+			label.control-label.col-md-2 Bio
+			.col-md-10
+				textarea(name=`formSchema[candidates][${candidateNo}][bio]` required).form-control= candidate.bio
+		p.text-right
+			button(type='button').btn.btn-sm.btn-danger.js-repeater-remove-item Remove
+
+
+block prepend js
+	if poll.formTemplate === 'ballot'
+		script(type='text/template').js-repeater-template
+			+candidateSchema(0, {})
+
 block append js
 	if poll.formTemplate === 'builder'
 		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
@@ -86,6 +105,20 @@ block contents
 					+csrf
 					input(type='hidden' name='formSchema' value=JSON.stringify(poll.formSchema || {})).js-poll-form-schema
 					button(name='action' value='edit-form').btn.btn-primary Save
+			else if poll.formTemplate === 'ballot'
+				h5 Candidates
+				form(method='POST').form-horizontal
+					+csrf
+
+					ul(data-name='formSchema[candidates]').repeater.js-repeater
+						if poll.formSchema
+							each candidate, candidateNo in poll.formSchema.candidates
+								+candidateSchema(candidateNo, candidate)
+
+					p: button(type='button').btn.btn-default.js-repeater-add-item Add candidate
+
+					p: button(name='action' value='edit-form').btn.btn-primary Save
+
 			else
 				.row
 					.col-md-8

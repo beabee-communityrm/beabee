@@ -25,7 +25,7 @@
 
 	function updateInputNames() {
 		$repeater.find('li').each(function (itemNo) {
-			$(this).find('[name^=' + repeaterName + ']').each(function () {
+			$(this).find('[name^="' + repeaterName + '"]').each(function () {
 				this.name = this.name.replace(/\[\d+\]/, '[' + itemNo + ']');
 			});
 		});

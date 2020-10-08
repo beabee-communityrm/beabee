@@ -1,18 +1,18 @@
-.special-urls-actions {
+.repeater {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	counter-reset: actions;
+	counter-reset: repeater;
 
 	& > li {
 		position: relative;
 		border: 1px solid #dcdcdc;
 		padding: 2rem;
-		counter-increment: actions;
+		counter-increment: repeater;
 		margin-bottom: 1rem;
 
 		&::before {
-			content: "Action " counter(actions);
+			content: "Item " counter(repeater);
 			position: absolute;
 			top: -0.75rem;
 			left: 1rem;
@@ -20,14 +20,5 @@
 			font-size: 1.5rem;
 			padding: 0 0.5rem;
 		}
-	}
-}
-
-.special-urls-remove-action {
-	text-align: right;
-	margin-bottom: 0;
-
-	li:first-child:last-child & {
-		display: none;
 	}
 }

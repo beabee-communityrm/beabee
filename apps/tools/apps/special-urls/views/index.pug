@@ -17,7 +17,7 @@ mixin action
 			.hidden.js-reveal-type(data-type=action.name)
 				+paramsInputs(action.params, 'actions[0][params]')
 
-		p.special-urls-remove-action
+		p.text-right
 			button(type='button').btn.btn-sm.btn-danger.outline.js-repeater-remove-item Remove
 
 block prepend js
@@ -62,12 +62,11 @@ block contents
 				
 				h5 Actions
 
-				ul(data-name='actions').special-urls-actions.js-repeater
+				ul(data-name='actions').repeater.js-repeater
 					+action
 					
-				p.text-right: button(type='button').btn.btn-sm.btn-primary.js-repeater-add-item Add action
+				p: button(type='button').btn.btn-sm.btn-default.js-repeater-add-item Add action
 
 				.form-group
 					.col-md-6
 						button.btn.btn-success Create
-
