@@ -4,7 +4,7 @@ block prepend title
 	- title = 'Special URLs'
 
 mixin action
-	.js-reveal
+	li.js-repeater-item.js-reveal
 		.form-group
 			label.col-md-3.control-label Type
 			.col-md-9
@@ -17,13 +17,12 @@ mixin action
 			.hidden.js-reveal-type(data-type=action.name)
 				+paramsInputs(action.params, 'actions[0][params]')
 
-	p.special-urls-remove-action.js-su-remove-action
-		button(type='button').btn.btn-sm.btn-danger.outline Remove
+		p.special-urls-remove-action
+			button(type='button').btn.btn-sm.btn-danger.outline.js-repeater-remove-item Remove
 
-block append js
-	script(type='text/template').js-su-action-template
+block prepend js
+	script(type='text/template').js-repeater-template
 		+action
-	script(src='/static/js/special-urls.js?v=' + git)
 
 block contents
 	.row
@@ -63,10 +62,10 @@ block contents
 				
 				h5 Actions
 
-				ul.special-urls-actions.js-su-actions
-					li: +action
+				ul(data-name='actions').special-urls-actions.js-repeater
+					+action
 					
-				p.text-right: button(type='button').btn.btn-sm.btn-primary.js-su-add-action Add action
+				p.text-right: button(type='button').btn.btn-sm.btn-primary.js-repeater-add-item Add action
 
 				.form-group
 					.col-md-6
