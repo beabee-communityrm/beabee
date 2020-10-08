@@ -3,7 +3,6 @@ var config = require( __config );
 var log = require( __js + '/logging' ).log;
 
 var fs = require( 'fs' );
-var helmet = require( 'helmet' );
 
 module.exports = function( app ) {
 	// Loop through main app directory contents
@@ -60,7 +59,6 @@ function routeApps(mainApp, apps) {
 		} );
 		var new_app = require( _app.app )( _app );
 		new_app.locals.basedir = __root;
-		new_app.use( helmet() );
 		mainApp.use( '/' + _app.path, new_app );
 
 		if ( _app.subapps.length > 0 ) {
@@ -74,7 +72,6 @@ function routeApps(mainApp, apps) {
 
 				var new_sub_app = require( _sapp.app )( _sapp );
 				new_sub_app.locals.basedir = __root;
-				new_sub_app.use( helmet() );
 				new_app.use( '/' + _sapp.path, new_sub_app );
 			}
 		}

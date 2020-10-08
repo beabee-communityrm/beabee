@@ -50,7 +50,7 @@ app.use( '/static', express.static( __root + '/static' ) );
 logging.installMiddleware( app );
 
 // Use helmet
-app.use( helmet() );
+app.use( helmet( { contentSecurityPolicy: false } ) );
 
 // Load options
 app.use( Options.load );
