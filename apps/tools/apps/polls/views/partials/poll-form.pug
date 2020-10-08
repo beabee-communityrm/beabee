@@ -32,9 +32,9 @@ form(method='POST').form-horizontal.js-reveal
 		.col-md-9
 			select(name='formTemplate' required)#formTemplate.form-control.js-reveal-types
 				option(value='' disabled selected) Select template
-				each template in ['custom', 'builder']
+				each template in ['custom', 'builder', 'ballot']
 					option(value=template selected=template===poll.formTemplate)= template[0].toUpperCase() + template.slice(1)
-	.hidden.js-reveal-type(data-type='builder')
+	.hidden.js-reveal-type(data-type='builder|ballot')
 		.form-group
 			label(for='intro').control-label.col-md-3 Intro text
 			.col-md-9

@@ -39,7 +39,7 @@
 				},
 				"formTemplate": {
 					"type": "string",
-					"enum": ["custom", "builder"]
+					"enum": ["custom", "builder", "ballot"]
 				}
 			}
 		}

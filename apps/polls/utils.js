@@ -3,6 +3,7 @@ const mailchimp = require( __js + '/mailchimp' );
 
 function getPollTemplate(poll) {
 	switch (poll.formTemplate) {
+	case 'ballot': return 'ballot';
 	case 'builder': return 'poll';
 	case 'custom': return `polls/${poll.slug}`;
 	}
