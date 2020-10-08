@@ -124,14 +124,15 @@ app.post( '/:slug', [
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		try {
 			await setAnswers( req.model, req.user, answers );
+			res.redirect( `${req.originalUrl}` );
 		} catch (error) {
 			if (error instanceof PollAnswerError) {
 				req.flash( 'error', error.message);
+				res.redirect( `${req.originalUrl}#vote` );
 			} else {
 				throw error;
 			}
 		}
-		res.redirect( `${req.originalUrl}` );
 	});
 } ) );
 
@@ -144,6 +145,7 @@ app.post( '/:slug/:code', [
 		JSON.parse(req.body.answers) : req.body.answers;
 
 	hasSchema(answerSchema).orFlash( req, res, async () => {
+		let errorMessage;
 		const pollsCode = req.params.code.toUpperCase();
 		const member = await Members.findOne( { pollsCode } );
 		if ( member ) {
@@ -152,18 +154,23 @@ app.post( '/:slug/:code', [
 				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 			} catch (error) {
 				if (error instanceof PollAnswerError) {
-					req.flash( 'error', error.message );
+					errorMessage = error.message;
+				} else {
+					throw error;
 				}
 			}
 		} else {
-			req.flash( 'error', 'polls-unknown-user' );
+			errorMessage = 'polls-unknown-user';
 			req.log.error({
 				app: 'polls',
 				action: 'vote'
 			}, `Member not found with polls code "${pollsCode}"`);
 		}
 
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}` );
+		if (errorMessage) {
+			req.flash('error', errorMessage);
+		}
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}${errorMessage ? '#vote' : ''}`);
 	});
 } ) );
 
