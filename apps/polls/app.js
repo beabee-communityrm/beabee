@@ -125,11 +125,11 @@ app.post( '/:slug', [
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		try {
 			await setAnswers( req.model, req.user, answers );
-			res.redirect( `${req.originalUrl}` );
+			res.redirect( `/polls/${req.params.slug}#thanks`);
 		} catch (error) {
 			if (error instanceof PollAnswerError) {
 				req.flash( 'error', error.message);
-				res.redirect( `${req.originalUrl}#vote` );
+				res.redirect( `/polls/${req.params.slug}#vote`);
 			} else {
 				throw error;
 			}
@@ -172,7 +172,7 @@ app.post( '/:slug/:code', [
 		if (errorMessage) {
 			req.flash('error', errorMessage);
 		}
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}${errorMessage ? '#vote' : ''}`);
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}${errorMessage ? '#vote' : '#thanks'}`);
 	});
 } ) );
 
