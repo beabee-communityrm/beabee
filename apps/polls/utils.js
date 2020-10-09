@@ -1,5 +1,8 @@
 const { PollAnswers } = require( __js + '/database' );
 const mailchimp = require( __js + '/mailchimp' );
+const { hasSchema } = require( __js + '/middleware' );
+
+const schemas = require('./schemas.json');
 
 function getPollTemplate(poll) {
 	switch (poll.formTemplate) {
@@ -7,6 +10,23 @@ function getPollTemplate(poll) {
 	case 'builder': return 'poll';
 	case 'custom': return `polls/${poll.slug}`;
 	}
+}
+
+function hasPollAnswers(req, res, next) {
+	let schema = (() => {
+		switch (req.model.formTemplate) {
+		case 'ballot': return schemas.ballotSchema;
+		case 'builder': return schemas.builderSchema;
+		case 'custom': return schemas.customSchemas[req.model.slug];
+		}
+	})();
+
+	hasSchema(schema).orFlash(req, res, () => {
+		req.answers = req.model.formTemplate === 'builder' ?
+			JSON.parse(req.body.answers) : req.body.answers;
+		// TODO: validate answers
+		next();
+	});
 }
 
 class PollAnswerError extends Error {
@@ -43,6 +63,7 @@ async function setAnswers( poll, member, answers, isPartial=false ) {
 
 module.exports = {
 	getPollTemplate,
-	PollAnswerError,
-	setAnswers
+	hasPollAnswers,
+	setAnswers,
+	PollAnswerError
 };

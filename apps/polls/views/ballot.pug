@@ -30,7 +30,7 @@ block contents
 			hr#vote
 
 			if poll.active || preview
-				if poll.allowUpdate || !answers.candidates
+				if poll.allowUpdate || !answers.submit
 					h3 Vote for your candidates
 
 					form(method='POST')
@@ -67,7 +67,10 @@ block contents
 										.poll-directors2019-candidate-bio
 											h3= candidate.name
 										.poll-directors2019-candidate-vote
-											input(type='checkbox' name='answers[candidates][]' value=candidate.name).js-poll-directors2019-candidate
+											input(
+												type='checkbox' name='answers[candidates][]' value=candidate.name
+												checked=answers.candidates && answers.candidates.indexOf(candidate.name) > -1
+											).js-poll-directors2019-candidate
 											svg(viewBox="0 0 80 80")
 												use(xlink:href='#cross')
 									= candidate.bio
@@ -78,7 +81,7 @@ block contents
 							Please note that you can't change your vote once you have submitted it.
 
 						p
-							button.btn.btn-success.js-poll-directors2019-submit Submit
+							button(name='answers[submit]' value='true').btn.btn-success.js-poll-directors2019-submit Submit
 
 				else
 					.alert.alert-info You have already voted in this ballot
