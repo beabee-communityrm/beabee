@@ -93,7 +93,8 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 		const member = await Members.findOne( { pollsCode } );
 		if (member) {
 			try {
-				req.session.answers = await setAnswers( req.model, member, req.query.answers, true );
+				await setAnswers( req.model, member, req.query.answers, true );
+				req.session.answers = req.query.answers;
 			} catch (err) {
 				if (!(err instanceof PollAnswerError)) {
 					throw err;
@@ -150,7 +151,8 @@ app.post( '/:slug/:code', [
 		const member = await Members.findOne( { pollsCode } );
 		if ( member ) {
 			try {
-				req.session.answers = await setAnswers( req.model, member, answers );
+				await setAnswers( req.model, member, answers);
+				req.session.answers = answers;
 				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 			} catch (error) {
 				if (error instanceof PollAnswerError) {
