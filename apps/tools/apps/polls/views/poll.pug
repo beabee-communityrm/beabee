@@ -115,6 +115,10 @@ block contents
 					h5 Settings
 
 					.form-group
+						label.control-label.col-md-2 Key ballot info
+						.col-md-10
+							textarea(name='formSchema[ballotInfo]').form-control= formSchema.ballotInfo
+					.form-group
 						label.control-label.col-md-2 Min votes
 						.col-md-2
 							input(type='number' name='formSchema[minVotes]' value=formSchema.minVotes).form-control
@@ -126,8 +130,9 @@ block contents
 					h5 Candidates
 
 					ul(data-name='formSchema[candidates]').repeater.js-repeater
-						each candidate, candidateNo in formSchema.candidates
-							+candidateSchema(candidateNo, candidate)
+						if formSchema.candidates
+							each candidate, candidateNo in formSchema.candidates
+								+candidateSchema(candidateNo, candidate)
 					p: button(type='button').btn.btn-default.js-repeater-add-item Add candidate
 
 					p: button(name='action' value='edit-form').btn.btn-primary Save

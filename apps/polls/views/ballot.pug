@@ -1,7 +1,7 @@
 extends /src/views/base.pug
 
 block prepend title
-	- title = app.title
+	- title = poll.question
 
 block append js
 	script(src='/static/js/poll-ballot.js?v=' + git)
@@ -38,11 +38,7 @@ block contents
 
 						include /src/views/partials/flash.pug
 
-						= poll.ballotInfo
-
-						p.
-							Please take the time to look through each of the candidates
-							below before making your choices.
+						!= poll.formSchema.ballotInfo
 
 						.alert.alert-warning
 							| Candidates are listed randomly
@@ -58,7 +54,7 @@ block contents
 								| at most #{poll.formSchema.maxVotes}
 							| .
 							|
-							b You must click Submit for your vote to be registered.
+							b Your vote will not be registered until you click Submit.
 
 						ul.poll-directors2019-candidates
 							each candidate in poll.formSchema.candidates
@@ -73,15 +69,16 @@ block contents
 											).js-poll-directors2019-candidate
 											svg(viewBox="0 0 80 80")
 												use(xlink:href='#cross')
-									= candidate.bio
+									!= candidate.bio
 
 						p.hidden-nojs.js-poll-directors2019-selected
 
-						p.
-							Please note that you can't change your vote once you have submitted it.
+						if !poll.allowUpdate
+							p.
+								Please note that you can't change your vote once you have submitted it.
 
 						p
-							button(name='answers[submit]' value='true').btn.btn-success.js-poll-directors2019-submit Submit
+							button(name='answers[submit]' value='true').btn.btn-lg.btn-success.js-poll-directors2019-submit Submit
 
 				else
 					.alert.alert-info You have already voted in this ballot
