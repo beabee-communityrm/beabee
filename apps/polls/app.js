@@ -73,7 +73,7 @@ app.get( '/:slug', [
 				throw err;
 			}
 		}
-		res.redirect( `/polls/${req.params.slug}` );
+		res.redirect( `/polls/${req.params.slug}#vote` );
 	} else {
 		const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 
@@ -101,7 +101,7 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 				}
 			}
 		}
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}` );
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
 	} else {
 		res.render( getPollTemplate( req.model ), {
 			poll: req.model,
