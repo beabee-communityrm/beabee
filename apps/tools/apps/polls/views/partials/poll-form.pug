@@ -12,9 +12,13 @@ form(method='POST').form-horizontal.js-reveal
 		.col-md-9
 			input(type='text' name='slug' value=poll.slug required readonly=!isNew)#slug.form-control
 	.form-group
-		label(for='mergeField').control-label.col-md-3 Merge field
+		label(for='mergeField').control-label.col-md-3 MailChimp merge field
 		.col-md-9
 			input(type='text' name='mergeField' maxlength='10' value=poll.mergeField)#mergeField.form-control
+	.form-group
+		label(for='pollMergeField').control-label.col-md-3 Poll merge field
+		.col-md-9
+			input(type='text' name='pollMergeField' value=poll.pollMergeField)#pollMergeField.form-control
 	.form-group
 		label(for='starts').control-label.col-md-3 Starts (UTC)
 		.col-md-3

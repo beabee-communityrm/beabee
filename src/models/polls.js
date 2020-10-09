@@ -24,6 +24,7 @@ module.exports = {
 			unique: true
 		},
 		mergeField: String,
+		pollMergeField: String,
 		closed: {
 			type: Boolean,
 			default: false

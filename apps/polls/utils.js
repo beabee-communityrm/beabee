@@ -56,7 +56,7 @@ async function setAnswers( poll, member, answers, isPartial=false ) {
 
 	if (poll.mergeField) {
 		await mailchimp.mainList.updateMemberFields( member, {
-			[poll.mergeField]: answers
+			[poll.mergeField]: answers[poll.pollMergeField]
 		} );
 	}
 }
