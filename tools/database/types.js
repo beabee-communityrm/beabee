@@ -72,6 +72,16 @@ const pollAnswers = {
 	member: () => new mongoose.Types.ObjectId()
 };
 
+const projects = {
+	owner: () => new mongoose.Types.ObjectId()
+};
+
+const projectMembers = {
+	_id: () => new mongoose.Types.ObjectId(),
+	member: () => new mongoose.Types.ObjectId(),
+	tag: () => chance.word()
+};
+
 module.exports = [
 	{ model: db.Exports },
 	{ model: db.Options },
@@ -83,6 +93,6 @@ module.exports = [
 	{ model: db.Notices },
 	{ model: db.Polls },
 	{ model: db.PollAnswers, properties: pollAnswers },
-	{ model: db.Projects },
-	{ model: db.ProjectMembers }
+	{ model: db.Projects , properties: projects },
+	{ model: db.ProjectMembers, properties: projectMembers }
 ];
