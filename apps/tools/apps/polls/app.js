@@ -43,7 +43,7 @@ function schemaToPoll( data ) {
 		question, slug, mergeField, starts, expires, intro, thanksTitle, thanksText,
 		formTemplate,
 		closed: !!closed,
-		allowUpdate: !!allowUpdate
+		allowUpdate: allowUpdate === 'true'
 	};
 }
 
