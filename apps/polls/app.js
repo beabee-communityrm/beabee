@@ -4,11 +4,10 @@ const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
-const { hasSchema, hasModel } = require( __js + '/middleware' );
+const { hasModel } = require( __js + '/middleware' );
 const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
 
-const schemas = require( './schemas.json' );
-const { getPollTemplate, setAnswers, PollAnswerError } = require( './utils' );
+const { getPollTemplate, hasPollAnswers, setAnswers, PollAnswerError } = require( './utils' );
 
 const app = express();
 var app_config = {};
@@ -115,65 +114,52 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 
 app.post( '/:slug', [
 	auth.isLoggedIn,
-	hasModel(Polls, 'slug')
+	hasModel(Polls, 'slug'),
+	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = req.model.formTemplate === 'builder' ?
-		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
-	const answers = req.model.formTemplate === 'builder' ?
-		JSON.parse(req.body.answers) : req.body.answers;
-
-	hasSchema(answerSchema).orFlash( req, res, async () => {
-		try {
-			await setAnswers( req.model, req.user, answers );
-			res.redirect( `/polls/${req.params.slug}#thanks`);
-		} catch (error) {
-			if (error instanceof PollAnswerError) {
-				req.flash( 'error', error.message);
-				res.redirect( `/polls/${req.params.slug}#vote`);
-			} else {
-				throw error;
-			}
+	try {
+		await setAnswers( req.model, req.user, req.answers );
+		res.redirect( `/polls/${req.params.slug}#thanks`);
+	} catch (error) {
+		if (error instanceof PollAnswerError) {
+			req.flash( 'error', error.message);
+			res.redirect( `/polls/${req.params.slug}#vote`);
+		} else {
+			throw error;
 		}
-	});
+	}
 } ) );
 
 app.post( '/:slug/:code', [
-	hasModel(Polls, 'slug')
+	hasModel(Polls, 'slug'),
+	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = req.model.formTemplate === 'builder' ?
-		schemas.formAnswerSchema : schemas.answerSchemas[req.model.slug];
-	const answers = req.model.formTemplate === 'builder' ?
-		JSON.parse(req.body.answers) : req.body.answers;
+	const pollsCode = req.params.code.toUpperCase();
 
-	hasSchema(answerSchema).orFlash( req, res, async () => {
-		let errorMessage;
-		const pollsCode = req.params.code.toUpperCase();
+	try {
 		const member = await Members.findOne( { pollsCode } );
-		if ( member ) {
-			try {
-				await setAnswers( req.model, member, answers);
-				req.session.answers = answers;
-				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
-			} catch (error) {
-				if (error instanceof PollAnswerError) {
-					errorMessage = error.message;
-				} else {
-					throw error;
-				}
-			}
-		} else {
-			errorMessage = 'polls-unknown-user';
+		if (!member) {
 			req.log.error({
 				app: 'polls',
 				action: 'vote'
 			}, `Member not found with polls code "${pollsCode}"`);
+			throw new PollAnswerError('polls-unknown-user');
 		}
 
-		if (errorMessage) {
-			req.flash('error', errorMessage);
+		await setAnswers( req.model, member, req.answers );
+
+		req.session.answers = req.answers;
+		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+
+		res.redirect( req.originalUrl + '#thanks' );
+	} catch (error) {
+		if (error instanceof PollAnswerError) {
+			req.flash('error', error.message);
+			res.redirect( req.originalUrl + '#vote' );
+		} else {
+			throw error;
 		}
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}${errorMessage ? '#vote' : '#thanks'}`);
-	});
+	}
 } ) );
 
 module.exports = config => {

@@ -1,16 +1,39 @@
 {
-	"formAnswerSchema": {
+	"builderSchema": {
 		"body": {
 			"type": "object",
 			"required": ["answers"],
 			"properties": {
-				"answer": {
+				"answers": {
 					"type": "string"
 				}
 			}
 		}
 	},
-	"answerSchemas": {
+	"ballotSchema": {
+		"body": {
+			"type": "object",
+			"required": ["answers"],
+			"properties": {
+				"answers": {
+					"type": "object",
+					"required": ["submit"],
+					"properties": {
+						"submit": {
+							"type": "boolean"
+						},
+						"candidates": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"customSchemas": {
 		"campaign2019": {
 			"body": {
 				"type": "object",

@@ -4,19 +4,19 @@ block prepend title
 	- title = app.title
 
 block append js
-	script(src='/static/js/poll-directors2019.js?v=' + git)
+	script(src='/static/js/poll-ballot.js?v=' + git)
 
 block flashes
 
 mixin candidate(name)
 	li(style="order: " + Math.floor(Math.random() * 100))
-		label.poll-directors2019-candidate
-			.poll-directors2019-candidate-image
+		label.poll-ballot-candidate
+			.poll-ballot-candidate-image
 				img(src='/static/imgs/polls/directors2019/' + name + '.jpg')
-			.poll-directors2019-candidate-bio
+			.poll-ballot-candidate-bio
 				h3= name
-			.poll-directors2019-candidate-vote
-				input(type='checkbox' name='answers[candidates][]' value=name).js-poll-directors2019-candidate
+			.poll-ballot-candidate-vote
+				input(type='checkbox' name='answers[candidates][]' value=name).js-poll-ballot-candidate
 				svg(viewBox="0 0 80 80")
 					use(xlink:href='#cross')
 		block
@@ -29,7 +29,7 @@ block contents
 		.col-md-12
 			+page_header(poll.question)
 
-	.row
+	.row.js-poll-ballot(data-max-votes=3)
 		.col-md-offset-2.col-md-8
 			img(src='/static/imgs/polls/directors2019/title.png').poll-title-image
 
@@ -119,7 +119,7 @@ block contents
 						choices.
 						#[b You must click Submit for your vote to be registered.]
 
-					ul.poll-directors2019-candidates
+					ul.poll-ballot-candidates
 						+candidate('Leila Gamaz')
 							p.
 								I have closely followed The Cable since its inception, and
@@ -281,10 +281,10 @@ block contents
 								generating their own news rather than passively swallowing
 								other people's stories.
 
-					p.hidden-nojs.js-poll-directors2019-selected
+					p.hidden-nojs.js-poll-ballot-selected
 
 					p.
 						Please note that you can't change your vote once you have submitted it.
 
 					p
-						button.btn.join-btn.js-poll-directors2019-submit Submit
+						button.btn.join-btn.js-poll-ballot-submit Submit

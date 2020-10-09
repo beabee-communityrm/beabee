@@ -383,10 +383,10 @@ $c-agm2019-purple: #583352;
 	}
 }
 
-// Directors 2019
-$bp-directors: 600px;
+// Ballots
+$bp-ballot: 600px;
 
-.poll-directors2019-candidates {
+.poll-ballot-candidates {
 	display: flex;
 	flex-direction: column;
 	list-style: none;
@@ -405,7 +405,7 @@ $bp-directors: 600px;
 	}
 }
 
-.poll-directors2019-candidate {
+.poll-ballot-candidate {
 	display: flex;
 	align-items: flex-start;
 	border-bottom: 1px solid $c-black;
@@ -414,12 +414,12 @@ $bp-directors: 600px;
 	cursor: pointer;
 }
 
-.poll-directors2019-candidate-image {
+.poll-ballot-candidate-image {
 	position: static;
 	flex: 0 0 70px;
 	margin-right: 1rem;
 
-	@media (min-width: $bp-directors) {
+	@media (min-width: $bp-ballot) {
 		flex-basis: 86px;
 		margin-right: 2rem;
 	}
@@ -430,7 +430,7 @@ $bp-directors: 600px;
 	}
 }
 
-.poll-directors2019-candidate-bio {
+.poll-ballot-candidate-bio {
 	flex: 1 1 100%;
 	align-self: center;
 
@@ -439,7 +439,7 @@ $bp-directors: 600px;
 	}
 }
 
-.poll-directors2019-candidate-vote {
+.poll-ballot-candidate-vote {
 	position: relative;
 	background-color: white;
 	margin-left: 2rem;
@@ -460,13 +460,13 @@ $bp-directors: 600px;
 		fill: $c-black;
 		fill-opacity: 0.1;
 
-		@media (min-width: $bp-directors) {
+		@media (min-width: $bp-ballot) {
 			width: 86px;
 			height: 86px;
 		}
 	}
 
-	.poll-directors2019-candidate:hover & > svg {
+	.poll-ballot-candidate:hover & > svg {
 		fill-opacity: 0.3;
 	}
 
