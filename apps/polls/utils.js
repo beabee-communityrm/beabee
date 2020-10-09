@@ -21,23 +21,23 @@ async function setAnswers( poll, member, answers, isPartial=false ) {
 		throw new PollAnswerError('polls-expired-user');
 	} else if (!poll.active) {
 		throw new PollAnswerError('polls-closed');
-	} else if (poll.active) {
-		if (!poll.allowUpdate) {
-			const pollAnswer = await PollAnswers.findOne({ member, poll });
-			if (pollAnswer && !pollAnswer.isPartial) {
-				throw new PollAnswerError('polls-cant-update');
-			}
-		}
+	}
 
-		await PollAnswers.findOneAndUpdate( { poll, member }, {
-			$set: { poll, member, answers, isPartial }
-		}, { upsert: true } );
-
-		if (poll.mergeField) {
-			await mailchimp.mainList.updateMemberFields( member, {
-				[poll.mergeField]: answers
-			} );
+	if (!poll.allowUpdate) {
+		const pollAnswer = await PollAnswers.findOne({ member, poll });
+		if (pollAnswer && !pollAnswer.isPartial) {
+			throw new PollAnswerError('polls-cant-update');
 		}
+	}
+
+	await PollAnswers.findOneAndUpdate( { poll, member }, {
+		$set: { poll, member, answers, isPartial }
+	}, { upsert: true } );
+
+	if (poll.mergeField) {
+		await mailchimp.mainList.updateMemberFields( member, {
+			[poll.mergeField]: answers
+		} );
 	}
 }
 

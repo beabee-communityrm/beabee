@@ -73,7 +73,7 @@ app.get( '/:slug', [
 				throw err;
 			}
 		}
-		res.redirect( `/polls/${req.params.slug}` );
+		res.redirect( `/polls/${req.params.slug}#vote` );
 	} else {
 		const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
 
@@ -93,14 +93,15 @@ app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) 
 		const member = await Members.findOne( { pollsCode } );
 		if (member) {
 			try {
-				req.session.answers = await setAnswers( req.model, member, req.query.answers, true );
+				await setAnswers( req.model, member, req.query.answers, true );
+				req.session.answers = req.query.answers;
 			} catch (err) {
 				if (!(err instanceof PollAnswerError)) {
 					throw err;
 				}
 			}
 		}
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}` );
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
 	} else {
 		res.render( getPollTemplate( req.model ), {
 			poll: req.model,
@@ -124,11 +125,11 @@ app.post( '/:slug', [
 	hasSchema(answerSchema).orFlash( req, res, async () => {
 		try {
 			await setAnswers( req.model, req.user, answers );
-			res.redirect( `${req.originalUrl}` );
+			res.redirect( `/polls/${req.params.slug}#thanks`);
 		} catch (error) {
 			if (error instanceof PollAnswerError) {
 				req.flash( 'error', error.message);
-				res.redirect( `${req.originalUrl}#vote` );
+				res.redirect( `/polls/${req.params.slug}#vote`);
 			} else {
 				throw error;
 			}
@@ -150,7 +151,8 @@ app.post( '/:slug/:code', [
 		const member = await Members.findOne( { pollsCode } );
 		if ( member ) {
 			try {
-				req.session.answers = await setAnswers( req.model, member, answers );
+				await setAnswers( req.model, member, answers);
+				req.session.answers = answers;
 				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 			} catch (error) {
 				if (error instanceof PollAnswerError) {
@@ -170,7 +172,7 @@ app.post( '/:slug/:code', [
 		if (errorMessage) {
 			req.flash('error', errorMessage);
 		}
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}${errorMessage ? '#vote' : ''}`);
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}${errorMessage ? '#vote' : '#thanks'}`);
 	});
 } ) );
 
