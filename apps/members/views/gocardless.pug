@@ -4,18 +4,23 @@ block prepend title
 	- title = 'GoCardless'
 	- page = 'gocardless'
 
-mixin commonSubscriptionFields(idPrefix)
+mixin commonSubscriptionFields(idPrefix, periodReadOnly)
 	+input( 'number', 'Monthly amount', 'amount', {
 		left: 3, right: 4, before: '£',
 		value: member.contributionMonthlyAmount,
 		id: idPrefix + 'Amount'
 	})
-	+input( 'radio', 'Period', 'period', {
-		left: 3, right: 4,
-		options: {'monthly': 'Monthly', 'annually': 'Annually'},
-		value: member.contributionPeriod,
-		id: idPrefix + 'Period'
-	})
+	if periodReadOnly
+		.form-group
+			label.col-md-3.control-label Period
+			.col-md-4.form-control-static= member.contributionPeriod
+	else
+		+input( 'radio', 'Period', 'period', {
+			left: 3, right: 4,
+			options: {'monthly': 'Monthly', 'annually': 'Annually'},
+			value: member.contributionPeriod,
+			id: idPrefix + 'Period'
+		})
 	+input( 'checkbox', 'Paying fee', 'payFee', {
 		left: 3, right: 4,
 		options: {'true': 'Yes'},
@@ -39,7 +44,7 @@ block contents
 				form( method="post").form-horizontal
 					+csrf
 					input( type='hidden' name='action' value='update-subscription' )
-					+commonSubscriptionFields('update')
+					+commonSubscriptionFields('update', member.hasActiveSubscription)
 
 					if monthsLeft > 0
 						.form-group
@@ -64,5 +69,5 @@ block contents
 				+input( 'text', 'Customer ID', 'customer_id', { value: member.gocardless.customer_id, left: 3, right: 4 } )
 				+input( 'text', 'Mandate ID', 'mandate_id', { value: member.gocardless.mandate_id, left: 3, right: 4 } )
 				+input( 'text', 'Subscription ID', 'subscription_id', { value: member.gocardless.subscription_id, left: 3, right: 4 } )
-				+commonSubscriptionFields('force')
+				+commonSubscriptionFields('force', false)
 				+form_button( 'Update', 'danger', { left: 3 } )
