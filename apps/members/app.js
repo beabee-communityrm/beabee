@@ -18,7 +18,8 @@ const { hasModel, hasSchema } = require( __js + '/middleware' );
 const Options = require( __js + '/options' )();
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
-const { isValidCustomer, createMember, customerToMember, startMembership } = require( __apps + '/join/utils' );
+const { isValidCustomer, createMember, customerToMember } = require( __apps + '/join/utils' );
+const { calcSubscriptionMonthsLeft, canChangeSubscription, handleUpdateSubscription } = require( __apps + '/profile/apps/direct-debit/utils' );
 const { syncMemberDetails } = require( __apps + '/profile/apps/account/utils' );
 const exportTypes = require( __apps + '/tools/apps/exports/exports');
 
@@ -367,18 +368,23 @@ memberAdminRouter.post( '/exports', wrapAsync( async ( req, res ) => {
 	res.redirect( req.baseUrl + '/exports' );
 } ) );
 
-memberAdminRouter.get( '/gocardless', ( req, res ) => {
-	res.render( 'gocardless', { member: req.model } );
-} );
+memberAdminRouter.get( '/gocardless', wrapAsync( async ( req, res ) => {
+	res.render( 'gocardless', {
+		member: req.model,
+		canChange: await canChangeSubscription( req.model, req.model.canTakePayment ),
+		monthsLeft: calcSubscriptionMonthsLeft( req.model )
+	} );
+} ) );
 
 memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
 	const member = req.model;
 
 	switch ( req.body.action ) {
-	case 'create-subscription':
-		await startMembership(member, {
+	case 'update-subscription':
+		await handleUpdateSubscription(req, member, {
 			amount: Number(req.body.amount),
 			period: req.body.period,
+			prorate: req.body.prorate === 'true',
 			payFee: req.body.payFee === 'true'
 		});
 		break;
@@ -390,12 +396,12 @@ memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
 			'gocardless.subscription_id': req.body.subscription_id,
 			'gocardless.amount': Number(req.body.amount),
 			'gocardless.period': req.body.period,
-			'gocardless.paying_fee': req.body.paying_fee
+			'gocardless.paying_fee': req.body.payFee === 'true'
 		} });
+		req.flash( 'success', 'gocardless-updated' );
 		break;
 	}
 
-	req.flash( 'success', 'gocardless-updated' );
 	res.redirect( req.baseUrl + '/gocardless' );
 } ) );
 

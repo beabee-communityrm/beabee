@@ -13,7 +13,7 @@ const config = require( __config );
 const { createJoinFlow, completeJoinFlow } = require( __apps + '/join/utils' );
 
 const { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } = require('./schemas.json');
-const { calcSubscriptionMonthsLeft, canChangeSubscription, getBankAccount, processUpdateSubscription } = require('./utils');
+const { calcSubscriptionMonthsLeft, canChangeSubscription, getBankAccount, handleUpdateSubscription } = require('./utils');
 
 const app = express();
 var app_config = {};
@@ -57,17 +57,6 @@ app.get( '/', wrapAsync( async function ( req, res ) {
 	} );
 } ) );
 
-async function handleUpdateSubscription(req, user, form) {
-	const wasGift = user.contributionPeriod === 'gift';
-	await processUpdateSubscription(user, form);
-	if (wasGift) {
-		await mandrill.sendToMember('welcome-post-gift', user);
-		req.flash( 'success', 'contribution-gift-updated' );
-	} else {
-		req.flash( 'success', 'contribution-updated' );
-	}
-}
-
 app.post( '/', [
 	hasSchema(updateSubscriptionSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
@@ -82,7 +71,7 @@ app.post( '/', [
 				updateForm
 			}
 		} );
-		if ( useMandate && user.canTakePayment ) {
+		if ( useMandate ) {
 			await handleUpdateSubscription(req, user, updateForm);
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
