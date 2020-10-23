@@ -35,11 +35,11 @@ block contents
 		.col-md-9
 			+page_header( title )
 
-			h4= member.hasActiveSubscription ? 'Update subscription' : 'Create subscription'
+			h4= member.hasActiveSubscription ? 'Update contribution' : 'Start contribution'
 			if !member.canTakePayment
 				.alert.alert-warning User does not have an active payment method
 			else if !canChange
-				.alert.alert-warning Can't change subscription at the moment, probably due to pending payments
+				.alert.alert-warning Can't change contribution at the moment, probably due to pending payments
 			else
 				form( method="post").form-horizontal
 					+csrf
@@ -55,9 +55,9 @@ block contents
 										input(type='checkbox' value='true')#prorate
 										|  Yes
 										|
-										small (#{monthsLeft} months left on current subscription)
+										small (#{monthsLeft} months left until next payment)
 
-					+form_button( member.hasActiveSubscription ? 'Update' : 'Create', 'success', { left: 3 } )
+					+form_button( member.hasActiveSubscription ? 'Update' : 'Start', 'success', { left: 3 } )
 
 			h4 Manual update
 			.alert.alert-danger.
