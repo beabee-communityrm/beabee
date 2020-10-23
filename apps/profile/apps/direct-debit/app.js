@@ -71,7 +71,7 @@ app.post( '/', [
 				updateForm
 			}
 		} );
-		if ( useMandate && user.canTakePayment ) {
+		if ( useMandate ) {
 			await handleUpdateSubscription(req, user, updateForm);
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
