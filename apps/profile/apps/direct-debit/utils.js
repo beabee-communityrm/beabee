@@ -48,10 +48,10 @@ async function getBankAccount(user) {
 			return await gocardless.customerBankAccounts.get(mandate.links.customer_bank_account);
 		} catch (err) {
 			// 404s can happen on dev as we don't use real mandate IDs
-			if (!config.dev || !err.response || err.response.status !== 404) {
-				throw err;
+			if (config.dev && err.response && err.response.status === 404) {
+				return null;
 			}
-			return null;
+			throw err;
 		}
 	} else {
 		return null;
