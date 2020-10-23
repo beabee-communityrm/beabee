@@ -1,9 +1,9 @@
 const moment = require('moment');
 
-const gocardless = require( __js + '/gocardless' );
 const { Payments } = require( __js + '/database' );
-
+const gocardless = require( __js + '/gocardless' );
 const log = require( __js + '/logging' ).log;
+const mandrill = require( __js + '/mandrill' );
 const { getChargeableAmount } = require( __js + '/utils' );
 const { createSubscription, startMembership } = require( __apps + '/join/utils' );
 
@@ -152,9 +152,21 @@ async function processUpdateSubscription(user, {amount, period, prorate, payFee}
 	}
 }
 
+async function handleUpdateSubscription(req, user, form) {
+	const wasGift = user.contributionPeriod === 'gift';
+	await processUpdateSubscription(user, form);
+	if (wasGift) {
+		await mandrill.sendToMember('welcome-post-gift', user);
+		req.flash( 'success', 'contribution-gift-updated' );
+	} else {
+		req.flash( 'success', 'contribution-updated' );
+	}
+}
+
 module.exports = {
 	calcSubscriptionMonthsLeft,
 	canChangeSubscription,
 	getBankAccount,
-	processUpdateSubscription
+	processUpdateSubscription,
+	handleUpdateSubscription
 };
