@@ -88,6 +88,14 @@ module.exports = {
 			type: String,
 			required: true
 		},
+		description: String,
+		bio: String,
+		notes: String,
+		contact: {
+			telephone: String,
+			twitter: String,
+			preferred: String
+		},
 		delivery_optin: {
 			type: Boolean
 		},
@@ -113,15 +121,6 @@ module.exports = {
 		delivery_location: {
 			lat: Number,
 			lng: Number
-		},
-		tag: {
-			id: {
-				type: String
-			},
-			hashed: {
-				type: String,
-				required: false
-			}
 		},
 		tags: [{
 			added: {

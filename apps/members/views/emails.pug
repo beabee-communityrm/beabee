@@ -11,7 +11,7 @@ block contents
 		.col-md-9
 			+page_header( title )
 
-			h3 Send transactional email
+			h4 Send email
 			form(method='POST').form-horizontal
 				+csrf
 				.form-group
@@ -20,5 +20,6 @@ block contents
 						select(name='email' id='email' required).form-control
 							option(value='' selected disabled) Select email
 							option(value='welcome') Welcome email
+							option(value='welcome-post-gift') Post gift welcome email
 				+form_button('Send email', 'primary', {left: 3})
 

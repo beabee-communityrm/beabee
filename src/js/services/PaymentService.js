@@ -2,9 +2,11 @@ const gocardless = require('gocardless');
 const { getChargeableAmount, cleanEmailAddress } = require( __js + '/utils' );
 
 class PaymentService {
-	static async customerToMember(customerId, mandateId) {
-		const customer = await gocardless.customers.get(customerId);
+	static isValidCustomer(customer) {
+		return customer.given_name && customer.family_name;
+	}
 
+	static customerToMember(customer, mandateId) {
 		return {
 			firstname: customer.given_name,
 			lastname: customer.family_name,
@@ -23,7 +25,7 @@ class PaymentService {
 		};
 	}
 
-	async createSubscription(amount, period, payFee, mandateId, startDate = null) {
+	static async createSubscription(amount, period, payFee, mandateId, startDate = null) {
 		return await gocardless.subscriptions.create( {
 			amount: getChargeableAmount(amount, period, payFee),
 			currency: 'GBP',

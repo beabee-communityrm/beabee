@@ -1,4 +1,5 @@
 const moment = require( 'moment' );
+const dot = require('dot');
 
 const auth = require( __js + '/authentication' );
 
@@ -15,6 +16,8 @@ try {
 
 function templateLocals( req, res, next ) {
 	// Process which apps should be shown in menu
+
+	res.locals.currentUrl = req.originalUrl;
 	res.locals.apps = {
 		main: [],
 		secondary: []
@@ -86,12 +89,6 @@ function templateLocals( req, res, next ) {
 
 	res.locals.isLoggedIn = !!req.user;
 
-	// Check if user setup is complete
-	res.locals.setupComplete = true;
-	if ( req.user ) {
-		res.locals.setupComplete = req.user.setupComplete;
-	}
-
 	// Prepare a CSRF token if available
 	if ( req.csrfToken ) res.locals.csrf = req.csrfToken();
 
@@ -104,6 +101,7 @@ function templateLocals( req, res, next ) {
 
 	// Moment.js
 	res.locals.moment = moment;
+	res.locals.dot = dot;
 
 	next();
 }

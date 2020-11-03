@@ -1,5 +1,4 @@
 const express = require( 'express' );
-const _ = require( 'lodash' );
 const moment = require( 'moment' );
 
 const auth = require( __js + '/authentication' );
@@ -22,7 +21,6 @@ app.use( ( req, res, next ) => {
 		name: app_config.title,
 		url: app.mountpath
 	} );
-	res.locals.activeApp = 'polls';
 	next();
 } );
 
@@ -32,27 +30,32 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 function schemaToPoll( data ) {
-	const { question, slug, mergeField, closed, allowUpdate, expiresDate, expiresTime } = data;
+	const {
+		question, slug, mergeField, pollMergeField, closed, allowUpdate, startsDate, startsTime,
+		expiresDate, expiresTime, intro, thanksTitle, thanksText,
+		formTemplate
+	} = data;
 
+	const starts = startsDate && startsTime && moment.utc(`${startsDate}T${startsTime}`);
 	const expires = expiresDate && expiresTime && moment.utc(`${expiresDate}T${expiresTime}`);
 
 	return {
-		question, slug, mergeField, expires,
+		question, slug, mergeField, pollMergeField, starts, expires, intro, thanksTitle, thanksText,
+		formTemplate,
 		closed: !!closed,
-		...(allowUpdate === undefined ? {} : {allowUpdate: !!allowUpdate})
+		allowUpdate: allowUpdate === 'true'
 	};
 }
 
 app.post( '/', hasSchema( createPollSchema ).orFlash, wrapAsync( async ( req, res ) => {
-	const poll = await Polls.create( schemaToPoll( req.body ) );
+	const poll = await Polls.create( { ...schemaToPoll( req.body ), closed: true } );
 	req.flash('success', 'polls-created');
 	res.redirect('/tools/polls/' + poll._id);
 } ) );
 
 app.get( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
-	const pollAnswers = await PollAnswers.find( { poll: req.model } );
-	const answerCounts = _(pollAnswers).groupBy('answer').mapValues('length').valueOf();
-	res.render( 'poll', { poll: req.model, answerCounts } );
+	const pollAnswers = await PollAnswers.find( { poll: req.model } ).populate('member', 'firstname lastname uuid tags').exec();
+	res.render( 'poll', { poll: req.model, pollAnswers } );
 } ) );
 
 app.post( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
@@ -61,6 +64,17 @@ app.post( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
 	switch ( req.body.action ) {
 	case 'update':
 		await poll.update( { $set: schemaToPoll( req.body ) } );
+		req.flash( 'success', 'polls-updated' );
+		res.redirect( '/tools/polls/' + poll._id );
+		break;
+
+	case 'edit-form':
+		await poll.update( {
+			$set: {
+				formSchema: poll.formTemplate === 'builder' ?
+					JSON.parse(req.body.formSchema) : req.body.formSchema
+			}
+		} );
 		req.flash( 'success', 'polls-updated' );
 		res.redirect( '/tools/polls/' + poll._id );
 		break;

@@ -289,7 +289,11 @@ var Authentication = {
 
 		switch ( status ) {
 		case Authentication.LOGGED_IN:
-			return next();
+			if (!req.user.setupComplete && req.originalUrl !== '/profile/complete') {
+				return res.redirect( '/profile/complete' );
+			} else {
+				return next();
+			}
 		default:
 			Authentication.handleNotAuthed( status, req, res );
 			return;
@@ -354,23 +358,6 @@ var Authentication = {
 			Authentication.handleNotAuthed( status, req, res );
 			return;
 		}
-	},
-
-	// Hashes a members tag with a salt using md5, per the legacy membership system
-	hashTag: function( id ) {
-		var md5 = crypto.createHash( 'md5' );
-		md5.update( config.tag_salt );
-		md5.update( id.toLowerCase() );
-		return md5.digest( 'hex' );
-	},
-
-	validateTag: function( tag ) {
-		if ( tag.match( /^[0-9a-f]{8}$/i ) === null ) return 'tag-invalid-malformed';
-		if ( tag == '21222324' ) return 'tag-invalid-visa';
-		if ( tag == '01020304' ) return 'tag-invalid-android';
-		if ( tag.match( /^0+$/ ) !== null ) return 'tag-invalid-amex';
-		if ( tag.substr( 0, 2 ) == '08' ) return 'tag-invalid-long-uid';
-		return false;
 	},
 
 	// Checks password meets requirements

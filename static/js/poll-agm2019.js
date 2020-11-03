@@ -2,7 +2,7 @@
 
 (function () {
 	var $form = $('.js-poll-agm2019-form');
-	var $formAnswer = $form.find('input[name=answer]');
+	var $formAnswer = $form.find('input[name="answers[rsvp]"]');
 	var $submit = $('.js-poll-agm2019-submit');
 
 	if (/answer=/.test(window.location.search)) {
@@ -14,7 +14,7 @@
 		var $section = $(this);
 		var name = $section.data('name');
 		var value = $section.data('value');
-		var $input = $form.find('input[name=' + name + ']');
+		var $input = $form.find('input[name="' + name + '"]');
 
 		function updateSection() {
 			const hidden = $input.filter(':checked').val() !== value;

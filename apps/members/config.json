@@ -2,7 +2,7 @@
 	"title": "Members",
 	"path": "members",
 	"permissions": [
-		"superadmin", "admin", "member"
+		"superadmin", "admin"
 	],
 	"menu": "main",
 	"priority": 3

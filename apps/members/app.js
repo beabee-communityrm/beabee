@@ -1,20 +1,25 @@
 const escapeStringRegexp = require( 'escape-string-regexp' );
 const express = require( 'express' );
+const queryString = require('query-string');
+const _ = require( 'lodash' );
 const moment = require( 'moment' );
+
 const config = require( __config );
 
 const auth = require( __js + '/authentication' );
 const {
 	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
-	Referrals, RestartFlows
+	Projects, Referrals, RestartFlows
 } = require( __js + '/database' );
 const gocardless = require( __js + '/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
-const { hasSchema } = require( __js + '/middleware' );
+const { hasModel, hasSchema } = require( __js + '/middleware' );
+const Options = require( __js + '/options' )();
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
-const { createMember, customerToMember, startMembership } = require( __apps + '/join/utils' );
+const { isValidCustomer, createMember, customerToMember } = require( __apps + '/join/utils' );
+const { calcSubscriptionMonthsLeft, canChangeSubscription, handleUpdateSubscription } = require( __apps + '/profile/apps/direct-debit/utils' );
 const { syncMemberDetails } = require( __apps + '/profile/apps/account/utils' );
 const exportTypes = require( __apps + '/tools/apps/exports/exports');
 
@@ -25,198 +30,122 @@ var app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( function( req, res, next ) {
+app.use( ( req, res, next ) => {
 	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	res.locals.activeApp = 'members';
 	next();
 } );
 
 app.use( auth.isAdmin );
 
-app.get( '/', function( req, res ) {
-	Permissions.find( function( err, permissions ) {
-		var filter_permissions = [];
+function fuzzyMatch(s) {
+	return new RegExp( '.*' + escapeStringRegexp( s.trim() ) + '.*', 'i' );
+}
 
-		// If not admin or requesting active members only add member permission to filtering list
-		if ( ! ( auth.canSuperAdmin( req ) == true && req.query.show_inactive_members ) ) {
-			var member = permissions.filter( function( permission ) {
-				if ( permission.slug == config.permission.member ) return true;
-				return false;
-			} )[0];
-			filter_permissions.push( member );
-			permissions = permissions.filter( function( p ) {
-				if ( p.slug == config.permission.member ) return false;
-				return true;
-			} );
-		}
+function getAvailableTags() {
+	return Promise.resolve(Options.getText('available-tags').split(',').map(s => s.trim()));
+}
 
-		// If requested add custom permission to filtering list
-		var permission;
-		if ( req.query.permission ) {
-			permission = permissions.filter( function( permission ) {
-				if ( permission.slug == req.query.permission ) return true;
-				return false;
-			} );
-			if ( permission.length !== 1 ) {
-				permission = null;
-			} else if ( permission.length === 1 ) {
-				permission = permission[0];
-				filter_permissions.push( permission );
-				res.locals.breadcrumb.push( {
-					name: permission.name,
-				} );
-			}
-		}
+app.get( '/', wrapAsync( async ( req, res ) => {
+	const { query } = req;
+	const permissions = await Permissions.find();
+	const availableTags = await getAvailableTags();
 
-		var path = {};
+	let search = [];
 
-		// Add permission list to search parameters
-		var search = { $and: [] };
-		if ( filter_permissions.length > 0 ) {
-			var filter = [];
-			for ( var fp in filter_permissions ) {
-				filter.push( {
-					permissions: {
-						$elemMatch: {
-							permission: filter_permissions[fp]._id,
-							date_added: { $lte: new Date() },
-							$or: [
-								{ date_expires: null },
-								{ date_expires: { $gt: new Date() } }
-							]
-						}
-					}
-				} );
-			}
-			if ( filter != [] ) search['$and'] = filter;
-			path['permission'] = 'permission=' + req.query.permission;
-		}
+	if (query.permission || !query.show_inactive) {
+		const permissionSearch = {
+			...(query.permission && {
+				permission: permissions.find(p => p.slug === query.permission)
+			}),
+			...(!query.show_inactive && {
+				date_added: { $lte: new Date() },
+				$or: [
+					{ date_expires: null },
+					{ date_expires: { $gt: new Date() } }
+				]
+			})
+		};
 
-		if ( req.query.firstname ) {
-			search['$and'].push( { firstname: new RegExp( '.*' + escapeStringRegexp( req.query.firstname ) + '.*', 'i' ) } );
-			path['firstname'] = 'firstname=' + req.query.firstname;
-		}
-		if ( req.query.lastname ) {
-			search['$and'].push( { lastname: new RegExp( '.*' + escapeStringRegexp( req.query.lastname ) + '.*', 'i' ) } );
-			path['lastname'] = 'lastname=' + req.query.lastname;
-		}
-		if ( req.query.email && auth.canSuperAdmin( req ) == true ) {
-			search['$and'].push( { email: new RegExp( '.*' + escapeStringRegexp( req.query.email ) + '.*', 'i' ) } );
-			path['email'] = 'email=' + req.query.email;
-		}
-		if ( search['$and'].length == 0 ) search = {};
+		search.push( { permissions: { $elemMatch: permissionSearch } } );
+	}
 
-		// Process pagination
-		var limit = 10;
-		if ( req.query.limit && req.query.limit > 0 && req.query.limit <= 1000 )
-			limit = parseInt( req.query.limit );
+	if ( query.firstname ) {
+		search.push( { firstname:  fuzzyMatch( query.firstname ) } );
+	}
+	if ( query.lastname ) {
+		search.push( { lastname: fuzzyMatch( query.lastname ) } );
+	}
+	if ( query.email ) {
+		search.push( { email: fuzzyMatch( query.email ) } );
+	}
+	if ( query.tag ) {
+		search.push( { tags: { $elemMatch: { name: query.tag } } } );
+	}
 
-		var page = 1;
-		if ( req.query.page && req.query.page > 0 )
-			page = parseInt( req.query.page );
+	const filter = search.length > 0 ? { $and: search } : {};
 
-		// Perform search
-		Members.count( search, function( err, total ) {
-			if ( req.query.show_inactive_members ) path.show_inactive_members = 'show_inactive_members=true';
-			if ( req.query.limit && req.query.limit > 0 && req.query.limit <= 1000 ) path.limit = 'limit=' + limit;
-			if ( req.query.page && req.query.page > 0 ) path.page = 'page=' + page;
+	const total = await Members.count( filter );
 
-			// Pages
-			var append_path = [];
-			Object.keys( path ).forEach( function( key ) {
-				if ( key != 'page' ) append_path.push( path[key] );
-			} );
-			append_path = append_path.join( '&' );
+	const limit = 25;
+	const page = query.page ? parseInt( query.page ) : 1;
 
-			var pages = [];
-			for ( var p = 1; p <= Math.ceil( total / limit ); p++ ) {
-				var item = {
-					number: p,
-					path: '?page=' + p + ( append_path ? '&' + append_path : '' )
-				};
-				pages.push( item );
-			}
-			var next = ( page + 1 ) <= pages.length ? pages[ page ] : null;
-			var prev = ( page - 1 ) > 0 ? pages[ page - 2 ] : null;
-			var pagination = {
-				pages: pages,
-				limit: limit,
-				page: page,
-				prev: prev,
-				next: next,
-				total: pages.length
-			};
+	const pages = [ ...Array( Math.ceil( total / limit ) ) ].map( ( v, page ) => ( {
+		number: page + 1,
+		path: '/members?' + queryString.stringify( { ...query, page: page + 1 } )
+	} ) );
 
-			// Limit
-			append_path = [];
-			Object.keys( path ).forEach( function( key ) {
-				if ( key == 'limit' ) return;
-				if ( key == 'page' ) return;
-				append_path.push( path[key] );
-			} );
-			append_path = append_path.join( '&' );
+	const next = page + 1 <= pages.length ? pages[ page ] : null;
+	const prev = page - 1 > 0 ? pages[ page - 2 ] : null;
 
-			var limits = [ 10, 25, 50, 100, 250, 500, 1000 ];
-			limits.forEach( function( limit, l ) {
-				limits[l] = {
-					number: limit,
-					path: '?limit=' + limit + ( append_path ? '&' + append_path : '' )
-				};
-			} );
+	const pagination = {
+		pages, page, prev, next,
+		total: pages.length
+	};
 
-			// Inactive members
-			append_path = [];
-			Object.keys( path ).forEach( function( key ) {
-				if ( key == 'show_inactive_members' ) return;
-				if ( key == 'page' ) return;
-				append_path.push( path[key] );
-			} );
+	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
 
-			// Search data
-			var search_data = {
-				firstname: req.query.firstname,
-				lastname: req.query.lastname,
-				email: req.query.email,
-				show_inactive_members: req.query.show_inactive_members,
-				permission: req.query.permission
-			};
+	const addToProject = query.addToProject && await Projects.findById( query.addToProject );
 
-			Members.find( search ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] ).exec( function( err, members ) {
-				res.render( 'index', {
-					members: members,
-					permissions: permissions,
-					pagination: pagination,
-					limits: limits,
-					count: members ? members.length : 0,
-					total: total,
-					search: search_data
-				} );
-			} );
-		} );
+	res.render( 'index', {
+		permissions, availableTags, search: query,
+		members, pagination, total,
+		count: members ? members.length : 0,
+		addToProject
 	} );
-} );
+} ) );
 
-app.get( '/add', function( req, res ) {
+app.get( '/add', auth.isSuperAdmin, ( req, res ) => {
 	res.render( 'add' );
 } );
 
-app.post( '/add', wrapAsync( async function( req, res ) {
-	const memberObj = await customerToMember( req.body.customer_id, req.body.mandate_id );
-	const member = await createMember( memberObj );
-	res.redirect( app.mountpath + '/' + member.uuid );
+app.post( '/add', auth.isSuperAdmin, wrapAsync( async ( req, res ) => {
+	const customer = await gocardless.customers.get(req.body.customer_id);
+	if (req.body.first_name) {
+		customer.given_name = req.body.first_name;
+	}
+	if (req.body.last_name) {
+		customer.family_name = req.body.last_name;
+	}
+	if (isValidCustomer(customer)) {
+		const member = await createMember( customerToMember( customer, req.body.mandate_id ) );
+		res.redirect( app.mountpath + '/' + member.uuid );
+	} else {
+		req.flash('error', 'member-add-invalid-direct-debit');
+		res.redirect( app.mountpath + '/add' );
+	}
 } ) );
 
-app.get( '/:uuid', wrapAsync( async function( req, res ) {
-	const member = await Members.findOne( { uuid: req.params.uuid } ).populate( 'permissions.permission' ).exec();
-	const payments = await Payments.find( { member: member._id } ).sort( { 'charge_date': -1 } ).exec();
+const memberRouter = express.Router( { mergeParams: true } );
+app.use('/:uuid', memberRouter);
 
-	res.locals.breadcrumb.push( {
-		name: member.fullname
-	} );
+memberRouter.use(hasModel(Members, 'uuid'));
+memberRouter.use((req, res, next) => {
+	req.model.populate('permissions.permission', next);
+});
+
+memberRouter.get( '/', wrapAsync( async ( req, res ) => {
+	const member = req.model;
+	const payments = await Payments.find( { member: member._id } ).sort( { 'charge_date': -1 } ).exec();
 
 	const confirmedPayments = payments
 		.filter(p => ['paid_out', 'confirmed'].indexOf(p.status) > -1)
@@ -225,18 +154,59 @@ app.get( '/:uuid', wrapAsync( async function( req, res ) {
 
 	const total = confirmedPayments.reduce((a, b) => a + b, 0);
 
+	const availableTags = await getAvailableTags();
+
 	res.render( 'member', {
-		member: member,
-		payments: payments,
+		member, payments, total, availableTags,
 		audience: config.audience,
 		password_tries: config['password-tries'],
-		total: total
 	} );
 } ) );
 
-app.post( '/:uuid', wrapAsync( async function( req, res ) {
-	const member = await Members.findOne( { uuid: req.params.uuid } );
+memberRouter.post( '/', wrapAsync( async ( req, res ) => {
+	const member = req.model;
+	
+	if (!req.body.action.startsWith('save-') && !auth.canSuperAdmin(req)) {
+		req.flash('error', '403');
+		res.redirect(req.baseUrl);
+		return;
+	}
+
 	switch (req.body.action) {
+	case 'save-about': {
+		const exisingTagNames = member.tags.map(tag => tag.name);
+		const newTagNames = _.difference(req.body.tags, exisingTagNames);
+		const deletedTagNames = _.difference(exisingTagNames, req.body.tags);
+
+		for (let tagName of deletedTagNames) {
+			member.tags.find(tag => tag.name === tagName).remove();
+		}
+		for (let tagName of newTagNames) {
+			member.tags.push({name: tagName});
+		}
+
+		member.description = req.body.description;
+		member.bio = req.body.bio;
+
+		await member.save();
+
+		req.flash('success', 'member-updated');
+		break;
+	}
+	case 'save-contact':
+		await member.update({$set: {
+			'contact.telephone': req.body.telephone,
+			'contact.twitter': req.body.twitter,
+			'contact.preferred': req.body.preferred
+		}});
+		req.flash('success', 'member-updated');
+		break;
+	case 'save-notes':
+		await member.update({$set: {
+			'notes': req.body.notes
+		}});
+		req.flash('success', 'member-updated');
+		break;
 	case 'login-override':
 		await member.update({$set: {
 			loginOverride: {
@@ -245,14 +215,12 @@ app.post( '/:uuid', wrapAsync( async function( req, res ) {
 			}
 		}});
 		req.flash('success', 'member-login-override-generated');
-		res.redirect(app.mountpath + '/' + req.params.uuid);
 		break;
 	case 'password-reset':
 		await member.update({$set: {
 			'password.reset_code': auth.generateCode()
 		}});
 		req.flash('success', 'member-password-reset-generated');
-		res.redirect(app.mountpath + '/' + req.params.uuid);
 		break;
 	case 'permanently-delete':
 		await Payments.deleteMany( { member } );
@@ -269,68 +237,59 @@ app.post( '/:uuid', wrapAsync( async function( req, res ) {
 		if ( member.gocardless.customer_id ) {
 			await gocardless.customers.remove( member.gocardless.customer_id );
 		}
-		await mailchimp.defaultLists.members.permanentlyDelete( member.email );
+		await mailchimp.mainList.permanentlyDeleteMember( member );
 
 		req.flash('success', 'member-permanently-deleted');
-		res.redirect(app.mountpath);
-		break;
+		res.redirect('/members');
+		return;
 	}
+
+	res.redirect(req.baseUrl);
 } ) );
 
-app.get( '/:uuid/profile', auth.isSuperAdmin, function( req, res ) {
-	Members.findOne( { uuid: req.params.uuid }, function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-		res.locals.breadcrumb.push( {
-			name: member.fullname,
-			url: '/members/' + member.uuid
-		} );
-		res.locals.breadcrumb.push( {
-			name: 'Profile',
-		} );
-		res.render( 'update', { member: member } );
-	} );
+const memberAdminRouter = express.Router( { mergeParams: true } );
+memberRouter.use(memberAdminRouter);
+
+memberAdminRouter.use(auth.isSuperAdmin);
+
+memberAdminRouter.get( '/profile', ( req, res ) => {
+	res.render( 'update', { member: req.model } );
 } );
 
-app.post( '/:uuid/profile', [
-	auth.isSuperAdmin,
+memberAdminRouter.post( '/profile', [
 	hasSchema(updateProfileSchema).orFlash
-], wrapAsync( async function( req, res ) {
+], wrapAsync( async ( req, res ) => {
 	const {
+		model: member,
 		body: {
 			email, firstname, lastname, delivery_optin, delivery_line1,
 			delivery_line2, delivery_city, delivery_postcode
-		},
-		params: { uuid }
+		}
 	} = req;
 
 	const cleanedEmail = cleanEmailAddress(email);
 
-	const user = await Members.findOne( { uuid } );
+	const needsSync = cleanedEmail !== member.email ||
+		firstname !== member.firstname ||
+		lastname !== member.lastname;
 
-	const needsSync = cleanedEmail !== user.email ||
-		firstname !== user.firstname ||
-		lastname !== user.lastname;
+	try {
+		const oldEmail = member.email;
 
-	const profile = {
-		email: cleanedEmail,
-		firstname, lastname, delivery_optin,
-		delivery_address: delivery_optin ? {
+		member.email = cleanedEmail;
+		member.firstname = firstname;
+		member.lastname = lastname;
+		member.delivery_optin = delivery_optin;
+		member.delivery_address = delivery_optin ? {
 			line1: delivery_line1,
 			line2: delivery_line2,
 			city: delivery_city,
 			postcode: delivery_postcode
-		} : {}
-	};
-
-	try {
-		await Members.updateOne( { uuid }, { $set: profile } );
+		} : {};
+		await member.save();
 
 		if ( needsSync ) {
-			await syncMemberDetails( user, { email, firstname, lastname } );
+			await syncMemberDetails( member, oldEmail );
 		}
 	} catch ( saveError ) {
 		// Duplicate key (on email)
@@ -341,39 +300,31 @@ app.post( '/:uuid/profile', [
 		}
 	}
 
-	res.redirect(app.mountpath + '/' + uuid + '/profile');
+	res.redirect(req.baseUrl + '/profile');
 } ) );
 
-app.get( '/:uuid/emails', auth.isSuperAdmin, wrapAsync( async function( req, res ) {
-	const member = await Members.findOne( { uuid: req.params.uuid });
-	res.render( 'emails' , { member } );
-} ) );
+memberAdminRouter.get( '/emails', (req, res) => {
+	res.render( 'emails' , { member: req.model } );
+} );
 
-app.post( '/:uuid/emails', auth.isSuperAdmin, wrapAsync( async function ( req, res ) {
-	const member = await Members.findOne( { uuid: req.params.uuid });
-
-	await mandrill.sendToMember(req.body.email, member);
-
+memberAdminRouter.post( '/emails', wrapAsync( async ( req, res ) => {
+	await mandrill.sendToMember(req.body.email, req.model);
 	req.flash( 'success', 'emails-sent');
-	res.redirect(app.mountpath + '/' + req.params.uuid + '/emails');
+	res.redirect(req.baseUrl + '/emails');
 } ) );
 
-app.get( '/:uuid/exports', auth.isSuperAdmin, wrapAsync( async function( req, res ) {
-	const member = await Members.findOne( { uuid: req.params.uuid });
-
+memberAdminRouter.get( '/exports', wrapAsync( async ( req, res ) => {
 	// Only show member-based exports
 	const exports = (await Exports.find()).filter(exportDetails => (
 		exportTypes[exportDetails.type].collection === Members
 	));
 
-	(member.exports || []).forEach(e => {
-		e.details = exports.find(e2 => e2._id.equals(e.export_id));
-	});
+	await req.model.populate('exports.export_id').execPopulate();
 
-	res.render('exports', {member, exports, exportTypes});
+	res.render('exports', {member: req.model, exports, exportTypes});
 } ) );
 
-app.post( '/:uuid/exports', auth.isSuperAdmin, wrapAsync( async function( req, res ) {
+memberAdminRouter.post( '/exports', wrapAsync( async ( req, res ) => {
 	if (req.body.action === 'update') {
 		await Members.updateOne( {
 			uuid: req.params.uuid,
@@ -414,97 +365,27 @@ app.post( '/:uuid/exports', auth.isSuperAdmin, wrapAsync( async function( req, r
 		}
 	}
 
-	res.redirect( app.mountpath + '/' + req.params.uuid + '/exports' );
+	res.redirect( req.baseUrl + '/exports' );
 } ) );
 
-app.get( '/:uuid/tag', auth.isSuperAdmin, function( req, res ) {
-	Members.findOne( { uuid: req.params.uuid }, function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-
-		res.locals.breadcrumb.push( {
-			name: member.fullname,
-			url: '/members/' + member.uuid
-		} );
-		res.locals.breadcrumb.push( {
-			name: 'Tag'
-		} );
-		res.render( 'tag', { member: member } );
+memberAdminRouter.get( '/gocardless', wrapAsync( async ( req, res ) => {
+	res.render( 'gocardless', {
+		member: req.model,
+		canChange: await canChangeSubscription( req.model, req.model.canTakePayment ),
+		monthsLeft: calcSubscriptionMonthsLeft( req.model )
 	} );
-} );
-
-app.post( '/:uuid/tag', auth.isSuperAdmin, function( req, res ) {
-	var profile = {};
-
-	Members.findOne( { 'tag.id': req.body.tag }, function( err, member ) {
-		if ( member ) {
-			if ( member.uuid === req.params.uuid ) {
-				req.flash( 'info', 'tag-unchanged' );
-			} else {
-				req.flash( 'danger', 'tag-invalid-not-unique' );
-			}
-			res.redirect( app.mountpath + '/' + req.params.uuid + '/tag' );
-			return;
-		}
-
-		if ( req.body.tag ) {
-			var validateTag = auth.validateTag( req.body.tag );
-			if ( validateTag ) {
-				req.flash( 'danger', validateTag );
-				res.redirect( app.mountpath + '/' + req.params.uuid + '/tag' );
-				return;
-			}
-
-			var hashed_tag = auth.hashTag( req.body.tag );
-			profile = {
-				'tag.id': req.body.tag,
-				'tag.hashed': hashed_tag
-			};
-		} else {
-			profile = {
-				'tag.id': '',
-				'tag.hashed': ''
-			};
-		}
-
-		Members.update( { uuid: req.params.uuid }, { $set: profile }, function( status ) {
-			if ( status ) {
-				var keys = Object.keys( status.errors );
-				for ( var k in keys ) {
-					var key = keys[k];
-					req.flash( 'danger', status.errors[key].message );
-				}
-			} else {
-				req.flash( 'success', 'tag-updated' );
-			}
-			res.redirect( app.mountpath + '/' + req.params.uuid );
-		} );
-	} );
-} );
-
-app.get( '/:uuid/gocardless', auth.isSuperAdmin, wrapAsync( async function( req, res ) {
-	const member = await Members.findOne({ uuid: req.params.uuid });
-	res.locals.breadcrumb.push( {
-		name: member.fullname,
-		url: '/members/' + member.uuid
-	} );
-	res.locals.breadcrumb.push( {
-		name: 'GoCardless'
-	} );
-	res.render( 'gocardless', { member: member } );
 } ) );
 
-app.post( '/:uuid/gocardless', auth.isSuperAdmin, wrapAsync( async function( req, res ) {
-	const member = await Members.findOne({ uuid: req.params.uuid });
+memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
+	const member = req.model;
 
 	switch ( req.body.action ) {
-	case 'create-subscription':
-		await startMembership(member, {
+	case 'update-subscription':
+		await handleUpdateSubscription(req, member, {
 			amount: Number(req.body.amount),
-			period: req.body.period
+			period: req.body.period,
+			prorate: req.body.prorate === 'true',
+			payFee: req.body.payFee === 'true'
 		});
 		break;
 
@@ -514,266 +395,131 @@ app.post( '/:uuid/gocardless', auth.isSuperAdmin, wrapAsync( async function( req
 			'gocardless.mandate_id': req.body.mandate_id,
 			'gocardless.subscription_id': req.body.subscription_id,
 			'gocardless.amount': Number(req.body.amount),
-			'gocardless.period': req.body.period
+			'gocardless.period': req.body.period,
+			'gocardless.paying_fee': req.body.payFee === 'true'
 		} });
+		req.flash( 'success', 'gocardless-updated' );
 		break;
 	}
 
-	req.flash( 'success', 'gocardless-updated' );
-	res.redirect( app.mountpath + '/' + req.params.uuid + '/gocardless' );
+	res.redirect( req.baseUrl + '/gocardless' );
 } ) );
 
-app.get( '/:uuid/permissions', function( req, res ) {
-	Permissions.find( function( err, permissions ) {
-		Members.findOne( { uuid: req.params.uuid } ).populate( 'permissions.permission' ).exec( function( err, member ) {
-			if ( ! member ) {
-				req.flash( 'warning', 'member-404' );
-				res.redirect( app.mountpath );
-				return;
-			}
+memberAdminRouter.get( '/permissions', wrapAsync( async ( req, res ) => {
+	const permissions = await Permissions.find();
+	res.render( 'permissions', { permissions, member: req.model } );
+} ) );
 
-			res.locals.breadcrumb.push( {
-				name: member.fullname,
-				url: '/members/' + member.uuid
-			} );
-			res.locals.breadcrumb.push( {
-				name: 'Permissions'
-			} );
-			res.render( 'permissions', {
-				permissions: permissions,
-				member: member
-			} );
-		} );
-	} );
-} );
-
-app.post( '/:uuid/permissions', function( req, res ) {
-	if ( ! req.body.permission ||
-			! req.body.start_time ||
-			! req.body.start_date ) {
+memberAdminRouter.post( '/permissions', wrapAsync( async (req, res ) => {
+	const { permission: slug, start_time, start_date, expiry_date, expiry_time } = req.body;
+	if ( !slug ) {
 		req.flash( 'danger', 'information-ommited' );
-		res.redirect( app.mountpath );
+		res.redirect( req.originalUrl );
 		return;
 	}
 
-	Permissions.findOne( { slug: req.body.permission }, function( err, permission ) {
-		if ( permission ) {
-
-			if ( ! res.locals.can_admin( permission.slug ) && ! res.locals.access( 'superadmin' ) ) {
-				req.flash( 'danger', 'permission-admin-only' );
-				res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-				return;
-			}
-
-			var new_permission = {
-				permission: permission.id
-			};
-
-			if ( res.locals.access( 'superadmin' ) ) {
-				new_permission.admin = req.body.admin ? true : false;
-			}
-
-			new_permission.date_added = moment( req.body.start_date + 'T' + req.body.start_time ).toDate();
-
-			if ( req.body.expiry_date !== '' && req.body.expiry_time !== '' )
-				new_permission.date_expires = moment( req.body.expiry_date + 'T' + req.body.expiry_time ).toDate();
-
-			if ( new_permission.date_added >= new_permission.date_expires ) {
-				req.flash( 'warning', 'permission-expiry-error' );
-				res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-				return;
-			}
-
-			Members.findOne( { uuid: req.params.uuid }, function ( err, member ) {
-				var dupe = false;
-				for ( var p = 0; p < member.permissions.length; p++ ) {
-					if ( member.permissions[p].permission.toString() == permission._id.toString() ) {
-						dupe = true;
-						break;
-					}
-				}
-				if ( dupe ) {
-					req.flash( 'danger', 'permission-duplicate' );
-					res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-					return;
-				}
-
-				Members.update( { uuid: req.params.uuid }, {
-					$push: {
-						permissions: new_permission
-					}
-				}, function () {
-					res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-				} );
-			} );
-		} else {
-			req.flash( 'warning', 'permission-404' );
-			res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-		}
-	} );
-} );
-
-app.get( '/:uuid/permissions/:id/modify', function( req, res ) {
-	Members.findOne( { uuid: req.params.uuid } ).populate( 'permissions.permission' ).exec( function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-
-		if ( ! member.permissions.id( req.params.id ) ) {
-			req.flash( 'warning', 'permission-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-
-		if ( ! res.locals.can_admin( member.permissions.id( req.params.id ).permission.slug ) && ! res.locals.access( 'superadmin' ) ) {
-			req.flash( 'danger', 'permission-admin-only' );
-			res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-			return;
-		}
-
-		res.locals.breadcrumb.push( {
-			name: member.fullname,
-			url: '/members/' + member.uuid
-		} );
-		res.locals.breadcrumb.push( {
-			name: 'Permissions',
-			url: '/members/' + member.uuid + '/permissions'
-		} );
-		res.locals.breadcrumb.push( {
-			name: member.permissions.id( req.params.id ).permission.name
-		} );
-		res.render( 'permission', {
-			member: member,
-			current: member.permissions.id( req.params.id )
-		} );
-	} );
-} );
-
-app.post( '/:uuid/permissions/:id/modify', function( req, res ) {
-	if ( ! req.body.start_time || ! req.body.start_date ) {
-		req.flash( 'danger', 'information-ommited' );
-		res.redirect( app.mountpath );
+	const permission = await Permissions.findOne( { slug } );
+	if ( !permission ) {
+		req.flash( 'warning', 'permission-404' );
+		res.redirect( req.originalUrl );
 		return;
 	}
 
-	Members.findOne( { uuid: req.params.uuid }).populate( 'permissions.permission' ).exec( function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
+	const dupe = req.model.permissions.find(p => p.permission.equals(permission));
+	if ( dupe ) {
+		req.flash( 'danger', 'permission-duplicate' );
+		res.redirect( req.originalUrl );
+		return;
+	}
+
+	const new_permission = {
+		permission: permission._id,
+		date_added: start_date && start_time ? moment( start_date + 'T' + start_time ) : moment()
+	};
+
+	if ( expiry_date && expiry_time ) {
+		new_permission.date_expires = moment( expiry_date + 'T' + expiry_time );
+		if ( new_permission.date_added >= new_permission.date_expires ) {
+			req.flash( 'warning', 'permission-expiry-error' );
+			res.redirect( req.originalUrl );
 			return;
 		}
+	}
 
-		if ( ! member.permissions.id( req.params.id ) ) {
-			req.flash( 'warning', 'permission-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
+	req.model.permissions.push(new_permission);
+	await req.model.save();
 
-		if ( ! res.locals.can_admin( member.permissions.id( req.params.id ).permission.slug ) && ! res.locals.access( 'superadmin' ) ) {
-			req.flash( 'danger', 'permission-admin-only' );
-			res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-			return;
-		}
+	res.redirect( req.originalUrl );
+} ) );
 
-		var permission = member.permissions.id( req.params.id );
+memberAdminRouter.get( '/permissions/:id/modify', wrapAsync( async ( req, res ) =>{
+	const member = req.model;
 
-		if ( res.locals.access( 'superadmin' ) ) {
-			permission.admin = req.body.admin ? true : false;
-		}
-
-		if ( req.body.start_date !== '' && req.body.start_time !== '' ) {
-			permission.date_added = moment( req.body.start_date + 'T' + req.body.start_time ).toDate();
-		} else {
-			permission.date_added = new Date();
-		}
-
-		if ( req.body.expiry_date !== '' && req.body.expiry_time !== '' ) {
-			permission.date_expires = moment( req.body.expiry_date + 'T' + req.body.expiry_time ).toDate();
-
-			if ( permission.date_added >= permission.date_expires ) {
-				req.flash( 'warning', 'permission-expiry-error' );
-				res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-				return;
-			}
-		} else {
-			permission.date_expires = null;
-		}
-
-		member.save( function () {
-			req.flash( 'success', 'permission-updated' );
-			res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-		} );
-	} );
-} );
-
-app.post( '/:uuid/permissions/:id/revoke', function( req, res ) {
-	Members.findOne( { uuid: req.params.uuid } ).populate( 'permissions.permission' ).exec( function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-
-		if ( ! member.permissions.id( req.params.id ) ) {
-			req.flash( 'warning', 'permission-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-
-		if ( ! res.locals.can_admin( member.permissions.id( req.params.id ).permission.slug ) && ! res.locals.access( 'superadmin' ) ) {
-			req.flash( 'danger', 'permission-admin-only' );
-			res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-			return;
-		}
-
-		member.permissions.pull( { _id: req.params.id } );
-
-		member.save( function () {
-			req.flash( 'success', 'permission-removed' );
-			res.redirect( app.mountpath + '/' + req.params.uuid + '/permissions' );
-		} );
-	} );
-} );
-
-app.get( '/:uuid/2fa', auth.isSuperAdmin, function( req, res ) {
-	Members.findOne( { uuid: req.params.uuid }, function( err, member ) {
-		if ( ! member ) {
-			req.flash( 'warning', 'member-404' );
-			res.redirect( app.mountpath );
-			return;
-		}
-
-		res.locals.breadcrumb.push( {
-			name: member.fullname,
-			url: '/members/' + member.uuid
-		} );
-		res.locals.breadcrumb.push( {
-			name: '2FA'
-		} );
-		res.render( '2fa', { member: member } );
-	} );
-} );
-
-app.post( '/:uuid/2fa', auth.isSuperAdmin, function( req, res ) {
-	if ( ! req.body['2fa-enabled'] ) {
-		var member = {
-			otp: {
-				key: ''
-			}
-		};
-		Members.update( { uuid: req.params.uuid }, { $set: member }, function() {
-			req.flash( 'success', '2fa-disabled' );
-			res.redirect( app.mountpath + '/' + req.params.uuid );
-		} );
+	const permission = member.permissions.id(req.params.id);
+	if ( permission ) {
+		res.render( 'permission', { member, current: permission } );
 	} else {
-		req.flash( 'success', '2fa-no-change' );
-		res.redirect( app.mountpath + '/' + req.params.uuid );
+		req.flash( 'warning', 'permission-404' );
+		res.redirect( req.baseUrl );
 	}
+} ) );
+
+memberAdminRouter.post( '/permissions/:id/modify', wrapAsync( async ( req, res ) => {
+	const { model: member, body: { start_date, start_time, expiry_date, expiry_time } } = req;
+
+	const permission = member.permissions.id( req.params.id );
+	if ( !permission ) {
+		req.flash( 'warning', 'permission-404' );
+		res.redirect( req.baseUrl );
+		return;
+	}
+
+	if ( start_date !== '' && start_time !== '' ) {
+		permission.date_added = moment( start_date + 'T' + start_time ).toDate();
+	}
+
+	if ( expiry_date !== '' && expiry_time !== '' ) {
+		permission.date_expires = moment( expiry_date + 'T' + expiry_time ).toDate();
+
+		if ( permission.date_added >= permission.date_expires ) {
+			req.flash( 'warning', 'permission-expiry-error' );
+			res.redirect( req.baseUrl + '/permissions' );
+			return;
+		}
+	} else {
+		permission.date_expires = null;
+	}
+
+	await member.save();
+
+	req.flash( 'success', 'permission-updated' );
+	res.redirect( req.baseUrl + '/permissions' );
+} ) );
+
+memberAdminRouter.post( '/permissions/:id/revoke', wrapAsync( async ( req, res ) => {
+	const member = req.model;
+	const permission = member.permissions.id( req.params.id );
+	if ( permission ) {
+		permission.remove();
+		await member.save();
+		req.flash( 'success', 'permission-removed' );
+	} else {
+		req.flash( 'warning', 'permission-404' );
+	}
+	res.redirect( req.baseUrl + '/permissions' );
+} ) );
+
+memberAdminRouter.get( '/2fa', ( req, res ) => {
+	res.render( '2fa', { member: req.model } );
 } );
 
-module.exports = function( config ) {
+memberAdminRouter.post( '/2fa', wrapAsync( async ( req, res ) => {
+	await req.model.update({$set: {'opt.key': ''}});
+	req.flash( 'success', '2fa-disabled' );
+	res.redirect( req.baseUrl );
+} ) );
+
+module.exports = ( config ) => {
 	app_config = config;
 	return app;
 };

@@ -34,24 +34,12 @@ class MembersService {
 
 	static async addMemberToMailingLists(member) {
 		try {
-			await mailchimp.defaultLists.members.upsert(member.email, {
-				email_address: member.email,
-				merge_fields: {
-					FNAME: member.firstname,
-					LNAME: member.lastname,
-					REFLINK: member.referralLink,
-					POLLSCODE: member.pollsCode,
-					C_DESC: member.contributionDescription,
-					C_MNTHAMT: member.contributionMonthlyAmount,
-					C_PERIOD: member.contributionPeriod
-				},
-				status_if_new: 'subscribed'
-			});
+			await mailchimp.mainList.addMember(member);
 		} catch (err) {
 			log.error({
 				app: 'join-utils',
-				error: err
-			});
+				error: err,
+			}, 'Adding member to MailChimp failed, probably a bad email address: ' + member.uuid);
 		}
 	}
 

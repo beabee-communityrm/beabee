@@ -32,6 +32,7 @@ async function getExport(referrals) {
 		.filter((opt, i, arr) => arr.indexOf(opt) === i); // deduplicate
 
 	const fields = [
+		'Date',
 		'Type',
 		'Email',
 		'FirstName',
@@ -51,12 +52,14 @@ async function getExport(referrals) {
 			const referee = membersById[referral.referee];
 
 			return [[
+				referral.date,
 				'Referrer',
 				...memberDetails(referrer),
 				referral.refereeAmount,
 				referral.referrerGift,
 				...giftOptions.map(opt => (referral.referrerGiftOptions || {[opt]: ''})[opt])
 			], [
+				referral.date,
 				'Referee',
 				...memberDetails(referee),
 				referral.refereeAmount,

@@ -45,8 +45,10 @@ class JoinFlowService {
 			session_token: joinFlow.sessionToken
 		});
 
+		const customer = await gocardless.customers.get(redirectFlow.links.customer);
+
 		return {
-			customerId: redirectFlow.links.customer,
+			customer,
 			mandateId: redirectFlow.links.mandate,
 			joinForm: joinFlow.joinForm
 		};

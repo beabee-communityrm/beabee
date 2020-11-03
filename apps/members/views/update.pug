@@ -13,13 +13,13 @@ block contents
 			form( method="post" ).form-horizontal
 				+csrf
 
-				h3 Account details
+				h4 Account details
 
 				+input( 'email', 'Email', 'email', { value: member.email, required: true, left: 3, right: 4 } )
 				+input( 'text', 'First Name', 'firstname', { value: member.firstname, required: true, left: 3, right: 4 } )
 				+input( 'text', 'Last Name', 'lastname', { value: member.lastname, required: true, left: 3, right: 4 } )
 
-				h3 Delivery details
+				h4 Delivery details
 				.form-group
 					label.col-md-3.control-label Delivery opt in
 					.col-md-4
@@ -35,4 +35,4 @@ block contents
 				+input( 'text', 'Address line 2', 'delivery_line2', { value: member.delivery_address.line2, left: 3, right: 4 } )
 				+input( 'text', 'City/town', 'delivery_city', { value: member.delivery_address.city, left: 3, right: 4 } )
 				+input( 'text', 'Postcode', 'delivery_postcode', { value: member.delivery_address.postcode, left: 3, right: 4 } )
-				+form_button( 'Update', 'primary', {left: 3} )
+				+form_button( 'Update', 'success', {left: 3} )

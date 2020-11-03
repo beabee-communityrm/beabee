@@ -15,8 +15,19 @@
 					"type": "string",
 					"minLength": 1
 				},
+				"allowUpdate": {
+					"type": "boolean"
+				},
 				"closed": {
 					"type": "boolean"
+				},
+				"startDate": {
+					"type": "string",
+					"format": "date"
+				},
+				"startTime": {
+					"type": "string",
+					"format": "time2"
 				},
 				"expiresDate": {
 					"type": "string",
@@ -25,6 +36,10 @@
 				"expiresTime": {
 					"type": "string",
 					"format": "time2"
+				},
+				"formTemplate": {
+					"type": "string",
+					"enum": ["custom", "builder", "ballot"]
 				}
 			}
 		}

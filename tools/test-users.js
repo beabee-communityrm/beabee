@@ -83,6 +83,9 @@ async function getFilters() {
 		},
 		hasFailedPayments: {
 			_id: {$in: membersWithFailedPayments}
+		},
+		isPayingFee: {
+			'gocardless.paying_fee': true
 		}
 	};
 }
@@ -123,6 +126,11 @@ async function main() {
 	await logMember('Inactive, gift membership', {
 		...filters.isInactive,
 		...filters.isGift
+	});
+
+	await logMember('Active, paying fee', {
+		...filters.isActive,
+		...filters.isPayingFee
 	});
 
 	await logMember('Super admin account', {

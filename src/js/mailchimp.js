@@ -35,7 +35,7 @@ function createInstance(endpoint) {
 			app: 'mailchimp' + endpoint,
 			status: error.response.status,
 			data: error.response.data
-		});
+		}, 'MailChimp API returned with status ' + error.response.status);
 		return Promise.reject(error);
 	});
 
@@ -76,6 +76,23 @@ function lists(listId) {
 
 const batchInstance = createInstance('/batches');
 
+const mainListInstance = lists(config.mailchimp.mainList);
+
+function memberToMCMember(member) {
+	return {
+		email_address: member.email,
+		merge_fields: {
+			FNAME: member.firstname,
+			LNAME: member.lastname,
+			REFLINK: member.referralLink,
+			POLLSCODE: member.pollsCode,
+			C_DESC: member.contributionDescription,
+			C_MNTHAMT: member.contributionMonthlyAmount,
+			C_PERIOD: member.contributionPeriod
+		}
+	};
+}
+
 module.exports = {
 	instance: createInstance(''),
 	lists,
@@ -89,33 +106,26 @@ module.exports = {
 			return response.data;
 		}
 	},
-	defaultLists: {
-		members: {
-			async create(email, data) {
-				for (let listId of config.mailchimp.lists) {
-					await lists(listId).members.create(email, data);
-				}
-			},
-			async upsert(email, data) {
-				for (let listId of config.mailchimp.lists) {
-					await lists(listId).members.upsert(email, data);
-				}
-			},
-			async update(email, data) {
-				for (let listId of config.mailchimp.lists) {
-					await lists(listId).members.update(email, data);
-				}
-			},
-			async delete(email) {
-				for (let listId of config.mailchimp.lists) {
-					await lists(listId).members.delete(email);
-				}
-			},
-			async permanentlyDelete(email) {
-				for (let listId of config.mailchimp.lists) {
-					await lists(listId).members.permanentlyDelete(email);
-				}
-			}
+	mainList: {
+		async addMember(member) {
+			await mainListInstance.members.upsert(member.email, {
+				...memberToMCMember(member),
+				interests: Object.assign(
+					...config.mailchimp.mainListGroups.map(group => ({[group]: true}))
+				),
+				status_if_new: 'subscribed'
+			});
+		},
+		async updateMemberDetails(member, oldEmail=member.email) {
+			await mainListInstance.members.update(oldEmail, memberToMCMember(member));
+		},
+		async updateMemberFields(member, fields) {
+			await mainListInstance.members.update(member.email, {
+				merge_fields: fields
+			});
+		},
+		async permanentlyDeleteMember(member) {
+			await mainListInstance.members.permanentlyDelete(member.email);
 		}
 	}
 };

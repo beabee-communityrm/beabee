@@ -1,24 +1,16 @@
-$bp-join-form: 600px;
-
-$c-blue: #048BA8;
-$c-blue--dark1: darken($c-blue, 7%);
-$c-blue--dark2: darken($c-blue, 15%);
-
-$c-green: #4DA167;
-$c-green--dark1: darken($c-green, 5%);
-
-$c-black: #31393C;
-
-$c-red: #B51724;
-
+@import "vars";
 @import "mixins";
-
 @import "fonts";
+
 @import "general";
 
+@import "components/footer";
 @import "components/gifts";
+@import "components/members-table";
+@import "components/repeater";
 
 @import "pages/join";
+@import "pages/members";
 @import "pages/polls";
+@import "pages/projects";
 @import "pages/referrals";
-@import "pages/special-urls";

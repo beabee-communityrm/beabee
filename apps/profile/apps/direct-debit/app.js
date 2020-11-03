@@ -13,7 +13,7 @@ const config = require( __config );
 const { createJoinFlow, completeJoinFlow } = require( __apps + '/join/utils' );
 
 const { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } = require('./schemas.json');
-const { calcSubscriptionMonthsLeft, canChangeSubscription, getBankAccount, processUpdateSubscription } = require('./utils');
+const { calcSubscriptionMonthsLeft, canChangeSubscription, getBankAccount, handleUpdateSubscription } = require('./utils');
 
 const app = express();
 var app_config = {};
@@ -35,7 +35,6 @@ app.use( function( req, res, next ) {
 		name: app_config.title,
 		url: app.parent.mountpath + app.mountpath
 	} );
-	res.locals.activeApp = 'profile';
 	next();
 } );
 
@@ -72,9 +71,8 @@ app.post( '/', [
 				updateForm
 			}
 		} );
-		if ( useMandate && user.canTakePayment ) {
-			await processUpdateSubscription( user, updateForm );
-			req.flash( 'success', 'contribution-updated' );
+		if ( useMandate ) {
+			await handleUpdateSubscription(req, user, updateForm);
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
@@ -98,9 +96,9 @@ app.get( '/complete', [
 ], wrapAsync( async (req, res) => {
 	const { user } = req;
 
-	const { customerId, mandateId, joinForm } = await completeJoinFlow( req.query.redirect_flow_id );
-
 	if (await canChangeSubscription(user, false)) {
+		const { customer, mandateId, joinForm } = await completeJoinFlow( req.query.redirect_flow_id );
+
 		if ( user.gocardless.mandate_id ) {
 			// Remove subscription before cancelling mandate to stop the
 			// webhook triggering a cancelled email
@@ -116,14 +114,12 @@ app.get( '/complete', [
 			user.memberPermission.date_expires = nextChargeDate;
 		}
 
-		user.gocardless.customer_id = customerId;
+		user.gocardless.customer_id = customer.id;
 		user.gocardless.mandate_id = mandateId;
 		user.gocardless.subscription_id = undefined;
 		await user.save();
 
-		await processUpdateSubscription(user, joinForm);
-
-		req.flash( 'success', 'contribution-updated');
+		await handleUpdateSubscription(req, user, joinForm);
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}

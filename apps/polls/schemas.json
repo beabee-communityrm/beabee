@@ -1,48 +1,62 @@
 {
-	"voteLinkSchema": {
+	"builderSchema": {
 		"body": {
 			"type": "object",
-			"oneOf": [
-				{
-					"required": ["email"],
+			"required": ["answers"],
+			"properties": {
+				"answers": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"ballotSchema": {
+		"body": {
+			"type": "object",
+			"required": ["answers"],
+			"properties": {
+				"answers": {
+					"type": "object",
+					"required": ["submit"],
 					"properties": {
-						"email": {
-							"type": "string"
-						}
-					}
-				},
-				{
-					"required": ["isAsync"],
-					"properties": {
-						"isAsync": {
+						"submit": {
 							"type": "boolean"
+						},
+						"candidates": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
 						}
 					}
 				}
-			]
+			}
 		}
 	},
-	"answerSchemas": {
+	"customSchemas": {
 		"campaign2019": {
 			"body": {
 				"type": "object",
-				"required": ["answer"],
+				"required": ["answers"],
 				"properties": {
-					"answer": {
-						"type": "string",
-						"enum": ["1", "2"]
-					},
-					"reason": {
-						"type": "string"
-					},
-					"shareable": {
-						"type": "boolean"
-					},
-					"volunteer": {
-						"type": "boolean"
-					},
-					"idea": {
-						"type": "string"
+					"answers": {
+						"type": "object",
+						"campaign": {
+							"type": "string",
+							"enum": ["1", "2"]
+						},
+						"reason": {
+							"type": "string"
+						},
+						"shareable": {
+							"type": "boolean"
+						},
+						"volunteer": {
+							"type": "boolean"
+						},
+						"idea": {
+							"type": "string"
+						}
 					}
 				}
 			}

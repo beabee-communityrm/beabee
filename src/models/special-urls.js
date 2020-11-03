@@ -1,6 +1,6 @@
 const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
-const uuid = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 
 const ObjectId = mongoose.Schema.ObjectId;
 
@@ -11,7 +11,7 @@ module.exports = {
 			type: String,
 			required: true,
 			unique: true,
-			default: uuid
+			default: uuidv4
 		},
 		group: {
 			type: ObjectId,

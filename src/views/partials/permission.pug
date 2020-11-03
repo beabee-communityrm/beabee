@@ -1,5 +1,5 @@
 span.list-group-item( class=( permission.date_added > moment() || permission.date_expires != undefined && permission.date_expires < moment() ? 'disabled' : '' ) )
-	h4.list-group-item-heading #{ permission.permission.name }
+	h5.list-group-item-heading #{ permission.permission.name }
 		if access( 'admin' )
 			if permission.permission.slug == config.permission.member
 				| 

@@ -56,20 +56,20 @@ block contents
 
 			hr
 
-			h3 #{user.contributionPeriod === 'gift' ? 'Start' : user.hasActiveSubscription ? 'Update' : 'Restart'} contribution
+			h4 #{user.contributionPeriod === 'gift' ? 'Start' : user.hasActiveSubscription ? 'Update' : 'Restart'} contribution
 
 			if canChange
 				include partials/change-subscription
 			else
-				p.alert.alert-warning.
-					You can't change your contribution online at the moment, please
-					contact #[+email('membership@thebristolcable.org')].
+				p.
+					Your contribution is currently processing and can't be changed online right now.
+					Please contact #[+email('membership@thebristolcable.org')] if you wish to do so.
 
 			if user.hasActiveSubscription
 				hr
 
-				h3 Cancel contribution
+				h4 Cancel contribution
 				p.
 					If you cancel your contribution your membership will finish at the end of
 					your current payment cycle.
-				a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger.outline Cancel contribution
+				a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger Cancel contribution

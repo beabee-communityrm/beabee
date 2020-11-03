@@ -1,0 +1,19 @@
+.projects-member-view {
+	padding: 20px;
+}
+
+.projects-member-contact {
+	display: flex;
+	margin: 0 -10px 10px;
+
+	& > .input-group {
+		margin-left: 10px;
+	}
+}
+
+.projects-member-caret {
+	transform: scaleY(-1);
+	.collapsed + & {
+		transform: scaleY(1);
+	}
+}

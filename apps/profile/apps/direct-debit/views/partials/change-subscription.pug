@@ -11,10 +11,11 @@ form(
 
 	.form-group
 		label( for='amount' ).col-md-3.control-label Amount
-		.input-group.col-md-4
-			span.input-group-addon £
-			input( type='number', name='amount', id='amount', value=user.contributionMonthlyAmount, required, min=1, step=1 ).form-control.js-new-amount-input
-			span.input-group-addon / month
+		.col-md-4
+			.input-group
+				span.input-group-addon £
+				input( type='number', name='amount', id='amount', value=user.contributionMonthlyAmount, required, min=1, step=1 ).form-control.js-new-amount-input
+				span.input-group-addon / month
 	
 	if user.hasActiveSubscription
 		input(type='hidden' name='period' value=user.contributionPeriod)
@@ -153,8 +154,9 @@ form(
 
 	p.join-charge.hidden.js-new-charge
 
-	p
-		button.btn.join-btn Submit
+	.form-group
+		.col-md-offset-3.col-md-9
+			button.btn.btn-success Submit
 
 if user.hasActiveSubscription
 	p.

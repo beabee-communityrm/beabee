@@ -9,12 +9,12 @@ block contents
 			+page_header('Page settings')
 
 			each page in pages
-				h4
+				h5
 					a(href='/settings/pages/' + page._id)= page.pattern
 
 	.row
 		.col-md-8
-			h3 Add page settings
+			h4 Add page settings
 
 			form(method='POST').form-horizontal
 				+csrf
@@ -41,5 +41,5 @@ block contents
 
 				.form-group
 					.col-md-6.col-md-offset-3
-						button.btn.btn-primary Add
+						button.btn.btn-success Add
 

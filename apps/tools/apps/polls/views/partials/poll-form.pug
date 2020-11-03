@@ -1,0 +1,72 @@
+- isNew = poll === undefined
+- poll = poll || {}
+
+form(method='POST').form-horizontal.js-reveal
+	+csrf
+	.form-group
+		label(for='question').control-label.col-md-3 Title
+		.col-md-9
+			input(type='text' name='question' value=poll.question required)#question.form-control
+	.form-group
+		label(for='slug').control-label.col-md-3 Slug
+		.col-md-9
+			input(type='text' name='slug' value=poll.slug required readonly=!isNew)#slug.form-control
+	.form-group
+		label(for='mergeField').control-label.col-md-3 MailChimp merge field
+		.col-md-9
+			input(type='text' name='mergeField' maxlength='10' value=poll.mergeField)#mergeField.form-control
+	.form-group
+		label(for='pollMergeField').control-label.col-md-3 Poll merge field
+		.col-md-9
+			input(type='text' name='pollMergeField' value=poll.pollMergeField)#pollMergeField.form-control
+	.form-group
+		label(for='starts').control-label.col-md-3 Starts (UTC)
+		.col-md-3
+			input(type='date', name='startsDate' value=poll.starts ? moment.utc(poll.starts).format('YYYY-MM-DD') : '')#starts.form-control
+		.col-md-3
+			input(type='time', name='startsTime' value=poll.starts ? moment.utc(poll.starts).format('HH:mm') : '').form-control
+	.form-group
+		label(for='expires').control-label.col-md-3 Expires (UTC)
+		.col-md-3
+			input(type='date', name='expiresDate' value=poll.expires ? moment.utc(poll.expires).format('YYYY-MM-DD') : '')#expires.form-control
+		.col-md-3
+			input(type='time', name='expiresTime' value=poll.expires ? moment.utc(poll.expires).format('HH:mm') : '').form-control
+	.form-group
+		label(for='formTemplate').control-label.col-md-3 Template
+		.col-md-9
+			select(name='formTemplate' required)#formTemplate.form-control.js-reveal-types
+				option(value='' disabled selected) Select template
+				each template in ['custom', 'builder', 'ballot']
+					option(value=template selected=template===poll.formTemplate)= template[0].toUpperCase() + template.slice(1)
+	.hidden.js-reveal-type(data-type='builder|ballot')
+		.form-group
+			label(for='intro').control-label.col-md-3 Intro text
+			.col-md-9
+				textarea(name='intro' required)#intro.form-control= poll.intro
+		.form-group
+			label(for='thanksTitle').control-label.col-md-3 Thank you title
+			.col-md-9
+				input(type='text' name='thanksTitle' value=poll.thanksTitle required)#thanksTitle.form-control
+		.form-group
+			label(for='thanksText').control-label.col-md-3 Thank you text
+			.col-md-9
+				textarea(name='thanksText' required)#thanksText.form-control= poll.thanksText
+	if isNew
+		.form-group
+			.col-md-offset-3.col-md-9
+				.checkbox-inline
+					input(type='checkbox' name='allowUpdate' value='true')
+					| Allow users to update their answers
+		input(type='hidden' name='closed' value='true')
+	else
+		input(type='hidden' name='allowUpdate' value='' + poll.allowUpdate)
+		.form-group
+			.col-md-offset-3.col-md-9
+				.checkbox-inline
+					input(type='checkbox' name='closed' value='true' checked=poll.closed)
+					| Closed
+
+	.form-group
+		.col-md-offset-3.col-md-9
+			button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'
+

@@ -43,6 +43,10 @@ const members = {
 	referralCode: uniqueCode,
 	join_reason: () => chance.sentence(),
 	join_why: () => chance.sentence(),
+	bio: () => chance.sentence(),
+	notes: () => chance.sentence(),
+	'contact.telephone': () => chance.phone(),
+	'contact.twitter': () => chance.twitter(),
 	'gocardless.customer_id': () => 'CU' + randomId(12),
 	'gocardless.mandate_id': () => 'MA' + randomId(12),
 	'gocardless.subscription_id': () => 'SB' + randomId(12),
@@ -68,6 +72,16 @@ const pollAnswers = {
 	member: () => new mongoose.Types.ObjectId()
 };
 
+const projects = {
+	owner: () => new mongoose.Types.ObjectId()
+};
+
+const projectMembers = {
+	_id: () => new mongoose.Types.ObjectId(),
+	member: () => new mongoose.Types.ObjectId(),
+	tag: () => chance.word()
+};
+
 module.exports = [
 	{ model: db.Exports },
 	{ model: db.Options },
@@ -78,5 +92,7 @@ module.exports = [
 	{ model: db.Referrals, properties: referrals },
 	{ model: db.Notices },
 	{ model: db.Polls },
-	{ model: db.PollAnswers, properties: pollAnswers }
+	{ model: db.PollAnswers, properties: pollAnswers },
+	{ model: db.Projects , properties: projects },
+	{ model: db.ProjectMembers, properties: projectMembers }
 ];

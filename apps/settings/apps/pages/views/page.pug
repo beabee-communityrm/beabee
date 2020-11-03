@@ -8,7 +8,7 @@ block contents
 		.col-md-12
 			+page_header('Page: ' + page.pattern)
 
-			h3 Update page settings
+			h4 Update page settings
 
 			form(method='POST').form-horizontal
 				input(type='hidden' name='action' value='update')
@@ -35,11 +35,11 @@ block contents
 						input(type='text' name='shareImage' value=page.shareImage)#shareImage.form-control
 
 				p.col-md-offset-3
-					button.btn Update
+					button.btn.btn-success Update
 
 			hr
 
-			h3 Delete page settings
+			h4 Delete page settings
 
 			form(method='POST')
 				+csrf

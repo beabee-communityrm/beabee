@@ -14,12 +14,12 @@ module.exports = {
 			type: ObjectId,
 			ref: 'Members'
 		},
-		answer: {
-			type: String,
+		answers: {
+			type: Object,
 			required: true
 		},
-		additionalAnswers: {
-			type: Object
+		isPartial: {
+			type: Boolean
 		},
 		exports: [ {
 			export_id: {

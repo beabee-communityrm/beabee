@@ -1,0 +1,90 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = poll.question
+
+block append js
+	script(src='/static/js/poll-ballot.js?v=' + git)
+
+block flashes
+
+block contents
+	svg(xmlns="http://www.w3.org/2000/svg" style="display: none")
+		path(id="cross" d="M19 74a2 2 0 0 1-.5-.4c-.2-.2-1.4-2.6-1.4-2.9 0-.2-.2-.2-.8 0a3 3 0 0 1-2.4-.2 8 8 0 0 1-2.5-2.7c-.3-.6 0-1.5.6-2.8l.5-1-.3-.2a3.8 3.8 0 0 1-1.2-2.5c0-1 .3-1.5 2-3.7 3.4-4.5 7-8.8 11.8-14l1.9-2.2-1.4-2.3c-2.6-4.3-5.2-9.8-7.5-15.5-2-5-2.3-6.3-1.7-8.2.8-2.6 1.7-3.5 3-3.2l1.5.8 1.1.7s.3-.4.4-1c.4-1 1-2 1.5-2.5.6-.6 2.3-.3 2.9.6l.9 1.5a113.2 113.2 0 0 0 10.4 15.4l.4.5 1-1a257.4 257.4 0 0 1 21-21c.6-.3 1-.3 1.9.1 1.3.6 2.1 2 2.5 4l.2.6.8.1c1 .1 2.3.7 3 1.4.3.4.3.6.4 1.4 0 1.7 0 2-2.6 4.4A164.5 164.5 0 0 0 47.9 39l-1 1.4L49 43c3.4 4.5 7.4 9.3 10.5 12.8 1.3 1.4 1.5 1.7 1.4 2.8 0 2.2-1 3.5-3 4-.8.1-.8.1-1 .6-.1 1-.9 2.7-1.4 3.3-.5.7-1.2 1.2-1.8 1.2-.5 0-2-.5-2.4-.9l-.4-.3-.2.4c-.5 1-2.5 2.1-3.5 2.1-.3 0-.8 0-1-.2-1.5-.7-5.2-5.4-9-11.3L35.4 55a228.5 228.5 0 0 0-15.3 18.7c-.6.2-.8.3-1 .1z")
+
+	.row
+		.col-md-12
+			+page_header(poll.question)
+
+	.row.js-poll-ballot(
+		data-min-votes=poll.formSchema.minVotes
+		data-max-votes=poll.formSchema.maxVotes
+	)
+		.col-md-offset-2.col-md-8
+			if answers.submit
+				img(src='/static/imgs/polls/hand3.png').poll-hand3
+
+				h4= poll.thanksTitle
+				!= dot.template(poll.thanksText)({answers})
+				hr
+
+			!= poll.intro
+
+			hr#vote
+
+			if poll.active || preview
+				if poll.allowUpdate || !answers.submit
+					h3 Vote for your candidates
+
+					form(method='POST')
+						+csrf
+
+						include /src/views/partials/flash.pug
+
+						!= poll.formSchema.ballotInfo
+
+						.alert.alert-warning
+							| Candidates are listed randomly
+							if poll.formSchema.minVotes
+								| , you must select at least #{poll.formSchema.minVotes}
+							if poll.formSchema.maxVotes
+								if poll.formSchema.minVotes
+									|
+									| and
+								else
+									| , you must select
+								|
+								| at most #{poll.formSchema.maxVotes}
+							| .
+							|
+							b Your vote will not be registered until you click Submit.
+
+						ul.poll-ballot-candidates
+							each candidate in poll.formSchema.candidates
+								li(style="order: " + Math.floor(Math.random() * 100))
+									label.poll-ballot-candidate
+										.poll-ballot-candidate-bio
+											h3= candidate.name
+										.poll-ballot-candidate-vote
+											input(
+												type='checkbox' name='answers[candidates][]' value=candidate.name
+												checked=answers.candidates && answers.candidates.indexOf(candidate.name) > -1
+											).js-poll-ballot-candidate
+											svg(viewBox="0 0 80 80")
+												use(xlink:href='#cross')
+									!= candidate.bio
+
+						p.hidden-nojs.js-poll-ballot-selected
+
+						if !poll.allowUpdate
+							p.
+								Please note that you can't change your vote once you have submitted it.
+
+						p
+							button(name='answers[submit]' value='true').btn.btn-lg.btn-success.js-poll-ballot-submit Submit
+
+				else
+					.alert.alert-info You have already voted in this ballot
+			else
+				.alert.alert-warning Ballot is now closed
+

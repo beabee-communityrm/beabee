@@ -1,12 +1,13 @@
 const express = require( 'express' );
+const _ = require('lodash');
+const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const { Members, Polls, PollAnswers } = require( __js + '/database' );
-const mailchimp = require( __js + '/mailchimp' );
-const { hasSchema, hasModel } = require( __js + '/middleware' );
-const { cleanEmailAddress, isSocialScraper, wrapAsync } = require( __js + '/utils' );
+const { hasModel } = require( __js + '/middleware' );
+const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
 
-const schemas = require( './schemas.json' );
+const { getPollTemplate, hasPollAnswers, setAnswers, PollAnswerError } = require( './utils' );
 
 const app = express();
 var app_config = {};
@@ -19,15 +20,26 @@ app.use( ( req, res, next ) => {
 		name: app_config.title,
 		url: app.mountpath
 	} );
-	res.locals.activeApp = app_config.uid;
 	next();
 } );
 
 app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
-	const polls = await Polls.find();
+	const polls = await Polls.find({
+		$or: [
+			{starts: {$eq: null}},
+			{starts: {$lt: moment.utc()}}
+		]
+	}).sort({date: -1});
+
 	const pollAnswers = await PollAnswers.find( { member: req.user } );
 
-	res.render( 'index', { polls, pollAnswers } );
+	polls.forEach(poll => {
+		poll.userAnswer = pollAnswers.find(pa => pa.poll.equals(poll._id));
+	});
+
+	const [activePolls, inactivePolls] = _.partition(polls, p => p.active);
+
+	res.render( 'index', { activePolls, inactivePolls } );
 } ) );
 
 // TODO: move this to the main site
@@ -52,102 +64,102 @@ app.get( '/:slug', [
 	auth.isLoggedIn,
 	hasModel( Polls, 'slug' )
 ], wrapAsync( async ( req, res ) => {
-	const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
-	const answer = pollAnswer ? {answer: pollAnswer.answer, ...pollAnswer.additionalAnswers} : {};
-	res.render( `polls/${req.model.slug}`, { answer, poll: req.model } );
+	if (req.query.answers) {
+		try {
+			await setAnswers( req.model, req.user, req.query.answers, true );
+		} catch (err) {
+			if (!(err instanceof PollAnswerError)) {
+				throw err;
+			}
+		}
+		res.redirect( `/polls/${req.params.slug}#vote` );
+	} else {
+		const pollAnswer = await PollAnswers.findOne( { poll: req.model, member: req.user } );
+
+		res.render( getPollTemplate( req.model ), {
+			poll: req.model,
+			answers: pollAnswer ? pollAnswer.answers : {},
+			preview: req.query.preview && auth.canAdmin( req )
+		} );
+	}
 } ) );
 
 app.get( '/:slug/:code', hasModel(Polls, 'slug'), wrapAsync( async ( req, res ) => {
 	const pollsCode = req.params.code.toUpperCase();
 
-	if (req.query.answer) {
+	// Prefill answers from URL
+	if (req.query.answers) {
 		const member = await Members.findOne( { pollsCode } );
 		if (member) {
-			await setAnswer( req.model, member, { isAsync: true, answer: req.query.answer } );
-		}
-	}
-
-	const answer = req.session.answer || {};
-	delete req.session.answer;
-
-	res.render( `polls/${req.model.slug}`, { poll: req.model, answer, code: pollsCode } );
-} ) );
-
-// TODO: remove _csrf in a less hacky way
-async function setAnswer( poll, member, { answer, _csrf, isAsync, ...otherAdditionalAnswers } ) { // eslint-disable-line no-unused-vars
-	if (!member.isActiveMember) {
-		return 'polls-expired-user';
-	} else if (poll.active) {
-		if (!poll.allowUpdate) {
-			const pollAnswer = await PollAnswers.findOne({ member, poll });
-			if (pollAnswer) {
-				return 'polls-cant-update';
+			try {
+				await setAnswers( req.model, member, req.query.answers, true );
+				req.session.answers = req.query.answers;
+			} catch (err) {
+				if (!(err instanceof PollAnswerError)) {
+					throw err;
+				}
 			}
 		}
-
-		const additionalAnswers = isAsync ?
-			{ 'additionalAnswers.isAsync': true } : { 'additionalAnswers': otherAdditionalAnswers };
-
-		await PollAnswers.findOneAndUpdate( { poll, member }, {
-			$set: { poll, member, answer, ...additionalAnswers }
-		}, { upsert: true } );
-
-		if (poll.mergeField) {
-			await mailchimp.defaultLists.members.update( member.email, {
-				merge_fields: {
-					[poll.mergeField]: answer
-				}
-			} );
-		}
+		res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
 	} else {
-		return 'polls-closed';
+		res.render( getPollTemplate( req.model ), {
+			poll: req.model,
+			answers: req.session.answers || {},
+			code: pollsCode
+		} );
+
+		delete req.session.answers;
 	}
-}
+} ) );
 
 app.post( '/:slug', [
 	auth.isLoggedIn,
-	hasModel(Polls, 'slug')
+	hasModel(Polls, 'slug'),
+	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = schemas.answerSchemas[req.model.slug];
-	hasSchema(answerSchema).orFlash( req, res, async () => {
-		const error = await setAnswer( req.model, req.user, req.body );
-		if (error) {
-			req.flash( 'error', error );
+	try {
+		await setAnswers( req.model, req.user, req.answers );
+		res.redirect( `/polls/${req.params.slug}#thanks`);
+	} catch (error) {
+		if (error instanceof PollAnswerError) {
+			req.flash( 'error', error.message);
+			res.redirect( `/polls/${req.params.slug}#vote`);
+		} else {
+			throw error;
 		}
-		res.redirect( `${req.originalUrl}#vote` );
-	});
+	}
 } ) );
 
 app.post( '/:slug/:code', [
-	hasSchema( schemas.voteLinkSchema ).orFlash,
-	hasModel(Polls, 'slug')
+	hasModel(Polls, 'slug'),
+	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
-	const answerSchema = schemas.answerSchemas[req.model.slug];
-	hasSchema(answerSchema).orFlash( req, res, async () => {
-		const pollsCode = req.params.code.toUpperCase();
-		const email = req.body.isAsync ? '' : cleanEmailAddress(req.body.email);
+	const pollsCode = req.params.code.toUpperCase();
 
-		const member = await Members.findOne( req.body.isAsync ? { pollsCode } : { pollsCode, email } );
-		if ( member ) {
-			const error = await setAnswer( req.model, member, req.body );
-			if (error) {
-				req.flash( 'error', error );
-			} else {
-				req.session.answer = req.body;
-				res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
-			}
-		} else {
-			req.flash( 'error', 'polls-unknown-user' );
-			req.log.debug({
+	try {
+		const member = await Members.findOne( { pollsCode } );
+		if (!member) {
+			req.log.error({
 				app: 'polls',
-				action: 'vote',
-				error: 'Member not found with email address/polls code combo',
-				sensitive: { email, pollsCode }
-			});
+				action: 'vote'
+			}, `Member not found with polls code "${pollsCode}"`);
+			throw new PollAnswerError('polls-unknown-user');
 		}
 
-		res.redirect( `/polls/${req.params.slug}/${req.params.code}#vote` );
-	});
+		await setAnswers( req.model, member, req.answers );
+
+		req.session.answers = req.answers;
+		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+
+		res.redirect( req.originalUrl + '#thanks' );
+	} catch (error) {
+		if (error instanceof PollAnswerError) {
+			req.flash('error', error.message);
+			res.redirect( req.originalUrl + '#vote' );
+		} else {
+			throw error;
+		}
+	}
 } ) );
 
 module.exports = config => {

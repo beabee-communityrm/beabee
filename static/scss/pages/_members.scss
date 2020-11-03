@@ -1,0 +1,26 @@
+.member-table {
+	tr {
+		cursor: pointer;
+	}
+	td {
+		outline: 0;
+	}
+}
+
+.member-about {
+	max-width: 100%;
+	min-width: 100%;
+	min-height: 200px;
+}
+
+.member-tag {
+	margin-left: 1rem;
+	.glyphicon.glyphicon-remove {
+		font-size: 1rem;
+		margin-left: 0.5rem;
+	}
+}
+
+.member-add-tag {
+	width: 30%;
+}

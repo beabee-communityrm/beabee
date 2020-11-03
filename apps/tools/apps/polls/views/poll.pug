@@ -2,89 +2,157 @@ extends /src/views/base.pug
 
 block prepend title
 	- title = 'Poll'
-	- activeapp = 'polls'
+
+block append css
+	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+	style.
+		.formcomponents { position: sticky; top: 1rem }
+
+mixin candidateSchema(candidateNo, candidate)
+	li.js-repeater-item
+		.form-group
+			label.control-label.col-md-2 Name
+			.col-md-10
+				input(type='text' name=`formSchema[candidates][${candidateNo}][name]` value=candidate.name required).form-control
+		.form-group
+			label.control-label.col-md-2 Bio
+			.col-md-10
+				textarea(name=`formSchema[candidates][${candidateNo}][bio]` required).form-control= candidate.bio
+		p.text-right
+			button(type='button').btn.btn-sm.btn-danger.js-repeater-remove-item Remove
+
+
+block prepend js
+	if poll.formTemplate === 'ballot'
+		script(type='text/template').js-repeater-template
+			+candidateSchema(0, {})
+
+block append js
+	if poll.formTemplate === 'builder'
+		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+		script.
+			Formio.builder(
+				document.getElementById('builder'),
+				!{JSON.stringify(poll.formSchema || {})},
+				{template: 'bootstrap3'}
+			).then(function (builder) {
+				builder.on('change', function() {
+					$('.js-poll-form-schema').val(JSON.stringify(builder.schema));
+				});
+			});
 
 block contents
 	.row
 		.col-md-12
-			+page_header(poll.name)
+			+page_header(poll.question)
 
-			p.
-				Created #{moment(poll.date).format('DD/MM/YYYY [at] HH:mm')}
+			dl.dl-horizontal
+				dt Status
+				dd
+					if poll.active
+						span.label.label-success Active
+					else if poll.closed
+						span.label.label-danger Closed
+					else if poll.expires
+						span.label.label-warning Expired
+					else if poll.starts
+						span.label.label-info Scheduled
+				dt Created
+				dd= moment(poll.date).format('DD/MM/YYYY [at] HH:mm')
+				dt Update answers?
+				dd= poll.allowUpdate ? 'Yes' : 'No'
+				dt URL
+				dd
+					a(href='/polls/' + poll.slug)= '/polls/' + poll.slug
+					|
+					|
+					if !poll.active
+						a(href='/polls/' + poll.slug + '?preview=1').btn.btn-xs.btn-default Preview
+				dt Submissions
+				dd
+					= pollAnswers.length
+					|
+					|
+					button(type='button' data-toggle="collapse" data-target="#answers").btn.btn-xs.btn-default Show
+					.collapse#answers
+						p.comma-list
+							each answer in pollAnswers
+								if answer.member
+									span
+										a(href='/members/' + answer.member.uuid)= answer.member.fullname
+										each tag in answer.member.tags
+											|
+											|
+											span.label.label-info= tag.name
 
-			if poll.active
-				.alert.alert-success This poll is currently active
-			else if poll.closed
-				.alert.alert-warning This poll is closed
-			else if poll.expires
-				.alert.alert-warning This poll has expired
-
-			p
-				a(href='/polls/' + poll.slug) Go to poll
-
-			h4 Answers
-			ul
-				each count, answer in answerCounts
-					li
-						= answer
-						| :
-						|
-						= count
-
-			p
-				b Note:
-				|
-				|
-				if poll.allowUpdate
-					| Users can update their answers
-				else
-					| Users can't update their answers
+			hr
 
 	.row
 		.col-md-8
+			h4 Update poll
+			include partials/poll-form
+
+	.row
+		.col-md-12
 			hr
 
-			h3 Update poll
+			h4 Edit form
 
-			form(method='POST').form-horizontal
-				input(type='hidden' name='action' value='update')
-				+csrf
-				.form-group
-					label(for='question').control-label.col-md-3 Title
-					.col-md-6
-						input(type='text' name='question' value=poll.question required)#question.form-control
-				.form-group
-					label(for='slug').control-label.col-md-3 Slug
-					.col-md-6
-						input(type='text' name='slug' value=poll.slug required readonly)#slug.form-control
-				.form-group
-					label(for='mergeField').control-label.col-md-3 Merge field
-					.col-md-6
-						input(type='text' name='mergeField' maxlength='10' value=poll.mergeField)#mergeField.form-control
-				.form-group
-					label(for='expires').control-label.col-md-3 Expires (UTC)
-					.col-md-3
-						input(type='date', name='expiresDate' value=poll.expires ? moment.utc(poll.expires).format('YYYY-MM-DD') : '')#expires.form-control
-					.col-md-3
-						input(type='time', name='expiresTime' value=poll.expires ? moment.utc(poll.expires).format('HH:mm') : '').form-control
-				.form-group
-					.col-md-offset-3.col-md-9
-						.checkbox-inline
-							input(type='checkbox' name='closed' value='true' checked=poll.closed)
-							| Closed
+			- formSchema = poll.formSchema || {}
 
-				p.col-md-offset-3
-					button.btn Update
+			if poll.formTemplate === 'builder'
+				#builder
+
+				form(method='POST')
+					+csrf
+					input(type='hidden' name='formSchema' value=JSON.stringify(formSchema)).js-poll-form-schema
+					button(name='action' value='edit-form').btn.btn-primary Save
+
+			else if poll.formTemplate === 'ballot'
+				form(method='POST').form-horizontal
+					+csrf
+
+					h5 Settings
+
+					.form-group
+						label.control-label.col-md-2 Key ballot info
+						.col-md-10
+							textarea(name='formSchema[ballotInfo]').form-control= formSchema.ballotInfo
+					.form-group
+						label.control-label.col-md-2 Min votes
+						.col-md-2
+							input(type='number' name='formSchema[minVotes]' value=formSchema.minVotes).form-control
+					.form-group
+						label.control-label.col-md-2 Max votes
+						.col-md-2
+							input(type='number' name='formSchema[maxVotes]' value=formSchema.maxVotes).form-control
+
+					h5 Candidates
+
+					ul(data-name='formSchema[candidates]').repeater.js-repeater
+						if formSchema.candidates
+							each candidate, candidateNo in formSchema.candidates
+								+candidateSchema(candidateNo, candidate)
+					p: button(type='button').btn.btn-default.js-repeater-add-item Add candidate
+
+					p: button(name='action' value='edit-form').btn.btn-primary Save
+
+			else
+				.row
+					.col-md-8
+						.alert.alert-warning This poll's form cannot be edited
 
 			hr
 
-			h3 Delete poll
+	.row
+		.col-md-8
+
+			h4 Delete poll
 
 			form(method='POST')
 				+csrf
-				input(type='hidden', name='action', value='delete')
 				p
 					label.checkbox-inline
 						input(type='checkbox' required)
 						| This change is irreversible, confirm to proceed
-				button.btn.btn-danger.outline Delete
+				button(name='action' value='delete').btn.btn-danger.outline Delete

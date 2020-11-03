@@ -6,12 +6,12 @@ block prepend title
 block contents
 	.row
 		.col-md-12
-			+page_header('Transactional emails')
-			p Create transactional email to users
+			+page_header('Emails')
+			p Send emails to users
 	.row
 		.col-md-8
 			hr
-			h3 Create transactional email
+			h4 Create email
 
 			form(action='?_csrf=' + csrf, method='POST', enctype='multipart/form-data').form-horizontal
 				.form-group
@@ -29,7 +29,7 @@ block contents
 	.row
 		.col-md-12
 			hr
-			h3 Existing transactional emails
+			h4 Existing emails
 
 	each te in transactionalEmails
 		.row

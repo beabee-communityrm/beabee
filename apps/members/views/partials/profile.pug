@@ -1,23 +1,102 @@
-+page_header( 'Profile' )
-dl.dl-horizontal
-	dt Email
-	dd  #{ member.email }
-	dt Delivery opt in?
-	dd #{ member.delivery_optin ? 'Yes' : 'No' }
-	if member.delivery_optin
-		dt Delivery address
-		dd
-			| #{ member.delivery_address.line1}
-			br
-			if member.delivery_address.line2
-				| #{ member.delivery_address.line2}
-				br
-			| #{ member.delivery_address.city}
-			br
-			| #{ member.delivery_address.postcode}
+mixin editablePanel(title, id)
+	form(method='POST' id=id).panel.panel-default.js-edit-member
+		+csrf
+		.panel-heading
+			h3.panel-title
+				.pull-right
+					a.js-edit-member-toggle: span.glyphicon.glyphicon-edit
+				= title
+		.panel-body
+			block
+			p.text-right.hidden.js-edit-member-hidden
+				button(type='button').btn.btn-default.btn-sm.js-edit-member-toggle Cancel
+				|
+				|
+				button(name='action' value='save-' + id).btn.btn-primary.btn-sm Save
 
-h3 Actions
+mixin memberTag(tag)
+	a(href='/members/?tag=' + encodeURIComponent(tag.name) data-tag=tag.name).label.label-info.member-tag.js-edit-member-tag
+		input(type='hidden' name='tags[]' value=tag.name)
+		= tag.name
+		span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
 
-form(method='POST' onsubmit='return confirm("Are you sure? This is completely irreversible")')
-	+csrf
-	button(name='action' value='permanently-delete').btn.btn-sm.btn-danger.outline Permanently delete
+script(type='text/template').js-edit-member-tag-template
+	+memberTag({name: 'XXX'})
+
++editablePanel('About', 'about')
+	.form-group
+		label(for="description").control-label Description
+		input(type='text' name='description' value=member.description readonly)#description.form-control
+
+	.form-group
+		label(for='bio').control-label Bio
+		textarea(name='bio' readonly)#bio.form-control.member-about= member.bio
+
+	p
+		| Tags:
+		span.js-edit-member-tags
+			each tag in member.tags
+				+memberTag(tag)
+	p.hidden.js-edit-member-hidden.form-inline
+		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
+			option(value='' selected disabled) Add tag
+			each tag in availableTags
+				option= tag
+
++editablePanel('Contact details', 'contact')
+	.row
+		.col-md-12
+			.form-group
+				.form-inline
+					label(for='#preferred').control-label Contact preference
+					|
+					|
+					select(name='preferred' disabled)#preferred.form-control
+						each p in ['', 'None', 'Email', 'Telephone', 'Twitter']
+							option(selected=member.contact.preferred === p)= p
+	.row
+		.col-md-12
+			.form-group
+				.input-group
+					span.input-group-addon
+						span.glyphicon.glyphicon-envelope
+					input(type='text' value=member.email readonly).form-control
+	.row
+		.col-md-6
+			.form-group
+				.input-group
+					span.input-group-addon
+						span.glyphicon.glyphicon-earphone
+					input(type='text' name='telephone' value=member.contact.telephone readonly).form-control
+		.col-md-6
+			.form-group
+				.input-group
+					span.input-group-addon
+						img(src='/static/imgs/twitter.png')
+					input(type='text' name='twitter' value=member.contact.twitter readonly).form-control
+
++editablePanel('Notes', 'notes')
+	.form-group
+		textarea(name='notes' readonly).form-control.member-about= member.notes
+
+if access('superadmin')
+	.panel.panel-default
+		.panel-heading
+			h3.panel-title
+				.pull-right: a(href=`/members/${member.uuid}/profile`): span.glyphicon.glyphicon-edit
+				| Delivery details
+		.panel-body
+			dl.dl-horizontal
+				dt Opt in?
+				dd= member.delivery_optin ? 'Yes' : 'No'
+				if member.delivery_optin
+					dt Address
+					dd
+						=  member.delivery_address.line1
+						br
+						if member.delivery_address.line2
+							= member.delivery_address.line2
+							br
+						= member.delivery_address.city
+						br
+						= member.delivery_address.postcode

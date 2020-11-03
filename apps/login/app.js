@@ -11,7 +11,6 @@ app.set( 'views', __dirname + '/views' );
 
 app.use( function( req, res, next ) {
 	res.locals.app = app_config;
-	res.locals.activeApp = app_config.uid;
 	next();
 } );
 
