@@ -18,7 +18,9 @@ const { hasModel, hasSchema } = require( __js + '/middleware' );
 const Options = require( __js + '/options' )();
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
-const { isValidCustomer, createMember, customerToMember } = require( __apps + '/join/utils' );
+const PaymentService = require( __js + '/services/PaymentService' );
+const MembersService = require( __js + '/services/MembersService' );
+
 const { calcSubscriptionMonthsLeft, canChangeSubscription, handleUpdateSubscription } = require( __apps + '/profile/apps/direct-debit/utils' );
 const { syncMemberDetails } = require( __apps + '/profile/apps/account/utils' );
 const exportTypes = require( __apps + '/tools/apps/exports/exports');
@@ -126,8 +128,9 @@ app.post( '/add', auth.isSuperAdmin, wrapAsync( async ( req, res ) => {
 	if (req.body.last_name) {
 		customer.family_name = req.body.last_name;
 	}
-	if (isValidCustomer(customer)) {
-		const member = await createMember( customerToMember( customer, req.body.mandate_id ) );
+	if (PaymentService.isValidCustomer(customer)) {
+		const memberObj = PaymentService.customerToMember(customer, req.body.mandate_id);
+		const member = await MembersService.createMember(memberObj);
 		res.redirect( app.mountpath + '/' + member.uuid );
 	} else {
 		req.flash('error', 'member-add-invalid-direct-debit');

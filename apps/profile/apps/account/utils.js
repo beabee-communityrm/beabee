@@ -1,7 +1,7 @@
 const gocardless = require( __js + '/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
 
-const { addToMailingLists } = require( __apps + '/join/utils' );
+const MembersService = require( __js + '/services/MembersService' );
 
 async function syncMemberDetails(member, oldEmail) {
 	if ( member.isActiveMember ) {
@@ -9,7 +9,7 @@ async function syncMemberDetails(member, oldEmail) {
 			await mailchimp.mainList.updateMemberDetails( member, oldEmail );
 		} catch (err) {
 			if (err.response && err.response.status === 404) {
-				await addToMailingLists(member);
+				await MembersService.addMemberToMailingLists(member);
 			} else {
 				throw err;
 			}
