@@ -9,7 +9,7 @@ const stripe = require( __js + '/stripe' );
 const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 const Options = require( __js + '/options' )();
 
-const MembersService = require( __js + '/services/MembersService' );
+const { default: MembersService } = require( '@core/services/MembersService' );
 
 const { processGiftFlow } = require( './utils' );
 const { createGiftSchema } = require( './schema.json' );

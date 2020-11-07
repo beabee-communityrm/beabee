@@ -10,7 +10,7 @@ function css() {
 		.pipe(sass().on('error', sass.logError))
 		.pipe(postcss([autoprefixer()]))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest('./static/css'));
+		.pipe(gulp.dest('./built/static/css'));
 }
 
 const build = gulp.parallel(css);

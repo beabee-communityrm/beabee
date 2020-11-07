@@ -5,7 +5,7 @@ const { ReferralGifts, Referrals } = require( __js + '/database' );
 const { hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );
 
-const { isGiftAvailable, updateGiftStock } = require( __apps + '/join/utils' );
+const { default: ReferralsService } = require( '@core/services/ReferralsService' );
 
 const { chooseGiftSchema } = require( './schema.json' );
 
@@ -50,7 +50,7 @@ app.post( '/:id', hasSchema(chooseGiftSchema).orFlash, wrapAsync( async ( req, r
 		amount: referral.refereeAmount
 	};
 
-	if (referral.referrerGift === undefined && await isGiftAvailable(giftParams)) {
+	if (referral.referrerGift === undefined && await ReferralsService.isGiftAvailable(giftParams)) {
 		await Referrals.updateOne({
 			_id: req.params.id,
 			referrer: req.user
@@ -59,7 +59,7 @@ app.post( '/:id', hasSchema(chooseGiftSchema).orFlash, wrapAsync( async ( req, r
 			referrerGiftOptions: giftParams.referralGiftOptions
 		}});
 
-		await updateGiftStock(giftParams);
+		await ReferralsService.updateGiftStock(giftParams);
 
 		req.flash( 'success', 'referral-gift-chosen' );
 		res.redirect( app.parent.mountpath + app.mountpath );

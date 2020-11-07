@@ -10,7 +10,7 @@ const { wrapAsync } = require( __js + '/utils' );
 
 const config = require( __config );
 
-const { createJoinFlow, completeJoinFlow } = require( __apps + '/join/utils' );
+const { default: JoinFlowService } = require( '@core/services/JoinFlowService' );
 
 const { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } = require('./schemas.json');
 const { calcSubscriptionMonthsLeft, canChangeSubscription, getBankAccount, handleUpdateSubscription } = require('./utils');
@@ -76,7 +76,7 @@ app.post( '/', [
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
-			const redirectUrl = await createJoinFlow( completeUrl, updateForm, {
+			const redirectUrl = await JoinFlowService.createJoinFlow( completeUrl, updateForm, {
 				prefilled_customer: {
 					email: user.email,
 					given_name: user.firstname,
@@ -97,7 +97,7 @@ app.get( '/complete', [
 	const { user } = req;
 
 	if (await canChangeSubscription(user, false)) {
-		const { customer, mandateId, joinForm } = await completeJoinFlow( req.query.redirect_flow_id );
+		const { customer, mandateId, joinForm } = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id );
 
 		if ( user.gocardless.mandate_id ) {
 			// Remove subscription before cancelling mandate to stop the

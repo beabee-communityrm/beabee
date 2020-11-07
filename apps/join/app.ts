@@ -1,23 +1,23 @@
-const express = require( 'express' );
+import express from 'express';
 
-const auth = require( __js + '/authentication' );
-const { Members, RestartFlows } = require( __js + '/database' );
-const mandrill = require( __js + '/mandrill' );
-const { hasSchema } = require( __js + '/middleware' );
-const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
+import auth from '@core/authentication' ;
+import { Members, RestartFlows } from '@core/database' ;
+import mandrill from '@core/mandrill' ;
+import { hasSchema } from '@core/middleware' ;
+import { loginAndRedirect, wrapAsync } from '@core/utils' ;
 
-const config = require( __config );
+import config from '@config';
 
-const JoinFlowService = require(__js + '/services/JoinFlowService');
-const MembersService = require(__js + '/services/MembersService');
-const PaymentService = require(__js + '/services/PaymentService');
-const ReferralsService = require(__js + '/services/ReferralsService');
+import JoinFlowService, { RestartFlow } from '@core/services/JoinFlowService';
+import MembersService, { Member } from '@core/services/MembersService';
+import PaymentService from '@core/services/PaymentService';
+import ReferralsService from '@core/services/ReferralsService';
 
-const { joinSchema, referralSchema, completeSchema } = require( './schemas.json' );
+import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 
 const app = express();
 
-var app_config = {};
+let app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
@@ -75,20 +75,20 @@ app.get( '/complete', [
 	hasSchema(completeSchema).orRedirect( '/join' )
 ], wrapAsync(async function( req, res ) {
 	const {customer, mandateId, joinForm} =
-		await JoinFlowService.completeJoinFlow(req.query.redirect_flow_id);
+		await JoinFlowService.completeJoinFlow(<string>req.query.redirect_flow_id);
 
 	if (PaymentService.isValidCustomer(customer)) {
-		const memberObj = PaymentService.customerToMember(customer, mandateId);
+		const partialMember = PaymentService.customerToMember(customer, mandateId);
 
 		try {
-			const newMember = await MembersService.createMember(memberObj);
+			const newMember = await MembersService.createMember(partialMember);
 			await MembersService.startMembership(newMember, joinForm);
 			await mandrill.sendToMember('welcome', newMember);
 			loginAndRedirect(req, res, newMember);
 		} catch ( saveError ) {
 			// Duplicate email
 			if ( saveError.code === 11000 ) {
-				const oldMember = await Members.findOne({email: memberObj.email});
+				const oldMember = <Member>await Members.findOne({email: partialMember.email});
 				if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
 					res.redirect( app.mountpath + '/duplicate-email' );
 				} else {
@@ -125,7 +125,7 @@ app.get( '/complete', [
 
 app.get('/restart/:code', wrapAsync(async (req, res) => {
 	const restartFlow =
-		await RestartFlows.findOneAndRemove({'code': req.params.code}).populate('member').exec();
+		<RestartFlow>await RestartFlows.findOneAndRemove({'code': req.params.code}).populate('member').exec();
 
 	if (restartFlow) {
 		const {member, customerId, mandateId, joinForm} = restartFlow;

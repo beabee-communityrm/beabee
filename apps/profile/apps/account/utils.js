@@ -1,7 +1,7 @@
 const gocardless = require( __js + '/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
 
-const MembersService = require( __js + '/services/MembersService' );
+const { default: MembersService } = require( '@core/services/MembersService' );
 
 async function syncMemberDetails(member, oldEmail) {
 	if ( member.isActiveMember ) {

@@ -1,7 +1,3 @@
-const __root = __dirname + '/../..';
-const __src = __root + '/src';
-const __js = __src + '/js';
-
 const Chance = require('chance');
 const crypto = require('crypto');
 const mongoose = require('mongoose');

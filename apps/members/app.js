@@ -18,8 +18,8 @@ const { hasModel, hasSchema } = require( __js + '/middleware' );
 const Options = require( __js + '/options' )();
 const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
 
-const PaymentService = require( __js + '/services/PaymentService' );
-const MembersService = require( __js + '/services/MembersService' );
+const { default: PaymentService } = require( '@core/services/PaymentService' );
+const { default: MembersService } = require( '@core/services/MembersService' );
 
 const { calcSubscriptionMonthsLeft, canChangeSubscription, handleUpdateSubscription } = require( __apps + '/profile/apps/direct-debit/utils' );
 const { syncMemberDetails } = require( __apps + '/profile/apps/account/utils' );
