@@ -21,9 +21,9 @@ jobs:
     steps:
       - checkout
       - run: npm install
+      - run: cp config/example-config.json config/config.json
       - run: NODE_ENV=production npm run build
       - run: NODE_ENV=production npm prune
-      - run: cp config/example-config.json config/config.json
       - run: echo -n ${CIRCLE_SHA1:0:7} > built/revision.txt
       - run: cd built/ && zip -r build *
       - persist_to_workspace:
