@@ -107,8 +107,8 @@
     "exec": "docker-compose restart app && docker-compose logs -f --tail 10 app"
   },
   "_moduleAliases": {
-    "@core": "/membership-system/src/js",
-    "@apps": "/membership-system/apps",
-    "@config": "/membership-system/config/config.json"
+    "@core": "./built/src/js",
+    "@apps": "./built/apps",
+    "@config": "./built/config/config.json"
   }
 }
