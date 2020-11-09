@@ -28,6 +28,7 @@ function copyAppFiles() {
 		'./tools/**/*',
 		'./src/**/*',
 		'./apps/**/*',
+		'./config/**/*',
 		'!./**/*.ts'
 	], {base: './'})
 		.pipe(gulp.dest('./built/'));
