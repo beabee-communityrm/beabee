@@ -3,8 +3,11 @@ const gulp = require('gulp');
 const postcss = require('gulp-postcss');
 const sass = require('gulp-sass');
 const sourcemaps = require('gulp-sourcemaps');
+const ts = require('gulp-typescript');
 
-function css() {
+const tsProject = ts.createProject('./tsconfig.json');
+
+function buildCSS() {
 	return gulp.src('./static/scss/**/*.scss')
 		.pipe(sourcemaps.init())
 		.pipe(sass().on('error', sass.logError))
@@ -13,10 +16,27 @@ function css() {
 		.pipe(gulp.dest('./built/static/css'));
 }
 
-const build = gulp.parallel(css);
+function buildApp() {
+	return tsProject.src()
+		.pipe(tsProject())
+		.js.pipe(gulp.dest('./built'));
+}
+
+function copyAppFiles() {
+	return gulp.src([
+		'./static/**/*',
+		'./tools/**/*',
+		'./src/**/*',
+		'./apps/**/*',
+		'!./**/*.ts'
+	], {base: './'})
+		.pipe(gulp.dest('./built/'));
+}
+
+const build = gulp.parallel(buildCSS, buildApp, copyAppFiles);
 
 function watch() {
-	gulp.watch('./static/scss/**/*.scss', css);
+	gulp.watch('./static/scss/**/*.scss', buildCSS);
 }
 
 module.exports = {
