@@ -14,7 +14,7 @@ const bodyParser = require('body-parser');
 
 const log = require( __js + '/logging' ).log;
 const { Members, Payments } = require( __js + '/database' ).connect( config.mongo );
-const gocardless = require( __js + '/gocardless' );
+const { default: gocardless } = require( '@core/gocardless' );
 const mandrill = require( __js + '/mandrill' );
 
 const utils = require('./webhook-utils');

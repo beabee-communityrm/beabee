@@ -6,7 +6,7 @@ global.__config = __root + '/config/config.json';
 global.__js = __root + '/src/js';
 global.__models = __root + '/src/models';
 
-const gocardless = require( __js + '/gocardless' );
+const { default: gocardless } = require('@core/gocardless');
 
 async function loadData() {
 	console.error( '# Loading data from GoCardless...' );

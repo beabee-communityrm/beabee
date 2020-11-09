@@ -8,7 +8,7 @@ global.__models = __root + '/src/models';
 
 const crypto = require('crypto');
 const moment = require('moment');
-const gocardless = require(__js + '/gocardless');
+const { default: gocardless } = require('@core/gocardless');
 
 async function fetchCustomers(customerIds) {
 	let customers = [], mandates = [], subscriptions = [], payments = [],

@@ -3,7 +3,7 @@ const moment = require('moment');
 
 const auth = require( __js + '/authentication' );
 const { Payments } = require( __js + '/database' );
-const gocardless = require( __js + '/gocardless' );
+const { default: gocardless } = require( '@core/gocardless' );
 const mandrill = require( __js + '/mandrill' );
 const{ hasSchema } = require( __js + '/middleware' );
 const { wrapAsync } = require( __js + '/utils' );

@@ -11,7 +11,7 @@ const {
 	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
 	Projects, Referrals, RestartFlows
 } = require( __js + '/database' );
-const gocardless = require( __js + '/gocardless' );
+const { default: gocardless } = require( '@core/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
 const mandrill = require( __js + '/mandrill' );
 const { hasModel, hasSchema } = require( __js + '/middleware' );

@@ -1,4 +1,4 @@
-const gocardless = require( __js + '/gocardless' );
+const { default: gocardless } = require( '@core/gocardless' );
 const mailchimp = require( __js + '/mailchimp' );
 
 const { default: MembersService } = require( '@core/services/MembersService' );
