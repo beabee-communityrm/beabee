@@ -3,41 +3,37 @@ const gulp = require('gulp');
 const postcss = require('gulp-postcss');
 const sass = require('gulp-sass');
 const sourcemaps = require('gulp-sourcemaps');
-const ts = require('gulp-typescript');
 
-const tsProject = ts.createProject('./tsconfig.json');
+const paths = {
+	css: {
+		src: './static/scss/**/*.scss',
+		dest: './built/static/css'
+	},
+	appFiles: {
+		src: ['./src/**/*', './apps/**/*', '!./**/*.{js,ts}', './static/**/*', './tools/**/*', './config/**/*'],
+		dest: './built'
+	}
+};
 
 function buildCSS() {
-	return gulp.src('./static/scss/**/*.scss')
+	return gulp.src(paths.css.src)
 		.pipe(sourcemaps.init())
 		.pipe(sass().on('error', sass.logError))
 		.pipe(postcss([autoprefixer()]))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest('./built/static/css'));
-}
-
-function buildApp() {
-	return tsProject.src()
-		.pipe(tsProject())
-		.js.pipe(gulp.dest('./built'));
+		.pipe(gulp.dest(paths.css.dest));
 }
 
 function copyAppFiles() {
-	return gulp.src([
-		'./static/**/*',
-		'./tools/**/*',
-		'./src/**/*',
-		'./apps/**/*',
-		'./config/**/*',
-		'!./**/*.ts'
-	], {base: './'})
-		.pipe(gulp.dest('./built/'));
+	return gulp.src(paths.appFiles.src, {base: './', since: gulp.lastRun(copyAppFiles)})
+		.pipe(gulp.dest(paths.appFiles.dest));
 }
 
-const build = gulp.parallel(buildCSS, buildApp, copyAppFiles);
+const build = gulp.parallel(buildCSS, copyAppFiles);
 
 function watch() {
-	gulp.watch('./static/scss/**/*.scss', buildCSS);
+	gulp.watch(paths.css.src, buildCSS);
+	gulp.watch(paths.appFiles.src, copyAppFiles);
 }
 
 module.exports = {

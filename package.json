@@ -2,7 +2,7 @@
   "name": "membership-system",
   "version": "2.2.8",
   "description": "Membership System for the South London Makerspace",
-  "main": "app.js",
+  "main": "built/app.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/southlondonmakerspace/membership-system.git"
@@ -61,12 +61,12 @@
     "uuid": "^8.3.1"
   },
   "scripts": {
-    "start": "docker-compose start && npm run build && concurrently -c red,blue,green npm:watch nodemon",
+    "start": "npm run build && docker-compose start && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
     "lint": "eslint apps/ src/ test/ webhook.js",
+    "watchApp": "tsc --watch --preserveWatchOutput --incremental",
     "watch": "gulp watch",
-    "build": "gulp build",
-    "test": "ava",
-    "logs": "docker-compose logs -f --tail 10 app"
+    "build": "gulp build && tsc",
+    "test": "ava"
   },
   "devDependencies": {
     "@types/express": "^4.17.8",
@@ -84,7 +84,6 @@
     "gulp-postcss": "^9.0.0",
     "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^2.6.5",
-    "gulp-typescript": "^6.0.0-alpha.1",
     "nodemon": "^2.0.4",
     "postcss": "^8.1.1",
     "typescript": "^4.0.5"
@@ -99,10 +98,14 @@
     "> 1%"
   ],
   "nodemonConfig": {
-    "ignore": [
-      "static/*",
-      "test/*"
+    "watch": [
+      "built/"
     ],
+    "ignore": [
+      "built/tsconfig.tsbuildinfo",
+      "built/static/*"
+    ],
+    "delay": "500",
     "signal": "SIGTERM",
     "exec": "docker-compose restart app && docker-compose logs -f --tail 10 app"
   },

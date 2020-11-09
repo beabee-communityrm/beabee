@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./built",
+    "listEmittedFiles": true,
     "allowJs": true,
     "module": "commonjs",
     "target": "es2019",
