@@ -25,7 +25,7 @@ jobs:
       - run: NODE_ENV=production npm run build
       - run: NODE_ENV=production npm prune
       - run: echo -n ${CIRCLE_SHA1:0:7} > revision.txt
-      - run: zip -r build.zip node_modules revision.txt
+      - run: zip -r build.zip node_modules revision.txt package.json package-lock.json
       - run: cd built/ && zip -ru ../build.zip *
       - persist_to_workspace:
           root: .
