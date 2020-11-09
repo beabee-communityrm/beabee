@@ -24,8 +24,9 @@ jobs:
       - run: cp config/example-config.json config/config.json
       - run: NODE_ENV=production npm run build
       - run: NODE_ENV=production npm prune
-      - run: echo -n ${CIRCLE_SHA1:0:7} > built/revision.txt
-      - run: cd built/ && zip -r build *
+      - run: echo -n ${CIRCLE_SHA1:0:7} > revision.txt
+      - run: zip -r build.zip node_modules revision.txt
+      - run: cd built/ && zip -ru ../build.zip *
       - persist_to_workspace:
           root: .
           paths:
