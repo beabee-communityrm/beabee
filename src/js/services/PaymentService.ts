@@ -2,7 +2,7 @@ import { Customer, CustomerCurrency, Subscription, SubscriptionIntervalUnit } fr
 
 import gocardless from '@core/gocardless';
 import { getChargeableAmount, cleanEmailAddress } from  '@core/utils';
-import { ContributionPeriod, PartialMember } from '@core/services/MembersService';
+import { ContributionPeriod, PartialMember } from '@models/members';
 
 export default class PaymentService {
 	static isValidCustomer(customer: Customer): boolean {

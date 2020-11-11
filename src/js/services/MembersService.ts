@@ -8,49 +8,8 @@ import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import config from '@config';
-import { JoinForm } from './JoinFlowService';
-import { Document } from 'mongoose';
-
-export enum ContributionPeriod {
-	Monthly = 'monthly',
-	Annually = 'annually',
-	Gift = 'gift'
-}
-
-export interface PartialMember {
-	email: string,
-	firstname: string,
-	lastname: string,
-	delivery_optin: boolean,
-	delivery_address: {
-		line1: string,
-		line2: string,
-		city: string,
-		postcode: string
-	},
-	gocardless: {
-		customer_id: string,
-		mandate_id: string,
-	}
-}
-export interface Member extends PartialMember, Document {
-	_id: string,
-	uuid: string
-	isActiveMember: boolean
-	hasActiveSubscription: boolean,
-	gocardless: {
-		customer_id: string,
-		mandate_id: string,
-		subscription_id?: string,
-		period?: ContributionPeriod,
-		amount?: number,
-		paying_fee?: boolean
-	},
-	memberPermission: {
-		date_added: Date,
-		date_expires: Date
-	}
-}
+import { JoinForm } from '@models/join-flows';
+import { Member, PartialMember } from '@models/members';
 
 export default class MembersService {
 	static generateMemberCode(member: PartialMember): string {

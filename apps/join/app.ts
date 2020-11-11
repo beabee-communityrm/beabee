@@ -8,10 +8,13 @@ import { loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
-import JoinFlowService, { RestartFlow } from '@core/services/JoinFlowService';
-import MembersService, { Member } from '@core/services/MembersService';
+import JoinFlowService  from '@core/services/JoinFlowService';
+import MembersService  from '@core/services/MembersService';
 import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
+
+import { RestartFlow } from '@models/join-flows';
+import { Member } from '@models/members';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 

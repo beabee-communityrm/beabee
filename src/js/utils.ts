@@ -1,7 +1,7 @@
+import { Request, RequestHandler, Response } from 'express';
 import _ from 'lodash';
 
-import { ContributionPeriod, Member } from '@core/services/MembersService';
-import { Request, RequestHandler, Response } from 'express';
+import { ContributionPeriod, Member } from '@models/members';
 
 interface Param {
 	name: string,
@@ -60,6 +60,7 @@ export function getNextParam(url: string): string {
 export function cleanEmailAddress(email: string): string {
 	return email.trim().toLowerCase();
 }
+
 export function loginAndRedirect(req: Request, res: Response, member: Member): void {
 	req.login(member, function (loginError) {
 		if (loginError) {
@@ -69,6 +70,7 @@ export function loginAndRedirect(req: Request, res: Response, member: Member): v
 		}
 	});
 }
+
 export function sleep(ms: number): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }

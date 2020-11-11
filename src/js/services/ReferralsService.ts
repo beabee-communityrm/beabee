@@ -2,24 +2,10 @@ import _ from 'lodash';
 
 import { Referrals, ReferralGifts } from '@core/database';
 import mandrill from '@core/mandrill';
-import { JoinForm } from '@core/services/JoinFlowService';
-import { Member } from '@core/services/MembersService';
-import { Document } from 'mongoose';
 
-interface ReferralGiftOptions {
-    name: string,
-    values: string[]
-}
-
-interface ReferralGift extends Document {
-    name: string,
-    label: string,
-    description: string,
-    minAmount: number,
-    enabled: boolean,
-	options: ReferralGiftOptions,
-	stock?: Map<string, number>
-}
+import { JoinForm } from '@models/join-flows';
+import { Member } from '@models/members';
+import { ReferralGift } from '@models/referrals';
 
 export default class ReferralsService {
 	static async getGifts(): Promise<ReferralGift[]> {

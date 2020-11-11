@@ -1,53 +1,9 @@
-import { Customer } from 'gocardless-nodejs/types/Types';
-import { Document } from 'mongoose';
-
 import auth from '@core/authentication';
 import { JoinFlows } from '@core/database';
 import gocardless from '@core/gocardless';
 import { getActualAmount } from '@core/utils';
 
-import { ContributionPeriod, Member } from '@core/services/MembersService';
-
-interface RawJoinForm {
-    amount: string,
-    amountOther: string,
-    period: ContributionPeriod,
-    referralCode: string,
-    referralGift: string,
-    referralGiftOptions: Record<string, unknown>,
-    payFee: boolean
-}
-
-export interface JoinForm {
-    amount: number,
-    period: ContributionPeriod,
-    referralCode: string,
-    referralGift: string,
-    referralGiftOptions: Record<string, unknown>,
-    payFee: boolean
-}
-
-export interface CompletedJoinFlow {
-    customer: Customer,
-    mandateId: string,
-    joinForm: JoinForm
-}
-
-interface JoinFlow extends Document {
-    date: Date,
-    redirect_flow_id: string,
-    sessionToken: string,
-    joinForm: JoinForm
-}
-
-export interface RestartFlow extends Document {
-	code: string,
-	member: Member,
-	date: Date,
-	customerId: string,
-	mandateId: string
-	joinForm: JoinForm
-}
+import { CompletedJoinFlow, JoinFlow, JoinForm, RawJoinForm } from '@models/join-flows';
 
 export default class JoinFlowService {
 	static processJoinForm({

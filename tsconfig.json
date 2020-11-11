@@ -12,7 +12,8 @@
       "*": ["./node_modules/*"],
       "@core/*": ["./src/js/*"],
       "@apps/*": ["./apps/*"],
-      "@config": ["./config/config.json"]
+      "@config": ["./config/config.json"],
+      "@models/*": ["./src/models/*"],
     },
     "resolveJsonModule": true,
     "typeRoots": ["./src/typings", "./node_modules/@types/"]

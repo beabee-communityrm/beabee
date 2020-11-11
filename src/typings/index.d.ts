@@ -1,4 +1,4 @@
-import { Member } from '@core/services/MembersService';
+import { Member } from '@models/members';
 
 declare global {
 	namespace Express {
