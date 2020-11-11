@@ -116,8 +116,5 @@
     "@apps": "./built/apps",
     "@config": "./built/config/config.json",
     "@models": "./built/src/models"
-  },
-  "madge": {
-    "tsConfig": "./tsconfig.json"
   }
 }
