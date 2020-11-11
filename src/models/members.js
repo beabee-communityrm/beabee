@@ -207,6 +207,12 @@ module.exports = {
 	} )
 };
 
+module.exports.ContributionPeriod = {
+	Monthly: 'monthly',
+	Annually: 'annually',
+	Gift: 'gift'
+};
+
 module.exports.schema.virtual( 'fullname' ).get( function() {
 	return this.firstname + ' ' + this.lastname;
 } );
