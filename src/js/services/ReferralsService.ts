@@ -50,5 +50,3 @@ export default class ReferralsService {
 		});
 	}
 }
-
-module.exports = ReferralsService;

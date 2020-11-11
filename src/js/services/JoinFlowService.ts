@@ -56,5 +56,3 @@ export default class JoinFlowService {
 	}
 
 }
-
-module.exports = JoinFlowService;
