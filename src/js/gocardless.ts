@@ -104,7 +104,7 @@ function createMethods<T>(key: string, allowedMethods: string[], allowedActions:
 	}
 
 	return Object.assign(
-		[],
+		{},
 		...allowedMethods.map(method => ({[method]: methods[method]})),
 		...allowedActions.map(action => ({[action]: actionMethod(action)}))
 	);
