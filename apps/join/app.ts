@@ -1,21 +1,26 @@
-const express = require( 'express' );
+import express from 'express';
 
-const auth = require( __js + '/authentication' );
-const { Members, ReferralGifts, RestartFlows } = require( __js + '/database' );
-const mandrill = require( __js + '/mandrill' );
-const { hasSchema } = require( __js + '/middleware' );
-const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
+import auth from '@core/authentication' ;
+import { Members, RestartFlows } from '@core/database' ;
+import mandrill from '@core/mandrill' ;
+import { hasSchema } from '@core/middleware' ;
+import { loginAndRedirect, wrapAsync } from '@core/utils' ;
 
-const config = require( __config );
+import config from '@config';
 
-const { processJoinForm, customerToMember, createJoinFlow, completeJoinFlow, isValidCustomer,
-	createMember, startMembership, isGiftAvailable } = require( './utils' );
+import JoinFlowService  from '@core/services/JoinFlowService';
+import MembersService  from '@core/services/MembersService';
+import PaymentService from '@core/services/PaymentService';
+import ReferralsService from '@core/services/ReferralsService';
 
-const { joinSchema, referralSchema, completeSchema } = require( './schemas.json' );
+import { RestartFlow } from '@models/join-flows';
+import { Member } from '@models/members';
+
+import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 
 const app = express();
 
-var app_config = {};
+let app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
@@ -31,7 +36,7 @@ app.get( '/' , function( req, res ) {
 app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 	const referrer = await Members.findOne( { referralCode: req.params.code.toUpperCase() } );
 	if ( referrer ) {
-		const gifts = await ReferralGifts.find();
+		const gifts = await ReferralsService.getGifts();
 		res.render( 'index', { user: req.user, referrer, gifts } );
 	} else {
 		req.flash('warning', 'referral-code-invalid');
@@ -43,10 +48,10 @@ app.post( '/', [
 	auth.isNotLoggedIn,
 	hasSchema(joinSchema).orFlash
 ], wrapAsync(async function( req, res ) {
-	const joinForm = processJoinForm(req.body);
+	const joinForm = JoinFlowService.processJoinForm(req.body);
 
 	const completeUrl = config.audience + app.mountpath + '/complete';
-	const redirectUrl = await createJoinFlow(completeUrl, joinForm);
+	const redirectUrl = await JoinFlowService.createJoinFlow(completeUrl, joinForm);
 
 	res.redirect( redirectUrl );
 }));
@@ -56,11 +61,11 @@ app.post( '/referral/:code', [
 	hasSchema(joinSchema).orFlash,
 	hasSchema(referralSchema).orFlash
 ], wrapAsync( async function ( req, res ) {
-	const joinForm = processJoinForm(req.body);
+	const joinForm = JoinFlowService.processJoinForm(req.body);
 
-	if (await isGiftAvailable(joinForm)) {
+	if (await ReferralsService.isGiftAvailable(joinForm)) {
 		const completeUrl = config.audience + app.mountpath + '/complete';
-		const redirectUrl = await createJoinFlow(completeUrl, joinForm);
+		const redirectUrl = await JoinFlowService.createJoinFlow(completeUrl, joinForm);
 		res.redirect(redirectUrl);
 	} else {
 		req.flash('warning', 'referral-gift-invalid');
@@ -72,20 +77,21 @@ app.get( '/complete', [
 	auth.isNotLoggedIn,
 	hasSchema(completeSchema).orRedirect( '/join' )
 ], wrapAsync(async function( req, res ) {
-	const {customer, mandateId, joinForm} = await completeJoinFlow(req.query.redirect_flow_id);
+	const {customer, mandateId, joinForm} =
+		await JoinFlowService.completeJoinFlow(<string>req.query.redirect_flow_id);
 
-	if (isValidCustomer(customer)) {
-		const memberObj = customerToMember(customer, mandateId);
+	if (PaymentService.isValidCustomer(customer)) {
+		const partialMember = PaymentService.customerToMember(customer, mandateId);
 
 		try {
-			const newMember = await createMember(memberObj);
-			await startMembership(newMember, joinForm);
+			const newMember = await MembersService.createMember(partialMember);
+			await MembersService.startMembership(newMember, joinForm);
 			await mandrill.sendToMember('welcome', newMember);
 			loginAndRedirect(req, res, newMember);
 		} catch ( saveError ) {
 			// Duplicate email
 			if ( saveError.code === 11000 ) {
-				const oldMember = await Members.findOne({email: memberObj.email});
+				const oldMember = <Member>await Members.findOne({email: partialMember.email});
 				if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
 					res.redirect( app.mountpath + '/duplicate-email' );
 				} else {
@@ -122,7 +128,7 @@ app.get( '/complete', [
 
 app.get('/restart/:code', wrapAsync(async (req, res) => {
 	const restartFlow =
-		await RestartFlows.findOneAndRemove({'code': req.params.code}).populate('member').exec();
+		<RestartFlow>await RestartFlows.findOneAndRemove({'code': req.params.code}).populate('member').exec();
 
 	if (restartFlow) {
 		const {member, customerId, mandateId, joinForm} = restartFlow;
@@ -137,7 +143,7 @@ app.get('/restart/:code', wrapAsync(async (req, res) => {
 			};
 			await member.save();
 
-			await startMembership(member, joinForm);
+			await MembersService.startMembership(member, joinForm);
 			req.flash( 'success', 'contribution-restarted' );
 		}
 

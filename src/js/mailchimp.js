@@ -111,6 +111,7 @@ module.exports = {
 			await mainListInstance.members.upsert(member.email, {
 				...memberToMCMember(member),
 				interests: Object.assign(
+					{},
 					...config.mailchimp.mainListGroups.map(group => ({[group]: true}))
 				),
 				status_if_new: 'subscribed'

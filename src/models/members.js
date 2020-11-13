@@ -1,7 +1,6 @@
 const mongoose = require( 'mongoose' );
 const crypto = require( 'crypto' );
 
-const { getActualAmount } = require('../js/utils');
 const { permission: { memberId } } = require( '../../config/config.json' );
 
 const ObjectId = mongoose.Schema.ObjectId;
@@ -207,6 +206,12 @@ module.exports = {
 	} )
 };
 
+module.exports.ContributionPeriod = {
+	Monthly: 'monthly',
+	Annually: 'annually',
+	Gift: 'gift'
+};
+
 module.exports.schema.virtual( 'fullname' ).get( function() {
 	return this.firstname + ' ' + this.lastname;
 } );
@@ -215,6 +220,9 @@ module.exports.schema.virtual( 'gravatar' ).get( function() {
 	var md5 = crypto.createHash( 'md5' ).update( this.email ).digest( 'hex' );
 	return '//www.gravatar.com/avatar/' + md5;
 } );
+
+// TODO: nicer way to fix circular dependency
+const { getActualAmount } = require('../js/utils');
 
 module.exports.schema.virtual( 'gocardless.actualAmount' ).get( function () {
 	return getActualAmount(this.gocardless.amount, this.gocardless.period);

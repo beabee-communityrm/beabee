@@ -2,7 +2,7 @@
   "name": "membership-system",
   "version": "2.2.8",
   "description": "Membership System for the South London Makerspace",
-  "main": "app.js",
+  "main": "built/app.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/southlondonmakerspace/membership-system.git"
@@ -16,11 +16,11 @@
   "dependencies": {
     "JSONStream": "^1.3.5",
     "ajv": "^6.12.5",
-    "axios": "^0.20.0",
+    "axios": "^0.21.0",
     "body-parser": "^1.19.0",
     "bootstrap-sass": "^3.4.1",
     "bunyan": "^1.8.14",
-    "bunyan-middleware": "^1.0.0",
+    "bunyan-middleware": "github:EthWorks/bunyan-middleware#d6baa3f1f6f96c438649b21a55a3b51f9ff7394e",
     "bunyan-slack": "0.0.10",
     "chance": "^1.1.7",
     "clean-deep": "^3.4.0",
@@ -36,12 +36,14 @@
     "express-session": "^1.17.1",
     "flat": "^5.0.2",
     "git-rev": "^0.2.1",
+    "gocardless-nodejs": "^1.4.1",
     "gunzip-maybe": "^1.4.2",
     "helmet": "^4.1.1",
     "hummus": "^1.0.110",
     "inquirer": "^7.3.3",
     "lodash": "^4.17.20",
     "mandrill-api": "^1.0.45",
+    "module-alias": "^2.2.2",
     "moment": "^2.29.1",
     "mongodb-extended-json": "^1.11.0",
     "mongoose": "^5.10.9",
@@ -59,16 +61,22 @@
     "uuid": "^8.3.1"
   },
   "scripts": {
-    "start": "docker-compose start && npm run build && concurrently -c red,blue,green npm:watch nodemon",
-    "app": "node app 2>&1 | bunyan",
-    "webhook": "node webhook | bunyan",
+    "start": "npm run build && docker-compose start && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
     "lint": "eslint apps/ src/ test/ webhook.js",
+    "watchApp": "tsc --watch --preserveWatchOutput --incremental",
     "watch": "gulp watch",
-    "build": "gulp build",
-    "test": "ava",
-    "logs": "docker-compose logs -f --tail 10 app"
+    "build": "rimraf built/ && gulp build && tsc",
+    "test": "ava"
   },
   "devDependencies": {
+    "@types/express": "^4.17.8",
+    "@types/lodash": "^4.14.164",
+    "@types/mongoose": "^5.7.37",
+    "@types/node": "^14.14.7",
+    "@types/passport": "^1.0.4",
+    "@types/uuid": "^8.3.0",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
     "autoprefixer": "^10.0.1",
     "ava": "^3.13.0",
     "concurrently": "^5.3.0",
@@ -78,7 +86,9 @@
     "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^2.6.5",
     "nodemon": "^2.0.4",
-    "postcss": "^8.1.1"
+    "postcss": "^8.1.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.0.5"
   },
   "ava": {
     "files": [
@@ -90,11 +100,21 @@
     "> 1%"
   ],
   "nodemonConfig": {
-    "ignore": [
-      "static/*",
-      "test/*"
+    "watch": [
+      "built/"
     ],
+    "ignore": [
+      "built/tsconfig.tsbuildinfo",
+      "built/static/*"
+    ],
+    "delay": "500",
     "signal": "SIGTERM",
-    "exec": "npm run lint && docker-compose restart app && docker-compose logs -f --tail 10 app"
+    "exec": "docker-compose restart app && docker-compose logs -f app"
+  },
+  "_moduleAliases": {
+    "@core": "./built/src/js",
+    "@apps": "./built/apps",
+    "@config": "./built/config/config.json",
+    "@models": "./built/src/models"
   }
 }

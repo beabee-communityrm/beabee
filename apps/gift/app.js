@@ -9,7 +9,7 @@ const stripe = require( __js + '/stripe' );
 const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
 const Options = require( __js + '/options' )();
 
-const { generateMemberCode } = require( __apps + '/join/utils' );
+const { default: MembersService } = require( '@core/services/MembersService' );
 
 const { processGiftFlow } = require( './utils' );
 const { createGiftSchema } = require( './schema.json' );
@@ -32,7 +32,7 @@ async function createGiftFlow(giftForm, member) {
 	try {
 		return await GiftFlows.create({
 			sessionId: 'UNKNOWN',
-			setupCode: generateMemberCode(giftForm),
+			setupCode: MembersService.generateMemberCode(giftForm),
 			giftForm,
 			member
 		});

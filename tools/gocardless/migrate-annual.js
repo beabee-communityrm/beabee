@@ -1,3 +1,5 @@
+require('module-alias/register');
+
 global.__root = __dirname + '/../..';
 global.__apps = __root + '/apps';
 global.__config = __root + '/config/config.json';
@@ -11,7 +13,7 @@ const Papa = require( 'papaparse' );
 
 const config = require( __config );
 const db = require( __js + '/database' );
-const gocardless = require(__js + '/gocardless');
+const { default: gocardless } = require( '@core/gocardless' );
 const mandrill = require(__js + '/mandrill');
 
 const { getSpecialUrlUrl } = require( __apps + '/tools/apps/special-urls/utils' );

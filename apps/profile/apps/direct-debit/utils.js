@@ -1,11 +1,13 @@
 const moment = require('moment');
 
 const { Payments } = require( __js + '/database' );
-const gocardless = require( __js + '/gocardless' );
+const { default: gocardless } = require( '@core/gocardless' );
 const log = require( __js + '/logging' ).log;
 const mandrill = require( __js + '/mandrill' );
 const { getChargeableAmount } = require( __js + '/utils' );
-const { createSubscription, startMembership } = require( __apps + '/join/utils' );
+
+const { default: MembersService } = require('@core/services/MembersService');
+const { default: PaymentService } = require('@core/services/PaymentService');
 
 const config = require( __config );
 
@@ -125,7 +127,7 @@ async function processUpdateSubscription(user, {amount, period, prorate, payFee}
 	if (user.isActiveMember) {
 		if (!user.hasActiveSubscription) {
 			const startDate = moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod).format('YYYY-MM-DD');
-			const subscription = await createSubscription(amount, period, payFee, user.gocardless.mandate_id, startDate);
+			const subscription = await PaymentService.createSubscription(amount, period, payFee, user.gocardless.mandate_id, startDate);
 
 			user.gocardless.subscription_id = subscription.id;
 			user.gocardless.period = period;
@@ -147,7 +149,7 @@ async function processUpdateSubscription(user, {amount, period, prorate, payFee}
 		if (user.hasActiveSubscription) {
 			throw new Error('Can\'t update active subscriptions for expired members');
 		} else {
-			await startMembership(user, {amount, period, payFee});
+			await MembersService.startMembership(user, {amount, period, payFee});
 		}
 	}
 }

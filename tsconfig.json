@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "outDir": "./built",
+    "listEmittedFiles": true,
+    "allowJs": true,
+    "module": "commonjs",
+    "target": "es2019",
+    "lib": ["es2019", "es2020.bigint", "es2020.string", "es2020.symbol.wellknown"],
+    "esModuleInterop": true,
+    "baseUrl": "./",
+    "paths": {
+      "*": ["./node_modules/*"],
+      "@core/*": ["./src/js/*"],
+      "@apps/*": ["./apps/*"],
+      "@config": ["./config/config.json"],
+      "@models/*": ["./src/models/*"]
+    },
+    "resolveJsonModule": true,
+    "typeRoots": ["./src/typings", "./node_modules/@types/"]
+  },
+  "include": ["app.js", "webhook*.js", "./src/**/*", "./apps/**/*"]
+}

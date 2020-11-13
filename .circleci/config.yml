@@ -3,7 +3,7 @@ version: 2
 aliases:
   deploy: &deploy
     docker:
-      - image: circleci/node:12.16.3
+      - image: cimg/node:12.16.3
     steps:
       - attach_workspace:
           at: /tmp/workspace
@@ -17,14 +17,15 @@ aliases:
 jobs:
   build:
     docker:
-      - image: circleci/node:12.16.3
+      - image: cimg/node:12.16.3
     steps:
       - checkout
       - run: npm install
+      - run: cp config/example-config.json config/config.json
       - run: NODE_ENV=production npm run build
       - run: NODE_ENV=production npm prune
-      - run: echo -n ${CIRCLE_SHA1:0:7} > revision.txt
-      - run: zip -r build app.js apps/ config/ static/ src/ tools/ webhook.js webhook-utils.js webhook-stripe.js package*.json revision.txt node_modules
+      - run: echo -n ${CIRCLE_SHA1:0:7} > built/revision.txt
+      - run: zip -r build.zip node_modules package.json package-lock.json built/
       - persist_to_workspace:
           root: .
           paths:

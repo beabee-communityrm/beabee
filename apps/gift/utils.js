@@ -1,7 +1,7 @@
 const moment = require( 'moment' );
 
 const mandrill = require( __js + '/mandrill' );
-const { createMember, addToMailingLists } = require( __apps + '/join/utils' );
+const { default: MembersService } = require( '@core/services/MembersService' );
 
 async function processGiftFlow( giftFlow, sendImmediately = false ) {
 	const { firstname, lastname, email, delivery_address = {}, type, fromName,
@@ -12,7 +12,7 @@ async function processGiftFlow( giftFlow, sendImmediately = false ) {
 
 	await giftFlow.update({$set: {processed: true}});
 
-	const member = await createMember({
+	const member = await MembersService.createMember({
 		firstname,
 		lastname,
 		email,
@@ -34,7 +34,7 @@ async function processGiftFlow( giftFlow, sendImmediately = false ) {
 	const sendAt = sendImmediately ? null : now.clone().set({h: 10, m: 0, s: 0}).format();
 	await mandrill.sendToMember('giftee-success', member, { fromName, message }, sendAt);
 
-	await addToMailingLists(member);
+	await MembersService.addMemberToMailingLists(member);
 }
 
 module.exports = {
