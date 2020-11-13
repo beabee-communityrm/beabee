@@ -58,7 +58,7 @@ function routeApps(mainApp, apps) {
 			path: '/' + _app.path
 		} );
 		var new_app = require( _app.app )( _app );
-		mainApp.locals.basedir = __dirname + '/../..';
+		new_app.locals.basedir = __dirname + '/../..';
 		mainApp.use( '/' + _app.path, new_app );
 
 		if ( _app.subapps.length > 0 ) {
