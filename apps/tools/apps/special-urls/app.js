@@ -4,10 +4,10 @@ const _ = require( 'lodash' );
 const moment = require( 'moment' );
 const Papa = require('papaparse');
 
-const auth = require( __js + '/authentication' );
-const { SpecialUrlGroups, SpecialUrls } = require( __js + '/database' );
-const { hasModel, hasSchema } = require( __js + '/middleware' );
-const { loadParams, parseParams, wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { SpecialUrlGroups, SpecialUrls } = require( '@core/database' );
+const { hasModel, hasSchema } = require( '@core/middleware' );
+const { loadParams, parseParams, wrapAsync } = require( '@core/utils' );
 
 const actions = require('./actions');
 const { createSpecialUrlsSchema, updateSpecialUrlsSchema } = require( './schemas.json' );

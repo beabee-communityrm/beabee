@@ -1,13 +1,13 @@
 const express = require( 'express' );
 const moment = require( 'moment' );
 
-const config = require( __config );
+const config = require( '@config' );
 
-const { GiftFlows, Members } = require( __js + '/database' );
-const { hasModel, hasSchema } = require( __js + '/middleware' );
-const stripe = require( __js + '/stripe' );
-const { loginAndRedirect, wrapAsync } = require( __js + '/utils' );
-const Options = require( __js + '/options' )();
+const { GiftFlows, Members } = require( '@core/database' );
+const { hasModel, hasSchema } = require( '@core/middleware' );
+const stripe = require( '@core/stripe' );
+const { loginAndRedirect, wrapAsync } = require( '@core/utils' );
+const Options = require( '@core/options' )();
 
 const { default: MembersService } = require( '@core/services/MembersService' );
 

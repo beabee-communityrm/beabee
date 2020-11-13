@@ -1,22 +1,16 @@
 require('module-alias/register');
 
-global.__root = __dirname + '/../..';
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
 const axios = require( 'axios' );
 const fs = require( 'fs' );
 const moment = require( 'moment' );
 const Papa = require( 'papaparse' );
 
-const config = require( __config );
-const db = require( __js + '/database' );
+const config = require( '@config' );
+const db = require( '@core/database' );
 const { default: gocardless } = require( '@core/gocardless' );
-const mandrill = require(__js + '/mandrill');
+const mandrill = require('@core/mandrill');
 
-const { getSpecialUrlUrl } = require( __apps + '/tools/apps/special-urls/utils' );
+const { getSpecialUrlUrl } = require( '@apps/tools/apps/special-urls/utils' );
 
 const DRY_RUN = process.argv[2] === '-n';
 const DATE = process.argv[DRY_RUN ? 3 : 2];

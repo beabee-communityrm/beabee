@@ -1,5 +1,5 @@
-const { Members, Permissions } = require(__js + '/database');
-const config = require( __config );
+const { Members, Permissions } = require('@core/database');
+const config = require( '@config' );
 
 async function getParams() {
 	return [{

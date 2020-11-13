@@ -1,27 +1,21 @@
 require('module-alias/register');
 
-global.__root = __dirname;
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
 const express = require( 'express' );
 const helmet = require( 'helmet' );
 const flash = require( 'express-flash' );
 
-const appLoader = require( __js + '/app-loader' );
-const auth = require( __js + '/authentication' );
-const database = require( __js + '/database' );
-const logging = require( __js + '/logging' );
-const Options = require( __js + '/options' )();
-const pageSettings = require( __js + '/page-settings' );
-const quickflash = require( __js + '/quickflash' );
-const sessions = require( __js + '/sessions' );
+const appLoader = require( '@core/app-loader' );
+const auth = require( '@core/authentication' );
+const database = require( '@core/database' );
+const logging = require( '@core/logging' );
+const Options = require( '@core/options' )();
+const pageSettings = require( '@core/page-settings' );
+const quickflash = require( '@core/quickflash' );
+const sessions = require( '@core/sessions' );
 
-const specialUrlHandler = require( __apps + '/tools/apps/special-urls/handler' );
+const specialUrlHandler = require( '@apps/tools/apps/special-urls/handler' );
 
-const config = require( __config );
+const config = require( '@config' );
 const log = logging.log;
 
 if ( !config.gocardless.sandbox && config.dev ) {
@@ -41,12 +35,12 @@ database.connect( config.mongo );
 
 const app = express();
 
-app.set( 'views', __root + '/src/views' );
+app.set( 'views', __dirname + '/src/views' );
 app.set( 'view engine', 'pug' );
 app.set( 'view cache', false );
 
 // Setup static route (only used on dev)
-app.use( '/static', express.static( __root + '/static' ) );
+app.use( '/static', express.static( __dirname + '/static' ) );
 
 // Add logging capabilities
 logging.installMiddleware( app );

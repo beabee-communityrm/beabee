@@ -2,10 +2,10 @@ const express = require( 'express' );
 const _ = require( 'lodash' );
 const moment = require( 'moment' );
 
-const auth = require( __js + '/authentication' );
-const { Projects, ProjectMembers } = require( __js + '/database' );
-const { hasModel } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { Projects, ProjectMembers } = require( '@core/database' );
+const { hasModel } = require( '@core/middleware' );
+const { wrapAsync } = require( '@core/utils' );
 
 const app = express();
 var app_config = {};

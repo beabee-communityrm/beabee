@@ -2,10 +2,10 @@ const express = require( 'express' );
 const _ = require('lodash');
 const moment = require('moment');
 
-const auth = require( __js + '/authentication' );
-const { Members, Polls, PollAnswers } = require( __js + '/database' );
-const { hasModel } = require( __js + '/middleware' );
-const { isSocialScraper, wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { Members, Polls, PollAnswers } = require( '@core/database' );
+const { hasModel } = require( '@core/middleware' );
+const { isSocialScraper, wrapAsync } = require( '@core/utils' );
 
 const { getPollTemplate, hasPollAnswers, setAnswers, PollAnswerError } = require( './utils' );
 

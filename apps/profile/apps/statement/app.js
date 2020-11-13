@@ -1,8 +1,8 @@
 var	express = require( 'express' ),
 	app = express();
 
-var auth = require( __js + '/authentication' ),
-	db = require( __js + '/database' ),
+var auth = require( '@core/authentication' ),
+	db = require( '@core/database' ),
 	Payments = db.Payments;
 
 var app_config = {};

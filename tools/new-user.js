@@ -1,21 +1,15 @@
 require('module-alias/register');
 
-global.__root = __dirname + '/..';
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
 var inquirer = require( 'inquirer' );
 var moment = require( 'moment' );
 
-var config = require( __config );
+var config = require( '@config' );
 
-var	db = require( __js + '/database' ).connect( config.mongo ),
+var	db = require( '@core/database' ).connect( config.mongo ),
 	Permissions = db.Permissions,
 	Members = db.Members;
 
-var Auth = require( __js + '/authentication' );
+var Auth = require( '@core/authentication' );
 
 var member, admin, superadmin;
 

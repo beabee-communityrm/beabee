@@ -1,5 +1,5 @@
 const mongoose = require( 'mongoose' );
-const log = require( __js + '/logging' ).log;
+const log = require( '@core/logging' ).log;
 
 exports.ObjectId = mongoose.Schema.ObjectId;
 exports.mongoose = mongoose;

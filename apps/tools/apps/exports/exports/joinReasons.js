@@ -1,4 +1,4 @@
-const { Members } = require(__js + '/database');
+const { Members } = require('@core/database');
 
 async function getQuery() {
 	return {

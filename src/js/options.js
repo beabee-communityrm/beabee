@@ -1,7 +1,7 @@
-var db = require( __js + '/database' ),
+var db = require( '@core/database' ),
 	OptionsDB = db.Options;
 
-var defaults = require( __root + '/src/defaults.json' );
+var defaults = require( './defaults.json' );
 
 var _options = [];
 

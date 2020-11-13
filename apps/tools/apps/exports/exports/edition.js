@@ -1,8 +1,8 @@
 const _ = require('lodash');
 
-const { Exports, Members, Permissions } = require(__js + '/database');
+const { Exports, Members, Permissions } = require('@core/database');
 const { isLocalPostcode } = require( '../utils.js' );
-const config = require( __config );
+const config = require( '@config' );
 
 async function getParams() {
 	return [{

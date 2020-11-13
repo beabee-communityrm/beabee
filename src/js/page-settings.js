@@ -1,4 +1,4 @@
-const { PageSettings } = require( __js + '/database' );
+const { PageSettings } = require( '@core/database' );
 
 let pathsCache = {};
 let pageSettingsCache = [];

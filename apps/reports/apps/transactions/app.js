@@ -3,12 +3,12 @@ var	express = require( 'express' ),
 
 var moment = require( 'moment' );
 
-var db = require( __js + '/database' ),
+var db = require( '@core/database' ),
 	Payments = db.Payments;
 
-var auth = require( __js + '/authentication' );
+var auth = require( '@core/authentication' );
 
-const { wrapAsync } = require( __js + '/utils' );
+const { wrapAsync } = require( '@core/utils' );
 
 var app_config = {};
 

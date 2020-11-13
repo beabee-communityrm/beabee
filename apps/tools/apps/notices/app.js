@@ -2,10 +2,10 @@ const express = require( 'express' );
 const moment = require( 'moment' );
 const _ = require( 'lodash' );
 
-const auth = require( __js + '/authentication' );
-const { Members, Notices } = require( __js + '/database' );
-const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { Members, Notices } = require( '@core/database' );
+const { hasSchema } = require( '@core/middleware' );
+const { wrapAsync } = require( '@core/utils' );
 
 const { createNoticeSchema } = require( './schemas.json' );
 

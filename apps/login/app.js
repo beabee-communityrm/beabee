@@ -1,8 +1,8 @@
 const express = require( 'express' );
 const passport = require( 'passport' );
 
-const { Members } = require( __js + '/database' );
-const { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } = require ( __js + '/utils' );
+const { Members } = require( '@core/database' );
+const { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } = require ( '@core/utils' );
 
 const app = express();
 var app_config = {};

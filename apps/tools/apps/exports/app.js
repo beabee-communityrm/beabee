@@ -3,10 +3,10 @@ const _ = require('lodash');
 const Papa = require('papaparse');
 const pug = require( 'pug' );
 
-const auth = require( __js + '/authentication' );
-const { Exports } = require( __js + '/database' );
-const { hasSchema } = require( __js + '/middleware' );
-const { loadParams, parseParams, wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { Exports } = require( '@core/database' );
+const { hasSchema } = require( '@core/middleware' );
+const { loadParams, parseParams, wrapAsync } = require( '@core/utils' );
 
 const { createSchema, updateSchema } = require('./schemas.json');
 

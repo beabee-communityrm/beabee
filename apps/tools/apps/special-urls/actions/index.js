@@ -1,6 +1,6 @@
-const { Members } = require( __js + '/database' );
+const { Members } = require( '@core/database' );
 
-const { canChangeSubscription, processUpdateSubscription } = require( __apps + '/profile/apps/direct-debit/utils' );
+const { canChangeSubscription, processUpdateSubscription } = require( '@apps/profile/apps/direct-debit/utils' );
 
 module.exports = [
 	{

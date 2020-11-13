@@ -1,15 +1,15 @@
-var config = require( __config );
+var config = require( '@config' );
 
-var log = require( __js + '/logging' ).log;
+var log = require( '@core/logging' ).log;
 
 var fs = require( 'fs' );
 
 module.exports = function( app ) {
 	// Loop through main app directory contents
-	var apps = loadApps( __apps, config.appOverrides );
+	var apps = loadApps( __dirname + '/../..', config.appOverrides );
 
 	// Load template locals;
-	app.use( require( __js + '/template-locals' )( apps ) );
+	app.use( require( '@core/template-locals' )( apps ) );
 
 	// Route apps
 	routeApps(app, apps);
@@ -58,7 +58,6 @@ function routeApps(mainApp, apps) {
 			path: '/' + _app.path
 		} );
 		var new_app = require( _app.app )( _app );
-		new_app.locals.basedir = __root;
 		mainApp.use( '/' + _app.path, new_app );
 
 		if ( _app.subapps.length > 0 ) {
@@ -71,7 +70,6 @@ function routeApps(mainApp, apps) {
 				} );
 
 				var new_sub_app = require( _sapp.app )( _sapp );
-				new_sub_app.locals.basedir = __root;
 				new_app.use( '/' + _sapp.path, new_sub_app );
 			}
 		}

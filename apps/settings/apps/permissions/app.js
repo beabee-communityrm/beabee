@@ -1,9 +1,9 @@
 var	express = require( 'express' ),
 	app = express();
 
-var { Permissions } = require( __js + '/database' );
+var { Permissions } = require( '@core/database' );
 
-var auth = require( __js + '/authentication' );
+var auth = require( '@core/authentication' );
 
 var app_config = {};
 

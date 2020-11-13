@@ -1,7 +1,7 @@
 const express = require( 'express' );
 const passport = require( 'passport' );
 
-const { isValidNextUrl, getNextParam } = require( __js + '/utils' );
+const { isValidNextUrl, getNextParam } = require( '@core/utils' );
 
 const app = express();
 var app_config = {};

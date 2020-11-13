@@ -18,5 +18,5 @@
     "resolveJsonModule": true,
     "typeRoots": ["./src/typings", "./node_modules/@types/"]
   },
-  "include": ["app.js", "webhook*.js", "./src/**/*", "./apps/**/*"]
+  "include": ["app.js", "webhook*.js", "./src/**/*", "./apps/**/*", "./tools/**/*"]
 }

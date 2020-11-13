@@ -1,9 +1,9 @@
 var	express = require( 'express' ),
 	app = express();
 
-const auth = require( __js + '/authentication' );
-const { hasSchema } = require( __js + '/middleware' );
-const { cleanEmailAddress, wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { hasSchema } = require( '@core/middleware' );
+const { cleanEmailAddress, wrapAsync } = require( '@core/utils' );
 
 const { updateSchema } = require( './schemas.json' );
 const { syncMemberDetails } = require( './utils' );

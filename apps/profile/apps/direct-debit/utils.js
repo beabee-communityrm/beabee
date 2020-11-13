@@ -1,15 +1,15 @@
 const moment = require('moment');
 
-const { Payments } = require( __js + '/database' );
+const { Payments } = require( '@core/database' );
 const { default: gocardless } = require( '@core/gocardless' );
-const log = require( __js + '/logging' ).log;
-const mandrill = require( __js + '/mandrill' );
-const { getChargeableAmount } = require( __js + '/utils' );
+const log = require( '@core/logging' ).log;
+const mandrill = require( '@core/mandrill' );
+const { getChargeableAmount } = require( '@core/utils' );
 
 const { default: MembersService } = require('@core/services/MembersService');
 const { default: PaymentService } = require('@core/services/PaymentService');
 
-const config = require( __config );
+const config = require( '@config' );
 
 function calcSubscriptionMonthsLeft(user) {
 	return Math.max(0,
