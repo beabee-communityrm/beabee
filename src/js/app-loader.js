@@ -71,7 +71,7 @@ function routeApps(mainApp, apps) {
 				} );
 
 				var new_sub_app = require( _sapp.app )( _sapp );
-				new_app.locals.basedir = __dirname + '/../..';
+				new_sub_app.locals.basedir = __dirname + '/../..';
 				new_app.use( '/' + _sapp.path, new_sub_app );
 			}
 		}
