@@ -6,7 +6,7 @@ var fs = require( 'fs' );
 
 module.exports = function( app ) {
 	// Loop through main app directory contents
-	var apps = loadApps( __dirname + '/../..', config.appOverrides );
+	var apps = loadApps( __dirname + '/../../apps', config.appOverrides );
 
 	// Load template locals;
 	app.use( require( '@core/template-locals' )( apps ) );
@@ -58,6 +58,7 @@ function routeApps(mainApp, apps) {
 			path: '/' + _app.path
 		} );
 		var new_app = require( _app.app )( _app );
+		mainApp.locals.basedir = __dirname + '/../..';
 		mainApp.use( '/' + _app.path, new_app );
 
 		if ( _app.subapps.length > 0 ) {
@@ -70,6 +71,7 @@ function routeApps(mainApp, apps) {
 				} );
 
 				var new_sub_app = require( _sapp.app )( _sapp );
+				new_app.locals.basedir = __dirname + '/../..';
 				new_app.use( '/' + _sapp.path, new_sub_app );
 			}
 		}

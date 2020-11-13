@@ -13,6 +13,9 @@ const { getSpecialUrlUrl } = require( './utils' );
 const app = express();
 app.set( 'views', __dirname + '/views' );
 
+// TODO : clean this up
+app.locals.basedir = __dirname + '/../../../..';
+
 const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
 const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
