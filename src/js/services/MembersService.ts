@@ -19,7 +19,7 @@ export default class MembersService {
 
 	static async createMember(memberObj: PartialMember): Promise<Member> {
 		try {
-			return <Member>await Members.create({
+			return await Members.create({
 				...memberObj,
 				referralCode: MembersService.generateMemberCode(memberObj),
 				pollsCode: MembersService.generateMemberCode(memberObj)
@@ -66,7 +66,7 @@ export default class MembersService {
 			await MembersService.addMemberToMailingLists(member);
 
 			if (joinForm.referralCode) {
-				const referrer = <Member>await Members.findOne({referralCode: joinForm.referralCode});
+				const referrer = await Members.findOne({referralCode: joinForm.referralCode});
 				await ReferralsService.createReferral(referrer, member, joinForm);
 			}
 		}
