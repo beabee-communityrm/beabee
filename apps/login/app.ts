@@ -40,13 +40,13 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 } ) );
 
 app.post( '/', (req, res) => {
-	const next = req.query.next as string;
+	const nextParam = req.query.next as string;
 	passport.authenticate( 'local', {
-		failureRedirect: '/login' + getNextParam( next ),
+		failureRedirect: '/login' + getNextParam( nextParam ),
 		failureFlash: true
 	} )( req, res, () => {
 		req.session.method = 'plain';
-		res.redirect( isValidNextUrl( next ) ? <string>req.query.next : '/profile' );
+		res.redirect( isValidNextUrl( nextParam ) ? nextParam : '/profile' );
 	} );
 } );
 
