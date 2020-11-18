@@ -1,7 +1,7 @@
 const mongoose = require( 'mongoose' );
 const crypto = require( 'crypto' );
 
-const { permission: { memberId } } = require( '../../config/config.json' );
+const { permission: { memberId } } = require( '@config' );
 
 const ObjectId = mongoose.Schema.ObjectId;
 
