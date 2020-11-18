@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { isLoggedIn } from '@core/authentication';
+import auth from '@core/authentication';
 import { Notices } from '@core/database';
 import { wrapAsync } from '@core/utils';
 
@@ -9,7 +9,7 @@ let app_config;
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( isLoggedIn );
+app.use( auth.isLoggedIn );
 
 app.use( function( req, res, next ) {
 	res.locals.app = app_config;
