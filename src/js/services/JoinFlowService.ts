@@ -3,7 +3,7 @@ import { JoinFlows } from '@core/database';
 import gocardless from '@core/gocardless';
 import { getActualAmount } from '@core/utils';
 
-import { CompletedJoinFlow, JoinFlow, JoinForm, RawJoinForm } from '@models/join-flows';
+import { CompletedJoinFlow, JoinForm, RawJoinForm } from '@models/join-flows';
 
 export default class JoinFlowService {
 	static processJoinForm({
@@ -40,7 +40,7 @@ export default class JoinFlowService {
 	}
 
 	static async completeJoinFlow(redirect_flow_id: string): Promise<CompletedJoinFlow> {
-		const joinFlow = <JoinFlow>await JoinFlows.findOneAndRemove({ redirect_flow_id });
+		const joinFlow = await JoinFlows.findOneAndRemove({ redirect_flow_id });
 
 		const redirectFlow = await gocardless.redirectFlows.complete(redirect_flow_id, {
 			session_token: joinFlow.sessionToken

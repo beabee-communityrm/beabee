@@ -13,9 +13,6 @@ import MembersService  from '@core/services/MembersService';
 import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
-import { RestartFlow } from '@models/join-flows';
-import { Member } from '@models/members';
-
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 
 const app = express();
@@ -91,7 +88,7 @@ app.get( '/complete', [
 		} catch ( saveError ) {
 			// Duplicate email
 			if ( saveError.code === 11000 ) {
-				const oldMember = <Member>await Members.findOne({email: partialMember.email});
+				const oldMember = await Members.findOne({email: partialMember.email});
 				if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
 					res.redirect( app.mountpath + '/duplicate-email' );
 				} else {
@@ -128,7 +125,7 @@ app.get( '/complete', [
 
 app.get('/restart/:code', wrapAsync(async (req, res) => {
 	const restartFlow =
-		<RestartFlow>await RestartFlows.findOneAndRemove({'code': req.params.code}).populate('member').exec();
+		await RestartFlows.findOneAndRemove({'code': req.params.code}).populate('member').exec();
 
 	if (restartFlow) {
 		const {member, customerId, mandateId, joinForm} = restartFlow;

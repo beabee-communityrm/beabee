@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Model } from 'mongoose';
 
 export enum ContributionPeriod {
 	Monthly = 'monthly',
@@ -23,10 +23,9 @@ export interface PartialMember {
 	}
 }
 export interface Member extends PartialMember, Document {
-	_id: string,
-	uuid: string
-	isActiveMember: boolean
-	hasActiveSubscription: boolean,
+	uuid?: string
+	referralCode: string,
+	pollsCode: string
 	gocardless: {
 		customer_id: string,
 		mandate_id: string,
@@ -35,8 +34,27 @@ export interface Member extends PartialMember, Document {
 		amount?: number,
 		paying_fee?: boolean
 	},
-	memberPermission: {
+	memberPermission?: {
 		date_added: Date,
 		date_expires: Date
-	}
+	},
+	otp?: {
+		key: string,
+		activated: boolean
+	},
+	loginOverride?: {
+		code: string,
+		expires: Date
+	},
+	password?: {
+		hash: string,
+		salt: string,
+		iterations: number,
+		reset_code: string,
+		tries: number
+	},
+	readonly isActiveMember: boolean
+	readonly hasActiveSubscription: boolean,
 }
+
+export const model: Model<Member>;
