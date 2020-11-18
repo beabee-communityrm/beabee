@@ -1,4 +1,4 @@
-const express = require( 'express' );
+import express from 'express';
 
 const app = express();
 
@@ -9,4 +9,4 @@ app.get( '/' , function( req, res ) {
 	res.redirect( '/' );
 } );
 
-module.exports = function() { return app; };
+export default function(): express.Express { return app; }
