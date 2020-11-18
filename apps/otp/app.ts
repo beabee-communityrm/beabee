@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate } from 'passport';
+import passport from 'passport';
 
 import { isValidNextUrl, getNextParam } from '@core/utils';
 
@@ -27,7 +27,7 @@ app.get( '/' , function( req, res ) {
 
 app.post( '/',function ( req, res ) {
 	const nextParam = req.query.next as string;
-	authenticate( 'totp', {
+	passport.authenticate( 'totp', {
 		failureRedirect: '/otp' + getNextParam( nextParam ),
 		failureFlash: '2fa-invalid'
 	} )( req, res, () => {

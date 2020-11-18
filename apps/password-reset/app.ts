@@ -4,21 +4,21 @@ import { Members } from '@core/database';
 
 import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 import { hasSchema } from '@core/middleware';
-import { sendToMember } from '@core/mandrill';
+import mandrill from '@core/mandrill';
+
 import _Options from '@core/options';
 const Options = _Options();
 
 import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
 
-import { isNotLoggedIn, generateCode, generatePasswordPromise } from '@core/authentication';
-import { Member } from '@models/members';
+import auth from '@core/authentication';
 
 const app = express();
 let app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( isNotLoggedIn );
+app.use( auth.isNotLoggedIn );
 
 app.use( function( req, res, next ) {
 	res.locals.app = app_config;
@@ -35,11 +35,11 @@ app.post( '/', hasSchema(getResetCodeSchema).orFlash, wrapAsync( async function(
 	const member = await Members.findOne( { email: cleanEmailAddress(email) } );
 
 	if (member) {
-		const code = generateCode();
+		const code = auth.generateCode();
 		member.password.reset_code = code;
 		await member.save();
 
-		await sendToMember('reset-password', member);
+		await mandrill.sendToMember('reset-password', member);
 	}
 
 	Options.get( 'flash-password-reset', message => {
@@ -59,7 +59,7 @@ app.get( '/code/:password_reset_code', function( req, res ) {
 app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash, wrapAsync( async function( req, res ) {
 	const member = await Members.findOne( { 'password.reset_code': req.body.password_reset_code } );
 	if (member) {
-		const password = await generatePasswordPromise( req.body.password );
+		const password = await auth.generatePasswordPromise( req.body.password );
 
 		await member.update( { $set: {
 			'password.salt': password.salt,
