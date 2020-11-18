@@ -49,6 +49,12 @@ function loadApp( uid, path, overrides ) {
 	};
 }
 
+// TODO: temporary during TypeScript switch over
+function requireApp( app ) {
+	const m = require(app);
+	return m.default || m;
+}
+
 function routeApps(mainApp, apps) {
 	for ( var a in apps ) {
 		var _app = apps[a];
@@ -57,7 +63,7 @@ function routeApps(mainApp, apps) {
 			action: 'load-app',
 			path: '/' + _app.path
 		} );
-		var new_app = require( _app.app )( _app );
+		var new_app = requireApp( _app.app )( _app );
 		new_app.locals.basedir = __dirname + '/../..';
 		mainApp.use( '/' + _app.path, new_app );
 
@@ -70,7 +76,7 @@ function routeApps(mainApp, apps) {
 					path: '/' + _app.path + '/' + _sapp.path
 				} );
 
-				var new_sub_app = require( _sapp.app )( _sapp );
+				var new_sub_app = requireApp( _sapp.app )( _sapp );
 				new_sub_app.locals.basedir = __dirname + '/../..';
 				new_app.use( '/' + _sapp.path, new_sub_app );
 			}
