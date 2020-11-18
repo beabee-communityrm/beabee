@@ -22,6 +22,7 @@ jobs:
       - checkout
       - run: npm install
       - run: cp config/example-config.json config/config.json
+      - run: npm run checkDependencies
       - run: NODE_ENV=production npm run build
       - run: NODE_ENV=production npm prune
       - run: echo -n ${CIRCLE_SHA1:0:7} > built/revision.txt

@@ -66,6 +66,7 @@
     "watchApp": "tsc --watch --preserveWatchOutput --incremental",
     "watch": "gulp watch",
     "build": "rimraf built/ && gulp build && tsc",
+    "checkDependencies": "npm run build && tscpaths -s . -o built -p tsconfig.json && madge --warning -c built",
     "test": "ava"
   },
   "devDependencies": {
