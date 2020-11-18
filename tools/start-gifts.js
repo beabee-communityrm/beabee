@@ -6,7 +6,7 @@ const config = require( '@config' );
 
 const db = require( '@core/database');
 const log = require( '@core/logging' ).log;
-const { processGiftFlow } = require( '@core/gift/utils' );
+const { processGiftFlow } = require( '@apps/gift/utils' );
 
 async function main(date) {
 	const fromDate = moment.utc(date).startOf('day');
