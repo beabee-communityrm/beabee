@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const moment = require('moment');
 
-const { Members, Permissions } = require(__js + '/database');
-const config = require( __config );
+const { Members, Permissions } = require('@core/database');
+const config = require( '@config' );
 
 async function getQuery() {
 	const permission = await Permissions.findOne({slug: config.permission.member});

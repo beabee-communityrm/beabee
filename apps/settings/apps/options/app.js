@@ -1,9 +1,9 @@
 var	express = require( 'express' ),
 	app = express();
 
-var Options = require( __js + '/options' )();
+var Options = require( '@core/options' )();
 
-var auth = require( __js + '/authentication' );
+var auth = require( '@core/authentication' );
 
 var app_config = {};
 

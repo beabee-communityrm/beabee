@@ -1,4 +1,4 @@
-const { Members, Referrals } = require(__js + '/database');
+const { Members, Referrals } = require('@core/database');
 
 async function getQuery() {
 	return {};

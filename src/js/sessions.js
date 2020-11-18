@@ -1,5 +1,5 @@
 var session = require( 'express-session' ),
-	config = require( __config ),
+	config = require( '@config' ),
 	cookie = require('cookie-parser'),
 	body = require( 'body-parser' ),
 	passport = require( 'passport' );

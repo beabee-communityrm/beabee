@@ -1,8 +1,8 @@
 const express = require( 'express' );
 
-const auth = require( __js + '/authentication' );
-const { Notices } = require( __js + '/database' );
-const { wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { Notices } = require( '@core/database' );
+const { wrapAsync } = require( '@core/utils' );
 
 const app = express();
 var app_config = {};

@@ -2,7 +2,7 @@ const Chance = require('chance');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 
-const db = require( __js + '/database' );
+const db = require( '@core/database' );
 
 const chance = new Chance();
 

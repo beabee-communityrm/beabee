@@ -1,9 +1,9 @@
 const express = require( 'express' );
 const DiscourseSSO = require( 'discourse-sso' );
 
-const config = require( __config );
+const config = require( '@config' );
 
-const auth = require( __js + '/authentication' );
+const auth = require( '@core/authentication' );
 
 const app = express();
 

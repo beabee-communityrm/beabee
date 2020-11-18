@@ -1,4 +1,4 @@
-var Options = require( __js + '/options' )();
+var Options = require( '@core/options' )();
 
 module.exports = function( req, res, next ) {
 	var flash = req.flash(),

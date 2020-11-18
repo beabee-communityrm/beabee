@@ -3,9 +3,9 @@ const _ = require( 'lodash' );
 const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
-const { SpecialUrls } = require( __js + '/database' );
-const mandrill = require( __js + '/mandrill' );
-const { wrapAsync } = require( __js + '/utils' );
+const { SpecialUrls } = require( '@core/database' );
+const mandrill = require( '@core/mandrill' );
+const { wrapAsync } = require( '@core/utils' );
 
 const actions = require( './actions' );
 const { getSpecialUrlUrl } = require( './utils' );
@@ -13,7 +13,8 @@ const { getSpecialUrlUrl } = require( './utils' );
 const app = express();
 app.set( 'views', __dirname + '/views' );
 
-app.locals.basedir = __root;
+// TODO : clean this up
+app.locals.basedir = __dirname + '/../../../..';
 
 const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 

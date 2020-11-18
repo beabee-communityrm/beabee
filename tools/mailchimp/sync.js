@@ -1,12 +1,6 @@
 require('module-alias/register');
 
-global.__root = __dirname + '/../..';
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
-const config = require( __config );
+const config = require( '@config' );
 
 const axios = require( 'axios' );
 const crypto = require( 'crypto' );
@@ -15,9 +9,9 @@ const gunzip = require( 'gunzip-maybe' );
 const moment = require( 'moment' );
 const tar = require( 'tar-stream' );
 
-const mailchimp = require( __js + '/mailchimp' );
-const db = require( __js + '/database' ).connect( config.mongo );
-const { cleanEmailAddress } = require( __js + '/utils' );
+const mailchimp = require( '@core/mailchimp' );
+const db = require( '@core/database' ).connect( config.mongo );
+const { cleanEmailAddress } = require( '@core/utils' );
 
 function emailToHash(email) {
 	return crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');

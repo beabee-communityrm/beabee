@@ -1,4 +1,4 @@
-var config = require( __config );
+var config = require( '@config' );
 
 var bunyan = require( 'bunyan' ),
 	bunyanMiddleware = require( 'bunyan-middleware' ),

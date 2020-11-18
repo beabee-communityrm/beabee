@@ -1,10 +1,10 @@
 const express = require( 'express' );
 const moment = require( 'moment' );
 
-const auth = require( __js + '/authentication' );
-const { PollAnswers, Polls } = require( __js + '/database' );
-const { hasModel, hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { PollAnswers, Polls } = require( '@core/database' );
+const { hasModel, hasSchema } = require( '@core/middleware' );
+const { wrapAsync } = require( '@core/utils' );
 
 const { createPollSchema } = require( './schemas.json' );
 

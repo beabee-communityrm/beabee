@@ -1,16 +1,10 @@
 require('module-alias/register');
 
-global.__root = __dirname + '/../..';
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
 const _ = require('lodash');
 const EJSON = require('mongodb-extended-json');
 
-const config = require( __config );
-const db = require( __js + '/database' );
+const config = require( '@config' );
+const db = require( '@core/database' );
 const exportTypes = require('./types');
 
 // Anonymise properties but maintain same mapping to keep links

@@ -1,24 +1,18 @@
 require('module-alias/register');
 
-global.__root = __dirname;
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
 const bodyParser = require('body-parser');
 const express = require( 'express' );
 const hummus = require( 'hummus' );
 const moment = require( 'moment' );
 
-const config = require( __config );
+const config = require( '@config' );
 
-const { GiftFlows } = require( __js + '/database' ).connect( config.mongo );
-const log = require( __js + '/logging' ).log;
-const mandrill = require( __js + '/mandrill' );
-const stripe = require( __js + '/stripe' );
-const { wrapAsync } = require( __js + '/utils' );
-const { processGiftFlow } = require( __apps + '/gift/utils' );
+const { GiftFlows } = require( '@core/database' ).connect( config.mongo );
+const log = require( '@core/logging' ).log;
+const mandrill = require( '@core/mandrill' );
+const stripe = require( '@core/stripe' );
+const { wrapAsync } = require( '@core/utils' );
+const { processGiftFlow } = require( '@apps/gift/utils' );
 
 const app = express();
 
@@ -48,7 +42,7 @@ function createGiftCard(code) {
 	return outStream.buffer;
 }
 
-require( __js + '/logging' ).installMiddleware( app );
+require( '@core/logging' ).installMiddleware( app );
 
 app.use(bodyParser.raw({type: 'application/json'}));
 

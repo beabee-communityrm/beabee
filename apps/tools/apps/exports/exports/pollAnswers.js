@@ -1,6 +1,6 @@
 const flat = require('flat');
 
-const { PollAnswers, Polls } = require(__js + '/database');
+const { PollAnswers, Polls } = require('@core/database');
 
 async function getParams() {
 	return [

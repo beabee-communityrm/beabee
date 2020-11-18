@@ -1,7 +1,7 @@
 var	express = require( 'express' ),
 	app = express();
 
-var auth = require( __js + '/authentication' );
+var auth = require( '@core/authentication' );
 
 app.set( 'views', __dirname + '/views' );
 

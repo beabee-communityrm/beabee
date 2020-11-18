@@ -1,4 +1,4 @@
-const config = require( __config );
+const config = require( '@config' );
 
 module.exports = {
 	getSpecialUrlUrl(specialUrl) {

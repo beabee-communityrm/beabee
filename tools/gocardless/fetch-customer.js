@@ -1,11 +1,5 @@
 require('module-alias/register');
 
-global.__root = __dirname + '/../..';
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
 const crypto = require('crypto');
 const moment = require('moment');
 const { default: gocardless } = require('@core/gocardless');

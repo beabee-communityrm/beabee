@@ -1,11 +1,11 @@
 var	express = require( 'express' ),
 	app = express();
 
-var auth = require( __js + '/authentication' );
+var auth = require( '@core/authentication' );
 
-const { wrapAsync } = require( __js + '/utils' );
+const { wrapAsync } = require( '@core/utils' );
 
-const { hasSchema } = require( __js + '/middleware' );
+const { hasSchema } = require( '@core/middleware' );
 const { changePasswordSchema } = require( './schemas.json' );
 
 var app_config = {};

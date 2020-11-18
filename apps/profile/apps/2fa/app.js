@@ -3,14 +3,14 @@ var	express = require( 'express' ),
 
 var querystring = require('querystring');
 
-var auth = require( __js + '/authentication' ),
-	Options = require( __js + '/options' )();
-const { wrapAsync } = require( __js + '/utils' );
+var auth = require( '@core/authentication' ),
+	Options = require( '@core/options' )();
+const { wrapAsync } = require( '@core/utils' );
 
 var TOTP = require( 'notp' ).totp;
 var base32 = require( 'thirty-two' );
 
-var config = require( __config );
+var config = require( '@config' );
 
 var app_config = {};
 

@@ -1,15 +1,15 @@
 const moment = require( 'moment' );
 const dot = require('dot');
 
-const auth = require( __js + '/authentication' );
+const auth = require( '@core/authentication' );
 
-const config = require( __config );
+const config = require( '@config' );
 
 var apps = [];
 
 var git = '';
 try {
-	git = require('fs').readFileSync( __root + '/revision.txt' ).toString();
+	git = require('fs').readFileSync( __dirname + '/../../revision.txt' ).toString();
 } catch (e) {
 	require('git-rev').short( str => git = str );
 }

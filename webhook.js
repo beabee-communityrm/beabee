@@ -1,21 +1,15 @@
 require('module-alias/register');
 
-global.__root = __dirname;
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
-const config = require( __config );
+const config = require( '@config' );
 
 const moment = require('moment');
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const log = require( __js + '/logging' ).log;
-const { Members, Payments } = require( __js + '/database' ).connect( config.mongo );
+const log = require( '@core/logging' ).log;
+const { Members, Payments } = require( '@core/database' ).connect( config.mongo );
 const { default: gocardless } = require( '@core/gocardless' );
-const mandrill = require( __js + '/mandrill' );
+const mandrill = require( '@core/mandrill' );
 
 const utils = require('./webhook-utils');
 
@@ -26,7 +20,7 @@ const textBodyParser = bodyParser.text( {
 } );
 
 // Add logging capabilities
-require( __js + '/logging' ).installMiddleware( app );
+require( '@core/logging' ).installMiddleware( app );
 
 app.get( '/ping', function( req, res ) {
 	req.log.info( {

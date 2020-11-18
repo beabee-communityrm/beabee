@@ -2,11 +2,11 @@ const express = require( 'express' );
 const busboy = require( 'connect-busboy' );
 const Papa = require('papaparse');
 
-const auth = require( __js + '/authentication' );
-const { TransactionalEmails } = require( __js + '/database' );
-const mandrill = require( __js + '/mandrill' );
-const { hasModel } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { TransactionalEmails } = require( '@core/database' );
+const mandrill = require( '@core/mandrill' );
+const { hasModel } = require( '@core/middleware' );
+const { wrapAsync } = require( '@core/utils' );
 
 const app = express();
 

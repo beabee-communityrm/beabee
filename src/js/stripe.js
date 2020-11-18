@@ -1,4 +1,4 @@
-const config = require( __config );
+const config = require( '@config' );
 
 const stripe = require( 'stripe' )( config.stripe.secret_key );
 

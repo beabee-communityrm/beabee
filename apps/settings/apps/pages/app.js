@@ -1,11 +1,11 @@
 const express = require( 'express' );
 const _ = require( 'lodash' );
 
-const auth = require( __js + '/authentication' );
-const { PageSettings } = require( __js + '/database' );
-const { hasModel, hasSchema } = require( __js + '/middleware' );
-const { update: updatePageSettings } = require( __js + '/page-settings' );
-const { wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { PageSettings } = require( '@core/database' );
+const { hasModel, hasSchema } = require( '@core/middleware' );
+const { update: updatePageSettings } = require( '@core/page-settings' );
+const { wrapAsync } = require( '@core/utils' );
 
 
 const { createPageSchema } = require( './schema.json' );

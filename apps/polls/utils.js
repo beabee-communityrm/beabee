@@ -1,6 +1,6 @@
-const { PollAnswers } = require( __js + '/database' );
-const mailchimp = require( __js + '/mailchimp' );
-const { hasSchema } = require( __js + '/middleware' );
+const { PollAnswers } = require( '@core/database' );
+const mailchimp = require( '@core/mailchimp' );
+const { hasSchema } = require( '@core/middleware' );
 
 const schemas = require('./schemas.json');
 

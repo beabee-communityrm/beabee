@@ -1,16 +1,16 @@
 var	express = require( 'express' ),
 	app = express();
 
-var	Members = require( __js + '/database' ).Members;
+var	Members = require( '@core/database' ).Members;
 
-const { cleanEmailAddress, loginAndRedirect, wrapAsync } = require( __js + '/utils' );
-const { hasSchema } = require( __js + '/middleware' );
-const mandrill = require( __js + '/mandrill' );
-const Options = require( __js + '/options' )();
+const { cleanEmailAddress, loginAndRedirect, wrapAsync } = require( '@core/utils' );
+const { hasSchema } = require( '@core/middleware' );
+const mandrill = require( '@core/mandrill' );
+const Options = require( '@core/options' )();
 
 const { getResetCodeSchema, resetPasswordSchema } = require( './schemas.json');
 
-var auth = require( __js + '/authentication' );
+var auth = require( '@core/authentication' );
 
 var app_config = {};
 

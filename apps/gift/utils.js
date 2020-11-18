@@ -1,6 +1,6 @@
 const moment = require( 'moment' );
 
-const mandrill = require( __js + '/mandrill' );
+const mandrill = require( '@core/mandrill' );
 const { default: MembersService } = require( '@core/services/MembersService' );
 
 async function processGiftFlow( giftFlow, sendImmediately = false ) {

@@ -4,11 +4,11 @@ const passport = require( 'passport' );
 const LocalStrategy = require( 'passport-local' ).Strategy;
 const TotpStrategy = require( 'passport-totp' ).Strategy;
 
-const config = require( __config );
+const config = require( '@config' );
 
-const { Members } = require( __js + '/database' );
-const Options = require( __js + '/options.js' )();
-const { cleanEmailAddress, getNextParam, sleep } = require( __js + '/utils' );
+const { Members } = require( '@core/database' );
+const Options = require( '@core/options.js' )();
+const { cleanEmailAddress, getNextParam, sleep } = require( '@core/utils' );
 
 var Authentication = {
 	load: function( app ) {

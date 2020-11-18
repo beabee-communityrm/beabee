@@ -2,8 +2,8 @@ const axios = require('axios');
 const crypto = require('crypto');
 const config = require('../../config/config.json');
 
-const { log } = require( __js + '/logging' );
-const { cleanEmailAddress } = require( __js + '/utils' );
+const { log } = require( '@core/logging' );
+const { cleanEmailAddress } = require( '@core/utils' );
 
 function createInstance(endpoint) {
 	const instance = axios.create({

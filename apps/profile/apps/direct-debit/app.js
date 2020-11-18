@@ -1,14 +1,14 @@
 const express = require('express');
 const moment = require('moment');
 
-const auth = require( __js + '/authentication' );
-const { Payments } = require( __js + '/database' );
+const auth = require( '@core/authentication' );
+const { Payments } = require( '@core/database' );
 const { default: gocardless } = require( '@core/gocardless' );
-const mandrill = require( __js + '/mandrill' );
-const{ hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const mandrill = require( '@core/mandrill' );
+const{ hasSchema } = require( '@core/middleware' );
+const { wrapAsync } = require( '@core/utils' );
 
-const config = require( __config );
+const config = require( '@config' );
 
 const { default: JoinFlowService } = require( '@core/services/JoinFlowService' );
 

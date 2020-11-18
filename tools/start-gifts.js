@@ -1,18 +1,12 @@
 require('module-alias/register');
 
-global.__root = __dirname + '/..';
-global.__apps = __root + '/apps';
-global.__config = __root + '/config/config.json';
-global.__js = __root + '/src/js';
-global.__models = __root + '/src/models';
-
 const moment = require( 'moment' );
 
-const config = require( __config );
+const config = require( '@config' );
 
-const db = require( __js + '/database');
-const log = require( __js + '/logging' ).log;
-const { processGiftFlow } = require( __apps + '/gift/utils' );
+const db = require( '@core/database');
+const log = require( '@core/logging' ).log;
+const { processGiftFlow } = require( '@core/gift/utils' );
 
 async function main(date) {
 	const fromDate = moment.utc(date).startOf('day');

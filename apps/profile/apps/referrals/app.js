@@ -1,9 +1,9 @@
 const express = require( 'express' );
 
-const auth = require( __js + '/authentication' );
-const { ReferralGifts, Referrals } = require( __js + '/database' );
-const { hasSchema } = require( __js + '/middleware' );
-const { wrapAsync } = require( __js + '/utils' );
+const auth = require( '@core/authentication' );
+const { ReferralGifts, Referrals } = require( '@core/database' );
+const { hasSchema } = require( '@core/middleware' );
+const { wrapAsync } = require( '@core/utils' );
 
 const { default: ReferralsService } = require( '@core/services/ReferralsService' );
 

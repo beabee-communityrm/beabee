@@ -10,7 +10,7 @@ const paths = {
 		dest: './built/static/css'
 	},
 	appFiles: {
-		src: ['./src/**/*', './apps/**/*', '!./**/*.{js,ts}', './static/**/*', './tools/**/*', './config/**/*'],
+		src: ['./src/**/*', './apps/**/*', './tools/**/*', '!./**/*.{js,ts}', './static/**/*', './config/**/*'],
 		dest: './built'
 	}
 };
