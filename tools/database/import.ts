@@ -22,7 +22,7 @@ async function runImport({modelName, items}: ModelData) {
 	}
 }
 
-async function main(importData) {
+async function main(importData: ModelData[]) {
 	await Promise.all(importData.map(runImport));
 }
 
@@ -36,7 +36,7 @@ db.connect(config.mongo);
 db.mongoose.connection.on('connected', async () => {
 	try {
 		const data = EJSON.parse(fs.readFileSync(process.argv[2]).toString());
-		await main(data);
+		await main(data as ModelData[]);
 	} catch (err) {
 		console.log(err);
 	}
