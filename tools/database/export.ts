@@ -2,11 +2,10 @@ import 'module-alias/register';
 
 import { serialize, deserialize, Document, EJSON } from 'bson';
 import _ from 'lodash';
-import { Document as MDocument, Model } from 'mongoose';
 
 import config from '@config';
 import db from '@core/database';
-import exportTypes, { Properties } from './types';
+import exportTypes, { ModelExporter, Properties } from './types';
 
 // Anonymise properties but maintain same mapping to keep links
 const valueMap = {};
@@ -30,7 +29,7 @@ function anonymiseProperties(item: Document, properties: Properties): Document {
 	return newItem;
 }
 
-async function runExport({model, properties}: {model: Model<MDocument>, properties?: Properties}): Promise<{modelName: string, items: Document[]}> {
+async function runExport({model, properties}: ModelExporter): Promise<{modelName: string, items: Document[]}> {
 	console.error('Fetching', model.modelName);
 
 	const items = await model.find({}).lean();

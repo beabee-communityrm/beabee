@@ -1,11 +1,16 @@
 import Chance from 'chance';
 import crypto from 'crypto';
-import mongoose from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 
 import db from '@core/database';
 
 export interface Properties {
 	[key: string]: () => unknown
+}
+
+export interface ModelExporter {
+    model: Model<Document>
+    properties?: Properties
 }
 
 const chance = new Chance();
@@ -85,7 +90,7 @@ const projectMembers: Properties = {
 	tag: () => chance.word()
 };
 
-export default [
+const models: ModelExporter[] = [
 	{ model: db.Exports },
 	{ model: db.Options },
 	{ model: db.Permissions },
@@ -99,3 +104,5 @@ export default [
 	{ model: db.Projects , properties: projects },
 	{ model: db.ProjectMembers, properties: projectMembers }
 ];
+
+export default models;
