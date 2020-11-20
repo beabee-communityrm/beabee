@@ -1,12 +1,7 @@
 import { Document, Model } from 'mongoose';
+import { ContributionPeriod } from '@core/utils';
 
-export enum ContributionPeriod {
-	Monthly = 'monthly',
-	Annually = 'annually',
-	Gift = 'gift'
-}
-
-export interface PartialMember {
+interface PartialMember {
 	email: string,
 	firstname: string,
 	lastname: string,
@@ -22,7 +17,7 @@ export interface PartialMember {
 		mandate_id: string,
 	}
 }
-export interface Member extends PartialMember, Document {
+interface Member extends PartialMember, Document {
 	uuid?: string
 	referralCode: string,
 	pollsCode: string

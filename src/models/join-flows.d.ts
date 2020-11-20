@@ -1,7 +1,6 @@
 import { Customer } from 'gocardless-nodejs/types/Types';
 import { Document, Model } from 'mongoose';
-
-import { ContributionPeriod } from '@models/members';
+import { ContributionPeriod } from '@core/utils';
 
 interface RawJoinForm {
     amount: string,
