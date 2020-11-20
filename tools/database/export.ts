@@ -1,0 +1,61 @@
+import 'module-alias/register';
+
+import { serialize, deserialize, Document, EJSON } from 'bson';
+import _ from 'lodash';
+import { Document as MDocument, Model } from 'mongoose';
+
+import config from '@config';
+import db from '@core/database';
+import exportTypes, { Properties } from './types';
+
+// Anonymise properties but maintain same mapping to keep links
+const valueMap = {};
+function anonymiseProperties(item: Document, properties: Properties): Document {
+	const newItem = deserialize(serialize(item));
+
+	_.forEach(properties, (anonymiseFn, property) => {
+		const value = _.get(item, property);
+		if (value) {
+			let newValue: unknown;
+			if (_.isArray(value)) {
+				newValue = value.map(valueItem => anonymiseProperties(valueItem, anonymiseFn() as Properties));
+			} else {
+				if (valueMap[value] === undefined) newValue = anonymiseFn();
+				valueMap[value] = newValue;
+			}
+			_.set(newItem, property, newValue);
+		}
+	});
+
+	return newItem;
+}
+
+async function runExport({model, properties}: {model: Model<MDocument>, properties?: Properties}): Promise<{modelName: string, items: Document[]}> {
+	console.error('Fetching', model.modelName);
+
+	const items = await model.find({}).lean();
+
+	console.error(`Anonymising ${model.modelName}, got ${items.length} items`);
+	const newItems = properties ? items.map(item => anonymiseProperties(item, properties)) : items;
+
+	return {
+		modelName: model.modelName,
+		items: newItems
+	};
+}
+
+async function main() {
+	const exportData = await Promise.all(exportTypes.map(runExport));
+	console.log(EJSON.stringify(exportData));
+}
+
+db.connect(config.mongo);
+
+db.mongoose.connection.on('connected', async () => {
+	try {
+		await main();
+	} catch (err) {
+		console.error(err);
+	}
+	db.mongoose.disconnect();
+});

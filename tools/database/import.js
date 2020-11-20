@@ -6,7 +6,7 @@ const fs = require('fs');
 
 const config = require( '@config' );
 const db = require( '@core/database' );
-const importTypes = require('./types');
+const importTypes = require('./types').default;
 
 const modelsByName = _.fromPairs(importTypes.map(({model}) => [model.modelName, model]));
 
