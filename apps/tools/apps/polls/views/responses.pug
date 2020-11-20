@@ -1,0 +1,65 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = poll.question
+
+block append css
+	if poll.formTemplate === 'builder'
+		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+
+block append js
+	if poll.formTemplate === 'builder'
+		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+		script.
+			var pollAnswers = !{JSON.stringify(pollAnswers)};
+
+			Formio.createForm(
+				document.getElementById('form'), !{JSON.stringify(poll.formSchema)},
+				{template: 'bootstrap3', readOnly: true}
+			).then(function (form) {
+				var answerI = 0;
+				function changeResponse(inc) {
+					answerI = Math.min(pollAnswers.length - 1, Math.max(0, answerI + inc));
+					var pollAnswer = pollAnswers[answerI];
+					console.log(pollAnswer);
+					form.submission = {data: pollAnswer.answers};
+					$('.js-response-i').text(answerI + 1);
+					$('.js-response-member')
+						.attr('href', '/members/' + pollAnswer.member.uuid)
+						.text(pollAnswer.member.firstname + ' ' + pollAnswer.member.lastname);
+				}
+
+				changeResponse(0);
+				$('.js-prev-response').click(changeResponse.bind(null, -1));
+				$('.js-next-response').click(changeResponse.bind(null, 1));
+			});
+
+block contents
+	.row
+		.col-md-12
+			+page_header(poll.question)
+
+	.row
+		.col-md-offset-2.col-md-8
+			p There are #{pollAnswers.length} responses
+
+			if poll.formTemplate === 'builder'
+				p
+					button.btn.btn-primary.js-prev-response Prev
+					|
+					|
+					button.btn.btn-primary.js-next-response Next
+
+				hr
+
+				h4 Response #[span.js-response-i]
+
+				dl.dl-horizontal
+					dt Member
+					dd: a.js-response-member
+					dt Date
+					dd: span.js-response-date
+
+				#form
+			else
+				.alert.alert-warning Poll response breakdown not supported for this poll
