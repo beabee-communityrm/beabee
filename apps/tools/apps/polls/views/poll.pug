@@ -68,22 +68,12 @@ block contents
 					|
 					if !poll.active
 						a(href='/polls/' + poll.slug + '?preview=1').btn.btn-xs.btn-default Preview
-				dt Submissions
+				dt Responses
 				dd
-					= pollAnswers.length
+					= pollAnswersCount
 					|
 					|
-					button(type='button' data-toggle="collapse" data-target="#answers").btn.btn-xs.btn-default Show
-					.collapse#answers
-						p.comma-list
-							each answer in pollAnswers
-								if answer.member
-									span
-										a(href='/members/' + answer.member.uuid)= answer.member.fullname
-										each tag in answer.member.tags
-											|
-											|
-											span.label.label-info= tag.name
+					a(href='/tools/polls/' + poll._id + '/responses').btn.btn-xs.btn-default See responses
 
 			hr
 
