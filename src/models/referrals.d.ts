@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Model } from 'mongoose';
 
 interface ReferralGiftOptions {
     name: string,
@@ -14,3 +14,5 @@ interface ReferralGift extends Document {
 	options: ReferralGiftOptions,
 	stock?: Map<string, number>
 }
+
+export const model: Model<Document>;
