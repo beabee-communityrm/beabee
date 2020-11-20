@@ -1,16 +1,17 @@
-require('module-alias/register');
+import 'module-alias/register';
 
-const _ = require('lodash');
-const EJSON = require('mongodb-extended-json');
-const fs = require('fs');
+import _ from 'lodash';
+import { EJSON } from 'bson';
+import fs from 'fs';
 
-const config = require( '@config' );
-const db = require( '@core/database' );
-const importTypes = require('./types').default;
+import config from '@config';
+import db from '@core/database';
+
+import importTypes, { ModelData } from './types';
 
 const modelsByName = _.fromPairs(importTypes.map(({model}) => [model.modelName, model]));
 
-async function runImport({modelName, items}) {
+async function runImport({modelName, items}: ModelData) {
 	console.error(`Importing ${modelName}, got ${items.length} items`);
 	const model = modelsByName[modelName];
 	await model.deleteMany({});
@@ -32,8 +33,13 @@ if (!config.dev) {
 
 db.connect(config.mongo);
 
-db.mongoose.connection.on('connected', () => {
-	main(EJSON.parse(fs.readFileSync(process.argv[2])))
-		.catch(err => console.error(err))
-		.then(() => db.mongoose.disconnect());
+db.mongoose.connection.on('connected', async () => {
+	try {
+		const data = EJSON.parse(fs.readFileSync(process.argv[2]).toString());
+		await main(data);
+	} catch (err) {
+		console.log(err);
+	}
+
+	db.mongoose.disconnect();
 });

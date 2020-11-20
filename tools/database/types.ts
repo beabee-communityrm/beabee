@@ -1,6 +1,7 @@
 import Chance from 'chance';
 import crypto from 'crypto';
-import mongoose, { Document, Model } from 'mongoose';
+import mongoose, { Document as MDocument, Model } from 'mongoose';
+import { Document } from 'bson';
 
 import db from '@core/database';
 
@@ -9,8 +10,13 @@ export interface Properties {
 }
 
 export interface ModelExporter {
-    model: Model<Document>
+    model: Model<MDocument>
     properties?: Properties
+}
+
+export interface ModelData {
+    modelName: string,
+    items: Document[]
 }
 
 const chance = new Chance();

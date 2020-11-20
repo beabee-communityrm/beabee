@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import config from '@config';
 import db from '@core/database';
-import exportTypes, { ModelExporter, Properties } from './types';
+import exportTypes, { ModelData, ModelExporter, Properties } from './types';
 
 // Anonymise properties but maintain same mapping to keep links
 const valueMap = {};
@@ -29,7 +29,7 @@ function anonymiseProperties(item: Document, properties: Properties): Document {
 	return newItem;
 }
 
-async function runExport({model, properties}: ModelExporter): Promise<{modelName: string, items: Document[]}> {
+async function runExport({model, properties}: ModelExporter): Promise<ModelData> {
 	console.error('Fetching', model.modelName);
 
 	const items = await model.find({}).lean();
