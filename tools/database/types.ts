@@ -71,7 +71,7 @@ const members: Properties = {
 	'billing_location.latitude': () => chance.latitude(),
 	'billing_location.longitude': () => chance.longitude(),
 	tags: (): Properties => ({
-		name: () => chance.word()
+		name: () => chance.profession()
 	})
 };
 

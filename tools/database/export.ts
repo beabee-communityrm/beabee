@@ -19,7 +19,7 @@ function anonymiseProperties(item: Document, properties: Properties): Document {
 			if (_.isArray(value)) {
 				newValue = value.map(valueItem => anonymiseProperties(valueItem, anonymiseFn() as Properties));
 			} else {
-				if (valueMap[value] === undefined) newValue = anonymiseFn();
+				newValue = valueMap[value] || anonymiseFn();
 				valueMap[value] = newValue;
 			}
 			_.set(newItem, property, newValue);
