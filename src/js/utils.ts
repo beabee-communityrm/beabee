@@ -1,7 +1,13 @@
 import { Request, RequestHandler, Response } from 'express';
 import _ from 'lodash';
 
-import { ContributionPeriod, Member } from '@models/members';
+import { Member } from '@models/members';
+
+export enum ContributionPeriod {
+	Monthly = 'monthly',
+	Annually = 'annually',
+	Gift = 'gift'
+}
 
 interface Param {
 	name: string,

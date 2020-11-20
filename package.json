@@ -66,6 +66,7 @@
     "watchApp": "tsc --watch --preserveWatchOutput --incremental",
     "watch": "gulp watch",
     "build": "rimraf built/ && gulp build && tsc",
+    "checkDependencies": "npm run build && tscpaths -s . -o built -p tsconfig.json && madge --warning -c built",
     "test": "ava"
   },
   "devDependencies": {
@@ -86,9 +87,11 @@
     "gulp-postcss": "^9.0.0",
     "gulp-sass": "^4.1.0",
     "gulp-sourcemaps": "^2.6.5",
+    "madge": "^3.12.0",
     "nodemon": "^2.0.4",
     "postcss": "^8.1.1",
     "rimraf": "^3.0.2",
+    "tscpaths": "0.0.9",
     "typescript": "^4.0.5"
   },
   "ava": {

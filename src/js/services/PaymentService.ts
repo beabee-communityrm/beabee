@@ -1,8 +1,8 @@
 import { Customer, CustomerCurrency, Subscription, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 
 import gocardless from '@core/gocardless';
-import { getChargeableAmount, cleanEmailAddress } from  '@core/utils';
-import { ContributionPeriod, PartialMember } from '@models/members';
+import { getChargeableAmount, cleanEmailAddress, ContributionPeriod } from  '@core/utils';
+import { PartialMember } from '@models/members';
 
 export default class PaymentService {
 	static isValidCustomer(customer: Customer): boolean {
