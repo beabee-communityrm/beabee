@@ -2,7 +2,7 @@ import Chance from 'chance';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 
-import { Exports, Options, Permissions, Payments, Members, ReferralGifts, Referrals, Notices, Polls, PollAnswers, Projects, ProjectMembers } from '@core/database';
+import db from '@core/database';
 
 export interface Properties {
 	[key: string]: () => unknown
@@ -86,16 +86,16 @@ const projectMembers: Properties = {
 };
 
 export default [
-	{ model: Exports },
-	{ model: Options },
-	{ model: Permissions },
-	{ model: Payments, properties: payments },
-	{ model: Members, properties: members },
-	{ model: ReferralGifts },
-	{ model: Referrals, properties: referrals },
-	{ model: Notices },
-	{ model: Polls },
-	{ model: PollAnswers, properties: pollAnswers },
-	{ model: Projects , properties: projects },
-	{ model: ProjectMembers, properties: projectMembers }
+	{ model: db.Exports },
+	{ model: db.Options },
+	{ model: db.Permissions },
+	{ model: db.Payments, properties: payments },
+	{ model: db.Members, properties: members },
+	{ model: db.ReferralGifts },
+	{ model: db.Referrals, properties: referrals },
+	{ model: db.Notices },
+	{ model: db.Polls },
+	{ model: db.PollAnswers, properties: pollAnswers },
+	{ model: db.Projects , properties: projects },
+	{ model: db.ProjectMembers, properties: projectMembers }
 ];
