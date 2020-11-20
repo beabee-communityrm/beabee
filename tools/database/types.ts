@@ -10,13 +10,13 @@ export interface Properties {
 }
 
 export interface ModelExporter {
-    model: Model<MDocument>
-    properties?: Properties
+	model: Model<MDocument>
+	properties?: Properties
 }
 
 export interface ModelData {
-    modelName: string,
-    items: Document[]
+	modelName: string,
+	items: Document[]
 }
 
 const chance = new Chance();
@@ -54,7 +54,8 @@ const members: Properties = {
 	referralCode: uniqueCode,
 	join_reason: () => chance.sentence(),
 	join_why: () => chance.sentence(),
-	bio: () => chance.sentence(),
+	description: () => chance.sentence(),
+	bio: () => chance.paragraph(),
 	notes: () => chance.sentence(),
 	'contact.telephone': () => chance.phone(),
 	'contact.twitter': () => chance.twitter(),
@@ -93,7 +94,11 @@ const projects: Properties = {
 const projectMembers: Properties = {
 	_id: () => new mongoose.Types.ObjectId(),
 	member: () => new mongoose.Types.ObjectId(),
-	tag: () => chance.word()
+	tag: () => chance.word(),
+	engagement: (): Properties => ({
+		member: () => new mongoose.Types.ObjectId(),
+		notes: () => chance.sentence()
+	})
 };
 
 const models: ModelExporter[] = [
