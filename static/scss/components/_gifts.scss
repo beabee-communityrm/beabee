@@ -7,6 +7,7 @@
 	list-style: none;
 	margin: 0 0 0.5rem;
 	padding: 0;
+	max-width: 600px;
 	@media (min-width: $bp-join-form) {
 		display: flex;
 		align-items: stretch;
@@ -29,7 +30,8 @@
 	margin: 0 0.5rem 1rem;
 
 	@media (min-width: $bp-join-form) {
-		width: 84px;
+		width: calc(20% - 1rem);
+		max-width: 90px;
 		text-align: center;
 		margin-bottom: 0.5rem;
 	}
