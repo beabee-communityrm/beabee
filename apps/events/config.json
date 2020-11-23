@@ -1,9 +1,0 @@
-{
-	"title": "Events",
-	"path": "events",
-	"permissions": [
-		"loggedIn"
-	],
-	"menu": "none",
-	"priority": 5
-}

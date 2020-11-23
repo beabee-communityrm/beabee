@@ -1,18 +1,20 @@
-var	express = require( 'express' ),
-	app = express();
+import express from 'express';
 
-var	Members = require( '@core/database' ).Members;
+import { Members } from '@core/database';
 
-const { cleanEmailAddress, loginAndRedirect, wrapAsync } = require( '@core/utils' );
-const { hasSchema } = require( '@core/middleware' );
-const mandrill = require( '@core/mandrill' );
-const Options = require( '@core/options' )();
+import auth from '@core/authentication';
+import mandrill from '@core/mandrill';
+import { hasSchema } from '@core/middleware';
+import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 
-const { getResetCodeSchema, resetPasswordSchema } = require( './schemas.json');
+import _Options from '@core/options';
+const Options = _Options();
 
-var auth = require( '@core/authentication' );
+import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
 
-var app_config = {};
+
+const app = express();
+let app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
@@ -42,7 +44,7 @@ app.post( '/', hasSchema(getResetCodeSchema).orFlash, wrapAsync( async function(
 
 	Options.get( 'flash-password-reset', message => {
 		req.flash( 'info', message.value.replace( '%', email ) );
-		res.redirect( app.mountpath );
+		res.redirect( app.mountpath as string );
 	} );
 } ) );
 
@@ -72,11 +74,11 @@ app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash,
 		loginAndRedirect( req, res, member );
 	} else {
 		req.flash('warning', 'password-reset-code-err');
-		res.redirect( app.mountpath );
+		res.redirect( app.mountpath as string );
 	}
 } ) );
 
-module.exports = function( config ) {
+export default function( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}

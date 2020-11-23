@@ -1,7 +1,7 @@
-var express = require( 'express' ),
-	app = express();
+import express from 'express';
 
-var app_config = {};
+const app = express();
+let app_config;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -13,7 +13,7 @@ app.use( function( req, res, next ) {
 	next();
 } );
 
-module.exports = function( config ) {
+export default function( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}

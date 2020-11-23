@@ -1,11 +1,11 @@
-const express = require( 'express' );
-const passport = require( 'passport' );
+import express from 'express';
+import passport from 'passport';
 
-const { Members } = require( '@core/database' );
-const { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } = require ( '@core/utils' );
+import { Members } from '@core/database';
+import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
 
 const app = express();
-var app_config = {};
+let app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
@@ -15,10 +15,11 @@ app.use( function( req, res, next ) {
 } );
 
 app.get( '/' , function( req, res ) {
+	const nextParam = req.query.next as string;
 	if ( req.user ) {
-		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
+		res.redirect( isValidNextUrl(nextParam) ? nextParam : '/profile' );
 	} else {
-		res.render( 'index', { nextParam: getNextParam( req.query.next ) } );
+		res.render( 'index', { nextParam: getNextParam( nextParam ) } );
 	}
 } );
 
@@ -39,16 +40,17 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 } ) );
 
 app.post( '/', (req, res) => {
+	const nextParam = req.query.next as string;
 	passport.authenticate( 'local', {
-		failureRedirect: '/login' + getNextParam( req.query.next ),
+		failureRedirect: '/login' + getNextParam( nextParam ),
 		failureFlash: true
-	} )( req, res, async () => {
+	} )( req, res, () => {
 		req.session.method = 'plain';
-		res.redirect( isValidNextUrl( req.query.next ) ? req.query.next : '/profile' );
+		res.redirect( isValidNextUrl( nextParam ) ? nextParam : '/profile' );
 	} );
 } );
 
-module.exports = function( config ) {
+export default function (config): express.Express {
 	app_config = config;
 	return app;
-};
+}

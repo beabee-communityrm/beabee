@@ -1,7 +1,8 @@
-var	express = require( 'express' ),
-	app = express();
+import express from 'express';
 
-var auth = require( '@core/authentication' );
+import auth from '@core/authentication';
+
+const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
@@ -13,4 +14,4 @@ app.get( '/', function ( req, res ) {
 	}
 } );
 
-module.exports = function() { return app; };
+export default function(): express.Express { return app; }

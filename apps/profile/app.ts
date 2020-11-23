@@ -1,11 +1,11 @@
-const express = require( 'express' );
+import express from 'express';
 
-const auth = require( '@core/authentication' );
-const { Notices } = require( '@core/database' );
-const { wrapAsync } = require( '@core/utils' );
+import auth from '@core/authentication';
+import { Notices } from '@core/database';
+import { wrapAsync } from '@core/utils';
 
 const app = express();
-var app_config = {};
+let app_config;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -25,7 +25,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	res.render( 'index', { user: req.user, notices } );
 } ) );
 
-module.exports = function( config ) {
+export default function( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}

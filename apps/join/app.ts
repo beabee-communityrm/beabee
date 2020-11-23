@@ -163,7 +163,7 @@ app.get('/invalid-direct-debit', (req, res) => {
 	res.render('invalid-direct-debit');
 });
 
-module.exports = function( config ) {
+export default function(config): express.Express {
 	app_config = config;
 	return app;
-};
+}
