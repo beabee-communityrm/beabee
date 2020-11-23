@@ -21,7 +21,7 @@ block body
 			.join-title
 				div
 					img(src='/static/svg/logo.svg').join-title-logo
-				h1.join-ts Join 2,200#[br]members
+				h1 Join 2,200#[br]members
 
 			if referrer
 				.join-referrer
@@ -36,7 +36,7 @@ block body
 
 			include /src/views/partials/flash.pug
 
-			h3.join-ts I'd like to contribute…
+			h3 I'd like to contribute…
 			ul.join-options.hidden-nojs
 				each amount in [3, 5, 10]
 					li.join-options__opt
@@ -47,7 +47,7 @@ block body
 			div.join-other-amount
 				input(type='radio', name='amount', value='other', required, checked=!referrer).js-join-other-amount
 				label
-					.join-ts.hidden-nojs Or choose an amount…
+					.hidden-nojs Or choose an amount…
 					.join-other-amount-box
 						span £
 						input(type='number', name='amountOther', min=1, step=1, required).join-other-amount-box__input.js-join-other-amount-box
@@ -55,7 +55,7 @@ block body
 
 			.hidden-js.js-join-form-more
 				if referrer
-					h3.join-ts I'd like my bribe to be a…
+					h3 I'd like my gift to be a…
 					input(type='hidden', name='referralCode', value=referrer.referralCode)
 					p.hidden.js-join-sustain.
 						Unfortunately its not financially viable for us to send gifts
@@ -74,7 +74,7 @@ block body
 							local journalism we’ll #[b send you a quarterly edition]
 							of our newspaper.
 
-				h3.join-ts I'd like to pay…
+				h3 I'd like to pay…
 				ul.join-options
 					li.join-options__opt
 						input(type='radio', name='period', id='period_m', value='monthly', required, checked).js-join-period
@@ -84,7 +84,7 @@ block body
 						label(for='period_a').btn.btn-lg.btn-primary Annually
 					li.join-options__opt
 
-				.join-ts.js-join-fee
+				.js-join-fee
 					p
 						| Our payment processor charges us per transaction, which means we receive
 						| less from monthly contributions.
@@ -106,17 +106,17 @@ block body
 							input(type='checkbox' name='payFee' value='true' checked).join-pay-fee.js-join-pay-fee
 							| Yes, I'll absorb the #[span.js-join-fee-amount 1% + 20p] fee.
 
-				p.hidden-nojs.join-ts.join-charge You will be charged #[b.js-join-charge].
+				p.hidden-nojs.join-charge You will be charged #[b.js-join-charge].
 				p
 					button.btn.btn-success.btn-lg.join-btn Join
 
-				p.join-info.join-ts.join-secure.small
+				p.join-info.join-secure.small
 					svg(xmlns='http://www.w3.org/2000/svg', viewBox='0 0 24 24')
 						path(fill='currentColor', d='M18 10v-4c0-3.313-2.687-6-6-6s-6 2.687-6 6v4h-3v14h18v-14h-3zm-10 0v-4c0-2.206 1.794-4 4-4s4 1.794 4 4v4h-8z')
 					| Your payment will be processed securely with GoCardless
-					| under the Direct Debit Guarantee scheme.
+					| under the
 					|
-					a(href='https://www.directdebit.co.uk/DirectDebitExplained/pages/directdebitguarantee.aspx', target='_blank') Read more
+					a(href='https://www.directdebit.co.uk/DirectDebitExplained/pages/directdebitguarantee.aspx', target='_blank') Direct Debit Guarantee scheme
 					| .
 
 	.container.join-container
