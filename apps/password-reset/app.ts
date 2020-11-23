@@ -2,16 +2,16 @@ import express from 'express';
 
 import { Members } from '@core/database';
 
-import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
-import { hasSchema } from '@core/middleware';
+import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
+import { hasSchema } from '@core/middleware';
+import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 
 import _Options from '@core/options';
 const Options = _Options();
 
 import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
 
-import auth from '@core/authentication';
 
 const app = express();
 let app_config = {};
