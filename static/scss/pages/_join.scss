@@ -9,6 +9,10 @@ $bp-join-why: 768px;
 	@media (min-width: $bp-join-form) {
 		min-height: 320px;
 	}
+
+	& > .container {
+		padding: 0;
+	}
 }
 
 
