@@ -127,9 +127,9 @@ $bp-join-why: 768px;
 
 .join-field {
 	height: 48px;
-	border: 4px solid $c-blue;
+	border: 1px solid $c-black;
 	border-radius: 3px;
-	background-color: white;
+	background-color: transparentize(white, 0.3);
 	padding: 0 15px;
 	margin-bottom: 2rem;
 	color: $c-black;
@@ -199,6 +199,7 @@ $bp-join-why: 768px;
 
 .join-other-amount-box {
 	@extend .join-field;
+	border-width: 3px;
 	border-color: $c-blue--dark2;
 	background-color: transparentize(white, 0.5);
 
@@ -335,8 +336,6 @@ $bp-join-why: 768px;
 			content: "";
 			position: absolute;
 			left: 0;
-			top: 50%;
-			margin-top: -12px;
 			vertical-align: middle;
 			margin-right: 0.5rem;
 			width: 24px;
@@ -352,21 +351,17 @@ $bp-join-why: 768px;
 	opacity: 0;
 }
 
-.join-gift-types {
-	& > .join-options__opt {
-		max-width: none;
-	}
-
-	.join-btn {
-		width: 100%;
-		font-size: 3rem;
-	}
-
+.join-gift-btn {
 	small {
 		display: block;
 		font-size: 2rem;
 		font-weight: normal;
 	}
+}
+
+.join-gift-mug {
+	float: right;
+	width: 150px;
 }
 
 .join-link {
