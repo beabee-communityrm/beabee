@@ -111,7 +111,7 @@
     ],
     "ignore": [
       "built/tsconfig.tsbuildinfo",
-      "built/static/*"
+      "built/static/**/*"
     ],
     "delay": "500",
     "signal": "SIGTERM",

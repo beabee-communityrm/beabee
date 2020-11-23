@@ -46,6 +46,10 @@ $bp-join-why: 768px;
 			content: "";
 			background-color: $c-black;
 			opacity: 0.2;
+			transition: opacity 0.2s ease-out;
+		}
+		&.is-faded::after {
+			opacity: 0.6;
 		}
 	}
 }
