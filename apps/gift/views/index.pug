@@ -21,11 +21,7 @@ block body
 					img(src='/static/svg/logo.svg').join-title-logo
 				h1 A gift for a#[br]better 2021!
 
-			.js-gift-errors
-				include /src/views/partials/flash.pug
-
 			h4 With a gift membership your loved one will get:
-
 
 			ul.join-gift-reasons
 				li Membership of a community supporting 100% community owned local media
@@ -36,6 +32,9 @@ block body
 				li A Cable mug, designed and made in Stokes Croft, Bristol - sent with the first copy in mid-January
 
 			img(src='/static/imgs/gift-header.png' style='width:100%')
+
+			.js-gift-errors
+				include /src/views/partials/flash.pug
 
 			.hidden-js
 				p.
