@@ -47,6 +47,48 @@
 }
 
 @font-face {
+  font-family: 'Rubik';
+  src: url('/static/fonts/Rubik-Black.woff2') format('woff2'),
+  url('/static/fonts/Rubik-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Rubik';
+  src: url('/static/fonts/Rubik-Bold.woff2') format('woff2'),
+  url('/static/fonts/Rubik-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Rubik';
+  src: url('/static/fonts/Rubik-Regular.woff2') format('woff2'),
+  url('/static/fonts/Rubik-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'HK Grotesk';
+  src: url('/static/fonts/HKGrotesk-Regular.woff2') format('woff2'),
+  url('/static/fonts/HKGrotesk-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HK Grotesk';
+  src: url('/static/fonts/HKGrotesk-Bold.woff2') format('woff2'),
+  url('/static/fonts/HKGrotesk-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
     font-family: 'Open Sans Condensed';
     src: url('/static/fonts/OpenSansCondensed-Bold.woff2') format('woff2'),
         url('/static/fonts/OpenSansCondensed-Bold.woff') format('woff');
