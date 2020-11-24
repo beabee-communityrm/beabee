@@ -12,7 +12,7 @@ const log = require( '@core/logging' ).log;
 const mandrill = require( '@core/mandrill' );
 const stripe = require( '@core/stripe' );
 const { wrapAsync } = require( '@core/utils' );
-const { processGiftFlow } = require( '@apps/gift/utils' );
+const { processGiftFlow, isBeforeCutOff } = require( '@apps/gift/utils' );
 
 const app = express();
 
@@ -103,10 +103,13 @@ async function handleCheckoutSessionCompleted(session) {
 		await giftFlow.update({$set: {completed: true}});
 
 		const { fromName, fromEmail, firstname, startDate } = giftFlow.giftForm;
+		const now = moment.utc();
+		const beforeCutOff = isBeforeCutOff(now);
 
-		const giftCard = createGiftCard(giftFlow.setupCode);
+		const giftCard = beforeCutOff ? null : createGiftCard(giftFlow.setupCode);
+		const emailTemplate = beforeCutOff ? 'purchased-gift-with-card-before-16th-dec' : 'purchased-gift';
 
-		await mandrill.sendMessage('purchased-gift', {
+		await mandrill.sendMessage(emailTemplate, {
 			to: [{
 				email: fromEmail,
 				name:  fromName
@@ -121,18 +124,20 @@ async function handleCheckoutSessionCompleted(session) {
 					content: firstname
 				}, {
 					name: 'GIFTDATE',
-					content: moment(startDate).format('MMMM Do')
+					content: moment.utc(startDate).format('MMMM Do')
 				}]
 			}],
-			attachments: [{
-				type: 'application/pdf',
-				name: 'Gift card.pdf',
-				content: giftCard.toString('base64')
-			}]
+			...(giftCard && {
+				attachments: [{
+					type: 'application/pdf',
+					name: 'Gift card.pdf',
+					content: giftCard.toString('base64')
+				}]
+			})
 		});
 
 		// Immediately process gifts for today
-		if (moment(startDate).isSame(moment.utc(), 'day')) {
+		if (moment.utc(startDate).isSame(now, 'day')) {
 			log.info( {
 				app: 'webhook-stripw',
 				action: 'process-gift',

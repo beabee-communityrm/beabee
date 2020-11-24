@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment, { MomentInput } from 'moment';
 
 import mandrill from '@core/mandrill';
 import MembersService from '@core/services/MembersService';
@@ -40,6 +40,6 @@ export async function processGiftFlow(giftFlow: GiftFlow, sendImmediately = fals
 	await MembersService.addMemberToMailingLists(member);
 }
 
-export function isBeforeCutOff(date?: string|Date): boolean {
+export function isBeforeCutOff(date?: MomentInput): boolean {
 	return moment.utc(date).isBefore('2020-12-17');
 }
