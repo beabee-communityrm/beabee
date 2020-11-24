@@ -2,7 +2,6 @@
 
 (function () {
 	var $form = $('.js-join-form');
-	var $formBg = $('.js-join-form-bg');
 	var $formMore = $form.find('.js-join-form-more');
 	var $sustain = $form.find('.js-join-sustain');
 
@@ -49,7 +48,6 @@
 
 		if (amount) {
 			$formMore.removeClass('hidden-js');
-			$formBg.addClass('is-faded');
 
 			$sustain.toggleClass('hidden', amount >= 3);
 
