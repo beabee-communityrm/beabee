@@ -327,21 +327,25 @@ $bp-join-why: 768px;
 	}
 }
 
-.join-gift-included {
-	background-color: transparentize($c-blue, 0.3);
-	padding: 2rem;
-	margin-bottom: 3rem;
+.join-gift-christmas {
+	display: flex;
+	align-items: center;
+	background-color: $c-green;
+	padding: 1rem;
+	color: white;
+	margin: 0 0 2rem;
 	border-radius: 3px;
-
-	h4 {
-		margin-top: 0;
+	& > svg {
+		width: 60px;
+		height: 60px;
+		margin-right: 1rem;
 	}
 }
 
 .join-gift-reasons {
 	list-style: none;
 	padding: 0;
-	margin: 0;
+	margin: 0 0 1rem;
 	font-weight: bold;
 
 	& > li {
