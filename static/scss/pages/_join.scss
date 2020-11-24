@@ -156,7 +156,6 @@ $bp-join-why: 768px;
 	color: $c-black;
 	font-family: "Roboto", sans-serif;
 	font-size: 24px;
-	font-weight: bold;
 }
 
 .join-field__input {
@@ -267,6 +266,7 @@ $bp-join-why: 768px;
 .join-secure {
 	position: relative;
 	padding-left: 30px;
+	margin: 0;
 
 	& > svg {
 		position: absolute;
