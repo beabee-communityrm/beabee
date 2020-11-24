@@ -12,7 +12,7 @@ const Options = require( '@core/options' )();
 const { default: MembersService } = require( '@core/services/MembersService' );
 
 const { processGiftFlow, isBeforeCutOff } = require('./utils');
-const { createGiftSchema } = require( './schema.json' );
+const { createGiftSchema, updateGiftAddressSchema } = require( './schema.json' );
 
 const app = express();
 var app_config = {};
@@ -116,7 +116,10 @@ app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
 	}
 } );
 
-app.post( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, res ) => {
+app.post( '/thanks/:_id', [
+	hasModel(GiftFlows, '_id'),
+	hasSchema(updateGiftAddressSchema).orFlash
+], wrapAsync( async ( req, res ) => {
 	if (!req.model.processed && !req.model.giftForm.delivery_address.line1) {
 		const {delivery_address, same_address, delivery_copies_address} = req.body;
 		await req.model.update({$set: {
