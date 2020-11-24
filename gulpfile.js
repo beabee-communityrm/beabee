@@ -4,6 +4,8 @@ const postcss = require('gulp-postcss');
 const sass = require('gulp-sass');
 const sourcemaps = require('gulp-sourcemaps');
 
+const browserSync = require('browser-sync').create();
+
 const paths = {
 	css: {
 		src: './static/scss/**/*.scss',
@@ -21,7 +23,8 @@ function buildCSS() {
 		.pipe(sass().on('error', sass.logError))
 		.pipe(postcss([autoprefixer()]))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(paths.css.dest));
+		.pipe(gulp.dest(paths.css.dest))
+		.pipe(browserSync.stream({match: './**/*.css'}));
 }
 
 function copyAppFiles() {
@@ -32,6 +35,10 @@ function copyAppFiles() {
 const build = gulp.parallel(buildCSS, copyAppFiles);
 
 function watch() {
+	browserSync.init({
+		proxy: 'http://localhost:3001'
+	});
+
 	gulp.watch(paths.css.src, buildCSS);
 	gulp.watch(paths.appFiles.src, copyAppFiles);
 }

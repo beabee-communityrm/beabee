@@ -11,8 +11,8 @@ const Options = require( '@core/options' )();
 
 const { default: MembersService } = require( '@core/services/MembersService' );
 
-const { processGiftFlow } = require( './utils' );
-const { createGiftSchema } = require( './schema.json' );
+const { processGiftFlow, isBeforeCutOff } = require('./utils');
+const { createGiftSchema, updateGiftAddressSchema } = require( './schema.json' );
 
 const app = express();
 var app_config = {};
@@ -25,7 +25,10 @@ app.use( function( req, res, next ) {
 } );
 
 app.get( '/', ( req, res ) => {
-	res.render( 'index', { stripePublicKey: config.stripe.public_key } );
+	res.render( 'index', {
+		stripePublicKey: config.stripe.public_key,
+		isBeforeCutOff: isBeforeCutOff()
+	} );
 } );
 
 async function createGiftFlow(giftForm, member) {
@@ -103,21 +106,25 @@ app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req
 
 app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
 	if (req.model.completed) {
-		res.render('thanks', {...req.model.giftForm, processed: req.model.processed});
+		res.render('thanks', {
+			...req.model.giftForm,
+			processed: req.model.processed,
+			isBeforeCutOff: isBeforeCutOff(req.model.date)
+		});
 	} else {
 		res.redirect('/gift/failed/' + req.model._id);
 	}
 } );
 
-app.post( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, res ) => {
+app.post( '/thanks/:_id', [
+	hasModel(GiftFlows, '_id'),
+	hasSchema(updateGiftAddressSchema).orFlash
+], wrapAsync( async ( req, res ) => {
 	if (!req.model.processed && !req.model.giftForm.delivery_address.line1) {
+		const {delivery_address, same_address, delivery_copies_address} = req.body;
 		await req.model.update({$set: {
-			'giftForm.delivery_address': {
-				line1: req.body.delivery_line1,
-				line2: req.body.delivery_line2,
-				city: req.body.delivery_city,
-				postcode: req.body.delivery_postcode
-			}
+			'giftForm.delivery_address': delivery_address,
+			'giftForm.delivery_copies_address': same_address ? delivery_address : delivery_copies_address
 		}});
 	}
 
@@ -126,7 +133,7 @@ app.post( '/thanks/:_id', hasModel(GiftFlows, '_id'), wrapAsync( async ( req, re
 
 app.get( '/failed/:_id', hasModel(GiftFlows, '_id'), ( req, res ) => {
 	if (req.model.completed) {
-		req.redirect('/gift/thanks/' + req.model._id);
+		res.redirect('/gift/thanks/' + req.model._id);
 	} else {
 		res.render('failed', {id: req.model._id});
 	}

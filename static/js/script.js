@@ -7,10 +7,15 @@
 		var $parent = $revealTypes.parents('.js-reveal');
 		var $revealType = $parent.find('.js-reveal-type');
 
-		var currentType = $revealTypes.val();
+		var currentType = $revealTypes.is(':checkbox') ?
+			($revealTypes.prop('checked') ? $revealTypes.prop('name') : undefined) :
+			$revealTypes.val();
 
 		$revealType.each(function () {
 			var hidden = this.getAttribute('data-type').split('|').indexOf(currentType) === -1;
+			if (this.hasAttribute('data-inverse')) {
+				hidden = !hidden;
+			}
 			$(this).toggleClass('hidden', hidden);
 			$(this).find('input, select, textarea').prop('disabled', hidden);
 		});

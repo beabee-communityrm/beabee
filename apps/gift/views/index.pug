@@ -16,23 +16,30 @@ block body
 		form(method='POST').join-form.js-gift-form
 			+csrf
 
-			.join-title
-				div
-					img(src='/static/svg/logo.svg').join-title-logo
-				h1 Gift the#[br]Cable
+			.join-title.text-center
+				h1 A gift for a#[br]better 2021!
+
+			.join-gift-christmas
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M11.011 2.39l-1.011-.957 1.389-.189.611-1.244.611 1.244 1.389.189-1.011.957.246 1.36-1.235-.651-1.235.651.246-1.36zm-.011 21.61h2v-4h-2v4zm-6-5.013l4-5h-3l4-5h-2l4-4.487 4 4.487h-2l4 5h-3l4 5h-14zm9.263-3.448l-.379.78-.857.119.624.601-.152.854.765-.409.765.409-.152-.854.625-.601-.859-.119-.38-.78zm-1.334-4.107c0 .349.283.632.631.632s.631-.283.631-.632c0-.349-.282-.631-.631-.631s-.631.282-.631.631zm-.224 2.913c0-.425-.345-.77-.769-.77-.426 0-.77.344-.77.77 0 .425.344.77.77.77.423 0 .769-.345.769-.77zm-1.42-7.605c0 .349.283.632.631.632.348 0 .631-.283.631-.632 0-.348-.284-.631-.631-.631-.349-.001-.631.283-.631.631zm0 2.652c0 .348.283.631.631.631.348 0 .631-.283.631-.631 0-.349-.284-.632-.631-.632-.349 0-.631.283-.631.632zm-1.785 2.05l.456.438-.111.62.557-.298.555.298-.11-.621.454-.438-.625-.086-.274-.567-.275.567-.627.087zm-1 5.362c0 .547.444.991.991.991.547 0 .991-.444.991-.991 0-.547-.443-.991-.991-.991-.547 0-.991.444-.991.991z" fill="currentColor"/></svg>
+				| Buy the gift by 16th Dec to guarantee Christmas day delivery
+
+			h4 With a gift membership your loved one will get:
+
+			ul.join-gift-reasons
+				li Membership of 100% community owned local media
+				li
+					img(src='/static/imgs/gift-mug.png').join-gift-mug
+					| A quarterly print copy of the Cable, delivered to the door
+				if isBeforeCutOff
+					li A card with a personal message from you
+					li A Cable mug, made in Stokes Croft, Bristol
+				else
+					li A Cable mug, made in Stokes Croft, Bristol, sent with their first edition
+
+			img(src='/static/imgs/gift-header.png' style='width:100%')
 
 			.js-gift-errors
 				include /src/views/partials/flash.pug
-
-			.join-gift-included
-				h4 What's included?
-
-				ul.join-gift-reasons
-					li Cable membership: own a share and have a say in your media
-					li Quarterly magazine in the post: full of public interest journalism and local voices
-					li Free or discounted tickets to Cable events
-					li Making independent and investigative media free for all
-					li Joining a community of thousands of Bristolians to support a new, democratic media
 
 			.hidden-js
 				p.
@@ -41,7 +48,7 @@ block body
 					#[+email('membership@thebristolcable.org')] if you want to continue.
 
 			.hidden-nojs
-				h4 Who is the gift for?
+				h4 1. Who is the gift for?
 				.join-field-group
 					.join-field
 						input(type='text' name='firstname' placeholder='First name' required).join-field__input
@@ -49,46 +56,36 @@ block body
 					.join-field
 						input(type='text' name='lastname' placeholder='Last name' required).join-field__input
 
-				h4 What's their email address?
+				h4 2. What's their email address?
 				.join-field
-					input(type='email' name='email' required).join-field__input
+					input(type='email' name='email' placeholder='email@address.com' required).join-field__input
 
-				h4 When should their gift start?
+				h4 3. When should their gift start?
 				p.join-field-info.
 					We'll start their membership and send them a welcome email
 					in the morning on this date.
+
 				.join-field.join-field-date
-					input(type='date' name='startDate' required).join-field__input
+					input(type='date' name='startDate' value='2020-12-26' required).join-field__input
 
-				h4 Add an optional personal message
+				h4 4. Who shall we say the gift is from?
+				.join-field
+					input(type='text' name='fromName' placeholder='Your name' required).join-field__input
+
+				h4 5. What's your email address?
+				.join-field
+					input(type='email' name='fromEmail' placeholder='email@example.com' required).join-field__input
+
+				h4 6. Add an optional personal message
 				p.join-field-info.
-					We'll include this in their welcome email.
+					We'll include this in their card and welcome email.
 				.join-field.join-field-message
-					textarea(name='message').join-field__input
+					textarea(name='message' maxlength='140').join-field__input
 
-				h4 Who shall we say the gift is from?
-				.join-field
-					input(type='text' name='fromName' required).join-field__input
-
-				h4 What's your email address?
-				.join-field
-					input(type='email' name='fromEmail' required).join-field__input
-
-				button.join-gift-submit blah
-
-				h4 How long would you like to gift the Cable for?
-
-				ul.join-options.join-gift-types
-					li.join-options__opt
-						input(type='radio' name='type' value='12' required)
-						button(type='button').btn.btn-primary.btn-lg.join-btn.js-gift-type
-							| 12 months
-							small for £36
-					li.join-options__opt
-						input(type='radio' name='type' value='6' required)
-						button(type='button').btn.btn-primary.btn-lg.join-btn.js-gift-type
-							| 6 months
-							small for £18
+				input(type='hidden' name='type' value='12')
+				p: button.btn.btn-success.btn-lg.join-btn.join-gift-btn
+					| Buy gift
+					small for £36
 
 				p.join-info.join-secure.small
 					svg(xmlns='http://www.w3.org/2000/svg', viewBox='0 0 24 24')

@@ -34,5 +34,54 @@
 				}
 			}
 		}
+	},
+	"updateGiftAddressSchema": {
+		"body": {
+			"type": "object",
+			"required": ["delivery_address"],
+			"properties": {
+				"delivery_address": {
+					"type": "object",
+					"required": ["line1", "city", "postcode"],
+					"properties": {
+						"line1": {
+							"type": "string"
+						},
+						"line2": {
+							"type": "string"
+						},
+						"city": {
+							"type": "string"
+						},
+						"postcode": {
+							"type": "string",
+							"format": "postcode"
+						}
+					}
+				},
+				"same_address": {
+					"type": "boolean"
+				},
+				"delivery_copies_address": {
+					"type": "object",
+					"required": ["line1", "city", "postcode"],
+					"properties": {
+						"line1": {
+							"type": "string"
+						},
+						"line2": {
+							"type": "string"
+						},
+						"city": {
+							"type": "string"
+						},
+						"postcode": {
+							"type": "string",
+							"format": "postcode"
+						}
+					}
+				}
+			}
+		}
 	}
 }

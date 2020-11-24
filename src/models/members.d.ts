@@ -13,21 +13,24 @@ interface PartialMember {
 		postcode: string
 	},
 	gocardless: {
-		customer_id: string,
-		mandate_id: string,
-	}
+		customer_id?: string,
+		mandate_id?: string,
+		amount?: number,
+		period?: ContributionPeriod
+	},
+	giftCode?: string
 }
 interface Member extends PartialMember, Document {
 	uuid?: string
 	referralCode: string,
 	pollsCode: string
 	gocardless: {
-		customer_id: string,
-		mandate_id: string,
+		customer_id?: string,
+		mandate_id?: string,
 		subscription_id?: string,
-		period?: ContributionPeriod,
+		paying_fee?: boolean,
 		amount?: number,
-		paying_fee?: boolean
+		period?: ContributionPeriod
 	},
 	memberPermission?: {
 		date_added: Date,

@@ -58,6 +58,12 @@ module.exports = {
 				line2: String,
 				city: String,
 				postcode: String
+			},
+			delivery_copies_address: {
+				line1: String,
+				line2: String,
+				city: String,
+				postcode: String
 			}
 		},
 		completed: Boolean,

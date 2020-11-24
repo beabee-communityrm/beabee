@@ -48,6 +48,7 @@ function checkDateInput() {
 		});
 	}
 
+	/*
 	// Select gift type then submit
 	$('.js-gift-type').on('click', function () {
 		this.previousSibling.checked = true;
@@ -65,11 +66,26 @@ function checkDateInput() {
 			evt.preventDefault();
 		}
 	});
+	// Select gift type then submit
+	$('.js-gift-type').on('click', function () {
+		this.previousSibling.checked = true;
+		if (validateForm()) {
+			purchaseGift();
+		} else {
+			this.previousSibling.checked = false;
+		}
+	});
+	*/
 
 	function reset() {
 		$form.find('button').prop('disabled', false);
 		$form.find('[name=type]').prop('checked', false);
 	}
+
+	$form.on('submit', function (evt) {
+		evt.preventDefault();
+		purchaseGift();
+	});
 
 	function purchaseGift() {
 		var data;

@@ -11,26 +11,17 @@ block append css
 	+passwordRequirementsCSS
 
 block body
-	header.join-header
-		.join-header__bg
-
-		.join-form
-			.join-title
-				div
-					img(src='/static/svg/logo.svg').join-title-logo
-				h1 Hello#[br]#{user.firstname}
+	header.join-header-static
 
 	.container
 		.row
 			.col-md-8.col-md-offset-2
 
-				h3 Welcome to the Cable!
+				h3 Hi #{user.firstname}, welcome to the Cable!
 
 				p.
 					You're now the newest member of Bristol's media cooperative, owned
 					and supported by more than 2,200 people in Bristol.
-
-				.alert.alert-info Finish setting up your membership
 
 				include /src/views/partials/flash
 
@@ -186,4 +177,4 @@ block body
 												| Yes, you can show my answers and first
 												| name in communications
 
-					button.btn.btn-success Save
+					button.btn.btn-success.btn-lg Save

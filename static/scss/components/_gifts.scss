@@ -8,6 +8,7 @@
 	margin: 0 0 0.5rem;
 	padding: 0;
 	@media (min-width: $bp-join-form) {
+		max-width: 600px;
 		display: flex;
 		align-items: stretch;
 		flex-wrap: wrap;
@@ -22,13 +23,15 @@
 	top: 45px;
 	text-align: center;
 	transform: translate(0, -50%);
+	font-weight: bold;
 }
 
 .gifts__item {
 	margin: 0 0.5rem 1rem;
 
 	@media (min-width: $bp-join-form) {
-		width: 95px;
+		width: calc(20% - 1rem);
+		max-width: 90px;
 		text-align: center;
 		margin-bottom: 0.5rem;
 	}
