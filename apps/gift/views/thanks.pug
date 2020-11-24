@@ -39,10 +39,10 @@ block body
 
 							include /src/views/partials/flash
 
-							+input( 'text', 'Address line 1', 'address.line1', { required: true, left: 4, right: 6 } )
-							+input( 'text', 'Address line 2', 'address.line2', { left: 4, right: 6 } )
-							+input( 'text', 'City/town', 'address.city', { required: true, left: 4, right: 6 } )
-							+input( 'text', 'Postcode', 'address.postcode', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Address line 1', 'delivery_address.line1', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Address line 2', 'delivery_address.line2', { left: 4, right: 6 } )
+							+input( 'text', 'City/town', 'delivery_address.city', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Postcode', 'delivery_address.postcode', { required: true, left: 4, right: 6 } )
 
 							.js-reveal
 								.form-group
@@ -58,10 +58,10 @@ block body
 										If you don't know where #{firstname} wants their copies sent we will ask them when
 										they activate their account.
 
-									+input( 'text', 'Address line 1', 'copies_address.line1', { required: true, left: 4, right: 6 } )
-									+input( 'text', 'Address line 2', 'copies_address.line2', { left: 4, right: 6 } )
-									+input( 'text', 'City/town', 'copies_address.city', { required: true, left: 4, right: 6 } )
-									+input( 'text', 'Postcode', 'copies_address.postcode', { required: true, left: 4, right: 6 } )
+									+input( 'text', 'Address line 1', 'delivery_copies_address.line1', { required: true, left: 4, right: 6 } )
+									+input( 'text', 'Address line 2', 'delivery_copies_address.line2', { left: 4, right: 6 } )
+									+input( 'text', 'City/town', 'delivery_copies_address.city', { required: true, left: 4, right: 6 } )
+									+input( 'text', 'Postcode', 'delivery_copies_address.postcode', { required: true, left: 4, right: 6 } )
 
 							.form-group
 								.col-md-offset-4.col-md-6
