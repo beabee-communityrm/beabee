@@ -32,7 +32,7 @@ log.info( {
 	action: 'start'
 } );
 
-database.connect( config.mongo );
+database.connect( config.mongo, config.db );
 
 const app = express();
 

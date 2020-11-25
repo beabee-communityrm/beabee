@@ -1,12 +1,13 @@
 const mongoose = require( 'mongoose' );
+const typeorm = require( 'typeorm' );
 const log = require( '@core/logging' ).log;
 
 exports.ObjectId = mongoose.Schema.ObjectId;
 exports.mongoose = mongoose;
 
-exports.connect = function( url ) {
+exports.connect = async function( mongoUrl, dbConfig ) {
 	mongoose.Promise = global.Promise;
-	mongoose.connect( url, {
+	mongoose.connect( mongoUrl, {
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useUnifiedTopology: true
@@ -28,6 +29,26 @@ exports.connect = function( url ) {
 		} );
 		process.exit();
 	} );
+
+	try  {
+		await typeorm.createConnection({
+			...dbConfig,
+			models: [],
+			synchronize: true
+		});
+		log.debug({
+			app: 'database',
+			action: 'connect',
+			message: 'Connected to database'
+		});
+	} catch (error) {
+		log.error({
+			app: 'database',
+			action: 'connect',
+			message: 'Error connecting to database',
+			error
+		});
+	}
 
 	return exports;
 };
