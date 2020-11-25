@@ -13,9 +13,8 @@ block body
 				h2= delivery_address.line1 ? 'That\'s it!' : 'One more thing!'
 
 				p.
-					Thank you for helping to sustain independent local journalism. We'll
-					start #{firstname}'s membership on #{moment(startDate).format('MMMM Do')}
-					and send them an email welcoming them to the Cable.
+					Thank you for helping to sustain independent local journalism, we'll
+					start #{firstname}'s membership on #{moment(startDate).format('MMMM Do')}.
 
 				if processed
 					.alert.alert-success.
