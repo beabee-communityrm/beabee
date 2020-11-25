@@ -52,12 +52,15 @@
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "passport-totp": "0.0.2",
+    "pg": "^8.5.1",
     "pug": "^3.0.0",
     "query-string": "^6.13.5",
+    "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
     "stripe": "^8.108.0",
     "tar-stream": "^2.1.4",
     "thirty-two": "^1.0.2",
+    "typeorm": "^0.2.29",
     "uuid": "^8.3.1"
   },
   "scripts": {

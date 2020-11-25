@@ -1,4 +1,5 @@
 require('module-alias/register');
+require('reflect-metadata');
 
 const express = require( 'express' );
 const helmet = require( 'helmet' );

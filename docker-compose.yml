@@ -5,6 +5,14 @@ services:
     image: mongo:3.6.18
     volumes:
       - db_data:/data/db
+  new_db:
+    image: postgres:9.6
+    volumes:
+      - new_db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: membership_system
+      POSTGRES_PASSWORD: membership_system
+      POSTGRES_DB: membership_system
   app:
     build: .
     volumes:
@@ -14,3 +22,4 @@ services:
 
 volumes:
   db_data:
+  new_db_data:
