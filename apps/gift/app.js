@@ -89,7 +89,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req, res ) => {
 	if (req.model.completed) {
 		if (!req.model.processed) {
-			await processGiftFlow(req.model);
+			await processGiftFlow(req.model, true);
 		}
 
 		const member = await Members.findOne({giftCode: req.params.setupCode});

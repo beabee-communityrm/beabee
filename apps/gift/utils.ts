@@ -34,7 +34,10 @@ export async function processGiftFlow(giftFlow: GiftFlow, sendImmediately = fals
 	};
 	await member.save();
 
-	const sendAt = sendImmediately ? null : now.clone().set({h: 10, m: 0, s: 0}).format();
+	const sendAt = sendImmediately ? null : now.clone().startOf('day').add({
+		days: isBeforeCutOff(giftFlow.date) ? 1 : 0, // Delay email by a day if they are receiving a physical gift
+		h: 10, m: 0, s: 0
+	}).format();
 	await mandrill.sendToMember('giftee-success', member, { fromName, message }, sendAt);
 
 	await MembersService.addMemberToMailingLists(member);
