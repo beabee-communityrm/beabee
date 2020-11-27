@@ -7,6 +7,7 @@ declare global {
 
 		export interface Request {
 			flash(level: string, message: string): void
+			model: unknown
 		}
 	}
 }

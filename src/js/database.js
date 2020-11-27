@@ -1,6 +1,9 @@
 const mongoose = require( 'mongoose' );
 const typeorm = require( 'typeorm' );
+
 const log = require( '@core/logging' ).log;
+
+const { Notice } = require('@models/Notice');
 
 exports.ObjectId = mongoose.Schema.ObjectId;
 exports.mongoose = mongoose;
@@ -33,7 +36,9 @@ exports.connect = async function( mongoUrl, dbConfig ) {
 	try  {
 		await typeorm.createConnection({
 			...dbConfig,
-			models: [],
+			entities: [
+				Notice
+			],
 			synchronize: true
 		});
 		log.debug({
