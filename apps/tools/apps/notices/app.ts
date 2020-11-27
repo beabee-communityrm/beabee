@@ -1,5 +1,4 @@
 import express from 'express';
-import _ from 'lodash';
 import moment from 'moment';
 import { getCustomRepository } from 'typeorm';
 
@@ -62,7 +61,7 @@ app.post( '/:id', hasNewModel(NoticeRepository, 'id'), wrapAsync( async ( req, r
 
 	switch ( req.body.action ) {
 	case 'update':
-		await noticeRepository.update(notice, schemaToNotice(req.body));
+		await noticeRepository.update(notice.id, schemaToNotice(req.body));
 		req.flash( 'success', 'notices-updated' );
 		res.redirect( '/tools/notices/' + notice.id );
 		break;
