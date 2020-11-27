@@ -66,7 +66,6 @@ exports.Exports = require('@models/exports').model;
 exports.GiftFlows = require('@models/gift-flows').model;
 exports.JoinFlows = require('@models/join-flows').model;
 exports.Members = require('@models/members').model;
-exports.Notices = require('@models/notices').model;
 exports.Options = require('@models/options').model;
 exports.PageSettings = require('@models/page-settings').model;
 exports.Payments = require('@models/payments').model;

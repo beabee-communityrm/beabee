@@ -109,7 +109,6 @@ const models: ModelExporter[] = [
 	{ model: db.Members, properties: members },
 	{ model: db.ReferralGifts },
 	{ model: db.Referrals, properties: referrals },
-	{ model: db.Notices },
 	{ model: db.Polls },
 	{ model: db.PollAnswers, properties: pollAnswers },
 	{ model: db.Projects , properties: projects },
