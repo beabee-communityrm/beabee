@@ -132,6 +132,8 @@ process.on('SIGTERM', () => {
 		message: 'Waiting for server to shutdown'
 	} );
 
+	database.close();
+
 	setTimeout(() => {
 		log.debug( {
 			app: 'main',

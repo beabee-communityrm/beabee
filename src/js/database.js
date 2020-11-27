@@ -58,6 +58,10 @@ exports.connect = async function( mongoUrl, dbConfig ) {
 	return exports;
 };
 
+exports.close = async function() {
+	await Promise.all([mongoose.disconnect(), typeorm.getConnection().close()]);
+};
+
 exports.Exports = require('@models/exports').model;
 exports.GiftFlows = require('@models/gift-flows').model;
 exports.JoinFlows = require('@models/join-flows').model;
