@@ -1,12 +1,16 @@
 const mongoose = require( 'mongoose' );
+const typeorm = require( 'typeorm' );
+
 const log = require( '@core/logging' ).log;
+
+const { Notice } = require('@models/Notice');
 
 exports.ObjectId = mongoose.Schema.ObjectId;
 exports.mongoose = mongoose;
 
-exports.connect = function( url ) {
+exports.connect = function( mongoUrl, dbConfig ) {
 	mongoose.Promise = global.Promise;
-	mongoose.connect( url, {
+	mongoose.connect( mongoUrl, {
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useUnifiedTopology: true
@@ -29,14 +33,45 @@ exports.connect = function( url ) {
 		process.exit();
 	} );
 
+	if (dbConfig) {
+		typeorm.createConnection({
+			...dbConfig,
+			entities: [
+				Notice
+			],
+			synchronize: true
+		}).then(() => {
+			log.debug({
+				app: 'database',
+				action: 'connect',
+				message: 'Connected to database'
+			});
+		}).catch(error => {
+			log.error({
+				app: 'database',
+				action: 'connect',
+				message: 'Error connecting to database',
+				error
+			});
+		});
+	}
+
 	return exports;
+};
+
+exports.close = async function() {
+	await mongoose.disconnect();
+	try {
+		await typeorm.getConnection().close();
+	} catch (error) { 
+		// TODO: remove once typeorm connection always open
+	}
 };
 
 exports.Exports = require('@models/exports').model;
 exports.GiftFlows = require('@models/gift-flows').model;
 exports.JoinFlows = require('@models/join-flows').model;
 exports.Members = require('@models/members').model;
-exports.Notices = require('@models/notices').model;
 exports.Options = require('@models/options').model;
 exports.PageSettings = require('@models/page-settings').model;
 exports.Payments = require('@models/payments').model;

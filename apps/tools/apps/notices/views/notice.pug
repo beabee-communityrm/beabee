@@ -18,13 +18,6 @@ block contents
 			else if notice.expires
 				.alert.alert-warning This notice has expired
 
-			each status in statuses
-				p
-					= status.name
-					| :
-					|
-					= status.count
-
 	.row
 		.col-md-8
 			hr
@@ -59,7 +52,7 @@ block contents
 							| Enabled
 
 				p.col-md-offset-3
-					button.btn Update
+					button.btn.btn-primary Update
 
 			hr
 

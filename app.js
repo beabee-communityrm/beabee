@@ -1,4 +1,5 @@
 require('module-alias/register');
+require('reflect-metadata');
 
 const express = require( 'express' );
 const helmet = require( 'helmet' );
@@ -31,7 +32,7 @@ log.info( {
 	action: 'start'
 } );
 
-database.connect( config.mongo );
+database.connect( config.mongo, config.db );
 
 const app = express();
 
@@ -130,6 +131,8 @@ process.on('SIGTERM', () => {
 		action: 'stop-webserver',
 		message: 'Waiting for server to shutdown'
 	} );
+
+	database.close();
 
 	setTimeout(() => {
 		log.debug( {

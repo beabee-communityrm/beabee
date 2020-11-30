@@ -1,8 +1,9 @@
 import express from 'express';
+import { getCustomRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import { Notices } from '@core/database';
 import { wrapAsync } from '@core/utils';
+import NoticeRespository from '@core/repositories/NoticeRepository';
 
 const app = express();
 let app_config;
@@ -21,7 +22,7 @@ app.use( function( req, res, next ) {
 } );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
-	const notices = await Notices.find( { enabled: true } ); // TODO: filter for expires
+	const notices = await getCustomRepository(NoticeRespository).findActive();
 	res.render( 'index', { user: req.user, notices } );
 } ) );
 

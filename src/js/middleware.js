@@ -1,4 +1,5 @@
 const mongoose = require( 'mongoose' );
+const { getCustomRepository } = require('typeorm');
 
 const ajv = require('./ajv');
 
@@ -98,7 +99,21 @@ function hasModel( model, prop ) {
 	};
 }
 
+function hasNewModel(entityRespository, prop) {
+	return async (req, res, next) => {
+		if (!req.model || req.model[prop] !== req.params[prop]) {
+			req.model = await getCustomRepository(entityRespository).findOne({where: {[prop]: req.params[prop]}});
+		}
+		if (req.model) {
+			next();
+		} else {
+			next('route');
+		}
+	};
+}
+
 module.exports = {
 	hasSchema,
-	hasModel
+	hasModel,
+	hasNewModel
 };
