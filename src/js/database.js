@@ -8,7 +8,7 @@ const { Notice } = require('@models/Notice');
 exports.ObjectId = mongoose.Schema.ObjectId;
 exports.mongoose = mongoose;
 
-exports.connect = async function( mongoUrl, dbConfig ) {
+exports.connect = function( mongoUrl, dbConfig ) {
 	mongoose.Promise = global.Promise;
 	mongoose.connect( mongoUrl, {
 		useNewUrlParser: true,
@@ -33,25 +33,26 @@ exports.connect = async function( mongoUrl, dbConfig ) {
 		process.exit();
 	} );
 
-	try  {
-		await typeorm.createConnection({
+	if (dbConfig) {
+		typeorm.createConnection({
 			...dbConfig,
 			entities: [
 				Notice
 			],
 			synchronize: true
-		});
-		log.debug({
-			app: 'database',
-			action: 'connect',
-			message: 'Connected to database'
-		});
-	} catch (error) {
-		log.error({
-			app: 'database',
-			action: 'connect',
-			message: 'Error connecting to database',
-			error
+		}).then(() => {
+			log.debug({
+				app: 'database',
+				action: 'connect',
+				message: 'Connected to database'
+			});
+		}).catch(error => {
+			log.error({
+				app: 'database',
+				action: 'connect',
+				message: 'Error connecting to database',
+				error
+			});
 		});
 	}
 
@@ -59,7 +60,12 @@ exports.connect = async function( mongoUrl, dbConfig ) {
 };
 
 exports.close = async function() {
-	await Promise.all([mongoose.disconnect(), typeorm.getConnection().close()]);
+	await mongoose.disconnect();
+	try {
+		await typeorm.getConnection().close();
+	} catch (error) { 
+		// TODO: remove once typeorm connection always open
+	}
 };
 
 exports.Exports = require('@models/exports').model;
