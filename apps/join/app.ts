@@ -4,7 +4,7 @@ import auth from '@core/authentication' ;
 import { Members, RestartFlows } from '@core/database' ;
 import mandrill from '@core/mandrill' ;
 import { hasSchema } from '@core/middleware' ;
-import { loginAndRedirect, wrapAsync } from '@core/utils' ;
+import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
@@ -14,6 +14,17 @@ import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
+import { JoinForm } from '@models/JoinFlow';
+
+interface JoinSchema {
+    amount: string,
+    amountOther?: string,
+    period: ContributionPeriod,
+    referralCode?: string,
+    referralGift?: string,
+    referralGiftOptions?: Record<string, unknown>,
+    payFee?: boolean
+}
 
 const app = express();
 
@@ -41,11 +52,23 @@ app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 	}
 } ) );
 
+function schemaToJoinForm(data: JoinSchema): JoinForm {
+	return {
+		amount: data.amount === 'other' ? parseInt(data.amountOther) : parseInt(data.amount),
+		period: data.period,
+		referralCode: data.referralCode,
+		referralGift: data.referralGift,
+		referralGiftOptions: data.referralGiftOptions,
+		payFee: !!data.payFee,
+		prorate: false
+	};
+}
+
 app.post( '/', [
 	auth.isNotLoggedIn,
 	hasSchema(joinSchema).orFlash
 ], wrapAsync(async function( req, res ) {
-	const joinForm = JoinFlowService.processJoinForm(req.body);
+	const joinForm = schemaToJoinForm(req.body);
 
 	const completeUrl = config.audience + app.mountpath + '/complete';
 	const redirectUrl = await JoinFlowService.createJoinFlow(completeUrl, joinForm);
@@ -58,7 +81,7 @@ app.post( '/referral/:code', [
 	hasSchema(joinSchema).orFlash,
 	hasSchema(referralSchema).orFlash
 ], wrapAsync( async function ( req, res ) {
-	const joinForm = JoinFlowService.processJoinForm(req.body);
+	const joinForm = schemaToJoinForm(req.body);
 
 	if (await ReferralsService.isGiftAvailable(joinForm)) {
 		const completeUrl = config.audience + app.mountpath + '/complete';

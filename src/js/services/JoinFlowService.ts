@@ -3,19 +3,9 @@ import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import gocardless from '@core/gocardless';
-import { ContributionPeriod, getActualAmount } from '@core/utils';
+import { getActualAmount } from '@core/utils';
 
 import JoinFlow, { JoinForm } from '@models/JoinFlow';
-
-interface RawJoinForm {
-    amount: string,
-    amountOther: string,
-    period: ContributionPeriod,
-    referralCode: string,
-    referralGift: string,
-    referralGiftOptions: Record<string, unknown>,
-    payFee: boolean
-}
 
 interface CompletedJoinFlow {
     customer: Customer,
@@ -24,21 +14,6 @@ interface CompletedJoinFlow {
 }
 
 export default class JoinFlowService {
-	static processJoinForm({
-		amount, amountOther, period, referralCode, referralGift, referralGiftOptions, payFee
-	}: RawJoinForm): JoinForm {
-
-		return {
-			amount: amount === 'other' ? parseInt(amountOther) : parseInt(amount),
-			period,
-			referralCode,
-			referralGift,
-			referralGiftOptions,
-			payFee,
-			prorate: false
-		};
-	}
-
 	static async createJoinFlow(completeUrl: string, joinForm: JoinForm, redirectFlowParams={}): Promise<string> {
 		const sessionToken = auth.generateCode();
 		const actualAmount = getActualAmount(joinForm.amount, joinForm.period);
