@@ -60,13 +60,16 @@ export default class JoinFlowService {
 	}
 
 	static async completeJoinFlow(redirectFlowId: string): Promise<CompletedJoinFlow> {
-		const joinFlow = await getRepository(JoinFlow).findOne({redirectFlowId});
+		const joinFlowRepository = getRepository(JoinFlow);
+		const joinFlow = await joinFlowRepository.findOne({redirectFlowId});
 
 		const redirectFlow = await gocardless.redirectFlows.complete(redirectFlowId, {
 			session_token: joinFlow.sessionToken
 		});
 
 		const customer = await gocardless.customers.get(redirectFlow.links.customer);
+
+		await joinFlowRepository.delete(joinFlow.id);
 
 		return {
 			customer,
