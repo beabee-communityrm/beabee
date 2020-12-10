@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import mongoose, { Document as MDocument, Model } from 'mongoose';
 import { Document } from 'bson';
 
-import db from '@core/database';
+import * as db from '@core/database';
 
 export interface Properties {
 	[key: string]: () => unknown

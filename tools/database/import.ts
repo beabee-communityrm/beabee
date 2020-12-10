@@ -5,7 +5,7 @@ import { EJSON } from 'bson';
 import fs from 'fs';
 
 import config from '@config';
-import db from '@core/database';
+import * as db from '@core/database';
 
 import importTypes, { ModelData } from './types';
 
@@ -31,9 +31,7 @@ if (!config.dev) {
 	process.exit(1);
 }
 
-db.connect(config.mongo);
-
-db.mongoose.connection.on('connected', async () => {
+db.connect(config.mongo).then(async () => {
 	try {
 		const data = EJSON.parse(fs.readFileSync(process.argv[2]).toString());
 		await main(data as ModelData[]);
@@ -41,5 +39,5 @@ db.mongoose.connection.on('connected', async () => {
 		console.log(err);
 	}
 
-	db.mongoose.disconnect();
+	await db.close();
 });

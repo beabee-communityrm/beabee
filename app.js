@@ -32,8 +32,6 @@ log.info( {
 	action: 'start'
 } );
 
-database.connect( config.mongo, config.db );
-
 const app = express();
 
 app.set( 'views', __dirname + '/src/views' );
@@ -49,106 +47,108 @@ logging.installMiddleware( app );
 // Use helmet
 app.use( helmet( { contentSecurityPolicy: false } ) );
 
-// Load options
-app.use( Options.load );
+database.connect( config.mongo, config.db ).then(() => {
+	// Load options
+	app.use( Options.load );
 
-// Handle authentication
-auth.load( app );
+	// Handle authentication
+	auth.load( app );
 
-// Off switch!
-app.use( ( req, res, next ) => {
-	if ( Options.getBool( 'off-switch' ) && req.originalUrl !== '/login' &&
-			auth.canSuperAdmin( req ) !== auth.LOGGED_IN ) {
-		res.render( 'maintenance' );
-	} else {
-		next();
-	}
-} );
-
-// Handle sessions
-sessions( app );
-
-// Include support for notifications
-app.use( flash() );
-app.use( quickflash );
-
-// Setup tracker
-app.use( '/membership.js', (req, res) => {
-	const referrerUrl = req.get('referer');
-	res.set('Content-Type', 'application/javascript');
-	if (!referrerUrl || config.trackDomains.some(domain => referrerUrl.startsWith(domain))) {
-		const memberId = req.cookies.memberId;
-		if (memberId) {
-			res.send('window.Membership = {memberId: "' + memberId + '"}');
+	// Off switch!
+	app.use( ( req, res, next ) => {
+		if ( Options.getBool( 'off-switch' ) && req.originalUrl !== '/login' &&
+				auth.canSuperAdmin( req ) !== auth.LOGGED_IN ) {
+			res.render( 'maintenance' );
 		} else {
-			res.send('window.Membership = {}');
+			next();
 		}
-	} else {
-		res.status(404).send('');
-	}
-});
+	} );
 
-// Include page settings
-app.use( pageSettings.middleware );
+	// Handle sessions
+	sessions( app );
 
-// Load apps
-appLoader( app );
+	// Include support for notifications
+	app.use( flash() );
+	app.use( quickflash );
 
-// Hook to handle special URLs
-app.use( '/s', specialUrlHandler );
-
-// Error 404
-app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars
-	res.status( 404 );
-	res.render( '404' );
-} );
-
-// Error 500
-app.use( function ( err, req, res, next ) { // eslint-disable-line no-unused-vars
-	res.status( 500 );
-	res.render( '500', { error: ( config.dev ? err.stack : undefined ) } );
-	req.log.error({
-		error: err
+	// Setup tracker
+	app.use( '/membership.js', (req, res) => {
+		const referrerUrl = req.get('referer');
+		res.set('Content-Type', 'application/javascript');
+		if (!referrerUrl || config.trackDomains.some(domain => referrerUrl.startsWith(domain))) {
+			const memberId = req.cookies.memberId;
+			if (memberId) {
+				res.send('window.Membership = {memberId: "' + memberId + '"}');
+			} else {
+				res.send('window.Membership = {}');
+			}
+		} else {
+			res.status(404).send('');
+		}
 	});
-} );
 
-// Load page settings
-pageSettings.update();
+	// Include page settings
+	app.use( pageSettings.middleware );
 
-// Start server
-var server = app.listen( config.port ,config.host, function () {
-	log.debug( {
-		app: 'main',
-		action: 'start-webserver',
-		message: 'Started',
-		address: server.address()
-	} );
-} );
+	// Load apps
+	appLoader( app );
 
-process.on('SIGTERM', () => {
-	log.debug( {
-		app: 'main',
-		action: 'stop-webserver',
-		message: 'Waiting for server to shutdown'
+	// Hook to handle special URLs
+	app.use( '/s', specialUrlHandler );
+
+	// Error 404
+	app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars
+		res.status( 404 );
+		res.render( '404' );
 	} );
 
-	database.close();
+	// Error 500
+	app.use( function ( err, req, res, next ) { // eslint-disable-line no-unused-vars
+		res.status( 500 );
+		res.render( '500', { error: ( config.dev ? err.stack : undefined ) } );
+		req.log.error({
+			error: err
+		});
+	} );
 
-	setTimeout(() => {
+	// Load page settings
+	pageSettings.update();
+
+	// Start server
+	var server = app.listen( config.port ,config.host, function () {
+		log.debug( {
+			app: 'main',
+			action: 'start-webserver',
+			message: 'Started',
+			address: server.address()
+		} );
+	} );
+
+	process.on('SIGTERM', () => {
 		log.debug( {
 			app: 'main',
 			action: 'stop-webserver',
-			message: 'Server was forced to shutdown after timeout'
+			message: 'Waiting for server to shutdown'
 		} );
-		process.exit(1);
-	}, 20000).unref();
 
-	server.close(() => {
-		log.debug( {
-			app: 'main',
-			action: 'stop-webserver',
-			message: 'Server successfully shutdown'
-		} );
-		process.exit();
+		database.close();
+
+		setTimeout(() => {
+			log.debug( {
+				app: 'main',
+				action: 'stop-webserver',
+				message: 'Server was forced to shutdown after timeout'
+			} );
+			process.exit(1);
+		}, 20000).unref();
+
+		server.close(() => {
+			log.debug( {
+				app: 'main',
+				action: 'stop-webserver',
+				message: 'Server successfully shutdown'
+			} );
+			process.exit();
+		});
 	});
 });

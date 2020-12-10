@@ -4,7 +4,7 @@ import { serialize, deserialize, Document, EJSON } from 'bson';
 import _ from 'lodash';
 
 import config from '@config';
-import db from '@core/database';
+import * as db from '@core/database';
 import exportTypes, { ModelData, ModelExporter, Properties } from './types';
 
 // Anonymise properties but maintain same mapping to keep links
@@ -48,13 +48,11 @@ async function main() {
 	console.log(EJSON.stringify(exportData));
 }
 
-db.connect(config.mongo);
-
-db.mongoose.connection.on('connected', async () => {
+db.connect(config.mongo).then(async () => {
 	try {
 		await main();
 	} catch (err) {
 		console.error(err);
 	}
-	db.mongoose.disconnect();
+	await db.close();
 });
