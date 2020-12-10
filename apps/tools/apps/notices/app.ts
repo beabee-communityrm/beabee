@@ -9,7 +9,7 @@ import { wrapAsync } from '@core/utils';
 import NoticeRepository from '@core/repositories/NoticeRepository';
 
 import { createNoticeSchema } from './schemas.json';
-import { Notice } from '@models/Notice';
+import Notice from '@models/Notice';
 
 const app = express();
 let app_config;

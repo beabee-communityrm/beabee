@@ -49,10 +49,11 @@ async function main(date) {
 	}
 }
 
-db.connect(config.mongo);
-
-db.mongoose.connection.on('connected', () => {
-	main(process.argv[2])
-		.catch(err => log.error(err))
-		.then(() => db.mongoose.disconnect());
+db.connect(config.mongo).then(async () => {
+	try {
+		await main(process.argv[2]);
+	} catch (err) {
+		console.error(err);
+	}
+	await db.close();
 });

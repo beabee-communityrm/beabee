@@ -2,7 +2,7 @@ import moment from 'moment';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
-export class Notice {
+export default class Notice {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 

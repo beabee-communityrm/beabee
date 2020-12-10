@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { Brackets, EntityRepository, Repository } from 'typeorm';
 
-import { Notice } from '@models/Notice';
+import Notice from '@models/Notice';
 
 @EntityRepository(Notice)
 export default class NoticeRespository extends Repository<Notice> {

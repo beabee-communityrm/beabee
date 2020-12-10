@@ -137,11 +137,12 @@ async function main() {
 	});
 }
 
-db.connect(config.mongo);
-
-db.mongoose.connection.on('connected', () => {
+db.connect(config.mongo).then(async () => {
 	console.log();
-	main()
-		.catch(err => console.error(err))
-		.then(() => db.mongoose.disconnect());
+	try {
+		await main();
+	} catch (err) {
+		console.error(err);
+	}
+	await db.close();
 });

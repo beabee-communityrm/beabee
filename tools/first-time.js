@@ -1,7 +1,7 @@
 require('module-alias/register');
 
 const config = require( '@config' );
-const db = require( '@core/database' ).connect( config.mongo );
+const db = require( '@core/database' );
 
 async function main() {
 	const member = await db.Permissions.create({
@@ -24,4 +24,7 @@ async function main() {
 	console.log(`Set 'permission.memberId' to "${member._id}" in config/config.json`);
 }
 
-main().then(() => db.mongoose.disconnect());
+db.connect( config.mongo ).then(async () => {
+	await main();
+	await db.close();
+});
