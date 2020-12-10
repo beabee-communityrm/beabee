@@ -1,6 +1,20 @@
 const mongoose = require( 'mongoose' );
 
-const { joinFormFields } = require('./join-flows');
+const joinFormFields = {
+	amount: {
+		type: Number,
+		required: true
+	},
+	period: {
+		type: String,
+		enum: ['monthly', 'annually']
+	},
+	referralCode: String,
+	referralGift: String,
+	referralGiftOptions: Object,
+	prorate: Boolean,
+	payFee: Boolean
+};
 
 module.exports = {
 	name: 'RestartFlows',

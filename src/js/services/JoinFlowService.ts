@@ -34,7 +34,8 @@ export default class JoinFlowService {
 			referralCode,
 			referralGift,
 			referralGiftOptions,
-			payFee
+			payFee,
+			prorate: false
 		};
 	}
 

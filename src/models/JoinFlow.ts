@@ -11,6 +11,9 @@ export class JoinForm {
     @Column()
     payFee: boolean;
 
+    @Column({default: false})
+    prorate: boolean;
+
     @Column({nullable: true})
     referralCode?: string;
 
