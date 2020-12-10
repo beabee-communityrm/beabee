@@ -57,8 +57,6 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 			});
 		}
 	}
-
-	return exports;
 }
 
 export async function close(): Promise<void> {
