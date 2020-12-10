@@ -82,7 +82,7 @@ log.info( {
 	action: 'start'
 } );
 
-db.connect(db.mongo).then(() => {
+db.connect(config.mongo).then(() => {
 	const listener = app.listen( config.stripe.port, config.host, function () {
 		log.debug( {
 			app: 'webhook-stripe',
