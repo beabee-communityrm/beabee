@@ -5,7 +5,7 @@ const _ = require('lodash');
 const moment = require('moment');
 
 const config = require('@config');
-const db = require('@core/database').connect(config.mongo);
+const db = require('@core/database');
 
 const utils = require('./sync-utils.js');
 const { keyBy } = require('../utils');
@@ -120,17 +120,21 @@ async function syncCustomers(dryRun, validCustomers) {
 
 console.log( 'Starting...' );
 
-const dryRun = process.argv[2] !== '--danger';
-const dataFile = process.argv[dryRun ? 2 : 3];
+db.connect(config.mongo).then(async () => {
+	const dryRun = process.argv[2] !== '--danger';
+	const dataFile = process.argv[dryRun ? 2 : 3];
 
-if (!dryRun) {
-	console.log('THIS IS NOT A DRY RUN');
-}
+	if (!dryRun) {
+		console.log('THIS IS NOT A DRY RUN');
+	}
 
-loadData(dataFile)
-	.then(processCustomers)
-	.then(syncCustomers.bind(null, dryRun))
-	.catch(error => {
-		console.error(error);
-	})
-	.then(() => db.mongoose.disconnect());
+	try {
+		const customers = await loadData(dataFile);
+		const validCustomers = await processCustomers(customers);
+		await syncCustomers(dryRun, validCustomers);
+	} catch (err) {
+		console.error(err);
+	}
+
+	await db.close();
+});
