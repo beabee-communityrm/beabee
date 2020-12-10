@@ -36,7 +36,10 @@ const build = gulp.parallel(buildCSS, copyAppFiles);
 
 function watch() {
 	browserSync.init({
-		proxy: 'http://localhost:3001'
+		proxy: 'http://localhost:3001',
+		ui: {
+			port: 4001
+		}
 	});
 
 	gulp.watch(paths.css.src, buildCSS);
