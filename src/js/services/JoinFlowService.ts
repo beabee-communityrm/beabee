@@ -1,9 +1,27 @@
-import auth from '@core/authentication';
-import { JoinFlows } from '@core/database';
-import gocardless from '@core/gocardless';
-import { getActualAmount } from '@core/utils';
+import { Customer } from 'gocardless-nodejs/types/Types';
+import { getRepository } from 'typeorm';
 
-import { CompletedJoinFlow, JoinForm, RawJoinForm } from '@models/join-flows';
+import auth from '@core/authentication';
+import gocardless from '@core/gocardless';
+import { ContributionPeriod, getActualAmount } from '@core/utils';
+
+import JoinFlow, { JoinForm } from '@models/JoinFlow';
+
+interface RawJoinForm {
+    amount: string,
+    amountOther: string,
+    period: ContributionPeriod,
+    referralCode: string,
+    referralGift: string,
+    referralGiftOptions: Record<string, unknown>,
+    payFee: boolean
+}
+
+interface CompletedJoinFlow {
+    customer: Customer,
+    mandateId: string,
+    joinForm: JoinForm
+}
 
 export default class JoinFlowService {
 	static processJoinForm({
@@ -31,18 +49,20 @@ export default class JoinFlowService {
 			...redirectFlowParams
 		});
 
-		await JoinFlows.create({
-			redirect_flow_id: redirectFlow.id,
-			sessionToken, joinForm
-		});
+		const joinFlow = new JoinFlow();
+		joinFlow.redirectFlowId = redirectFlow.id;
+		joinFlow.sessionToken = sessionToken;
+		joinFlow.joinForm = joinForm;
+
+		await getRepository(JoinFlow).save(joinFlow);
 
 		return redirectFlow.redirect_url;
 	}
 
-	static async completeJoinFlow(redirect_flow_id: string): Promise<CompletedJoinFlow> {
-		const joinFlow = await JoinFlows.findOneAndRemove({ redirect_flow_id });
+	static async completeJoinFlow(redirectFlowId: string): Promise<CompletedJoinFlow> {
+		const joinFlow = await getRepository(JoinFlow).findOne({redirectFlowId});
 
-		const redirectFlow = await gocardless.redirectFlows.complete(redirect_flow_id, {
+		const redirectFlow = await gocardless.redirectFlows.complete(redirectFlowId, {
 			session_token: joinFlow.sessionToken
 		});
 

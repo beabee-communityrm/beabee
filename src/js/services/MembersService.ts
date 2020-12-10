@@ -8,7 +8,7 @@ import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import config from '@config';
-import { JoinForm } from '@models/join-flows';
+import { JoinForm } from '@models/JoinFlow';
 import { Member, PartialMember } from '@models/members';
 
 export default class MembersService {

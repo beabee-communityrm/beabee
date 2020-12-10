@@ -4,6 +4,7 @@ import { createConnection, getConnection, ConnectionOptions } from 'typeorm';
 import { log } from '@core/logging';
 
 import Notice from '@models/Notice';
+import JoinFlow from '@models/JoinFlow';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	mongoose.Promise = global.Promise;
@@ -39,7 +40,8 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 			await createConnection({
 				...dbConfig,
 				entities: [
-					Notice
+					Notice,
+					JoinFlow
 				],
 				synchronize: true
 			});
@@ -72,7 +74,6 @@ export async function close(): Promise<void> {
 
 export { model as Exports } from '@models/exports';
 export { model as GiftFlows } from '@models/gift-flows';
-export { model as JoinFlows } from '@models/join-flows';
 export { model as Members } from '@models/members';
 export { model as Options } from '@models/options';
 export { model as PageSettings } from '@models/page-settings';
