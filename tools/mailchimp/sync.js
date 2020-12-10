@@ -10,7 +10,7 @@ const moment = require( 'moment' );
 const tar = require( 'tar-stream' );
 
 const mailchimp = require( '@core/mailchimp' );
-const db = require( '@core/database' ).connect( config.mongo );
+const db = require( '@core/database' );
 const { cleanEmailAddress } = require( '@core/utils' );
 
 function emailToHash(email) {
@@ -184,13 +184,12 @@ async function dispatchOperations(operations) {
 	}
 }
 
-if (process.argv[2] === '-n') {
-	fetchMembers(process.argv[3], process.argv[4])
-		.catch(err => console.log(err))
-		.then(() => db.mongoose.disconnect());
-} else {
-	fetchMembers(process.argv[2], process.argv[3])
-		.then(processMembers)
-		.catch(err => console.log(err))
-		.then(() => db.mongoose.disconnect());
-}
+db.connect(config.mongo).then(async () => {
+	try {
+		const [startDate, endDate] = process.argv.slice(process.argv[2] === '-n' ? 3 : 2);
+		await fetchMembers(startDate, endDate);
+	} catch (err) {
+		console.error(err);
+	}
+	await db.close();
+});
