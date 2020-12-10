@@ -7,7 +7,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const log = require( '@core/logging' ).log;
-const { Members, Payments } = require( '@core/database' ).connect( config.mongo );
+const db = require( '@core/database' );
 const { default: gocardless } = require( '@core/gocardless' );
 const mandrill = require( '@core/mandrill' );
 
@@ -67,14 +67,16 @@ log.info( {
 	action: 'start'
 } );
 
-const listener = app.listen( config.gocardless.port, config.host, function () {
-	log.debug( {
-		app: 'webhook',
-		action: 'start-webserver',
-		message: 'Started',
-		address: listener.address()
+db.connect(config.mongo).then(() => {
+	const listener = app.listen( config.gocardless.port, config.host, function () {
+		log.debug( {
+			app: 'webhook',
+			action: 'start-webserver',
+			message: 'Started',
+			address: listener.address()
+		} );
 	} );
-} );
+});
 
 async function handleResourceEvent( event ) {
 	switch( event.resource_type ) {
@@ -103,7 +105,7 @@ async function handlePaymentResourceEvent( event ) {
 	// limited. It seems like we can pretty safely assume paid out payments
 	// haven't changed though.
 	if ( event.action === 'paid_out' ) {
-		await Payments.update( { payment_id: event.links.payment }, { $set: { status: 'paid_out' } } );
+		await db.Payments.update( { payment_id: event.links.payment }, { $set: { status: 'paid_out' } } );
 
 		log.info( {
 			app: 'webhook',
@@ -113,7 +115,7 @@ async function handlePaymentResourceEvent( event ) {
 	} else {
 		const gcPayment = await gocardless.payments.get( event.links.payment );
 		const payment =
-			await Payments.findOne( { payment_id: gcPayment.id } ) ||
+			await db.Payments.findOne( { payment_id: gcPayment.id } ) ||
 			await createPayment( gcPayment );
 
 		switch( event.action ) {
@@ -130,7 +132,7 @@ async function handlePaymentResourceEvent( event ) {
 }
 
 async function createPayment( gcPayment ) {
-	const member = await Members.findOne( { 'gocardless.mandate_id': gcPayment.links.mandate } );
+	const member = await db.Members.findOne( { 'gocardless.mandate_id': gcPayment.links.mandate } );
 	const payment = utils.createPayment( gcPayment );
 
 	if ( member ) {
@@ -151,7 +153,7 @@ async function createPayment( gcPayment ) {
 	const subscription = gcPayment.links.subscription &&
 		await gocardless.subscriptions.get(gcPayment.links.subscription);
 
-	return await Payments.create({
+	return await db.Payments.create({
 		...payment,
 		...member && {member: member._id},
 		...subscription && {
@@ -178,7 +180,7 @@ async function confirmPayment( payment ) {
 			moment.utc(subscription.upcoming_payments[0].charge_date) :
 			moment.utc(payment.charge_date).add(utils.getSubscriptionDuration(subscription));
 
-		const member = await Members.findOne( { _id: payment.member } );
+		const member = await db.Members.findOne( { _id: payment.member } );
 		if (member.memberPermission) {
 			if (member.gocardless.next_amount) {
 				member.gocardless.amount = member.gocardless.next_amount;
@@ -229,7 +231,7 @@ async function handleSubscriptionResourceEvent( event ) {
 }
 
 async function cancelledSubscription( event ) {
-	const member = await Members.findOne( {
+	const member = await db.Members.findOne( {
 		'gocardless.subscription_id': event.links.subscription,
 		// Ignore users that cancelled online, we've already handled them
 		'cancellation.satisified': { $exists: false }
@@ -293,7 +295,7 @@ async function handleMandateResourceEvent( event ) {
 }
 
 async function cancelledMandate( event ) {
-	const member = await Members.findOne( { 'gocardless.mandate_id': event.links.mandate } );
+	const member = await db.Members.findOne( { 'gocardless.mandate_id': event.links.mandate } );
 
 	if ( member ) {
 		await member.update( { $unset: {
@@ -323,7 +325,7 @@ async function handleRefundResourceEvent( event ) {
 	const refund = await gocardless.refunds.get( event.links.refund );
 
 	const gcPayment = await gocardless.payments.get( refund.links.payment );
-	const payment = await Payments.findOne( { payment_id: gcPayment.id } );
+	const payment = await db.Payments.findOne( { payment_id: gcPayment.id } );
 
 	if ( payment ) {
 		await updatePayment( gcPayment, payment );

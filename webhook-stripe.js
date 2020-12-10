@@ -7,7 +7,7 @@ const moment = require( 'moment' );
 
 const config = require( '@config' );
 
-const { GiftFlows } = require( '@core/database' ).connect( config.mongo );
+const db = require( '@core/database' );
 const log = require( '@core/logging' ).log;
 const mandrill = require( '@core/mandrill' );
 const stripe = require( '@core/stripe' );
@@ -82,17 +82,19 @@ log.info( {
 	action: 'start'
 } );
 
-const listener = app.listen( config.stripe.port, config.host, function () {
-	log.debug( {
-		app: 'webhook-stripe',
-		action: 'start-webserver',
-		message: 'Started',
-		address: listener.address()
+db.connect(db.mongo).then(() => {
+	const listener = app.listen( config.stripe.port, config.host, function () {
+		log.debug( {
+			app: 'webhook-stripe',
+			action: 'start-webserver',
+			message: 'Started',
+			address: listener.address()
+		} );
 	} );
-} );
+});
 
 async function handleCheckoutSessionCompleted(session) {
-	const giftFlow = await GiftFlows.findOne({sessionId: session.id});
+	const giftFlow = await db.GiftFlows.findOne({sessionId: session.id});
 	if (giftFlow) {
 		log.info({
 			app: 'webhook-stripe',
