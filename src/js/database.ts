@@ -43,6 +43,11 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 				],
 				synchronize: true
 			});
+			log.debug( {
+				app: 'database',
+				action: 'connect',
+				message: 'Connected to database'
+			} );
 		} catch (error) {
 			log.error({
 				app: 'database',
