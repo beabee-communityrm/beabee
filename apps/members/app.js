@@ -21,7 +21,6 @@ const { cleanEmailAddress, wrapAsync } = require( '@core/utils' );
 const { default: PaymentService } = require( '@core/services/PaymentService' );
 const { default: MembersService } = require( '@core/services/MembersService' );
 
-const { calcSubscriptionMonthsLeft, canChangeSubscription, handleUpdateSubscription } = require( '@apps/profile/apps/direct-debit/utils' );
 const { syncMemberDetails } = require( '@apps/profile/apps/account/utils' );
 const exportTypes = require( '@apps/tools/apps/exports/exports');
 
@@ -374,8 +373,8 @@ memberAdminRouter.post( '/exports', wrapAsync( async ( req, res ) => {
 memberAdminRouter.get( '/gocardless', wrapAsync( async ( req, res ) => {
 	res.render( 'gocardless', {
 		member: req.model,
-		canChange: await canChangeSubscription( req.model, req.model.canTakePayment ),
-		monthsLeft: calcSubscriptionMonthsLeft( req.model )
+		canChange: await PaymentService.canChangeContribution( req.model, req.model.canTakePayment ),
+		monthsLeft: PaymentService.getMonthsLeftOnContribution( req.model )
 	} );
 } ) );
 
@@ -384,12 +383,13 @@ memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
 
 	switch ( req.body.action ) {
 	case 'update-subscription':
-		await handleUpdateSubscription(req, member, {
+		await PaymentService.updateContribution(member, {
 			amount: Number(req.body.amount),
 			period: req.body.period,
 			prorate: req.body.prorate === 'true',
 			payFee: req.body.payFee === 'true'
 		});
+		req.flash( 'success', 'contribution-updated' );
 		break;
 
 	case 'force-update':

@@ -19,10 +19,6 @@ const joinFormFields = {
 module.exports = {
 	name: 'RestartFlows',
 	schema: mongoose.Schema( {
-		code: {
-			type: String,
-			required: true
-		},
 		member: {
 			type: mongoose.Schema.ObjectId,
 			ref: 'Members',
@@ -32,10 +28,6 @@ module.exports = {
 			type: Date,
 			required: true,
 			default: Date.now
-		},
-		customerId: {
-			type: String,
-			required: true
 		},
 		mandateId: {
 			type: String,

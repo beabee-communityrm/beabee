@@ -1,9 +1,7 @@
 const express = require('express');
-const moment = require('moment');
 
 const auth = require( '@core/authentication' );
 const { Payments } = require( '@core/database' );
-const { default: gocardless } = require( '@core/gocardless' );
 const mandrill = require( '@core/mandrill' );
 const{ hasSchema } = require( '@core/middleware' );
 const { wrapAsync } = require( '@core/utils' );
@@ -11,9 +9,9 @@ const { wrapAsync } = require( '@core/utils' );
 const config = require( '@config' );
 
 const { default: JoinFlowService } = require( '@core/services/JoinFlowService' );
+const { default: PaymentService } = require( '@core/services/PaymentService' );
 
 const { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } = require('./schemas.json');
-const { calcSubscriptionMonthsLeft, canChangeSubscription, getBankAccount, handleUpdateSubscription } = require('./utils');
 
 const app = express();
 var app_config = {};
@@ -51,9 +49,9 @@ app.get( '/', wrapAsync( async function ( req, res ) {
 	res.render( 'index', {
 		user: req.user,
 		isFirstPayment,
-		bankAccount: await getBankAccount(req.user),
-		canChange: await canChangeSubscription(req.user, req.user.canTakePayment),
-		monthsLeft: calcSubscriptionMonthsLeft(req.user)
+		bankAccount: await PaymentService.getBankAccount(req.user),
+		canChange: await PaymentService.canChangeContribution(req.user, req.user.canTakePayment),
+		monthsLeft: PaymentService.getMonthsLeftOnContribution(req.user)
 	} );
 } ) );
 
@@ -66,13 +64,24 @@ function schemaToJoinForm(data) {
 	};
 }
 
+async function handleChangeContribution(req, user, form) {
+	const wasGift = user.contributionPeriod === 'gift';
+	await PaymentService.updateContribution(user, form);
+	if (wasGift) {
+		await mandrill.sendToMember('welcome-post-gift', user);
+		req.flash( 'success', 'contribution-gift-updated' );
+	} else {
+		req.flash( 'success', 'contribution-updated' );
+	}
+}
+
 app.post( '/', [
 	hasSchema(updateSubscriptionSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
 	const { body:  { useMandate }, user } = req;
 	const joinForm = schemaToJoinForm(req.body);
 
-	if ( await canChangeSubscription( user, useMandate ) ) {
+	if ( await PaymentService.canChangeContribution( user, useMandate ) ) {
 		req.log.info( {
 			app: 'direct-debit',
 			action: 'update-subscription',
@@ -82,7 +91,7 @@ app.post( '/', [
 			}
 		} );
 		if ( useMandate ) {
-			await handleUpdateSubscription(req, user, joinForm);
+			await handleChangeContribution(req, user, joinForm);
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
@@ -106,30 +115,10 @@ app.get( '/complete', [
 ], wrapAsync( async (req, res) => {
 	const { user } = req;
 
-	if (await canChangeSubscription(user, false)) {
-		const { customer, mandateId, joinForm } = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id );
-
-		if ( user.gocardless.mandate_id ) {
-			// Remove subscription before cancelling mandate to stop the
-			// webhook triggering a cancelled email
-			await user.update({$unset: {'gocardless.subscription_id': 1}});
-			await gocardless.mandates.cancel(user.gocardless.mandate_id);
-		}
-
-		// The new mandates first possible charge date could be after the
-		// membership expiry date, if so increase the expiry date
-		const mandate = await gocardless.mandates.get(mandateId);
-		const nextChargeDate = moment.utc(mandate.next_possible_charge_date).add(config.gracePeriod);
-		if (nextChargeDate.isAfter(user.memberPermission.expires)) {
-			user.memberPermission.date_expires = nextChargeDate;
-		}
-
-		user.gocardless.customer_id = customer.id;
-		user.gocardless.mandate_id = mandateId;
-		user.gocardless.subscription_id = undefined;
-		await user.save();
-
-		await handleUpdateSubscription(req, user, joinForm);
+	if (await PaymentService.canChangeContribution(user, false)) {
+		const { mandateId, joinForm } = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id );
+		await PaymentService.updateMandate(user, mandateId);
+		await handleChangeContribution(req, user, joinForm);
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}
@@ -152,13 +141,7 @@ app.post( '/cancel-subscription', [
 			'cancellation': { satisfied, reason, other }
 		} } );
 
-		await gocardless.subscriptions.cancel( user.gocardless.subscription_id );
-
-		await user.update( { $unset: {
-			'gocardless.subscription_id': true,
-		}, $set: {
-			'gocardless.cancelled_at': new Date()
-		} } );
+		await PaymentService.cancelContribution( user );
 
 		await mandrill.sendToMember('cancelled-contribution-no-survey', user);
 
