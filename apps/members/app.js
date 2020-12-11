@@ -120,15 +120,13 @@ app.get( '/add', auth.isSuperAdmin, ( req, res ) => {
 } );
 
 app.post( '/add', auth.isSuperAdmin, wrapAsync( async ( req, res ) => {
-	const customer = await gocardless.customers.get(req.body.customer_id);
-	if (req.body.first_name) {
-		customer.given_name = req.body.first_name;
-	}
-	if (req.body.last_name) {
-		customer.family_name = req.body.last_name;
-	}
-	if (PaymentService.isValidCustomer(customer)) {
-		const memberObj = PaymentService.customerToMember(customer, req.body.mandate_id);
+	const overrides = req.body.first_name && req.body.last_name ? {
+		given_name: req.body.first_name,
+		family_name: req.body.last_name
+	} : {};
+
+	const memberObj = await PaymentService.customerToMember(req.body.customer_id, overrides);
+	if (memberObj) {
 		const member = await MembersService.createMember(memberObj);
 		res.redirect( app.mountpath + '/' + member.uuid );
 	} else {

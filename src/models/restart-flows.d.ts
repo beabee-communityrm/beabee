@@ -5,6 +5,7 @@ import { JoinForm } from '@models/JoinFlow';
 interface RestartFlow extends Document {
     member: Member;
     date?: Date;
+    customerId: string;
     mandateId: string;
     joinForm: JoinForm;
 }

@@ -29,6 +29,10 @@ module.exports = {
 			required: true,
 			default: Date.now
 		},
+		customerId: {
+			type: String,
+			required: true
+		},
 		mandateId: {
 			type: String,
 			required: true

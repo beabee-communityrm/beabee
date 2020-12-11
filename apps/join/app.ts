@@ -96,8 +96,8 @@ app.post( '/referral/:code', [
 	}
 } ) );
 
-async function handleJoin(member: Member, {mandateId, joinForm}: {mandateId: string, joinForm: JoinForm}): Promise<void> {
-	await PaymentService.updateMandate(member, mandateId);
+async function handleJoin(member: Member, {customerId, mandateId, joinForm}: CompletedJoinFlow): Promise<void> {
+	await PaymentService.updatePaymentMethod(member, customerId, mandateId);
 	await PaymentService.updateContribution(member, joinForm);
 
 	if (joinForm.referralCode) {
@@ -112,7 +112,8 @@ app.get( '/complete', [
 ], wrapAsync(async function( req, res ) {
 	const joinFlow = await JoinFlowService.completeJoinFlow(req.query.redirect_flow_id as string);
 
-	if (!PaymentService.isValidCustomer(joinFlow.customer)) {
+	const partialMember = await PaymentService.customerToMember(joinFlow.customerId);
+	if (!partialMember) {
 		req.log.error({
 			app: 'join',
 			action: 'invalid-direct-debit',
@@ -120,8 +121,6 @@ app.get( '/complete', [
 		}, 'Customer tried to sign up with invalid direct debit');
 		return res.redirect( app.mountpath + '/invalid-direct-debit' );
 	}
-
-	const partialMember = PaymentService.customerToMember(joinFlow.customer);
 
 	try {
 		const newMember = await MembersService.createMember(partialMember);
@@ -137,6 +136,7 @@ app.get( '/complete', [
 			} else {
 				const restartFlow = await RestartFlows.create( {
 					member: oldMember._id,
+					customerId: joinFlow.customerId,
 					mandateId: joinFlow.mandateId,
 					joinForm: joinFlow.joinForm
 				} );
@@ -153,13 +153,13 @@ app.get( '/complete', [
 
 app.get('/restart/:_id', hasModel(RestartFlows, '_id'), wrapAsync(async (req, res) => {
 	const restartFlow = req.model as RestartFlow;
-	const { member, mandateId, joinForm } = restartFlow;
+	const { member } = restartFlow;
 
 	// Something has created a new subscription in the mean time!
 	if (member.isActiveMember || member.hasActiveSubscription) {
 		req.flash( 'danger', 'contribution-exists' );
 	} else {
-		await handleJoin(member, {mandateId, joinForm});
+		await handleJoin(member, restartFlow);
 		req.flash( 'success', 'contribution-restarted' );
 	}
 

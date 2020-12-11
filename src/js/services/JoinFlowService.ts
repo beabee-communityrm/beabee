@@ -1,4 +1,3 @@
-import { Customer } from 'gocardless-nodejs/types/Types';
 import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
@@ -7,8 +6,8 @@ import { getActualAmount } from '@core/utils';
 
 import JoinFlow, { JoinForm } from '@models/JoinFlow';
 
-interface CompletedJoinFlow {
-    customer: Customer,
+export interface CompletedJoinFlow {
+    customerId: string,
     mandateId: string,
     joinForm: JoinForm
 }
@@ -43,12 +42,10 @@ export default class JoinFlowService {
 			session_token: joinFlow.sessionToken
 		});
 
-		const customer = await gocardless.customers.get(redirectFlow.links.customer);
-
 		await joinFlowRepository.delete(joinFlow.id);
 
 		return {
-			customer,
+			customerId: redirectFlow.links.customer,
 			mandateId: redirectFlow.links.mandate,
 			joinForm: joinFlow.joinForm
 		};

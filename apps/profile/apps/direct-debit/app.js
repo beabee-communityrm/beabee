@@ -116,8 +116,8 @@ app.get( '/complete', [
 	const { user } = req;
 
 	if (await PaymentService.canChangeContribution(user, false)) {
-		const { mandateId, joinForm } = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id );
-		await PaymentService.updateMandate(user, mandateId);
+		const { customer, mandateId, joinForm } = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id );
+		await PaymentService.updatePaymentMethod(user, customer.id, mandateId);
 		await handleChangeContribution(req, user, joinForm);
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );

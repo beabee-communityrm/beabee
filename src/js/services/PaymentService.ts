@@ -6,19 +6,21 @@ import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import { getChargeableAmount, cleanEmailAddress, ContributionPeriod } from  '@core/utils';
 
+import MembersService from '@core/services/MembersService';
+
 import config from '@config';
 
 import { JoinForm } from '@models/JoinFlow';
 import { Member, PartialMember } from '@models/members';
-import MembersService from './MembersService';
 
 export default class PaymentService {
-	static isValidCustomer(customer: Customer): boolean {
-		return customer.given_name != '' && customer.family_name != '';
-	}
+	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<PartialMember|null> {
+		const customer = {
+			...await gocardless.customers.get(customerId),
+			...overrides
+		};
 
-	static customerToMember(customer: Customer): PartialMember {
-		return {
+		return customer.given_name === '' || customer.family_name === '' ? null : {
 			firstname: customer.given_name,
 			lastname: customer.family_name,
 			email: cleanEmailAddress(customer.email),
@@ -236,9 +238,7 @@ export default class PaymentService {
 		await member.save();
 	}
 
-	static async updateMandate(member: Member, mandateId: string): Promise<void> {
-		const mandate = await gocardless.mandates.get(mandateId);
-
+	static async updatePaymentMethod(member: Member, customerId: string, mandateId: string): Promise<void> {
 		if (member.gocardless.mandate_id) {
 			// Remove subscription before cancelling mandate to stop the webhook triggering a cancelled email
 			member.gocardless.subscription_id = undefined;
@@ -246,8 +246,8 @@ export default class PaymentService {
 			await gocardless.mandates.cancel(member.gocardless.mandate_id);
 		}
 
-		member.gocardless.customer_id = mandate.links.customer;
-		member.gocardless.mandate_id = mandate.id;
+		member.gocardless.customer_id = customerId;
+		member.gocardless.mandate_id = mandateId;
 
 		await member.save();
 	}
