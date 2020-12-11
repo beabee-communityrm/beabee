@@ -36,7 +36,7 @@ export async function processGiftFlow(giftFlow: GiftFlow, sendImmediately = fals
 
 	const sendAt = sendImmediately ? null : now.clone().startOf('day').add({
 		days: isBeforeCutOff(giftFlow.date) ? 1 : 0, // Delay email by a day if they are receiving a physical gift
-		h: 10, m: 0, s: 0
+		h: 9, m: 0, s: 0
 	}).format();
 	await mandrill.sendToMember('giftee-success', member, { fromName, message }, sendAt);
 

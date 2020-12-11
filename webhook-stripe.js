@@ -127,6 +127,9 @@ async function handleCheckoutSessionCompleted(session) {
 				}, {
 					name: 'GIFTDATE',
 					content: moment.utc(startDate).format('MMMM Do')
+				}, {
+					name: 'GIFTBC',
+					content: moment.utc(startDate).isBefore('2020-12-25') ? 'Y' : 'N'
 				}]
 			}],
 			...(giftCard && {
