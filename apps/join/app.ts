@@ -1,7 +1,7 @@
 import express from 'express';
 
 import auth from '@core/authentication' ;
-import { Members, RestartFlows } from '@core/database' ;
+import { Members } from '@core/database' ;
 import mandrill from '@core/mandrill' ;
 import { hasModel, hasSchema } from '@core/middleware' ;
 import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
@@ -15,7 +15,7 @@ import ReferralsService from '@core/services/ReferralsService';
 
 import { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
-import { RestartFlow } from '@models/restart-flows';
+import RestartFlow from '@models/RestartFlow';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 
@@ -134,14 +134,9 @@ app.get( '/complete', [
 			if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
 				res.redirect( app.mountpath + '/duplicate-email' );
 			} else {
-				const restartFlow = await RestartFlows.create( {
-					member: oldMember._id,
-					customerId: joinFlow.customerId,
-					mandateId: joinFlow.mandateId,
-					joinForm: joinFlow.joinForm
-				} );
+				const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
 
-				await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow._id});
+				await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
 
 				res.redirect( app.mountpath + '/expired-member' );
 			}
@@ -151,9 +146,9 @@ app.get( '/complete', [
 	}
 }));
 
-app.get('/restart/:_id', hasModel(RestartFlows, '_id'), wrapAsync(async (req, res) => {
-	const restartFlow = req.model as RestartFlow;
-	const { member } = restartFlow;
+app.get('/restart/:id', wrapAsync(async (req, res) => {
+	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
+	const member = await Members.findById(restartFlow.memberId);
 
 	// Something has created a new subscription in the mean time!
 	if (member.isActiveMember || member.hasActiveSubscription) {
@@ -162,8 +157,6 @@ app.get('/restart/:_id', hasModel(RestartFlows, '_id'), wrapAsync(async (req, re
 		await handleJoin(member, restartFlow);
 		req.flash( 'success', 'contribution-restarted' );
 	}
-
-	await restartFlow.remove();
 
 	loginAndRedirect(req, res, member);
 }));

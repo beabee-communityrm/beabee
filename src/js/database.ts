@@ -5,6 +5,7 @@ import { log } from '@core/logging';
 
 import Notice from '@models/Notice';
 import JoinFlow from '@models/JoinFlow';
+import RestartFlow from '@models/RestartFlow';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	mongoose.Promise = global.Promise;
@@ -41,7 +42,8 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 				...dbConfig,
 				entities: [
 					Notice,
-					JoinFlow
+					JoinFlow,
+					RestartFlow
 				],
 				synchronize: true
 			});
@@ -83,7 +85,6 @@ export { model as ProjectMembers } from '@models/project-members';
 export { model as Projects } from '@models/projects';
 export { model as ReferralGifts } from '@models/referral-gifts';
 export { model as Referrals } from '@models/referrals';
-export { model as RestartFlows } from '@models/restart-flows';
 export { model as SpecialUrlGroups } from '@models/special-url-groups';
 export { model as SpecialUrls } from '@models/special-urls';
 export { model as TransactionalEmails } from '@models/transactional-emails';

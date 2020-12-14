@@ -9,7 +9,7 @@ const config = require( '@config' );
 const auth = require( '@core/authentication' );
 const {
 	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
-	Projects, Referrals, RestartFlows
+	Projects, Referrals
 } = require( '@core/database' );
 const { default: gocardless } = require( '@core/gocardless' );
 const mailchimp = require( '@core/mailchimp' );
@@ -227,7 +227,7 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 		// TODO: anonymise other data in poll answers
 		await PollAnswers.updateMany( { member }, { $set: { member: null } } );
 		await GiftFlows.updateMany( { member }, { $set: { member: null } } );
-		await RestartFlows.deleteMany( { member } );
+		// TODO: await RestartFlows.deleteMany( { member } );
 		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
 		await Members.deleteOne( { _id: member._id } );
 

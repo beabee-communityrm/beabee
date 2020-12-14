@@ -5,6 +5,8 @@ import gocardless from '@core/gocardless';
 import { getActualAmount } from '@core/utils';
 
 import JoinFlow, { JoinForm } from '@models/JoinFlow';
+import { Member } from '@models/members';
+import RestartFlow from '@models/RestartFlow';
 
 export interface CompletedJoinFlow {
     customerId: string,
@@ -49,6 +51,27 @@ export default class JoinFlowService {
 			mandateId: redirectFlow.links.mandate,
 			joinForm: joinFlow.joinForm
 		};
+	}
+
+	static async createRestartFlow(member: Member, completedJoinFlow: CompletedJoinFlow): Promise<RestartFlow> {
+		const restartFlow = new RestartFlow();
+		restartFlow.memberId = member._id;
+		restartFlow.customerId = completedJoinFlow.customerId;
+		restartFlow.mandateId = completedJoinFlow.mandateId;
+		restartFlow.joinForm = completedJoinFlow.joinForm;
+
+		await getRepository(RestartFlow).save(restartFlow);
+
+		return restartFlow;
+	}
+
+	static async completeRestartFlow(restartFlowId: string): Promise<RestartFlow> {
+		const restartFlowRepository = getRepository(RestartFlow);
+		const restartFlow = await restartFlowRepository.findOne(restartFlowId);
+
+		await restartFlowRepository.delete(restartFlow.id);
+
+		return restartFlow;
 	}
 
 }
