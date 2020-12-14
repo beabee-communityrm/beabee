@@ -202,17 +202,27 @@ export default class PaymentService {
 	}
 
 	private static async activateContribution(member: Member, paymentForm: PaymentForm, startNow: boolean): Promise<void> {
+		const subscription = await gocardless.subscriptions.get(member.gocardless.subscription_id);
+		const futurePayments = await gocardless.payments.list({
+			subscription: subscription.id,
+			'charge_date[gte]': moment.utc().format('YYYY-MM-DD')
+		});
+		const nextChargeDate = moment.utc(
+			futurePayments ?
+				futurePayments.map(p => p.charge_date).sort()[0] :
+				subscription.upcoming_payments[0].charge_date
+		).add(config.gracePeriod);
+
 		log.info( {
 			app: 'direct-debit',
 			action: 'activate-subscription',
 			data: {
 				userId: member._id,
-				paymentForm
+				paymentForm,
+				nextChargeDate
 			}
 		} );
 
-		const subscription = await gocardless.subscriptions.get(member.gocardless.subscription_id);
-		const nextChargeDate = moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod);
 		if (member.memberPermission) {
 			// If subscription will charge after current end date extend to accommodate
 			if (nextChargeDate.isAfter(member.memberPermission.date_expires)) {
