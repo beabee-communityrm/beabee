@@ -9,7 +9,7 @@ import JoinFlow from '@models/JoinFlow';
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	mongoose.Promise = global.Promise;
 
-	await new Promise(resolve => {
+	await new Promise<void>(resolve => {
 		mongoose.connect( mongoUrl, {
 			useNewUrlParser: true,
 			useCreateIndex: true,
