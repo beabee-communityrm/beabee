@@ -85,6 +85,15 @@ export default class PaymentService {
 	}
 
 	static async updateContribution(user: Member, paymentForm: PaymentForm): Promise<void> {
+		log.info( {
+			app: 'direct-debit',
+			action: 'update-contribution',
+			data: {
+				userId: user._id,
+				paymentForm
+			}
+		} );
+
 		if (!user.canTakePayment) {
 			throw new Error('User does not have active payment method');
 		}
@@ -112,6 +121,14 @@ export default class PaymentService {
 	}
 
 	static async cancelContribution(member: Member): Promise<void> {
+		log.info( {
+			app: 'direct-debit',
+			action: 'cancel-subscription',
+			data: {
+				userId: member._id
+			}
+		} );
+
 		await gocardless.subscriptions.cancel( member.gocardless.subscription_id );
 
 		member.gocardless.subscription_id = undefined;
@@ -224,10 +241,11 @@ export default class PaymentService {
 
 		log.info( {
 			app: 'direct-debit',
-			action: 'activate-subscription',
+			action: 'activate-contribution',
 			data: {
 				userId: member._id,
 				paymentForm,
+				startNow,
 				nextChargeDate
 			}
 		} );
@@ -263,6 +281,17 @@ export default class PaymentService {
 	}
 
 	static async updatePaymentMethod(member: Member, customerId: string, mandateId: string): Promise<void> {
+		log.info({
+			app: 'direct-debit',
+			action: 'update-payment-method',
+			data: {
+				userId: member._id,
+				userGc: member.gocardless,
+				customerId,
+				mandateId
+			}
+		});
+
 		if (member.gocardless.mandate_id) {
 			// Remove subscription before cancelling mandate to stop the webhook triggering a cancelled email
 			member.gocardless.subscription_id = undefined;
