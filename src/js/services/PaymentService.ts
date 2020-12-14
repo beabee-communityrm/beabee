@@ -74,6 +74,7 @@ export default class PaymentService {
 		if (useExistingMandate && user.contributionPeriod === 'monthly') {
 			return true;
 		} else {
+			// TODO: this would be more accurate if we asked GC directly
 			const payments = await Payments.find({member: user}, ['status', 'charge_date'], {
 				limit: 1,
 				sort: {charge_date: -1}
