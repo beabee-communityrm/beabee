@@ -9,6 +9,13 @@ export enum ContributionPeriod {
 	Gift = 'gift'
 }
 
+export interface PaymentForm {
+    amount: number;
+    period: ContributionPeriod;
+    payFee: boolean;
+    prorate: boolean;
+}
+
 interface Param {
 	name: string,
 	label: string,

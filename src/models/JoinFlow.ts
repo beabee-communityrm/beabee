@@ -1,7 +1,7 @@
-import { ContributionPeriod } from '@core/utils';
+import { ContributionPeriod, PaymentForm } from '@core/utils';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export class JoinForm {
+export class JoinForm implements PaymentForm {
     @Column()
     amount: number;
 

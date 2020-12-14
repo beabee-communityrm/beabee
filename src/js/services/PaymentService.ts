@@ -4,13 +4,12 @@ import { Customer, CustomerBankAccount, CustomerCurrency, PaymentCurrency, Subsc
 import { Payments } from '@core/database';
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
-import { getChargeableAmount, cleanEmailAddress, ContributionPeriod } from  '@core/utils';
+import { getChargeableAmount, cleanEmailAddress, ContributionPeriod, PaymentForm } from  '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
 import config from '@config';
 
-import { JoinForm } from '@models/JoinFlow';
 import { Member, PartialMember } from '@models/members';
 
 export default class PaymentService {
@@ -85,7 +84,7 @@ export default class PaymentService {
 		}
 	}
 
-	static async updateContribution(user: Member, joinForm: JoinForm): Promise<void> {
+	static async updateContribution(user: Member, paymentForm: PaymentForm): Promise<void> {
 		if (!user.canTakePayment) {
 			throw new Error('User does not have active payment method');
 		}
@@ -94,23 +93,23 @@ export default class PaymentService {
 
 		if (user.isActiveMember) {
 			if (user.hasActiveSubscription) {
-				await PaymentService.updateSubscription(user, joinForm);
+				await PaymentService.updateSubscription(user, paymentForm);
 			} else {
 				const startDate = moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod).toDate();
-				await PaymentService.createSubscription(user, joinForm, startDate);
+				await PaymentService.createSubscription(user, paymentForm, startDate);
 			}
 
-			startNow = await PaymentService.prorateSubscription(user, joinForm);
+			startNow = await PaymentService.prorateSubscription(user, paymentForm);
 		} else {
 			if (user.hasActiveSubscription) {
 				await PaymentService.cancelContribution(user);
 			}
 
-			await PaymentService.createSubscription(user, joinForm);
+			await PaymentService.createSubscription(user, paymentForm);
 			await MembersService.addMemberToMailingLists(user);
 		}
 
-		await PaymentService.activateContribution(user, joinForm, startNow);
+		await PaymentService.activateContribution(user, paymentForm, startNow);
 	}
 
 	static async cancelContribution(member: Member): Promise<void> {
@@ -121,11 +120,11 @@ export default class PaymentService {
 		await member.save();
 	}
 
-	private static async createSubscription(member: Member, joinForm: JoinForm,  startDate?: Date): Promise<void> {
+	private static async createSubscription(member: Member, paymentForm: PaymentForm,  startDate?: Date): Promise<void> {
 		const subscription = await gocardless.subscriptions.create( {
-			amount: getChargeableAmount(joinForm.amount, joinForm.period, joinForm.payFee).toString(),
+			amount: getChargeableAmount(paymentForm.amount, paymentForm.period, paymentForm.payFee).toString(),
 			currency: CustomerCurrency.GBP,
-			interval_unit: joinForm.period === ContributionPeriod.Annually ? SubscriptionIntervalUnit.Yearly: SubscriptionIntervalUnit.Monthly,
+			interval_unit: paymentForm.period === ContributionPeriod.Annually ? SubscriptionIntervalUnit.Yearly: SubscriptionIntervalUnit.Monthly,
 			name: 'Membership',
 			links: {
 				mandate: member.gocardless.mandate_id
@@ -134,19 +133,19 @@ export default class PaymentService {
 		} );
 
 		member.gocardless.subscription_id = subscription.id;
-		member.gocardless.period = joinForm.period;
-		member.gocardless.paying_fee = joinForm.payFee;
+		member.gocardless.period = paymentForm.period;
+		member.gocardless.paying_fee = paymentForm.payFee;
 
 		await member.save();
 	}
 
-	private static async updateSubscription(user: Member, joinForm: JoinForm): Promise<void> {
+	private static async updateSubscription(user: Member, paymentForm: PaymentForm): Promise<void> {
 		// Don't update if the amount isn't actually changing
-		if (joinForm.amount === user.contributionMonthlyAmount && joinForm.payFee === user.gocardless.paying_fee) {
+		if (paymentForm.amount === user.contributionMonthlyAmount && paymentForm.payFee === user.gocardless.paying_fee) {
 			return;
 		}
 
-		const chargeableAmount = getChargeableAmount(joinForm.amount, user.contributionPeriod, joinForm.payFee);
+		const chargeableAmount = getChargeableAmount(paymentForm.amount, user.contributionPeriod, paymentForm.payFee);
 
 		log.info( {
 			app: 'direct-debit',
@@ -173,22 +172,22 @@ export default class PaymentService {
 			}
 		}
 
-		user.gocardless.paying_fee = joinForm.payFee;
+		user.gocardless.paying_fee = paymentForm.payFee;
 		await user.save();
 	}
 
-	private static async prorateSubscription(member: Member, joinForm: JoinForm): Promise<boolean> {
+	private static async prorateSubscription(member: Member, paymentForm: PaymentForm): Promise<boolean> {
 		const monthsLeft = PaymentService.getMonthsLeftOnContribution(member);
-		const prorateAmount = (joinForm.amount - member.contributionMonthlyAmount) * monthsLeft * 100;
+		const prorateAmount = (paymentForm.amount - member.contributionMonthlyAmount) * monthsLeft * 100;
 
 		log.info( {
 			app: 'direct-debit',
 			action: 'prorate-subscription',
-			data: { userId: member._id, joinForm, monthsLeft, prorateAmount }
+			data: { userId: member._id, paymentForm, monthsLeft, prorateAmount }
 		} );
 
 
-		if (prorateAmount > 0 && joinForm.prorate) {
+		if (prorateAmount > 0 && paymentForm.prorate) {
 			await gocardless.payments.create({
 				amount: prorateAmount.toString(),
 				currency: PaymentCurrency.GBP,
@@ -199,16 +198,16 @@ export default class PaymentService {
 			});
 		}
 
-		return prorateAmount === 0 || joinForm.prorate;
+		return prorateAmount === 0 || paymentForm.prorate;
 	}
 
-	private static async activateContribution(member: Member, joinForm: JoinForm, startNow: boolean): Promise<void> {
+	private static async activateContribution(member: Member, paymentForm: PaymentForm, startNow: boolean): Promise<void> {
 		log.info( {
 			app: 'direct-debit',
 			action: 'activate-subscription',
 			data: {
 				userId: member._id,
-				joinForm,
+				paymentForm
 			}
 		} );
 
@@ -229,10 +228,10 @@ export default class PaymentService {
 		member.gocardless.cancelled_at = undefined;
 
 		if (startNow) {
-			member.gocardless.amount = joinForm.amount;
+			member.gocardless.amount = paymentForm.amount;
 			member.gocardless.next_amount = undefined;
 		} else {
-			member.gocardless.next_amount = joinForm.amount;
+			member.gocardless.next_amount = paymentForm.amount;
 		}
 
 		await member.save();

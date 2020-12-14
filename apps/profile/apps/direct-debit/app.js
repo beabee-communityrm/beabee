@@ -55,7 +55,7 @@ app.get( '/', wrapAsync( async function ( req, res ) {
 	} );
 } ) );
 
-function schemaToJoinForm(data) {
+function schemaToPaymentForm(data) {
 	return {
 		amount: data.amount,
 		period: data.period,
@@ -79,7 +79,7 @@ app.post( '/', [
 	hasSchema(updateSubscriptionSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
 	const { body:  { useMandate }, user } = req;
-	const joinForm = schemaToJoinForm(req.body);
+	const paymentForm = schemaToPaymentForm(req.body);
 
 	if ( await PaymentService.canChangeContribution( user, useMandate ) ) {
 		req.log.info( {
@@ -87,15 +87,15 @@ app.post( '/', [
 			action: 'update-subscription',
 			data: {
 				useMandate,
-				joinForm
+				paymentForm
 			}
 		} );
 		if ( useMandate ) {
-			await handleChangeContribution(req, user, joinForm);
+			await handleChangeContribution(req, user, paymentForm);
 			res.redirect( app.parent.mountpath + app.mountpath );
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
-			const redirectUrl = await JoinFlowService.createJoinFlow( completeUrl, joinForm, {
+			const redirectUrl = await JoinFlowService.createJoinFlow( completeUrl, paymentForm, {
 				prefilled_customer: {
 					email: user.email,
 					given_name: user.firstname,
