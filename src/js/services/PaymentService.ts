@@ -149,7 +149,7 @@ export default class PaymentService {
 
 		if (startDate) {
 			const mandate = await gocardless.mandates.get(member.gocardless.mandate_id);
-			if (startDate > mandate.next_possible_charge_date) {
+			if (startDate < mandate.next_possible_charge_date) {
 				startDate = mandate.next_possible_charge_date;
 			}
 		}
