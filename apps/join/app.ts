@@ -131,13 +131,11 @@ app.get( '/complete', [
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
 			const oldMember = await Members.findOne({email: partialMember.email});
-			if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
+			if (oldMember.isActiveMember) {
 				res.redirect( app.mountpath + '/duplicate-email' );
 			} else {
 				const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-
 				await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
-
 				res.redirect( app.mountpath + '/expired-member' );
 			}
 		} else {
@@ -150,8 +148,7 @@ app.get('/restart/:id', wrapAsync(async (req, res) => {
 	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
 	const member = await Members.findById(restartFlow.memberId);
 
-	// Something has created a new subscription in the mean time!
-	if (member.isActiveMember || member.hasActiveSubscription) {
+	if (member.isActiveMember) {
 		req.flash( 'danger', 'contribution-exists' );
 	} else {
 		await handleJoin(member, restartFlow);
