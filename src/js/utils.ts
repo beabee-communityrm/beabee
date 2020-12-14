@@ -56,7 +56,6 @@ export function wrapAsync(fn: RequestHandler): RequestHandler {
 		try {
 			await fn(req, res, next);
 		} catch (error) {
-			req.log.error(error);
 			next(error);
 		}
 	};
