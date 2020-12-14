@@ -8,7 +8,7 @@ import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
-import JoinFlowService  from '@core/services/JoinFlowService';
+import JoinFlowService, { CompletedJoinFlow }  from '@core/services/JoinFlowService';
 import MembersService  from '@core/services/MembersService';
 import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
