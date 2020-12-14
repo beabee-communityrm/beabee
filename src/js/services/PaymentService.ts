@@ -106,7 +106,6 @@ export default class PaymentService {
 			}
 
 			await PaymentService.createSubscription(user, paymentForm);
-			await MembersService.addMemberToMailingLists(user);
 		}
 
 		await PaymentService.activateContribution(user, paymentForm, startNow);
@@ -223,6 +222,8 @@ export default class PaymentService {
 			}
 		} );
 
+		const wasInactive = !member.isActiveMember;
+
 		if (member.memberPermission) {
 			// If subscription will charge after current end date extend to accommodate
 			if (nextChargeDate.isAfter(member.memberPermission.date_expires)) {
@@ -245,6 +246,10 @@ export default class PaymentService {
 		}
 
 		await member.save();
+
+		if (wasInactive) {
+			await MembersService.addMemberToMailingLists(member);
+		}
 	}
 
 	static async updatePaymentMethod(member: Member, customerId: string, mandateId: string): Promise<void> {
