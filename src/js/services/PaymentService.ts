@@ -147,6 +147,13 @@ export default class PaymentService {
 			}
 		} );
 
+		if (startDate) {
+			const mandate = await gocardless.mandates.get(member.gocardless.mandate_id);
+			if (startDate > mandate.next_possible_charge_date) {
+				startDate = mandate.next_possible_charge_date;
+			}
+		}
+
 		const subscription = await gocardless.subscriptions.create( {
 			amount: getChargeableAmount(paymentForm.amount, paymentForm.period, paymentForm.payFee).toString(),
 			currency: CustomerCurrency.GBP,
