@@ -11,13 +11,13 @@ interface PartialMember {
 		line2: string,
 		city: string,
 		postcode: string
-	},
-	giftCode?: string
+	}
 }
 interface Member extends PartialMember, Document {
 	uuid?: string
 	referralCode: string,
 	pollsCode: string
+	giftCode?: string,
 	gocardless?: {
 		customer_id?: string,
 		mandate_id?: string,

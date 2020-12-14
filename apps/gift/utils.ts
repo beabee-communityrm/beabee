@@ -20,9 +20,10 @@ export async function processGiftFlow(giftFlow: GiftFlow, sendImmediately = fals
 		lastname,
 		email,
 		delivery_address: delivery_copies_address,
-		delivery_optin: !!delivery_copies_address.line1,
-		giftCode: giftFlow.setupCode
+		delivery_optin: !!delivery_copies_address.line1
 	});
+
+	member.giftCode = giftFlow.setupCode;
 
 	member.gocardless = {
 		amount: 3,
