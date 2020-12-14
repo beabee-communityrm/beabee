@@ -95,8 +95,8 @@ export default class PaymentService {
 			if (user.hasActiveSubscription) {
 				await PaymentService.updateSubscription(user, paymentForm);
 			} else {
-				const startDate = moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod).toDate();
-				await PaymentService.createSubscription(user, paymentForm, startDate);
+				const startDate = moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod);
+				await PaymentService.createSubscription(user, paymentForm, startDate.format('YYYY-MM-DD'));
 			}
 
 			startNow = await PaymentService.prorateSubscription(user, paymentForm);
@@ -119,7 +119,17 @@ export default class PaymentService {
 		await member.save();
 	}
 
-	private static async createSubscription(member: Member, paymentForm: PaymentForm,  startDate?: Date): Promise<void> {
+	private static async createSubscription(member: Member, paymentForm: PaymentForm,  startDate?: string): Promise<void> {
+		log.info( {
+			app: 'direct-debit',
+			action: 'create-subscription',
+			data: {
+				userId: member._id,
+				paymentForm,
+				startDate
+			}
+		} );
+
 		const subscription = await gocardless.subscriptions.create( {
 			amount: getChargeableAmount(paymentForm.amount, paymentForm.period, paymentForm.payFee).toString(),
 			currency: CustomerCurrency.GBP,
@@ -128,7 +138,7 @@ export default class PaymentService {
 			links: {
 				mandate: member.gocardless.mandate_id
 			},
-			...(startDate && { start_date: startDate.toString() })
+			...(startDate && { start_date: startDate })
 		} );
 
 		member.gocardless.subscription_id = subscription.id;
