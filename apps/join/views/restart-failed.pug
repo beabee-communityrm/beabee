@@ -1,0 +1,14 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = "Expired membership"
+
+block contents
+	+page_header( 'Expired membership' )
+
+	.row
+		.col-md-6
+			p.
+				Unfortunately we couldn't automatically restart your membership,
+				please contact #[+email('membership@thebristolcable.org')] for
+				support

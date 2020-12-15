@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 import auth from '@core/authentication' ;
 import { Members } from '@core/database' ;
@@ -96,7 +96,7 @@ app.post( '/referral/:code', [
 	}
 } ) );
 
-async function handleJoin(member: Member, {customerId, mandateId, joinForm}: CompletedJoinFlow): Promise<void> {
+async function handleJoin(req: Request, res: Response, member: Member, {customerId, mandateId, joinForm}: CompletedJoinFlow): Promise<void> {
 	await PaymentService.updatePaymentMethod(member, customerId, mandateId);
 	await PaymentService.updateContribution(member, joinForm);
 
@@ -104,6 +104,8 @@ async function handleJoin(member: Member, {customerId, mandateId, joinForm}: Com
 		const referrer = await Members.findOne({referralCode: joinForm.referralCode});
 		await ReferralsService.createReferral(referrer, member, joinForm);
 	}
+
+	loginAndRedirect(req, res, member);
 }
 
 app.get( '/complete', [
@@ -124,9 +126,8 @@ app.get( '/complete', [
 
 	try {
 		const newMember = await MembersService.createMember(partialMember);
-		await handleJoin(newMember, joinFlow);
+		await handleJoin(req, res, newMember, joinFlow);
 		await mandrill.sendToMember('welcome', newMember);
-		loginAndRedirect(req, res, newMember);
 	} catch ( saveError ) {
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
@@ -144,6 +145,10 @@ app.get( '/complete', [
 	}
 }));
 
+app.get('/restart/failed', (req, res) => {
+	res.render('restart-failed');
+});
+
 app.get('/restart/:id', wrapAsync(async (req, res) => {
 	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
 	const member = await Members.findById(restartFlow.memberId);
@@ -151,12 +156,12 @@ app.get('/restart/:id', wrapAsync(async (req, res) => {
 	if (member.isActiveMember) {
 		req.flash( 'danger', 'contribution-exists' );
 	} else if (await PaymentService.canChangeContribution(member, false)) {
-		await handleJoin(member, restartFlow);
+		return await handleJoin(req, res, member, restartFlow);
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}
 
-	loginAndRedirect(req, res, member);
+	res.redirect( app.mountpath + '/restart/failed' );
 }));
 
 app.get('/expired-member', (req, res) => {
