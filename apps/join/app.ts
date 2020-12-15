@@ -153,16 +153,12 @@ app.get('/restart/:id', wrapAsync(async (req, res, next) => {
 	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
 	if (restartFlow) {
 		const member = await Members.findById(restartFlow.memberId);
-
-		if (member.isActiveMember) {
-			req.flash( 'danger', 'contribution-exists' );
-		} else if (await PaymentService.canChangeContribution(member, false)) {
-			return await handleJoin(req, res, member, restartFlow);
+		if (member.isActiveMember || !await PaymentService.canChangeContribution(member, false)) {
+			res.redirect( app.mountpath + '/restart/failed' );
 		} else {
-			req.flash( 'warning', 'contribution-updating-not-allowed' );
+			await handleJoin(req, res, member, restartFlow);
 		}
 
-		res.redirect( app.mountpath + '/restart/failed' );
 	} else {
 		next('route');
 	}
