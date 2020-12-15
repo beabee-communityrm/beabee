@@ -1,0 +1,50 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Email send'
+
+block contents
+	.row
+		.col-md-12
+			+page_header(email.name)
+
+			p This send has #{send.recipients.length} recipients
+
+			if send.sentDate
+				p Sent on #{moment.utc(send.sentDate).format('YYYY-MM-DD')}
+
+	.row
+		.col-md-8
+			h4 Send
+
+			if send.sentDate
+				.alert.alert-warning This mailing has been sent
+			else
+				form(method='POST').form-horizontal
+					+csrf
+					.form-group
+						label(for='email').control-label.col-md-4 Email address
+						.col-md-8
+							select(name='emailField' required).form-control#email
+								option(selected disabled value='') Select one
+								each header in headers
+									option= header
+					.form-group
+						label(for='name').control-label.col-md-4 Name
+						.col-md-8
+							select(name='nameField' required).form-control#name
+								option(selected disabled value='') Select one
+								each header in headers
+									option= header
+
+					each mergeField in mergeFields
+						.form-group
+							label(for=mergeField).control-label.col-md-4= `*|${mergeField}|*`
+							.col-md-8
+								select(name=`mergeFields[${mergeField}]` id=mergeField required).form-control
+									option(selected disabled value='') Select one
+									each header in headers
+										option= header
+					.form-group
+						.col-md-offset-4.col-md-8
+							button.btn.btn-danger Send

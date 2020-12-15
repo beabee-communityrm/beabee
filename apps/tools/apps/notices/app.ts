@@ -14,6 +14,27 @@ import Notice from '@models/Notice';
 const app = express();
 let app_config;
 
+interface NoticeSchema {
+	name: string,
+	expiresDate?: string,
+	expiresTime?: string,
+	text: string,
+	url?: string,
+	enabled?: boolean
+}
+
+function schemaToNotice(data: NoticeSchema): Notice {
+	const notice = new Notice();
+	notice.name = data.name;
+	notice.expires = data.expiresDate && data.expiresTime ?
+		moment.utc(`${data.expiresDate}T${data.expiresTime}`).toDate() : null;
+	notice.text = data.text;
+	notice.url = data.url;
+	notice.enabled = !!data.enabled;
+
+	return notice;
+}
+
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
@@ -31,18 +52,6 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const notices = await getCustomRepository(NoticeRepository).find();
 	res.render( 'index', { notices } );
 } ) );
-
-function schemaToNotice( data ): Notice {
-	const notice = new Notice();
-	notice.name = data.name;
-	notice.expires = data.expiresDate && data.expiresTime ?
-		moment.utc(`${data.expiresDate}T${data.expiresTime}`).toDate() : null;
-	notice.text = data.text;
-	notice.url = data.url;
-	notice.enabled = !!data.enabled;
-
-	return notice;
-}
 
 app.post( '/', hasSchema( createNoticeSchema ).orFlash, wrapAsync( async ( req, res ) => {
 	const notice = schemaToNotice(req.body);

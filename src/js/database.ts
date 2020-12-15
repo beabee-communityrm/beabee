@@ -6,6 +6,8 @@ import { log } from '@core/logging';
 import Notice from '@models/Notice';
 import JoinFlow from '@models/JoinFlow';
 import RestartFlow from '@models/RestartFlow';
+import TransactionalEmail from '@models/TransactionalEmail';
+import TransactionalEmailSend from '@models/TransactionalEmailSend';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	mongoose.Promise = global.Promise;
@@ -43,7 +45,9 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 				entities: [
 					Notice,
 					JoinFlow,
-					RestartFlow
+					RestartFlow,
+					TransactionalEmail,
+					TransactionalEmailSend
 				],
 				synchronize: true
 			});
@@ -87,4 +91,3 @@ export { model as ReferralGifts } from '@models/referral-gifts';
 export { model as Referrals } from '@models/referrals';
 export { model as SpecialUrlGroups } from '@models/special-url-groups';
 export { model as SpecialUrls } from '@models/special-urls';
-export { model as TransactionalEmails } from '@models/transactional-emails';
