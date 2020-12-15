@@ -1,16 +1,16 @@
-import express from 'express';
 import busboy from 'connect-busboy';
+import express from 'express';
+import _ from 'lodash';
 import Papa from 'papaparse';
 
 import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
-import { hasModel, hasNewModel, hasNewModel2 } from '@core/middleware';
+import { hasNewModel2 } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import TransactionalEmail from '@models/TransactionalEmail';
 import { getRepository } from 'typeorm';
 import TransactionalEmailSend, { TransactionalEmailRecipient } from '@models/TransactionalEmailSend';
-import _ from 'lodash';
 
 const app = express();
 let app_config;
@@ -145,7 +145,7 @@ app.post('/:id/send/:sendId', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(
 		...message
 	});
 
-	//await getRepository(TransactionalEmailSend).update(send.id, {sentDate: new Date()});
+	await getRepository(TransactionalEmailSend).update(send.id, {sentDate: new Date()});
 
 	res.redirect(req.originalUrl);
 }));
