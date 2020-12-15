@@ -149,19 +149,23 @@ app.get('/restart/failed', (req, res) => {
 	res.render('restart-failed');
 });
 
-app.get('/restart/:id', wrapAsync(async (req, res) => {
+app.get('/restart/:id', wrapAsync(async (req, res, next) => {
 	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
-	const member = await Members.findById(restartFlow.memberId);
+	if (restartFlow) {
+		const member = await Members.findById(restartFlow.memberId);
 
-	if (member.isActiveMember) {
-		req.flash( 'danger', 'contribution-exists' );
-	} else if (await PaymentService.canChangeContribution(member, false)) {
-		return await handleJoin(req, res, member, restartFlow);
+		if (member.isActiveMember) {
+			req.flash( 'danger', 'contribution-exists' );
+		} else if (await PaymentService.canChangeContribution(member, false)) {
+			return await handleJoin(req, res, member, restartFlow);
+		} else {
+			req.flash( 'warning', 'contribution-updating-not-allowed' );
+		}
+
+		res.redirect( app.mountpath + '/restart/failed' );
 	} else {
-		req.flash( 'warning', 'contribution-updating-not-allowed' );
+		next('route');
 	}
-
-	res.redirect( app.mountpath + '/restart/failed' );
 }));
 
 app.get('/expired-member', (req, res) => {
