@@ -55,7 +55,7 @@ export default class JoinFlowService {
 
 	static async createRestartFlow(member: Member, completedJoinFlow: CompletedJoinFlow): Promise<RestartFlow> {
 		const restartFlow = new RestartFlow();
-		restartFlow.memberId = member._id;
+		restartFlow.memberId = member._id.toString();
 		restartFlow.customerId = completedJoinFlow.customerId;
 		restartFlow.mandateId = completedJoinFlow.mandateId;
 		restartFlow.joinForm = completedJoinFlow.joinForm;
