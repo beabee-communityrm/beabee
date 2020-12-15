@@ -150,9 +150,10 @@ app.get('/restart/:id', wrapAsync(async (req, res) => {
 
 	if (member.isActiveMember) {
 		req.flash( 'danger', 'contribution-exists' );
-	} else {
+	} else if (await PaymentService.canChangeContribution(member, false)) {
 		await handleJoin(member, restartFlow);
-		req.flash( 'success', 'contribution-restarted' );
+	} else {
+		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}
 
 	loginAndRedirect(req, res, member);

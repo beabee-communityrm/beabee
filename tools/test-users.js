@@ -108,7 +108,14 @@ async function main() {
 		...filters.hasFailedPayments
 	});
 
+	await logMemberVaryContributions('Inactive due to failed payment, has scheduled payments', {
+		...filters.hasSubscription,
+		...filters.isInactive,
+		...filters.hasFailedPayments,
+		...filters.hasScheduledPayments
+	});
 	await logMemberVaryContributions('Cancelled active member', {
+
 		...filters.isActive,
 		...filters.hasCancelled
 	});
