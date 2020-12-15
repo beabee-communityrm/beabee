@@ -20,4 +20,12 @@ export default class TransactionalEmailSend {
     @Column({type: 'jsonb'})
     recipients: TransactionalEmailRecipient[];
 
+    @Column()
+    emailField?: string
+
+    @Column()
+    nameField?: string
+
+    @Column({type: 'json', nullable: true})
+    mergeFields?: Record<string, string>;
 }

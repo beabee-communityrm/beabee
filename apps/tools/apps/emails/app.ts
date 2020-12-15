@@ -145,7 +145,12 @@ app.post('/:id/send/:sendId', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(
 		...message
 	});
 
-	await getRepository(TransactionalEmailSend).update(send.id, {sentDate: new Date()});
+	await getRepository(TransactionalEmailSend).update(send.id, {
+		sentDate: new Date(),
+		emailField,
+		nameField,
+		mergeFields
+	});
 
 	res.redirect(req.originalUrl);
 }));
