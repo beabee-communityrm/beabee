@@ -95,6 +95,10 @@ export default class PaymentService {
 			}
 		} );
 
+		if (!user.canTakePayment) {
+			throw new Error('User does not have active payment method');
+		}
+
 		let startNow = true;
 
 		if (user.isActiveMember) {
