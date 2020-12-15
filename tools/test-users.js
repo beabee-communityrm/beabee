@@ -65,6 +65,9 @@ async function getFilters() {
 		isGift: {
 			'gocardless.period': 'gift'
 		},
+		hasSubscription: {
+			'gocardless.subscription_id': {$exists: true}
+		},
 		hasCancelled: {
 			'gocardless.cancelled_at': {$exists: true}
 		},
@@ -100,11 +103,19 @@ async function main() {
 	});
 
 	await logMemberVaryContributions('Inactive due to failed payment', {
+		...filters.hasSubscription,
 		...filters.isInactive,
 		...filters.hasFailedPayments
 	});
 
+	await logMemberVaryContributions('Inactive due to failed payment, has scheduled payments', {
+		...filters.hasSubscription,
+		...filters.isInactive,
+		...filters.hasFailedPayments,
+		...filters.hasScheduledPayments
+	});
 	await logMemberVaryContributions('Cancelled active member', {
+
 		...filters.isActive,
 		...filters.hasCancelled
 	});

@@ -1,7 +1,7 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 import auth from '@core/authentication' ;
-import { Members, RestartFlows } from '@core/database' ;
+import { Members } from '@core/database' ;
 import mandrill from '@core/mandrill' ;
 import { hasModel, hasSchema } from '@core/middleware' ;
 import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
@@ -15,7 +15,7 @@ import ReferralsService from '@core/services/ReferralsService';
 
 import { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
-import { RestartFlow } from '@models/restart-flows';
+import RestartFlow from '@models/RestartFlow';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 
@@ -96,7 +96,7 @@ app.post( '/referral/:code', [
 	}
 } ) );
 
-async function handleJoin(member: Member, {customerId, mandateId, joinForm}: CompletedJoinFlow): Promise<void> {
+async function handleJoin(req: Request, res: Response, member: Member, {customerId, mandateId, joinForm}: CompletedJoinFlow): Promise<void> {
 	await PaymentService.updatePaymentMethod(member, customerId, mandateId);
 	await PaymentService.updateContribution(member, joinForm);
 
@@ -104,6 +104,8 @@ async function handleJoin(member: Member, {customerId, mandateId, joinForm}: Com
 		const referrer = await Members.findOne({referralCode: joinForm.referralCode});
 		await ReferralsService.createReferral(referrer, member, joinForm);
 	}
+
+	loginAndRedirect(req, res, member);
 }
 
 app.get( '/complete', [
@@ -124,25 +126,17 @@ app.get( '/complete', [
 
 	try {
 		const newMember = await MembersService.createMember(partialMember);
-		await handleJoin(newMember, joinFlow);
+		await handleJoin(req, res, newMember, joinFlow);
 		await mandrill.sendToMember('welcome', newMember);
-		loginAndRedirect(req, res, newMember);
 	} catch ( saveError ) {
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
 			const oldMember = await Members.findOne({email: partialMember.email});
-			if (oldMember.isActiveMember || oldMember.hasActiveSubscription) {
+			if (oldMember.isActiveMember) {
 				res.redirect( app.mountpath + '/duplicate-email' );
 			} else {
-				const restartFlow = await RestartFlows.create( {
-					member: oldMember._id,
-					customerId: joinFlow.customerId,
-					mandateId: joinFlow.mandateId,
-					joinForm: joinFlow.joinForm
-				} );
-
-				await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow._id});
-
+				const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
+				await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
 				res.redirect( app.mountpath + '/expired-member' );
 			}
 		} else {
@@ -151,21 +145,23 @@ app.get( '/complete', [
 	}
 }));
 
-app.get('/restart/:_id', hasModel(RestartFlows, '_id'), wrapAsync(async (req, res) => {
-	const restartFlow = req.model as RestartFlow;
-	const { member } = restartFlow;
+app.get('/restart/failed', (req, res) => {
+	res.render('restart-failed');
+});
 
-	// Something has created a new subscription in the mean time!
-	if (member.isActiveMember || member.hasActiveSubscription) {
-		req.flash( 'danger', 'contribution-exists' );
+app.get('/restart/:id', wrapAsync(async (req, res, next) => {
+	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
+	if (restartFlow) {
+		const member = await Members.findById(restartFlow.memberId);
+		if (member.isActiveMember || !await PaymentService.canChangeContribution(member, false)) {
+			res.redirect( app.mountpath + '/restart/failed' );
+		} else {
+			await handleJoin(req, res, member, restartFlow);
+		}
+
 	} else {
-		await handleJoin(member, restartFlow);
-		req.flash( 'success', 'contribution-restarted' );
+		next('route');
 	}
-
-	await restartFlow.remove();
-
-	loginAndRedirect(req, res, member);
 }));
 
 app.get('/expired-member', (req, res) => {
