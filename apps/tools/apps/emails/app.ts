@@ -129,7 +129,7 @@ app.post('/:id/send/:sendId', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(
 		})),
 		merge_vars: send.recipients.map(recipient => ({
 			rcpt: recipient[emailField],
-			vars: _.map(mergeFields).map((value, key) => ({
+			vars: _.map(mergeFields, (value, key) => ({
 				name: key,
 				content: recipient[value]
 			}))
