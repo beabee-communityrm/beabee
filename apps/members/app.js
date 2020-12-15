@@ -21,7 +21,6 @@ const { cleanEmailAddress, wrapAsync } = require( '@core/utils' );
 const { default: PaymentService } = require( '@core/services/PaymentService' );
 const { default: MembersService } = require( '@core/services/MembersService' );
 
-const { calcSubscriptionMonthsLeft, canChangeSubscription, handleUpdateSubscription } = require( '@apps/profile/apps/direct-debit/utils' );
 const { syncMemberDetails } = require( '@apps/profile/apps/account/utils' );
 const exportTypes = require( '@apps/tools/apps/exports/exports');
 
@@ -121,15 +120,13 @@ app.get( '/add', auth.isSuperAdmin, ( req, res ) => {
 } );
 
 app.post( '/add', auth.isSuperAdmin, wrapAsync( async ( req, res ) => {
-	const customer = await gocardless.customers.get(req.body.customer_id);
-	if (req.body.first_name) {
-		customer.given_name = req.body.first_name;
-	}
-	if (req.body.last_name) {
-		customer.family_name = req.body.last_name;
-	}
-	if (PaymentService.isValidCustomer(customer)) {
-		const memberObj = PaymentService.customerToMember(customer, req.body.mandate_id);
+	const overrides = req.body.first_name && req.body.last_name ? {
+		given_name: req.body.first_name,
+		family_name: req.body.last_name
+	} : {};
+
+	const memberObj = await PaymentService.customerToMember(req.body.customer_id, overrides);
+	if (memberObj) {
 		const member = await MembersService.createMember(memberObj);
 		res.redirect( app.mountpath + '/' + member.uuid );
 	} else {
@@ -374,8 +371,8 @@ memberAdminRouter.post( '/exports', wrapAsync( async ( req, res ) => {
 memberAdminRouter.get( '/gocardless', wrapAsync( async ( req, res ) => {
 	res.render( 'gocardless', {
 		member: req.model,
-		canChange: await canChangeSubscription( req.model, req.model.canTakePayment ),
-		monthsLeft: calcSubscriptionMonthsLeft( req.model )
+		canChange: await PaymentService.canChangeContribution( req.model, req.model.canTakePayment ),
+		monthsLeft: PaymentService.getMonthsLeftOnContribution( req.model )
 	} );
 } ) );
 
@@ -384,12 +381,13 @@ memberAdminRouter.post( '/gocardless', wrapAsync( async ( req, res ) => {
 
 	switch ( req.body.action ) {
 	case 'update-subscription':
-		await handleUpdateSubscription(req, member, {
+		await PaymentService.updateContribution(member, {
 			amount: Number(req.body.amount),
 			period: req.body.period,
 			prorate: req.body.prorate === 'true',
 			payFee: req.body.payFee === 'true'
 		});
+		req.flash( 'success', 'contribution-updated' );
 		break;
 
 	case 'force-update':

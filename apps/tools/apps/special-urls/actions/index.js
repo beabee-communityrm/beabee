@@ -1,6 +1,5 @@
 const { Members } = require( '@core/database' );
-
-const { canChangeSubscription, processUpdateSubscription } = require( '@apps/profile/apps/direct-debit/utils' );
+const { default: PaymentService } = require( '@core/services/PaymentService' );
 
 module.exports = [
 	{
@@ -64,10 +63,13 @@ module.exports = [
 				return false;
 			}
 
-			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user, true ) ) {
-				await processUpdateSubscription( req.user, {
-					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount
-				} );
+			if ( req.user.hasActiveSubscription && await PaymentService.canChangeContribution( req.user, true ) ) {
+				await PaymentService.updateContribution(req.user, {
+					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount,
+					period: req.user.contributionPeriod,
+					payFee: req.user.gocardless.paying_fee,
+					prorate: false
+				});
 			} else {
 				res.render( 'actions/cant-change-contribution' );
 				return false;
@@ -84,11 +86,13 @@ module.exports = [
 				return false;
 			}
 
-			if ( req.user.hasActiveSubscription && await canChangeSubscription( req.user, true ) ) {
-				await processUpdateSubscription( req.user, {
+			if ( req.user.hasActiveSubscription && await PaymentService.canChangeContribution( req.user, true ) ) {
+				await PaymentService.updateContribution(req.user, {
 					amount: req.user.contributionMonthlyAmount,
-					payFee: true
-				} );
+					period: req.user.contributionPeriod,
+					payFee: true,
+					prorate: false
+				});
 			} else {
 				res.render( 'actions/cant-change-contribution' );
 				return false;

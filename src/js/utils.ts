@@ -9,6 +9,13 @@ export enum ContributionPeriod {
 	Gift = 'gift'
 }
 
+export interface PaymentForm {
+    amount: number;
+    period: ContributionPeriod;
+    payFee: boolean;
+    prorate: boolean;
+}
+
 interface Param {
 	name: string,
 	label: string,
@@ -49,7 +56,6 @@ export function wrapAsync(fn: RequestHandler): RequestHandler {
 		try {
 			await fn(req, res, next);
 		} catch (error) {
-			req.log.error(error);
 			next(error);
 		}
 	};

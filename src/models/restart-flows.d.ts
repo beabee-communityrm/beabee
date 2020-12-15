@@ -1,9 +1,8 @@
 import { Document, Model } from 'mongoose';
 import { Member } from '@models/members';
-import { JoinForm } from './join-flows';
+import { JoinForm } from '@models/JoinFlow';
 
 interface RestartFlow extends Document {
-    code: string;
     member: Member;
     date?: Date;
     customerId: string;

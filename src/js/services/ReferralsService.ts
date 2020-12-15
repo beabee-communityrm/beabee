@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { Referrals, ReferralGifts } from '@core/database';
 import mandrill from '@core/mandrill';
 
-import { JoinForm } from '@models/join-flows';
+import { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
 import { ReferralGift } from '@models/referrals';
 

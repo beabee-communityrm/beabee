@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { log } from '@core/logging';
 
 import config from '@config';
+import { DeepPartial } from 'typeorm';
 
 const gocardless = axios.create({
 	baseURL: `https://${config.gocardless.sandbox ? 'api-sandbox' : 'api'}.gocardless.com`,
@@ -49,11 +50,11 @@ gocardless.interceptors.response.use(response => {
 const STANDARD_METHODS = ['create', 'get', 'update', 'list', 'all'];
 
 interface Methods<T> {
-	create(data: Partial<T>): Promise<T>,
+	create(data: DeepPartial<T>): Promise<T>,
 	list(params?: Record<string, unknown>): Promise<T[]>,
 	all(params?: Record<string, unknown>): Promise<T[]>,
 	get(id: string, params?: Record<string, unknown>): Promise<T>,
-	update(id: string, data: Partial<T>):  Promise<T>,
+	update(id: string, data: DeepPartial<T>):  Promise<T>,
 	remove(id: string): Promise<boolean>
 }
 
