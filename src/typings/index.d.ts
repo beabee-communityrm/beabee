@@ -6,7 +6,7 @@ declare global {
 		export interface User extends Member {}
 
 		export interface Request {
-			flash(level: string, message: string): void
+			flash(level: 'info'|'success'|'warning'|'error'|'danger', message: string): void
 			model: unknown
 		}
 	}
