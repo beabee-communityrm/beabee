@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { GiftFlows, Members } = require('@core/database');
 
 async function getQuery() {
