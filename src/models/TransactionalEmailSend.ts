@@ -20,10 +20,10 @@ export default class TransactionalEmailSend {
     @Column({type: 'jsonb'})
     recipients: TransactionalEmailRecipient[];
 
-    @Column()
+    @Column({nullable: true})
     emailField?: string
 
-    @Column()
+    @Column({nullable: true})
     nameField?: string
 
     @Column({type: 'json', nullable: true})

@@ -17,14 +17,17 @@ async function getExport(giftFlows) {
 	return giftFlows.map(giftFlow => {
 		const member = membersByGiftCode[giftFlow.setupCode];
 		return {
-			GiftDate: giftFlow.date,
+			GiftPurchaseDate: giftFlow.date.toISOString(),
+			GiftStartDate: giftFlow.giftForm.startDate.toISOString(),
 			GifterName: giftFlow.giftForm.fromName,
 			GifterEmail: giftFlow.giftForm.fromEmail,
-			GifteeName: member.fullname,
-			GifteeFirstName: member.firstname,
-			GifteeEmail: member.email,
-			GifteeExpiryDate: member.memberPermission.date_expires.toISOString(),
-			GifteeHasConverted: member.contributionPeriod !== 'gift'
+			...(member && {
+				GifteeName: member.fullname,
+				GifteeFirstName: member.firstname,
+				GifteeEmail: member.email,
+				GifteeExpiryDate: member.memberPermission.date_expires.toISOString(),
+				GifteeHasConverted: member.contributionPeriod !== 'gift'
+			})
 		};
 	});
 }
