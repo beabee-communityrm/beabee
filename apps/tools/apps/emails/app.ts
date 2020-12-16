@@ -101,7 +101,7 @@ app.post('/:id/send', hasNewModel2(TransactionalEmail, 'id'), busboy(), (req, re
 app.get('/:id/send/:sendId', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(async (req, res) => {
 	const transactionalEmail = req.model as TransactionalEmail;
 	const send = await getRepository(TransactionalEmailSend).findOne(req.params.sendId);
-	const mergeFields = transactionalEmail.body.match(/\*\|[^|]+\|\*/g).map(f => f.substring(2, f.length - 2));
+	const mergeFields = _.uniq(transactionalEmail.body.match(/\*\|[^|]+\|\*/g).map(f => f.substring(2, f.length - 2)));
 	res.render('send', {
 		email: req.model,
 		send,
