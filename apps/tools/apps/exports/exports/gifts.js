@@ -12,10 +12,10 @@ async function getExport(giftFlows) {
 		giftCode: {$in: giftFlows.map(gf => gf.setupCode)}
 	});
 
-	const membersByGiftCode = _.keyBy(members, 'setupCode');
+	const membersByCode = _.keyBy(members, 'giftCode');
 
 	return giftFlows.map(giftFlow => {
-		const member = membersByGiftCode[giftFlow.setupCode];
+		const member = membersByCode[giftFlow.setupCode];
 		return {
 			GiftPurchaseDate: giftFlow.date.toISOString(),
 			GiftStartDate: giftFlow.giftForm.startDate.toISOString(),
