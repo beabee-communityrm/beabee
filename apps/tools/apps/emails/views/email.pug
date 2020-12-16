@@ -6,83 +6,39 @@ block prepend title
 block contents
 	.row
 		.col-md-12
-			+page_header(transactionalEmail.name)
-			p Got #{transactionalEmail.recipients.length} recipients
+			+page_header(email.name)
 
-			form(method='POST')
-				+csrf
-				input(type='hidden', name='action', value='delete')
-				button.btn.btn-danger.outline Delete
+			p Sent #{sends.length} times
+
+	.row
+		.col-md-8
+			hr
+			h4 Update email
+			include partials/email-form
 
 	.row
 		.col-md-8
 			hr
 			h4 Send email
 
-			if transactionalEmail.sent
-				.alert.alert-danger
-					| You already sent this email on
-					|
-					= moment(transactionalEmail.sent).format('Do MMMM YYYY')
-
-			form(method='POST', onsubmit='return confirm(\'Are you sure?!\')').form-horizontal.js-reveal
-				+csrf
-				input(type='hidden', name='action', value='send')
-
+			form(action='/tools/emails/' + email.id + '/send?_csrf=' + csrf method='POST' enctype='multipart/form-data').form-horizontal
 				.form-group
-					label(for='template').control-label.col-md-3 Template
+					label(for='file').control-label.col-md-3 Recipient list
 					.col-md-6
-						select(name='template', required)#template.form-control.js-reveal-types
-							option(value='', selected, disabled) Select a template
-							each template in templates
-								option(value=template.slug)= template.name
-							option(value='__custom__') Custom
-
-				.hidden.js-reveal-type(data-type='__custom__')
-					.form-group
-						label(for='fromEmail').control-label.col-md-3 From email
-						.col-md-6
-							input(type='text' name='fromEmail' required disabled value='membership@thebristolcable.org')#fromEmail.form-control
-					.form-group
-						label(for='fromName').control-label.col-md-3 From name
-						.col-md-6
-							input(type='text' name='fromName' required disabled value='Bristol Cable Membership')#fromName.form-control
-					.form-group
-						label(for='subject').control-label.col-md-3 Subject
-						.col-md-6
-							input(type='text' name='subject' required disabled)#subject.form-control
-					.form-group
-						label(for='content').control-label.col-md-3 Content
-						.col-md-9
-							textarea(name='content' required disabled rows="10")#content.form-control
-
-				h5 Merge variables
+						input(type='file', name='file')#file.form-control
 
 				.form-group
-					label.control-label.col-sm-3 Email
-					.col-sm-6
-						select(name='emailField' required).form-control
-							option(value='', selected, disabled) Select field
-							each field in fields
-								option= field
+					.col-md-offset-3.col-md-6
+						button.btn.btn-primary Upload
 
-				.form-group
-					label.control-label.col-sm-3 Name
-					.col-sm-6
-						select(name='nameField' required).form-control
-							option(value='', selected, disabled) Select field
-							each field in fields
-								option= field
-
-				each i in [1, 2, 3, 4, 5]
-					.form-group
-						.col-sm-3
-							input(type='text', name='mergeKeys[]').form-control
-						.col-sm-6
-							select(name='mergeFields[]').form-control
-								option(value='', selected, disabled) Select field
-								each field in fields
-									option= field
-
+	.row
+		.col-md-8
+			hr
+			h4 Delete email
+			form(method='POST')
+				+csrf
 				p
-					button.btn.btn-primary.outline Send email
+					label.checkbox-inline
+						input(type='checkbox' required)
+						| This change is irreversible, confirm to proceed
+				button(name='action' value='delete').btn.btn-danger.outline Delete
