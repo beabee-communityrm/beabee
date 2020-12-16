@@ -67,7 +67,18 @@ module.exports = {
 			}
 		},
 		completed: Boolean,
-		processed: Boolean
+		processed: Boolean,
+		exports: [ {
+			export_id: {
+				type: mongoose.schema.ObjectId,
+				ref: 'Exports',
+				required: true
+			},
+			status: {
+				type: String,
+				required: true
+			}
+		} ]
 	} )
 };
 
