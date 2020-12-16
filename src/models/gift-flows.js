@@ -70,7 +70,7 @@ module.exports = {
 		processed: Boolean,
 		exports: [ {
 			export_id: {
-				type: mongoose.schema.ObjectId,
+				type: mongoose.Schema.ObjectId,
 				ref: 'Exports',
 				required: true
 			},
