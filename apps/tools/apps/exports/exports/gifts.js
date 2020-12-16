@@ -7,6 +7,15 @@ async function getQuery() {
 	};
 }
 
+function addressFields(address={}) {
+	return {
+		GifteeAddress1: address.line1,
+		GifteeAddress2: address.line2,
+		GifteeCity: address.city,
+		GifteePostcode: (address.postcode || '').trim().toUpperCase(),
+	};
+}
+
 async function getExport(giftFlows) {
 	const members = await Members.find({
 		giftCode: {$in: giftFlows.map(gf => gf.setupCode)}
@@ -14,24 +23,32 @@ async function getExport(giftFlows) {
 
 	const membersByCode = _.keyBy(members, 'giftCode');
 
-	return giftFlows.map(giftFlow => {
-		const member = membersByCode[giftFlow.setupCode];
+	return giftFlows.map(({date, giftForm, setupCode}) => {
+		const member = membersByCode[setupCode];
+
+		const gifteeDetails = member ? {
+			GifteeName: member.fullname,
+			GifteeFirstName: member.firstname,
+			GifteeEmail: member.email,
+			GifteeExpiryDate: member.memberPermission.date_expires.toISOString(),
+			GifteeHasConverted: member.contributionPeriod !== 'gift',
+			...addressFields(member.delivery_address)
+		} : {
+			GifteeName: giftForm.firstname + ' ' + giftForm.lastname,
+			GifteeFirstName: giftForm.firstname,
+			GifteeEmail: giftForm.email,
+			GifteeExpiryDate: '',
+			GifteeHasConverted: false,
+			...addressFields(giftForm.delivery_address)
+		};
+
 		return {
-			GiftPurchaseDate: giftFlow.date.toISOString(),
-			GiftStartDate: giftFlow.giftForm.startDate.toISOString(),
-			GifterName: giftFlow.giftForm.fromName,
-			GifterEmail: giftFlow.giftForm.fromEmail,
-			...(member && {
-				GifteeName: member.fullname,
-				GifteeFirstName: member.firstname,
-				GifteeEmail: member.email,
-				GifteeExpiryDate: member.memberPermission.date_expires.toISOString(),
-				GifteeHasConverted: member.contributionPeriod !== 'gift',
-				GifteeAddress1: member.delivery_address.line1,
-				GifteeAddress2: member.delivery_address.line2,
-				GifteeCity: member.delivery_address.city,
-				GifteePostcode: (member.delivery_address.postcode || '').trim().toUpperCase()
-			})
+			GiftPurchaseDate: date.toISOString(),
+			GiftStartDate: giftForm.startDate.toISOString(),
+			GiftHasStarted: !!member,
+			GifterName: giftForm.fromName,
+			GifterEmail: giftForm.fromEmail,
+			...gifteeDetails
 		};
 	});
 }
