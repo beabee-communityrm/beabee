@@ -26,7 +26,11 @@ async function getExport(giftFlows) {
 				GifteeFirstName: member.firstname,
 				GifteeEmail: member.email,
 				GifteeExpiryDate: member.memberPermission.date_expires.toISOString(),
-				GifteeHasConverted: member.contributionPeriod !== 'gift'
+				GifteeHasConverted: member.contributionPeriod !== 'gift',
+				GifteeAddress1: member.delivery_address.line1,
+				GifteeAddress2: member.delivery_address.line2,
+				GifteeCity: member.delivery_address.city,
+				GifteePostcode: (member.delivery_address.postcode || '').trim().toUpperCase()
 			})
 		};
 	});
