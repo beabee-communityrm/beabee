@@ -10,9 +10,10 @@ const auth = require( '@core/authentication' );
 const database = require( '@core/database' );
 const logging = require( '@core/logging' );
 const Options = require( '@core/options' )();
-const pageSettings = require( '@core/page-settings' );
 const quickflash = require( '@core/quickflash' );
 const sessions = require( '@core/sessions' );
+
+const { default: PageSettingsService } = require('@core/services/PageSettingsService');
 
 const specialUrlHandler = require( '@apps/tools/apps/special-urls/handler' );
 
@@ -88,7 +89,10 @@ database.connect( config.mongo, config.db ).then(() => {
 	});
 
 	// Include page settings
-	app.use( pageSettings.middleware );
+	app.use( PageSettingsService.middleware );
+
+	// Load page settings
+	PageSettingsService.reload();
 
 	// Load apps
 	appLoader( app );
@@ -110,9 +114,6 @@ database.connect( config.mongo, config.db ).then(() => {
 			error: err
 		});
 	} );
-
-	// Load page settings
-	pageSettings.update();
 
 	// Start server
 	var server = app.listen( config.port ,config.host, function () {
