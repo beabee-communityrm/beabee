@@ -1,9 +1,8 @@
 import express from 'express';
-import _ from 'lodash';
 import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import { hasModel, hasNewModel2, hasSchema } from '@core/middleware';
+import { hasNewModel2, hasSchema } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import PageSettingsService from '@core/services/PageSettingsService';
