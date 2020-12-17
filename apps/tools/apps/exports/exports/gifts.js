@@ -45,6 +45,7 @@ async function getExport(giftFlows) {
 		return {
 			GiftPurchaseDate: date.toISOString(),
 			GiftStartDate: giftForm.startDate.toISOString(),
+			GiftCode: setupCode,
 			GiftHasStarted: !!member,
 			GifterName: giftForm.fromName,
 			GifterEmail: giftForm.fromEmail,
