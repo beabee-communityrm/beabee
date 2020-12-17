@@ -48,6 +48,7 @@ async function getExport(giftFlows) {
 			GiftHasStarted: !!member,
 			GifterName: giftForm.fromName,
 			GifterEmail: giftForm.fromEmail,
+			Message: giftForm.message,
 			...gifteeDetails
 		};
 	});
