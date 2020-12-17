@@ -48,5 +48,5 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 		console.log();
 	}
 
-	db.close();
+	await db.close();
 });
