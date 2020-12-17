@@ -1,14 +1,16 @@
 import PageSettings from '@models/PageSettings';
 import { NextFunction, Request, Response } from 'express';
-import { DeepPartial, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 interface PageSettingsCache extends PageSettings {
 	patternRegex: RegExp
 }
 
+type JustPageSettings = Omit<PageSettings, 'id'|'pattern'>;
+
 export default class PageSettingsService {
-	private static pathsCache: Record<string, Pick<PageSettingsCache, 'shareUrl'|'shareTitle'|'shareDescription'|'shareImage'>> = {};
-	private static pageSettingsCache: PageSettingsCache[] = [];
+	private static pathCache: Record<string, JustPageSettings> = {};
+	private static psCache: PageSettingsCache[] = [];
 
 	private static readonly defaultPageSettings = {
 		shareUrl: '/',
@@ -17,22 +19,22 @@ export default class PageSettingsService {
 		shareImage: 'https://membership.thebristolcable.org/static/imgs/share.jpg'
 	};
 
-	private static get(path: string) {
-		if (this.pathsCache[path] === undefined) {
-			this.pathsCache[path] = this.pageSettingsCache.find(ps => ps.patternRegex.test(path)) || this.defaultPageSettings;
+	private static getPath(path: string): JustPageSettings {
+		if (this.pathCache[path] === undefined) {
+			this.pathCache[path] = this.psCache.find(ps => ps.patternRegex.test(path)) || this.defaultPageSettings;
 		}
-		return this.pathsCache[path];
+		return this.pathCache[path];
 	}
 
 	static async reload(): Promise<void> {
-		this.pageSettingsCache = (await getRepository(PageSettings).find()).map(ps => ({
+		this.psCache = (await getRepository(PageSettings).find()).map(ps => ({
 			...ps, patternRegex: new RegExp(ps.pattern)
 		}));
-		this.pathsCache = {};
+		this.pathCache = {};
 	}
 
 	static middleware(req: Request, res: Response, next: NextFunction): void {
-		res.locals._page = this.get( req.path );
+		res.locals._page = this.getPath( req.path );
 		next();
 	}
 
@@ -42,12 +44,13 @@ export default class PageSettingsService {
 		return savedPs;
 	}
 
-	static async update(ps: PageSettings, fields: DeepPartial<PageSettings>): Promise<void> {
+	static async update(ps: PageSettings, fields: Partial<PageSettings>): Promise<void> {
 		await getRepository(PageSettings).update(ps.id, fields);
 		await this.reload();
 	}
 
 	static async delete(ps: PageSettings): Promise<void> {
 		await getRepository(PageSettings).delete(ps.id);
+		await this.reload();
 	}
 }

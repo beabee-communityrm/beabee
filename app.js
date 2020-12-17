@@ -89,7 +89,7 @@ database.connect( config.mongo, config.db ).then(() => {
 	});
 
 	// Include page settings
-	app.use( PageSettingsService.middleware );
+	app.use( PageSettingsService.middleware.bind(PageSettingsService) );
 
 	// Load page settings
 	PageSettingsService.reload();

@@ -33,7 +33,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	res.render( 'index', { pages } );
 } ) );
 
-function schemaToPageSettings( data: PageSettingsSchema ): PageSettings {
+function schemaToPageSettings( data ): PageSettings {
 	const ps = new PageSettings();
 	ps.pattern = data.pattern;
 	ps.shareUrl = data.shareUrl;
@@ -45,7 +45,7 @@ function schemaToPageSettings( data: PageSettingsSchema ): PageSettings {
 }
 
 app.post( '/', hasSchema( createPageSchema ).orFlash, wrapAsync( async ( req, res ) => {
-	const ps = PageSettingsService.create(schemaToPageSettings(req.body));
+	const ps = await PageSettingsService.create(schemaToPageSettings(req.body));
 	req.flash('success', 'pages-created');
 	res.redirect('/settings/pages/' + ps.id);
 } ) );
