@@ -11,7 +11,7 @@ const Options = require( '@core/options' )();
 
 const { default: MembersService } = require( '@core/services/MembersService' );
 
-const { processGiftFlow, isBeforeCutOff } = require('./utils');
+const { processGiftFlow } = require('./utils');
 const { createGiftSchema, updateGiftAddressSchema } = require( './schema.json' );
 
 const app = express();
@@ -25,10 +25,7 @@ app.use( function( req, res, next ) {
 } );
 
 app.get( '/', ( req, res ) => {
-	res.render( 'index', {
-		stripePublicKey: config.stripe.public_key,
-		isBeforeCutOff: isBeforeCutOff()
-	} );
+	res.render( 'index', {stripePublicKey: config.stripe.public_key} );
 } );
 
 async function createGiftFlow(giftForm, member) {
@@ -108,8 +105,7 @@ app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
 	if (req.model.completed) {
 		res.render('thanks', {
 			...req.model.giftForm,
-			processed: req.model.processed,
-			isBeforeCutOff: isBeforeCutOff(req.model.date)
+			processed: req.model.processed
 		});
 	} else {
 		res.redirect('/gift/failed/' + req.model._id);

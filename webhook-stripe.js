@@ -12,7 +12,7 @@ const log = require( '@core/logging' ).log;
 const mandrill = require( '@core/mandrill' );
 const stripe = require( '@core/stripe' );
 const { wrapAsync } = require( '@core/utils' );
-const { processGiftFlow, isBeforeCutOff } = require( '@apps/gift/utils' );
+const { processGiftFlow } = require( '@apps/gift/utils' );
 
 const app = express();
 
@@ -106,12 +106,10 @@ async function handleCheckoutSessionCompleted(session) {
 
 		const { fromName, fromEmail, firstname, startDate } = giftFlow.giftForm;
 		const now = moment.utc();
-		const beforeCutOff = isBeforeCutOff(now);
 
-		const giftCard = beforeCutOff ? null : createGiftCard(giftFlow.setupCode);
-		const emailTemplate = beforeCutOff ? 'purchased-gift-with-card-before-16th-dec' : 'purchased-gift';
+		const giftCard = createGiftCard(giftFlow.setupCode);
 
-		await mandrill.sendMessage(emailTemplate, {
+		await mandrill.sendMessage('purchased-gift', {
 			to: [{
 				email: fromEmail,
 				name:  fromName
@@ -127,9 +125,6 @@ async function handleCheckoutSessionCompleted(session) {
 				}, {
 					name: 'GIFTDATE',
 					content: moment.utc(startDate).format('MMMM Do')
-				}, {
-					name: 'GIFTBC',
-					content: moment.utc(startDate).isBefore('2020-12-25') ? 'Y' : 'N'
 				}]
 			}],
 			...(giftCard && {
