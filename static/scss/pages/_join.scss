@@ -323,21 +323,6 @@ $bp-join-why: 768px;
 	}
 }
 
-.join-gift-christmas {
-	display: flex;
-	align-items: center;
-	background-color: $c-green;
-	padding: 1rem;
-	color: white;
-	margin: 0 0 2rem;
-	border-radius: 3px;
-	& > svg {
-		width: 60px;
-		height: 60px;
-		margin-right: 1rem;
-	}
-}
-
 .join-gift-reasons {
 	list-style: none;
 	padding: 0;
