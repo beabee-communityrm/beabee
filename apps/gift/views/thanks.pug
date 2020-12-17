@@ -29,10 +29,7 @@ block body
 							a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org
 							| .
 					else
-						if isBeforeCutOff
-							h4 Where shall we send the mug and card?
-						else
-							h4 Where shall we send the mug?
+						h4 Where shall we send the mug?
 						form( method="post" ).form-horizontal
 							+csrf
 

@@ -1,4 +1,4 @@
-import moment, { MomentInput } from 'moment';
+import moment  from 'moment';
 
 import mandrill from '@core/mandrill';
 import MembersService from '@core/services/MembersService';
@@ -37,14 +37,9 @@ export async function processGiftFlow(giftFlow: GiftFlow, sendImmediately = fals
 	await member.save();
 
 	const sendAt = sendImmediately ? null : now.clone().startOf('day').add({
-		days: isBeforeCutOff(giftFlow.date) ? 1 : 0, // Delay email by a day if they are receiving a physical gift
 		h: 9, m: 0, s: 0
 	}).format();
 	await mandrill.sendToMember('giftee-success', member, { fromName, message }, sendAt);
 
 	await MembersService.addMemberToMailingLists(member);
-}
-
-export function isBeforeCutOff(date?: MomentInput): boolean {
-	return moment.utc(date).isBefore('2020-12-17');
 }
