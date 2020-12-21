@@ -9,15 +9,27 @@ import config from '@config';
 import * as db from '@core/database';
 
 import PageSettings from '@models/PageSettings';
+import Payment from '@models/Payment';
+
+type IfEquals<X, Y, A, B> =
+    (<T>() => T extends X ? 1 : 2) extends
+	(<T>() => T extends Y ? 1 : 2) ? A : B;
+
+type WritableKeysOf<T> = {
+    [P in keyof T]: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never>
+}[keyof T];
+
+type Mapping<T> = Record<WritableKeysOf<Exclude<keyof T,'id'>>, string>;
+
 
 interface Migration<T> {
 	model: EntityTarget<T>,
 	collection: string,
-	mapping: Record<string, keyof T>
+	mapping: Mapping<T>
 }
 
 // Use this to get type checking on mapping
-function createMigration<T>(model: EntityTarget<T>, collection: string, mapping: Record<string, keyof T>): Migration<T> {
+function createMigration<T>(model: EntityTarget<T>, collection: string, mapping: Mapping<T>): Migration<T> {
 	return { model, collection, mapping };
 }
 
@@ -28,6 +40,19 @@ const migrations: Migration<any>[] = [
 		shareTitle: 'shareTitle',
 		shareDescription: 'shareDescription',
 		shareImage: 'shareImage',
+	}),
+	createMigration(Payment, 'payments', {
+		paymentId: 'payment_id',
+		subscriptionId: 'subscription_id',
+		subscriptionPeriod: 'subscription_period',
+		memberId: 'member_id',
+		status: 'status',
+		description: 'description',
+		amount: 'amount',
+		amountRefunded: 'amount_refunded',
+		createdAt: 'created',
+		chargeDate: 'charge_date',
+		updatedAt: 'updated_at'
 	})
 ];
 

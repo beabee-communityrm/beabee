@@ -8,10 +8,9 @@ const config = require( '@config' );
 
 const auth = require( '@core/authentication' );
 const {
-	Exports, GiftFlows, Members, Permissions, Payments, PollAnswers,
+	Exports, GiftFlows, Members, Permissions, PollAnswers,
 	Projects, Referrals
 } = require( '@core/database' );
-const { default: gocardless } = require( '@core/gocardless' );
 const mailchimp = require( '@core/mailchimp' );
 const mandrill = require( '@core/mandrill' );
 const { hasModel, hasSchema } = require( '@core/middleware' );
@@ -145,14 +144,14 @@ memberRouter.use((req, res, next) => {
 
 memberRouter.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model;
-	const payments = await Payments.find( { member: member._id } ).sort( { 'charge_date': -1 } ).exec();
+	const payments = await PaymentService.getPayments(member);
 
-	const confirmedPayments = payments
-		.filter(p => ['paid_out', 'confirmed'].indexOf(p.status) > -1)
-		.map(p => p.amount - p.amount_refunded)
+	const successfulPayments = payments
+		.filter(p => p.isSuccessful)
+		.map(p => p.amount - p.amountRefunded)
 		.filter(amount => !isNaN(amount));
 
-	const total = confirmedPayments.reduce((a, b) => a + b, 0);
+	const total = successfulPayments.reduce((a, b) => a + b, 0);
 
 	const availableTags = await getAvailableTags();
 
@@ -223,7 +222,6 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 		req.flash('success', 'member-password-reset-generated');
 		break;
 	case 'permanently-delete':
-		await Payments.deleteMany( { member } );
 		// TODO: anonymise other data in poll answers
 		await PollAnswers.updateMany( { member }, { $set: { member: null } } );
 		await GiftFlows.updateMany( { member }, { $set: { member: null } } );
@@ -231,13 +229,9 @@ memberRouter.post( '/', wrapAsync( async ( req, res ) => {
 		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
 		await Members.deleteOne( { _id: member._id } );
 
-		if ( member.gocardless.mandate_id ) {
-			await gocardless.mandates.cancel( member.gocardless.mandate_id );
-		}
-		if ( member.gocardless.customer_id ) {
-			await gocardless.customers.remove( member.gocardless.customer_id );
-		}
-		await mailchimp.mainList.permanentlyDeleteMember( member );
+		await PaymentService.permanentlyDeleteMember(member);
+
+		await mailchimp.mainList.permanentlyDeleteMember(member);
 
 		req.flash('success', 'member-permanently-deleted');
 		res.redirect('/members');

@@ -6,6 +6,7 @@ import { log } from '@core/logging';
 import Notice from '@models/Notice';
 import JoinFlow from '@models/JoinFlow';
 import PageSettings from '@models/PageSettings';
+import Payment from '@models/Payment';
 import RestartFlow from '@models/RestartFlow';
 import TransactionalEmail from '@models/TransactionalEmail';
 import TransactionalEmailSend from '@models/TransactionalEmailSend';
@@ -47,6 +48,7 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 					Notice,
 					JoinFlow,
 					PageSettings,
+					Payment,
 					RestartFlow,
 					TransactionalEmail,
 					TransactionalEmailSend
@@ -82,7 +84,6 @@ export { model as Exports } from '@models/exports';
 export { model as GiftFlows } from '@models/gift-flows';
 export { model as Members } from '@models/members';
 export { model as Options } from '@models/options';
-export { model as Payments } from '@models/payments';
 export { model as Permissions } from '@models/permissions';
 export { model as PollAnswers } from '@models/PollAnswers';
 export { model as Polls } from '@models/polls';
