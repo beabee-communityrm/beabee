@@ -65,7 +65,7 @@
   },
   "scripts": {
     "start": "npm run build && docker-compose start && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
-    "lint": "eslint apps/ src/ test/ webhook.js",
+    "lint": "eslint apps/ src/ test/",
     "watchApp": "tsc --watch --preserveWatchOutput --incremental",
     "watch": "gulp watch",
     "build": "rimraf built/ && gulp build && tsc",

@@ -17,7 +17,7 @@ export default class Payment {
 	@PrimaryGeneratedColumn('uuid')
 	id: string
 
-	@Column()
+	@Column({unique: true})
 	paymentId: string
 
 	@Column({nullable: true})

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import { Request } from 'express';
-import { Customer, CustomerBankAccount, Mandate, Payment, RedirectFlow, Subscription } from 'gocardless-nodejs/types/Types';
+import { Customer, CustomerBankAccount, Mandate, Payment, RedirectFlow, Refund, Subscription } from 'gocardless-nodejs/types/Types';
 import { v4 as uuidv4 } from 'uuid';
 
 import { log } from '@core/logging';
@@ -124,7 +124,7 @@ export default {
 	//payouts: createMethods<Payout>('payouts', ['get', 'list', 'all']),
 	//payoutItems: createMethods<PayoutItem>('payout_items', ['list', 'all']),
 	redirectFlows: createMethods<RedirectFlow>('redirect_flows', ['create', 'get'], ['complete']),
-	//refunds: createMethods<Refund>('refunds', STANDARD_METHODS),
+	refunds: createMethods<Refund>('refunds', STANDARD_METHODS),
 	subscriptions: createMethods<Subscription>('subscriptions', STANDARD_METHODS, ['cancel']),
 	webhooks: {
 		validate(req: Request): boolean {

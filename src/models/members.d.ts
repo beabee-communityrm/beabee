@@ -52,6 +52,7 @@ interface Member extends PartialMember, Document {
 	readonly canTakePayment: boolean,
 	readonly contributionPeriod: ContributionPeriod
 	readonly contributionMonthlyAmount: number
+	readonly fullname
 }
 
 export const model: Model<Member>;
