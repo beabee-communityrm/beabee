@@ -92,7 +92,7 @@ app.post('/:id/mailings', hasNewModel2(Email, 'id'), busboy(), (req, res) => {
 		mailing.email = email;
 		mailing.recipients = recipients;
 		const savedMailing = await getRepository(EmailMailing).save(mailing);
-		res.redirect(`/tools/emails/${email.id}/mailing/${savedMailing.id}`);
+		res.redirect(`/tools/emails/${email.id}/mailings/${savedMailing.id}`);
 	});
 
 	req.pipe(req.busboy);
