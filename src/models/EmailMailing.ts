@@ -1,15 +1,15 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import TransactionalEmail from '@models/TransactionalEmail';
+import Email from '@models/Email';
 
-export type TransactionalEmailRecipient = Record<string, string>;
+export type EmailRecipient = Record<string, string>;
 
 @Entity()
-export default class TransactionalEmailSend {
+export default class EmailMailing {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => TransactionalEmail)
-    parent: TransactionalEmail;
+    @ManyToOne(() => Email)
+    email: Email;
 
     @CreateDateColumn()
     createdDate: Date;
@@ -18,7 +18,7 @@ export default class TransactionalEmailSend {
     sentDate?: Date;
 
     @Column({type: 'jsonb'})
-    recipients: TransactionalEmailRecipient[];
+    recipients: EmailRecipient[];
 
     @Column({nullable: true})
     emailField?: string

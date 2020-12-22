@@ -8,8 +8,8 @@ import JoinFlow from '@models/JoinFlow';
 import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import RestartFlow from '@models/RestartFlow';
-import TransactionalEmail from '@models/TransactionalEmail';
-import TransactionalEmailSend from '@models/TransactionalEmailSend';
+import Email from '@models/Email';
+import EmailMailing from '@models/EmailMailing';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	mongoose.Promise = global.Promise;
@@ -50,8 +50,8 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 					PageSettings,
 					Payment,
 					RestartFlow,
-					TransactionalEmail,
-					TransactionalEmailSend
+					Email,
+					EmailMailing
 				],
 				synchronize: true
 			});
