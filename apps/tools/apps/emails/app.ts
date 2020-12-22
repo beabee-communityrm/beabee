@@ -2,28 +2,28 @@ import busboy from 'connect-busboy';
 import express from 'express';
 import _ from 'lodash';
 import Papa from 'papaparse';
+import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
 import { hasNewModel2 } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import TransactionalEmail from '@models/TransactionalEmail';
-import { getRepository } from 'typeorm';
-import TransactionalEmailSend, { TransactionalEmailRecipient } from '@models/TransactionalEmailSend';
+import Email from '@models/Email';
+import EmailMailing, { EmailRecipient } from '@models/EmailMailing';
 
 const app = express();
 let app_config;
 
-function schemaToTransactionalEmail(data): TransactionalEmail {
-	const transactionalEmail = new TransactionalEmail();
-	transactionalEmail.name = data.name;
-	transactionalEmail.fromName = data.fromName;
-	transactionalEmail.fromEmail = data.fromEmail;
-	transactionalEmail.subject = data.subject;
-	transactionalEmail.body = data.body;
+function schemaToEmail(data): Email {
+	const email = new Email();
+	email.name = data.name;
+	email.fromName = data.fromName;
+	email.fromEmail = data.fromEmail;
+	email.subject = data.subject;
+	email.body = data.body;
 
-	return transactionalEmail;
+	return email;
 }
 
 app.set( 'views', __dirname + '/views' );
@@ -40,44 +40,44 @@ app.use( function( req, res, next ) {
 } );
 
 app.get('/', wrapAsync(async (req, res) => {
-	const transactionalEmails = await getRepository(TransactionalEmail).find();
-	res.render('index', {transactionalEmails});
+	const emails = await getRepository(Email).find();
+	res.render('index', {emails});
 }));
 
 app.post('/', wrapAsync(async (req, res) => {
-	const transactionalEmail = await getRepository(TransactionalEmail).save(schemaToTransactionalEmail(req.body));
-	res.redirect('/tools/emails/' + transactionalEmail.id);
+	const emails = await getRepository(Email).save(schemaToEmail(req.body));
+	res.redirect('/tools/emails/' + emails.id);
 }));
 
 
-app.get('/:id', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(async (req, res) => {
-	const sends = await getRepository(TransactionalEmailSend).find({
-		parent: req.model
+app.get('/:id', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+	const mailings = await getRepository(EmailMailing).find({
+		email: req.model
 	});
 
-	res.render('email', {email: req.model, sends});
+	res.render('email', {email: req.model, mailings});
 }));
 
-app.post('/:id', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(async (req, res) => {
-	const transactionalEmail = req.model as TransactionalEmail;
+app.post('/:id', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+	const email = req.model as Email;
 
 	switch (req.body.action) {
 	case 'update':
-		await getRepository(TransactionalEmail).update(transactionalEmail.id, schemaToTransactionalEmail(req.body));
+		await getRepository(Email).update(email.id, schemaToEmail(req.body));
 		req.flash('success', 'transactional-email-updated');
 		res.redirect(req.originalUrl);
 		break;
 	case 'delete':
-		await getRepository(TransactionalEmail).delete(transactionalEmail.id);
+		await getRepository(Email).delete(email.id);
 		req.flash('success', 'transactional-email-deleted');
 		res.redirect('/tools/emails');
 		break;
 	}
 }));
 
-app.post('/:id/send', hasNewModel2(TransactionalEmail, 'id'), busboy(), (req, res) => {
-	const transactionalEmail = req.model as TransactionalEmail;
-	let recipients: TransactionalEmailRecipient[];
+app.post('/:id/mailings', hasNewModel2(Email, 'id'), busboy(), (req, res) => {
+	const email = req.model as Email;
+	let recipients: EmailRecipient[];
 
 	req.busboy.on('file', (fieldname, file) => {
 		Papa.parse(file, {
@@ -88,25 +88,25 @@ app.post('/:id/send', hasNewModel2(TransactionalEmail, 'id'), busboy(), (req, re
 		});
 	});
 	req.busboy.on('finish', async () => {
-		const transactionalEmailSend = new TransactionalEmailSend();
-		transactionalEmailSend.parent = transactionalEmail;
-		transactionalEmailSend.recipients = recipients;
-		const saved = await getRepository(TransactionalEmailSend).save(transactionalEmailSend);
-		res.redirect(`/tools/emails/${transactionalEmail.id}/send/${saved.id}`);
+		const mailing = new EmailMailing();
+		mailing.email = email;
+		mailing.recipients = recipients;
+		const savedMailing = await getRepository(EmailMailing).save(mailing);
+		res.redirect(`/tools/emails/${email.id}/mailings/${savedMailing.id}`);
 	});
 
 	req.pipe(req.busboy);
 });
 
-app.get('/:id/send/:sendId', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(async (req, res) => {
-	const transactionalEmail = req.model as TransactionalEmail;
-	const send = await getRepository(TransactionalEmailSend).findOne(req.params.sendId);
-	const mergeFields = _.uniq(transactionalEmail.body.match(/\*\|[^|]+\|\*/g).map(f => f.substring(2, f.length - 2)));
-	res.render('send', {
-		email: req.model,
-		send,
+app.get('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+	const email = req.model as Email;
+	const mailing = await getRepository(EmailMailing).findOne(req.params.mailingId);
+	const mergeFields = _.uniq(email.body.match(/\*\|[^|]+\|\*/g).map(f => f.substring(2, f.length - 2)));
+	res.render('mailing', {
+		email,
+		mailing,
 		mergeFields,
-		headers: Object.keys(send.recipients[0])
+		headers: Object.keys(mailing.recipients[0])
 	});
 }));
 
@@ -116,18 +116,18 @@ interface SendSchema {
 	mergeFields: Record<string, string>
 }
 
-app.post('/:id/send/:sendId', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(async (req, res) => {
-	const email = req.model as TransactionalEmail;
-	const send = await getRepository(TransactionalEmailSend).findOne(req.params.sendId);
+app.post('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+	const email = req.model as Email;
+	const mailing = await getRepository(EmailMailing).findOne(req.params.mailingId);
 
 	const {emailField, nameField, mergeFields}: SendSchema = req.body;
 
 	const message = {
-		to: send.recipients.map(recipient => ({
+		to: mailing.recipients.map(recipient => ({
 			email: recipient[emailField],
 			name: recipient[nameField]
 		})),
-		merge_vars: send.recipients.map(recipient => ({
+		merge_vars: mailing.recipients.map(recipient => ({
 			rcpt: recipient[emailField],
 			vars: _.map(mergeFields, (value, key) => ({
 				name: key,
@@ -145,7 +145,7 @@ app.post('/:id/send/:sendId', hasNewModel2(TransactionalEmail, 'id'), wrapAsync(
 		...message
 	});
 
-	await getRepository(TransactionalEmailSend).update(send.id, {
+	await getRepository(EmailMailing).update(mailing.id, {
 		sentDate: new Date(),
 		emailField,
 		nameField,

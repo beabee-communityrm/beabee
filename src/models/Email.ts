@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export default class TransactionalEmail {
+export default class Email {
     @PrimaryGeneratedColumn('uuid')
     id: string
 
