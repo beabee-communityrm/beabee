@@ -12,7 +12,7 @@ aliases:
       - add_ssh_keys:
           fingerprints:
             - "91:82:53:47:f7:25:77:ab:59:9a:d1:62:c0:f9:0e:2b"
-      - run: cat /tmp/workspace/build.zip | ssh $SSH_REMOTE_HOST "$CIRCLE_BUILD_NUM.zip $STAGE"
+      - run: cat /tmp/workspace/build.tar.gz | ssh $SSH_REMOTE_HOST "$CIRCLE_BUILD_NUM.tar.gz $STAGE"
 
 jobs:
   build:
@@ -26,13 +26,13 @@ jobs:
       - run: NODE_ENV=production npm run build
       - run: npm ci --production
       - run: echo -n ${CIRCLE_SHA1:0:7} > built/revision.txt
-      - run: zip -r build.zip node_modules package.json package-lock.json built/
+      - run: tar -cvfz build.tar.gz node_modules package.json package-lock.json built/
       - persist_to_workspace:
           root: .
           paths:
-            - build.zip
+            - build.tar.gz
       - store_artifacts:
-          path: build.zip
+          path: build.tar.gz
   deploy-live:
     <<: *deploy
     environment:
