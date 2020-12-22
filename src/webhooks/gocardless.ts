@@ -46,7 +46,7 @@ app.post( '/', textBodyParser, async function( req, res ) {
 				req.log.info({
 					app: 'webhook',
 					action: 'handle-event',
-				}, `Got ${event.action} on ${event.resource_type}`);
+				}, `Got ${event.action} on ${event.resource_type}: ${JSON.stringify(event.links)}`);
 
 				await handleResourceEvent( event );
 			}
