@@ -35,10 +35,10 @@ export default class Payment {
 	@Column()
 	description: string
 
-	@Column()
+	@Column({type: 'real'})
 	amount: number
 
-	@Column({nullable: true})
+	@Column({type: 'real', nullable: true})
 	amountRefunded: number
 
 	@Column({type: 'date'})
