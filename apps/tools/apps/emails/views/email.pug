@@ -10,7 +10,6 @@ block contents
 
 	.row
 		.col-md-8
-			hr
 			h4 Update email
 			include partials/email-form
 
@@ -20,7 +19,18 @@ block contents
 			h4 Mailings
 
 			each mailing in mailings
-				p: a(href='/tools/emails/' + email.id + '/mailings/' + mailing.id) #{mailing.recipients.length} recipients
+				p: a(href='/tools/emails/' + email.id + '/mailings/' + mailing.id)
+					= mailing.recipients.length
+					|
+					| recipients, created
+					|
+					= moment(mailing.createdDate).format('MMMM Do YYYY')
+					if mailing.sentDate
+						| , last sent
+						|
+						= moment(mailing.sentDate).format('MMMM Do YYYY')
+					else
+						| .
 
 			h5 Create new mailing
 
