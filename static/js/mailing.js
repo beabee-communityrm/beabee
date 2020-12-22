@@ -2,7 +2,6 @@
 (function () {
 	function getField(field, def) {
 		var value = $(field).val();
-		console.log(value);
 		return value ? mailing.recipient[value] : def;
 	}
 
