@@ -62,4 +62,4 @@ block append js
 			recipient: !{JSON.stringify(mailing.recipients[0])},
 			mergeFields: !{JSON.stringify(mergeFields)}
 		};
-	script(src='/static/js/mailing.js')
+	script(src='/static/js/mailing.js?v=' + git)
