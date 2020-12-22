@@ -3,7 +3,7 @@ FROM node:12.16.3
 WORKDIR /
 ADD package.json package-lock.json ./
 
-RUN npm install --only=production
+RUN npm ci --only=production
 
 WORKDIR /membership-system
 
