@@ -67,7 +67,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 		while (await cursor.hasNext()) {
 			process.stdout.write('.');
 			const doc = await cursor.next();
-			const item = _(migration.mapping).map((v, k) => [v, doc[k]]).fromPairs().valueOf();
+			const item = _(migration.mapping).map((v, k) => [k, doc[v as string]]).fromPairs().valueOf();
 			await repo.save(item);
 		}
 		console.log();
