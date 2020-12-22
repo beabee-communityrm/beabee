@@ -60,6 +60,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	const mdb = mongoose.connection.db;
 
 	for (const migration of migrations) {
+		let items = [];
 		console.log('Migrating ' + migration.collection);
 		const repo = getRepository(migration.model);
 		const collection = mdb.collection(migration.collection);
@@ -68,7 +69,14 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			process.stdout.write('.');
 			const doc = await cursor.next();
 			const item = _(migration.mapping).map((v, k) => [k, doc[v as string]]).fromPairs().valueOf();
-			await repo.save(item);
+			items.push(item);
+			if (items.length === 1000) {
+				await repo.insert(items);
+				items = [];
+			}
+		}
+		if (items.length > 0) {
+			await repo.insert(items);
 		}
 		console.log();
 	}
