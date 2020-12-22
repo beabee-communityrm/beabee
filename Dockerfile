@@ -1,5 +1,7 @@
 FROM node:12.16.3
 
+RUN apt-get update && apt-get install -y jq
+
 WORKDIR /
 ADD package.json package-lock.json ./
 
