@@ -26,7 +26,7 @@ jobs:
       - run: NODE_ENV=production npm run build
       - run: npm ci --production
       - run: echo -n ${CIRCLE_SHA1:0:7} > built/revision.txt
-      - run: tar -cvfz build.tar.gz node_modules package.json package-lock.json built/
+      - run: tar -cvzf build.tar.gz node_modules package.json package-lock.json built/
       - persist_to_workspace:
           root: .
           paths:
