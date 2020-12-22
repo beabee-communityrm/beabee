@@ -52,8 +52,7 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 					RestartFlow,
 					Email,
 					EmailMailing
-				],
-				synchronize: true
+				]
 			});
 			log.debug( {
 				app: 'database',
