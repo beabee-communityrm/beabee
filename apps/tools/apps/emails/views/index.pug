@@ -9,12 +9,12 @@ block contents
 			+page_header('Emails')
 			p Send emails to users
 
-	each te in transactionalEmails
+	each email in emails
 		.row
 			.col-md-12
 				p
-					a(href='/tools/emails/' + te.id)= te.name
-					| , created #{moment(te.date).format('DD/MM/YYYY [at] HH:mm')}
+					a(href='/tools/emails/' + email.id)= email.name
+					| , created #{moment(email.date).format('DD/MM/YYYY [at] HH:mm')}
 	.row
 		.col-md-8
 			hr

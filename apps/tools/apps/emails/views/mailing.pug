@@ -1,0 +1,65 @@
+extends /src/views/base.pug
+
+block prepend title
+	- title = 'Email mailing'
+
+mixin headers(name, id, current)
+	select(name=name id=id required).form-control
+		option(selected disabled value='') Select one
+		each header in headers
+			option(selected=header === current)= header
+
+block contents
+	.row
+		.col-md-12
+			+page_header(email.name)
+
+			p This mailing has #{mailing.recipients.length} recipients
+
+	.row
+		.col-md-8
+			h4 Send
+
+			if mailing.sentDate
+				.alert.alert-warning This mailing was last sent on #{moment.utc(mailing.sentDate).format('YYYY-MM-DD')}
+
+			form(method='POST').form-horizontal.js-email-form
+				+csrf
+				.form-group
+					label(for='email').control-label.col-md-4 Email address
+					.col-md-8
+						+headers('emailField', 'email', mailing.emailField)
+				.form-group
+					label(for='name').control-label.col-md-4 Name
+					.col-md-8
+						+headers('nameField', 'name', mailing.nameField)
+
+				each mergeField in mergeFields
+					.form-group
+						label(for='mf_' + mergeField).control-label.col-md-4= `*|${mergeField}|*`
+						.col-md-8
+							+headers(
+								`mergeFields[${mergeField}]`,
+								'mf_' + mergeField,
+								mailing.mergeFields && mailing.mergeFields[mergeField]
+							)
+				.form-group
+					.col-md-offset-4.col-md-8
+						button.btn.btn-danger Send
+
+			h5 Preview
+			.form-group
+				input(type='text' readonly).form-control.js-email-to
+			.form-group
+				input(type='text' readonly value=email.subject).form-control
+			.form-group
+				textarea(readonly rows="10").form-control.js-email-body
+
+block append js
+	script.
+		var mailing = {
+			emailBodyTemplate: !{JSON.stringify(email.body)},
+			recipient: !{JSON.stringify(mailing.recipients[0])},
+			mergeFields: !{JSON.stringify(mergeFields)}
+		};
+	script(src='/static/js/mailing.js')
