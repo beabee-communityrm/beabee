@@ -11,5 +11,10 @@ WORKDIR /membership-system
 
 ENV NODE_PATH=/node_modules
 
-EXPOSE 3001
-CMD ["/bin/bash", "-c", "node built/app 2>&1 | /node_modules/.bin/bunyan"]
+ARG APP
+ARG PORT
+
+ENV APP=${APP}
+
+EXPOSE ${PORT}
+CMD ["/bin/bash", "-c", "node built/$APP 2>&1 | /node_modules/.bin/bunyan"]

@@ -14,11 +14,35 @@ services:
       POSTGRES_PASSWORD: membership_system
       POSTGRES_DB: membership_system
   app:
-    build: .
+    build:
+      context: .
+      args:
+        APP: app.js
+        PORT: 3001
     volumes:
       - ./:/membership-system
     ports:
       - 3001:3001
+  gc_webhook:
+    build:
+      context: .
+      args:
+        APP: webhook.js
+        PORT: 3002
+    volumes:
+      - ./:/membership-system
+    ports:
+      - 3002:3002
+  stripe_webhook:
+    build:
+      context: .
+      args:
+        APP: webhook-stripe.js
+        PORT: 3003
+    volumes:
+      - ./:/membership-system
+    ports:
+      - 3003:3003
 
 volumes:
   db_data:
