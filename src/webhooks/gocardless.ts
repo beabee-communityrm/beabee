@@ -41,7 +41,7 @@ app.post( '/', textBodyParser, async function( req, res ) {
 
 		try {
 			for ( const event of events ) {
-				req.log.info({
+				log.info({
 					action: 'handle-event',
 				}, `Got ${event.action} on ${event.resource_type}: ${JSON.stringify(event.links)}`);
 

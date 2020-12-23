@@ -59,7 +59,7 @@ export default class PaymentWebhookService {
 				log.info({
 					action: 'extend-membership',
 					data: {
-						prevDate: member.memberPermission.date_expires,
+						prevDate: member.memberPermission.date_expires.toString(),
 						newDate: nextExpiryDate
 					}
 				});
