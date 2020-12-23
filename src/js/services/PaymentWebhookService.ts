@@ -144,7 +144,7 @@ export default class PaymentWebhookService {
 					gcPaymentId: gcPayment.id
 				}
 			});
-			payment.memberId = member._id;
+			payment.memberId = member._id.toString();
 		} else {
 			log.info({
 				app: 'direct-debit',
