@@ -20,7 +20,6 @@ const { default: MembersService } = require( '@core/services/MembersService' );
 const { default: OptionsService } = require( '@core/services/OptionsService' );
 const { default: PaymentService } = require( '@core/services/PaymentService' );
 
-const { syncMemberDetails } = require( '@apps/profile/apps/account/utils' );
 const exportTypes = require( '@apps/tools/apps/exports/exports');
 
 const { updateProfileSchema } = require('./schemas.json');
@@ -254,7 +253,6 @@ memberAdminRouter.post( '/profile', [
 	hasSchema(updateProfileSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
 	const {
-		model: member,
 		body: {
 			email, firstname, lastname, delivery_optin, delivery_line1,
 			delivery_line2, delivery_city, delivery_postcode
@@ -263,28 +261,19 @@ memberAdminRouter.post( '/profile', [
 
 	const cleanedEmail = cleanEmailAddress(email);
 
-	const needsSync = cleanedEmail !== member.email ||
-		firstname !== member.firstname ||
-		lastname !== member.lastname;
-
 	try {
-		const oldEmail = member.email;
-
-		member.email = cleanedEmail;
-		member.firstname = firstname;
-		member.lastname = lastname;
-		member.delivery_optin = delivery_optin;
-		member.delivery_address = delivery_optin ? {
-			line1: delivery_line1,
-			line2: delivery_line2,
-			city: delivery_city,
-			postcode: delivery_postcode
-		} : {};
-		await member.save();
-
-		if ( needsSync ) {
-			await syncMemberDetails( member, oldEmail );
-		}
+		await MembersService.updateMember(req.model, {
+			email: cleanedEmail,
+			firstname,
+			lastname,
+			delivery_optin,
+			delivery_address: delivery_optin ? {
+				line1: delivery_line1,
+				line2: delivery_line2,
+				city: delivery_city,
+				postcode: delivery_postcode
+			} : {}
+		});
 	} catch ( saveError ) {
 		// Duplicate key (on email)
 		if ( saveError.code === 11000 ) {

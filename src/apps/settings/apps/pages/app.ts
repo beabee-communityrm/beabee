@@ -71,7 +71,7 @@ app.post( '/:id', hasNewModel2(PageSettings, 'id'), wrapAsync( async ( req, res 
 	}
 } ) );
 
-module.exports = config => {
+export default function (config): express.Express {
 	app_config = config;
 	return app;
-};
+}

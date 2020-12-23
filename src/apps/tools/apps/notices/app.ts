@@ -84,7 +84,7 @@ app.post( '/:id', hasNewModel(NoticeRepository, 'id'), wrapAsync( async ( req, r
 
 } ) );
 
-module.exports = config => {
+export default function (config): express.Express {
 	app_config = config;
 	return app;
-};
+}

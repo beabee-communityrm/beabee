@@ -62,7 +62,7 @@ app.post( '/:key/reset', wrapAsync(async function( req, res ) {
 	res.redirect('/settings/options');
 } ) );
 
-module.exports = function( config ) {
+export default function( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}

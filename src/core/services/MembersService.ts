@@ -3,6 +3,7 @@ import { Members } from  '@core/database';
 import mailchimp from '@core/mailchimp';
 
 import { Member, PartialMember } from '@models/members';
+import gocardless from '@core/gocardless';
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
@@ -35,6 +36,52 @@ export default class MembersService {
 				app: 'join-utils',
 				error: err,
 			}, 'Adding member to MailChimp failed, probably a bad email address: ' + member.uuid);
+		}
+	}
+
+	static async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+		log.info( {
+			app: 'members-service',
+			action: 'update-member',
+			sensitive: {
+				memberId: member.id,
+				updates
+			}
+		} );
+
+		const needsSync = updates.email && updates.email !== member.email ||
+			updates.firstname && updates.firstname !== member.firstname ||
+			updates.lastname && updates.lastname !== member.lastname;
+
+		const oldEmail = member.email;
+
+		member = Object.assign(member, 	updates);
+		await member.save();
+
+		if (needsSync) {
+			await MembersService.syncMemberDetails(member, oldEmail);
+		}
+	}
+
+	static async syncMemberDetails(member: Member, oldEmail: string): Promise<void> {
+		if ( member.isActiveMember ) {
+			try {
+				await mailchimp.mainList.updateMemberDetails( member, oldEmail );
+			} catch (err) {
+				if (err.response && err.response.status === 404) {
+					await MembersService.addMemberToMailingLists(member);
+				} else {
+					throw err;
+				}
+			}
+		}
+
+		if ( member.gocardless.customer_id ) {
+			await gocardless.customers.update( member.gocardless.customer_id, {
+				email: member.email,
+				given_name: member.firstname,
+				family_name: member.lastname
+			} );
 		}
 	}
 }

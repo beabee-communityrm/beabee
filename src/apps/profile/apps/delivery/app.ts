@@ -1,22 +1,19 @@
-var	express = require( 'express' ),
-	app = express();
+import	express from 'express';
 
-const auth = require( '@core/authentication' );
-const { hasSchema } = require( '@core/middleware' );
-const { wrapAsync } = require( '@core/utils' );
+import auth from '@core/authentication';
+import { hasSchema } from '@core/middleware';
+import { wrapAsync } from '@core/utils';
 
-const { updateSchema } = require( './schemas.json' );
+import { updateSchema } from './schemas.json';
+import MembersService from '@core/services/MembersService';
 
-var app_config = {};
+const app = express();
+let app_config;
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( function( req, res, next ) {
 	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.parent.mountpath + app.mountpath
-	} );
 	next();
 } );
 
@@ -29,9 +26,9 @@ app.post( '/', [
 	hasSchema(updateSchema).orFlash
 ], wrapAsync( async function( req, res ) {
 	const { body: { delivery_optin, delivery_line1, delivery_line2, delivery_city,
-		delivery_postcode }, user } = req;
+		delivery_postcode } } = req;
 
-	const profile = {
+	await MembersService.updateMember(req.user, {
 		delivery_optin,
 		delivery_address: delivery_optin ? {
 			line1: delivery_line1,
@@ -39,23 +36,19 @@ app.post( '/', [
 			city: delivery_city,
 			postcode: delivery_postcode
 		} : {}
-	};
+	});
 
-	await user.update( { $set: profile }, { runValidators: true } );
 
 	req.log.info( {
 		app: 'profile',
 		action: 'update',
-		sensitive: {
-			profile: profile
-		}
 	} );
 
 	req.flash( 'success', 'delivery-updated' );
-	res.redirect( app.parent.mountpath + app.mountpath );
+	res.redirect('/profile/delivery');
 } ) );
 
-module.exports = function( config ) {
+export default function ( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}

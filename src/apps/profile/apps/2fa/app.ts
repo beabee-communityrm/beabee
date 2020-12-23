@@ -1,27 +1,22 @@
-var TOTP = require( 'notp' ).totp;
-var base32 = require( 'thirty-two' );
-var	express = require( 'express' ),
-	app = express();
+import express from 'express';
+import { totp } from 'notp';
+import base32 from 'thirty-two';
+import querystring from 'querystring';
 
-var querystring = require('querystring');
+import auth from '@core/authentication';
+import { wrapAsync } from '@core/utils';
 
-var auth = require( '@core/authentication' );
-const { wrapAsync } = require( '@core/utils' );
+import OptionsService from '@core/services/OptionsService';
 
-const { default: OptionsService } = require('@core/services/OptionsService');
+import config from '@config';
 
-var config = require( '@config' );
-
-var app_config = {};
+const app = express();
+let app_config;
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( function( req, res, next ) {
 	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.parent.mountpath + app.mountpath
-	} );
 	next();
 } );
 
@@ -60,7 +55,7 @@ app.post( '/setup', auth.isLoggedIn, wrapAsync( async function( req, res ) {
 		res.redirect( '/profile/2fa' );
 		return;
 	}
-	const test = TOTP.verify( req.body.code, base32.decode( req.user.otp.key ) );
+	const test = totp.verify( req.body.code, base32.decode( req.user.otp.key ) );
 	if ( test && Math.abs( test.delta ) < 2 ) {
 		req.session.method = 'totp';
 
@@ -79,12 +74,12 @@ app.get( '/disable', auth.isLoggedIn, function( req, res ) {
 		res.render( 'disable' );
 	} else {
 		req.flash( 'warning', '2fa-already-disabled' );
-		res.redirect( app.parent.mountpath + app.mountpath );
+		res.redirect('/profile/2fa');
 	}
 } );
 
 app.post( '/disable', auth.isLoggedIn, wrapAsync( async function( req, res ) {
-	const test = TOTP.verify( req.body.code, base32.decode( req.user.otp.key ) );
+	const test = totp.verify( req.body.code, base32.decode( req.user.otp.key ) );
 	const hash = await auth.hashPasswordPromise( req.body.password, req.user.password.salt, req.user.password.iterations );
 	if ( test && Math.abs( test.delta ) < 2 && hash === req.user.password.hash ) {
 		await req.user.update({$set: {
@@ -99,7 +94,7 @@ app.post( '/disable', auth.isLoggedIn, wrapAsync( async function( req, res ) {
 	}
 } ) );
 
-module.exports = function( config ) {
+export default function( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}

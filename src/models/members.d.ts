@@ -7,10 +7,10 @@ interface PartialMember {
 	lastname: string,
 	delivery_optin: boolean,
 	delivery_address: {
-		line1: string,
-		line2: string,
-		city: string,
-		postcode: string
+		line1?: string,
+		line2?: string,
+		city?: string,
+		postcode?: string
 	}
 }
 interface Member extends PartialMember, Document {
