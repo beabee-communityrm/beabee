@@ -309,15 +309,14 @@ export default class PaymentService {
 		const payments = await getRepository(Payment).find({
 			select: ['chargeDate', 'status'],
 			where: {
-				memberId: member.id,
-				status: In(Payment.pendingStatuses)
+				memberId: member.id
 			},
 			order: {chargeDate: 'DESC'},
 			take: 1
 		});
 
 		// Should always be at least 1 payment, but maybe the webhook is slow?
-		return payments.length > 0 && !payments[0].isPending;
+		return payments.length === 0 || payments[0].isPending;
 	}
 
 	static async getPayments(member: Member): Promise<Payment[]> {
