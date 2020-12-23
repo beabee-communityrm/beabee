@@ -27,7 +27,7 @@ services:
     build:
       context: .
       args:
-        APP: webhook.js
+        APP: src/webhooks/gocardless.js
         PORT: 3002
     volumes:
       - ./:/membership-system
