@@ -45,10 +45,15 @@ export default class OptionsService {
 		}
 	}
 
+	static getAll(): Record<string, OptionWithDefault> {
+		return OptionsService.optionCache;
+	}
+
 	static async set(key: string, value: string|number|boolean): Promise<void> {
 		const option = OptionsService.get(key);
 		if (option) {
 			option.value = value.toString();
+			option.default = false;
 			await getRepository(Option).save(option);
 		}
 	}

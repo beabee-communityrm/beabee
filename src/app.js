@@ -18,7 +18,6 @@ const { default: PageSettingsService } = require('@core/services/PageSettingsSer
 const specialUrlHandler = require( '@apps/tools/apps/special-urls/handler' );
 
 const config = require( '@config' );
-const { default: OptionService } = require('@core/services/OptionService');
 const log = logging.log;
 
 if ( !config.gocardless.sandbox && config.dev ) {
@@ -55,7 +54,7 @@ database.connect( config.mongo, config.db ).then(() => {
 	PageSettingsService.reload();
 
 	// Load options
-	app.use( OptionsService.middleware.bind(OptionService) );
+	app.use( OptionsService.middleware.bind(OptionsService) );
 
 	// Handle authentication
 	auth.load( app );

@@ -9,6 +9,7 @@ import * as db from '@core/database';
 
 import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
+import Option from '@models/Option';
 
 type IfEquals<X, Y, A, B> =
     (<T>() => T extends X ? 1 : 2) extends
@@ -60,6 +61,10 @@ const migrations: Migration<any>[] = [
 		createdAt: copy('created'),
 		chargeDate: copy('charge_date'),
 		updatedAt: copy('updated_at')
+	}),
+	createMigration(Option, 'options', {
+		key: copy('key'),
+		value: copy('value')
 	})
 ];
 

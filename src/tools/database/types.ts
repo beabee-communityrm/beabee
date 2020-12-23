@@ -103,7 +103,6 @@ const projectMembers: Properties = {
 
 const models: ModelExporter[] = [
 	{ model: db.Exports },
-	{ model: db.Options },
 	{ model: db.Permissions },
 	{ model: db.Members, properties: members },
 	{ model: db.ReferralGifts },
