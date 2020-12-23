@@ -1,9 +1,10 @@
 const mongoose = require( 'mongoose' );
 const { getCustomRepository, getRepository } = require('typeorm');
 
-const ajv = require('./ajv');
+const ajv = require('@core/ajv');
 
-const Options = require( './options' )();
+const { default: OptionsService } = require('./services/OptionsService');
+
 const config = require( '@config' );
 
 function convertErrorsToMessages( errors ) {
@@ -19,8 +20,8 @@ function convertErrorsToMessages( errors ) {
 			}
 		} )
 		.map( key => {
-			return Options.getText( key ) ||
-				(config.dev ? key : Options.getText('flash-validation-error-generic'));
+			return OptionsService.getText( key ) ||
+				(config.dev ? key : OptionsService.getText('flash-validation-error-generic'));
 		} )
 	// Don't show duplicate errors twice
 		.filter( ( value, index, arr ) => arr.indexOf( value ) === index );

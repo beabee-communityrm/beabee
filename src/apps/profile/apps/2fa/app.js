@@ -1,14 +1,14 @@
+var TOTP = require( 'notp' ).totp;
+var base32 = require( 'thirty-two' );
 var	express = require( 'express' ),
 	app = express();
 
 var querystring = require('querystring');
 
-var auth = require( '@core/authentication' ),
-	Options = require( '@core/options' )();
+var auth = require( '@core/authentication' );
 const { wrapAsync } = require( '@core/utils' );
 
-var TOTP = require( 'notp' ).totp;
-var base32 = require( 'thirty-two' );
+const { default: OptionsService } = require('@core/services/OptionsService');
 
 var config = require( '@config' );
 
@@ -41,10 +41,10 @@ app.get( '/setup', auth.isLoggedIn, wrapAsync( async function( req, res ) {
 	await req.user.update( { $set: { 'otp.key': secret } } );
 
 	const otpoptions = querystring.stringify( {
-		issuer: ( ( config.dev ) ? ' [DEV] ' : '' ) + Options.getText( 'organisation' ),
+		issuer: ( ( config.dev ) ? ' [DEV] ' : '' ) + OptionsService.getText( 'organisation' ),
 		secret: secret
 	} );
-	const otpissuerName = encodeURIComponent( Options.getText( 'organisation' ) + ( ( config.dev ) ? '_dev' : '' ) );
+	const otpissuerName = encodeURIComponent( OptionsService.getText( 'organisation' ) + ( ( config.dev ) ? '_dev' : '' ) );
 	const otpauth = 'otpauth://totp/' + otpissuerName + ':' + req.user.email + '?' + otpoptions;
 	const url = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent( otpauth );
 

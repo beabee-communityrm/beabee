@@ -1,4 +1,4 @@
-var Options = require( '@core/options' )();
+const { default: OptionsService } = require('./services/OptionsService');
 
 module.exports = function( req, res, next ) {
 	var flash = req.flash(),
@@ -11,7 +11,7 @@ module.exports = function( req, res, next ) {
 
 		for ( var m in messages ) {
 			var message = messages[ m ];
-			var option = Options.getText( 'flash-' + message );
+			var option = OptionsService.getText( 'flash-' + message );
 
 			if ( ! option ) {
 				option = message;

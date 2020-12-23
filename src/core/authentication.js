@@ -7,8 +7,9 @@ const TotpStrategy = require( 'passport-totp' ).Strategy;
 const config = require( '@config' );
 
 const { Members } = require( '@core/database' );
-const Options = require( '@core/options.js' )();
 const { cleanEmailAddress, getNextParam, sleep } = require( '@core/utils' );
+
+const { default: OptionsService } = require('./services/OptionsService');
 
 var Authentication = {
 	load: function( app ) {
@@ -44,7 +45,7 @@ var Authentication = {
 						const attempts = user.password.tries;
 						user.password.tries = 0;
 						await user.save();
-						return done( null, { _id: user._id }, { message: Options.getText( 'flash-account-attempts' ).replace( '%', attempts ) } );
+						return done( null, { _id: user._id }, { message: OptionsService.getText( 'flash-account-attempts' ).replace( '%', attempts ) } );
 					}
 
 					if ( user.password.iterations < config.iterations ) {

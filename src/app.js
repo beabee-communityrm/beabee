@@ -9,15 +9,16 @@ const appLoader = require( '@core/app-loader' );
 const auth = require( '@core/authentication' );
 const database = require( '@core/database' );
 const logging = require( '@core/logging' );
-const Options = require( '@core/options' )();
 const quickflash = require( '@core/quickflash' );
 const sessions = require( '@core/sessions' );
 
+const { default: OptionsService } = require('@core/services/OptionsService');
 const { default: PageSettingsService } = require('@core/services/PageSettingsService');
 
 const specialUrlHandler = require( '@apps/tools/apps/special-urls/handler' );
 
 const config = require( '@config' );
+const { default: OptionService } = require('@core/services/OptionService');
 const log = logging.log;
 
 if ( !config.gocardless.sandbox && config.dev ) {
@@ -49,21 +50,15 @@ logging.installMiddleware( app );
 app.use( helmet( { contentSecurityPolicy: false } ) );
 
 database.connect( config.mongo, config.db ).then(() => {
+	// Load some caches
+	OptionsService.reload();
+	PageSettingsService.reload();
+
 	// Load options
-	app.use( Options.load );
+	app.use( OptionsService.middleware.bind(OptionService) );
 
 	// Handle authentication
 	auth.load( app );
-
-	// Off switch!
-	app.use( ( req, res, next ) => {
-		if ( Options.getBool( 'off-switch' ) && req.originalUrl !== '/login' &&
-				auth.canSuperAdmin( req ) !== auth.LOGGED_IN ) {
-			res.render( 'maintenance' );
-		} else {
-			next();
-		}
-	} );
 
 	// Handle sessions
 	sessions( app );
@@ -90,9 +85,6 @@ database.connect( config.mongo, config.db ).then(() => {
 
 	// Include page settings
 	app.use( PageSettingsService.middleware.bind(PageSettingsService) );
-
-	// Load page settings
-	PageSettingsService.reload();
 
 	// Load apps
 	appLoader( app );

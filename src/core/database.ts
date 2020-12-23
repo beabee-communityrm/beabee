@@ -3,13 +3,14 @@ import { createConnection, getConnection, ConnectionOptions } from 'typeorm';
 
 import { log } from '@core/logging';
 
-import Notice from '@models/Notice';
+import Email from '@models/Email';
+import EmailMailing from '@models/EmailMailing';
 import JoinFlow from '@models/JoinFlow';
+import Notice from '@models/Notice';
+import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import RestartFlow from '@models/RestartFlow';
-import Email from '@models/Email';
-import EmailMailing from '@models/EmailMailing';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	mongoose.Promise = global.Promise;
@@ -45,13 +46,8 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 			await createConnection({
 				...dbConfig,
 				entities: [
-					Notice,
-					JoinFlow,
-					PageSettings,
-					Payment,
-					RestartFlow,
-					Email,
-					EmailMailing
+					Email, EmailMailing, JoinFlow, Notice, Option,
+					PageSettings, Payment, RestartFlow,
 				]
 			});
 			log.debug( {
@@ -82,7 +78,6 @@ export async function close(): Promise<void> {
 export { model as Exports } from '@models/exports';
 export { model as GiftFlows } from '@models/gift-flows';
 export { model as Members } from '@models/members';
-export { model as Options } from '@models/options';
 export { model as Permissions } from '@models/permissions';
 export { model as PollAnswers } from '@models/PollAnswers';
 export { model as Polls } from '@models/polls';
