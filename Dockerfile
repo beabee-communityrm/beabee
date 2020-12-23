@@ -19,4 +19,4 @@ ARG PORT
 ENV APP=${APP}
 
 EXPOSE ${PORT}
-CMD ["/bin/bash", "-c", "node built/$APP 2>&1 | /node_modules/.bin/bunyan"]
+CMD ["/bin/bash", "-c", "node built/$APP 2>&1 >/dev/null | /node_modules/.bin/bunyan"]
