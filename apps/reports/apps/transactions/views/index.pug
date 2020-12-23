@@ -44,8 +44,7 @@ block contents
 									td: a( href="https://manage.gocardless.com/subscriptions/" + payment.subscriptionId, target="_blank" ) #{ payment.subscriptionId }
 									td #{ moment( payment.chargeDate ).format( 'DD/MM/YYYY' ) }
 									td #{ payment.description }
-									td
-										include /apps/profile/apps/statement/views/partials/status.pug
+									td: +paymentStatus(payment)
 									td #{ payment.amount ? '£' + payment.amount : '–' }
 						tfoot
 							tr
