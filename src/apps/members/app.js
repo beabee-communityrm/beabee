@@ -14,11 +14,11 @@ const {
 const mailchimp = require( '@core/mailchimp' );
 const mandrill = require( '@core/mandrill' );
 const { hasModel, hasSchema } = require( '@core/middleware' );
-const Options = require( '@core/options' )();
 const { cleanEmailAddress, wrapAsync } = require( '@core/utils' );
 
-const { default: PaymentService } = require( '@core/services/PaymentService' );
 const { default: MembersService } = require( '@core/services/MembersService' );
+const { default: OptionsService } = require( '@core/services/OptionsService' );
+const { default: PaymentService } = require( '@core/services/PaymentService' );
 
 const { syncMemberDetails } = require( '@apps/profile/apps/account/utils' );
 const exportTypes = require( '@apps/tools/apps/exports/exports');
@@ -42,7 +42,7 @@ function fuzzyMatch(s) {
 }
 
 function getAvailableTags() {
-	return Promise.resolve(Options.getText('available-tags').split(',').map(s => s.trim()));
+	return Promise.resolve(OptionsService.getText('available-tags').split(',').map(s => s.trim()));
 }
 
 app.get( '/', wrapAsync( async ( req, res ) => {

@@ -7,9 +7,9 @@ const { GiftFlows, Members } = require( '@core/database' );
 const { hasModel, hasSchema } = require( '@core/middleware' );
 const stripe = require( '@core/stripe' );
 const { loginAndRedirect, wrapAsync } = require( '@core/utils' );
-const Options = require( '@core/options' )();
 
 const { default: MembersService } = require( '@core/services/MembersService' );
+const { default: OptionsService } = require('@core/services/OptionsService');
 
 const { processGiftFlow } = require('./utils');
 const { createGiftSchema, updateGiftAddressSchema } = require( './schema.json' );
@@ -59,7 +59,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	}
 
 	if (error) {
-		res.status(400).send([Options.getText(error)]);
+		res.status(400).send([OptionsService.getText(error)]);
 	} else {
 		const giftFlow = await createGiftFlow(req.body, req.user);
 		const isAnnual = req.body.type === '12';

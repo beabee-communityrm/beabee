@@ -1,6 +1,7 @@
-import PageSettings from '@models/PageSettings';
 import { NextFunction, Request, Response } from 'express';
 import { getRepository } from 'typeorm';
+
+import PageSettings from '@models/PageSettings';
 
 interface PageSettingsCache extends PageSettings {
 	patternRegex: RegExp
