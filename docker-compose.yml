@@ -17,7 +17,7 @@ services:
     build:
       context: .
       args:
-        APP: app.js
+        APP: app
         PORT: 3001
     volumes:
       - ./:/membership-system
@@ -27,7 +27,7 @@ services:
     build:
       context: .
       args:
-        APP: src/webhooks/gocardless.js
+        APP: webhooks/gocardless
         PORT: 3002
     volumes:
       - ./:/membership-system
@@ -37,7 +37,7 @@ services:
     build:
       context: .
       args:
-        APP: webhook-stripe.js
+        APP: webhooks/stripe
         PORT: 3003
     volumes:
       - ./:/membership-system

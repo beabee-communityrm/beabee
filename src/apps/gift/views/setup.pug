@@ -1,0 +1,14 @@
+extends /views/base.pug
+
+block prepend title
+	- title = app.title
+
+block contents
+	.row
+		.col-md-8.col-md-offset-2
+			.alert.alert-warning.
+				Gift setup isn't ready yet
+			p.
+				We are still working on gift setup, it will be ready by November 1st.
+				If you want to start your membership before the gift start date contact
+				#[+email('membership@thebristolcable.org')]

@@ -1,0 +1,45 @@
+extends /views/base.pug
+
+block prepend title
+	- title = 'Page settings'
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Page settings')
+
+			each page in pages
+				h5
+					a(href='/settings/pages/' + page.id)= page.pattern
+
+	.row
+		.col-md-8
+			h4 Add page settings
+
+			form(method='POST').form-horizontal
+				+csrf
+				.form-group
+					label(for='pattern').control-label.col-md-3 Pattern
+					.col-md-9
+						input(type='text' name='pattern' required)#pattern.form-control
+				.form-group
+					label(for='shareUrl').control-label.col-md-3 Share URL
+					.col-md-9
+						input(type='text' name='shareUrl')#shareUrl.form-control
+				.form-group
+					label(for='shareTitle').control-label.col-md-3 Share title
+					.col-md-9
+						input(type='text' name='shareTitle')#shareTitle.form-control
+				.form-group
+					label(for='shareDescription').control-label.col-md-3 Share description
+					.col-md-9
+						input(type='text' name='shareDescription')#shareDescription.form-control
+				.form-group
+					label(for='shareImage').control-label.col-md-3 Share image
+					.col-md-9
+						input(type='text' name='shareImage')#shareImage.form-control
+
+				.form-group
+					.col-md-6.col-md-offset-3
+						button.btn.btn-success Add
+

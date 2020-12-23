@@ -1,0 +1,24 @@
+extends /views/base
+
+block prepend title
+	- title = app.title
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Projects')
+
+			each project in projects
+				h5
+					a(href='/projects/' + project._id)
+						= project.title
+						|
+						|
+						.label.label-default= project.status
+
+			hr
+
+	.row
+		.col-md-8
+			h4 Create a new project
+			include partials/project-form

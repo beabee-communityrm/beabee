@@ -1,0 +1,10 @@
+extends /views/splash.pug
+
+block prepend title
+	- title = app.title
+
+block splash-contents
+	h3 Log in to your account
+	p Not a member? #[a(href="/join") Join now]!
+	include /src/views/partials/flash.pug
+	include partials/form.pug

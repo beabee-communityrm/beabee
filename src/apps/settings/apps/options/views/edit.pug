@@ -1,0 +1,9 @@
+extends /views/base.pug
+
+block prepend title
+	- title = 'Edit Option'
+	- heading = 'Edit "' + option.key + '" Key'
+
+block contents
+	- action = 'Update'
+	include partials/form.pug
