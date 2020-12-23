@@ -23,8 +23,7 @@ const textBodyParser = bodyParser.text( {
 installMiddleware( app );
 
 app.get( '/ping', function( req, res ) {
-	req.log.info( {
-		app: 'webhook',
+	log.info( {
 		action: 'ping'
 	} );
 	res.sendStatus( 200 );
@@ -36,15 +35,13 @@ app.post( '/', textBodyParser, async function( req, res ) {
 	if ( valid ) {
 		const events = JSON.parse( req.body ).events as Event[];
 
-		req.log.info({
-			app: 'webhook',
-			action: 'main',
+		log.info({
+			action: 'got-events',
 		}, `Got ${events.length} events`);
 
 		try {
 			for ( const event of events ) {
 				req.log.info({
-					app: 'webhook',
 					action: 'handle-event',
 				}, `Got ${event.action} on ${event.resource_type}: ${JSON.stringify(event.links)}`);
 
@@ -53,33 +50,28 @@ app.post( '/', textBodyParser, async function( req, res ) {
 
 			res.sendStatus( 200 );
 		} catch ( error ) {
-			req.log.error( {
-				app: 'webhook',
-				action: 'main',
+			log.error( {
+				action: 'got-events-error',
 				error
 			} );
 			res.status( 500 ).send( error );
 		}
 	} else {
-		req.log.info( {
-			app: 'webhook',
-			action: 'main',
-			error: 'invalid webhook signature'
-		} );
+		log.error( {
+			action: 'invalid-webhook-signature'
+		}, 'Invalid webhook signature' );
 		res.sendStatus( 498 );
 	}
 } );
 
 // Start server
 log.info( {
-	app: 'webhook',
 	action: 'start'
 } );
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(() => {
 	const listener = app.listen( config.gocardless.port, config.host, function () {
 		log.debug( {
-			app: 'webhook',
 			action: 'start-webserver',
 			message: 'Started',
 			address: listener.address()
@@ -99,7 +91,6 @@ async function handleResourceEvent( event: Event ) {
 		return await handleRefundResourceEvent( event );
 	default:
 		log.debug( {
-			app: 'webhook',
 			action: 'unhandled-resource-event',
 			event
 		} );
@@ -151,13 +142,11 @@ async function handleMandateResourceEvent( event: Event ) {
 		break;
 	case 'reinstated':
 		log.error( {
-			app: 'webhook',
 			action: 'reinstate-mandate',
-			message: 'Mandate reinstated, its likely this mandate wont be linked to a member...',
 			sensitive: {
 				event: event
 			}
-		} );
+		}, 'Mandate reinstated, its like this mandate won\'t be linked to a member...' );
 		break;
 	case 'cancelled':
 	case 'failed':
