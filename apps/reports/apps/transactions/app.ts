@@ -20,7 +20,7 @@ app.use( function( req, res, next ) {
 app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, res ) {
 	const start = moment.utc().startOf('month');
 	if (req.params.month && req.params.year) {
-		start.set({month: Number(req.params.month), year: Number(req.params.year)});
+		start.set({month: Number(req.params.month) - 1, year: Number(req.params.year)});
 	}
 
 	if (start.isAfter()) {
