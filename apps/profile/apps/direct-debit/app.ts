@@ -1,7 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 
 import auth from '@core/authentication' ;
-import { Payments } from '@core/database' ;
 import mandrill from '@core/mandrill' ;
 import{ hasSchema } from '@core/middleware' ;
 import { ContributionPeriod, PaymentForm, wrapAsync } from '@core/utils' ;
@@ -12,7 +11,6 @@ import JoinFlowService from '@core/services/JoinFlowService' ;
 import PaymentService from '@core/services/PaymentService' ;
 
 import { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
-import { Member } from '@models/members';
 
 interface UpdateSubscriptionSchema {
 	amount: number,
@@ -34,16 +32,6 @@ function hasSubscription(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-async function isFirstPayment(member: Member): Promise<boolean> {
-	if (member.contributionPeriod === 'gift') {
-		return false;
-	} else {
-		// Limit to 2 because if there are 2+ payments it's not their first payment
-		const payments = await Payments.find( { member }, { limit: 2 } );
-		return payments.length === 1 && payments[0].isPending;
-	}
-}
-
 app.set( 'views', __dirname + '/views' );
 
 app.use( function( req, res, next ) {
@@ -56,7 +44,7 @@ app.use( auth.isLoggedIn );
 app.get( '/', wrapAsync( async function ( req, res ) {
 	res.render( 'index', {
 		user: req.user,
-		isFirstPayment: await isFirstPayment(req.user),
+		hasPendingPayment: await PaymentService.hasPendingPayment(req.user),
 		bankAccount: await PaymentService.getBankAccount(req.user),
 		canChange: await PaymentService.canChangeContribution(req.user, req.user.canTakePayment),
 		monthsLeft: PaymentService.getMonthsLeftOnContribution(req.user)

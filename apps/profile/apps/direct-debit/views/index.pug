@@ -33,8 +33,8 @@ block contents
 						| (+ fee)
 				| ,
 				|
-				if isFirstPayment
-					| we are processing your first payment.
+				if hasPendingPayment
+					| we are currently processing your payment.
 				else
 					if user.hasActiveSubscription
 						| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'}  around

@@ -14,17 +14,16 @@ if payments.length > 0
 				each payment, p in payments
 					tr
 						td
-							a( href="https://manage.gocardless.com/payments/" + payment.payment_id ) #{ payment.payment_id }
+							a( href="https://manage.gocardless.com/payments/" + payment.paymentId ) #{ payment.paymentId }
 						td 
-							a( href="https://manage.gocardless.com/subscriptions/" + payment.subscription_id ) #{ payment.subscription_id }
-						td #{ moment( payment.charge_date ).format( 'DD/MM/YYYY' ) }
+							a( href="https://manage.gocardless.com/subscriptions/" + payment.subscriptionId ) #{ payment.subscriptionId }
+						td #{ moment( payment.chargeDate ).format( 'DD/MM/YYYY' ) }
 						td #{ payment.description }
-						td
-							include /apps/profile/apps/statement/views/partials/status.pug
+						td: +paymentStatus(payment)
 						td
 							| #{ payment.amount ? '£' + payment.amount : '–' }
-							if payment.amount_refunded
-								|  (-£#{payment.amount_refunded})
+							if payment.amountRefunded
+								|  (-£#{payment.amountRefunded})
 			tfoot
 				tr
 					th( colspan=5 ) Total

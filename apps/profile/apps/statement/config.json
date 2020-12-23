@@ -1,9 +1,0 @@
-{
-	"title": "Statement",
-	"path": "statement",
-	"permissions": [
-		"member"
-	],
-	"priority": 2,
-	"hidden": true
-}

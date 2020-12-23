@@ -23,3 +23,6 @@ dl.dl-horizontal
 			| (+ fee)
 	dt Period
 	dd= member.gocardless.period ? member.gocardless.period : '–'
+	if member.gocardless.cancelled_at
+		dt Cancelled
+		dd= moment(member.gocardless.cancelled_at).format('HH:mm:ss DD/MM/YYYY')

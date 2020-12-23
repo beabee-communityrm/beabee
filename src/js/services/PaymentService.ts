@@ -1,7 +1,6 @@
 import moment from 'moment';
 import { Customer, CustomerBankAccount, CustomerCurrency, PaymentCurrency, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 
-import { Payments } from '@core/database';
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import { getChargeableAmount, cleanEmailAddress, ContributionPeriod, PaymentForm } from  '@core/utils';
@@ -11,6 +10,8 @@ import MembersService from '@core/services/MembersService';
 import config from '@config';
 
 import { Member, PartialMember } from '@models/members';
+import { getRepository } from 'typeorm';
+import Payment from '@models/Payment';
 
 export default class PaymentService {
 	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<PartialMember|null> {
@@ -71,18 +72,8 @@ export default class PaymentService {
 		// Monthly contributors can update their contribution even if they have
 		// pending payments, but they can't always change their mandate as this can
 		// result in double charging
-		if (useExistingMandate && user.contributionPeriod === 'monthly') {
-			return true;
-		} else {
-			// TODO: this would be more accurate if we asked GC directly
-			const payments = await Payments.find({member: user}, ['status', 'charge_date'], {
-				limit: 1,
-				sort: {charge_date: -1}
-			});
-
-			// Should always be at least 1 payment, but maybe the webhook is slow?
-			return payments.length > 0 && !payments[0].isPending;
-		}
+		return useExistingMandate && user.contributionPeriod === 'monthly' ||
+			!(await this.hasPendingPayment(user));
 	}
 
 	static async updateContribution(user: Member, paymentForm: PaymentForm): Promise<void> {
@@ -311,5 +302,40 @@ export default class PaymentService {
 		member.gocardless.mandate_id = mandateId;
 
 		await member.save();
+	}
+
+	static async hasPendingPayment(member: Member): Promise<boolean> {
+		// TODO: this would be more accurate if we asked GC directly
+		const payments = await getRepository(Payment).find({
+			select: ['chargeDate', 'status'],
+			where: {
+				memberId: member.id
+			},
+			order: {chargeDate: 'DESC'},
+			take: 1
+		});
+
+		// Should always be at least 1 payment, but maybe the webhook is slow?
+		return payments.length === 0 || payments[0].isPending;
+	}
+
+	static async getPayments(member: Member): Promise<Payment[]> {
+		return await getRepository(Payment).find({
+			where: {
+				memberId: member.id
+			},
+			order: {chargeDate: 'DESC'}
+		});
+	}
+
+	static async permanentlyDeleteMember(member: Member): Promise<void> {
+		await getRepository(Payment).delete({memberId: member.id});
+		if ( member.gocardless.mandate_id ) {
+			await gocardless.mandates.cancel( member.gocardless.mandate_id );
+		}
+		if ( member.gocardless.customer_id ) {
+			await gocardless.customers.remove( member.gocardless.customer_id );
+		}
+
 	}
 }

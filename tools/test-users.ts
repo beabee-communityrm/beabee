@@ -1,11 +1,17 @@
-require('module-alias/register');
+import 'module-alias/register';
 
-const moment = require('moment');
+import moment from 'moment';
+import { FilterQuery } from 'mongoose';
+import { ConnectionOptions, getRepository } from 'typeorm';
 
-const db = require( '@core/database' );
-const config = require( '@config' );
+import * as db from '@core/database';
 
-async function logMember(type, query) {
+import Payment from '@models/Payment';
+import { Member } from '@models/members';
+
+import config from '@config';
+
+async function logMember(type: string, query: FilterQuery<Member>) {
 	const member = await db.Members.findOne(query);
 	console.log('# ' + type);
 	if (member) {
@@ -17,7 +23,7 @@ async function logMember(type, query) {
 	console.log();
 }
 
-async function logMemberVaryContributions(type, query) {
+async function logMemberVaryContributions(type: string, query: FilterQuery<Member>) {
 	const amounts = [1, 3, 5];
 	for (const amount of amounts) {
 		await logMember(`${type}, £${amount}/monthly`, {
@@ -36,11 +42,11 @@ async function logMemberVaryContributions(type, query) {
 async function getFilters() {
 	const now = moment.utc();
 
-	const scheduledPayments = await db.Payments.find({status: 'pending_submission'});
-	const failedPayments = await db.Payments.find({status: 'failed'});
+	const scheduledPayments = await getRepository(Payment).find({status: 'pending_submission'});
+	const failedPayments = await getRepository(Payment).find({status: 'failed'});
 
-	const membersWithScheduledPayments = scheduledPayments.map(p => p.member);
-	const membersWithFailedPayments = failedPayments.map(p => p.member);
+	const membersWithScheduledPayments = scheduledPayments.map(p => p.memberId);
+	const membersWithFailedPayments = failedPayments.map(p => p.memberId);
 
 	const permissions = await db.Permissions.find();
 
@@ -148,7 +154,7 @@ async function main() {
 	});
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	console.log();
 	try {
 		await main();
