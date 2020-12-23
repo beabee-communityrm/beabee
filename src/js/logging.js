@@ -11,33 +11,14 @@ var randomKey = crypto.randomBytes(256);
 // Bunyan logging
 var bunyanConfig = {
 	name: 'Membership-System',
-	streams: [],
+	streams: [{
+		level: 'debug',
+		stream: process.stderr
+	}],
 	serializers: {
 		error: bunyan.stdSerializers.err
 	}
 };
-
-if ( config.logStdout != undefined && config.logStdout == true) {
-	bunyanConfig.streams.push(
-		{
-			level: 'debug',
-			stream: process.stderr
-		}
-	);
-	bunyanConfig.streams.push(
-		{
-			level: 'error',
-			stream: process.stderr
-		}
-	);
-}
-
-if ( config.log != undefined ) {
-	bunyanConfig.streams.push({
-		type: 'file',
-		path: config.log
-	});
-}
 
 if ( config.logSlack != undefined ) {
 	let stream = new BunyanSlack( {
@@ -66,15 +47,19 @@ if ( config.logSlack != undefined ) {
 	} );
 }
 
-var logger = bunyan.createLogger( bunyanConfig );
+var mainLogger = bunyan.createLogger( bunyanConfig );
+var reqLogger = bunyan.createLogger({
+	name: 'Membership-System-requests',
+	level: 'info',
+	stream: process.stdout
+});
 
 function loggingMiddleware(req, res, next) {
 	var log = req.log;
 
 	const logAThing = level => (params, msg) => {
 		params.ip = req.connection.remoteAddress; //TODO: this will only be correct when behind a reverse proxy, if app.set('trust proxy') is enabled!
-		if (! params.sensitive )
-		{
+		if (! params.sensitive ) {
 			params.sensitive = {};
 		}
 		if ( req.user ) {
@@ -86,14 +71,12 @@ function loggingMiddleware(req, res, next) {
 			};
 			params.anon_userid = hash('sha1').update(req.user.uuid + randomKey).digest('base64');
 		}
-		if ( req.sessionID )
-		{
+		if ( req.sessionID ) {
 			params.sensitive.sessionID = req.sessionID;
 			params.anon_sessionId = hash('sha1').update(req.sessionID + randomKey).digest('base64');
 		}
 		log[level](params, msg);
-		if (params.sensitive)
-		{
+		if (params.sensitive) {
 			delete params.sensitive;
 		}
 	};
@@ -110,10 +93,10 @@ function loggingMiddleware(req, res, next) {
 module.exports = {
 	installMiddleware: function (app) {
 		app.use( bunyanMiddleware( {
-			logger: logger,
+			logger: reqLogger,
 			filter: req => req.url.startsWith('/static') || req.url === '/membership.js'
 		} ) );
 		app.use( loggingMiddleware );
 	},
-	log: logger
+	log: mainLogger
 };
