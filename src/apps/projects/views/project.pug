@@ -1,0 +1,185 @@
+extends /views/base.pug
+
+block prepend title
+	- title = 'Project'
+
+block contents
+	.row
+		.col-md-12
+			+page_header(project.title)
+
+	.row
+		.col-md-8
+			dl.dl-horizontal
+				dt Description
+				dd= project.description
+				dt Status
+				dd: .label.label-default= project.status
+				dt Created
+				dd= moment(project.date).format('DD/MM/YYYY [at] HH:mm')
+				dt Owner
+				dd: a(href='/members/' + project.owner.uuid)= project.owner.fullname
+	
+	.row
+		.col-md-12
+			hr
+
+	.row#members
+		.col-md-6
+			h4 Members
+		.col-md-6.text-right
+			a(href='/members?addToProject=' + project._id).btn.btn-primary
+				span.glyphicon.glyphicon-plus
+				|
+				|
+				| Add
+
+	.row
+		.col-md-12
+			if projectMembers.length > 0
+				.members-table
+					each pm in projectMembers
+						- pmId = 'pm_' + pm._id
+						.members-table-row
+							a(href='#' + pmId data-toggle='collapse').members-table-row-link.collapsed
+							span.projects-member-caret: span.caret
+							+membersTableBasicInfo(pm.member)
+							if pm.tag
+								span
+									.label.label-primary= pm.tag
+							span.text-right
+								small Engaged
+								br
+								if pm.latestEngagement
+									.text-success= moment(pm.latestEngagement.date).fromNow()
+								else
+									| No
+						.collapse(id=pmId)
+							.projects-member-view
+								.row
+									.col-md-3
+										form(method='POST')
+											+csrf
+											input(type='hidden' name='pmId' value=pm._id)
+											.form-group
+												.input-group
+													input(type='text' name='tag' placeholder='Project tag' value=pm.tag).form-control
+													.input-group-btn
+														button(name='action' value='update-member-tag').btn.btn-success
+															span.glyphicon.glyphicon-ok
+									.col-md-9
+										.projects-member-contact
+											.input-group
+												span.input-group-addon
+													span.glyphicon.glyphicon-envelope
+												input(type='text' value=pm.member.email readonly).form-control
+											.input-group
+												span.input-group-addon
+													span.glyphicon.glyphicon-earphone
+												input(type='text' name='telephone' value=pm.member.contact.telephone readonly).form-control
+											.input-group
+												span.input-group-addon
+													img(src='/static/imgs/twitter.png')
+												input(type='text' name='twitter' value=pm.member.contact.twitter readonly).form-control
+										p Preferred contact: #{pm.member.contact.preferred || '-'}
+								.row
+									.col-md-6
+										h5 Add engagement
+										form(method='POST')
+											+csrf
+											input(type='hidden' name='pmId' value=pm._id)
+											.form-group
+												label(for=pmId + '_engagement_type').control-label Type
+												select(name='type' id=pmId + '_engagement_type' required).form-control
+													option(value='' selected disabled) Select
+													each type in ['Email', 'Phone', 'In person', 'WhatsApp', 'Signal']
+														option= type
+											.form-group
+												label(for=pmId + '_engagement_date').control-label Date
+												.form-inline
+													input(type='date' name='date' id=pmId + '_engagement_date' required value=moment().format('YYYY-MM-DD')).form-control
+													|
+													|
+													input(type='time' name='time' required value=moment().format('HH:mm')).form-control
+											.form-group
+												label(for=pmId + '_engagement_notes').control-label Notes
+												textarea(name='notes' id=pmId + '_engagement_notes').form-control
+											.form-group
+												button(name='action' value='add-member-engagement').btn.btn-primary Add
+									.col-md-6
+										h5 Previous engagement
+										if pm.engagementByDate.length > 0
+											ol
+												each e in pm.engagementByDate
+													li
+														form(method='POST').pull-right
+															+csrf
+															input(type='hidden' name='pmId' value=pm._id)
+															input(type='hidden' name='eId' value=e._id)
+															button(name='action' value='delete-member-engagement').btn.btn-xs.btn-danger
+																span.glyphicon.glyphicon-trash
+														= e.type
+														|
+														| by
+														|
+														a(href='/members/' + e.member.uuid)= e.member.firstname
+														|
+														| at
+														|
+														= moment(e.date).format('HH:mm DD/MM/YYYY')
+														|
+														br
+														small= e.notes
+										else
+											p None
+
+
+			else
+				.alert.alert-info No members
+
+			hr
+
+	.row#callouts
+		.col-md-6
+			h4 Callouts
+		.col-md-6.text-right
+			a(href='/tools/polls/create?addToProject=' + project._id).btn.btn-primary
+				span.glyphicon.glyphicon-plus
+				|
+				|
+				| Add
+
+	.row
+		.col-md-12
+			if project.polls.length > 0
+				table
+					thead
+						th Title
+					tbody
+						each poll in project.polls
+							tr
+								td= poll.question
+			else
+				.alert.alert-info No callouts
+
+			hr
+
+	.row
+		.col-md-8
+			h4 Update project
+			include partials/project-form
+
+	.row
+		.col-md-12
+			hr
+
+			h4 Delete project
+
+			form(method='POST')
+				+csrf
+				p
+					label.checkbox-inline
+						input(type='checkbox' required)
+						| This change is irreversible, confirm to proceed
+				button(name='action' value='delete').btn.btn-danger.outline Delete
+

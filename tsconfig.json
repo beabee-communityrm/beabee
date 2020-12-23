@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./built",
+    "rootDir": "./src",
     "listEmittedFiles": true,
     "allowJs": true,
     "module": "commonjs",
@@ -12,13 +13,14 @@
     "baseUrl": "./",
     "paths": {
       "*": ["./node_modules/*"],
-      "@core/*": ["./src/js/*"],
-      "@apps/*": ["./apps/*"],
-      "@config": ["./config/config.json"],
+      "@core/*": ["./src/core/*"],
+      "@apps/*": ["./src/apps/*"],
+      "@config": ["./src/config/config.json"],
       "@models/*": ["./src/models/*"]
     },
     "resolveJsonModule": true,
     "typeRoots": ["./src/typings", "./node_modules/@types/"]
   },
-  "include": ["app.js", "webhook*.js", "./src/**/*", "./apps/**/*", "./tools/**/*"]
+  "include": ["./src/**/*"],
+  "exclude": ["./src/static/**/*"]
 }

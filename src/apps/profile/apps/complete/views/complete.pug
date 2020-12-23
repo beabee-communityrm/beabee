@@ -1,0 +1,180 @@
+extends /views/base.pug
+
+block prepend title
+	- title = app.title
+
+block append js
+	+passwordRequirementsJS
+	script(src='/static/js/delivery-address.js')
+
+block append css
+	+passwordRequirementsCSS
+
+block body
+	header.join-header-static
+
+	.container
+		.row
+			.col-md-8.col-md-offset-2
+
+				h3 Hi #{user.firstname}, welcome to the Cable!
+
+				p.
+					You're now the newest member of Bristol's media cooperative, owned
+					and supported by more than 2,200 people in Bristol.
+
+				include /src/views/partials/flash
+
+				form( method="post" ).form-horizontal
+					+csrf
+
+					.row
+						.col-md-12
+							h4 Your account
+
+							p.
+								You’ll be able to login to your online membership using your email
+								address and password.
+
+							+input( 'password', 'Password', 'password', { required: true, id: 'password', class: 'pw-req', left: 4, right: 6 } )
+							+input( 'password', 'Confirm password', 'verify', { required: true, id: 'verify', class: 'pw-mat', left: 4, right: 6 } )
+
+					.row
+						.col-md-12
+							h4 Delivery details
+
+							mixin deliveryAddress
+								+input( 'text', 'Address line 1', 'delivery_line1', { required: true, left: 4, right: 6, value: user.delivery_address.line1 } )
+								+input( 'text', 'Address line 2', 'delivery_line2', { left: 4, right: 6, value: user.delivery_address.line2 } )
+								+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6, value: user.delivery_address.city } )
+								+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6, value: user.delivery_address.postcode } )
+
+							if isReferralWithGift
+								.alert.alert-warning We need your address to send you your referral gift
+								+deliveryAddress
+
+							if isGift
+								p
+									| Your gift includes a copy of our quarterly newspaper in the post.
+									|
+									if user.delivery_address.line1
+										| Please check that the delivery address we have for you is
+										| correct.
+									else
+										| Please let us know your delivery address.
+								+deliveryAddress
+
+							else if user.contributionMonthlyAmount >= 3
+								p.
+									You are eligible for a
+									#[b free copy of our quarterly newspaper]!
+									We would also like to send you very occasional mail
+									such as a reminder for the AGM.
+								p.
+									Can we send you our quarterly newspaper and very
+									occasional mail? You can change your mind later.
+								
+							else
+								.alert.alert-warning.
+									You aren't eligible for a
+									#[b free copy of our quarterly newspaper]
+								p.
+									Unfortunately it's not financial viable for us to send
+									copies of the quarterly newspaper to members
+									contributing less than £3 per month. However, we'd
+									like to send you very occasional mail such as a reminder
+									for the AGM.
+								p.
+									Can we send you very occasional mail? You can
+									change your mind later.
+
+							if isGift
+								input(type='hidden' name='delivery_optin' value='true')
+							else
+								ul.join-options
+									li.join-options__opt
+										input(type='radio', name='delivery_optin', id='delivery_optin_yes' , value='true', required, checked).js-delivery-opt
+										label(for='delivery_optin_yes').btn.btn-primary Yes
+									li.join-options__opt
+										input(type='radio', name='delivery_optin', id='delivery_optin_no' , value='false', required).js-delivery-opt
+										label(for='delivery_optin_no').btn.btn-primary No
+									li.join-options__opt
+
+								if !isReferralWithGift
+									.js-delivery-details
+										+deliveryAddress
+
+					if isGift
+						input(type='hidden' name='reason' value='Gift membership')
+						input(type='hidden' name='how' value='Gift membership')
+						input(type='hidden' name='known' value='Gift membership')
+					else
+						.row
+							.col-md-12
+								h4 And finally…
+
+								p.
+									Could you tell us what brings you to the Cable? It
+									would really help us understand what we can do to
+									make the the co-operative stronger.
+
+								.form-group
+									div.col-md-12
+										h5 1. What best describes the main reason you have joined the Cable?
+										select(name='reason' required).form-control
+											option(value='' selected disabled) Please select one
+											option To support the Cable’s investigative journalism
+											option The Cable is providing an alternative to mainstream journalism in Bristol
+											option The Cable’s efforts to work with and amplify community voices
+											option To get involved in the Cable
+											option To support a new model for journalism
+
+										label.control-label Can you tell us a bit more about your motivation for joining today?
+										textarea(name='reason_more').form-control.join-reason-box
+
+								.form-group
+									div.col-md-12
+										h5 2. What is the main way you came across the Cable?
+										select(name='how' required).form-control
+											option(value='' selected disabled) Please select one
+											option Friends or family
+											option Google or other search engine
+											option Facebook
+											option Twitter
+											option Newsletter
+											option A copy was posted through my door
+											option Picked up a copy in a public location
+											option Public event
+											option Gift membership
+											option Met Cable staff
+											option Other
+
+								.form-group
+									div.col-md-12
+										h5 3. How long have you known about the Cable?
+										select(name='known' required).form-control
+											option(value='' selected disabled) Please select one
+											option Less than a year
+											option 1-2 years
+											option 3 years or more
+
+								.form-group
+									div.col-md-12
+										h5 4. What would you like to see the Cable do more of?
+										textarea(name='more').form-control.join-reason-box
+
+								p.
+									Hearing from members is the most powerful way we can
+									encourage others to join our community. With your
+									permission, we'd like to use your answers and first
+									name in communications.
+
+								.form-group
+									.col-md-12
+										.checkbox
+											label
+												input(type='checkbox', name='shareable', value='true')
+												| Yes, you can show my answers and first
+												| name in communications
+
+					button.btn.btn-success.btn-lg Save

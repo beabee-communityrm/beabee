@@ -65,11 +65,11 @@
   },
   "scripts": {
     "start": "npm run build && docker-compose start && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
-    "lint": "eslint apps/ src/ test/",
+    "lint": "eslint src/ test/",
     "watchApp": "tsc --watch --preserveWatchOutput --incremental",
     "watch": "gulp watch",
     "build": "rimraf built/ && gulp build && tsc",
-    "checkDependencies": "npm run build && tscpaths -s . -o built -p tsconfig.json && madge --warning -c built",
+    "checkDependencies": "npm run build && tscpaths -s src -o built -p tsconfig.json && madge --warning -c built",
     "test": "ava"
   },
   "devDependencies": {
@@ -115,7 +115,6 @@
       "built/"
     ],
     "ignore": [
-      "built/tsconfig.tsbuildinfo",
       "built/static/**/*"
     ],
     "delay": "500",
@@ -123,9 +122,9 @@
     "exec": "docker-compose restart app && docker-compose logs -f --tail=0 app"
   },
   "_moduleAliases": {
-    "@core": "./built/src/js",
+    "@core": "./built/core",
     "@apps": "./built/apps",
     "@config": "./built/config/config.json",
-    "@models": "./built/src/models"
+    "@models": "./built/models"
   }
 }

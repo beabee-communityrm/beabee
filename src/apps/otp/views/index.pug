@@ -1,0 +1,18 @@
+extends /views/base.pug
+
+block prepend title
+	- title = "One Time Code"
+	- heading = title
+
+block navbar
+
+block contents
+	p Your account is secured with a one time code. Please enter the current code to complete your login.
+	form( method="post" ).form-horizontal
+		+csrf
+		+input( 'number', 'Code', 'code', { autocomplete: 'off' } )
+		.form-group
+			.col-md-offset-2.col-md-10
+				button( role="button" ).btn.btn-primary Authenticate
+				| &nbsp;
+				a( href="/otp/cancel" ).btn.btn-default Cancel Login

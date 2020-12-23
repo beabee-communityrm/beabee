@@ -1,4 +1,4 @@
 node_modules
-config/config.json
-config/.htpasswd
+/src/config/config.json
 /built/
+/tsconfig.tsbuildinfo

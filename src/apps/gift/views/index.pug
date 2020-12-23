@@ -1,0 +1,80 @@
+extends /views/base.pug
+
+block prepend title
+	- title = app.title
+
+block append js
+	script(src='https://js.stripe.com/v3/')
+	script.
+		var stripe = Stripe('#{stripePublicKey}');
+	script(src='/static/js/gift.js?v=' + git)
+
+block body
+	header.join-header#join
+		.join-header__bg
+
+		form(method='POST').join-form.js-gift-form
+			+csrf
+
+			.join-title.text-center
+				h1 A gift for a#[br]better 2021!
+
+			h4 With a gift membership your loved one will get:
+
+			ul.join-gift-reasons
+				li Membership of 100% community owned local media
+				li
+					img(src='/static/imgs/gift-mug.png').join-gift-mug
+					| A quarterly print copy of the Cable, delivered to the door
+				li A Cable mug, made in Stokes Croft, Bristol, sent with their first edition
+
+			img(src='/static/imgs/gift-header.png' style='width:100%')
+
+			.js-gift-errors
+				include /src/views/partials/flash.pug
+
+			.hidden-js
+				p.
+					Unfortunately you must have JavaScript enabled to buy gifts
+					online at the moment, please contact
+					#[+email('membership@thebristolcable.org')] if you want to continue.
+
+			.hidden-nojs
+				h4 1. Who is the gift for?
+				.join-field-group
+					.join-field
+						input(type='text' name='firstname' placeholder='First name' required).join-field__input
+
+					.join-field
+						input(type='text' name='lastname' placeholder='Last name' required).join-field__input
+
+				h4 2. What's their email address?
+				.join-field
+					input(type='email' name='email' placeholder='email@address.com' required).join-field__input
+
+				h4 3. When should their gift start?
+				.join-field.join-field-date
+					input(type='date' name='startDate' value='2020-12-25' required).join-field__input
+
+				h4 4. Who shall we say the gift is from?
+				.join-field
+					input(type='text' name='fromName' placeholder='Your name' required).join-field__input
+
+				h4 5. What's your email address?
+				.join-field
+					input(type='email' name='fromEmail' placeholder='email@example.com' required).join-field__input
+
+				h4 6. Add an optional personal message
+				p We'll include this in their card and welcome email.
+				.join-field.join-field-message
+					textarea(name='message' maxlength='140').join-field__input
+
+				input(type='hidden' name='type' value='12')
+				p: button.btn.btn-success.btn-lg.join-btn.join-gift-btn
+					| Buy gift
+					small for £36
+
+				p.join-info.join-secure.small
+					svg(xmlns='http://www.w3.org/2000/svg', viewBox='0 0 24 24')
+						path(fill='currentColor', d='M18 10v-4c0-3.313-2.687-6-6-6s-6 2.687-6 6v4h-3v14h18v-14h-3zm-10 0v-4c0-2.206 1.794-4 4-4s4 1.794 4 4v4h-8z')
+					| Your payment will be processed securely with Stripe.

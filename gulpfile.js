@@ -8,11 +8,15 @@ const browserSync = require('browser-sync').create();
 
 const paths = {
 	css: {
-		src: './static/scss/**/*.scss',
+		src: './src/static/scss/**/*.scss',
 		dest: './built/static/css'
 	},
+	staticFiles: {
+		src: ['./src/static/**/*', '!./src/static/scss/**/*'],
+		dest: './built/static'
+	},
 	appFiles: {
-		src: ['./src/**/*', './apps/**/*', './tools/**/*', '!./**/*.{js,ts}', './static/**/*', './config/**/*'],
+		src: ['./src/**/*.{json,pug,sh}', './config/**/*'],
 		dest: './built'
 	}
 };
@@ -27,12 +31,17 @@ function buildCSS() {
 		.pipe(browserSync.stream({match: './**/*.css'}));
 }
 
+function copyStaticFiles() {
+	return gulp.src(paths.staticFiles.src, {base: './src/static', since: gulp.lastRun(copyStaticFiles)})
+		.pipe(gulp.dest(paths.staticFiles.dest));
+}
+
 function copyAppFiles() {
-	return gulp.src(paths.appFiles.src, {base: './', since: gulp.lastRun(copyAppFiles)})
+	return gulp.src(paths.appFiles.src, {base: './src', since: gulp.lastRun(copyAppFiles)})
 		.pipe(gulp.dest(paths.appFiles.dest));
 }
 
-const build = gulp.parallel(buildCSS, copyAppFiles);
+const build = gulp.parallel(buildCSS, copyStaticFiles, copyAppFiles);
 
 function watch() {
 	browserSync.init({

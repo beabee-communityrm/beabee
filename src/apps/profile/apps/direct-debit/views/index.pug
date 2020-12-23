@@ -1,0 +1,75 @@
+extends /views/base.pug
+
+block prepend title
+	- title = 'Contribution details'
+
+block append js
+	script( src="/static/js/update-contribution.js?v=" + git )
+
+block contents
+	.row
+		.col-md-3
+			- page = 'direct-debit'
+			include /apps/profile/views/partials/sidebar.pug
+		.col-md-9.col-lg-7
+			+page_header( 'Contribution details' )
+			if !user.isActiveMember
+				.alert.alert-danger Your membership has expired
+			else if !user.hasActiveSubscription && user.contributionPeriod !== 'gift'
+				.alert.alert-warning You cancelled your contribution
+
+			p
+				| You
+				|
+				if user.contributionPeriod === 'gift'
+					| #{user.isActiveMember ? 'are' : 'were'} on a gift membership
+				else
+					= user.isActiveMember ? 'currently contribute' : 'previously contributed'
+					|
+					|
+					= user.contributionDescription
+					if user.gocardless.paying_fee
+						|
+						| (+ fee)
+				| ,
+				|
+				if hasPendingPayment
+					| we are currently processing your payment.
+				else
+					if user.hasActiveSubscription
+						| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'}  around
+					else
+						| it #{user.isActiveMember ? 'will expire' : 'expired'} on
+					|
+					|
+					= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
+					| .
+				if user.contributionPeriod === 'gift'
+					|
+					| You can start a contribution to continue your Cable membership
+					| beyond this date.
+
+			if user.hasActiveSubscription && user.nextContributionAmount
+				p.alert.alert-success.
+					You updated your contribution amount, it will change to
+					£#{user.nextContributionAmount} on your next payment
+
+			hr
+
+			h4 #{user.contributionPeriod === 'gift' ? 'Start' : user.hasActiveSubscription ? 'Update' : 'Restart'} contribution
+
+			if canChange
+				include partials/change-subscription
+			else
+				p.
+					Your contribution is currently processing and can't be changed online right now.
+					Please contact #[+email('membership@thebristolcable.org')] if you wish to do so.
+
+			if user.hasActiveSubscription
+				hr
+
+				h4 Cancel contribution
+				p.
+					If you cancel your contribution your membership will finish at the end of
+					your current payment cycle.
+				a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger Cancel contribution
