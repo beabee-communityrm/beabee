@@ -1,5 +1,5 @@
 import { Payment as GCPayment, Subscription, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import { getRepository } from 'typeorm';
 
 import { Members } from '@core/database';
@@ -14,6 +14,14 @@ import config from '@config';
 
 export default class PaymentWebhookService {
 	static async updatePayment(gcPaymentId: string): Promise<Payment> {
+		log.info({
+			app: 'direct-debit',
+			action: 'update-payment',
+			data: {
+				paymentId: gcPaymentId
+			}
+		});
+
 		const gcPayment = await gocardless.payments.get(gcPaymentId);
 		let payment = await getRepository(Payment).findOne({paymentId: gcPayment.id});
 		if (!payment) {
@@ -32,40 +40,43 @@ export default class PaymentWebhookService {
 	}
 
 	static async confirmPayment(payment: Payment): Promise<void> {
-		if (payment.memberId && payment.subscriptionId) {
-			log.info({
-				app: 'direct-debit',
-				action: 'confirm-payment',
-				data: {
-					payment
-				}
-			});
+		log.info({
+			app: 'direct-debit',
+			action: 'confirm-payment',
+			data: {
+				paymentId: payment.paymentId,
+				memberId: payment.memberId,
+				subscriptionId: payment.subscriptionId
+			}
+		});
 
+		if (payment.memberId && payment.subscriptionId) {
 			const member = await Members.findById(payment.memberId);
 			// Ignore if the member has a new subscription as this will be for an old payment
 			if (!member.gocardless.subscription_id || member.gocardless.subscription_id === payment.subscriptionId) {
-				const subscription = await gocardless.subscriptions.get(payment.subscriptionId);
-				const nextChargeDate = subscription.upcoming_payments.length > 0 ?
-					moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod) :
-					moment.utc(payment.chargeDate).add(PaymentWebhookService.getSubscriptionDuration(subscription));
+				const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
 
 				log.info({
 					app: 'direct-debit',
 					action: 'extend-membership',
 					data: {
-						subscriptionId: subscription.id,
 						prevDate: member.memberPermission.date_expires,
-						newDate: nextChargeDate
+						newDate: nextExpiryDate
 					}
 				});
 
 				member.gocardless.amount = payment.amount;
 				member.gocardless.next_amount = undefined;
-				if (nextChargeDate.isAfter(member.memberPermission.date_expires)) {
-					member.memberPermission.date_expires = nextChargeDate.toDate();
+				if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
+					member.memberPermission.date_expires = nextExpiryDate.toDate();
 				}
 
 				await member.save();
+			} else {
+				log.info({
+					app: 'direct-debit',
+					action: 'ignore-confirm-payment'
+				});
 			}
 		}
 	}
@@ -89,6 +100,14 @@ export default class PaymentWebhookService {
 		} );
 
 		if ( member ) {
+			log.info({
+				app: 'webhook',
+				action: 'cancel-subscription',
+				sensitive: {
+					subscriptionId,
+					memberId: member.id
+				}
+			});
 			member.gocardless.subscription_id = undefined;
 			member.gocardless.cancelled_at = new Date();
 			await member.save();
@@ -128,6 +147,13 @@ export default class PaymentWebhookService {
 				}
 			} );
 		}
+	}
+
+	private static async calcPaymentExpiryDate(payment: Payment): Promise<Moment> {
+		const subscription = await gocardless.subscriptions.get(payment.subscriptionId);
+		return subscription.upcoming_payments.length > 0 ?
+			moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod) :
+			moment.utc(payment.chargeDate).add(PaymentWebhookService.getSubscriptionDuration(subscription));
 	}
 
 	private static async createPayment(gcPayment: GCPayment): Promise<Payment> {

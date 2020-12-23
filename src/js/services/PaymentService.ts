@@ -10,7 +10,7 @@ import MembersService from '@core/services/MembersService';
 import config from '@config';
 
 import { Member, PartialMember } from '@models/members';
-import { getRepository, In } from 'typeorm';
+import { getRepository } from 'typeorm';
 import Payment from '@models/Payment';
 
 export default class PaymentService {
