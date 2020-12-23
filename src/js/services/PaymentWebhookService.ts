@@ -4,7 +4,7 @@ import { getRepository } from 'typeorm';
 
 import { Members } from '@core/database';
 import gocardless from '@core/gocardless';
-import { log } from '@core/logging';
+import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import { ContributionPeriod } from '@core/utils';
 
@@ -12,10 +12,11 @@ import Payment from '@models/Payment';
 
 import config from '@config';
 
+const log = mainLogger.child({app: 'payment-webhook-service'});
+
 export default class PaymentWebhookService {
 	static async updatePayment(gcPaymentId: string): Promise<Payment> {
 		log.info({
-			app: 'direct-debit',
 			action: 'update-payment',
 			data: {
 				paymentId: gcPaymentId
@@ -41,7 +42,6 @@ export default class PaymentWebhookService {
 
 	static async confirmPayment(payment: Payment): Promise<void> {
 		log.info({
-			app: 'direct-debit',
 			action: 'confirm-payment',
 			data: {
 				paymentId: payment.paymentId,
@@ -57,7 +57,6 @@ export default class PaymentWebhookService {
 				const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
 
 				log.info({
-					app: 'direct-debit',
 					action: 'extend-membership',
 					data: {
 						prevDate: member.memberPermission.date_expires,
@@ -74,7 +73,6 @@ export default class PaymentWebhookService {
 				await member.save();
 			} else {
 				log.info({
-					app: 'direct-debit',
 					action: 'ignore-confirm-payment'
 				});
 			}
@@ -83,7 +81,6 @@ export default class PaymentWebhookService {
 
 	static async updatePaymentStatus(gcPaymentId: string, status: string): Promise<void> {
 		log.info({
-			app: 'direct-debit',
 			action: 'update-payment-status',
 			data: {
 				gcPaymentId, status
@@ -101,7 +98,6 @@ export default class PaymentWebhookService {
 
 		if ( member ) {
 			log.info({
-				app: 'webhook',
 				action: 'cancel-subscription',
 				sensitive: {
 					subscriptionId,
@@ -114,7 +110,6 @@ export default class PaymentWebhookService {
 			await mandrill.sendToMember('cancelled-contribution', member);
 		} else {
 			log.info( {
-				app: 'webhook',
 				action: 'unlink-subscription',
 				sensitive: {
 					subscriptionId
@@ -128,7 +123,6 @@ export default class PaymentWebhookService {
 
 		if ( member ) {
 			log.info( {
-				app: 'webhook',
 				action: 'cancel-mandate',
 				sensitive: {
 					member: member._id,
@@ -140,7 +134,6 @@ export default class PaymentWebhookService {
 			await member.save();
 		} else {
 			log.info( {
-				app: 'webhook',
 				action: 'unlink-mandate',
 				sensitive: {
 					mandateId
@@ -163,7 +156,6 @@ export default class PaymentWebhookService {
 		const member = await Members.findOne( { 'gocardless.mandate_id': gcPayment.links.mandate } );
 		if (member) {
 			log.info({
-				app: 'direct-debit',
 				action: 'create-payment',
 				data: {
 					memberId: member._id,
@@ -173,7 +165,6 @@ export default class PaymentWebhookService {
 			payment.memberId = member._id.toString();
 		} else {
 			log.info({
-				app: 'direct-debit',
 				action: 'create-unlinked-payment',
 				data: {
 					gcPaymentId: gcPayment.id
@@ -200,7 +191,6 @@ export default class PaymentWebhookService {
 			return ContributionPeriod.Monthly;
 
 		log.error({
-			app: 'direct-debit',
 			action: 'get-subscription-period',
 			data: { interval, intervalUnit }
 		}, 'Unrecognised subscription period');
