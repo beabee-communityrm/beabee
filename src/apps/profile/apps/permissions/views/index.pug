@@ -13,6 +13,6 @@ block contents
 			.list-group
 				if permissions.length > 0
 					each permission, p in permissions
-						include /src/views/partials/permission.pug
+						include /views/partials/permission.pug
 				else
 					+messageBlock( 'info', "You currently haven't been granted any permissions." )

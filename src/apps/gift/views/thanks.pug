@@ -33,7 +33,7 @@ block body
 						form( method="post" ).form-horizontal
 							+csrf
 
-							include /src/views/partials/flash
+							include /views/partials/flash
 
 							+input( 'text', 'Address line 1', 'delivery_address[line1]', { required: true, left: 4, right: 6 } )
 							+input( 'text', 'Address line 2', 'delivery_address[line2]', { left: 4, right: 6 } )
