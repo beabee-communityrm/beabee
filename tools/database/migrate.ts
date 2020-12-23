@@ -1,7 +1,6 @@
 import 'module-alias/register';
 
-import _ from 'lodash';
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import { ConnectionOptions, EntityTarget, getRepository } from 'typeorm';
 
 import config from '@config';
@@ -19,7 +18,7 @@ type WritableKeysOf<T> = {
     [P in keyof T]: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never>
 }[keyof T];
 
-type Mapping<T> = Record<WritableKeysOf<Exclude<keyof T,'id'>>, string>;
+type Mapping<T> = Record<Exclude<WritableKeysOf<T>,'id'>, (doc: Document) => any>;
 
 
 interface Migration<T> {
@@ -33,26 +32,34 @@ function createMigration<T>(model: EntityTarget<T>, collection: string, mapping:
 	return { model, collection, mapping };
 }
 
+function copy(field: string) {
+	return (doc: Document) => doc[field];
+}
+
+function objectId(field: string) {
+	return (doc: Document) => doc[field] ? doc[field].toString() : null;
+}
+
 const migrations: Migration<any>[] = [
 	createMigration(PageSettings, 'pagesettings', {
-		pattern: 'pattern',
-		shareUrl: 'shareUrl',
-		shareTitle: 'shareTitle',
-		shareDescription: 'shareDescription',
-		shareImage: 'shareImage',
+		pattern: copy('pattern'),
+		shareUrl: copy('shareUrl'),
+		shareTitle: copy('shareTitle'),
+		shareDescription: copy('shareDescription'),
+		shareImage: copy('shareImage')
 	}),
 	createMigration(Payment, 'payments', {
-		paymentId: 'payment_id',
-		subscriptionId: 'subscription_id',
-		subscriptionPeriod: 'subscription_period',
-		memberId: 'member_id',
-		status: 'status',
-		description: 'description',
-		amount: 'amount',
-		amountRefunded: 'amount_refunded',
-		createdAt: 'created',
-		chargeDate: 'charge_date',
-		updatedAt: 'updated_at'
+		paymentId: copy('payment_id'),
+		subscriptionId: copy('subscription_id'),
+		subscriptionPeriod: copy('subscription_period'),
+		memberId: objectId('member'),
+		status: copy('status'),
+		description: copy('description'),
+		amount: copy('amount'),
+		amountRefunded: copy('amount_refunded'),
+		createdAt: copy('created'),
+		chargeDate: copy('charge_date'),
+		updatedAt: copy('updated_at')
 	})
 ];
 
@@ -68,7 +75,10 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 		while (await cursor.hasNext()) {
 			process.stdout.write('.');
 			const doc = await cursor.next();
-			const item = _(migration.mapping).map((v, k) => [k, doc[v as string]]).fromPairs().valueOf();
+			const item = {};
+			for (const key in migration.mapping) {
+				item[key] = migration.mapping[key](doc);
+			}
 			items.push(item);
 			if (items.length === 1000) {
 				await repo.insert(items);

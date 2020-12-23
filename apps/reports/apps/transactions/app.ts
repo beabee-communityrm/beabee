@@ -50,7 +50,7 @@ app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, re
 	const members = await Members.find({_id: {$in: payments.map(p => p.memberId)}});
 	const paymentsWithMembers = payments.map(p => ({
 		...p,
-		member: members.find(m => m._id === p.memberId)
+		member: members.find(m => m._id.equals(p.memberId))
 	}));
 
 	res.render( 'index', {
