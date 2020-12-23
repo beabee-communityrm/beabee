@@ -62,7 +62,7 @@ app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, re
 	} );
 } ) );
 
-module.exports = function( config ) {
+export default function( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}

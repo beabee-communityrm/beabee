@@ -1,9 +1,0 @@
-{
-	"title": "Permissions",
-	"path": "permissions",
-	"permissions": [
-		"member"
-	],
-	"priority": 1,
-	"hidden": true
-}

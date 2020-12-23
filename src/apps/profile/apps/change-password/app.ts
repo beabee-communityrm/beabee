@@ -1,23 +1,20 @@
-var	express = require( 'express' ),
-	app = express();
+import	express from 'express';
 
-var auth = require( '@core/authentication' );
+import auth from '@core/authentication';
+import { hasSchema } from '@core/middleware';
+import { wrapAsync } from '@core/utils';
 
-const { wrapAsync } = require( '@core/utils' );
+import MembersService from '@core/services/MembersService';
 
-const { hasSchema } = require( '@core/middleware' );
-const { changePasswordSchema } = require( './schemas.json' );
+import { changePasswordSchema } from './schemas.json';
 
-var app_config = {};
+const app = express();
+let app_config;
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( function( req, res, next ) {
 	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.parent.mountpath + app.mountpath
-	} );
 	next();
 } );
 
@@ -40,18 +37,21 @@ app.post( '/', [
 			error: 'Current password does not match users password',
 		} );
 		req.flash( 'danger', 'password-invalid' );
-		res.redirect( app.parent.mountpath + app.mountpath );
+		res.redirect('/profile/change-password');
 		return;
 	}
 
 	const password = await auth.generatePasswordPromise( body.new );
 
-	await user.update( { $set: {
-		'password.salt': password.salt,
-		'password.hash': password.hash,
-		'password.iterations': password.iterations,
-		'password.reset_code': null,
-	} } );
+	await MembersService.updateMember(user, {
+		password: {
+			salt: password.salt,
+			hash: password.hash,
+			iterations: password.iterations,
+			reset_code: null,
+			tries: 0
+		}
+	});
 
 	req.log.info( {
 		app: 'profile',
@@ -59,10 +59,10 @@ app.post( '/', [
 	} );
 
 	req.flash( 'success', 'password-changed' );
-	res.redirect( app.parent.mountpath + app.mountpath );
+	res.redirect('/profile/change-password');
 } ) );
 
-module.exports = function( config ) {
+export default function ( config ): express.Express {
 	app_config = config;
 	return app;
-};
+}
