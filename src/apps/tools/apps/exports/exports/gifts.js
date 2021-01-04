@@ -31,6 +31,7 @@ async function getExport(giftFlows) {
 			GifteeFirstName: member.firstname,
 			GifteeEmail: member.email,
 			GifteeExpiryDate: member.memberPermission.date_expires.toISOString(),
+			GifteeHasActivated: !member.password.hash,
 			GifteeHasConverted: member.contributionPeriod !== 'gift',
 			...addressFields(member.delivery_address)
 		} : {
@@ -38,6 +39,7 @@ async function getExport(giftFlows) {
 			GifteeFirstName: giftForm.firstname,
 			GifteeEmail: giftForm.email,
 			GifteeExpiryDate: '',
+			GifteeHasActivated: false,
 			GifteeHasConverted: false,
 			...addressFields(giftForm.delivery_address)
 		};
