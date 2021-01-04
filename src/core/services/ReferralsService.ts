@@ -6,6 +6,7 @@ import mandrill from '@core/mandrill';
 import { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
 import { ReferralGift } from '@models/referrals';
+import { Document } from 'mongoose';
 
 export default class ReferralsService {
 	static async getGifts(): Promise<ReferralGift[]> {
@@ -40,7 +41,7 @@ export default class ReferralsService {
 			refereeGift: joinForm.referralGift,
 			refereeGiftOptions: joinForm.referralGiftOptions,
 			refereeAmount: joinForm.amount
-		});
+		} as unknown as Document);
 
 		await ReferralsService.updateGiftStock(joinForm);
 
