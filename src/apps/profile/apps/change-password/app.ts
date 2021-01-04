@@ -25,7 +25,7 @@ app.get( '/', auth.isLoggedIn, function( req, res ) {
 app.post( '/', [
 	auth.isLoggedIn,
 	hasSchema( changePasswordSchema ).orFlash
-], wrapAsync( async function( req, res ) {
+], wrapAsync( hasUser( async function( req, res ) {
 	const { body, user } = req;
 
 	const hash = await auth.hashPasswordPromise( body.current, user.password.salt, user.password.iterations );
@@ -48,7 +48,7 @@ app.post( '/', [
 			salt: password.salt,
 			hash: password.hash,
 			iterations: password.iterations,
-			reset_code: null,
+			reset_code: undefined,
 			tries: 0
 		}
 	});

@@ -13,7 +13,7 @@ app.use( function( req, res, next ) {
 	next();
 } );
 
-app.get( '/' , function( req, res ) {
+app.get( '/' , hasUser(function( req, res ) {
 	if ( ! req.user.otp.activated ) {
 		req.flash( 'warning', '2fa-unnecessary' );
 		res.redirect( '/profile/2fa' );
@@ -23,7 +23,7 @@ app.get( '/' , function( req, res ) {
 	} else {
 		res.render( 'index' );
 	}
-} );
+} ) );
 
 app.post( '/',function ( req, res ) {
 	const nextParam = req.query.next as string;

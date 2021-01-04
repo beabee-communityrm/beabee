@@ -27,7 +27,7 @@ function schemaToNotice(data: NoticeSchema): Notice {
 	const notice = new Notice();
 	notice.name = data.name;
 	notice.expires = data.expiresDate && data.expiresTime ?
-		moment.utc(`${data.expiresDate}T${data.expiresTime}`).toDate() : null;
+		moment.utc(`${data.expiresDate}T${data.expiresTime}`).toDate() : undefined;
 	notice.text = data.text;
 	notice.url = data.url;
 	notice.enabled = !!data.enabled;

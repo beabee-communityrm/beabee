@@ -63,6 +63,7 @@
 	"flash-contribution-updated": "Contribution updated",
 	"flash-contribution-gift-updated": "Thanks for starting your contribution",
 	"flash-contribution-updating-not-allowed": "You can't change your contribution online at the moment, please contact membership@thebristolcable.org",
+	"flash-contribution-updating-failed": "There was a problem updating your contribution, please contact membership@thebristolcable.org",
 	"flash-contribution-exists": "You already have an active contribution",
 	"flash-contribution-doesnt-exist": "You don't have an active contribution",
 	"flash-contribution-restarted": "You have successfully restarted your membership",

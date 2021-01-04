@@ -17,7 +17,7 @@ export default class MembersService {
 				...memberObj,
 				referralCode: MembersService.generateMemberCode(memberObj),
 				pollsCode: MembersService.generateMemberCode(memberObj)
-			});
+			} as Member);
 		} catch (saveError) {
 			const {code, message} = saveError;
 			if (code === 11000 && (message.indexOf('referralCode') > -1 || message.indexOf('pollsCode') > -1)) {

@@ -25,7 +25,7 @@ app.get( '/', auth.isLoggedIn, function( req, res ) {
 app.post( '/', [
 	auth.isLoggedIn,
 	hasSchema(updateSchema).orFlash
-], wrapAsync( async function( req, res ) {
+], wrapAsync( hasUser(async function( req, res ) {
 	const { body: { email, firstname, lastname } } = req;
 	const cleanedEmail = cleanEmailAddress(email);
 

@@ -19,8 +19,8 @@ export async function processGiftFlow(giftFlow: GiftFlow, sendImmediately = fals
 		firstname,
 		lastname,
 		email,
-		delivery_address: delivery_copies_address,
-		delivery_optin: !!delivery_copies_address.line1
+		delivery_address: delivery_copies_address || {},
+		delivery_optin: !!delivery_copies_address?.line1
 	});
 
 	member.giftCode = giftFlow.setupCode;

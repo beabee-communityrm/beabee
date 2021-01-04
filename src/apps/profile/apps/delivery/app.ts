@@ -24,7 +24,7 @@ app.get( '/', auth.isLoggedIn, function( req, res ) {
 app.post( '/', [
 	auth.isLoggedIn,
 	hasSchema(updateSchema).orFlash
-], wrapAsync( async function( req, res ) {
+], wrapAsync( hasUser(async function( req, res ) {
 	const { body: { delivery_optin, delivery_line1, delivery_line2, delivery_city,
 		delivery_postcode } } = req;
 

@@ -41,7 +41,7 @@ app.post( '/', hasSchema(getResetCodeSchema).orFlash, wrapAsync( async function(
 		await mandrill.sendToMember('reset-password', member);
 	}
 
-	const passwordResetMessage = OptionsService.getText('flash-password-reset');
+	const passwordResetMessage = OptionsService.getText('flash-password-reset') || '';
 	req.flash( 'info', passwordResetMessage.replace( '%', email ) );
 
 	res.redirect( app.mountpath as string );

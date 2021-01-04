@@ -11,6 +11,14 @@ import PageSettings from '@models/PageSettings';
 
 import { createPageSchema } from './schema.json';
 
+interface CreatePageSchema {
+	pattern: string
+	shareUrl: string
+	shareTitle: string
+	shareDescription: string
+	shareImage: string
+}
+
 const app = express();
 let app_config: AppConfig;
 
@@ -32,7 +40,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	res.render( 'index', { pages } );
 } ) );
 
-function schemaToPageSettings( data ): PageSettings {
+function schemaToPageSettings( data: CreatePageSchema ): PageSettings {
 	const ps = new PageSettings();
 	ps.pattern = data.pattern;
 	ps.shareUrl = data.shareUrl;

@@ -56,6 +56,7 @@ interface Methods<T> {
 	get(id: string, params?: Record<string, unknown>): Promise<T>,
 	update(id: string, data: DeepPartial<T>):  Promise<T>,
 	remove(id: string): Promise<boolean>
+	[key: string]: any
 }
 
 interface Actions<T> {

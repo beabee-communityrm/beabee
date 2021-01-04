@@ -15,7 +15,15 @@ import EmailMailing, { EmailRecipient } from '@models/EmailMailing';
 const app = express();
 let app_config: AppConfig;
 
-function schemaToEmail(data): Email {
+interface EmailSchema {
+	name: string
+	fromName: string
+	fromEmail: string
+	subject: string
+	body: string
+}
+
+function schemaToEmail(data: EmailSchema): Email {
 	const email = new Email();
 	email.name = data.name;
 	email.fromName = data.fromName;
@@ -52,7 +60,7 @@ app.post('/', wrapAsync(async (req, res) => {
 
 app.get('/:id', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
 	const mailings = await getRepository(EmailMailing).find({
-		email: req.model
+		email: req.model as Email
 	});
 
 	res.render('email', {email: req.model, mailings});
@@ -83,7 +91,7 @@ app.post('/:id/mailings', hasNewModel2(Email, 'id'), busboy(), (req, res) => {
 		Papa.parse(file, {
 			header: true,
 			complete: function (results) {
-				recipients = results.data;
+				recipients = results.data as EmailRecipient[];
 			}
 		});
 	});
@@ -98,10 +106,13 @@ app.post('/:id/mailings', hasNewModel2(Email, 'id'), busboy(), (req, res) => {
 	req.pipe(req.busboy);
 });
 
-app.get('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+app.get('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res, next) => {
 	const email = req.model as Email;
 	const mailing = await getRepository(EmailMailing).findOne(req.params.mailingId);
-	const mergeFields = _.uniq(email.body.match(/\*\|[^|]+\|\*/g).map(f => f.substring(2, f.length - 2)));
+	if (!mailing) return next('route');
+
+	const matches = email.body.match(/\*\|[^|]+\|\*/g) || [];
+	const mergeFields = _.uniq(matches.map(f => f.substring(2, f.length - 2)));
 	res.render('mailing', {
 		email,
 		mailing,
@@ -116,9 +127,10 @@ interface SendSchema {
 	mergeFields: Record<string, string>
 }
 
-app.post('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+app.post('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res, next) => {
 	const email = req.model as Email;
 	const mailing = await getRepository(EmailMailing).findOne(req.params.mailingId);
+	if (!mailing) return next('route');
 
 	const {emailField, nameField, mergeFields}: SendSchema = req.body;
 

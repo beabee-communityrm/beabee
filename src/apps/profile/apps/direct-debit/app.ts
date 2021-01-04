@@ -24,7 +24,7 @@ const app = express();
 let app_config: AppConfig;
 
 function hasSubscription(req: Request, res: Response, next: NextFunction) {
-	if ( req.user.hasActiveSubscription ) {
+	if ( req.user?.hasActiveSubscription ) {
 		next();
 	} else {
 		req.flash( 'danger', 'contribution-doesnt-exist' );
@@ -41,7 +41,7 @@ app.use( function( req, res, next ) {
 
 app.use( auth.isLoggedIn );
 
-app.get( '/', wrapAsync( async function ( req, res ) {
+app.get( '/', wrapAsync( hasUser(async function ( req, res ) {
 	res.render( 'index', {
 		user: req.user,
 		hasPendingPayment: await PaymentService.hasPendingPayment(req.user),
@@ -49,7 +49,7 @@ app.get( '/', wrapAsync( async function ( req, res ) {
 		canChange: await PaymentService.canChangeContribution(req.user, req.user.canTakePayment),
 		monthsLeft: PaymentService.getMonthsLeftOnContribution(req.user)
 	} );
-} ) );
+} ) ) );
 
 function schemaToPaymentForm(data: UpdateSubscriptionSchema): {useMandate: boolean, paymentForm: PaymentForm} {
 	return {
@@ -63,7 +63,7 @@ function schemaToPaymentForm(data: UpdateSubscriptionSchema): {useMandate: boole
 	};
 }
 
-async function handleChangeContribution(req: Request, form: PaymentForm) {
+async function handleChangeContribution(req: RequestWithUser, form: PaymentForm) {
 	const wasGift = req.user.contributionPeriod === 'gift';
 	await PaymentService.updateContribution(req.user, form);
 	if (wasGift) {
@@ -76,7 +76,7 @@ async function handleChangeContribution(req: Request, form: PaymentForm) {
 
 app.post( '/', [
 	hasSchema(updateSubscriptionSchema).orFlash
-], wrapAsync( async ( req, res ) => {
+], wrapAsync( hasUser(async ( req, res ) => {
 	const {useMandate, paymentForm} = schemaToPaymentForm(req.body);
 
 	let redirectUrl = '/profile/direct-debit';
@@ -107,21 +107,25 @@ app.post( '/', [
 	}
 
 	res.redirect( redirectUrl );
-} ) );
+} ) ) );
 
 app.get( '/complete', [
 	hasSchema( completeFlowSchema ).orRedirect('/profile')
-], wrapAsync( async (req, res) => {
+], wrapAsync( hasUser(async (req, res) => {
 	if (await PaymentService.canChangeContribution(req.user, false)) {
-		const { customerId, mandateId, joinForm } = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id as string );
-		await PaymentService.updatePaymentMethod(req.user, customerId, mandateId);
-		await handleChangeContribution(req, joinForm);
+		const joinFlow = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id as string );
+		if (joinFlow) {
+			await PaymentService.updatePaymentMethod(req.user, joinFlow.customerId, joinFlow.mandateId);
+			await handleChangeContribution(req, joinFlow.joinForm);
+		} else {
+			req.flash('warning', 'contribution-updating-failed' );
+		}
 	} else {
 		req.flash( 'warning', 'contribution-updating-not-allowed' );
 	}
 
 	res.redirect( '/profile/direct-debit' );
-} ) );
+} ) ) );
 
 app.get( '/cancel-subscription', hasSubscription, ( req, res ) => {
 	res.render( 'cancel-subscription' );
@@ -130,7 +134,7 @@ app.get( '/cancel-subscription', hasSubscription, ( req, res ) => {
 app.post( '/cancel-subscription', [
 	hasSubscription,
 	hasSchema(cancelSubscriptionSchema).orFlash
-], wrapAsync( async ( req, res ) => {
+], wrapAsync( hasUser(async ( req, res ) => {
 	const { user, body: { satisfied, reason, other } } = req;
 
 	try {
