@@ -4,7 +4,7 @@ import { getCustomRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { hasNewModel, hasSchema } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, wrapAsync } from '@core/utils';
 
 import NoticeRepository from '@core/repositories/NoticeRepository';
 
@@ -12,7 +12,7 @@ import { createNoticeSchema } from './schemas.json';
 import Notice from '@models/Notice';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 interface NoticeSchema {
 	name: string,
@@ -84,7 +84,7 @@ app.post( '/:id', hasNewModel(NoticeRepository, 'id'), wrapAsync( async ( req, r
 
 } ) );
 
-export default function (config): express.Express {
+export default function (config: AppConfig): express.Express {
 	app_config = config;
 	return app;
 }

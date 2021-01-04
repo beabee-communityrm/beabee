@@ -3,7 +3,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import auth from '@core/authentication' ;
 import mandrill from '@core/mandrill' ;
 import{ hasSchema } from '@core/middleware' ;
-import { ContributionPeriod, PaymentForm, wrapAsync } from '@core/utils' ;
+import { AppConfig, ContributionPeriod, hasUser, PaymentForm, RequestWithUser, wrapAsync } from '@core/utils' ;
 
 import config from '@config' ;
 
@@ -21,7 +21,7 @@ interface UpdateSubscriptionSchema {
 }
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 function hasSubscription(req: Request, res: Response, next: NextFunction) {
 	if ( req.user.hasActiveSubscription ) {
@@ -154,9 +154,9 @@ app.post( '/cancel-subscription', [
 	}
 
 	res.redirect( '/profile/direct-debit' );
-} ) );
+} ) ) );
 
-export default function (config): express.Express {
+export default function (config: AppConfig): express.Express {
 	app_config = config;
 	return app;
 }

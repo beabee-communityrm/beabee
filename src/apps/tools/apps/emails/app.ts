@@ -7,13 +7,13 @@ import { getRepository } from 'typeorm';
 import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
 import { hasNewModel2 } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, wrapAsync } from '@core/utils';
 
 import Email from '@models/Email';
 import EmailMailing, { EmailRecipient } from '@models/EmailMailing';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 function schemaToEmail(data): Email {
 	const email = new Email();
@@ -155,7 +155,7 @@ app.post('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async 
 	res.redirect(req.originalUrl);
 }));
 
-export default (config): express.Express => {
+export default (config: AppConfig): express.Express => {
 	app_config = config;
 	return app;
 };

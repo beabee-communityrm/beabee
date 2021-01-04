@@ -2,13 +2,13 @@ import	express from 'express';
 import moment from 'moment';
 
 import auth from '@core/authentication';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, wrapAsync } from '@core/utils';
 import { Between, getRepository } from 'typeorm';
 import Payment from '@models/Payment';
 import { Members } from '@core/database';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -62,7 +62,7 @@ app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, re
 	} );
 } ) );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

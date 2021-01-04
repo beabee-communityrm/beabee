@@ -1,7 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 
-import { isValidNextUrl, getNextParam } from '@core/utils';
+import { isValidNextUrl, getNextParam, AppConfig, hasUser } from '@core/utils';
 
 const app = express();
 let app_config = {};
@@ -40,7 +40,7 @@ app.get( '/cancel', function( req, res ) {
 	res.redirect( '/logout' );
 } );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

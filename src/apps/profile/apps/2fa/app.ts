@@ -4,14 +4,14 @@ import base32 from 'thirty-two';
 import querystring from 'querystring';
 
 import auth from '@core/authentication';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, hasUser, wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -92,9 +92,9 @@ app.post( '/disable', auth.isLoggedIn, wrapAsync( async function( req, res ) {
 		req.flash( 'warning', '2fa-unable-to-disable' );
 		res.redirect( '/profile/2fa/disable' );
 	}
-} ) );
+} ) ) );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

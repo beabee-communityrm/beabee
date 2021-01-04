@@ -3,8 +3,8 @@ import express, { Request, Response } from 'express';
 import auth from '@core/authentication' ;
 import { Members } from '@core/database' ;
 import mandrill from '@core/mandrill' ;
-import { hasModel, hasSchema } from '@core/middleware' ;
-import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
+import { hasSchema } from '@core/middleware' ;
+import { AppConfig, ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
@@ -176,7 +176,7 @@ app.get('/invalid-direct-debit', (req, res) => {
 	res.render('invalid-direct-debit');
 });
 
-export default function(config): express.Express {
+export default function(config: AppConfig): express.Express {
 	app_config = config;
 	return app;
 }

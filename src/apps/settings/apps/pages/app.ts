@@ -3,7 +3,7 @@ import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { hasNewModel2, hasSchema } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, wrapAsync } from '@core/utils';
 
 import PageSettingsService from '@core/services/PageSettingsService';
 
@@ -12,7 +12,7 @@ import PageSettings from '@models/PageSettings';
 import { createPageSchema } from './schema.json';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -71,7 +71,7 @@ app.post( '/:id', hasNewModel2(PageSettings, 'id'), wrapAsync( async ( req, res 
 	}
 } ) );
 
-export default function (config): express.Express {
+export default function (config: AppConfig): express.Express {
 	app_config = config;
 	return app;
 }

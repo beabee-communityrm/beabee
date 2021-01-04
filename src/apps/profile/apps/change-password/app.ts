@@ -2,14 +2,14 @@ import	express from 'express';
 
 import auth from '@core/authentication';
 import { hasSchema } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, hasUser, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
 import { changePasswordSchema } from './schemas.json';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -60,9 +60,9 @@ app.post( '/', [
 
 	req.flash( 'success', 'password-changed' );
 	res.redirect('/profile/change-password');
-} ) );
+} ) ) );
 
-export default function ( config ): express.Express {
+export default function ( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

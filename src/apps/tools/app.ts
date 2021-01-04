@@ -1,7 +1,8 @@
+import { AppConfig } from '@core/utils';
 import express from 'express';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -13,7 +14,7 @@ app.use( function( req, res, next ) {
 	next();
 } );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

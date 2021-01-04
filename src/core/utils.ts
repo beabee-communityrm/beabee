@@ -16,6 +16,14 @@ export interface PaymentForm {
     prorate: boolean;
 }
 
+export interface AppConfig {
+	title: string
+	path: string
+	permissions?: string[]
+	menu?: string
+	priority?: number
+}
+
 interface Param {
 	name: string,
 	label: string,

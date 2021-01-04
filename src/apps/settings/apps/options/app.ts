@@ -1,12 +1,12 @@
 import express from 'express';
 
 import auth from '@core/authentication';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -62,7 +62,7 @@ app.post( '/:key/reset', wrapAsync(async function( req, res ) {
 	res.redirect('/settings/options');
 } ) );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }
