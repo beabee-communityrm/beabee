@@ -9,7 +9,7 @@ var apps = [];
 
 var git = '';
 try {
-	git = require('fs').readFileSync( __dirname + '/../../revision.txt' ).toString();
+	git = require('fs').readFileSync( __dirname + '/../revision.txt' ).toString();
 } catch (e) {
 	require('git-rev').short( str => git = str );
 }
