@@ -46,7 +46,7 @@
     "mandrill-api": "^1.0.45",
     "module-alias": "^2.2.2",
     "moment": "^2.29.1",
-    "mongoose": "^5.10.9",
+    "mongoose": "^5.11.7",
     "notp": "^2.0.3",
     "papaparse": "^5.3.0",
     "passport": "^0.4.1",
