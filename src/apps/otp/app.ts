@@ -1,7 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 
-import { isValidNextUrl, getNextParam } from '@core/utils';
+import { isValidNextUrl, getNextParam, AppConfig, hasUser } from '@core/utils';
 
 const app = express();
 let app_config = {};
@@ -13,7 +13,7 @@ app.use( function( req, res, next ) {
 	next();
 } );
 
-app.get( '/' , function( req, res ) {
+app.get( '/' , hasUser(function( req, res ) {
 	if ( ! req.user.otp.activated ) {
 		req.flash( 'warning', '2fa-unnecessary' );
 		res.redirect( '/profile/2fa' );
@@ -23,7 +23,7 @@ app.get( '/' , function( req, res ) {
 	} else {
 		res.render( 'index' );
 	}
-} );
+} ) );
 
 app.post( '/',function ( req, res ) {
 	const nextParam = req.query.next as string;
@@ -40,7 +40,7 @@ app.get( '/cancel', function( req, res ) {
 	res.redirect( '/logout' );
 } );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

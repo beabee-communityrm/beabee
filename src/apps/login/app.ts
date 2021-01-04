@@ -2,10 +2,10 @@ import express from 'express';
 import passport from 'passport';
 
 import { Members } from '@core/database';
-import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
+import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync, AppConfig } from '@core/utils';
 
 const app = express();
-let app_config = {};
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -50,7 +50,7 @@ app.post( '/', (req, res) => {
 	} );
 } );
 
-export default function (config): express.Express {
+export default function (config: AppConfig): express.Express {
 	app_config = config;
 	return app;
 }

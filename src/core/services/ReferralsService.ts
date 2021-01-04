@@ -18,7 +18,7 @@ export default class ReferralsService {
 		const gift = <ReferralGift>await ReferralGifts.findOne({name: referralGift});
 		if (gift && gift.enabled && gift.minAmount <= amount) {
 			const stockRef = _.values(referralGiftOptions).join('/');
-			return !gift.stock || gift.stock.get(stockRef) > 0;
+			return ReferralsService.hasStock(gift, stockRef);
 		}
 		return false;
 	}
@@ -27,15 +27,15 @@ export default class ReferralsService {
 		const gift = <ReferralGift>await ReferralGifts.findOne({name: referralGift});
 		if (gift) {
 			const stockRef = _.values(referralGiftOptions).join('/');
-			if (gift.stock && gift.stock.get(stockRef) > 0) {
+			if (ReferralsService.hasStock(gift, stockRef)) {
 				await gift.update({$inc: {['stock.' + stockRef]: -1}});
 			}
 		}
 	}
 
-	static async createReferral(referrer: Member, member: Member, joinForm: JoinForm): Promise<void> {
+	static async createReferral(referrer: Member|null, member: Member, joinForm: JoinForm): Promise<void> {
 		await Referrals.create({
-			referrer: referrer._id,
+			referrer: referrer?._id,
 			referee: member._id,
 			refereeGift: joinForm.referralGift,
 			refereeGiftOptions: joinForm.referralGiftOptions,
@@ -48,5 +48,10 @@ export default class ReferralsService {
 			refereeName: member.firstname,
 			isEligible: joinForm.amount >= 3
 		});
+	}
+
+	private static hasStock(gift: ReferralGift, stockRef: string): boolean {
+		const stock = gift.stock?.get(stockRef);
+		return stock === undefined ? true : stock > 0;
 	}
 }

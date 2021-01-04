@@ -3,7 +3,7 @@ import { Customer, CustomerBankAccount, CustomerCurrency, PaymentCurrency, Subsc
 
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
-import { getChargeableAmount, cleanEmailAddress, ContributionPeriod, PaymentForm } from  '@core/utils';
+import { cleanEmailAddress, ContributionPeriod, getActualAmount, PaymentForm } from  '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
@@ -13,6 +13,11 @@ import { Member, PartialMember } from '@models/members';
 import { getRepository } from 'typeorm';
 import Payment from '@models/Payment';
 
+function getChargeableAmount(amount: number, period: ContributionPeriod, payFee: boolean): number {
+	const actualAmount = getActualAmount(amount, period);
+	return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
+}
+
 export default class PaymentService {
 	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<PartialMember|null> {
 		const customer = {
@@ -20,10 +25,10 @@ export default class PaymentService {
 			...overrides
 		};
 
-		return customer.given_name === '' || customer.family_name === '' ? null : {
+		return !customer.given_name || !customer.family_name ? null : {
 			firstname: customer.given_name,
 			lastname: customer.family_name,
-			email: cleanEmailAddress(customer.email),
+			email: cleanEmailAddress(customer.email || ''),
 			delivery_optin: false,
 			delivery_address: {
 				line1: customer.address_line1,
@@ -121,11 +126,13 @@ export default class PaymentService {
 			}
 		} );
 
-		await gocardless.subscriptions.cancel( member.gocardless.subscription_id );
+		if (member.gocardless.subscription_id) {
+			await gocardless.subscriptions.cancel( member.gocardless.subscription_id );
 
-		member.gocardless.subscription_id = undefined;
-		member.gocardless.cancelled_at = new Date();
-		await member.save();
+			member.gocardless.subscription_id = undefined;
+			member.gocardless.cancelled_at = new Date();
+			await member.save();
+		}
 	}
 
 	private static async createSubscription(member: Member, paymentForm: PaymentForm,  startDate?: string): Promise<void> {
@@ -139,9 +146,14 @@ export default class PaymentService {
 			}
 		} );
 
+		if (!member.gocardless.mandate_id) {
+			return;
+		}
+
 		if (startDate) {
 			const mandate = await gocardless.mandates.get(member.gocardless.mandate_id);
-			if (startDate < mandate.next_possible_charge_date) {
+			// next_possible_charge_date will always have a value as this is an active mandate
+			if (startDate < mandate.next_possible_charge_date!) {
 				startDate = mandate.next_possible_charge_date;
 			}
 		}
@@ -167,6 +179,10 @@ export default class PaymentService {
 	private static async updateSubscription(user: Member, paymentForm: PaymentForm): Promise<void> {
 		// Don't update if the amount isn't actually changing
 		if (paymentForm.amount === user.contributionMonthlyAmount && paymentForm.payFee === user.gocardless.paying_fee) {
+			return;
+		}
+
+		if (!user.gocardless.subscription_id) {
 			return;
 		}
 
@@ -227,6 +243,10 @@ export default class PaymentService {
 	}
 
 	private static async activateContribution(member: Member, paymentForm: PaymentForm, startNow: boolean): Promise<void> {
+		if (!member.gocardless.subscription_id) {
+			return;
+		}
+
 		const subscription = await gocardless.subscriptions.get(member.gocardless.subscription_id);
 		const futurePayments = await gocardless.payments.list({
 			subscription: subscription.id,

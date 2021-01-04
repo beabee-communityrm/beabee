@@ -3,8 +3,8 @@ import express, { Request, Response } from 'express';
 import auth from '@core/authentication' ;
 import { Members } from '@core/database' ;
 import mandrill from '@core/mandrill' ;
-import { hasModel, hasSchema } from '@core/middleware' ;
-import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
+import { hasSchema } from '@core/middleware' ;
+import { AppConfig, ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
@@ -15,7 +15,6 @@ import ReferralsService from '@core/services/ReferralsService';
 
 import { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
-import RestartFlow from '@models/RestartFlow';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 
@@ -57,7 +56,7 @@ app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 
 function schemaToJoinForm(data: JoinSchema): JoinForm {
 	return {
-		amount: data.amount === 'other' ? parseInt(data.amountOther) : parseInt(data.amount),
+		amount: data.amount === 'other' ? parseInt(data.amountOther || '') : parseInt(data.amount),
 		period: data.period,
 		referralCode: data.referralCode,
 		referralGift: data.referralGift,
@@ -113,6 +112,16 @@ app.get( '/complete', [
 	hasSchema(completeSchema).orRedirect( '/join' )
 ], wrapAsync(async function( req, res ) {
 	const joinFlow = await JoinFlowService.completeJoinFlow(req.query.redirect_flow_id as string);
+	if (!joinFlow) {
+		req.log.error({
+			app: 'join',
+			action: 'no-join-flow',
+			data: {
+				redirectFlowId: req.query.redirect_flow_id
+			}
+		}, 'Customer join flow not found');
+		return res.redirect( app.mountpath + '/complete/failed');
+	}
 
 	const partialMember = await PaymentService.customerToMember(joinFlow.customerId);
 	if (!partialMember) {
@@ -132,18 +141,33 @@ app.get( '/complete', [
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
 			const oldMember = await Members.findOne({email: partialMember.email});
-			if (oldMember.isActiveMember) {
-				res.redirect( app.mountpath + '/duplicate-email' );
+			if (oldMember) {
+				if (oldMember.isActiveMember) {
+					res.redirect( app.mountpath + '/duplicate-email' );
+				} else {
+					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
+					await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
+					res.redirect( app.mountpath + '/expired-member' );
+				}
 			} else {
-				const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-				await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
-				res.redirect( app.mountpath + '/expired-member' );
+				req.log.error({
+					app: 'join',
+					action: 'no-old-member-found',
+					data: {
+						partialMember
+					}
+				}, 'Old member not found');
+				res.redirect( app.mountpath + '/complete/failed');
 			}
 		} else {
 			throw saveError;
 		}
 	}
 }));
+
+app.get('/complete/failed', (req, res) => {
+	res.render('complete-failed');
+});
 
 app.get('/restart/failed', (req, res) => {
 	res.render('restart-failed');
@@ -153,15 +177,17 @@ app.get('/restart/:id', wrapAsync(async (req, res, next) => {
 	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
 	if (restartFlow) {
 		const member = await Members.findById(restartFlow.memberId);
-		if (member.isActiveMember || !await PaymentService.canChangeContribution(member, false)) {
-			res.redirect( app.mountpath + '/restart/failed' );
-		} else {
-			await handleJoin(req, res, member, restartFlow);
+		if (member) {
+			if (member.isActiveMember || !await PaymentService.canChangeContribution(member, false)) {
+				res.redirect( app.mountpath + '/restart/failed' );
+			} else {
+				await handleJoin(req, res, member, restartFlow);
+			}
+			return;
 		}
-
-	} else {
-		next('route');
 	}
+
+	next('route');
 }));
 
 app.get('/expired-member', (req, res) => {
@@ -176,7 +202,7 @@ app.get('/invalid-direct-debit', (req, res) => {
 	res.render('invalid-direct-debit');
 });
 
-export default function(config): express.Express {
+export default function(config: AppConfig): express.Express {
 	app_config = config;
 	return app;
 }

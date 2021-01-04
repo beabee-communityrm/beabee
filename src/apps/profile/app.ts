@@ -2,11 +2,11 @@ import express from 'express';
 import { getCustomRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import { wrapAsync } from '@core/utils';
+import { AppConfig, wrapAsync } from '@core/utils';
 import NoticeRespository from '@core/repositories/NoticeRepository';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -26,7 +26,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	res.render( 'index', { user: req.user, notices } );
 } ) );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

@@ -4,20 +4,20 @@ import { JoinForm } from '@models/JoinFlow';
 @Entity()
 export default class RestartFlow {
 	@PrimaryGeneratedColumn('uuid')
-	id: string;
+	id!: string;
 
 	@CreateDateColumn()
-	date: Date;
+	date!: Date;
 
 	@Column()
-	memberId: string;
+	memberId!: string;
 
 	@Column()
-	customerId: string;
+	customerId!: string;
 
 	@Column()
-	mandateId: string;
+	mandateId!: string;
 
 	@Column(type => JoinForm)
-	joinForm: JoinForm;
+	joinForm!: JoinForm;
 }

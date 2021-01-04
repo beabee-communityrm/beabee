@@ -2,15 +2,14 @@ import express from 'express';
 
 import auth from '@core/authentication';
 import { hasSchema } from '@core/middleware';
-import { cleanEmailAddress, wrapAsync } from '@core/utils';
+import { AppConfig, cleanEmailAddress, hasUser, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
 import { updateSchema } from './schemas.json';
-import { Member } from '@models/members';
 
 const app = express();
-let app_config;
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -26,7 +25,7 @@ app.get( '/', auth.isLoggedIn, function( req, res ) {
 app.post( '/', [
 	auth.isLoggedIn,
 	hasSchema(updateSchema).orFlash
-], wrapAsync( async function( req, res ) {
+], wrapAsync( hasUser(async function( req, res ) {
 	const { body: { email, firstname, lastname } } = req;
 	const cleanedEmail = cleanEmailAddress(email);
 
@@ -46,9 +45,9 @@ app.post( '/', [
 	}
 
 	res.redirect( '/profile/account');
-} ) );
+} ) ) );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

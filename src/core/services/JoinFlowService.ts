@@ -36,21 +36,23 @@ export default class JoinFlowService {
 		return redirectFlow.redirect_url;
 	}
 
-	static async completeJoinFlow(redirectFlowId: string): Promise<CompletedJoinFlow> {
+	static async completeJoinFlow(redirectFlowId: string): Promise<CompletedJoinFlow|undefined> {
 		const joinFlowRepository = getRepository(JoinFlow);
 		const joinFlow = await joinFlowRepository.findOne({redirectFlowId});
 
-		const redirectFlow = await gocardless.redirectFlows.complete(redirectFlowId, {
-			session_token: joinFlow.sessionToken
-		});
+		if (joinFlow) {
+			const redirectFlow = await gocardless.redirectFlows.complete(redirectFlowId, {
+				session_token: joinFlow.sessionToken
+			});
 
-		await joinFlowRepository.delete(joinFlow.id);
+			await joinFlowRepository.delete(joinFlow.id);
 
-		return {
-			customerId: redirectFlow.links.customer,
-			mandateId: redirectFlow.links.mandate,
-			joinForm: joinFlow.joinForm
-		};
+			return {
+				customerId: redirectFlow.links.customer,
+				mandateId: redirectFlow.links.mandate,
+				joinForm: joinFlow.joinForm
+			};
+		}
 	}
 
 	static async createRestartFlow(member: Member, completedJoinFlow: CompletedJoinFlow): Promise<RestartFlow> {
@@ -65,13 +67,12 @@ export default class JoinFlowService {
 		return restartFlow;
 	}
 
-	static async completeRestartFlow(restartFlowId: string): Promise<RestartFlow> {
+	static async completeRestartFlow(restartFlowId: string): Promise<RestartFlow|undefined> {
 		const restartFlowRepository = getRepository(RestartFlow);
 		const restartFlow = await restartFlowRepository.findOne(restartFlowId);
-
-		await restartFlowRepository.delete(restartFlow.id);
-
-		return restartFlow;
+		if (restartFlow) {
+			await restartFlowRepository.delete(restartFlow.id);
+			return restartFlow;
+		}
 	}
-
 }

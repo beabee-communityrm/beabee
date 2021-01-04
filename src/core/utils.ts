@@ -1,4 +1,4 @@
-import { Request, RequestHandler, Response } from 'express';
+import { NextFunction, Request, RequestHandler, Response } from 'express';
 import _ from 'lodash';
 
 import { Member } from '@models/members';
@@ -16,6 +16,14 @@ export interface PaymentForm {
     prorate: boolean;
 }
 
+export interface AppConfig {
+	title: string
+	path: string
+	permissions?: string[]
+	menu?: string
+	priority?: number
+}
+
 interface Param {
 	name: string,
 	label: string,
@@ -27,7 +35,7 @@ interface Item {
 	getParams?: () => Promise<Param[]>
 }
 
-type ParamValue = number|boolean|string;
+type ParamValue = number|boolean|string|undefined;
 
 export function isValidNextUrl(url: string): boolean {
 	return /^\/([^/]|$)/.test(url);
@@ -41,14 +49,9 @@ export function getParamValue(s: string, param: Param): ParamValue {
 	switch (param.type) {
 	case 'number': return Number(s);
 	case 'boolean': return s === 'true';
-	case 'select': return param.values.map(([k]) => k).find(k => s === k);
+	case 'select': return param.values?.map(([k]) => k).find(k => s === k);
 	default: return s;
 	}
-}
-
-export function getChargeableAmount(amount: number, period: ContributionPeriod, payFee: boolean): number {
-	const actualAmount = getActualAmount(amount, period);
-	return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
 }
 
 export function wrapAsync(fn: RequestHandler): RequestHandler {
@@ -61,8 +64,22 @@ export function wrapAsync(fn: RequestHandler): RequestHandler {
 	};
 }
 
+export interface RequestWithUser extends Request {
+	user: Member
+}
+
+export function hasUser(fn: (req: RequestWithUser, res: Response, next: NextFunction) => void|Promise<void>): RequestHandler {
+	return (req, res, next) => {
+		if (req.user) {
+			return fn(req as RequestWithUser, res, next);
+		} else {
+			next();
+		}
+	};
+}
+
 export function isSocialScraper(req: Request): boolean {
-	return /^(Twitterbot|facebookexternalhit)/.test(req.headers['user-agent']);
+	return /^(Twitterbot|facebookexternalhit)/.test(req.headers['user-agent'] || '');
 }
 
 export function getNextParam(url: string): string {

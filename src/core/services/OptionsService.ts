@@ -1,7 +1,9 @@
-import defaultOptions from '@core/defaults.json';
+import _defaultOptions from '@core/defaults.json';
 import Option from '@models/Option';
 import { NextFunction, Request, Response } from 'express';
 import { getRepository } from 'typeorm';
+
+const defaultOptions: {[key: string]: string} = _defaultOptions;
 
 interface OptionWithDefault extends Option {
 	default: boolean;
@@ -24,20 +26,20 @@ export default class OptionsService {
 		});
 	}
 
-	static get(key: string): OptionWithDefault {
+	static get(key: string): OptionWithDefault|undefined {
 		return OptionsService.optionCache[key];
 	}
 
-	static getText(key: string): string {
+	static getText(key: string): string|undefined {
 		return OptionsService.get(key)?.value;
 	}
 
-	static getInt(key: string): number {
+	static getInt(key: string): number|undefined {
 		const option = OptionsService.get(key);
 		return option && parseInt(option.value);
 	}
 
-	static getBool(key: string): boolean {
+	static getBool(key: string): boolean|undefined {
 		switch (OptionsService.get(key)?.value) {
 		case 'true': return true;
 		case 'false': return false;

@@ -15,10 +15,10 @@ export default class Payment {
 	];
 
 	@PrimaryGeneratedColumn('uuid')
-	id: string
+	id!: string
 
 	@Column({unique: true})
-	paymentId: string
+	paymentId!: string
 
 	@Column({nullable: true})
 	subscriptionId?: string
@@ -30,25 +30,25 @@ export default class Payment {
 	memberId?: string
 
 	@Column()
-	status: string
+	status!: string
 
 	@Column()
-	description: string
+	description!: string
 
 	@Column({type: 'real'})
-	amount: number
+	amount!: number
 
 	@Column({type: 'real', nullable: true})
-	amountRefunded: number
+	amountRefunded!: number
 
 	@Column({type: 'date'})
-	chargeDate: Date
+	chargeDate!: Date
 
 	@CreateDateColumn()
-	createdAt: Date
+	createdAt!: Date
 
 	@UpdateDateColumn()
-	updatedAt: Date
+	updatedAt!: Date
 
 	get isPending(): boolean {
 		return Payment.pendingStatuses.indexOf(this.status) > -1;

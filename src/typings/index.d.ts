@@ -12,6 +12,10 @@ declare global {
 	}
 }
 
+declare module 'papaparse' {
+	interface File {}
+}
+
 declare module 'express-session' {
 	interface SessionData {
 		method?: 'plain' | 'totp';

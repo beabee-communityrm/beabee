@@ -5,7 +5,7 @@ import { Members } from '@core/database';
 import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
 import { hasSchema } from '@core/middleware';
-import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
+import { AppConfig, cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
@@ -41,7 +41,7 @@ app.post( '/', hasSchema(getResetCodeSchema).orFlash, wrapAsync( async function(
 		await mandrill.sendToMember('reset-password', member);
 	}
 
-	const passwordResetMessage = OptionsService.getText('flash-password-reset');
+	const passwordResetMessage = OptionsService.getText('flash-password-reset') || '';
 	req.flash( 'info', passwordResetMessage.replace( '%', email ) );
 
 	res.redirect( app.mountpath as string );
@@ -77,7 +77,7 @@ app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash,
 	}
 } ) );
 
-export default function( config ): express.Express {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
 }

@@ -30,10 +30,10 @@ export default class PaymentWebhookService {
 		}
 
 		payment.status = gcPayment.status;
-		payment.description = gcPayment.description;
+		payment.description = gcPayment.description || 'Unknown';
 		payment.amount = Number(gcPayment.amount) / 100;
 		payment.amountRefunded = Number(gcPayment.amount_refunded) / 100;
-		payment.chargeDate = new Date(gcPayment.charge_date);
+		payment.chargeDate = moment.utc(gcPayment.charge_date).toDate();
 
 		await getRepository(Payment).save(payment);
 
@@ -53,7 +53,7 @@ export default class PaymentWebhookService {
 		if (payment.memberId && payment.subscriptionId) {
 			const member = await Members.findById(payment.memberId);
 			// Ignore if the member has a new subscription as this will be for an old payment
-			if (!member.gocardless.subscription_id || member.gocardless.subscription_id === payment.subscriptionId) {
+			if (member && (!member.gocardless.subscription_id || member.gocardless.subscription_id === payment.subscriptionId)) {
 				const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
 
 				log.info({
@@ -143,10 +143,14 @@ export default class PaymentWebhookService {
 	}
 
 	private static async calcPaymentExpiryDate(payment: Payment): Promise<Moment> {
-		const subscription = await gocardless.subscriptions.get(payment.subscriptionId);
-		return subscription.upcoming_payments.length > 0 ?
-			moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod) :
-			moment.utc(payment.chargeDate).add(PaymentWebhookService.getSubscriptionDuration(subscription));
+		if (payment.subscriptionId) {
+			const subscription = await gocardless.subscriptions.get(payment.subscriptionId);
+			return subscription.upcoming_payments.length > 0 ?
+				moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod) :
+				moment.utc(payment.chargeDate).add(PaymentWebhookService.getSubscriptionDuration(subscription));
+		} else {
+			return moment.utc();
+		}
 	}
 
 	private static async createPayment(gcPayment: GCPayment): Promise<Payment> {
@@ -181,7 +185,7 @@ export default class PaymentWebhookService {
 		return payment;
 	}
 
-	private static getSubscriptionPeriod(subscription: Subscription): ContributionPeriod|null {
+	private static getSubscriptionPeriod(subscription: Subscription): ContributionPeriod|undefined {
 		const interval = Number(subscription.interval);
 		const intervalUnit = subscription.interval_unit;
 		if (interval === 12 && intervalUnit === SubscriptionIntervalUnit.Monthly ||
@@ -194,7 +198,7 @@ export default class PaymentWebhookService {
 			action: 'get-subscription-period',
 			data: { interval, intervalUnit }
 		}, 'Unrecognised subscription period');
-		return null;
+		return;
 	}
 
 	private static getSubscriptionDuration({interval, interval_unit}: Subscription) {
