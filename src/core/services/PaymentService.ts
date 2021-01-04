@@ -233,7 +233,7 @@ export default class PaymentService {
 			'charge_date[gte]': moment.utc().format('YYYY-MM-DD')
 		});
 		const nextChargeDate = moment.utc(
-			futurePayments ?
+			futurePayments.length > 0 ?
 				futurePayments.map(p => p.charge_date).sort()[0] :
 				subscription.upcoming_payments[0].charge_date
 		).add(config.gracePeriod);
