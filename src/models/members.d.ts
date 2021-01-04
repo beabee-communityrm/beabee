@@ -18,7 +18,7 @@ interface Member extends PartialMember, Document {
 	referralCode: string,
 	pollsCode: string
 	giftCode?: string,
-	gocardless?: {
+	gocardless: {
 		customer_id?: string,
 		mandate_id?: string,
 		subscription_id?: string,
@@ -28,23 +28,23 @@ interface Member extends PartialMember, Document {
 		next_amount?: number
 		cancelled_at?: Date
 	},
-	memberPermission?: {
+	memberPermission: {
 		date_added: Date,
 		date_expires: Date
 	},
-	otp?: {
-		key: string,
-		activated: boolean
+	otp: {
+		key?: string,
+		activated?: boolean
 	},
-	loginOverride?: {
-		code: string,
-		expires: Date
+	loginOverride: {
+		code?: string,
+		expires?: Date
 	},
-	password?: {
+	password: {
 		hash: string,
 		salt: string,
 		iterations: number,
-		reset_code: string,
+		reset_code?: string,
 		tries: number
 	},
 	readonly isActiveMember: boolean,
@@ -52,7 +52,7 @@ interface Member extends PartialMember, Document {
 	readonly canTakePayment: boolean,
 	readonly contributionPeriod: ContributionPeriod
 	readonly contributionMonthlyAmount: number
-	readonly fullname
+	readonly fullname: string
 }
 
 export const model: Model<Member>;

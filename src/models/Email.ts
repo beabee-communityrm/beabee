@@ -3,23 +3,23 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 @Entity()
 export default class Email {
     @PrimaryGeneratedColumn('uuid')
-    id: string
+    id!: string
 
     @CreateDateColumn()
-    date: Date;
+    date!: Date;
 
     @Column()
-    name: string;
+    name!: string;
 
     @Column()
-    fromName: string
+    fromName!: string
 
     @Column()
-    fromEmail: string
+    fromEmail!: string
 
     @Column()
-    subject: string
+    subject!: string
 
     @Column({type: 'text'})
-    body: string
+    body!: string
 }

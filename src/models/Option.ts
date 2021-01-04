@@ -3,8 +3,8 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 @Entity()
 export default class Option {
     @PrimaryColumn()
-    key: string;
+    key!: string;
 
     @Column()
-    value: string;
+    value!: string;
 }

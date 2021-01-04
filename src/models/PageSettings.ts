@@ -4,20 +4,20 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export default class PageSettings {
 
     @PrimaryGeneratedColumn('uuid')
-    id: string
+    id!: string
 
     @Column()
-    pattern: string
+    pattern!: string
 
     @Column()
-    shareUrl: string
+    shareUrl!: string
 
     @Column()
-    shareTitle: string
+    shareTitle!: string
 
     @Column()
-    shareDescription: string
+    shareDescription!: string
 
     @Column()
-    shareImage: string
+    shareImage!: string
 }

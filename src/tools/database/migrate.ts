@@ -1,6 +1,7 @@
 import 'module-alias/register';
 
-import mongoose, { Document } from 'mongoose';
+import { Document } from 'bson';
+import mongoose  from 'mongoose';
 import { ConnectionOptions, EntityTarget, getRepository } from 'typeorm';
 
 import config from '@config';
@@ -21,7 +22,6 @@ type WritableKeysOf<T> = {
 
 type Mapping<T> = Record<Exclude<WritableKeysOf<T>,'id'>, (doc: Document) => any>;
 
-
 interface Migration<T> {
 	model: EntityTarget<T>,
 	collection: string,
@@ -34,7 +34,7 @@ function createMigration<T>(model: EntityTarget<T>, collection: string, mapping:
 }
 
 function copy(field: string) {
-	return (doc: Document) => doc[field];
+	return (doc: Document)=> doc[field];
 }
 
 function objectId(field: string) {
@@ -72,7 +72,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	const mdb = mongoose.connection.db;
 
 	for (const migration of migrations) {
-		let items = [];
+		let items: Document[] = [];
 		console.log('Migrating ' + migration.collection);
 		const repo = getRepository(migration.model);
 		const collection = mdb.collection(migration.collection);
@@ -80,7 +80,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 		while (await cursor.hasNext()) {
 			process.stdout.write('.');
 			const doc = await cursor.next();
-			const item = {};
+			const item: Document = {};
 			for (const key in migration.mapping) {
 				item[key] = migration.mapping[key](doc);
 			}

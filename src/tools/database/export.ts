@@ -8,7 +8,7 @@ import * as db from '@core/database';
 import exportTypes, { ModelData, ModelExporter, Properties } from './types';
 
 // Anonymise properties but maintain same mapping to keep links
-const valueMap = {};
+const valueMap: {[key: string]: unknown} = {};
 function anonymiseProperties(item: Document, properties: Properties): Document {
 	const newItem = deserialize(serialize(item));
 
@@ -19,8 +19,9 @@ function anonymiseProperties(item: Document, properties: Properties): Document {
 			if (_.isArray(value)) {
 				newValue = value.map(valueItem => anonymiseProperties(valueItem, anonymiseFn() as Properties));
 			} else {
-				newValue = valueMap[value] || anonymiseFn();
-				valueMap[value] = newValue;
+				const sValue = value + '';
+				newValue = valueMap[sValue] || anonymiseFn();
+				valueMap[sValue] = newValue;
 			}
 			_.set(newItem, property, newValue);
 		}

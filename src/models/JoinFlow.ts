@@ -3,16 +3,16 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
 
 export class JoinForm implements PaymentForm {
     @Column()
-    amount: number;
+    amount!: number;
 
     @Column()
-    period: ContributionPeriod;
+    period!: ContributionPeriod;
 
     @Column()
-    payFee: boolean;
+    payFee!: boolean;
 
     @Column({default: false})
-    prorate: boolean;
+    prorate!: boolean;
 
     @Column({nullable: true})
     referralCode?: string;
@@ -27,17 +27,17 @@ export class JoinForm implements PaymentForm {
 @Entity()
 export default class JoinFlow {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @CreateDateColumn()
-    date: Date;
+    date!: Date;
 
     @Column()
-    redirectFlowId: string;
+    redirectFlowId!: string;
 
     @Column()
-    sessionToken: string;
+    sessionToken!: string;
 
     @Column(type => JoinForm)
-    joinForm: JoinForm;
+    joinForm!: JoinForm;
 }

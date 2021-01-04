@@ -6,19 +6,19 @@ export type EmailRecipient = Record<string, string>;
 @Entity()
 export default class EmailMailing {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     @ManyToOne(() => Email)
-    email: Email;
+    email!: Email;
 
     @CreateDateColumn()
-    createdDate: Date;
+    createdDate!: Date;
 
     @Column({nullable: true})
     sentDate?: Date;
 
     @Column({type: 'jsonb'})
-    recipients: EmailRecipient[];
+    recipients!: EmailRecipient[];
 
     @Column({nullable: true})
     emailField?: string

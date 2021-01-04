@@ -4,25 +4,25 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateCol
 @Entity()
 export default class Notice {
 	@PrimaryGeneratedColumn('uuid')
-	id: string;
+	id!: string;
 
 	@CreateDateColumn()
-	createdAt: Date;
+	createdAt!: Date;
 
 	@UpdateDateColumn()
-	updatedAt: Date;
+	updatedAt!: Date;
 
 	@Column()
-	name: string;
+	name!: string;
 
 	@Column({nullable: true})
 	expires?: Date;
 
 	@Column()
-	enabled: boolean;
+	enabled!: boolean;
 
 	@Column()
-	text: string;
+	text!: string;
 
 	@Column({nullable: true})
 	url?: string;
