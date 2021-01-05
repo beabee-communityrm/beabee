@@ -1,21 +1,22 @@
-const express = require( 'express' );
-const moment = require( 'moment' );
+import express from 'express';
+import moment from 'moment';
 
-const config = require( '@config' );
+import config from '@config';
 
-const { GiftFlows, Members } = require( '@core/database' );
-const { hasModel, hasSchema } = require( '@core/middleware' );
-const stripe = require( '@core/stripe' );
-const { loginAndRedirect, wrapAsync } = require( '@core/utils' );
+import { GiftFlows, Members } from '@core/database';
+import { hasModel, hasSchema } from '@core/middleware';
+import stripe from '@core/stripe';
+import { AppConfig, loginAndRedirect, wrapAsync } from '@core/utils';
 
-const { default: MembersService } = require( '@core/services/MembersService' );
-const { default: OptionsService } = require('@core/services/OptionsService');
+import MembersService from '@core/services/MembersService';
+import OptionsService from '@core/services/OptionsService';
 
-const { processGiftFlow } = require('./utils');
-const { createGiftSchema, updateGiftAddressSchema } = require( './schema.json' );
+import { processGiftFlow } from './utils';
+import { createGiftSchema, updateGiftAddressSchema } from './schema.json';
+import { GiftFlow } from '@models/gift-flows';
 
 const app = express();
-var app_config = {};
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -28,18 +29,17 @@ app.get( '/', ( req, res ) => {
 	res.render( 'index', {stripePublicKey: config.stripe.public_key} );
 } );
 
-async function createGiftFlow(giftForm, member) {
+async function createGiftFlow(giftForm: GiftFlow['giftForm']): Promise<GiftFlow> {
 	try {
 		return await GiftFlows.create({
 			sessionId: 'UNKNOWN',
 			setupCode: MembersService.generateMemberCode(giftForm),
-			giftForm,
-			member
+			giftForm
 		});
 	} catch (saveError) {
 		const {code, message} = saveError;
 		if (code === 11000 && message.indexOf('setupCode') > -1) {
-			return await createGiftFlow(giftForm, member);
+			return await createGiftFlow(giftForm);
 		}
 		throw saveError;
 	}
@@ -61,7 +61,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	if (error) {
 		res.status(400).send([OptionsService.getText(error)]);
 	} else {
-		const giftFlow = await createGiftFlow(req.body, req.user);
+		const giftFlow = await createGiftFlow(req.body);
 		const isAnnual = req.body.type === '12';
 
 		const session = await stripe.checkout.sessions.create({
@@ -83,32 +83,39 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	}
 } ) );
 
-app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req, res ) => {
-	if (req.model.completed) {
-		if (!req.model.processed) {
-			await processGiftFlow(req.model, true);
+app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req, res, next ) => {
+	const giftFlow = req.model as GiftFlow;
+
+	if (giftFlow.completed) {
+		if (!giftFlow.processed) {
+			await processGiftFlow(giftFlow, true);
 		}
 
 		const member = await Members.findOne({giftCode: req.params.setupCode});
-		// Effectively expire this link once the member is set up
-		if (member.setupComplete) {
-			res.redirect('/login');
+		if (member) {
+			// Effectively expire this link once the member is set up
+			if (member.setupComplete) {
+				res.redirect('/login');
+			} else {
+				loginAndRedirect(req, res, member);
+			}
 		} else {
-			loginAndRedirect(req, res, member);
+			next('route');
 		}
 	} else {
-		res.redirect('/gift/failed/' + req.model._id);
+		res.redirect('/gift/failed/' + giftFlow._id);
 	}
 } ) );
 
 app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
-	if (req.model.completed) {
+	const giftFlow = req.model as GiftFlow;
+	if (giftFlow.completed) {
 		res.render('thanks', {
-			...req.model.giftForm,
-			processed: req.model.processed
+			...giftFlow.giftForm,
+			processed: giftFlow.processed
 		});
 	} else {
-		res.redirect('/gift/failed/' + req.model._id);
+		res.redirect('/gift/failed/' + giftFlow._id);
 	}
 } );
 
@@ -116,9 +123,10 @@ app.post( '/thanks/:_id', [
 	hasModel(GiftFlows, '_id'),
 	hasSchema(updateGiftAddressSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
-	if (!req.model.processed && !req.model.giftForm.delivery_address.line1) {
+	const giftFlow = req.model as GiftFlow;
+	if (!giftFlow.processed && !giftFlow.giftForm.delivery_address?.line1) {
 		const {delivery_address, same_address, delivery_copies_address} = req.body;
-		await req.model.update({$set: {
+		await giftFlow.update({$set: {
 			'giftForm.delivery_address': delivery_address,
 			'giftForm.delivery_copies_address': same_address ? delivery_address : delivery_copies_address
 		}});
@@ -128,14 +136,15 @@ app.post( '/thanks/:_id', [
 } ) );
 
 app.get( '/failed/:_id', hasModel(GiftFlows, '_id'), ( req, res ) => {
-	if (req.model.completed) {
-		res.redirect('/gift/thanks/' + req.model._id);
+	const giftFlow = req.model as GiftFlow;
+	if (giftFlow.completed) {
+		res.redirect('/gift/thanks/' + giftFlow._id);
 	} else {
-		res.render('failed', {id: req.model._id});
+		res.render('failed', {id: giftFlow._id});
 	}
 } );
 
-module.exports = function( config ) {
+export default function ( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
-};
+}
