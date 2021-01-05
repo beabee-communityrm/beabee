@@ -3,7 +3,7 @@ import moment from 'moment';
 import { getCustomRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel2, hasSchema } from '@core/middleware';
 import { AppConfig, wrapAsync } from '@core/utils';
 
 import NoticeRepository from '@core/repositories/NoticeRepository';
@@ -60,11 +60,11 @@ app.post( '/', hasSchema( createNoticeSchema ).orFlash, wrapAsync( async ( req, 
 	res.redirect('/tools/notices/' + notice.id);
 } ) );
 
-app.get( '/:id', hasNewModel(NoticeRepository, 'id'), wrapAsync( async ( req, res ) => {
+app.get( '/:id', hasNewModel2(NoticeRepository, 'id'), wrapAsync( async ( req, res ) => {
 	res.render( 'notice', { notice: req.model } );
 } ) );
 
-app.post( '/:id', hasNewModel(NoticeRepository, 'id'), wrapAsync( async ( req, res ) => {
+app.post( '/:id', hasNewModel2(NoticeRepository, 'id'), wrapAsync( async ( req, res ) => {
 	const notice = req.model as Notice;
 	const noticeRepository = getCustomRepository(NoticeRepository);
 

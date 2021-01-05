@@ -2,7 +2,7 @@ import express from 'express';
 import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import { hasNewModel2, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema } from '@core/middleware';
 import { AppConfig, wrapAsync } from '@core/utils';
 
 import PageSettingsService from '@core/services/PageSettingsService';
@@ -57,11 +57,11 @@ app.post( '/', hasSchema( createPageSchema ).orFlash, wrapAsync( async ( req, re
 	res.redirect('/settings/pages/' + ps.id);
 } ) );
 
-app.get( '/:id', hasNewModel2(PageSettings, 'id'), ( req, res ) => {
+app.get( '/:id', hasNewModel(PageSettings, 'id'), ( req, res ) => {
 	res.render( 'page', { page: req.model } );
 } );
 
-app.post( '/:id', hasNewModel2(PageSettings, 'id'), wrapAsync( async ( req, res ) => {
+app.post( '/:id', hasNewModel(PageSettings, 'id'), wrapAsync( async ( req, res ) => {
 	const ps = req.model as PageSettings;
 
 	switch ( req.body.action ) {

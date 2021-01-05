@@ -13,8 +13,6 @@ import Payment from '@models/Payment';
 import RestartFlow from '@models/RestartFlow';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
-	mongoose.Promise = global.Promise;
-
 	await new Promise<void>(resolve => {
 		mongoose.connect( mongoUrl, {
 			useNewUrlParser: true,
