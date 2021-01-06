@@ -22,7 +22,8 @@ const bunyanConfig = {
 	}
 };
 
-const logSlack = (config as {logSlack?: BunyanSlackOptions}).logSlack;
+const logSlack = (config as unknown as {logSlack?: Omit<BunyanSlackOptions,'customFormatter'>}).logSlack;
+
 if (logSlack) {
 	const stream = new BunyanSlack( {
 		...logSlack,
