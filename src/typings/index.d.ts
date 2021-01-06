@@ -1,6 +1,4 @@
 import { Member } from '@models/members';
-import { Duration } from 'moment';
-import { ConnectionOptions } from 'typeorm';
 
 declare global {
 	namespace Express {

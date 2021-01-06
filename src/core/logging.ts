@@ -64,7 +64,7 @@ interface LogParams {
 }
 
 function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
-	const log = req.log as Logger;
+	const log = req.log;
 
 	const logAThing = (level: LogLevelString) => (params: LogParams, msg: string) => {
 		params.ip = req.connection.remoteAddress; //TODO: this will only be correct when behind a reverse proxy, if app.set('trust proxy') is enabled!
@@ -95,7 +95,7 @@ function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
 		debug: logAThing('debug'),
 		error: logAThing('error'),
 		fatal: logAThing('fatal')
-	};
+	} as any; // TODO: Force overwriting value, fix this!
 
 	next();
 }
