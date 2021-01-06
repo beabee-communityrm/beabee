@@ -11,6 +11,7 @@ import * as db from '@core/database';
 import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import Option from '@models/Option';
+import GiftFlow, { GiftForm } from '@models/GiftFlow';
 
 type IfEquals<X, Y, A, B> =
     (<T>() => T extends X ? 1 : 2) extends
@@ -65,6 +66,25 @@ const migrations: Migration<any>[] = [
 	createMigration(Option, 'options', {
 		key: copy('key'),
 		value: copy('value')
+	}),
+	createMigration(GiftFlow, 'giftflows', {
+		sessionId: copy('sessionId'),
+		giftForm: doc => {
+			const giftForm = new GiftForm();
+			giftForm.firstname = doc.giftForm.firstname;
+			giftForm.lastname = doc.giftForm.lastname;
+			giftForm.email = doc.giftForm.email;
+			giftForm.startDate = doc.giftForm.startDate;
+			giftForm.fromName = doc.giftForm.fromName;
+			giftForm.fromEmail = doc.giftForm.fromEmail;
+			giftForm.message = doc.giftForm.message;
+			giftForm.months = Number(doc.giftForm.type);
+			return giftForm;
+		},
+		setupCode: copy('setupCode'),
+		date: copy('date'),
+		completed: copy('completed'),
+		processed: copy('processed')
 	})
 ];
 
