@@ -8,8 +8,8 @@ const flash = require( 'express-flash' );
 const appLoader = require( '@core/app-loader' );
 const auth = require( '@core/authentication' );
 const database = require( '@core/database' );
-const logging = require( '@core/logging' );
-const quickflash = require( '@core/quickflash' );
+const { log, installMiddleware: installLogMiddleware } = require( '@core/logging' );
+const { default: quickflash } = require( '@core/quickflash' );
 const sessions = require( '@core/sessions' );
 
 const { default: OptionsService } = require('@core/services/OptionsService');
@@ -18,7 +18,6 @@ const { default: PageSettingsService } = require('@core/services/PageSettingsSer
 const specialUrlHandler = require( '@apps/tools/apps/special-urls/handler' );
 
 const config = require( '@config' );
-const log = logging.log;
 
 if ( !config.gocardless.sandbox && config.dev ) {
 	log.error({
@@ -43,7 +42,7 @@ app.set( 'view cache', false );
 app.use( '/static', express.static( __dirname + '/static' ) );
 
 // Add logging capabilities
-logging.installMiddleware( app );
+installLogMiddleware( app );
 
 // Use helmet
 app.use( helmet( { contentSecurityPolicy: false } ) );
