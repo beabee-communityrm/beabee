@@ -79,6 +79,12 @@ const migrations: Migration<any>[] = [
 			giftForm.fromEmail = doc.giftForm.fromEmail;
 			giftForm.message = doc.giftForm.message;
 			giftForm.months = Number(doc.giftForm.type);
+			if (doc.giftForm.delivery_address) {
+				giftForm.giftAddress = doc.giftForm.delivery_address;
+			}
+			if (doc.giftForm.delivery_copies_address) {
+				giftForm.deliveryAddress = doc.giftForm.delivery_copies_address;
+			}
 			return giftForm;
 		},
 		setupCode: copy('setupCode'),
