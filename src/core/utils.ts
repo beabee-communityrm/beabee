@@ -2,6 +2,7 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 import _ from 'lodash';
 
 import { Member } from '@models/members';
+import { QueryFailedError } from 'typeorm';
 
 export enum ContributionPeriod {
 	Monthly = 'monthly',
@@ -123,4 +124,20 @@ export async function parseParams(item: Item, data: Record<string, string>): Pro
 			return getParamValue(value, param);
 		}
 	});
+}
+
+interface PgError {
+	code: string
+	detail: string
+}
+
+// TODO: this method binds us to Postgres
+export function isDuplicateIndex(error: Error, key: string): boolean {
+	if (error instanceof QueryFailedError) {
+		const pgError = error as unknown as PgError;
+		if (pgError.code === '23505' && pgError.detail.indexOf(`^Key (${key}).* already exists`)) {
+			return true;
+		}
+	}
+	return false;
 }

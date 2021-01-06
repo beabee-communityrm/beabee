@@ -5,7 +5,7 @@ import { getRepository } from 'typeorm';
 import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import MembersService from '@core/services/MembersService';
-import { ContributionPeriod } from '@core/utils';
+import { ContributionPeriod, isDuplicateIndex } from '@core/utils';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 import stripe from '@core/stripe';
@@ -169,12 +169,11 @@ export default class GiftService {
 			await getRepository(GiftFlow).insert(giftFlow);
 			return giftFlow;
 
-		} catch (saveError) {
-			const {code, message} = saveError;
-			if (code === 11000 && message.indexOf('setupCode') > -1) {
+		} catch (error) {
+			if (isDuplicateIndex(error, 'setupCode')) {
 				return await GiftService.createGiftFlowWithCode(giftForm);
 			}
-			throw saveError;
+			throw error;
 		}
 	}
 

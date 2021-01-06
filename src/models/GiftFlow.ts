@@ -32,10 +32,10 @@ export class GiftForm {
   @Column()
   months!: number
 
-  @Column({type: 'jsonb'})
+  @Column({type: 'jsonb', nullable: true})
   giftAddress?: Address
 
-  @Column({type: 'jsonb'})
+  @Column({type: 'jsonb', nullable: true})
   deliveryAddress?: Address
 }
 
