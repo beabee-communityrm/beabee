@@ -1,5 +1,5 @@
 import config from '@config';
-import Logger, { Stream } from 'bunyan';
+import { Stream } from 'bunyan';
 
 import bunyan, { LogLevelString } from 'bunyan';
 import bunyanMiddleware from 'bunyan-middleware';
