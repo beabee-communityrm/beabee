@@ -1,8 +1,8 @@
 import hummus from 'hummus';
-import moment  from 'moment';
+import moment from 'moment';
 import { getRepository } from 'typeorm';
 
-import { log } from '@core/logging';
+import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import MembersService from '@core/services/MembersService';
 import { ContributionPeriod } from '@core/utils';
@@ -12,10 +12,17 @@ import stripe from '@core/stripe';
 
 import config from '@config';
 
+const log = mainLogger.child({app: 'gift-service'});
+
 export default class GiftService {
 	private static readonly giftMonthlyAmount = 3;
 
 	static async createGiftFlow(giftForm: GiftForm): Promise<string> {
+		log.info({
+			action: 'create-gift-flow',
+			data: {giftForm}
+		});
+
 		const giftFlow = await GiftService.createGiftFlowWithCode(giftForm);
 
 		const session = await stripe.checkout.sessions.create({
@@ -38,8 +45,16 @@ export default class GiftService {
 
 	static async completeGiftFlow(sessionId: string): Promise<void> {
 		const giftFlowRepository = getRepository(GiftFlow);
-
 		const giftFlow = await giftFlowRepository.findOne({where: {sessionId}});
+
+		log.info({
+			action: 'complete-gift-flow',
+			data: {
+				sessionId,
+				giftFlowId: giftFlow?.id
+			}
+		});
+
 		if (giftFlow) {
 			await giftFlowRepository.update(giftFlow.id, {completed: true});
 
@@ -83,6 +98,14 @@ export default class GiftService {
 	}
 
 	static async processGiftFlow(giftFlow: GiftFlow, sendImmediately = false): Promise<void> {
+		log.info({
+			action: 'process-gift-flow',
+			data: {
+				giftFlow: {...giftFlow, giftForm: undefined},
+				sendImmediately
+			}
+		});
+
 		const {
 			firstname, lastname, email, deliveryAddress, months, fromName, message
 		} = giftFlow.giftForm;
@@ -120,6 +143,13 @@ export default class GiftService {
 	}
 
 	static async updateGiftFlowAddress(giftFlow: GiftFlow, giftAddress: Address, deliveryAddress: Address): Promise<void> {
+		log.info({
+			action: 'update-gift-flow-address',
+			data: {
+				giftFlowId: giftFlow.id
+			}
+		});
+
 		if (!giftFlow.processed && !giftFlow.giftForm.giftAddress) {
 			await getRepository(GiftFlow).update(giftFlow.id, {
 				giftForm: {
@@ -147,9 +177,9 @@ export default class GiftService {
 			throw saveError;
 		}
 	}
+
 	private static createGiftCard(code: string) {
 		const inStream = new hummus.PDFRStreamForFile(__dirname + '/static/pdfs/gift.pdf');
-
 		const outStream = new hummus.PDFWStreamForBuffer();
 
 		const pdfWriter = hummus.createWriterToModify(inStream, outStream);
@@ -172,5 +202,4 @@ export default class GiftService {
 
 		return outStream.buffer;
 	}
-
 }
