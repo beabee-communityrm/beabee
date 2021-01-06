@@ -10,7 +10,7 @@ block body
 		.row
 			.col-md-8.col-md-offset-2.col-lg-8.col-lg-offset-2
 
-				h2= giftAddress.line1 ? 'That\'s it!' : 'One more thing!'
+				h2= giftAddress ? 'That\'s it!' : 'One more thing!'
 
 				p.
 					Thank you for helping to sustain independent local journalism, we'll
@@ -22,7 +22,7 @@ block body
 
 				else
 
-					if giftAddress.line1
+					if giftAddress
 						p
 							| If you have any questions please get in touch at
 							|
