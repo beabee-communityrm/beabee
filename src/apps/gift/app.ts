@@ -58,12 +58,7 @@ function schemaToGiftForm(data: CreateGiftSchema): GiftForm {
 }
 
 function schemaToAddress(data: AddressSchema): Address {
-	const address = new Address();
-	address.line1 = data.line1;
-	address.line2 = data.line2;
-	address.city = data.city;
-	address.postcode = data.postcode;
-	return address;
+	return data;
 }
 
 function schemaToAddresses(data: UpdateGiftAddressSchema): {giftAddress: Address, deliveryAddress: Address} {

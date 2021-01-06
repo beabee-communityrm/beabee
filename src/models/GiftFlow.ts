@@ -1,17 +1,10 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export class Address {
-  @Column()
-  line1!: string
-
-  @Column({nullable: true})
+export interface Address {
+  line1: string
   line2?: string
-
-  @Column()
-  city!: string
-
-  @Column()
-  postcode!: string
+  city: string
+  postcode: string
 }
 
 export class GiftForm {
@@ -39,10 +32,10 @@ export class GiftForm {
   @Column()
   months!: number
 
-  @Column({nullable: true})
+  @Column({type: 'jsonb'})
   giftAddress?: Address
 
-  @Column({nullable: true})
+  @Column({type: 'jsonb'})
   deliveryAddress?: Address
 }
 
@@ -60,7 +53,7 @@ export default class GiftFlow {
   @Column({unique: true})
   setupCode!: string
   
-  @Column()
+  @Column(() => GiftForm)
   giftForm!: GiftForm
 
   @Column({default: false})
