@@ -123,7 +123,7 @@ app.get( '/:setupCode', hasNewModel(GiftFlow, 'setupCode'), wrapAsync( async ( r
 	}
 } ) );
 
-app.get( '/thanks/:_id', hasNewModel(GiftFlow, 'id'),  ( req, res ) => {
+app.get( '/thanks/:id', hasNewModel(GiftFlow, 'id'),  ( req, res ) => {
 	const giftFlow = req.model as GiftFlow;
 	if (giftFlow.completed) {
 		res.render('thanks', {
@@ -146,7 +146,7 @@ app.post( '/thanks/:id', [
 	res.redirect( req.originalUrl );
 } ) );
 
-app.get( '/failed/:_id', hasNewModel(GiftFlow, 'id'), ( req, res ) => {
+app.get( '/failed/:id', hasNewModel(GiftFlow, 'id'), ( req, res ) => {
 	const giftFlow = req.model as GiftFlow;
 	if (giftFlow.completed) {
 		res.redirect('/gift/thanks/' + giftFlow.id);
