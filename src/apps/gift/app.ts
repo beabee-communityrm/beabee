@@ -3,20 +3,74 @@ import moment from 'moment';
 
 import config from '@config';
 
-import { GiftFlows, Members } from '@core/database';
-import { hasModel, hasSchema } from '@core/middleware';
-import stripe from '@core/stripe';
+import { Members } from '@core/database';
+import { hasNewModel, hasSchema } from '@core/middleware';
 import { AppConfig, loginAndRedirect, wrapAsync } from '@core/utils';
 
-import MembersService from '@core/services/MembersService';
+import GiftService from '@core/services/GiftService';
 import OptionsService from '@core/services/OptionsService';
 
-import { processGiftFlow } from './utils';
+import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
+
 import { createGiftSchema, updateGiftAddressSchema } from './schema.json';
-import { GiftFlow } from '@models/gift-flows';
 
 const app = express();
 let app_config: AppConfig;
+
+interface CreateGiftSchema {
+	firstname: string
+	lastname: string
+	email: string
+	startDate: string
+	message?: string
+	fromName: string
+	fromEmail: string
+	months: number
+}
+
+interface AddressSchema {
+	line1: string
+	line2?: string
+	city: string
+	postcode: string
+}
+
+type UpdateGiftAddressSchema = {
+	sameAddress: true
+	giftAddress: AddressSchema
+} | {
+	sameAddress: false
+	giftAddress: AddressSchema
+	deliveryAddress: AddressSchema
+}
+
+function schemaToGiftForm(data: CreateGiftSchema): GiftForm {
+	const giftForm = new GiftForm();
+	giftForm.firstname = data.firstname;
+	giftForm.lastname = data.lastname;
+	giftForm.email = data.email;
+	giftForm.startDate = moment.utc(data.startDate).toDate();
+	giftForm.message = data.message;
+	giftForm.fromName = data.fromName;
+	giftForm.fromEmail = data.fromEmail;
+	giftForm.months = data.months;
+	return giftForm;
+}
+
+function schemaToAddress(data: AddressSchema): Address {
+	const address = new Address();
+	address.line1 = data.line1;
+	address.line2 = data.line2;
+	address.city = data.city;
+	address.postcode = data.postcode;
+	return address;
+}
+
+function schemaToAddresses(data: UpdateGiftAddressSchema): {giftAddress: Address, deliveryAddress: Address} {
+	const giftAddress = schemaToAddress(data.giftAddress);
+	const deliveryAddress = data.sameAddress ? schemaToAddress(data.giftAddress) : schemaToAddress(data.deliveryAddress);
+	return {giftAddress, deliveryAddress};
+}
 
 app.set( 'views', __dirname + '/views' );
 
@@ -29,30 +83,14 @@ app.get( '/', ( req, res ) => {
 	res.render( 'index', {stripePublicKey: config.stripe.public_key} );
 } );
 
-async function createGiftFlow(giftForm: GiftFlow['giftForm']): Promise<GiftFlow> {
-	try {
-		return await GiftFlows.create({
-			sessionId: 'UNKNOWN',
-			setupCode: MembersService.generateMemberCode(giftForm),
-			giftForm
-		});
-	} catch (saveError) {
-		const {code, message} = saveError;
-		if (code === 11000 && message.indexOf('setupCode') > -1) {
-			return await createGiftFlow(giftForm);
-		}
-		throw saveError;
-	}
-}
-
 app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async ( req, res ) => {
 	let error;
+	const giftForm = schemaToGiftForm(req.body);
 
-	const startDate = moment(req.body.startDate).endOf('day');
-	if (startDate.isBefore()) {
+	if (moment(giftForm.startDate).isBefore('day')) {
 		error = 'flash-gifts-date-in-the-past';
 	} else {
-		const member = await Members.findOne({email: req.body.email});
+		const member = await Members.findOne({email: giftForm.email});
 		if (member) {
 			error = 'flash-gifts-email-duplicate';
 		}
@@ -61,34 +99,17 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	if (error) {
 		res.status(400).send([OptionsService.getText(error)]);
 	} else {
-		const giftFlow = await createGiftFlow(req.body);
-		const isAnnual = req.body.type === '12';
-
-		const session = await stripe.checkout.sessions.create({
-			success_url: config.audience + '/gift/thanks/' + giftFlow._id,
-			cancel_url: config.audience + '/gift',
-			customer_email: req.body.fromEmail,
-			payment_method_types: ['card'],
-			line_items: [{
-				name: 'Gift membership - ' + (isAnnual ? '12 months' : '6 months'),
-				amount: isAnnual ? 3600 : 1800,
-				currency: 'gbp',
-				quantity: 1
-			}]
-		});
-
-		await giftFlow.update({sessionId: session.id});
-
-		res.send({sessionId: session.id});
+		const sessionId = await GiftService.createGiftFlow(giftForm);
+		res.send({sessionId});
 	}
 } ) );
 
-app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req, res, next ) => {
+app.get( '/:setupCode', hasNewModel(GiftFlow, 'setupCode'), wrapAsync( async ( req, res, next ) => {
 	const giftFlow = req.model as GiftFlow;
 
 	if (giftFlow.completed) {
 		if (!giftFlow.processed) {
-			await processGiftFlow(giftFlow, true);
+			await GiftService.processGiftFlow(giftFlow, true);
 		}
 
 		const member = await Members.findOne({giftCode: req.params.setupCode});
@@ -103,11 +124,11 @@ app.get( '/:setupCode', hasModel(GiftFlows, 'setupCode'), wrapAsync( async ( req
 			next('route');
 		}
 	} else {
-		res.redirect('/gift/failed/' + giftFlow._id);
+		res.redirect('/gift/failed/' + giftFlow.id);
 	}
 } ) );
 
-app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
+app.get( '/thanks/:_id', hasNewModel(GiftFlow, 'id'),  ( req, res ) => {
 	const giftFlow = req.model as GiftFlow;
 	if (giftFlow.completed) {
 		res.render('thanks', {
@@ -115,32 +136,27 @@ app.get( '/thanks/:_id', hasModel(GiftFlows, '_id'),  ( req, res ) => {
 			processed: giftFlow.processed
 		});
 	} else {
-		res.redirect('/gift/failed/' + giftFlow._id);
+		res.redirect('/gift/failed/' + giftFlow.id);
 	}
 } );
 
-app.post( '/thanks/:_id', [
-	hasModel(GiftFlows, '_id'),
+app.post( '/thanks/:id', [
+	hasNewModel(GiftFlow, 'id'),
 	hasSchema(updateGiftAddressSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
 	const giftFlow = req.model as GiftFlow;
-	if (!giftFlow.processed && !giftFlow.giftForm.delivery_address?.line1) {
-		const {delivery_address, same_address, delivery_copies_address} = req.body;
-		await giftFlow.update({$set: {
-			'giftForm.delivery_address': delivery_address,
-			'giftForm.delivery_copies_address': same_address ? delivery_address : delivery_copies_address
-		}});
-	}
+	const {giftAddress, deliveryAddress} = schemaToAddresses(req.body);
+	await GiftService.updateGiftFlowAddress(giftFlow, giftAddress, deliveryAddress);
 
 	res.redirect( req.originalUrl );
 } ) );
 
-app.get( '/failed/:_id', hasModel(GiftFlows, '_id'), ( req, res ) => {
+app.get( '/failed/:_id', hasNewModel(GiftFlow, 'id'), ( req, res ) => {
 	const giftFlow = req.model as GiftFlow;
 	if (giftFlow.completed) {
-		res.redirect('/gift/thanks/' + giftFlow._id);
+		res.redirect('/gift/thanks/' + giftFlow.id);
 	} else {
-		res.render('failed', {id: giftFlow._id});
+		res.render('failed', {id: giftFlow.id});
 	}
 } );
 

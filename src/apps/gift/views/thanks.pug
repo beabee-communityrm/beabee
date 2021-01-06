@@ -10,7 +10,7 @@ block body
 		.row
 			.col-md-8.col-md-offset-2.col-lg-8.col-lg-offset-2
 
-				h2= delivery_address.line1 ? 'That\'s it!' : 'One more thing!'
+				h2= giftAddress.line1 ? 'That\'s it!' : 'One more thing!'
 
 				p.
 					Thank you for helping to sustain independent local journalism, we'll
@@ -22,7 +22,7 @@ block body
 
 				else
 
-					if delivery_address.line1
+					if giftAddress.line1
 						p
 							| If you have any questions please get in touch at
 							|
@@ -35,29 +35,29 @@ block body
 
 							include /views/partials/flash
 
-							+input( 'text', 'Address line 1', 'delivery_address[line1]', { required: true, left: 4, right: 6 } )
-							+input( 'text', 'Address line 2', 'delivery_address[line2]', { left: 4, right: 6 } )
-							+input( 'text', 'City/town', 'delivery_address[city]', { required: true, left: 4, right: 6 } )
-							+input( 'text', 'Postcode', 'delivery_address[postcode]', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Address line 1', 'giftAddress[line1]', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Address line 2', 'giftAddress[line2]', { left: 4, right: 6 } )
+							+input( 'text', 'City/town', 'giftAddress[city]', { required: true, left: 4, right: 6 } )
+							+input( 'text', 'Postcode', 'giftAddress[postcode]', { required: true, left: 4, right: 6 } )
 
 							.js-reveal
 								.form-group
 									.col-md-offset-4.col-md-8
 										.checkbox
 											label(data-toggle="collapse" data-target="#deliveryCopies")
-												input(type='checkbox' name='same_address' value='true' checked).js-reveal-types
+												input(type='checkbox' name='sameAddress' value='true' checked).js-reveal-types
 												| Also send copies of the Cable to this address
 
-								.hidden.js-reveal-type(data-type='same_address' data-inverse)
+								.hidden.js-reveal-type(data-type='sameAddress' data-inverse)
 									h4 Where shall we send copies?
 									p.
 										If you don't know where #{firstname} wants their copies sent we will ask them when
 										they activate their account.
 
-									+input( 'text', 'Address line 1', 'delivery_copies_address[line1]', { required: true, left: 4, right: 6 } )
-									+input( 'text', 'Address line 2', 'delivery_copies_address[line2]', { left: 4, right: 6 } )
-									+input( 'text', 'City/town', 'delivery_copies_address[city]', { required: true, left: 4, right: 6 } )
-									+input( 'text', 'Postcode', 'delivery_copies_address[postcode]', { required: true, left: 4, right: 6 } )
+									+input( 'text', 'Address line 1', 'deliveryAddress[line1]', { required: true, left: 4, right: 6 } )
+									+input( 'text', 'Address line 2', 'deliveryAddress[line2]', { left: 4, right: 6 } )
+									+input( 'text', 'City/town', 'deliveryAddress[city]', { required: true, left: 4, right: 6 } )
+									+input( 'text', 'Postcode', 'deliveryAddress[postcode]', { required: true, left: 4, right: 6 } )
 
 							.form-group
 								.col-md-offset-4.col-md-6

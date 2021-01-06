@@ -14,7 +14,7 @@ interface PartialMember {
 	}
 }
 interface Member extends PartialMember, Document {
-	uuid?: string
+	uuid: string
 	referralCode: string,
 	pollsCode: string
 	giftCode?: string,
