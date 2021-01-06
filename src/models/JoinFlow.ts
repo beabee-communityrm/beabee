@@ -21,7 +21,7 @@ export class JoinForm implements PaymentForm {
     referralGift?: string;
 
     @Column({type: 'jsonb', nullable: true})
-    referralGiftOptions?:  Record<string, unknown>;
+    referralGiftOptions?:  Record<string, string>;
 }
 
 @Entity()

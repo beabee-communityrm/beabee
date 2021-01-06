@@ -12,6 +12,7 @@ import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import Option from '@models/Option';
 import GiftFlow, { GiftForm } from '@models/GiftFlow';
+import ReferralGift from '@models/ReferralGift';
 
 type IfEquals<X, Y, A, B> =
     (<T>() => T extends X ? 1 : 2) extends
@@ -86,6 +87,10 @@ const migrations: Migration<any>[] = [
 				giftForm.deliveryAddress = doc.giftForm.delivery_copies_address;
 			}
 			return giftForm;
+		}
+	}),
+	createMigration(ReferralGift, 'referralgifts', {
+		...ident(['name', 'label', 'description', 'minAmount', 'enabled', 'options', 'stock'] as const)
 	})
 ];
 

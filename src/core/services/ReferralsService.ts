@@ -1,22 +1,24 @@
 import _ from 'lodash';
 
-import { Referrals, ReferralGifts } from '@core/database';
+import { Referrals } from '@core/database';
 import mandrill from '@core/mandrill';
 
 import { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
-import { ReferralGift } from '@models/referrals';
 import { Document } from 'mongoose';
+import ReferralGift from '@models/ReferralGift';
+import { createQueryBuilder, getRepository } from 'typeorm';
+import { query } from 'express';
 
 export default class ReferralsService {
 	static async getGifts(): Promise<ReferralGift[]> {
-		return <ReferralGift[]>await ReferralGifts.find();
+		return await getRepository(ReferralGift).find();
 	}
 
 	static async isGiftAvailable({referralGift, referralGiftOptions, amount}: JoinForm): Promise<boolean> {
 		if (!referralGift) return true; // No gift option
 
-		const gift = <ReferralGift>await ReferralGifts.findOne({name: referralGift});
+		const gift = await getRepository(ReferralGift).findOne({name: referralGift});
 		if (gift && gift.enabled && gift.minAmount <= amount) {
 			const stockRef = _.values(referralGiftOptions).join('/');
 			return ReferralsService.hasStock(gift, stockRef);
@@ -25,11 +27,17 @@ export default class ReferralsService {
 	}
 
 	static async updateGiftStock({referralGift, referralGiftOptions}: JoinForm): Promise<void> {
-		const gift = <ReferralGift>await ReferralGifts.findOne({name: referralGift});
-		if (gift) {
-			const stockRef = _.values(referralGiftOptions).join('/');
+		const gift = await getRepository(ReferralGift).findOne({name: referralGift});
+		if (gift && referralGiftOptions) {
+			// Should never happen but remove any ' to stop SQL injections just in case
+			const stockRef = Object.values(referralGiftOptions).join('/').replace(/'/g, '');
+
 			if (ReferralsService.hasStock(gift, stockRef)) {
-				await gift.update({$inc: {['stock.' + stockRef]: -1}});
+				// Ugly atomic decrement for JSONB type
+				await createQueryBuilder().update(ReferralGift)
+					.set({stock: () => `jsonb_set(stock, '{${stockRef}}', (coalesce(stock->>'${stockRef}', '0')::int - 1)::text::jsonb)`})
+					.where('name = :name', {name: gift.name})
+					.execute();
 			}
 		}
 	}
