@@ -5,6 +5,7 @@ import { log } from '@core/logging';
 
 import Email from '@models/Email';
 import EmailMailing from '@models/EmailMailing';
+import GiftFlow from '@models/GiftFlow';
 import JoinFlow from '@models/JoinFlow';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
@@ -13,8 +14,6 @@ import Payment from '@models/Payment';
 import RestartFlow from '@models/RestartFlow';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
-	mongoose.Promise = global.Promise;
-
 	await new Promise<void>(resolve => {
 		mongoose.connect( mongoUrl, {
 			useNewUrlParser: true,
@@ -46,7 +45,7 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 			await createConnection({
 				...dbConfig,
 				entities: [
-					Email, EmailMailing, JoinFlow, Notice, Option,
+					Email, EmailMailing, GiftFlow, JoinFlow, Notice, Option,
 					PageSettings, Payment, RestartFlow,
 				]
 			});
@@ -76,7 +75,6 @@ export async function close(): Promise<void> {
 }
 
 export { model as Exports } from '@models/exports';
-export { model as GiftFlows } from '@models/gift-flows';
 export { model as Members } from '@models/members';
 export { model as Permissions } from '@models/permissions';
 export { model as PollAnswers } from '@models/PollAnswers';

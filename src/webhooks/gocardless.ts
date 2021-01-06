@@ -45,7 +45,7 @@ app.post( '/', textBodyParser, async function( req, res ) {
 					action: 'handle-event',
 				}, `Got ${event.action} on ${event.resource_type}: ${JSON.stringify(event.links)}`);
 
-				await handleResourceEvent( event );
+				await handleEventResource( event );
 			}
 
 			res.sendStatus( 200 );
@@ -79,7 +79,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(() => {
 	} );
 });
 
-async function handleResourceEvent( event: Event ) {
+async function handleEventResource( event: Event ) {
 	switch( event.resource_type ) {
 	case EventResourceType.Payments:
 		return await handlePaymentResourceEvent( event );
@@ -91,7 +91,7 @@ async function handleResourceEvent( event: Event ) {
 		return await handleRefundResourceEvent( event );
 	default:
 		log.debug( {
-			action: 'unhandled-resource-event',
+			action: 'unhandled-event',
 			event
 		} );
 		break;

@@ -15,7 +15,7 @@ module.exports = function( app ) {
 	routeApps(app, apps);
 };
 
-function loadApps( basePath, overrides ) {
+function loadApps( basePath, overrides = {} ) {
 	return fs.readdirSync( basePath )
 		.filter( function ( file ) {
 			var path = basePath + '/' + file;

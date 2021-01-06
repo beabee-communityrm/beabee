@@ -6,7 +6,7 @@ import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
-import { hasNewModel2 } from '@core/middleware';
+import { hasNewModel } from '@core/middleware';
 import { AppConfig, wrapAsync } from '@core/utils';
 
 import Email from '@models/Email';
@@ -58,7 +58,7 @@ app.post('/', wrapAsync(async (req, res) => {
 }));
 
 
-app.get('/:id', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+app.get('/:id', hasNewModel(Email, 'id'), wrapAsync(async (req, res) => {
 	const mailings = await getRepository(EmailMailing).find({
 		email: req.model as Email
 	});
@@ -66,7 +66,7 @@ app.get('/:id', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
 	res.render('email', {email: req.model, mailings});
 }));
 
-app.post('/:id', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
+app.post('/:id', hasNewModel(Email, 'id'), wrapAsync(async (req, res) => {
 	const email = req.model as Email;
 
 	switch (req.body.action) {
@@ -83,7 +83,7 @@ app.post('/:id', hasNewModel2(Email, 'id'), wrapAsync(async (req, res) => {
 	}
 }));
 
-app.post('/:id/mailings', hasNewModel2(Email, 'id'), busboy(), (req, res) => {
+app.post('/:id/mailings', hasNewModel(Email, 'id'), busboy(), (req, res) => {
 	const email = req.model as Email;
 	let recipients: EmailRecipient[];
 
@@ -106,7 +106,7 @@ app.post('/:id/mailings', hasNewModel2(Email, 'id'), busboy(), (req, res) => {
 	req.pipe(req.busboy);
 });
 
-app.get('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res, next) => {
+app.get('/:id/mailings/:mailingId', hasNewModel(Email, 'id'), wrapAsync(async (req, res, next) => {
 	const email = req.model as Email;
 	const mailing = await getRepository(EmailMailing).findOne(req.params.mailingId);
 	if (!mailing) return next('route');
@@ -127,7 +127,7 @@ interface SendSchema {
 	mergeFields: Record<string, string>
 }
 
-app.post('/:id/mailings/:mailingId', hasNewModel2(Email, 'id'), wrapAsync(async (req, res, next) => {
+app.post('/:id/mailings/:mailingId', hasNewModel(Email, 'id'), wrapAsync(async (req, res, next) => {
 	const email = req.model as Email;
 	const mailing = await getRepository(EmailMailing).findOne(req.params.mailingId);
 	if (!mailing) return next('route');

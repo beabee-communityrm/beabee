@@ -7,6 +7,7 @@ declare global {
 
 		export interface Request {
 			flash(level: 'info'|'success'|'warning'|'error'|'danger', message: string): void
+			flash(): Partial<Record<string, string[]>>
 			model: unknown
 		}
 	}

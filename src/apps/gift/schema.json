@@ -2,7 +2,7 @@
 	"createGiftSchema": {
 		"body": {
 			"type": "object",
-			"required": ["firstname", "lastname", "email", "startDate", "fromName", "fromEmail", "type"],
+			"required": ["firstname", "lastname", "email", "startDate", "fromName", "fromEmail", "months"],
 			"properties": {
 				"firstname": {
 					"type": "string"
@@ -28,9 +28,9 @@
 					"type": "string",
 					"format": "email"
 				},
-				"type": {
-					"type": "string",
-					"enum": ["6", "12"]
+				"months": {
+					"type": "number",
+					"enum": [12]
 				}
 			}
 		}
@@ -38,9 +38,9 @@
 	"updateGiftAddressSchema": {
 		"body": {
 			"type": "object",
-			"required": ["delivery_address"],
+			"required": ["giftAddress"],
 			"properties": {
-				"delivery_address": {
+				"giftAddress": {
 					"type": "object",
 					"required": ["line1", "city", "postcode"],
 					"properties": {
@@ -59,10 +59,10 @@
 						}
 					}
 				},
-				"same_address": {
+				"sameAddress": {
 					"type": "boolean"
 				},
-				"delivery_copies_address": {
+				"deliveryAddress": {
 					"type": "object",
 					"required": ["line1", "city", "postcode"],
 					"properties": {
