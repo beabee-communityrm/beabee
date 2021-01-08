@@ -178,11 +178,11 @@ export default class GiftService {
 	}
 
 	private static createGiftCard(code: string) {
-		const inStream = new hummus.PDFRStreamForFile(__dirname + '/static/pdfs/gift.pdf');
+		const inStream = new hummus.PDFRStreamForFile(__dirname + '/../../static/pdfs/gift.pdf');
 		const outStream = new hummus.PDFWStreamForBuffer();
 
 		const pdfWriter = hummus.createWriterToModify(inStream, outStream);
-		const font = pdfWriter.getFontForFile(__dirname + '/static/fonts/Lato-Regular.ttf');
+		const font = pdfWriter.getFontForFile(__dirname + '/../../static/fonts/Lato-Regular.ttf');
 
 		const pageModifier = new hummus.PDFPageModifier(pdfWriter, 0, true);
 		const context = pageModifier.startContext().getContext();
