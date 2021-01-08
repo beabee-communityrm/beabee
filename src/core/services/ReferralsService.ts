@@ -8,14 +8,15 @@ import { Member } from '@models/members';
 import { Document } from 'mongoose';
 import ReferralGift from '@models/ReferralGift';
 import { createQueryBuilder, getRepository } from 'typeorm';
-import { query } from 'express';
+
+type GiftForm = Pick<JoinForm,'amount'|'referralGift'|'referralGiftOptions'>;
 
 export default class ReferralsService {
 	static async getGifts(): Promise<ReferralGift[]> {
-		return await getRepository(ReferralGift).find();
+		return await getRepository(ReferralGift).find({where: {enabled: true}});
 	}
 
-	static async isGiftAvailable({referralGift, referralGiftOptions, amount}: JoinForm): Promise<boolean> {
+	static async isGiftAvailable({referralGift, referralGiftOptions, amount}: GiftForm): Promise<boolean> {
 		if (!referralGift) return true; // No gift option
 
 		const gift = await getRepository(ReferralGift).findOne({name: referralGift});
@@ -26,10 +27,10 @@ export default class ReferralsService {
 		return false;
 	}
 
-	static async updateGiftStock({referralGift, referralGiftOptions}: JoinForm): Promise<void> {
+	static async updateGiftStock({referralGift, referralGiftOptions}: GiftForm): Promise<void> {
 		const gift = await getRepository(ReferralGift).findOne({name: referralGift});
 		if (gift && referralGiftOptions) {
-			// Should never happen but remove any ' to stop SQL injections just in case
+			// Should never happen but remove any ' just in case to stop SQL injections
 			const stockRef = Object.values(referralGiftOptions).join('/').replace(/'/g, '');
 
 			if (ReferralsService.hasStock(gift, stockRef)) {
@@ -42,25 +43,25 @@ export default class ReferralsService {
 		}
 	}
 
-	static async createReferral(referrer: Member|null, member: Member, joinForm: JoinForm): Promise<void> {
+	static async createReferral(referrer: Member|null, member: Member, giftForm: GiftForm): Promise<void> {
 		await Referrals.create({
 			referrer: referrer?._id,
 			referee: member._id,
-			refereeGift: joinForm.referralGift,
-			refereeGiftOptions: joinForm.referralGiftOptions,
-			refereeAmount: joinForm.amount
+			refereeGift: giftForm.referralGift,
+			refereeGiftOptions: giftForm.referralGiftOptions,
+			refereeAmount: giftForm.amount
 		} as unknown as Document);
 
-		await ReferralsService.updateGiftStock(joinForm);
+		await ReferralsService.updateGiftStock(giftForm);
 
 		await mandrill.sendToMember('successful-referral', referrer, {
 			refereeName: member.firstname,
-			isEligible: joinForm.amount >= 3
+			isEligible: giftForm.amount >= 3
 		});
 	}
 
 	private static hasStock(gift: ReferralGift, stockRef: string): boolean {
-		const stock = gift.stock?.get(stockRef);
+		const stock = gift.stock.get(stockRef);
 		return stock === undefined ? true : stock > 0;
 	}
 }

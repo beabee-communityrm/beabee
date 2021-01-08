@@ -54,6 +54,7 @@ interface Member extends PartialMember, Document {
 	readonly contributionMonthlyAmount: number
 	readonly fullname: string
 	readonly setupComplete: boolean
+	readonly referralLink: string
 }
 
 export const model: Model<Member>;
