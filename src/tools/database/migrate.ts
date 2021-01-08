@@ -90,7 +90,8 @@ const migrations: Migration<any>[] = [
 		}
 	}),
 	createMigration(ReferralGift, 'referralgifts', {
-		...ident(['name', 'label', 'description', 'minAmount', 'enabled', 'options', 'stock'] as const)
+		...ident(['name', 'label', 'description', 'minAmount', 'enabled', 'options'] as const),
+		stock: doc => new Map(doc.stock && Object.entries(doc.stock))
 	})
 ];
 

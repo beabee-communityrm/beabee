@@ -41,17 +41,17 @@ block contents
 						each option in gift.options
 							tr
 								td
-									input(type='text' name='option_name[]' value=option.name).form-control
+									input(type='text' name='optionNames[]' value=option.name).form-control
 								td
-									input(type='text' name='option_values[]' value=option.values.join(', ')).form-control
+									input(type='text' name='optionValues[]' value=option.values.join(', ')).form-control
 								td
-									button(name='delete-option' value=option.name).btn.btn-sm.btn-danger
+									button(type='button').btn.btn-sm.btn-danger.js-gift-delete-row
 										i.glyphicon.glyphicon-trash
 						tr
 							td
-								input(type='text' name='option_name[]').form-control
+								input(type='text' name='optionNames[]').form-control
 							td
-								input(type='text' name='option_values[]').form-control
+								input(type='text' name='optionValues[]').form-control
 							td
 				p
 					button(name='action' value='update-options').btn.btn-primary Update
@@ -68,20 +68,26 @@ block contents
 							th Count
 							th
 					tbody
-						each count, stock_ref in stock
+						each [stockRef, stockCount] of gift.stock
 							tr
 								td
-									input(type='text' name='stock_ref[]' value=stock_ref).form-control
+									input(type='text' name='stockRefs[]' value=stockRef).form-control
 								td
-									input(type='number' name='stock_count[]' + stock_ref value=count).form-control
+									input(type='number' name='stockCounts[]' stockRef value=stockCount).form-control
 								td
-									button(name='delete-stock' value=stock_ref).btn.btn-sm.btn-danger
+									button(type='button').btn.btn-sm.btn-danger.js-gift-delete-row
 										i.glyphicon.glyphicon-trash
 						tr
 							td
-								input(type='text' name='stock_ref[]').form-control
+								input(type='text' name='stockRefs[]').form-control
 							td
-								input(type='number' name='stock_count[]').form-control
+								input(type='number' name='stockCounts[]').form-control
 							td
 				p
 					button(name='action' value='update-stock').btn.btn-primary Update
+
+block append js
+	script.
+		$('.js-gift-delete-row').on('click', function (evt) {
+			$(this).parents('tr').remove();
+		});

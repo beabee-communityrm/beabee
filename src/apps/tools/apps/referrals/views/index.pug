@@ -12,7 +12,6 @@ block contents
 		.col-md-8
 			h4 Gifts
 
-			p
+			ul
 				each gift in gifts
-					a(href='/tools/referrals/gifts/' + gift.name)= gift.label
-					| ,
+					li: a(href='/tools/referrals/gifts/' + gift.name)= gift.label

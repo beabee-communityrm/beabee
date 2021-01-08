@@ -1,0 +1,82 @@
+{
+  "updateSchema": {
+    "body": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "type": "string"
+        }
+      },
+      "oneOf": [
+        {
+          "required": ["label", "description", "minAmount"],
+          "properties": {
+            "action": {
+              "const": "update-gift"
+            },
+            "label": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "minAmount": {
+              "type": "number"
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "required": ["optionNames", "optionValues"],
+          "properties": {
+            "action": {
+              "const": "update-options"
+            },
+            "optionNames": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "optionValues": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "required": ["stockRefs", "stockCounts"],
+          "properties": {
+            "action": {
+              "const": "update-stock"
+            },
+            "stockRefs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "stockOptions": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "action": {
+              "const": "delete-gift"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

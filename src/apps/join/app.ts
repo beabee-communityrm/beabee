@@ -24,7 +24,7 @@ interface JoinSchema {
     period: ContributionPeriod,
     referralCode?: string,
     referralGift?: string,
-    referralGiftOptions?: Record<string, unknown>,
+    referralGiftOptions?: Record<string, string>,
     payFee?: boolean
 }
 
