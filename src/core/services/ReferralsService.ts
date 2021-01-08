@@ -13,7 +13,7 @@ type GiftForm = Pick<JoinForm,'amount'|'referralGift'|'referralGiftOptions'>;
 
 export default class ReferralsService {
 	static async getGifts(): Promise<ReferralGift[]> {
-		return await getRepository(ReferralGift).find({where: {enabled: true}});
+		return await getRepository(ReferralGift).find();
 	}
 
 	static async isGiftAvailable({referralGift, referralGiftOptions, amount}: GiftForm): Promise<boolean> {
