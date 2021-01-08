@@ -1,5 +1,5 @@
 const crypto = require( 'crypto' );
-const base32 = require( 'thirty-two' );
+const { default: base32 } = require( 'thirty-two' );
 const passport = require( 'passport' );
 const LocalStrategy = require( 'passport-local' ).Strategy;
 const TotpStrategy = require( 'passport-totp' ).Strategy;
