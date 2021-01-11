@@ -100,7 +100,9 @@ database.connect( config.mongo, config.db ).then(() => {
 	app.use( function ( err, req, res, next ) { // eslint-disable-line no-unused-vars
 		res.status( 500 );
 		res.render( '500', { error: ( config.dev ? err.stack : undefined ) } );
-		req.log.error({
+
+		log.error({
+			action: 'uncaught-error',
 			error: err
 		});
 	} );
