@@ -1,14 +1,14 @@
 import _ from 'lodash';
-import { Document } from 'mongoose';
 import { getRepository } from 'typeorm';
 
-import { Referrals } from '@core/database';
 import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import { ReferralGiftForm } from '@core/utils';
 
 import { Member } from '@models/members';
 import ReferralGift from '@models/ReferralGift';
+import Referral from '@models/Referral';
+import { Members } from '@core/database';
 
 const log = mainLogger.child({app: 'referrals-service'});
 
@@ -58,20 +58,21 @@ export default class ReferralsService {
 		log.info({
 			'action': 'create-referral',
 			data: {
-				referrerId: referrer?._id,
+				referrerId: referrer?.id,
 				refereeId: referee.id,
 				giftForm,
 				refereeAmount: referee.contributionMonthlyAmount
 			}
 		});
+		
+		const referral = new Referral();
+		referral.referrerId = referrer?.id;
+		referral.refereeId = referee.id;
+		referral.refereeAmount = referee.contributionMonthlyAmount;
+		referral.refereeGift = {name: giftForm.referralGift || ''} as ReferralGift;
+		referral.refereeGiftOptions = giftForm.referralGiftOptions;
 
-		await Referrals.create({
-			referrer: referrer?._id,
-			referee: referee._id,
-			refereeGift: giftForm.referralGift,
-			refereeGiftOptions: giftForm.referralGiftOptions,
-			refereeAmount: referee.contributionMonthlyAmount
-		} as unknown as Document);
+		await getRepository(Referral).save(referral);
 
 		await ReferralsService.updateGiftStock(giftForm);
 
@@ -79,5 +80,34 @@ export default class ReferralsService {
 			refereeName: referee.firstname,
 			isEligible: referee.contributionMonthlyAmount >= 3
 		});
+	}
+
+	static async getMemberReferrals(referrer: Member): Promise<Referral[]> {
+		const referrals = await getRepository(Referral).find({
+			relations: ['referrerGift'],
+			where: {referrerId: referrer.id}
+		});
+		
+		// TODO: Remove when members in ORM
+		const referees = await Members.find({_id: {$in: referrals.map(r => r.refereeId)}});
+
+		return referrals.map(referral => ({
+			...referral,
+			referee: referees.find(m => m.id === referral.refereeId)
+		}));
+	}
+
+	static async setReferrerGift(referral: Referral, giftForm: ReferralGiftForm): Promise<boolean> {
+		if (referral.referrerGift === undefined && ReferralsService.isGiftAvailable(giftForm, referral.refereeAmount)) {
+			await getRepository(Referral).update( referral.id, {
+				refereeGift: {name: giftForm.referralGift || ''},
+				referrerGiftOptions: giftForm.referralGiftOptions
+			});
+
+			await ReferralsService.updateGiftStock(giftForm);
+			return true;
+		}
+
+		return false;
 	}
 }
