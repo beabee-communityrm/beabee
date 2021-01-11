@@ -2,7 +2,7 @@ import 'module-alias/register';
 
 import { Document } from 'bson';
 import mongoose  from 'mongoose';
-import { ConnectionOptions, EntityTarget, getConnection, getRepository, QueryFailedError } from 'typeorm';
+import { ConnectionOptions, EntityManager, EntityTarget, getConnection, getRepository, QueryFailedError } from 'typeorm';
 
 import config from '@config';
 
@@ -104,39 +104,36 @@ const migrations: Migration<any>[] = [
 	})
 ];
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
-	const mdb = mongoose.connection.db;
+const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
+	let items: Document[] = [];
+	const collection = mongoose.connection.db.collection(migration.collection);
+	const cursor = collection.find();
+	while (await cursor.hasNext()) {
+		process.stdout.write('.');
+		const doc = await cursor.next();
+		const item: Document = {};
+		for (const key in migration.mapping) {
+			item[key] = migration.mapping[key](doc);
+		}
+		items.push(item);
+		if (items.length === 1000) {
+			await manager.insert(migration.model, items);
+			items = [];
+		}
+	}
+	if (items.length > 0) {
+		await manager.insert(migration.model, items);
+	}
+}
 
+db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	try {
 		for (const migration of migrations) {
 			console.log('Migrating ' + migration.collection);
-			await getConnection().transaction(async manager => {
-				let items: Document[] = [];
-				const collection = mdb.collection(migration.collection);
-				const cursor = collection.find();
-				while (await cursor.hasNext()) {
-					process.stdout.write('.');
-					const doc = await cursor.next();
-					const item: Document = {};
-					for (const key in migration.mapping) {
-						item[key] = migration.mapping[key](doc);
-					}
-					items.push(item);
-					if (items.length === 1000) {
-						await manager.insert(migration.model, items);
-						items = [];
-					}
-				}
-				if (items.length > 0) {
-					await manager.insert(migration.model, items);
-				}
-			});
+			await getConnection().transaction(doMigration(migration));
 			console.log();
 		}
 	} catch (err) {
-		if (err.query) {
-			console.error(err.query);
-		}
 		console.error(err);
 	}
 
