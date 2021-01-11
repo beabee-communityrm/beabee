@@ -5,6 +5,12 @@
 			"properties": {
 				"referralGift": {
 					"type": "string"
+				},
+				"referralGiftOptions": {
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
 				}
 			}
 		}

@@ -9,6 +9,11 @@ import ReferralsService from '@core/services/ReferralsService';
 
 import { chooseGiftSchema } from './schema.json';
 
+interface ChooseGiftSchema {
+	referralGift?: string;
+	referralGiftOptions?: Record<string, string>;
+}
+
 const app = express();
 let app_config: AppConfig;
 
@@ -32,27 +37,22 @@ app.get( '/', wrapAsync( hasUser( async ( req, res ) => {
 	res.render( 'index', { referralLink: req.user.referralLink, referrals } );
 } ) ) );
 
-app.get( '/:_id', wrapAsync( async ( req, res ) => {
+app.get( '/:id', wrapAsync( async ( req, res ) => {
 	const referral = await Referrals.findOne({ _id: req.params.id, referrer: req.user }).populate('referee');
 	const gifts = await ReferralsService.getGifts();
 	res.render( 'referral', { referral, gifts } );
 } ) );
 
-app.post( '/:_id', hasSchema(chooseGiftSchema).orFlash, wrapAsync( async ( req, res ) => {
+app.post( '/:id', hasSchema(chooseGiftSchema).orFlash, wrapAsync( async ( req, res ) => {
 	const referral = await Referrals.findOne({ _id: req.params.id, referrer: req.user }).populate('referee') as any;
+	const giftParams = req.body as ChooseGiftSchema;
 
-	const giftParams = {
-		referralGift: req.body.referralGift as string,
-		referralGiftOptions: req.body.referralGiftOptions as Record<string,string>,
-		amount: referral.refereeAmount as number
-	};
-
-	if (referral.referrerGift === undefined && await ReferralsService.isGiftAvailable(giftParams)) {
+	if (referral.referrerGift === undefined && await ReferralsService.isGiftAvailable(giftParams, referral.refereeAmount)) {
 		await Referrals.updateOne({
 			_id: req.params.id,
 			referrer: req.user
 		}, {$set: {
-			referrerGift: giftParams.referralGift,
+			referrerGift: giftParams.referralGift || '',
 			referrerGiftOptions: giftParams.referralGiftOptions
 		}});
 

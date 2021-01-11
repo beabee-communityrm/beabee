@@ -1,67 +1,83 @@
 import _ from 'lodash';
+import { Document } from 'mongoose';
+import { getRepository } from 'typeorm';
 
 import { Referrals } from '@core/database';
+import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
+import { ReferralGiftForm } from '@core/utils';
 
-import { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
-import { Document } from 'mongoose';
 import ReferralGift from '@models/ReferralGift';
-import { createQueryBuilder, getRepository } from 'typeorm';
 
-type GiftForm = Pick<JoinForm,'amount'|'referralGift'|'referralGiftOptions'>;
+const log = mainLogger.child({app: 'referrals-service'});
 
 export default class ReferralsService {
 	static async getGifts(): Promise<ReferralGift[]> {
 		return await getRepository(ReferralGift).find();
 	}
 
-	static async isGiftAvailable({referralGift, referralGiftOptions, amount}: GiftForm): Promise<boolean> {
-		if (!referralGift) return true; // No gift option
+	static async isGiftAvailable(giftForm: ReferralGiftForm, amount: number): Promise<boolean> {
+		if (!giftForm.referralGift) return true; // No gift option
 
-		const gift = await getRepository(ReferralGift).findOne({name: referralGift});
+		const gift = await getRepository(ReferralGift).findOne({name: giftForm.referralGift});
 		if (gift && gift.enabled && gift.minAmount <= amount) {
-			const stockRef = _.values(referralGiftOptions).join('/');
-			return ReferralsService.hasStock(gift, stockRef);
+			if (giftForm.referralGiftOptions) {
+				const optionStockRef = Object.values(giftForm.referralGiftOptions).join('/');
+				const optionStock = gift.stock.get(optionStockRef);
+				return optionStock === undefined || optionStock > 0;
+			} else {
+				return true;
+			}
 		}
+
 		return false;
 	}
 
-	static async updateGiftStock({referralGift, referralGiftOptions}: GiftForm): Promise<void> {
-		const gift = await getRepository(ReferralGift).findOne({name: referralGift});
-		if (gift && referralGiftOptions) {
-			// Should never happen but remove any ' just in case to stop SQL injections
-			const stockRef = Object.values(referralGiftOptions).join('/').replace(/'/g, '');
+	static async updateGiftStock(giftForm: ReferralGiftForm): Promise<void> {
+		log.info({
+			'action': 'update-gift-stock',
+			data: {
+				giftForm
+			}
+		});
 
-			if (ReferralsService.hasStock(gift, stockRef)) {
-				// Ugly atomic decrement for JSONB type
-				await createQueryBuilder().update(ReferralGift)
-					.set({stock: () => `jsonb_set(stock, '{${stockRef}}', (coalesce(stock->>'${stockRef}', '0')::int - 1)::text::jsonb)`})
-					.where('name = :name', {name: gift.name})
-					.execute();
+		const gift = await getRepository(ReferralGift).findOne({name: giftForm.referralGift});
+		if (gift && giftForm.referralGiftOptions) {
+			const optionStockRef = Object.values(giftForm.referralGiftOptions).join('/');
+			const optionStock = gift.stock.get(optionStockRef);
+			if (optionStock !== undefined) {
+				// TODO: this update isn't atomic
+				gift.stock.set(optionStockRef, optionStock - 1);
+				getRepository(ReferralGift).update(gift.name, {stock: gift.stock});
 			}
 		}
 	}
 
-	static async createReferral(referrer: Member|null, member: Member, giftForm: GiftForm): Promise<void> {
+	static async createReferral(referrer: Member|null, referee: Member, giftForm: ReferralGiftForm): Promise<void> {
+		log.info({
+			'action': 'create-referral',
+			data: {
+				referrerId: referrer?._id,
+				refereeId: referee.id,
+				giftForm,
+				refereeAmount: referee.contributionMonthlyAmount
+			}
+		});
+
 		await Referrals.create({
 			referrer: referrer?._id,
-			referee: member._id,
+			referee: referee._id,
 			refereeGift: giftForm.referralGift,
 			refereeGiftOptions: giftForm.referralGiftOptions,
-			refereeAmount: giftForm.amount
+			refereeAmount: referee.contributionMonthlyAmount
 		} as unknown as Document);
 
 		await ReferralsService.updateGiftStock(giftForm);
 
 		await mandrill.sendToMember('successful-referral', referrer, {
-			refereeName: member.firstname,
-			isEligible: giftForm.amount >= 3
+			refereeName: referee.firstname,
+			isEligible: referee.contributionMonthlyAmount >= 3
 		});
-	}
-
-	private static hasStock(gift: ReferralGift, stockRef: string): boolean {
-		const stock = gift.stock.get(stockRef);
-		return stock === undefined ? true : stock > 0;
 	}
 }

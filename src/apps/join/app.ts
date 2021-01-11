@@ -85,7 +85,7 @@ app.post( '/referral/:code', [
 ], wrapAsync( async function ( req, res ) {
 	const joinForm = schemaToJoinForm(req.body);
 
-	if (await ReferralsService.isGiftAvailable(joinForm)) {
+	if (await ReferralsService.isGiftAvailable(joinForm, joinForm.amount)) {
 		const completeUrl = config.audience + app.mountpath + '/complete';
 		const redirectUrl = await JoinFlowService.createJoinFlow(completeUrl, joinForm);
 		res.redirect(redirectUrl);
