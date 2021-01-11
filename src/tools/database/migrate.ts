@@ -23,7 +23,7 @@ type WritableKeysOf<T> = {
     [P in keyof T]: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never>
 }[keyof T];
 
-type Mapping<T> = Record<Exclude<WritableKeysOf<T>,'id'>, (doc: Document) => any>;
+type Mapping<T> = {[K in Exclude<WritableKeysOf<T>,'id'>]: (doc: Document) => T[K]};
 
 interface Migration<T> {
 	model: EntityTarget<T>,
@@ -37,7 +37,7 @@ function createMigration<T>(model: EntityTarget<T>, collection: string, mapping:
 }
 
 function copy(field: string) {
-	return (doc: Document)=> doc[field];
+	return (doc: Document) => doc[field];
 }
 
 function objectId(field: string) {
@@ -98,8 +98,8 @@ const migrations: Migration<any>[] = [
 		...ident(['date', 'refereeAmount', 'refereeGiftOptions', 'referrerGiftOptions'] as const),
 		refereeId: objectId('referee'),
 		referrerId: objectId('referrer'),
-		refereeGift: doc => doc.refereeGift ? {name: doc.refereeGift} : undefined,
-		referrerGift: doc => doc.referrerGift ? {name: doc.referrerGift} : undefined,
+		refereeGift: doc => doc.refereeGift ? {name: doc.refereeGift} as ReferralGift : undefined,
+		referrerGift: doc => doc.referrerGift ? {name: doc.referrerGift} as ReferralGift : undefined,
 		referrerHasSelected: doc => doc.referrerGift !== undefined
 	})
 ];
