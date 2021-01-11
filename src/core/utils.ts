@@ -11,10 +11,15 @@ export enum ContributionPeriod {
 }
 
 export interface PaymentForm {
-    amount: number;
-    period: ContributionPeriod;
-    payFee: boolean;
-    prorate: boolean;
+	amount: number;
+	period: ContributionPeriod;
+	payFee: boolean;
+	prorate: boolean;
+}
+
+export interface ReferralGiftForm {
+	referralGift?: string
+	referralGiftOptions?: Record<string, string>
 }
 
 export interface AppConfig {

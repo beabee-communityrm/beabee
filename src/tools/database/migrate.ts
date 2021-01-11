@@ -12,6 +12,7 @@ import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import Option from '@models/Option';
 import GiftFlow, { GiftForm } from '@models/GiftFlow';
+import ReferralGift from '@models/ReferralGift';
 
 type IfEquals<X, Y, A, B> =
     (<T>() => T extends X ? 1 : 2) extends
@@ -42,33 +43,33 @@ function objectId(field: string) {
 	return (doc: Document) => doc[field] ? doc[field].toString() : null;
 }
 
+function ident<T extends readonly string[]>(fields: T): {[key in T[number]]: any} {
+	return Object.assign(
+		{},
+		...fields.map(field => ({[field]: copy(field)}))
+	);
+}
+
 const migrations: Migration<any>[] = [
 	createMigration(PageSettings, 'pagesettings', {
-		pattern: copy('pattern'),
-		shareUrl: copy('shareUrl'),
-		shareTitle: copy('shareTitle'),
-		shareDescription: copy('shareDescription'),
-		shareImage: copy('shareImage')
+		...ident(['pattern', 'shareUrl', 'shareTitle', 'shareDescription', 'shareImage'] as const),
 	}),
 	createMigration(Payment, 'payments', {
+		...ident(['status', 'description', 'amount'] as const),
 		paymentId: copy('payment_id'),
 		subscriptionId: copy('subscription_id'),
 		subscriptionPeriod: copy('subscription_period'),
 		memberId: objectId('member'),
-		status: copy('status'),
-		description: copy('description'),
-		amount: copy('amount'),
 		amountRefunded: copy('amount_refunded'),
 		createdAt: copy('created'),
 		chargeDate: copy('charge_date'),
 		updatedAt: copy('updated_at')
 	}),
 	createMigration(Option, 'options', {
-		key: copy('key'),
-		value: copy('value')
+		...ident(['key', 'value'] as const)
 	}),
 	createMigration(GiftFlow, 'giftflows', {
-		sessionId: copy('sessionId'),
+		...ident(['sessionId', 'setupCode', 'date', 'completed', 'processed'] as const),
 		giftForm: doc => {
 			const giftForm = new GiftForm();
 			giftForm.firstname = doc.giftForm.firstname;
@@ -86,11 +87,11 @@ const migrations: Migration<any>[] = [
 				giftForm.deliveryAddress = doc.giftForm.delivery_copies_address;
 			}
 			return giftForm;
-		},
-		setupCode: copy('setupCode'),
-		date: copy('date'),
-		completed: copy('completed'),
-		processed: copy('processed')
+		}
+	}),
+	createMigration(ReferralGift, 'referralgifts', {
+		...ident(['name', 'label', 'description', 'minAmount', 'enabled', 'options'] as const),
+		stock: doc => new Map(doc.stock && Object.entries(doc.stock))
 	})
 ];
 

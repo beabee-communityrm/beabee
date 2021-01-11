@@ -1,7 +1,7 @@
-import { ContributionPeriod, PaymentForm } from '@core/utils';
+import { ContributionPeriod, ReferralGiftForm, PaymentForm } from '@core/utils';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export class JoinForm implements PaymentForm {
+export class JoinForm implements PaymentForm, Partial<ReferralGiftForm> {
     @Column()
     amount!: number;
 
@@ -21,7 +21,7 @@ export class JoinForm implements PaymentForm {
     referralGift?: string;
 
     @Column({type: 'jsonb', nullable: true})
-    referralGiftOptions?:  Record<string, unknown>;
+    referralGiftOptions?:  Record<string, string>;
 }
 
 @Entity()
@@ -38,6 +38,6 @@ export default class JoinFlow {
     @Column()
     sessionToken!: string;
 
-    @Column(type => JoinForm)
+    @Column(() => JoinForm)
     joinForm!: JoinForm;
 }
