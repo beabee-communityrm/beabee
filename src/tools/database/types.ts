@@ -105,7 +105,6 @@ const models: ModelExporter[] = [
 	{ model: db.Exports },
 	{ model: db.Permissions as unknown as Model<MDocument> },
 	{ model: db.Members as unknown as Model<MDocument>, properties: members },
-	{ model: db.Referrals, properties: referrals },
 	{ model: db.Polls },
 	{ model: db.PollAnswers, properties: pollAnswers },
 	{ model: db.Projects , properties: projects },

@@ -2,7 +2,7 @@ import 'module-alias/register';
 
 import { Document } from 'bson';
 import mongoose  from 'mongoose';
-import { ConnectionOptions, EntityTarget, getRepository } from 'typeorm';
+import { ConnectionOptions, EntityTarget, getConnection, getRepository, QueryFailedError } from 'typeorm';
 
 import config from '@config';
 
@@ -13,6 +13,7 @@ import Payment from '@models/Payment';
 import Option from '@models/Option';
 import GiftFlow, { GiftForm } from '@models/GiftFlow';
 import ReferralGift from '@models/ReferralGift';
+import Referral from '@models/Referral';
 
 type IfEquals<X, Y, A, B> =
     (<T>() => T extends X ? 1 : 2) extends
@@ -92,35 +93,51 @@ const migrations: Migration<any>[] = [
 	createMigration(ReferralGift, 'referralgifts', {
 		...ident(['name', 'label', 'description', 'minAmount', 'enabled', 'options'] as const),
 		stock: doc => new Map(doc.stock && Object.entries(doc.stock))
+	}),
+	createMigration(Referral, 'referrals', {
+		...ident(['date', 'refereeAmount', 'refereeGiftOptions', 'referrerGiftOptions'] as const),
+		refereeId: objectId('referee'),
+		referrerId: objectId('referrer'),
+		refereeGift: doc => doc.refereeGift ? {name: doc.refereeGift} : undefined,
+		referrerGift: doc => doc.referrerGift ? {name: doc.referrerGift} : undefined,
+		referrerHasSelected: doc => doc.referrerGift !== undefined
 	})
 ];
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	const mdb = mongoose.connection.db;
 
-	for (const migration of migrations) {
-		let items: Document[] = [];
-		console.log('Migrating ' + migration.collection);
-		const repo = getRepository(migration.model);
-		const collection = mdb.collection(migration.collection);
-		const cursor = collection.find();
-		while (await cursor.hasNext()) {
-			process.stdout.write('.');
-			const doc = await cursor.next();
-			const item: Document = {};
-			for (const key in migration.mapping) {
-				item[key] = migration.mapping[key](doc);
-			}
-			items.push(item);
-			if (items.length === 1000) {
-				await repo.insert(items);
-				items = [];
-			}
+	try {
+		for (const migration of migrations) {
+			console.log('Migrating ' + migration.collection);
+			await getConnection().transaction(async manager => {
+				let items: Document[] = [];
+				const collection = mdb.collection(migration.collection);
+				const cursor = collection.find();
+				while (await cursor.hasNext()) {
+					process.stdout.write('.');
+					const doc = await cursor.next();
+					const item: Document = {};
+					for (const key in migration.mapping) {
+						item[key] = migration.mapping[key](doc);
+					}
+					items.push(item);
+					if (items.length === 1000) {
+						await manager.insert(migration.model, items);
+						items = [];
+					}
+				}
+				if (items.length > 0) {
+					await manager.insert(migration.model, items);
+				}
+			});
+			console.log();
 		}
-		if (items.length > 0) {
-			await repo.insert(items);
+	} catch (err) {
+		if (err.query) {
+			console.error(err.query);
 		}
-		console.log();
+		console.error(err);
 	}
 
 	await db.close();

@@ -20,7 +20,7 @@ let app_config: AppConfig;
 
 function hasOwnReferral(req: Request, res: Response, next: NextFunction) {
 	hasNewModel(Referral, 'id')(req, res, () => {
-		const referral = req.body as Referral;
+		const referral = req.model as Referral;
 		if (referral.referrerId === req.user?.id) {
 			next();
 		} else {
@@ -53,7 +53,7 @@ app.get( '/:id', hasOwnReferral, wrapAsync( async ( req, res ) => {
 app.post( '/:id', [
 	hasOwnReferral, hasSchema(chooseGiftSchema).orFlash
 ], wrapAsync( async ( req, res ) => {
-	const referral = req.body as Referral;
+	const referral = req.model as Referral;
 	const giftParams = req.body as ChooseGiftSchema;
 
 	if (await ReferralsService.setReferrerGift(referral, giftParams)) {

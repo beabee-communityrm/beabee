@@ -98,10 +98,11 @@ export default class ReferralsService {
 	}
 
 	static async setReferrerGift(referral: Referral, giftForm: ReferralGiftForm): Promise<boolean> {
-		if (referral.referrerGift === undefined && ReferralsService.isGiftAvailable(giftForm, referral.refereeAmount)) {
-			await getRepository(Referral).update( referral.id, {
-				refereeGift: {name: giftForm.referralGift || ''},
-				referrerGiftOptions: giftForm.referralGiftOptions
+		if (!referral.referrerHasSelected && ReferralsService.isGiftAvailable(giftForm, referral.refereeAmount)) {
+			await getRepository(Referral).update(referral.id, {
+				referrerGift: giftForm.referralGift !== undefined ? {name: giftForm.referralGift} : undefined,
+				referrerGiftOptions: giftForm.referralGiftOptions,
+				referrerHasSelected: true
 			});
 
 			await ReferralsService.updateGiftStock(giftForm);

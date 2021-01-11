@@ -34,6 +34,6 @@ export default class ReferralGift {
 	@Column({type: 'jsonb', default: '[]'})
 	options!: ReferralGiftOptions[]
 
-	@Column({type: 'jsonb', default: '{}', transformer: stockTransformer})
+	@Column({type: 'jsonb', default: '[]', transformer: stockTransformer})
 	stock!: Map<string, number>
 }
