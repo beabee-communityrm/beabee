@@ -14,33 +14,24 @@ services:
       POSTGRES_PASSWORD: membership_system
       POSTGRES_DB: membership_system
   app:
-    build:
-      context: .
-      args:
-        APP: app
-        PORT: 3001
+    build: .
+    command: 'node built/app'
     volumes:
-      - ./:/membership-system
+      - ./built:/opt/membership-system/built
     ports:
       - 3001:3001
   gc_webhook:
-    build:
-      context: .
-      args:
-        APP: webhooks/gocardless
-        PORT: 3002
+    build: .
+    command: 'node built/webhooks/gocardless'
     volumes:
-      - ./:/membership-system
+      - ./built:/opt/membership-system/built
     ports:
       - 3002:3002
   stripe_webhook:
-    build:
-      context: .
-      args:
-        APP: webhooks/stripe
-        PORT: 3003
+    build: .
+    command: 'node built/webhooks/stripe'
     volumes:
-      - ./:/membership-system
+      - ./built:/opt/membership-system/built
     ports:
       - 3003:3003
 
