@@ -15,5 +15,3 @@ COPY --chown=node:node --from=builder /opt/membership-system /opt/membership-sys
 COPY --chown=node:node ./built /opt/membership-system/built
 
 USER node
-
-RUN touch /opt/membership-system/built/revision.txt

@@ -11,7 +11,7 @@ var git = '';
 try {
 	git = require('fs').readFileSync( __dirname + '/../revision.txt' ).toString();
 } catch (e) {
-	git = 'DEV-' + Math.random();
+	git = 'DEV';
 }
 
 function templateLocals( req, res, next ) {
