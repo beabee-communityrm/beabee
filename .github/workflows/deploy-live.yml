@@ -1,4 +1,4 @@
-name: Main workflow
+name: Deploy live
 
 on: [push]
 
@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node_version: 12.16.3
+          node-version: 12.16.3
       - run: npm ci
       - run: cp src/config/example-config.json src/config/config.json
       - run: npm run checkDependencies
@@ -23,10 +23,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - uses: docker/build-push-action@v2
+        id: docker_build
         with:
           push: true
           build-args: |
-            REVISION=${{ env.GITHUB_SHA }}
+            REVISION=${{ github.sha }}
           tags: beabee/beabee:latest
       - run: echo ${{ steps.docker_build.outputs_digest }}
 
