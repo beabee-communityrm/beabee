@@ -15,7 +15,6 @@ services:
       POSTGRES_DB: membership_system
   app:
     build: .
-    command: 'node built/app'
     volumes:
       - ./built:/opt/membership-system/built
     ports:
