@@ -2,7 +2,7 @@ import 'module-alias/register';
 
 import { Document } from 'bson';
 import mongoose  from 'mongoose';
-import { ConnectionOptions, EntityManager, EntityTarget, getConnection, getRepository, QueryFailedError } from 'typeorm';
+import { ConnectionOptions, EntityManager, EntityTarget, getConnection } from 'typeorm';
 
 import config from '@config';
 
