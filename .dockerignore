@@ -1,3 +1,6 @@
+Dockerfile
+docker-compose.yml
+tsconfig.tsbuildinfo
 node_modules
-/src/
-/built/config/config.json
+/src/config/config.json
+/built/
