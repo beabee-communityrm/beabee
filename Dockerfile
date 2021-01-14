@@ -7,14 +7,20 @@ COPY . /opt/membership-system
 WORKDIR /opt/membership-system
 RUN cp ./src/config/example-config.json ./src/config/config.json
 RUN npm ci
-RUN npm run build
+RUN NODE_ENV=production npm run build
 RUN npm ci --only=production
 
 FROM node:12.16.3-alpine as app
 
+ARG REVISON=DEV
+
 COPY --chown=node:node --from=builder /opt/membership-system/package.json /opt/membership-system/
 COPY --chown=node:node --from=builder /opt/membership-system/node_modules /opt/membership-system/node_modules
 COPY --chown=node:node --from=builder /opt/membership-system/built /opt/membership-system/built
+
+RUN echo ${REVISON} > /opt/membership-system/built/revision.txt
+
+ENV NODE_ENV=production
 
 WORKDIR /opt/membership-system
 USER node
