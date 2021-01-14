@@ -1,10 +1,15 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-const { Exports, Members, Permissions } = require('@core/database');
-const { isLocalPostcode } = require( '../utils.js' );
-const config = require( '@config' );
+import { Members, Permissions } from '@core/database';
+import config from  '@config' ;
+import { Param } from '@core/utils/params.js';
 
-async function getParams() {
+import Export from '@models/Export';
+import { Member } from '@models/members';
+import { ExportType } from './type';
+import { getRepository } from 'typeorm';
+
+async function getParams(): Promise<Param[]> {
 	return [{
 		name: 'monthlyAmountThreshold',
 		label: 'Monthly contribution amount threshold',
@@ -12,7 +17,7 @@ async function getParams() {
 	}];
 }
 
-async function getQuery({params: {monthlyAmountThreshold} = {}}) {
+async function getQuery({params: {monthlyAmountThreshold} = {}}: Export) {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 	return {
 		// TODO: switch this to contributionMonthlyAmount
@@ -27,12 +32,12 @@ async function getQuery({params: {monthlyAmountThreshold} = {}}) {
 	};
 }
 
-async function getExport(members, {_id: exportId}) {
+async function getExport(members: Member[], {id: exportId}: Export) {
 	const exportIds =
-		(await Exports.find({type: 'edition'}).sort({date: 1})).map(e => e._id);
+		(await getRepository(Export).find({where: {type: 'edition'}, order: {date: 'ASC'}})).map(e => e.id);
 
-	function getExportNo(id) {
-		const i = exportIds.findIndex(id2 => id.equals(id2));
+	function getExportNo(id: string) {
+		const i = exportIds.findIndex(id2 => id === id2);
 		return i > -1 ? i : exportIds.length;
 	}
 
@@ -49,20 +54,16 @@ async function getExport(members, {_id: exportId}) {
 				City: member.delivery_address.city,
 				Postcode: postcode,
 				ReferralLink: member.referralLink,
-				IsLocal: isLocalPostcode(postcode),
 				IsGift: member.contributionPeriod === 'gift',
-				IsFirstEdition: _.every(member.exports, e => getExportNo(e.export_id) >= currentExportNo),
+				// TODO: IsFirstEdition: _.every(member.exports, e => getExportNo(e.export_id) >= currentExportNo),
 				NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
 				ContributionMonthlyAmount: member.contributionMonthlyAmount
 			};
 		})
-		.sort((a, b) => (
-			(b.IsLocal - a.IsLocal) ||
-				(b.LastName.toLowerCase() > a.LastName.toLowerCase() ? -1 : 1)
-		));
+		.sort((a, b) => b.LastName.toLowerCase() > a.LastName.toLowerCase() ? -1 : 1);
 }
 
-module.exports = {
+export default {
 	name: 'Edition export',
 	statuses: ['added', 'sent'],
 	collection: Members,
@@ -70,4 +71,4 @@ module.exports = {
 	getParams,
 	getQuery,
 	getExport
-};
+} as ExportType<Member>;

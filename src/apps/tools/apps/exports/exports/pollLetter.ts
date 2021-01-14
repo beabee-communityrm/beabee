@@ -1,13 +1,17 @@
-const { Members, Permissions, PollAnswers, Polls } = require('@core/database');
-const config = require( '@config' );
+import { Members, Permissions, PollAnswers, Polls } from '@core/database';
+import config from  '@config';
+import { Param } from '@core/utils/params';
+import Export from '@models/Export';
+import { Member } from '@models/members';
+import { ExportType } from './type';
 
-async function getParams() {
+async function getParams(): Promise<Param[]> {
 	return [
 		{
 			name: 'pollId',
 			label: 'Poll',
 			type: 'select',
-			values: (await Polls.find()).map(poll => [poll._id.toString(), poll.question])
+			values: (await Polls.find()).map(poll => [poll._id.toString(), (poll as any).question])
 		}, {
 			name: 'baseURL',
 			label: 'Base URL',
@@ -16,10 +20,10 @@ async function getParams() {
 	];
 }
 
-async function getQuery({params: {pollId}}) {
+async function getQuery({params: {pollId} = {}}: Export) {
 	const poll = await Polls.findById(pollId);
 	const pollAnswers = await PollAnswers.find({poll});
-	const memberIds = pollAnswers.map(pollAnswer => pollAnswer.member);
+	const memberIds = pollAnswers.map(pollAnswer => (pollAnswer as any).member);
 
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 
@@ -34,10 +38,11 @@ async function getQuery({params: {pollId}}) {
 	};
 }
 
-async function getExport(members, {params: {baseURL}}) {
+async function getExport(members: Member[], {params: {baseURL} = {}}: Export) {
 	return members.map(member => {
 		const addressFields = Object.assign(
-			...['line1', 'line2', 'city', 'postcode']
+			{},
+			...(['line1', 'line2', 'city', 'postcode'] as const)
 				.map(field => member.delivery_address[field])
 				.filter(line => !!line)
 				.map((field, i) => ({['Address' + (i + 1)]: field}))
@@ -54,7 +59,7 @@ async function getExport(members, {params: {baseURL}}) {
 	});
 }
 
-module.exports = {
+export default {
 	name: 'Poll letter export',
 	statuses: ['added', 'seen'],
 	collection: Members,
@@ -62,4 +67,4 @@ module.exports = {
 	getParams,
 	getQuery,
 	getExport
-};
+} as ExportType<Member>;

@@ -1,8 +1,10 @@
-const _ = require('lodash');
-const moment = require('moment');
+import _ from 'lodash';
+import moment from 'moment';
 
-const { Members, Permissions } = require('@core/database');
-const config = require( '@config' );
+import { Members, Permissions } from '@core/database';
+import config from '@config' ;
+import { ExportType } from './type';
+import { Member } from '@models/members';
 
 async function getQuery() {
 	const permission = await Permissions.findOne({slug: config.permission.member});
@@ -11,14 +13,14 @@ async function getQuery() {
 	};
 }
 
-async function getExport(members) {
+async function getExport(members: Member[]) {
 	const membershipDates = members.map(member => ({
 		added: member.memberPermission.date_added,
 		expires: member.memberPermission.date_expires
 	}));
 
 	const cancellationsByMonth = _(members)
-		.filter(member => member.gocardless.cancelled_at)
+		.filter(member => !!member.gocardless.cancelled_at)
 		.map(member => member.gocardless.cancelled_at)
 		.groupBy(date => moment(date).format('YYYY-MM'))
 		.mapValues('length')
@@ -46,11 +48,11 @@ async function getExport(members) {
 	return exportData;
 }
 
-module.exports = {
+export default {
 	name: 'Churn rate export',
 	statuses: ['added', 'seen'],
 	collection: Members,
 	itemName: 'members',
 	getQuery,
 	getExport
-};
+} as ExportType<Member>;

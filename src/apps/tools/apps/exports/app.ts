@@ -1,27 +1,29 @@
-const express = require( 'express' );
-const _ = require('lodash');
-const Papa = require('papaparse');
-const pug = require( 'pug' );
+import express from 'express';
+import _ from 'lodash';
+import Papa from 'papaparse';
+import pug from 'pug';
 
-const auth = require( '@core/authentication' );
-const { Exports } = require( '@core/database' );
-const { hasSchema } = require( '@core/middleware' );
-const { loadParams, parseParams, wrapAsync } = require( '@core/utils' );
+import auth from  '@core/authentication' ;
+import { hasNewModel, hasSchema } from  '@core/middleware' ;
+import { AppConfig, wrapAsync } from  '@core/utils' ;
+import { loadParams, parseParams } from '@core/utils/params';
 
-const { createSchema, updateSchema } = require('./schemas.json');
+import { createSchema, updateSchema } from './schemas.json';
 
-const exportTypes = require('./exports');
+import exportTypes from './exports';
+import { getRepository } from 'typeorm';
+import Export, { ExportTypeId } from '@models/Export';
 
 const viewsPath = __dirname + '/views';
 
-const exportTypeViews = {
+const exportTypeViews: Partial<Record<ExportTypeId, pug.compileTemplate>> = {
 	'active-members': pug.compileFile(viewsPath + '/tables/members.pug'),
 	'edition': pug.compileFile(viewsPath + '/tables/members.pug'),
 	'join-reasons': pug.compileFile(viewsPath + '/tables/join-reasons.pug')
 };
 
 const app = express();
-var app_config = {};
+let app_config: AppConfig;
 
 app.set( 'views', viewsPath );
 
@@ -38,7 +40,7 @@ app.use( function( req, res, next ) {
 
 
 app.get( '/', wrapAsync( async function( req, res ) {
-	const exports = await Exports.find();
+	const exports = await getRepository(Export).find();
 
 	const exportsByType = Object.keys(exportTypes).map(type => ({
 		name: exportTypes[type].name,
@@ -52,20 +54,26 @@ app.get( '/', wrapAsync( async function( req, res ) {
 	res.render('index', {exportsByType, exportTypesWithParams});
 } ) );
 
-app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {
-	const { body: { type, description, params } } = req;
+interface CreateSchema {
+	type: ExportTypeId,
+	description: string,
+	params: Record<string, string>
+}
 
-	const exportDetails = await Exports.create({
-		type, description,
-		params: await parseParams(exportTypes[type], params)
-	});
+app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {
+	const { type, description, params } = req.body as CreateSchema;
+
+	const exportDetails = new Export();
+	exportDetails.type = type;
+	exportDetails.description = description;
+	exportDetails.params = await parseParams(exportTypes[type], params);
 
 	req.flash('success', 'exports-created');
-	res.redirect('/tools/exports/' + exportDetails._id);
+	res.redirect('/tools/exports/' + exportDetails.id);
 } ) );
 
-app.get( '/:uuid', wrapAsync( async function( req, res ) {
-	const exportDetails = await Exports.findById(req.params.uuid);
+app.get( '/:uuid', hasNewModel(Export, 'id'), wrapAsync( async function( req, res ) {
+	const exportDetails = req.model as Export;
 	const exportType = exportTypes[exportDetails.type];
 
 	const newItems = await exportType.collection.find({
