@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - uses: docker/build-push-action@v2
         with:
-        push: true
+          push: true
           build-args: |
             REVISION=${{ env.GITHUB_SHA }}
           tags: beabee/beabee:latest
