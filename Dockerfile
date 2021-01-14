@@ -1,22 +1,27 @@
-FROM node:12.16.3
+FROM node:12.16.3-alpine as builder
 
-RUN apt-get update && apt-get install -y jq
+RUN apk add --no-cache python make g++ git
 
-WORKDIR /
-ADD package.json package-lock.json ./
+COPY . /opt/membership-system
 
+WORKDIR /opt/membership-system
+RUN cp ./src/config/example-config.json ./src/config/config.json
+RUN npm ci
+RUN NODE_ENV=production npm run build
 RUN npm ci --only=production
 
-WORKDIR /membership-system
+FROM node:12.16.3-alpine as app
 
-#COPY . /membership-system
+ARG REVISION=DEV
 
-ENV NODE_PATH=/node_modules
+COPY --chown=node:node --from=builder /opt/membership-system/package.json /opt/membership-system/
+COPY --chown=node:node --from=builder /opt/membership-system/node_modules /opt/membership-system/node_modules
+COPY --chown=node:node --from=builder /opt/membership-system/built /opt/membership-system/built
 
-ARG APP
-ARG PORT
+RUN echo ${REVISION} > /opt/membership-system/built/revision.txt
 
-ENV APP=${APP}
+ENV NODE_ENV=production
 
-EXPOSE ${PORT}
-CMD ["/bin/bash", "-c", "node built/$APP 2>&1 >/dev/null | /node_modules/.bin/bunyan"]
+WORKDIR /opt/membership-system
+USER node
+CMD [ "node", "built/app" ]
