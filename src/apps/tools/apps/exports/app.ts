@@ -124,28 +124,17 @@ app.get( '/:id', hasNewModel(Export, 'id'), wrapAsync( async function( req, res 
 	});
 } ) );
 
-app.get('/:id/items/new', hasNewModel(Export, 'id'), wrapAsync(async (req, res) => {
-	const exportDetails = req.model as Export;
-	const exportType = exportTypes[exportDetails.type];
-
-	const {newItems} = await getExportItems(exportDetails);
-
-	res.render('items', {
-		items: await exportType.getExport(newItems, exportDetails),
-		exportDetails,
-		status: 'new'
-	});
-}));
-
 app.get('/:id/items/:status', hasNewModel(Export, 'id'), wrapAsync(async (req, res) => {
 	const exportDetails = req.model as Export;
 	const exportType = exportTypes[exportDetails.type];
 
-	const {exportItems} = await getExportItems(exportDetails);
+	const {newItems, exportItems} = await getExportItems(exportDetails);
 
-	const items = await exportType.collection.find({
-		_id: {$in: exportItems.filter(ei => ei.status === req.params.status).map(ei => ei.itemId)}
-	});
+	const items = req.params.status === 'new' ?
+		newItems :
+		await exportType.collection.find({
+			_id: {$in: exportItems.filter(ei => ei.status === req.params.status).map(ei => ei.itemId)}
+		});
 
 	res.render('items', {
 		items: await exportType.getExport(items, exportDetails),
@@ -190,7 +179,9 @@ app.post( '/:id', [
 
 		const exportName = `export-${exportDetails.description}_${new Date().toISOString()}.csv`;
 		const exportData = await exportType.getExport(items, exportDetails);
+
 		res.attachment(exportName).send(Papa.unparse(exportData));
+
 	} else if (data.action === 'delete') {
 		await getRepository(ExportItem).delete({export: exportDetails});
 		await getRepository(Export).delete(exportDetails.id);
