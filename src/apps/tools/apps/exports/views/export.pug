@@ -24,19 +24,20 @@ block contents
 				li
 					| New #{exportType.itemName} (#{newItems.length})
 					|
-					a(href='').btn.btn-sm.btn-info Show
+					a(href='/tools/exports/' + exportDetails.id + '/items/new').btn.btn-xs.btn-info Show
+					|
+					|
+					if newItems.length > 0
+						form(method='POST' style='display: inline')
+							+csrf
+							each item in newItems
+								input(type='hidden' name='newItemIds[]' value=item.id)
+							button(name='action' value='add').btn.btn-xs.btn-success Add
 				for status in exportItemsByStatus
-					li
-						| Existing #{exportType.itemName} - #{status.name} (#{status.items.length})
+					li(style='padding-top: 0.5rem')
+						| #{status.name[0].toUpperCase() + status.name.slice(1)} #{exportType.itemName} (#{status.items.length})
 						|
-						a(href='').btn.btn-sm.btn-info Show
-
-			if newItems.length > 0
-				form(method='POST')
-					+csrf
-					each item in newItems
-						input(type='hidden' name='newItemIds[]' value=item.id)
-					button(name='action' value='add').btn.btn-primary Add new
+						a(href='/tools/exports/' + exportDetails.id + '/items/' + status.name).btn.btn-xs.btn-info Show
 
 	.row
 		.col-md-8

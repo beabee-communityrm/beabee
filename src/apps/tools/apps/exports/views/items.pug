@@ -1,0 +1,28 @@
+extends /views/base.pug
+
+block prepend title
+	- title = 'Export'
+
+block contents
+	.row
+		.col-md-12
+			+page_header(exportDetails.description)
+
+			p Status: #{status}
+			
+			if items.length > 0
+				- headers = Object.keys(items[0]);
+				div(style='overflow-x: auto')
+					table.table
+						thead
+							tr
+								each header in headers
+									th= header
+						tbody
+							each item in items
+								tr
+									each header in headers
+										td= item[header]
+			else
+				.alert.alert-info No items
+

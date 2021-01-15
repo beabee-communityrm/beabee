@@ -13,7 +13,7 @@ import ExportItem from '@models/ExportItem';
 import { createSchema, updateSchema } from './schemas.json';
 import exportTypes from './exports';
 
-const exportTypeWithTypeId = Object.entries(exportTypes).map(([type, exportType]) => ({
+const exportTypesWithTypeId = Object.entries(exportTypes).map(([type, exportType]) => ({
 	...exportType, type
 }));
 
@@ -53,6 +53,21 @@ async function schemaToExport(data: CreateSchema): Promise<Export> {
 	return exportDetails;
 }
 
+async function getExportItems(exportDetails: Export) {
+	const exportType = exportTypes[exportDetails.type];
+
+	const exportItems = await getRepository(ExportItem).find({
+		where: {export: exportDetails}
+	});
+
+	const newItems = await exportType.collection.find({
+		...await exportType.getQuery(exportDetails),
+		_id: {$not: {$in: exportItems.map(ei => ei.itemId)}}
+	});
+
+	return {exportItems, newItems};
+}
+
 const app = express();
 let app_config: AppConfig;
 
@@ -78,15 +93,13 @@ app.get( '/', wrapAsync( async function( req, res ) {
 		exports: exports.filter(e => e.type === type)
 	}));
 
-	const exportTypesWithParams = await loadParams(exportTypeWithTypeId);
+	const exportTypesWithParams = await loadParams(exportTypesWithTypeId);
 
 	res.render('index', {exportsByType, exportTypesWithParams});
 } ) );
 
 app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, res ) {
-	const exportDetails = await schemaToExport(req.body);
-	await getRepository(Export).save(exportDetails);
-
+	const exportDetails = await getRepository(Export).save(await schemaToExport(req.body));
 	req.flash('success', 'exports-created');
 	res.redirect('/tools/exports/' + exportDetails.id);
 } ) );
@@ -95,14 +108,7 @@ app.get( '/:id', hasNewModel(Export, 'id'), wrapAsync( async function( req, res 
 	const exportDetails = req.model as Export;
 	const exportType = exportTypes[exportDetails.type];
 
-	const exportItems = await getRepository(ExportItem).find({
-		where: {export: exportDetails}
-	});
-
-	const newItems = await exportType.collection.find({
-		...await exportType.getQuery(exportDetails),
-		_id: {$not: {$in: exportItems.map(ei => ei.itemId)}}
-	});
+	const {exportItems, newItems} = await getExportItems(exportDetails);
 
 	const exportItemsByStatus = exportType.statuses.map(status => ({
 		name: status,
@@ -117,6 +123,36 @@ app.get( '/:id', hasNewModel(Export, 'id'), wrapAsync( async function( req, res 
 		newItems
 	});
 } ) );
+
+app.get('/:id/items/new', hasNewModel(Export, 'id'), wrapAsync(async (req, res) => {
+	const exportDetails = req.model as Export;
+	const exportType = exportTypes[exportDetails.type];
+
+	const {newItems} = await getExportItems(exportDetails);
+
+	res.render('items', {
+		items: await exportType.getExport(newItems, exportDetails),
+		exportDetails,
+		status: 'new'
+	});
+}));
+
+app.get('/:id/items/:status', hasNewModel(Export, 'id'), wrapAsync(async (req, res) => {
+	const exportDetails = req.model as Export;
+	const exportType = exportTypes[exportDetails.type];
+
+	const {exportItems} = await getExportItems(exportDetails);
+
+	const items = await exportType.collection.find({
+		_id: {$in: exportItems.filter(ei => ei.status === req.params.status).map(ei => ei.itemId)}
+	});
+
+	res.render('items', {
+		items: await exportType.getExport(items, exportDetails),
+		exportDetails,
+		status: req.params.status
+	});
+}));
 
 app.post( '/:id', [
 	hasSchema(updateSchema).orFlash,
