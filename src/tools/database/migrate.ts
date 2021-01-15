@@ -104,28 +104,33 @@ const migrations: Migration<any>[] = [
 		...ident(['name', 'label', 'description', 'minAmount', 'enabled', 'options'] as const),
 		stock: doc => new Map(doc.stock && Object.entries(doc.stock))
 	}),
-	/*createMigration(Referral, 'referrals', {
+	createMigration(Referral, 'referrals', {
 		...ident(['date', 'refereeAmount', 'refereeGiftOptions', 'referrerGiftOptions'] as const),
 		refereeId: objectId('referee'),
 		referrerId: objectId('referrer'),
 		refereeGift: doc => doc.refereeGift ? {name: doc.refereeGift} as ReferralGift : undefined,
 		referrerGift: doc => doc.referrerGift ? {name: doc.referrerGift} as ReferralGift : undefined,
 		referrerHasSelected: doc => doc.referrerGift !== undefined
-	}),*/
+	}),
 	createMigration(Export, 'exports', {
 		...ident(['type', 'description', 'date', 'params'] as const)
 	}),
-	createMigration(ExportItem, 'referrals', {
+	createMigration(ExportItem, 'members', {
 		export: doc => ({id: newIdMap.get(doc.export_id.toString())} as Export),
 		itemId: (subdoc, doc) => doc._id.toString(),
 		status: subdoc => subdoc.status
-	}, doc => doc.exports)
+	}, doc => doc.exports),
+	createMigration(ExportItem, 'pollanswers', {
+		export: doc => ({id: newIdMap.get(doc.export_id.toString())} as Export),
+		itemId: (subdoc, doc) => doc._id.toString(),
+		status: subdoc => subdoc.status
+	}, doc => doc.exports || [])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
 
 	async function* getItems() {
-		let items: {id: string, item: Document}[] = [];
+		let items: {oldId: string, item: Document}[] = [];
 		const collection = mongoose.connection.db.collection(migration.collection);
 		const cursor = collection.find();
 
@@ -138,10 +143,10 @@ const doMigration = (migration: Migration<any>) => async (manager: EntityManager
 				for (const key in migration.itemMap) {
 					item[key] = migration.itemMap[key](subdoc, doc);
 				}
-				items.push({id: subdoc._id.toString(), item});
+				items.push({oldId: subdoc._id.toString(), item});
 			}
 
-			if (items.length === 1000) {
+			if (items.length >= 1000) {
 				yield items;
 				items = [];
 			}
@@ -153,8 +158,9 @@ const doMigration = (migration: Migration<any>) => async (manager: EntityManager
 	}
 
 	for await (const items of getItems()) {
+		console.log(items.length);
 		const insert = await manager.insert(migration.model, items.map(i => i.item));
-		insert.identifiers.forEach((itemLike, i) => newIdMap.set(items[i].id, itemLike.id));
+		insert.identifiers.forEach((newItem, i) => newIdMap.set(items[i].oldId, newItem.id));
 	}
 };
 
