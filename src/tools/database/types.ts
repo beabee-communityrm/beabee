@@ -102,7 +102,6 @@ const projectMembers: Properties = {
 };
 
 const models: ModelExporter[] = [
-	{ model: db.Exports },
 	{ model: db.Permissions as unknown as Model<MDocument> },
 	{ model: db.Members as unknown as Model<MDocument>, properties: members },
 	{ model: db.Polls },

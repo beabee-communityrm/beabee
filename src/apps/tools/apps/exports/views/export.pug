@@ -20,32 +20,23 @@ block contents
 						dt= name
 						dd= value
 
-			.panel-group#items
-				.panel.panel-default
-					.panel-heading
-						h5.panel-title
-							a(data-toggle="collapse" data-parent="#items" href="#new_items").
-								New #{exportType.itemName} (#{newItems.length})
-					.panel-collapse.collapse#new_items
-						.panel-body
-							!= renderItems(newItems)
+			ul
+				li
+					| New #{exportType.itemName} (#{newItems.length})
+					|
+					a(href='').btn.btn-sm.btn-info Show
 				for status in exportItemsByStatus
-					.panel.panel-default
-						.panel-heading
-							h5.panel-title
-								a(data-toggle="collapse" data-parent="#items" href="#" + status.name + "_items")
-									| Existing #{exportType.itemName} - #{status.name}
-									|
-									| (#{status.items.length})
-						.panel-collapse.collapse(id=status.name + "_items")
-							.panel-body
-								!= renderItems(status.items)
+					li
+						| Existing #{exportType.itemName} - #{status.name} (#{status.items.length})
+						|
+						a(href='').btn.btn-sm.btn-info Show
 
-			form(method='POST')
-				+csrf
-				input(type='hidden', name='action', value='add')
-				button(dsiabled=newItems.length === 0).btn.btn-primary Add new
-
+			if newItems.length > 0
+				form(method='POST')
+					+csrf
+					each item in newItems
+						input(type='hidden' name='newItemIds[]' value=item.id)
+					button(name='action' value='add').btn.btn-primary Add new
 
 	.row
 		.col-md-8
@@ -55,8 +46,6 @@ block contents
 			p Export a CSV of all #{exportType.itemName} with a given status
 			form(method='POST', target='_blank').form-horizontal
 				+csrf
-				input(type='hidden', name='action', value='export')
-
 				.form-group
 					label(for='status').form-label.col-md-3 Status
 					.col-md-4
@@ -65,26 +54,25 @@ block contents
 							each status in exportType.statuses
 								option= status
 
-				button.btn.btn-primary Export
+				button(name='action' value='export').btn.btn-primary Export
 
 			hr
 
 			h4 Update #{exportType.itemName}
 			form(method='POST').form-horizontal
 				+csrf
-				input(type='hidden', name='action', value='update')
 
 				.form-group
-					label(for='old_status').form-label.col-md-3 Old status
+					label(for='oldStatus').form-label.col-md-3 Old status
 					.col-md-4
-						select(id='old_status', name='old_status').form-control
+						select(id='oldStatus', name='oldStatus').form-control
 							each status in exportType.statuses
 								option= status
 
 				.form-group
-					label(for='new_status').form-label.col-md-3 New status
+					label(for='newStatus').form-label.col-md-3 New status
 					.col-md-4
-						select(id='new_status', name='status').form-control
+						select(id='newStatus', name='newStatus').form-control
 							each status in exportType.statuses
 								option= status
 
@@ -93,7 +81,7 @@ block contents
 						input(type='checkbox' required)
 						| This change is irreversible, confirm to proceed
 
-				button.btn.btn-warning Update
+				button(name='action' value='update').btn.btn-warning Update
 
 			hr
 
@@ -101,9 +89,8 @@ block contents
 
 			form(method='POST')
 				+csrf
-				input(type='hidden', name='action', value='delete')
 				p
 					label.checkbox-inline
 						input(type='checkbox' required)
 						| This change is irreversible, confirm to proceed
-				button.btn.btn-danger.outline Delete
+				button(name='action' value='delete').btn.btn-danger.outline Delete

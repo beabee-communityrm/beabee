@@ -30,7 +30,7 @@ function getParamValue(param: Param, s: string): ParamValue {
 	}
 }
 
-export async function loadParams(items: Paramable[]): Promise<{params: Param[]}[]> {
+export async function loadParams<T extends Paramable>(items: T[]): Promise<(T&{params: Param[]})[]> {
 	const itemsWithParams = [];
 	for (const item of items) {
 		itemsWithParams.push({
