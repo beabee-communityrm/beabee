@@ -63,7 +63,7 @@
     "uuid": "^8.3.1"
   },
   "scripts": {
-    "start": "npm run build && docker-compose start && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
+    "start": "npm run build && docker-compose up -d && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
     "lint": "eslint src/ test/",
     "watchApp": "tsc --watch --preserveWatchOutput --incremental",
     "watch": "gulp watch",
