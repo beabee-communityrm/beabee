@@ -96,6 +96,7 @@
 
 	"flash-gifts-date-in-the-past": "The gift start date can't be in the past",
 	"flash-gifts-email-duplicate": "The giftee's email address is already registered",
+	"flash-gifts-already-activated": "The gift has already been activated, please login to continue",
 
 	"flash-notices-created": "Notice created",
 	"flash-notices-updated": "Notice updated",
