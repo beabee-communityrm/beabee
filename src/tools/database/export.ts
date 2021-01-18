@@ -6,6 +6,8 @@ import _ from 'lodash';
 import config from '@config';
 import * as db from '@core/database';
 import exportTypes, { ModelData, ModelExporter, Properties } from './types';
+import newExportTypes, { Drier, Mapping, NewModelData, WritableKeysOf } from './newTypes';
+import { ConnectionOptions, getRepository } from 'typeorm';
 
 // Anonymise properties but maintain same mapping to keep links
 const valueMap = new Map<unknown, unknown>();
@@ -44,12 +46,41 @@ async function runExport({model, properties}: ModelExporter): Promise<ModelData>
 	};
 }
 
-async function main() {
-	const exportData = await Promise.all(exportTypes.map(runExport));
-	console.log(EJSON.stringify(exportData));
+function isDrier<T>(propMap: Mapping<T>[WritableKeysOf<T>]): propMap is Drier<T[WritableKeysOf<T>]> {
+	return 'itemMap' in propMap;
 }
 
-db.connect(config.mongo).then(async () => {
+function runDrier<T>(item: T, drier: Drier<T>): T {
+	if (drier.itemMap) {
+		const newItem = Object.assign({}, item);
+		for (const property of Object.keys(drier.itemMap)) {
+			const prop = property as WritableKeysOf<T>;
+			const propMap = drier.itemMap[prop];
+			if (isDrier(propMap)) {
+				newItem[prop] = runDrier(item[prop], propMap);
+			} else if (propMap) {
+				newItem[prop] = propMap();
+			}
+		}
+		return newItem;
+	} else {
+		return item;
+	}
+}
+
+async function runNewExport<T>(drier: Drier<T>): Promise<NewModelData<T>> {
+	const items = await getRepository(drier.model).find();
+	const newItems = items.map(item => runDrier(item, drier));
+	return {items: newItems, modelName: drier.modelName};
+}
+
+async function main() {
+	const exportData = await Promise.all(exportTypes.map(runExport));
+	const newExportData = await Promise.all(newExportTypes.map(runNewExport));
+	console.log(JSON.stringify({exportData, newExportData}));
+}
+
+db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	try {
 		await main();
 	} catch (err) {

@@ -35,13 +35,6 @@ function uniqueCode(): string {
 	return letter.padStart(2, 'A') + (no + '').padStart(3, '0');
 }
 
-const payments: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	payment_id: () => 'PM' + randomId(12),
-	subscription_id: () => 'SB' + randomId(12),
-	member: () => new mongoose.Types.ObjectId()
-};
-
 const members: Properties = {
 	_id: () => new mongoose.Types.ObjectId(),
 	uuid: () => chance.guid({version: 4}),

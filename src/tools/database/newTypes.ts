@@ -1,0 +1,90 @@
+import crypto from 'crypto';
+import { EntityTarget } from 'typeorm';
+import mongoose from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
+import { Chance } from 'chance';
+
+import Payment from '@models/Payment';
+import GiftFlow, { GiftForm } from '@models/GiftFlow';
+import Referral from '@models/Referral';
+import ReferralGift from '@models/ReferralGift';
+
+type IfEquals<X, Y, A, B> =
+	(<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B;
+
+export type WritableKeysOf<T> = {
+		[P in keyof T]: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never>
+}[keyof T];
+
+export type Mapping<T> = {[K in WritableKeysOf<T>]?: (() => T[K])|Drier<T[K]>};
+
+export interface Drier<T> {
+	model: EntityTarget<T>
+	modelName: string
+	itemMap: Mapping<T>
+}
+
+export interface NewModelData<T> {
+	items: T[]
+	modelName: string
+}
+
+const chance = new Chance();
+
+function createDrier<T>(
+	model: EntityTarget<T>,
+	modelName: string,
+	itemMap: Mapping<T> = {},
+): Drier<T> {
+	return {model, modelName, itemMap};
+}
+
+function randomId(len: number, prefix?: string) {
+	return () => (prefix || '') + crypto.randomBytes(6).toString('hex').slice(0, len).toUpperCase();
+}
+
+let codeNo = 0;
+function uniqueCode(): string {
+	codeNo++;
+	const letter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(codeNo / 1000)];
+	const no = codeNo % 1000;
+	return letter.padStart(2, 'A') + (no + '').padStart(3, '0');
+}
+
+const objectId = () => new mongoose.Types.ObjectId().toString();
+
+const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
+	id: uuidv4,
+	setupCode: uniqueCode,
+	sessionId: randomId(12),
+	giftForm: createDrier(GiftForm, 'giftForm', {
+		firstname: () => chance.first(),
+		lastname: () => chance.last(),
+		email: () => chance.email(),
+		message: () => chance.sentence(),
+		fromName: () => chance.name(),
+		fromEmail: () => chance.email()
+	})
+});
+
+const paymentsDrier = createDrier(Payment, 'payments', {
+	id: uuidv4,
+	paymentId: randomId(12, 'PM'),
+	subscriptionId: randomId(12, 'SB'),
+	memberId: objectId
+});
+
+const referralsGiftDrier = createDrier(ReferralGift, 'referralgifts');
+
+const referralsDrier = createDrier(Referral, 'referrals', {
+	id: uuidv4,
+	referrerId: objectId,
+	refereeId: objectId
+});
+
+export default [
+	giftFlowDrier,
+	paymentsDrier,
+	referralsGiftDrier,
+	referralsDrier
+] as Drier<any>[];
