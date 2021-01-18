@@ -77,7 +77,7 @@ async function runNewExport<T>(drier: Drier<T>): Promise<NewModelData<T>> {
 async function main() {
 	const exportData = await Promise.all(exportTypes.map(runExport));
 	const newExportData = await Promise.all(newExportTypes.map(runNewExport));
-	console.log(JSON.stringify({exportData, newExportData}));
+	console.log(EJSON.stringify({exportData, newExportData}));
 }
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
