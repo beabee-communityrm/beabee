@@ -230,7 +230,7 @@ export default class PaymentService {
 
 		if (prorateAmount > 0 && paymentForm.prorate) {
 			await gocardless.payments.create({
-				amount: (prorateAmount * 100).toFixed(2),
+				amount: (prorateAmount * 100).toFixed(0),
 				currency: PaymentCurrency.GBP,
 				description: 'One-off payment to start new contribution',
 				links: {
