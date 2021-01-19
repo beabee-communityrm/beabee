@@ -38,14 +38,13 @@ block contents
 					p.
 						Can we send you very occasional mail?
 
-				ul.join-options
-					li.join-options__opt
-						input(type='radio', name='delivery_optin', id='delivery_optin_yes' , value='true', required, checked=user.delivery_optin).js-delivery-opt
-						label(for='delivery_optin_yes').btn.btn-primary Yes
-					li.join-options__opt
-						input(type='radio', name='delivery_optin', id='delivery_optin_no' , value='false', required, checked=!user.delivery_optin).js-delivery-opt
-						label(for='delivery_optin_no').btn.btn-primary No
-					li.join-options__opt
+				p
+					label(style='padding-top: 0').radio-inline
+						input(type='radio' name='delivery_optin' value='true' required checked=user.delivery_optin).js-delivery-opt
+						| Yes
+					label(style='padding-top: 0').radio-inline
+						input(type='radio' name='delivery_optin' value='false' required checked=!user.delivery_optin).js-delivery-opt
+						| No
 
 				.js-delivery-details(class={'hidden-js': !user.delivery_optin})
 					+input( 'text', 'Address line 1', 'delivery_line1', { value: user.delivery_address.line1, left: 3, right: 9 } )

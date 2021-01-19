@@ -111,9 +111,10 @@ app.get( '/:setupCode', hasNewModel(GiftFlow, 'setupCode'), wrapAsync( async ( r
 		if (member) {
 			// Effectively expire this link once the member is set up
 			if (member.setupComplete) {
+				req.flash('warning', 'gifts-already-activated');
 				res.redirect('/login');
 			} else {
-				loginAndRedirect(req, res, member);
+				loginAndRedirect(req, res, member, '/profile/complete');
 			}
 		} else {
 			next('route');

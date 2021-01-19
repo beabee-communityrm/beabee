@@ -219,7 +219,7 @@ export default class PaymentService {
 
 	private static async prorateSubscription(member: Member, paymentForm: PaymentForm): Promise<boolean> {
 		const monthsLeft = PaymentService.getMonthsLeftOnContribution(member);
-		const prorateAmount = (paymentForm.amount - member.contributionMonthlyAmount) * monthsLeft * 100;
+		const prorateAmount = (paymentForm.amount - member.contributionMonthlyAmount) * monthsLeft;
 
 		log.info( {
 			app: 'direct-debit',
@@ -230,7 +230,7 @@ export default class PaymentService {
 
 		if (prorateAmount > 0 && paymentForm.prorate) {
 			await gocardless.payments.create({
-				amount: prorateAmount.toString(),
+				amount: (prorateAmount * 100).toFixed(0),
 				currency: PaymentCurrency.GBP,
 				description: 'One-off payment to start new contribution',
 				links: {

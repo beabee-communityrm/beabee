@@ -64,7 +64,7 @@ export default class PaymentWebhookService {
 					}
 				});
 
-				member.gocardless.amount = payment.amount / (payment.subscriptionPeriod === ContributionPeriod.Annually ? 12 : 1);
+				member.gocardless.amount = PaymentWebhookService.getSubscriptionAmount(payment, !!member.gocardless.paying_fee);
 				member.gocardless.next_amount = undefined;
 				if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
 					member.memberPermission.date_expires = nextExpiryDate.toDate();
@@ -205,5 +205,10 @@ export default class PaymentWebhookService {
 		const unit = interval_unit === 'weekly' ? 'weeks' :
 			interval_unit === 'monthly' ? 'months' : 'years';
 		return moment.duration({[unit]: Number(interval)});
+	}
+
+	private static getSubscriptionAmount(payment: Payment, payFee: boolean): number {
+		const amount = payment.amount / (payment.subscriptionPeriod === ContributionPeriod.Annually ? 12 : 1);
+		return payFee ? Math.round(100 * (amount - 0.2) * 0.99) / 100 : amount;
 	}
 }

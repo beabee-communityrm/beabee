@@ -73,12 +73,12 @@ export function cleanEmailAddress(email: string): string {
 	return email.trim().toLowerCase();
 }
 
-export function loginAndRedirect(req: Request, res: Response, member: Member): void {
+export function loginAndRedirect(req: Request, res: Response, member: Member, url = '/'): void {
 	req.login(member, function (loginError) {
 		if (loginError) {
 			throw loginError;
 		} else {
-			res.redirect('/');
+			res.redirect(url);
 		}
 	});
 }
