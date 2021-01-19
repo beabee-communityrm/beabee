@@ -81,13 +81,7 @@ app.get( '/:urlId/done', hasValidSpecialUrl, ( req, res ) => {
 	res.render( 'done', { thanksMessage } );
 } );
 
-app.get( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
-	await req.specialUrl.update( { $inc: { openCount: 1 } } );
-
-	res.render( 'confirm', { specialUrl: req.specialUrl } );
-} ) );
-
-app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
+async function processSpecialUrl(req, res) {
 	const { specialUrl } = req;
 
 	req.log.info( {
@@ -131,6 +125,20 @@ app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
 	await specialUrl.update( { $inc: { completedCount: 1 } } );
 
 	res.redirect( `/s/${req.params.urlId}/done` );
+
+}
+
+app.get( '/:urlId', hasValidSpecialUrl, wrapAsync( async ( req, res ) => {
+	const { specialUrl } = req;
+	await specialUrl.update( { $inc: { openCount: 1 } } );
+
+	if (specialUrl.group.skipConfirm) {
+		await processSpecialUrl(req, res);
+	} else {
+		res.render( 'confirm', { specialUrl } );
+	}
 } ) );
+
+app.post( '/:urlId', hasValidSpecialUrl, wrapAsync( processSpecialUrl ));
 
 module.exports = app;
