@@ -134,5 +134,17 @@ module.exports = [
 			await req.user.update( { $set: { delivery_copies: copies } } );
 			return true;
 		}
+	},
+	{
+		name: 'Redirect to',
+		getParams: async () => [ {
+			name: 'url',
+			label: 'URL',
+			type: 'text'
+		} ],
+		run: async ( req, res, { url } ) => {
+			res.redirect(url);
+			return false; // Redirecting is always the last action
+		}
 	}
 ];

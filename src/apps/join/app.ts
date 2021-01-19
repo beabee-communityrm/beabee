@@ -104,7 +104,7 @@ async function handleJoin(req: Request, res: Response, member: Member, {customer
 		await ReferralsService.createReferral(referrer, member, joinForm);
 	}
 
-	loginAndRedirect(req, res, member);
+	loginAndRedirect(req, res, member, '/profile/complete');
 }
 
 app.get( '/complete', [

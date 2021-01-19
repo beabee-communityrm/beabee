@@ -17,6 +17,12 @@ block contents
 				.alert.alert-danger Your membership has expired
 			else if !user.hasActiveSubscription && user.contributionPeriod !== 'gift'
 				.alert.alert-warning You cancelled your contribution
+			else if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
+				a(href='/profile/delivery').alert.alert-warning.
+					You are eligible to receive the print edition, #[b click here to set your delivery address]
+			else if user.contributionMonthlyAmount < 3
+				.alert.alert-info.
+					Increase your contribution to £3/month or more to receive the print edition
 
 			p
 				| You

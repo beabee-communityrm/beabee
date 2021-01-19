@@ -114,7 +114,7 @@ app.get( '/:setupCode', hasNewModel(GiftFlow, 'setupCode'), wrapAsync( async ( r
 				req.flash('warning', 'gifts-already-activated');
 				res.redirect('/login');
 			} else {
-				loginAndRedirect(req, res, member);
+				loginAndRedirect(req, res, member, '/profile/complete');
 			}
 		} else {
 			next('route');
