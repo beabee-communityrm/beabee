@@ -185,9 +185,13 @@ async function dispatchOperations(operations) {
 }
 
 db.connect(config.mongo).then(async () => {
+	const isTest = process.argv[2] === '-n';
 	try {
-		const [startDate, endDate] = process.argv.slice(process.argv[2] === '-n' ? 3 : 2);
-		await fetchMembers(startDate, endDate);
+		const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);
+		const members = await fetchMembers(startDate, endDate);
+		if (!isTest) {
+			await processMembers(members);
+		}
 	} catch (err) {
 		console.error(err);
 	}
