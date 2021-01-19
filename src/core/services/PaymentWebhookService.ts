@@ -209,6 +209,6 @@ export default class PaymentWebhookService {
 
 	private static getSubscriptionAmount(payment: Payment, payFee: boolean): number {
 		const amount = payment.amount / (payment.subscriptionPeriod === ContributionPeriod.Annually ? 12 : 1);
-		return payFee ? (amount - 0.2) * 0.99 : amount;
+		return payFee ? Math.round(100 * (amount - 0.2) * 0.99) / 100 : amount;
 	}
 }
