@@ -17,6 +17,9 @@ block contents
 				.alert.alert-danger Your membership has expired
 			else if !user.hasActiveSubscription && user.contributionPeriod !== 'gift'
 				.alert.alert-warning You cancelled your contribution
+			else if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
+				a(href='/profile/delivery').alert.alert-info.
+					You are eligible to receive our print edition, click here to set your delivery address
 
 			p
 				| You
