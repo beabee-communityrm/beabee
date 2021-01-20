@@ -5,7 +5,7 @@ const express = require( 'express' );
 const helmet = require( 'helmet' );
 const flash = require( 'express-flash' );
 
-const appLoader = require( '@core/app-loader' );
+const { default: appLoader } = require( '@core/app-loader' );
 const auth = require( '@core/authentication' );
 const database = require( '@core/database' );
 const { log, installMiddleware: installLogMiddleware } = require( '@core/logging' );
@@ -47,7 +47,7 @@ installLogMiddleware( app );
 // Use helmet
 app.use( helmet( { contentSecurityPolicy: false } ) );
 
-database.connect( config.mongo, config.db ).then(() => {
+database.connect( config.mongo, config.db ).then(async () => {
 	// Load some caches
 	OptionsService.reload();
 	PageSettingsService.reload();
@@ -85,7 +85,7 @@ database.connect( config.mongo, config.db ).then(() => {
 	app.use( PageSettingsService.middleware.bind(PageSettingsService) );
 
 	// Load apps
-	appLoader( app );
+	await appLoader( app );
 
 	// Hook to handle special URLs
 	app.use( '/s', specialUrlHandler );
