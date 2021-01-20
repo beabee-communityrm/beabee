@@ -28,7 +28,13 @@ interface Member extends PartialMember, Document {
 		next_amount?: number
 		cancelled_at?: Date
 	},
+	permissions: {
+		permission: string,
+		date_added: Date,
+		date_expires?: Date
+	}[],
 	memberPermission: {
+		permission?: string,
 		date_added: Date,
 		date_expires: Date
 	},
@@ -45,7 +51,7 @@ interface Member extends PartialMember, Document {
 		salt: string,
 		iterations: number,
 		reset_code?: string,
-		tries: number
+		tries?: number
 	},
 	delivery_copies?: number,
 	join_shareable?: boolean,
