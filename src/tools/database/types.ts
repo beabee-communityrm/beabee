@@ -35,8 +35,10 @@ function uniqueCode(): string {
 	return letter.padStart(2, 'A') + (no + '').padStart(3, '0');
 }
 
+const objectId = () => new mongoose.Types.ObjectId().toString();
+
 const members: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
+	_id: objectId,
 	uuid: () => chance.guid({version: 4}),
 	email: () => chance.email(),
 	firstname: () => chance.first(),
@@ -69,27 +71,21 @@ const members: Properties = {
 	})
 };
 
-const referrals: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	referrer: () => new mongoose.Types.ObjectId(),
-	referee: () => new mongoose.Types.ObjectId()
-};
-
 const pollAnswers: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	member: () => new mongoose.Types.ObjectId()
+	_id: objectId,
+	member: objectId
 };
 
 const projects: Properties = {
-	owner: () => new mongoose.Types.ObjectId()
+	owner: objectId
 };
 
 const projectMembers: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	member: () => new mongoose.Types.ObjectId(),
-	tag: () => chance.word(),
+	_id: objectId,
+	member: objectId,
+	tag: objectId,
 	engagement: (): Properties => ({
-		member: () => new mongoose.Types.ObjectId(),
+		member: objectId,
 		notes: () => chance.sentence()
 	})
 };

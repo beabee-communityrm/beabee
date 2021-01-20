@@ -22,8 +22,8 @@ function anonymiseProperties(item: Document, properties: Properties): Document {
 			if (_.isArray(value)) {
 				newValue = value.map(valueItem => anonymiseProperties(valueItem, anonymiseFn() as Properties));
 			} else {
-				newValue = valueMap.get(value) || anonymiseFn();
-				valueMap.set(value, newValue);
+				newValue = valueMap.get(value.toString()) || anonymiseFn();
+				valueMap.set(value.toString(), newValue);
 			}
 			_.set(newItem, property, newValue);
 		}
