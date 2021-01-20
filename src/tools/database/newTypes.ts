@@ -9,19 +9,12 @@ import GiftFlow, { GiftForm } from '@models/GiftFlow';
 import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
 
-type IfEquals<X, Y, A, B> =
-	(<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B;
-
-export type WritableKeysOf<T> = {
-		[P in keyof T]: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never>
-}[keyof T];
-
-export type Mapping<T> = {[K in WritableKeysOf<T>]?: (() => T[K])|Drier<T[K]>};
+export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
 export interface Drier<T> {
 	model: EntityTarget<T>
 	modelName: string
-	itemMap: Mapping<T>
+	propMap: DrierMap<T>
 }
 
 export interface NewModelData<T> {

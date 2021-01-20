@@ -6,7 +6,7 @@ import _ from 'lodash';
 import config from '@config';
 import * as db from '@core/database';
 import exportTypes, { ModelData, ModelExporter, Properties } from './types';
-import newExportTypes, { Drier, Mapping, NewModelData, WritableKeysOf } from './newTypes';
+import newExportTypes, { Drier, DrierMap, NewModelData } from './newTypes';
 import { ConnectionOptions, getRepository } from 'typeorm';
 
 // Anonymise properties but maintain same mapping to keep links
