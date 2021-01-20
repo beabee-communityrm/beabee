@@ -10,7 +10,7 @@ import newExportTypes, { Drier, DrierMap, NewModelData } from './newTypes';
 import { ConnectionOptions, getRepository } from 'typeorm';
 
 // Anonymise properties but maintain same mapping to keep links
-const valueMap = new Map<unknown, unknown>();
+const valueMap = new Map<string, unknown>();
 
 function anonymiseProperties(item: Document, properties: Properties): Document {
 	const newItem = deserialize(serialize(item));
@@ -47,7 +47,7 @@ async function runExport({model, properties}: ModelExporter): Promise<ModelData>
 }
 
 function isDrier<T>(propMap: DrierMap<T>[WritableKeysOf<T>]): propMap is Drier<T[WritableKeysOf<T>]> {
-	return 'itemMap' in propMap;
+	return 'propMap' in propMap;
 }
 
 function runDrier<T>(item: T, drier: Drier<T>): T {
@@ -56,15 +56,13 @@ function runDrier<T>(item: T, drier: Drier<T>): T {
 	for (const _prop of Object.keys(drier.propMap)) {
 		const prop = _prop as WritableKeysOf<T>;
 		const propMap = drier.propMap[prop];
-		if (isDrier(propMap)) {
-			newItem[prop] = runDrier(item[prop], propMap);
-		} else if (propMap) {
-			if (valueMap.has(prop)) {
-				newItem[prop] = valueMap.get(prop) as T[WritableKeysOf<T>];
-			} else {
-				newItem[prop] = propMap(item[prop]);
-				valueMap.set(prop, newItem[prop]);
-			}
+		const oldValue = item[prop];
+		if (oldValue && propMap) {
+			const newValue = isDrier(propMap) ? runDrier(item[prop], propMap) :
+				valueMap.get('' + oldValue) || propMap(oldValue);
+
+			valueMap.set('' + oldValue, newValue);
+			newItem[prop] = newValue as T[WritableKeysOf<T>];
 		}
 	}
 
@@ -72,7 +70,10 @@ function runDrier<T>(item: T, drier: Drier<T>): T {
 }
 
 async function runNewExport<T>(drier: Drier<T>): Promise<NewModelData<T>> {
+	console.error('Fetching new', drier.modelName);
 	const items = await getRepository(drier.model).find();
+
+	console.error(`Anonymising ${drier.modelName}, got ${items.length} items`);
 	const newItems = items.map(item => runDrier(item, drier));
 	return {items: newItems, modelName: drier.modelName};
 }
