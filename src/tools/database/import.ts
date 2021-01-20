@@ -38,7 +38,6 @@ async function runNewImport<T>({modelName, items}: NewModelData<T>): Promise<voi
 	if (model) {
 		try {
 			const repository = getRepository(model);
-			await repository.delete({});
 			for (let i = 0; i < items.length; i += 1000) {
 				const slice = items.slice(i, i + 1000);
 				await repository.insert(slice);
@@ -64,6 +63,12 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			newExportData: NewModelData<any>[]
 		};
 		await Promise.all(data.exportData.map(runImport));
+
+		// Delete before in reverse order for foreign key constraints
+		for (const {modelName} of data.newExportData.slice().reverse()) {
+			const model = newModelsByName.get(modelName);
+			model && await getRepository(model).delete({});
+		}
 
 		for (const newExportData of data.newExportData) {
 			await runNewImport(newExportData);
