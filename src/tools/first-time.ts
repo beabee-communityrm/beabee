@@ -1,7 +1,7 @@
-require('module-alias/register');
+import 'module-alias/register';
 
-const config = require( '@config' );
-const db = require( '@core/database' );
+import config from '@config';
+import * as db from '@core/database';
 
 async function main() {
 	const member = await db.Permissions.create({
