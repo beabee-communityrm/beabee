@@ -30,9 +30,18 @@ async function runNewImport<T>({modelName, items}: NewModelData<T>): Promise<voi
 	console.error(`Importing new ${modelName}, got ${items.length} items`);
 	const model = newModelsByName.get(modelName) as EntityTarget<T>;
 	if (model) {
-		const repository = getRepository(model);
-		await repository.delete({});
-		await repository.insert(items);
+		try {
+			const repository = getRepository(model);
+			await repository.delete({});
+			for (let i = 0; i < items.length; i += 1000) {
+				const slice = items.slice(i, i + 1000);
+				await repository.insert(slice);
+			}
+			console.error(`Finished importing ${modelName}`);
+		} catch (err) {
+			console.error(`Error importing ${modelName}`);
+			console.error(err);
+		}
 	}
 }
 
