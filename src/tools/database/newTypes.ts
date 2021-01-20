@@ -71,7 +71,9 @@ const paymentsDrier = createDrier(Payment, 'payments', {
 	memberId: objectId
 });
 
-const referralsGiftDrier = createDrier(ReferralGift, 'referralgifts');
+const referralsGiftDrier = createDrier(ReferralGift, 'referralgifts', {
+	stock: stock => stock // Add to map so it is serialised correctly
+});
 
 const referralsDrier = createDrier(Referral, 'referrals', {
 	id: () => uuidv4(),

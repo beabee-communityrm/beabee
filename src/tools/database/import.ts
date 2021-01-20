@@ -27,6 +27,7 @@ async function runImport({modelName, items}: ModelData): Promise<void> {
 		console.error(`Finished importing ${modelName}`);
 	} catch (err) {
 		console.error(`Error importing ${modelName}`);
+		console.error(itemsWithIds);
 		console.error(err);
 	}
 }
@@ -45,6 +46,7 @@ async function runNewImport<T>({modelName, items}: NewModelData<T>): Promise<voi
 			console.error(`Finished importing ${modelName}`);
 		} catch (err) {
 			console.error(`Error importing ${modelName}`);
+			console.error(items);
 			console.error(err);
 		}
 	}

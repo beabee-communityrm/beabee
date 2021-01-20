@@ -58,8 +58,13 @@ function runDrier<T>(item: T, drier: Drier<T>): T {
 		const propMap = drier.propMap[prop];
 		const oldValue = item[prop];
 		if (oldValue && propMap) {
-			const newValue = isDrier(propMap) ? runDrier(item[prop], propMap) :
+			let newValue = isDrier(propMap) ? runDrier(item[prop], propMap) :
 				valueMap.get('' + oldValue) || propMap(oldValue);
+
+			// Serialize Maps correctly
+			if (newValue instanceof Map) {
+				newValue = Array.from(newValue.entries());
+			}
 
 			valueMap.set('' + oldValue, newValue);
 			newItem[prop] = newValue as T[WritableKeysOf<T>];
