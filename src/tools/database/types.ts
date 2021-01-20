@@ -11,7 +11,8 @@ export interface Properties {
 
 export interface ModelExporter {
 	model: Model<MDocument>
-	properties?: Properties
+	properties?: Properties,
+	objectIds?: string[]
 }
 
 export interface ModelData {
@@ -83,7 +84,7 @@ const projects: Properties = {
 const projectMembers: Properties = {
 	_id: objectId,
 	member: objectId,
-	tag: objectId,
+	tag: () => chance.word(),
 	engagement: (): Properties => ({
 		member: objectId,
 		notes: () => chance.sentence()
@@ -91,12 +92,12 @@ const projectMembers: Properties = {
 };
 
 const models: ModelExporter[] = [
-	{ model: db.Permissions as unknown as Model<MDocument> },
+	{ model: db.Permissions as unknown as Model<MDocument>, objectIds: ['_id'] },
 	{ model: db.Members as unknown as Model<MDocument>, properties: members },
 	{ model: db.Polls },
-	{ model: db.PollAnswers, properties: pollAnswers },
-	{ model: db.Projects , properties: projects },
-	{ model: db.ProjectMembers, properties: projectMembers }
+	{ model: db.PollAnswers, properties: pollAnswers, objectIds: ['_id', 'member'] },
+	{ model: db.Projects , properties: projects, objectIds: ['owner'] },
+	{ model: db.ProjectMembers, properties: projectMembers, objectIds: ['_id', 'member'] }
 ];
 
 export default models;

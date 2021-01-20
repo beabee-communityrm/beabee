@@ -9,19 +9,25 @@ import * as db from '@core/database';
 
 import importTypes, { ModelData } from './types';
 import newImportTypes, { NewModelData } from './newTypes';
-import { EntityTarget, getRepository } from 'typeorm';
+import { ConnectionOptions, EntityTarget, getRepository } from 'typeorm';
 
-const modelsByName = _.fromPairs(importTypes.map(({model}) => [model.modelName, model]));
+const importsByName = _.fromPairs(importTypes.map((importType) => [importType.model.modelName, importType]));
 
 const newModelsByName = new Map(newImportTypes.map(t => [t.modelName, t.model]));
 
 async function runImport({modelName, items}: ModelData): Promise<void> {
 	console.error(`Importing ${modelName}, got ${items.length} items`);
-	const model = modelsByName[modelName];
-	await model.deleteMany({});
+	const {model, objectIds} = importsByName[modelName];
+	const itemsWithIds = items.map(item => Object.assign(
+		item,
+		...objectIds ? objectIds.map(oid => ({[oid]: item[oid]})) : []
+	));
 	try {
-		await model.collection.insertMany(items);
+		await model.deleteMany({});
+		await model.collection.insertMany(itemsWithIds);
+		console.error(`Finished importing ${modelName}`);
 	} catch (err) {
+		console.error(`Error importing ${modelName}`);
 		console.error(err);
 	}
 }
@@ -50,14 +56,14 @@ if (!config.dev) {
 	process.exit(1);
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	try {
 		const data = EJSON.parse(fs.readFileSync(process.argv[2]).toString()) as {
-			importData: ModelData[]
-			newImportData: NewModelData<any>[]
+			exportData: ModelData[]
+			newExportData: NewModelData<any>[]
 		};
-		await Promise.all(data.importData.map(runImport));
-		await Promise.all(data.newImportData.map(runNewImport));
+		await Promise.all(data.exportData.map(runImport));
+		await Promise.all(data.newExportData.map(runNewImport));
 	} catch (err) {
 		console.log(err);
 	}
