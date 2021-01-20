@@ -1,4 +1,6 @@
-const { Members } = require('@core/database');
+import { Members } from '@core/database';
+import { Member } from '@models/members';
+import { ExportType } from './type';
 
 async function getQuery() {
 	return {
@@ -6,7 +8,7 @@ async function getQuery() {
 	};
 }
 
-async function getExport(members) {
+async function getExport(members: Member[]) {
 	return members
 		.map(member => ({
 			Shareable: member.join_shareable ? 'Yes' : 'No',
@@ -17,11 +19,11 @@ async function getExport(members) {
 		}));
 }
 
-module.exports = {
+export default {
 	name: 'Join reasons export',
 	statuses: ['added', 'seen'],
 	collection: Members,
 	itemName: 'join reasons',
 	getQuery,
 	getExport
-};
+} as ExportType<Member>;

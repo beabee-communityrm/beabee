@@ -1,13 +1,14 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 
 import auth from '@core/authentication';
-import { Referrals } from '@core/database';
-import { hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema } from '@core/middleware';
 import { AppConfig, hasUser, wrapAsync } from '@core/utils';
 
 import ReferralsService from '@core/services/ReferralsService';
 
 import { chooseGiftSchema } from './schema.json';
+import Referral from '@models/Referral';
+import { Members } from '@core/database';
 
 interface ChooseGiftSchema {
 	referralGift?: string;
@@ -16,6 +17,17 @@ interface ChooseGiftSchema {
 
 const app = express();
 let app_config: AppConfig;
+
+function hasOwnReferral(req: Request, res: Response, next: NextFunction) {
+	hasNewModel(Referral, 'id')(req, res, () => {
+		const referral = req.model as Referral;
+		if (referral.referrerId === req.user?.id) {
+			next();
+		} else {
+			next('route');
+		}
+	});
+}
 
 app.set( 'views', __dirname + '/views' );
 
@@ -27,37 +39,24 @@ app.use( function( req, res, next ) {
 } );
 
 app.get( '/', wrapAsync( hasUser( async ( req, res ) => {
-	const referrals = await Referrals.find({ referrer: req.user }).populate('referee') as any[];
-	const gifts = await ReferralsService.getGifts();
-
-	for (const referral of referrals) {
-		referral.referrerGiftDetails = gifts.find(gift => gift.name === referral.referrerGift);
-	}
-
+	const referrals = await ReferralsService.getMemberReferrals(req.user);
 	res.render( 'index', { referralLink: req.user.referralLink, referrals } );
 } ) ) );
 
-app.get( '/:id', wrapAsync( async ( req, res ) => {
-	const referral = await Referrals.findOne({ _id: req.params.id, referrer: req.user }).populate('referee');
+app.get( '/:id', hasOwnReferral, wrapAsync( async ( req, res ) => {
+	const referral = req.model as Referral;
+	const referee = await Members.findOne({ _id: referral.refereeId });
 	const gifts = await ReferralsService.getGifts();
-	res.render( 'referral', { referral, gifts } );
+	res.render( 'referral', { referral, referee, gifts } );
 } ) );
 
-app.post( '/:id', hasSchema(chooseGiftSchema).orFlash, wrapAsync( async ( req, res ) => {
-	const referral = await Referrals.findOne({ _id: req.params.id, referrer: req.user }).populate('referee') as any;
+app.post( '/:id', [
+	hasOwnReferral, hasSchema(chooseGiftSchema).orFlash
+], wrapAsync( async ( req, res ) => {
+	const referral = req.model as Referral;
 	const giftParams = req.body as ChooseGiftSchema;
 
-	if (referral.referrerGift === undefined && await ReferralsService.isGiftAvailable(giftParams, referral.refereeAmount)) {
-		await Referrals.updateOne({
-			_id: req.params.id,
-			referrer: req.user
-		}, {$set: {
-			referrerGift: giftParams.referralGift || '',
-			referrerGiftOptions: giftParams.referralGiftOptions
-		}});
-
-		await ReferralsService.updateGiftStock(giftParams);
-
+	if (await ReferralsService.setReferrerGift(referral, giftParams)) {
 		req.flash( 'success', 'referral-gift-chosen' );
 		res.redirect( '/profile/referrals' );
 	} else {

@@ -5,14 +5,17 @@ import { log } from '@core/logging';
 
 import Email from '@models/Email';
 import EmailMailing from '@models/EmailMailing';
+import Export from '@models/Export';
+import ExportItem from '@models/ExportItem';
 import GiftFlow from '@models/GiftFlow';
 import JoinFlow from '@models/JoinFlow';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
-import RestartFlow from '@models/RestartFlow';
+import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
+import RestartFlow from '@models/RestartFlow';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	await new Promise<void>(resolve => {
@@ -31,7 +34,7 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 			resolve();
 		});
 		mongoose.connection.on( 'error', error => {
-			log.debug( {
+			log.error( {
 				app: 'database',
 				action: 'connect',
 				message: 'Error connecting to Mongo database',
@@ -46,8 +49,8 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 			await createConnection({
 				...dbConfig,
 				entities: [
-					Email, EmailMailing, GiftFlow, JoinFlow, Notice, Option,
-					PageSettings, Payment, ReferralGift, RestartFlow,
+					Email, EmailMailing, Export, ExportItem, GiftFlow, JoinFlow, Notice,
+					Option, PageSettings, Payment, Referral, ReferralGift, RestartFlow,
 				]
 			});
 			log.debug( {
@@ -75,13 +78,11 @@ export async function close(): Promise<void> {
 	}
 }
 
-export { model as Exports } from '@models/exports';
 export { model as Members } from '@models/members';
 export { model as Permissions } from '@models/permissions';
 export { model as PollAnswers } from '@models/PollAnswers';
 export { model as Polls } from '@models/polls';
 export { model as ProjectMembers } from '@models/project-members';
 export { model as Projects } from '@models/projects';
-export { model as Referrals } from '@models/referrals';
 export { model as SpecialUrlGroups } from '@models/special-url-groups';
 export { model as SpecialUrls } from '@models/special-urls';

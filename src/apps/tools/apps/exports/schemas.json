@@ -11,7 +11,10 @@
 					"type": "string"
 				},
 				"params": {
-					"type": "object"
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					}
 				}
 			}
 		}
@@ -35,15 +38,15 @@
 					}
 				},
 				{
-					"required": ["old_status", "status"],
+					"required": ["oldStatus", "newStatus"],
 					"properties": {
 						"action": {
 							"const": "update"
 						},
-						"old_status": {
+						"oldStatus": {
 							"type": "string"
 						},
-						"status": {
+						"newStatus": {
 							"type": "string"
 						}
 					}

@@ -1,7 +1,12 @@
-const { Members, Permissions } = require('@core/database');
-const config = require( '@config' );
+import { Members, Permissions } from '@core/database';
+import { Param } from '@core/utils/params';
 
-async function getParams() {
+import config from '@config' ;
+import Export from '@models/Export';
+import { Member } from '@models/members';
+import { ExportType } from './type';
+
+async function getParams(): Promise<Param[]> {
 	return [{
 		name: 'hasActiveSubscription',
 		label: 'Has active subscription',
@@ -9,23 +14,23 @@ async function getParams() {
 	}];
 }
 
-async function getQuery({params: {hasActiveSubscription} = {}}) {
+async function getQuery({params}: Export): Promise<any> {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 	return {
 		permissions: {$elemMatch: {
 			permission,
 			date_expires: {$gte: new Date()}
 		}},
-		...(hasActiveSubscription ? {'gocardless.subscription_id': {$exists: true, $ne: ''}} : {})
+		...(params?.hasActiveSubscription ? {'gocardless.subscription_id': {$exists: true, $ne: ''}} : {})
 	};
 }
 
-function anonymisePostcode(postcode) {
+function anonymisePostcode(postcode: string): string {
 	return postcode &&
 		(postcode[0] + postcode.substr(1, postcode.length - 3).replace(/[A-Za-z0-9]/g, '•') + postcode.substr(-2));
 }
 
-async function getExport(members) {
+async function getExport(members: Member[]): Promise<Record<string, any>[]> {
 	return members
 		.map(member => ({
 			Id: member.uuid,
@@ -38,12 +43,12 @@ async function getExport(members) {
 			ContributionPeriod: member.contributionPeriod,
 			ContributionDescription: member.contributionDescription,
 			ContributionPayingFee: member.gocardless.paying_fee,
-			Postcode: member.delivery_optin ? anonymisePostcode(member.delivery_address.postcode) : ''
+			Postcode: member.delivery_optin ? anonymisePostcode(member.delivery_address.postcode!) : ''
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }
 
-module.exports = {
+export default {
 	name: 'Active members export',
 	statuses: ['added', 'seen'],
 	collection: Members,
@@ -51,4 +56,4 @@ module.exports = {
 	getParams,
 	getQuery,
 	getExport
-};
+} as ExportType<Member>;

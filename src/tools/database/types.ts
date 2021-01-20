@@ -11,7 +11,8 @@ export interface Properties {
 
 export interface ModelExporter {
 	model: Model<MDocument>
-	properties?: Properties
+	properties?: Properties,
+	objectIds?: string[]
 }
 
 export interface ModelData {
@@ -35,15 +36,10 @@ function uniqueCode(): string {
 	return letter.padStart(2, 'A') + (no + '').padStart(3, '0');
 }
 
-const payments: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	payment_id: () => 'PM' + randomId(12),
-	subscription_id: () => 'SB' + randomId(12),
-	member: () => new mongoose.Types.ObjectId()
-};
+const objectId = () => new mongoose.Types.ObjectId().toString();
 
 const members: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
+	_id: objectId,
 	uuid: () => chance.guid({version: 4}),
 	email: () => chance.email(),
 	firstname: () => chance.first(),
@@ -76,40 +72,32 @@ const members: Properties = {
 	})
 };
 
-const referrals: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	referrer: () => new mongoose.Types.ObjectId(),
-	referee: () => new mongoose.Types.ObjectId()
-};
-
 const pollAnswers: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	member: () => new mongoose.Types.ObjectId()
+	_id: objectId,
+	member: objectId
 };
 
 const projects: Properties = {
-	owner: () => new mongoose.Types.ObjectId()
+	owner: objectId
 };
 
 const projectMembers: Properties = {
-	_id: () => new mongoose.Types.ObjectId(),
-	member: () => new mongoose.Types.ObjectId(),
+	_id: objectId,
+	member: objectId,
 	tag: () => chance.word(),
 	engagement: (): Properties => ({
-		member: () => new mongoose.Types.ObjectId(),
+		member: objectId,
 		notes: () => chance.sentence()
 	})
 };
 
 const models: ModelExporter[] = [
-	{ model: db.Exports },
 	{ model: db.Permissions as unknown as Model<MDocument> },
-	{ model: db.Members as unknown as Model<MDocument>, properties: members },
-	{ model: db.Referrals, properties: referrals },
+	{ model: db.Members as unknown as Model<MDocument>, properties: members, objectIds: ['_id'] },
 	{ model: db.Polls },
-	{ model: db.PollAnswers, properties: pollAnswers },
-	{ model: db.Projects , properties: projects },
-	{ model: db.ProjectMembers, properties: projectMembers }
+	{ model: db.PollAnswers, properties: pollAnswers, objectIds: ['_id', 'member'] },
+	{ model: db.Projects , properties: projects, objectIds: ['owner'] },
+	{ model: db.ProjectMembers, properties: projectMembers, objectIds: ['_id', 'member'] }
 ];
 
 export default models;

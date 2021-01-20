@@ -19,6 +19,8 @@ services:
       - ./built:/opt/membership-system/built
     ports:
       - 3001:3001
+    environment:
+      NODE_ENV: development
   gc_webhook:
     build: .
     command: 'node built/webhooks/gocardless'

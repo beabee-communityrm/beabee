@@ -47,10 +47,16 @@ interface Member extends PartialMember, Document {
 		reset_code?: string,
 		tries: number
 	},
+	delivery_copies?: number,
+	join_shareable?: boolean,
+	joined?: Date,
+	join_reason?: string,
+	join_how?: string,
 	readonly isActiveMember: boolean,
 	readonly hasActiveSubscription: boolean,
 	readonly canTakePayment: boolean,
 	readonly contributionPeriod: ContributionPeriod
+	readonly contributionDescription: string
 	readonly contributionMonthlyAmount: number
 	readonly fullname: string
 	readonly setupComplete: boolean

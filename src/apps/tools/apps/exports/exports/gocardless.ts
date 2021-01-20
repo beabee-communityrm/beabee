@@ -1,10 +1,12 @@
-const { Members } = require('@core/database');
+import { Members } from '@core/database';
+import { Member } from '@models/members';
+import { ExportType } from './type';
 
 async function getQuery() {
 	return {};
 }
 
-async function getExport(members) {
+async function getExport(members: Member[]) {
 	return members
 		.map(member => ({
 			Id: member.uuid,
@@ -23,11 +25,11 @@ async function getExport(members) {
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }
 
-module.exports = {
+export default {
 	name: 'GoCardless details export',
 	statuses: ['added', 'seen'],
 	collection: Members,
 	itemName: 'members',
 	getQuery,
 	getExport
-};
+} as ExportType<Member>;

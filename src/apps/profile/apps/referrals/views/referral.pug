@@ -15,7 +15,7 @@ block contents
 			+page_header( 'A successful referral!' )
 
 			p.
-				You referred #{ referral.referee.firstname } to the Cable,
+				You referred #{ referee.firstname } to the Cable,
 				we're really grateful for it!  Our community is now a bit
 				bigger and more vibrant, and we are edging closer to financial
 				sustainability.
@@ -25,7 +25,7 @@ block contents
 				we'd love to send you a gift, choose below!
 
 			h3 Choose a gift
-			if referral.referrerGift !== undefined
+			if referral.referrerHasSelected
 				p You've already chosen your gift.
 			else if referral.refereeAmount < 3
 				p.

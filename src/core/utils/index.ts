@@ -1,5 +1,4 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import _ from 'lodash';
 
 import { Member } from '@models/members';
 import { QueryFailedError } from 'typeorm';
@@ -30,34 +29,12 @@ export interface AppConfig {
 	priority?: number
 }
 
-interface Param {
-	name: string,
-	label: string,
-	type: string,
-	values?: [string, string][],
-}
-
-interface Item {
-	getParams?: () => Promise<Param[]>
-}
-
-type ParamValue = number|boolean|string|undefined;
-
 export function isValidNextUrl(url: string): boolean {
 	return /^\/([^/]|$)/.test(url);
 }
 
 export function getActualAmount(amount: number, period: ContributionPeriod): number {
 	return amount * ( period === ContributionPeriod.Annually ? 12 : 1 );
-}
-
-export function getParamValue(s: string, param: Param): ParamValue {
-	switch (param.type) {
-	case 'number': return Number(s);
-	case 'boolean': return s === 'true';
-	case 'select': return param.values?.map(([k]) => k).find(k => s === k);
-	default: return s;
-	}
 }
 
 export function wrapAsync(fn: RequestHandler): RequestHandler {
@@ -108,27 +85,6 @@ export function loginAndRedirect(req: Request, res: Response, member: Member, ur
 
 export function sleep(ms: number): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export async function loadParams(items: Item[]): Promise<{params: Param[]}[]> {
-	const itemsWithParams = [];
-	for (const item of items) {
-		itemsWithParams.push({
-			...item,
-			params: item.getParams ? await item.getParams() : []
-		});
-	}
-	return itemsWithParams;
-}
-
-export async function parseParams(item: Item, data: Record<string, string>): Promise<Record<string, ParamValue>> {
-	const params = item.getParams ? await item.getParams() : [];
-	return _.mapValues(data, (value, paramName) => {
-		const param = params.find(p => p.name === paramName);
-		if (param) {
-			return getParamValue(value, param);
-		}
-	});
 }
 
 interface PgError {
