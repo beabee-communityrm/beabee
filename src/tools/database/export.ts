@@ -46,26 +46,29 @@ async function runExport({model, properties}: ModelExporter): Promise<ModelData>
 	};
 }
 
-function isDrier<T>(propMap: Mapping<T>[WritableKeysOf<T>]): propMap is Drier<T[WritableKeysOf<T>]> {
+function isDrier<T>(propMap: DrierMap<T>[WritableKeysOf<T>]): propMap is Drier<T[WritableKeysOf<T>]> {
 	return 'itemMap' in propMap;
 }
 
 function runDrier<T>(item: T, drier: Drier<T>): T {
-	if (drier.itemMap) {
-		const newItem = Object.assign({}, item);
-		for (const property of Object.keys(drier.itemMap)) {
-			const prop = property as WritableKeysOf<T>;
-			const propMap = drier.itemMap[prop];
-			if (isDrier(propMap)) {
-				newItem[prop] = runDrier(item[prop], propMap);
-			} else if (propMap) {
-				newItem[prop] = propMap();
+	const newItem = Object.assign({}, item);
+
+	for (const _prop of Object.keys(drier.propMap)) {
+		const prop = _prop as WritableKeysOf<T>;
+		const propMap = drier.propMap[prop];
+		if (isDrier(propMap)) {
+			newItem[prop] = runDrier(item[prop], propMap);
+		} else if (propMap) {
+			if (valueMap.has(prop)) {
+				newItem[prop] = valueMap.get(prop) as T[WritableKeysOf<T>];
+			} else {
+				newItem[prop] = propMap(item[prop]);
+				valueMap.set(prop, newItem[prop]);
 			}
 		}
-		return newItem;
-	} else {
-		return item;
 	}
+
+	return newItem;
 }
 
 async function runNewExport<T>(drier: Drier<T>): Promise<NewModelData<T>> {

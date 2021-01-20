@@ -22,15 +22,15 @@ export interface NewModelData<T> {
 	modelName: string
 }
 
-const chance = new Chance();
-
 function createDrier<T>(
 	model: EntityTarget<T>,
 	modelName: string,
-	itemMap: Mapping<T> = {},
+	propMap: DrierMap<T> = {},
 ): Drier<T> {
-	return {model, modelName, itemMap};
+	return {model, modelName, propMap};
 }
+
+// Property generators
 
 function randomId(len: number, prefix?: string) {
 	return () => (prefix || '') + crypto.randomBytes(6).toString('hex').slice(0, len).toUpperCase();
@@ -46,8 +46,12 @@ function uniqueCode(): string {
 
 const objectId = () => new mongoose.Types.ObjectId().toString();
 
+// Model driers
+
+const chance = new Chance();
+
 const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
-	id: uuidv4,
+	id: () => uuidv4(),
 	setupCode: uniqueCode,
 	sessionId: randomId(12),
 	giftForm: createDrier(GiftForm, 'giftForm', {
@@ -61,7 +65,7 @@ const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 });
 
 const paymentsDrier = createDrier(Payment, 'payments', {
-	id: uuidv4,
+	id: () => uuidv4(),
 	paymentId: randomId(12, 'PM'),
 	subscriptionId: randomId(12, 'SB'),
 	memberId: objectId
@@ -70,7 +74,7 @@ const paymentsDrier = createDrier(Payment, 'payments', {
 const referralsGiftDrier = createDrier(ReferralGift, 'referralgifts');
 
 const referralsDrier = createDrier(Referral, 'referrals', {
-	id: uuidv4,
+	id: () => uuidv4(),
 	referrerId: objectId,
 	refereeId: objectId
 });
