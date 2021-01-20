@@ -38,7 +38,7 @@ async function getQuery({params}: Export) {
 	};
 }
 
-async function getExport(members: Member[], {params: {baseURL} = {}}: Export) {
+async function getExport(members: Member[], {params}: Export) {
 	return members.map(member => {
 		const addressFields = Object.assign(
 			{},
@@ -52,7 +52,7 @@ async function getExport(members: Member[], {params: {baseURL} = {}}: Export) {
 			'First name': member.firstname,
 			Surname: member.lastname,
 			'Full name': member.fullname,
-			'Custom 1': baseURL + '/' + member.pollsCode,
+			'Custom 1': params?.baseURL + '/' + member.pollsCode,
 			'Custom 2': member.uuid,
 			...addressFields
 		};
