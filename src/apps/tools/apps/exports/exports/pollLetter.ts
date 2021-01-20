@@ -20,8 +20,8 @@ async function getParams(): Promise<Param[]> {
 	];
 }
 
-async function getQuery({params: {pollId} = {}}: Export) {
-	const poll = await Polls.findById(pollId);
+async function getQuery({params}: Export) {
+	const poll = await Polls.findById(params?.pollId);
 	const pollAnswers = await PollAnswers.find({poll});
 	const memberIds = pollAnswers.map(pollAnswer => (pollAnswer as any).member);
 

@@ -18,5 +18,5 @@ export default class Export {
 	date!: Date
 
 	@Column({type: 'jsonb', nullable: true})
-	params?: Record<string, ParamValue>
+	params!: Record<string, ParamValue>|null
 }

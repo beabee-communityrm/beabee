@@ -16,8 +16,8 @@ async function getParams(): Promise<Param[]> {
 	];
 }
 
-async function getQuery({params: {pollId} = {}}: Export) {
-	return {poll: pollId};
+async function getQuery({params}: Export) {
+	return {poll: params?.pollId};
 }
 
 async function getExport(pollAnswers: any[]) {

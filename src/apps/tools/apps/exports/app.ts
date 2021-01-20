@@ -49,7 +49,7 @@ async function schemaToExport(data: CreateSchema): Promise<Export> {
 	const exportDetails = new Export();
 	exportDetails.type = data.type;
 	exportDetails.description = data.description;
-	exportDetails.params = data.params && await parseParams(exportTypes[data.type], data.params);
+	exportDetails.params = data.params ? await parseParams(exportTypes[data.type], data.params) : null;
 	return exportDetails;
 }
 

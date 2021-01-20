@@ -17,12 +17,12 @@ async function getParams(): Promise<Param[]> {
 	}];
 }
 
-async function getQuery({params: {monthlyAmountThreshold} = {}}: Export) {
+async function getQuery({params}: Export) {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 	return {
 		// TODO: switch this to contributionMonthlyAmount
 		'gocardless.amount': {
-			$gte: monthlyAmountThreshold === undefined ? 3 : monthlyAmountThreshold
+			$gte: params?.monthlyAmountThreshold === undefined ? 3 : params?.monthlyAmountThreshold
 		},
 		permissions: {$elemMatch: {
 			permission,
