@@ -92,8 +92,8 @@ const projectMembers: Properties = {
 };
 
 const models: ModelExporter[] = [
-	{ model: db.Permissions as unknown as Model<MDocument>, objectIds: ['_id'] },
-	{ model: db.Members as unknown as Model<MDocument>, properties: members },
+	{ model: db.Permissions as unknown as Model<MDocument> },
+	{ model: db.Members as unknown as Model<MDocument>, properties: members, objectIds: ['_id'] },
 	{ model: db.Polls },
 	{ model: db.PollAnswers, properties: pollAnswers, objectIds: ['_id', 'member'] },
 	{ model: db.Projects , properties: projects, objectIds: ['owner'] },

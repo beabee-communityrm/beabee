@@ -1,7 +1,7 @@
 import 'module-alias/register';
 
 import _ from 'lodash';
-import { EJSON } from 'bson';
+import { EJSON, ObjectId } from 'bson';
 import fs from 'fs';
 
 import config from '@config';
@@ -18,9 +18,8 @@ const newModelsByName = new Map(newImportTypes.map(t => [t.modelName, t.model]))
 async function runImport({modelName, items}: ModelData): Promise<void> {
 	console.error(`Importing ${modelName}, got ${items.length} items`);
 	const {model, objectIds} = importsByName[modelName];
-	const itemsWithIds = items.map(item => Object.assign(
-		item,
-		...objectIds ? objectIds.map(oid => ({[oid]: item[oid]})) : []
+	const itemsWithIds = items.map(item => Object.assign({}, item,
+		...objectIds ? objectIds.map(oid => ({[oid]: new ObjectId(item[oid])})) : []
 	));
 	try {
 		await model.deleteMany({});
