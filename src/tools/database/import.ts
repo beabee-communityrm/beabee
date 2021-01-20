@@ -64,7 +64,10 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			newExportData: NewModelData<any>[]
 		};
 		await Promise.all(data.exportData.map(runImport));
-		await Promise.all(data.newExportData.map(runNewImport));
+
+		for (const newExportData of data.newExportData) {
+			await runNewImport(newExportData);
+		}
 	} catch (err) {
 		console.log(err);
 	}

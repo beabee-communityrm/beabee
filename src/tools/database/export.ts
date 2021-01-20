@@ -79,7 +79,7 @@ function runDrier<T>(item: T, drier: Drier<T>): T {
 
 async function runNewExport<T>(drier: Drier<T>): Promise<NewModelData<T>> {
 	console.error('Fetching new', drier.modelName);
-	const items = await getRepository(drier.model).find();
+	const items = await getRepository(drier.model).find({loadRelationIds: true});
 
 	console.error(`Anonymising ${drier.modelName}, got ${items.length} items`);
 	const newItems = items.map(item => runDrier(item, drier));
@@ -88,7 +88,12 @@ async function runNewExport<T>(drier: Drier<T>): Promise<NewModelData<T>> {
 
 async function main() {
 	const exportData = await Promise.all(exportTypes.map(runExport));
-	const newExportData = await Promise.all(newExportTypes.map(runNewExport));
+
+	const newExportData: NewModelData<any>[] = [];
+	for (const newExportType of newExportTypes) {
+		newExportData.push(await runNewExport(newExportType));
+	}
+
 	console.log(EJSON.stringify({exportData, newExportData}));
 }
 
