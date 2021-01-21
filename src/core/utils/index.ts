@@ -25,9 +25,28 @@ export interface AppConfig {
 	title: string
 	path: string
 	permissions?: string[]
-	menu?: string
+	menu?: 'none'|'main'
 	priority?: number
 }
+
+export interface FullAppConfig extends AppConfig {
+	uid: string
+	disabled: boolean
+	priority: number
+	appPath: string
+	hidden?: boolean
+	subApps: FullAppConfig[]
+	menu: 'none'|'main'
+	permissions: string[]
+}
+
+export type AppConfigOverrides = Record<string, AppConfigOverride>;
+
+export interface AppConfigOverride {
+	config?: Partial<AppConfig>
+	subApps?: AppConfigOverrides
+}
+
 
 export function isValidNextUrl(url: string): boolean {
 	return /^\/([^/]|$)/.test(url);

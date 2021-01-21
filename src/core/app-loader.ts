@@ -5,22 +5,7 @@ import config from '@config';
 
 import { log } from '@core/logging';
 import templateLocals from '@core/template-locals';
-import { AppConfig } from './utils';
-
-interface FullAppConfig extends AppConfig {
-	uid: string
-	disabled: boolean
-	priority: number
-	appPath: string
-	subApps: FullAppConfig[]
-}
-
-type AppConfigOverrides = Record<string, AppConfigOverride>;
-
-interface AppConfigOverride {
-	config?: Partial<AppConfig>
-	subApps?: AppConfigOverrides
-}
+import { AppConfigOverride, AppConfigOverrides, FullAppConfig } from './utils';
 
 async function loadAppConfigs(basePath: string, overrides: AppConfigOverrides = {}): Promise<FullAppConfig[]> {
 	const appConfigs = fs.readdirSync(basePath)
@@ -45,6 +30,8 @@ async function loadAppConfig(uid: string, path: string, overrides: AppConfigOver
 		uid,
 		appPath: path + '/app.js',
 		priority: 100,
+		menu: 'none',
+		permissions: [],
 		subApps,
 		...appConfig,
 		...overrides.config

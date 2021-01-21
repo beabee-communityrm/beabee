@@ -6,11 +6,10 @@ form( method="post" )
 			select( name="permission" )#permission.form-control
 				option( disabled selected ) –
 				each permission, p in permissions
-					if can_admin( permission.slug )
-						option(
-							selected=( current != undefined && permission.slug == current.permission.slug ),
-							value=permission.slug
-						) #{ permission.name }
+					option(
+						selected=( current != undefined && permission.slug == current.permission.slug ),
+						value=permission.slug
+					) #{ permission.name }
 	.form-group
 		label Start
 		br

@@ -10,9 +10,6 @@ span.list-group-item( class=( permission.date_added > moment() || permission.dat
 			if permission.permission.slug == config.permission.admin
 				| 
 				small: span.label.label-primary Admin
-			if member && member.can_admin && member.can_admin.indexOf( permission.permission.slug ) != -1
-				| 
-				small: span.label.label-primary Permission Admin
 	if permission.permission.description
 		p.list-group-item-text #{ permission.permission.description }
 	p.list-group-item-text Valid&nbsp;
@@ -25,7 +22,7 @@ span.list-group-item( class=( permission.date_added > moment() || permission.dat
 			|  onwards
 	span( style="position: absolute; top: 1em; right: 1em;" )
 		if admin_area
-			if can_admin && can_admin( permission.permission.slug ) || access( 'superadmin' )
+			if access( 'superadmin' )
 				a( href="/members/" + member.uuid + "/permissions/" + permission._id + "/modify", style="margin-right: 1em;" )
 					span.glyphicon.glyphicon-pencil
 				form( action="/members/" + member.uuid + "/permissions/" + permission._id + "/revoke", method="post", style="display:inline;" )
