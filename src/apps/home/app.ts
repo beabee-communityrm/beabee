@@ -8,7 +8,8 @@ app.set( 'views', __dirname + '/views' );
 
 app.get( '/', function ( req, res ) {
 	if ( auth.loggedIn( req ) == auth.LOGGED_IN ) {
-		res.redirect( '/profile' );
+		// Go to first app in menu
+		res.redirect( res.locals.menu.main[0].path );
 	} else {
 		res.render( 'index' );
 	}

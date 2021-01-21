@@ -23,11 +23,8 @@ block body
 				else
 
 					if giftAddress
-						p
-							| If you have any questions please get in touch at
-							|
-							a(href='mailto:membership@thebristolcable.org') membership@thebristolcable.org
-							| .
+						p.
+							If you have any questions please get in touch at #[+emailSupport].
 					else
 						h4 Where shall we send the mug?
 						form( method="post" ).form-horizontal

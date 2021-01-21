@@ -63,7 +63,7 @@ form(
 					if user.hasActiveSubscription
 						|
 						|
-						a(href='mailto:membership@thebristolcable.org') Contact us
+						+emailSupport('Contact us')
 						|
 						| to switch to an annual contribution.
 
@@ -160,5 +160,4 @@ form(
 
 if user.hasActiveSubscription
 	p.
-		To change your payment cycle please contact
-		#[+email('membership@thebristolcable.org')].
+		To change your payment cycle please contact #[+emailSupport].
