@@ -24,6 +24,7 @@ app.get( '/' , function( req, res ) {
 } );
 
 app.get( '/:code', wrapAsync( async function( req, res ) {
+	const nextParam = req.query.next as string;
 	const member = await Members.findOne( {
 		'loginOverride.code': req.params.code,
 		'loginOverride.expires': {$gt: new Date()}
@@ -32,7 +33,7 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 	if (member) {
 		await member.update({$unset: {loginOverride: 1}});
 
-		loginAndRedirect(req, res, member);
+		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/profile');
 	} else {
 		req.flash('error', 'login-code-invalid');
 		res.redirect( '/login' );
