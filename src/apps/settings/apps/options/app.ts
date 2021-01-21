@@ -37,7 +37,7 @@ app.get( '/:key/edit', function( req, res ) {
 } );
 
 app.post( '/:key/edit', wrapAsync( async function( req, res ) {
-	await OptionsService.set(req.params.key, req.body.value);
+	await OptionsService.set(req.params.key, req.body.value || '');
 	req.flash( 'success', 'option-updated' );
 	res.redirect( '/settings/options' );
 } ) );

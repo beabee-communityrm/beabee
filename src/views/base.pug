@@ -36,7 +36,7 @@ html
 						.row
 							.col-xs-6
 								a( href="https://thebristolcable.org/" )
-									img( src="/static/svg/logo.svg" ).header-logo
+									img( src=Options('logo') ).header-logo
 							.col-xs-6.text-right
 								block login
 									if isLoggedIn
@@ -64,17 +64,20 @@ html
 							p
 								= Options( 'organisation' )
 								br
-								| Online, in print, on the street
+								= Options( 'footer-strapline' )
 						.col-sm-6
 							ul.footer-links
 								li
-									a( href="https://thebristolcable.org/privacy-policy/" ) Privacy policy
+									a( href=Options( 'footer-privacy-link-url' ) )= Options( 'footer-privacy-link-text' )
 								li
-									a( href="https://thebristolcable.org/terms/" ) Terms & conditions
-								li
-									a( href="https://www.facebook.com/thebristolcable/" ) Facebook
-								li
-									a( href="https://twitter.com/TheBristolCable" ) Twitter
+									a( href=Options( 'footer-terms-link-url' ) )= Options( 'footer-terms-link-text' )
+								if Options( 'footer-facebook-link-url' )
+									li
+										a( href=Options( 'footer-facebook-link-url' ) ) Facebook
+								if Options( 'footer-twitter-link-url' )
+									li
+										a( href=Options( 'footer-twitter-link-url' ) ) Twitter
+
 					.row
 						.col-sm-12
 							a( href="https://github.com/thebristolcable/membership-system", target="_blank" ) Contribute on GitHub
@@ -89,27 +92,28 @@ html
 		script( src="/membership.js" )
 
 		block tracking
-			script.
-				var _paq = window._paq || [];
-				/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+			if Options('tracking')
+				script.
+					var _paq = window._paq || [];
+					/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
 
-				_paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
-				_paq.push(["setCookieDomain", "*.thebristolcable.org"]);
+					_paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
+					_paq.push(["setCookieDomain", "*.thebristolcable.org"]);
 
-				if (Membership.memberId) {
-					_paq.push(["setUserId", Membership.memberId]);
-				}
+					if (Membership.memberId) {
+						_paq.push(["setUserId", Membership.memberId]);
+					}
 
-				_paq.push(['trackPageView']);
-				_paq.push(['enableLinkTracking']);
-				(function() {
-					var u="https://stats2.xtreamlab.net/";
-					_paq.push(['setTrackerUrl', u+'piwik.php']);
-					_paq.push(['setSiteId', '1']);
-					var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-					g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
-				})();
+					_paq.push(['trackPageView']);
+					_paq.push(['enableLinkTracking']);
+					(function() {
+						var u="https://stats2.xtreamlab.net/";
+						_paq.push(['setTrackerUrl', u+'piwik.php']);
+						_paq.push(['setSiteId', '1']);
+						var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+						g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+					})();
 
-			noscript
-				p
-					img(src="https://stats2.xtreamlab.net/piwik.php?idsite=1&amp;rec=1" style="border:0;" alt="")
+				noscript
+					p
+						img(src="https://stats2.xtreamlab.net/piwik.php?idsite=1&amp;rec=1" style="border:0;" alt="")
