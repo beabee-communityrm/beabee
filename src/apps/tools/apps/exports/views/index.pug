@@ -9,12 +9,13 @@ block contents
 			+page_header('Exports')
 
 			each exportType in exportsByType
-				h5= exportType.name
-				p
-					each e in exportType.exports
-						a(href='/tools/exports/' + e.id)= e.description
-						| , created #{moment(e.date).format('DD/MM/YYYY [at] HH:mm')}
-						br
+				if exportType.exports.length > 0
+					h5= exportType.name
+					p
+						each e in exportType.exports
+							a(href='/tools/exports/' + e.id)= e.description
+							| , created #{moment(e.date).format('DD/MM/YYYY [at] HH:mm')}
+							br
 
 	.row
 		.col-md-8

@@ -225,15 +225,6 @@ module.exports.schema.virtual( 'gocardless.nextActualAmount' ).get( function () 
 	return getActualAmount(this.gocardless.next_amount, this.gocardless.period);
 } );
 
-module.exports.schema.virtual( 'can_admin' ).get( function() {
-	var can_admin = [];
-	this.permissions.forEach( function( permission ) {
-		if ( permission.admin )
-			can_admin.push( permission.permission.slug );
-	} );
-	return can_admin;
-} );
-
 module.exports.schema.virtual( 'memberPermission' )
 	.get( function () {
 		return this.permissions.find(p => p.permission.equals(memberId));

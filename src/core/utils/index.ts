@@ -25,9 +25,28 @@ export interface AppConfig {
 	title: string
 	path: string
 	permissions?: string[]
-	menu?: string
+	menu?: 'none'|'main'
 	priority?: number
 }
+
+export interface FullAppConfig extends AppConfig {
+	uid: string
+	disabled: boolean
+	priority: number
+	appPath: string
+	hidden?: boolean
+	subApps: FullAppConfig[]
+	menu: 'none'|'main'
+	permissions: string[]
+}
+
+export type AppConfigOverrides = Record<string, AppConfigOverride>;
+
+export interface AppConfigOverride {
+	config?: Partial<AppConfig>
+	subApps?: AppConfigOverrides
+}
+
 
 export function isValidNextUrl(url: string): boolean {
 	return /^\/([^/]|$)/.test(url);
@@ -48,7 +67,7 @@ export function wrapAsync(fn: RequestHandler): RequestHandler {
 }
 
 export interface RequestWithUser extends Request {
-	user: Member
+	user: Express.User
 }
 
 export function hasUser(fn: (req: RequestWithUser, res: Response, next: NextFunction) => void|Promise<void>): RequestHandler {
@@ -74,7 +93,7 @@ export function cleanEmailAddress(email: string): string {
 }
 
 export function loginAndRedirect(req: Request, res: Response, member: Member, url = '/'): void {
-	req.login(member, function (loginError) {
+	req.login(member as Express.User, function (loginError) {
 		if (loginError) {
 			throw loginError;
 		} else {

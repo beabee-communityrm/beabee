@@ -1,6 +1,6 @@
 {
 	"title": "Join",
 	"path": "join",
-	"menu": "secondary",
+	"menu": "none",
 	"priority": 1
 }

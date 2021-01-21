@@ -13,7 +13,6 @@ block contents
 				+page_header( "Permissions" )
 				.list-group
 					if member.permissions.length > 0
-						- admin_area = true
 						each permission, p in member.permissions
 							include /views/partials/permission.pug
 					else
