@@ -67,7 +67,7 @@ export function wrapAsync(fn: RequestHandler): RequestHandler {
 }
 
 export interface RequestWithUser extends Request {
-	user: Member
+	user: Express.User
 }
 
 export function hasUser(fn: (req: RequestWithUser, res: Response, next: NextFunction) => void|Promise<void>): RequestHandler {
@@ -93,7 +93,7 @@ export function cleanEmailAddress(email: string): string {
 }
 
 export function loginAndRedirect(req: Request, res: Response, member: Member, url = '/'): void {
-	req.login(member, function (loginError) {
+	req.login(member as Express.User, function (loginError) {
 		if (loginError) {
 			throw loginError;
 		} else {
