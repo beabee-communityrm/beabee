@@ -1,26 +1,23 @@
-const express = require( 'express' );
+import express from 'express';
 
-const auth = require( '@core/authentication' );
-const { Referrals } =  require( '@core/database' );
-const { hasSchema } = require( '@core/middleware' );
-const { wrapAsync } = require( '@core/utils' );
+import auth from '@core/authentication';
+import { hasSchema } from '@core/middleware';
+import { AppConfig, hasUser, wrapAsync } from '@core/utils';
 
-const { completeSchema } = require( './schemas.json' );
+import { completeSchema } from './schemas.json';
+import Referral from '@models/Referral';
+import { getRepository } from 'typeorm';
 
 const app = express();
-var app_config = {};
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( function( req, res, next ) {
-	if ( req.user.setupComplete ) {
+	if ( req.user?.setupComplete ) {
 		res.redirect( '/profile' );
 	} else {
 		res.locals.app = app_config;
-		res.locals.breadcrumb.push( {
-			name: app_config.title,
-			url: app.parent.mountpath + app.mountpath
-		} );
 		next();
 	}
 } );
@@ -28,15 +25,15 @@ app.use( function( req, res, next ) {
 app.use(auth.isLoggedIn);
 
 app.get( '/', wrapAsync( async function( req, res ) {
-	const referral = await Referrals.findOne({ referee: req.user });
+	const referral = await getRepository(Referral).findOne({refereeId: req.user?.id});
 
-	const isGift = req.user.contributionPeriod === 'gift';
+	const isGift = req.user?.contributionPeriod === 'gift';
 	const isReferralWithGift = referral && referral.refereeGift;
 
 	res.render( 'complete', { user: req.user, isReferralWithGift, isGift } );
 } ) );
 
-app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( async function( req, res ) {
+app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async function( req, res ) {
 	const {
 		body: {
 			password, delivery_optin, delivery_line1, delivery_line2,
@@ -46,7 +43,7 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( async function( req
 		user
 	} = req;
 
-	const referral = await Referrals.findOne({ referee: req.user });
+	const referral = await getRepository(Referral).findOne({refereeId: user.id});
 
 	const needAddress = delivery_optin || referral && referral.refereeGift ||
 		user.contributionPeriod === 'gift';
@@ -76,9 +73,9 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( async function( req
 
 		res.redirect( '/profile' );
 	}
-} ) );
+} ) ) );
 
-module.exports = function( config ) {
+export default function( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
-};
+}
