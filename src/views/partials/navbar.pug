@@ -27,7 +27,7 @@ if menu.main.length > 0
 											a( href="/" + menuEntry.path )= menuEntry.title
 									each subMenuEntry in menuEntry.subMenu
 										li
-											a( href="/" + menuEntry.path + "/" + menuEntry.path )= menuEntry.title
+											a( href="/" + menuEntry.path + "/" + subMenuEntry.path )= subMenuEntry.title
 						else
 							li( class=menuEntry.active ? "active" : "" )
 								a( href="/" + menuEntry.path )= menuEntry.title
