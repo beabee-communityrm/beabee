@@ -32,7 +32,7 @@ app.post( '/',function ( req, res ) {
 		failureFlash: '2fa-invalid'
 	} )( req, res, () => {
 		req.session.method = 'totp';
-		res.redirect( isValidNextUrl( nextParam ) ? nextParam : '/profile' );
+		res.redirect( isValidNextUrl( nextParam ) ? nextParam : '/' );
 	} );
 } );
 

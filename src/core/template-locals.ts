@@ -2,12 +2,9 @@ import fs from 'fs';
 import moment from 'moment';
 import dot from 'dot';
 
-import auth from '@core/authentication';
-
 import config from '@config';
 import { NextFunction, Request, Response } from 'express';
 import { FullAppConfig } from './utils';
-import actions from '@apps/tools/apps/special-urls/actions';
 
 let git = '';
 try {
