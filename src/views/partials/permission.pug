@@ -21,16 +21,15 @@ span.list-group-item( class=( permission.date_added > moment() || permission.dat
 		else
 			|  onwards
 	span( style="position: absolute; top: 1em; right: 1em;" )
-		if admin_area
-			if access( 'superadmin' )
-				a( href="/members/" + member.uuid + "/permissions/" + permission._id + "/modify", style="margin-right: 1em;" )
-					span.glyphicon.glyphicon-pencil
-				form( action="/members/" + member.uuid + "/permissions/" + permission._id + "/revoke", method="post", style="display:inline;" )
-					+csrf
-					button.btn-link
-						span.glyphicon.glyphicon-remove
-		else
-			if moment() < permission.date_added
-				span.label.label-default Pending
-			if permission.date_expires != undefined && moment() > permission.date_expires
-				span.label.label-default Expired
+		if access( 'superadmin' )
+			a( href="/members/" + member.uuid + "/permissions/" + permission._id + "/modify", style="margin-right: 1em;" )
+				span.glyphicon.glyphicon-pencil
+			form(
+				action="/members/" + member.uuid + "/permissions/" + permission._id + "/revoke",
+				method="post",
+				style="display:inline;"
+				onclick="return confirm('Are you sure?')"
+			)
+				+csrf
+				button.btn-link
+					span.glyphicon.glyphicon-remove
