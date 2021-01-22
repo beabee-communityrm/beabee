@@ -29,11 +29,18 @@ export default (appConfigs: FullAppConfig[]) => (req: Request, res: Response, ne
 	for (const appConfig of appConfigs) {
 		if (appConfig.menu !== 'none' && hasPermission(userPermissions, appConfig.permissions)) {
 			res.locals.menu[appConfig.menu].push({
-				...appConfig,
+				title: appConfig.title,
+				path: appConfig.path,
+				hidden: appConfig.hidden,
 				active: req.url.startsWith('/' + appConfig.path),
-				subMenu: appConfig.subApps.filter(subAppConfig => (
-					!subAppConfig.hidden && hasPermission(userPermissions, subAppConfig.permissions)
-				))
+				subMenu: appConfig.subApps
+					.filter(subAppConfig => (
+						!subAppConfig.hidden && hasPermission(userPermissions, subAppConfig.permissions)
+					)).map(subAppConfig => ({
+						title: subAppConfig.title,
+						path: subAppConfig.path,
+						hidden: subAppConfig.hidden
+					}))
 			});
 		}
 	}
