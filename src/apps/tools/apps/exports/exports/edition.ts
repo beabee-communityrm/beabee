@@ -51,6 +51,7 @@ async function getExport(members: Member[], {id: exportId}: Export) {
 		.map(member => {
 			const postcode = (member.delivery_address.postcode || '').trim().toUpperCase();
 			return {
+				EmailAddress: member.email,
 				FirstName: member.firstname,
 				LastName: member.lastname,
 				Address1: member.delivery_address.line1,
