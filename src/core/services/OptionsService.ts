@@ -1,7 +1,7 @@
+import { getRepository } from 'typeorm';
+
 import _defaultOptions from '@core/defaults.json';
 import Option from '@models/Option';
-import { NextFunction, Request, Response } from 'express';
-import { getRepository } from 'typeorm';
 
 const defaultOptions: {[key: string]: string} = _defaultOptions;
 
@@ -68,10 +68,4 @@ export default class OptionsService {
 			await getRepository(Option).delete(key);
 		}
 	}
-
-	static middleware(req: Request, res: Response, next: NextFunction): void {
-		res.locals.Options = OptionsService.getText.bind(OptionsService);
-		next();
-	}
-
 }

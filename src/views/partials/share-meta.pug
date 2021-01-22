@@ -1,18 +1,18 @@
-- shareImage = _page.shareImage
+- shareImage = pageSettings.shareImage
 if !(shareImage.startsWith('http://') || shareImage.startsWith('https://'))
 	- shareImage = 'https://membership.thebristolcable.org' + shareImage
 
 meta(property="og:locale" content="en_GB")
 meta(property="og:type" content="website")
-meta(property="og:title" content=_page.shareTitle)
-meta(property="og:description" content=_page.shareDescription)
-meta(property="og:url" content="https://membership.thebristolcable.org" + _page.shareUrl)
+meta(property="og:title" content=pageSettings.shareTitle)
+meta(property="og:description" content=pageSettings.shareDescription)
+meta(property="og:url" content="https://membership.thebristolcable.org" + pageSettings.shareUrl)
 meta(property="og:site_name" content="The Bristol Cable")
 meta(property="og:image" content=shareImage)
 meta(property="og:image:secure_url" content=shareImage)
 meta(name="twitter:card" content="summary_large_image")
-meta(name="twitter:description" content=_page.shareDescription)
-meta(name="twitter:title" content=_page.shareTitle)
+meta(name="twitter:description" content=pageSettings.shareDescription)
+meta(name="twitter:title" content=pageSettings.shareTitle)
 meta(name="twitter:site" content="@TheBristolCable")
 meta(name="twitter:image" content=shareImage)
 meta(name="twitter:creator" content="@TheBristolCable")

@@ -1,4 +1,3 @@
-import { NextFunction, Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 
 import PageSettings from '@models/PageSettings';
@@ -20,7 +19,7 @@ export default class PageSettingsService {
 		shareImage: 'https://membership.thebristolcable.org/static/imgs/share.jpg'
 	};
 
-	private static getPath(path: string): JustPageSettings {
+	static getPath(path: string): JustPageSettings {
 		if (this.pathCache[path] === undefined) {
 			this.pathCache[path] = this.psCache.find(ps => ps.patternRegex.test(path)) || this.defaultPageSettings;
 		}
@@ -32,11 +31,6 @@ export default class PageSettingsService {
 			...ps, patternRegex: new RegExp(ps.pattern)
 		}));
 		this.pathCache = {};
-	}
-
-	static middleware(req: Request, res: Response, next: NextFunction): void {
-		res.locals._page = this.getPath( req.path );
-		next();
 	}
 
 	static async create(ps: PageSettings): Promise<PageSettings> {
