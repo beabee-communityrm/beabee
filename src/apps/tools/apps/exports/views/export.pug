@@ -30,8 +30,6 @@ block contents
 					if newItems.length > 0
 						form(method='POST' style='display: inline')
 							+csrf
-							each item in newItems
-								input(type='hidden' name='newItemIds[]' value=item.id)
 							button(name='action' value='add').btn.btn-xs.btn-success Add
 				for status in exportItemsByStatus
 					li(style='padding-top: 0.5rem')

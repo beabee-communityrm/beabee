@@ -25,7 +25,6 @@ interface CreateSchema {
 
 interface AddItemSchema {
 	action: 'add'
-	newItemIds: string[]
 }
 
 interface UpdateItemsSchema {
@@ -53,7 +52,7 @@ async function schemaToExport(data: CreateSchema): Promise<Export> {
 	return exportDetails;
 }
 
-async function getExportItems(exportDetails: Export) {
+async function getExportItems(exportDetails: Export, full=false) {
 	const exportType = exportTypes[exportDetails.type];
 
 	const exportItems = await getRepository(ExportItem).find({
@@ -63,7 +62,7 @@ async function getExportItems(exportDetails: Export) {
 	const newItems = await exportType.collection.find({
 		...await exportType.getQuery(exportDetails),
 		_id: {$not: {$in: exportItems.map(ei => ei.itemId)}}
-	});
+	}, (full ? null : 'id') as any);
 
 	return {exportItems, newItems};
 }
@@ -128,7 +127,7 @@ app.get('/:id/items/:status', hasNewModel(Export, 'id'), wrapAsync(async (req, r
 	const exportDetails = req.model as Export;
 	const exportType = exportTypes[exportDetails.type];
 
-	const {newItems, exportItems} = await getExportItems(exportDetails);
+	const {newItems, exportItems} = await getExportItems(exportDetails, true);
 
 	const items = req.params.status === 'new' ?
 		newItems :
@@ -152,12 +151,13 @@ app.post( '/:id', [
 	const exportType = exportTypes[exportDetails.type];
 
 	if (data.action === 'add') {
-		const newItems = data.newItemIds.map(itemId => ({
-			itemId,
+		const {newItems} = await getExportItems(exportDetails);
+		const newExportItems = (newItems as any).map((item: {id: string}) => ({
+			itemId: item.id,
 			export: exportDetails,
 			status: exportType.statuses[0]
 		}));
-		await getRepository(ExportItem).insert(newItems);
+		await getRepository(ExportItem).insert(newExportItems);
 
 		req.flash('success', 'exports-added');
 		res.redirect('/tools/exports/' + exportDetails.id);
