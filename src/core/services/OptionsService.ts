@@ -1,7 +1,7 @@
+import { getRepository } from 'typeorm';
+
 import _defaultOptions from '@core/defaults.json';
 import Option from '@models/Option';
-import { NextFunction, Request, Response } from 'express';
-import { getRepository } from 'typeorm';
 
 const defaultOptions: {[key: string]: string} = _defaultOptions;
 
