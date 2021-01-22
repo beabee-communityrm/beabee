@@ -8,6 +8,8 @@ import Payment from '@models/Payment';
 import GiftFlow, { GiftForm } from '@models/GiftFlow';
 import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
+import Export from '@models/Export';
+import ExportItem from '@models/ExportItem';
 
 export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -50,6 +52,12 @@ const objectId = () => new mongoose.Types.ObjectId().toString();
 
 const chance = new Chance();
 
+const exportsDrier = createDrier(Export, 'exports');
+
+const exportItemsDrier = createDrier(ExportItem, 'exportItems', {
+	itemId: itemId => itemId // These will be mapped to values that have already been seen
+});
+
 const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 	id: () => uuidv4(),
 	setupCode: uniqueCode,
@@ -85,5 +93,7 @@ export default [
 	giftFlowDrier,
 	paymentsDrier,
 	referralsGiftDrier,
-	referralsDrier
+	referralsDrier,
+	exportsDrier,
+	exportItemsDrier
 ] as Drier<any>[];
