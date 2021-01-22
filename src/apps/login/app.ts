@@ -17,7 +17,7 @@ app.use( function( req, res, next ) {
 app.get( '/' , function( req, res ) {
 	const nextParam = req.query.next as string;
 	if ( req.user ) {
-		res.redirect( isValidNextUrl(nextParam) ? nextParam : '/profile' );
+		res.redirect( isValidNextUrl(nextParam) ? nextParam : '/' );
 	} else {
 		res.render( 'index', { nextParam: getNextParam( nextParam ) } );
 	}
@@ -33,7 +33,7 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 	if (member) {
 		await member.update({$unset: {loginOverride: 1}});
 
-		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/profile');
+		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
 	} else {
 		req.flash('error', 'login-code-invalid');
 		res.redirect( '/login' );
@@ -47,7 +47,7 @@ app.post( '/', (req, res) => {
 		failureFlash: true
 	} )( req, res, () => {
 		req.session.method = 'plain';
-		res.redirect( isValidNextUrl( nextParam ) ? nextParam : '/profile' );
+		res.redirect( isValidNextUrl( nextParam ) ? nextParam : '/' );
 	} );
 } );
 
