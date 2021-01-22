@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 import mongoose from 'mongoose';
 import { createConnection, getConnection, ConnectionOptions } from 'typeorm';
 

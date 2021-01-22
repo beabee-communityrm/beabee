@@ -1,5 +1,4 @@
 import 'module-alias/register';
-import 'reflect-metadata';
 
 import express, { ErrorRequestHandler } from 'express';
 import helmet from 'helmet';
