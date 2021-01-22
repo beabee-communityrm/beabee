@@ -36,7 +36,7 @@ interface UpdateItemsSchema {
 
 interface ExportSchema {
 	action: 'export'
-	status: string
+	status?: string
 }
 
 interface DeleteSchema {
@@ -172,7 +172,7 @@ app.post( '/:id', [
 
 	} else if (data.action === 'export') {
 		const exportItems = await getRepository(ExportItem).find({
-			where: {export: exportDetails, status: data.status}
+			where: {export: exportDetails, ...(data.status && {status: data.status})}
 		});
 
 		const items = await exportType.collection.find({_id: {$in: exportItems.map(ei => ei.itemId)}});
