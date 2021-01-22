@@ -8,6 +8,12 @@ import Payment from '@models/Payment';
 import GiftFlow, { GiftForm } from '@models/GiftFlow';
 import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
+import Export from '@models/Export';
+import ExportItem from '@models/ExportItem';
+import Email from '@models/Email';
+import Notice from '@models/Notice';
+import Option from '@models/Option';
+import PageSettings from '@models/PageSettings';
 
 export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -46,9 +52,19 @@ function uniqueCode(): string {
 
 const objectId = () => new mongoose.Types.ObjectId().toString();
 
+const chance = new Chance();
+
 // Model driers
 
-const chance = new Chance();
+const emailDrier = createDrier(Email, 'emails');
+const exportsDrier = createDrier(Export, 'exports');
+const noticesDrier = createDrier(Notice, 'notices');
+const optionsDrier = createDrier(Option, 'options');
+const pageSettingsDrier = createDrier(PageSettings, 'pageSettings');
+
+const exportItemsDrier = createDrier(ExportItem, 'exportItems', {
+	itemId: itemId => itemId // These will be mapped to values that have already been seen
+});
 
 const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 	id: () => uuidv4(),
@@ -82,8 +98,14 @@ const referralsDrier = createDrier(Referral, 'referrals', {
 });
 
 export default [
+	emailDrier,
+	exportsDrier,
 	giftFlowDrier,
+	noticesDrier,
+	optionsDrier,
 	paymentsDrier,
-	referralsGiftDrier,
-	referralsDrier
+	pageSettingsDrier,
+	referralsGiftDrier, // Must be before referralsDrier
+	referralsDrier,
+	exportItemsDrier // Must be after all exportable items
 ] as Drier<any>[];
