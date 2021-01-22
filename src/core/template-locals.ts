@@ -5,6 +5,8 @@ import dot from 'dot';
 import config from '@config';
 import { NextFunction, Request, Response } from 'express';
 import { FullAppConfig } from './utils';
+import PageSettingsService from './services/PageSettingsService';
+import OptionsService from './services/OptionsService';
 
 let git = '';
 try {
@@ -42,6 +44,8 @@ export default (appConfigs: FullAppConfig[]) => (req: Request, res: Response, ne
 	res.locals.isLoggedIn = !!req.user;
 	res.locals.git = git;
 	res.locals.dev = config.dev;
+	res.locals._page = PageSettingsService.getPath(req.path);
+	res.locals.Options = (opt: string) => OptionsService.getText(opt);
 
 	// Add some libraries
 	res.locals.moment = moment;

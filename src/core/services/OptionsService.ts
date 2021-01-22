@@ -68,10 +68,4 @@ export default class OptionsService {
 			await getRepository(Option).delete(key);
 		}
 	}
-
-	static middleware(req: Request, res: Response, next: NextFunction): void {
-		res.locals.Options = OptionsService.getText.bind(OptionsService);
-		next();
-	}
-
 }

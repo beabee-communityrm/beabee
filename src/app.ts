@@ -1,23 +1,24 @@
-require('module-alias/register');
-require('reflect-metadata');
+import 'module-alias/register';
+import 'reflect-metadata';
 
-const express = require( 'express' );
-const helmet = require( 'helmet' );
-const flash = require( 'express-flash' );
+import express, { ErrorRequestHandler } from 'express';
+import helmet from 'helmet';
+import flash from 'express-flash';
 
-const { default: appLoader } = require( '@core/app-loader' );
-const auth = require( '@core/authentication' );
-const database = require( '@core/database' );
-const { log, installMiddleware: installLogMiddleware } = require( '@core/logging' );
-const { default: quickflash } = require( '@core/quickflash' );
-const sessions = require( '@core/sessions' );
+import appLoader from '@core/app-loader';
+import auth from '@core/authentication';
+import * as database from '@core/database';
+import { log, installMiddleware as installLogMiddleware } from '@core/logging';
+import quickflash from '@core/quickflash';
+import sessions from '@core/sessions';
 
-const { default: OptionsService } = require('@core/services/OptionsService');
-const { default: PageSettingsService } = require('@core/services/PageSettingsService');
+import OptionsService from '@core/services/OptionsService';
+import PageSettingsService from '@core/services/PageSettingsService';
 
-const specialUrlHandler = require( '@apps/tools/apps/special-urls/handler' );
+import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
 
-const config = require( '@config' );
+import config from '@config';
+import { ConnectionOptions } from 'typeorm';
 
 if ( !config.gocardless.sandbox && config.dev ) {
 	log.error({
@@ -47,13 +48,9 @@ installLogMiddleware( app );
 // Use helmet
 app.use( helmet( { contentSecurityPolicy: false } ) );
 
-database.connect( config.mongo, config.db ).then(async () => {
+database.connect( config.mongo, config.db as ConnectionOptions ).then(async () => {
 	// Load some caches
-	OptionsService.reload();
-	PageSettingsService.reload();
-
-	// Load options
-	app.use( OptionsService.middleware.bind(OptionsService) );
+	await Promise.all([OptionsService.reload(), PageSettingsService.reload()]);
 
 	// Handle authentication
 	auth.load( app );
@@ -81,9 +78,6 @@ database.connect( config.mongo, config.db ).then(async () => {
 		}
 	});
 
-	// Include page settings
-	app.use( PageSettingsService.middleware.bind(PageSettingsService) );
-
 	// Load apps
 	await appLoader( app );
 
@@ -91,13 +85,15 @@ database.connect( config.mongo, config.db ).then(async () => {
 	app.use( '/s', specialUrlHandler );
 
 	// Error 404
-	app.use( function ( req, res, next ) { // eslint-disable-line no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	app.use( function ( req, res, next ) {
 		res.status( 404 );
 		res.render( '404' );
 	} );
 
 	// Error 500
-	app.use( function ( err, req, res, next ) { // eslint-disable-line no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	app.use( function ( err, req, res, next ) {
 		res.status( 500 );
 		res.render( '500', { error: ( config.dev ? err.stack : undefined ) } );
 
@@ -105,10 +101,10 @@ database.connect( config.mongo, config.db ).then(async () => {
 			action: 'uncaught-error',
 			error: err
 		});
-	} );
+	} as ErrorRequestHandler );
 
 	// Start server
-	var server = app.listen( config.port ,config.host, function () {
+	const server = app.listen( config.port ,config.host, function () {
 		log.debug( {
 			app: 'main',
 			action: 'start-webserver',
