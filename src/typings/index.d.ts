@@ -1,4 +1,5 @@
 import { Member } from '@models/members';
+import { ParamsDictionary } from 'express-serve-static-core';
 
 declare global {
 	type IfEquals<X, Y, A, B> =
@@ -17,6 +18,7 @@ declare global {
 			flash(level: 'info'|'success'|'warning'|'error'|'danger', message: string): void
 			model: unknown
 			csrfToken?(): string
+			allParams: ParamsDictionary
 		}
 	}
 }

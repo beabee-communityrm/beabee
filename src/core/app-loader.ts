@@ -53,7 +53,11 @@ async function routeApps(parentApp: express.Express, appConfigs: FullAppConfig[]
 
 		const app = (await requireApp(appConfig.appPath))(appConfig);
 		app.locals.basedir = __dirname + '/..';
-		parentApp.use('/' + appConfig.path, app);
+		parentApp.use('/' + appConfig.path, (req, res, next) => {
+			// Bit of a hack to pass all params everywhere
+			req.allParams = {...req.allParams, ...req.params};
+			next();
+		}, app);
 
 		if (appConfig.subApps.length > 0) {
 			await routeApps(app, appConfig.subApps);

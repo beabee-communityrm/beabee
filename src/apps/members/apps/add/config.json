@@ -1,0 +1,8 @@
+{
+  "title": "Add member",
+  "path": "add",
+  "permissions": [
+    "superadmin"
+  ],
+  "hidden": true
+}
