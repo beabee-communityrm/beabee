@@ -14,6 +14,10 @@ async function getParams(): Promise<Param[]> {
 		name: 'monthlyAmountThreshold',
 		label: 'Monthly contribution amount threshold',
 		type: 'number'
+	}, {
+		name: 'includeNonOptIn',
+		label: 'Include those without delivery opt in',
+		type: 'boolean'
 	}];
 }
 
@@ -28,7 +32,7 @@ async function getQuery({params}: Export) {
 			permission,
 			date_expires: {$gte: new Date()}
 		}},
-		delivery_optin: true
+		...(!params?.includeNonOptIn && {delivery_optin: true})
 	};
 }
 
