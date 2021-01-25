@@ -11,7 +11,7 @@ let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
-app.use(auth.isAdmin);
+app.use(auth.isSuperAdmin);
 
 app.use((req, res, next) => {
 	res.locals.app = app_config;
@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
 	res.render('index');
 });
 
-app.post( '/', auth.isSuperAdmin, wrapAsync( async ( req, res ) => {
+app.post( '/', wrapAsync( async ( req, res ) => {
 	const overrides = req.body.first_name && req.body.last_name ? {
 		given_name: req.body.first_name,
 		family_name: req.body.last_name
