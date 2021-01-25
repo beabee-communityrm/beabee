@@ -10,7 +10,7 @@ export default class Referral {
 	date!: Date
 
 	@Column({nullable: true})
-	referrerId?: string 
+	referrerId?: string
 
 	@Column()
 	refereeId!: string

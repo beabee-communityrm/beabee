@@ -1,6 +1,21 @@
 import { Document, Model } from 'mongoose';
 import { ContributionPeriod } from '@core/utils';
 
+interface Permission {
+	permission?: string
+	date_added: Date
+	date_expires?: Date
+	remove?(): void
+}
+
+interface MemberPermission extends Permission {
+	date_expires: Date
+}
+
+interface Permissions extends Array<Permission> {
+	id(s: string): Permission
+}
+
 interface PartialMember {
 	email: string,
 	firstname: string,
@@ -28,16 +43,8 @@ interface Member extends PartialMember, Document {
 		next_amount?: number
 		cancelled_at?: Date
 	},
-	permissions: {
-		permission: string,
-		date_added: Date,
-		date_expires?: Date
-	}[],
-	memberPermission: {
-		permission?: string,
-		date_added: Date,
-		date_expires: Date
-	},
+	permissions: Permissions,
+	memberPermission: MemberPermission,
 	otp: {
 		key?: string,
 		activated?: boolean
@@ -58,6 +65,11 @@ interface Member extends PartialMember, Document {
 	joined?: Date,
 	join_reason?: string,
 	join_how?: string,
+	tags: {
+		name: string
+	}[]
+	description?: string
+	bio?: string
 	readonly isActiveMember: boolean,
 	readonly hasActiveSubscription: boolean,
 	readonly canTakePayment: boolean,
