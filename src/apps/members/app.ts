@@ -1,15 +1,15 @@
-const escapeStringRegexp = require( 'escape-string-regexp' );
-const express = require( 'express' );
-const queryString = require('query-string');
+import escapeStringRegexp from 'escape-string-regexp';
+import express from 'express';
+import queryString from 'query-string';
 
-const auth = require( '@core/authentication' );
-const { Members, Permissions, Projects } = require( '@core/database' );
-const { wrapAsync } = require( '@core/utils' );
+import auth from '@core/authentication';
+import { Members, Permissions, Projects } from '@core/database';
+import { AppConfig, wrapAsync } from '@core/utils';
 
-const { default: OptionsService } = require( '@core/services/OptionsService' );
+import OptionsService from '@core/services/OptionsService';
 
 const app = express();
-var app_config = {};
+let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -25,7 +25,7 @@ function fuzzyMatch(s) {
 }
 
 function getAvailableTags() {
-	return Promise.resolve(OptionsService.getText('available-tags').split(',').map(s => s.trim()));
+	return Promise.resolve(OptionsService.getText('available-tags')?.split(',').map(s => s.trim()));
 }
 
 app.get( '/', wrapAsync( async ( req, res ) => {
@@ -33,7 +33,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const permissions = await Permissions.find();
 	const availableTags = await getAvailableTags();
 
-	let search = [];
+	const search = [];
 
 	if (query.permission || !query.show_inactive) {
 		const permissionSearch = {
@@ -70,7 +70,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const total = await Members.count( filter );
 
 	const limit = 25;
-	const page = query.page ? parseInt( query.page ) : 1;
+	const page = query.page ? parseInt( query.page as string ) : 1;
 
 	const pages = [ ...Array( Math.ceil( total / limit ) ) ].map( ( v, page ) => ( {
 		number: page + 1,
@@ -97,7 +97,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	} );
 } ) );
 
-module.exports = ( config ) => {
+export default function ( config: AppConfig ): express.Express {
 	app_config = config;
 	return app;
-};
+}
