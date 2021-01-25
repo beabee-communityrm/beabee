@@ -16,20 +16,10 @@ const { getSpecialUrlUrl } = require( './utils.js' );
 const actionsByName = _(actions).map(action => [action.name, action]).fromPairs().valueOf();
 
 const app = express();
-var app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
-
-app.use( ( req, res, next ) => {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	next();
-} );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const specialUrlGroups = await SpecialUrlGroups.find();
@@ -140,7 +130,4 @@ app.post( '/:_id/upload', hasModel(SpecialUrlGroups, '_id'), busboy(), wrapAsync
 	req.pipe(req.busboy);
 } ) );
 
-module.exports = config => {
-	app_config = config;
-	return app;
-};
+module.exports = app;

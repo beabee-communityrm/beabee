@@ -2,21 +2,15 @@ import	express from 'express';
 
 import auth from '@core/authentication';
 import { hasSchema } from '@core/middleware';
-import { AppConfig, hasUser, wrapAsync } from '@core/utils';
+import { hasUser, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
 import { changePasswordSchema } from './schemas.json';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/', auth.isLoggedIn, function( req, res ) {
 	res.render( 'index' );
@@ -62,7 +56,4 @@ app.post( '/', [
 	res.redirect('/profile/change-password');
 } ) ) );
 
-export default function ( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

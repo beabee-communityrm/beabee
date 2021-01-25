@@ -1,17 +1,11 @@
 import express from 'express';
 import passport from 'passport';
 
-import { isValidNextUrl, getNextParam, AppConfig, hasUser } from '@core/utils';
+import { isValidNextUrl, getNextParam, hasUser } from '@core/utils';
 
 const app = express();
-let app_config = {};
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/' , hasUser(function( req, res ) {
 	if ( ! req.user.otp.activated ) {
@@ -40,7 +34,4 @@ app.get( '/cancel', function( req, res ) {
 	res.redirect( '/logout' );
 } );
 
-export default function( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

@@ -121,6 +121,4 @@ app.post( '/:id/revoke', wrapAsync( async ( req, res ) => {
 } ) );
 
 
-export default function (config: AppConfig): express.Express {
-	return app;
-}
+export default app;

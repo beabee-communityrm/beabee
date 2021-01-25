@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import auth from '@core/authentication';
 import { hasNewModel, hasSchema } from '@core/middleware';
-import { AppConfig, hasUser, wrapAsync } from '@core/utils';
+import { hasUser, wrapAsync } from '@core/utils';
 
 import ReferralsService from '@core/services/ReferralsService';
 
@@ -16,7 +16,6 @@ interface ChooseGiftSchema {
 }
 
 const app = express();
-let app_config: AppConfig;
 
 function hasOwnReferral(req: Request, res: Response, next: NextFunction) {
 	hasNewModel(Referral, 'id')(req, res, () => {
@@ -32,11 +31,6 @@ function hasOwnReferral(req: Request, res: Response, next: NextFunction) {
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isLoggedIn );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/', wrapAsync( hasUser( async ( req, res ) => {
 	const referrals = await ReferralsService.getMemberReferrals(req.user);
@@ -65,7 +59,4 @@ app.post( '/:id', [
 	}
 } ) );
 
-export default function( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

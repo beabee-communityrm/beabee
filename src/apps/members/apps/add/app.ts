@@ -1,22 +1,16 @@
 import express from 'express';
 
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 import auth from '@core/authentication';
 
 import PaymentService from '@core/services/PaymentService';
 import MembersService from '@core/services/MembersService';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
 app.use(auth.isSuperAdmin);
-
-app.use((req, res, next) => {
-	res.locals.app = app_config;
-	next();
-});
 
 app.get('/', (req, res) => {
 	res.render('index');
@@ -38,7 +32,4 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	}
 } ) );
 
-export default function (config: AppConfig): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

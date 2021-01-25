@@ -5,7 +5,7 @@ import { Members } from '@core/database';
 import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
 import { hasSchema } from '@core/middleware';
-import { AppConfig, cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
+import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
@@ -13,16 +13,10 @@ import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
 
 
 const app = express();
-let app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isNotLoggedIn );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/' , function( req, res ) {
 	res.render( 'index' );
@@ -77,7 +71,4 @@ app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash,
 	}
 } ) );
 
-export default function( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import { Members } from '@core/database';
 import { getRepository } from 'typeorm';
@@ -11,14 +11,8 @@ import { Member } from '@models/members';
 import ExportItem from '@models/ExportItem';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( ( req, res, next ) => {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
@@ -69,7 +63,4 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	res.redirect( req.url );
 } ) );
 
-export default function (config: AppConfig): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

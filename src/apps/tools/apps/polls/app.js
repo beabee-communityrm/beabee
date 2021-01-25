@@ -9,20 +9,10 @@ const { wrapAsync } = require( '@core/utils' );
 const { createPollSchema } = require( './schemas.json' );
 
 const app = express();
-var app_config = {};
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
-
-app.use( ( req, res, next ) => {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	next();
-} );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const polls = await Polls.find();
@@ -93,7 +83,4 @@ app.post( '/:_id', hasModel(Polls, '_id'), wrapAsync( async ( req, res ) => {
 
 } ) );
 
-module.exports = config => {
-	app_config = config;
-	return app;
-};
+module.exports = app;

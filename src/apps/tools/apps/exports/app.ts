@@ -4,7 +4,7 @@ import { getRepository } from 'typeorm';
 
 import auth from  '@core/authentication' ;
 import { hasNewModel, hasSchema } from  '@core/middleware' ;
-import { AppConfig, wrapAsync } from  '@core/utils' ;
+import { wrapAsync } from  '@core/utils' ;
 import { loadParams, parseParams } from '@core/utils/params';
 
 import Export, { ExportTypeId } from '@models/Export';
@@ -68,21 +68,10 @@ async function getExportItems(exportDetails: Export, full=false) {
 }
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	next();
-} );
-
 
 app.get( '/', wrapAsync( async function( req, res ) {
 	const exports = await getRepository(Export).find();
@@ -190,7 +179,4 @@ app.post( '/:id', [
 	}
 } ) );
 
-export default function (config: AppConfig): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

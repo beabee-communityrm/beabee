@@ -9,4 +9,4 @@ app.get( '/' , function( req, res ) {
 	res.redirect( '/' );
 } );
 
-export default function(): express.Express { return app; }
+export default app;

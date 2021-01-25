@@ -4,7 +4,7 @@ import { getCustomRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { hasNewModel2, hasSchema } from '@core/middleware';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import NoticeRepository from '@core/repositories/NoticeRepository';
 
@@ -12,7 +12,6 @@ import { createNoticeSchema } from './schemas.json';
 import Notice from '@models/Notice';
 
 const app = express();
-let app_config: AppConfig;
 
 interface NoticeSchema {
 	name: string,
@@ -38,15 +37,6 @@ function schemaToNotice(data: NoticeSchema): Notice {
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
-
-app.use( ( req, res, next ) => {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	next();
-} );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const notices = await getCustomRepository(NoticeRepository).find();
@@ -84,7 +74,4 @@ app.post( '/:id', hasNewModel2(NoticeRepository, 'id'), wrapAsync( async ( req, 
 
 } ) );
 
-export default function (config: AppConfig): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

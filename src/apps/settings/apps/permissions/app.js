@@ -5,18 +5,7 @@ var { Permissions } = require( '@core/database' );
 
 var auth = require( '@core/authentication' );
 
-var app_config = {};
-
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.parent.mountpath + app.mountpath
-	} );
-	next();
-} );
 
 app.get( '/', auth.isSuperAdmin, function( req, res ) {
 	Permissions.find( function( err, permissions ) {
@@ -100,7 +89,4 @@ app.post( '/:slug/edit', auth.isSuperAdmin, function( req, res ) {
 	} );
 } );
 
-module.exports = function( config ) {
-	app_config = config;
-	return app;
-};
+module.exports = app;

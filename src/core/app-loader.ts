@@ -38,7 +38,7 @@ async function loadAppConfig(uid: string, path: string, overrides: AppConfigOver
 	};
 }
 
-async function requireApp(appPath: string): Promise<(app: FullAppConfig) => express.Express> {
+async function requireApp(appPath: string): Promise<express.Express> {
 	const app = await import(appPath);
 	return app.default || app;
 }
@@ -51,10 +51,10 @@ async function routeApps(parentApp: express.Express, appConfigs: FullAppConfig[]
 			path: parentApp.mountpath + (parentApp.mountpath === '/' ? '' : '/') + appConfig.path
 		} );
 
-		const app = (await requireApp(appConfig.appPath))(appConfig);
+		const app = await requireApp(appConfig.appPath);
 		app.locals.basedir = __dirname + '/..';
 		parentApp.use('/' + appConfig.path, (req, res, next) => {
-			//res.locals.app = appConfig;
+			res.locals.app = appConfig;
 			// Bit of a hack to pass all params everywhere
 			req.allParams = {...req.allParams, ...req.params};
 			next();

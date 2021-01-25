@@ -4,21 +4,15 @@ import base32 from 'thirty-two';
 import querystring from 'querystring';
 
 import auth from '@core/authentication';
-import { AppConfig, hasUser, wrapAsync } from '@core/utils';
+import { hasUser, wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/', auth.isLoggedIn, function( req, res ) {
 	res.render( 'index', { user: req.user } );
@@ -94,7 +88,4 @@ app.post( '/disable', auth.isLoggedIn, wrapAsync( hasUser(async function( req, r
 	}
 } ) ) );
 
-export default function( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;
