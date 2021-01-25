@@ -3,7 +3,7 @@ import express from 'express';
 import auth from '@core/authentication';
 import { AppConfig, wrapAsync } from '@core/utils';
 
-import { Member } from '@models/members';
+import { Member, Permission } from '@models/members';
 import { Permissions } from '@core/database';
 import moment from 'moment';
 
@@ -42,7 +42,7 @@ app.post( '/', wrapAsync( async (req, res ) => {
 		return;
 	}
 
-	const new_permission: Member['permissions'][number] = {
+	const new_permission: Permission = {
 		permission: permission._id,
 		date_added: (start_date && start_time ? moment( start_date + 'T' + start_time ) : moment()).toDate()
 	};
