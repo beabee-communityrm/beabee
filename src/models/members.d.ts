@@ -65,6 +65,11 @@ interface Member extends PartialMember, Document {
 	joined?: Date,
 	join_reason?: string,
 	join_how?: string,
+	tags: {
+		name: string
+	}[]
+	description?: string
+	bio?: string
 	readonly isActiveMember: boolean,
 	readonly hasActiveSubscription: boolean,
 	readonly canTakePayment: boolean,

@@ -30,8 +30,8 @@ export default class OptionsService {
 		return OptionsService.optionCache[key];
 	}
 
-	static getText(key: string): string|undefined {
-		return OptionsService.get(key)?.value;
+	static getText(key: string): string {
+		return OptionsService.get(key)?.value || '';
 	}
 
 	static getInt(key: string): number|undefined {

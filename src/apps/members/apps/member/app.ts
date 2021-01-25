@@ -1,26 +1,26 @@
-const express = require( 'express' );
-const _ = require( 'lodash' );
-const moment = require( 'moment' );
+import express from 'express';
+import _ from 'lodash';
+import moment from 'moment';
 
-const config = require( '@config' );
+import config from '@config';
 
-const auth = require( '@core/authentication' );
-const {
-	GiftFlows, Members, PollAnswers, Referrals
-} = require( '@core/database' );
-const mailchimp = require( '@core/mailchimp' );
-const mandrill = require( '@core/mandrill' );
-const { hasModel } = require( '@core/middleware' );
-const { wrapAsync } = require( '@core/utils' );
+import auth from '@core/authentication';
+import { Members, PollAnswers } from '@core/database';
+import mailchimp from '@core/mailchimp';
+import mandrill from '@core/mandrill';
+import { hasModel } from '@core/middleware';
+import { AppConfig, wrapAsync } from '@core/utils';
 
-const { default: OptionsService } = require( '@core/services/OptionsService' );
-const { default: PaymentService } = require( '@core/services/PaymentService' );
+import OptionsService from '@core/services/OptionsService';
+import PaymentService from '@core/services/PaymentService';
+import { Member } from '@models/members';
+import ReferralsService from '@core/services/ReferralsService';
 
 const app = express();
-var app_config = {};
+let app_config: AppConfig;
 
-function getAvailableTags() {
-	return Promise.resolve(OptionsService.getText('available-tags').split(',').map(s => s.trim()));
+async function getAvailableTags(): Promise<string[]> {
+	return OptionsService.getText('available-tags').split(',').map(s => s.trim());
 }
 
 app.set( 'views', __dirname + '/views' );
@@ -36,12 +36,12 @@ app.use( auth.isAdmin );
 app.use((req, res, next) => {
 	req.params = req.allParams;
 	hasModel(Members, 'uuid')(req, res, () => {
-		req.model.populate('permissions.permission', next);
+		(req.model as Member).populate('permissions.permission', next);
 	});
 });
 
 app.get( '/', wrapAsync( async ( req, res ) => {
-	const member = req.model;
+	const member = req.model as Member;
 	const payments = await PaymentService.getPayments(member);
 
 	const successfulPayments = payments
@@ -61,7 +61,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 app.post( '/', wrapAsync( async ( req, res ) => {
-	const member = req.model;
+	const member = req.model as Member;
 	
 	if (!req.body.action.startsWith('save-') && !auth.canSuperAdmin(req)) {
 		req.flash('error', '403');
@@ -75,10 +75,10 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		const newTagNames = _.difference(req.body.tags, exisingTagNames);
 		const deletedTagNames = _.difference(exisingTagNames, req.body.tags);
 
-		for (let tagName of deletedTagNames) {
-			member.tags.find(tag => tag.name === tagName).remove();
+		for (const tagName of deletedTagNames) {
+			(member.tags as any).find((tag: any) => tag.name === tagName).remove();
 		}
-		for (let tagName of newTagNames) {
+		for (const tagName of newTagNames) {
 			member.tags.push({name: tagName});
 		}
 
@@ -122,11 +122,11 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	case 'permanently-delete':
 		// TODO: anonymise other data in poll answers
 		await PollAnswers.updateMany( { member }, { $set: { member: null } } );
-		await GiftFlows.updateMany( { member }, { $set: { member: null } } );
 		// TODO: await RestartFlows.deleteMany( { member } );
-		await Referrals.updateMany( { referrer: member }, { $set: { referrer: null } } );
+		
 		await Members.deleteOne( { _id: member._id } );
 
+		await ReferralsService.permanentlyDeleteMember(member);
 		await PaymentService.permanentlyDeleteMember(member);
 
 		await mailchimp.mainList.permanentlyDeleteMember(member);
@@ -159,12 +159,12 @@ adminApp.get( '/2fa', ( req, res ) => {
 } );
 
 adminApp.post( '/2fa', wrapAsync( async ( req, res ) => {
-	await req.model.update({$set: {'opt.key': ''}});
+	await (req.model as Member).update({$set: {'opt.key': ''}});
 	req.flash( 'success', '2fa-disabled' );
 	res.redirect( req.baseUrl );
 } ) );
 
-module.exports = ( config ) => {
+export default ( config: AppConfig ): express.Express => {
 	app_config = config;
 	return app;
 };

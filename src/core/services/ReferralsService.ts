@@ -111,4 +111,8 @@ export default class ReferralsService {
 
 		return false;
 	}
+
+	static async permanentlyDeleteMember(member: Member): Promise<void> {
+		await getRepository(Referral).update({referrerId: member.id}, {referrerId: undefined});
+	}
 }

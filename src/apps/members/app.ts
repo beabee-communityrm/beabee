@@ -20,7 +20,7 @@ app.use( ( req, res, next ) => {
 
 app.use( auth.isAdmin );
 
-function fuzzyMatch(s) {
+function fuzzyMatch(s: string) {
 	return new RegExp( '.*' + escapeStringRegexp( s.trim() ) + '.*', 'i' );
 }
 
@@ -53,13 +53,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	}
 
 	if ( query.firstname ) {
-		search.push( { firstname:  fuzzyMatch( query.firstname ) } );
+		search.push( { firstname:  fuzzyMatch( query.firstname as string ) } );
 	}
 	if ( query.lastname ) {
-		search.push( { lastname: fuzzyMatch( query.lastname ) } );
+		search.push( { lastname: fuzzyMatch( query.lastname as string ) } );
 	}
 	if ( query.email ) {
-		search.push( { email: fuzzyMatch( query.email ) } );
+		search.push( { email: fuzzyMatch( query.email as string ) } );
 	}
 	if ( query.tag ) {
 		search.push( { tags: { $elemMatch: { name: query.tag } } } );
