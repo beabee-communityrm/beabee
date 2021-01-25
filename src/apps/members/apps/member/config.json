@@ -1,5 +1,5 @@
 {
-  "title": "Member profile",
+  "title": "Member",
   "path": ":uuid",
   "permissions": [
     "admin", "superadmin"
