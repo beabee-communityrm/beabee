@@ -5,16 +5,16 @@ block prepend title
 
 mixin copyFields
 	.form-group
-		label(for='intro').control-label.col-md-3 Intro text
-		.col-md-9
+		label(for='intro').control-label.col-md-2 Intro text
+		.col-md-10
 			textarea(name='templateSchema[intro]' required)#intro.form-control= poll.templateSchema.intro
 	.form-group
-		label(for='thanksTitle').control-label.col-md-3 Thank you title
-		.col-md-9
+		label(for='thanksTitle').control-label.col-md-2 Thank you title
+		.col-md-10
 			input(type='text' name='templateSchema[thanksTitle]' value=poll.templateSchema.thanksTitle required)#thanksTitle.form-control
 	.form-group
-		label(for='thanksText').control-label.col-md-3 Thank you text
-		.col-md-9
+		label(for='thanksText').control-label.col-md-2 Thank you text
+		.col-md-10
 			textarea(name='templateSchema[thanksText]' required)#thanksText.form-control= poll.templateSchema.thanksText
 
 mixin candidateSchema(candidateNo, candidate)
@@ -31,22 +31,24 @@ mixin candidateSchema(candidateNo, candidate)
 			button(type='button').btn.btn-sm.btn-danger.js-repeater-remove-item Remove
 
 block append css
-	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
-	style.
-		.formcomponents { position: sticky; top: 1rem }
+	if poll.template === 'builder'
+		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+		style.
+			.formcomponents { position: sticky; top: 1rem }
+			#builder { margin-bottom: 2rem; }
 
 block prepend js
-	if poll.formTemplate === 'ballot'
+	if poll.template === 'ballot'
 		script(type='text/template').js-repeater-template
 			+candidateSchema(0, {})
 
 block append js
-	if poll.formTemplate === 'builder'
+	if poll.template === 'builder'
 		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
 		script.
 			Formio.builder(
 				document.getElementById('builder'),
-				!{JSON.stringify(poll.templateSchema)},
+				!{JSON.stringify(poll.templateSchema.formSchema || {})},
 				{template: 'bootstrap3'}
 			).then(function (builder) {
 				builder.on('change', function() {
@@ -101,24 +103,23 @@ block contents
 
 			h4 Edit form
 
-			if poll.formTemplate === 'builder'
+			if poll.template === 'builder'
 				#builder
 
-				form(method='POST')
+				form(method='POST').form-horizontal
 					+csrf
 
 					h5 Copy
 					+copyFields
 
-					input(type='hidden' name='formSchema' value=JSON.stringify(poll.templateSchema.formSchema)).js-poll-form-schema
+					input(type='hidden' name='formSchema' value=JSON.stringify(poll.templateSchema.formSchema || {})).js-poll-form-schema
 					button(name='action' value='edit-form').btn.btn-primary Save
 
-			else if poll.formTemplate === 'ballot'
+			else if poll.template === 'ballot'
 				form(method='POST').form-horizontal
 					+csrf
 
 					h5 Copy
-
 					+copyFields
 
 					h5 Settings

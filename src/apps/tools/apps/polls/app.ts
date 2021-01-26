@@ -14,7 +14,7 @@ import { Members } from '@core/database';
 interface CreatePollSchema {
 	question: string
 	slug: string
-	closed: boolean
+	closed?: boolean
 	mcMergeField?: string
 	pollMergeField?: string
 	allowUpdate?: boolean
@@ -31,13 +31,11 @@ function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'> {
 	const poll = new Poll();
 	poll.question = data.question;
 	poll.slug = data.slug;
-	poll.closed = data.closed;
+	poll.closed = !!data.closed;
 	poll.mcMergeField = data.mcMergeField;
 	poll.pollMergeField = data.pollMergeField;
-
-	if (data.allowUpdate !== undefined) {
-		poll.allowUpdate = !!data.allowUpdate;
-	}
+	poll.template = data.template;
+	poll.allowUpdate = !!data.allowUpdate;
 
 	if (startsDate && startsTime) {
 		poll.starts = moment.utc(`${startsDate}T${startsTime}`).toDate();

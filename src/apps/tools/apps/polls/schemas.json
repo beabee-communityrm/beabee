@@ -2,13 +2,17 @@
 	"createPollSchema": {
 		"body": {
 			"type": "object",
-			"required": ["question", "slug", "closed"],
+			"required": ["question", "slug", "closed", "template"],
 			"properties": {
 				"question": {
 					"type": "string"
 				},
 				"slug": {
 					"type": "string"
+				},
+				"template": {
+					"type": "string",
+					"enum": ["custom", "builder", "ballot"]
 				},
 				"closed": {
 					"type": "boolean"
@@ -37,10 +41,6 @@
 				"expiresTime": {
 					"type": "string",
 					"format": "time2"
-				},
-				"formTemplate": {
-					"type": "string",
-					"enum": ["custom", "builder", "ballot"]
 				}
 			}
 		}

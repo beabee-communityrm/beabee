@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import Poll from './Poll';
 
+@Entity()
 export default class PollResponse {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
