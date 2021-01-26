@@ -5,27 +5,28 @@
 			"required": ["question", "slug", "closed"],
 			"properties": {
 				"question": {
-					"type": "string",
-					"minLength": 1
-				},
-				"mergeField": {
 					"type": "string"
 				},
 				"slug": {
-					"type": "string",
-					"minLength": 1
-				},
-				"allowUpdate": {
-					"type": "boolean"
+					"type": "string"
 				},
 				"closed": {
 					"type": "boolean"
 				},
-				"startDate": {
+				"mcMergeField": {
+					"type": "string"
+				},
+				"pollMergeField": {
+					"type": "string"
+				},
+				"allowUpdate": {
+					"type": "boolean"
+				},
+				"startsDate": {
 					"type": "string",
 					"format": "date"
 				},
-				"startTime": {
+				"startsTime": {
 					"type": "string",
 					"format": "time2"
 				},

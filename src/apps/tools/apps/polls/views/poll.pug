@@ -3,24 +3,37 @@ extends /views/base.pug
 block prepend title
 	- title = 'Poll'
 
-block append css
-	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
-	style.
-		.formcomponents { position: sticky; top: 1rem }
+mixin copyFields
+	.form-group
+		label(for='intro').control-label.col-md-3 Intro text
+		.col-md-9
+			textarea(name='templateSchema[intro]' required)#intro.form-control= poll.templateSchema.intro
+	.form-group
+		label(for='thanksTitle').control-label.col-md-3 Thank you title
+		.col-md-9
+			input(type='text' name='templateSchema[thanksTitle]' value=poll.templateSchema.thanksTitle required)#thanksTitle.form-control
+	.form-group
+		label(for='thanksText').control-label.col-md-3 Thank you text
+		.col-md-9
+			textarea(name='templateSchema[thanksText]' required)#thanksText.form-control= poll.templateSchema.thanksText
 
 mixin candidateSchema(candidateNo, candidate)
 	li.js-repeater-item
 		.form-group
 			label.control-label.col-md-2 Name
 			.col-md-10
-				input(type='text' name=`formSchema[candidates][${candidateNo}][name]` value=candidate.name required).form-control
+				input(type='text' name=`templateSchema[candidates][${candidateNo}][name]` value=candidate.name required).form-control
 		.form-group
 			label.control-label.col-md-2 Bio
 			.col-md-10
-				textarea(name=`formSchema[candidates][${candidateNo}][bio]` required).form-control= candidate.bio
+				textarea(name=`templateSchema[candidates][${candidateNo}][bio]` required).form-control= candidate.bio
 		p.text-right
 			button(type='button').btn.btn-sm.btn-danger.js-repeater-remove-item Remove
 
+block append css
+	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+	style.
+		.formcomponents { position: sticky; top: 1rem }
 
 block prepend js
 	if poll.formTemplate === 'ballot'
@@ -33,7 +46,7 @@ block append js
 		script.
 			Formio.builder(
 				document.getElementById('builder'),
-				!{JSON.stringify(poll.formSchema || {})},
+				!{JSON.stringify(poll.templateSchema)},
 				{template: 'bootstrap3'}
 			).then(function (builder) {
 				builder.on('change', function() {
@@ -70,10 +83,10 @@ block contents
 						a(href='/polls/' + poll.slug + '?preview=1').btn.btn-xs.btn-default Preview
 				dt Responses
 				dd
-					= pollAnswersCount
+					= responsesCount
 					|
 					|
-					a(href='/tools/polls/' + poll._id + '/responses').btn.btn-xs.btn-default See responses
+					a(href='/tools/polls/' + poll.slug + '/responses').btn.btn-xs.btn-default See responses
 
 			hr
 
@@ -88,40 +101,46 @@ block contents
 
 			h4 Edit form
 
-			- formSchema = poll.formSchema || {}
-
 			if poll.formTemplate === 'builder'
 				#builder
 
 				form(method='POST')
 					+csrf
-					input(type='hidden' name='formSchema' value=JSON.stringify(formSchema)).js-poll-form-schema
+
+					h5 Copy
+					+copyFields
+
+					input(type='hidden' name='formSchema' value=JSON.stringify(poll.templateSchema.formSchema)).js-poll-form-schema
 					button(name='action' value='edit-form').btn.btn-primary Save
 
 			else if poll.formTemplate === 'ballot'
 				form(method='POST').form-horizontal
 					+csrf
 
+					h5 Copy
+
+					+copyFields
+
 					h5 Settings
 
 					.form-group
 						label.control-label.col-md-2 Key ballot info
 						.col-md-10
-							textarea(name='formSchema[ballotInfo]').form-control= formSchema.ballotInfo
+							textarea(name='templateSchema[ballotInfo]').form-control= poll.templateSchema.ballotInfo
 					.form-group
 						label.control-label.col-md-2 Min votes
 						.col-md-2
-							input(type='number' name='formSchema[minVotes]' value=formSchema.minVotes).form-control
+							input(type='number' name='templateSchema[minVotes]' value=poll.templateSchema.minVotes).form-control
 					.form-group
 						label.control-label.col-md-2 Max votes
 						.col-md-2
-							input(type='number' name='formSchema[maxVotes]' value=formSchema.maxVotes).form-control
+							input(type='number' name='templateSchema[maxVotes]' value=poll.templateSchema.maxVotes).form-control
 
 					h5 Candidates
 
-					ul(data-name='formSchema[candidates]').repeater.js-repeater
-						if formSchema.candidates
-							each candidate, candidateNo in formSchema.candidates
+					ul(data-name='templateSchema[candidates]').repeater.js-repeater
+						if poll.templateSchema.candidates
+							each candidate, candidateNo in poll.templateSchema.candidates
 								+candidateSchema(candidateNo, candidate)
 					p: button(type='button').btn.btn-default.js-repeater-add-item Add candidate
 
