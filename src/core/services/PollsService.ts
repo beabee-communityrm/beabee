@@ -1,4 +1,4 @@
-import { getRepository, LessThan } from 'typeorm';
+import { getRepository, IsNull, LessThan } from 'typeorm';
 
 import mailchimp from '@core/mailchimp';
 
@@ -15,7 +15,7 @@ export default class PollsService {
 
 		const polls = await getRepository(Poll).find({
 			where: [
-				{starts: null},
+				{starts: IsNull()},
 				{starts: LessThan(new Date())}
 			],
 			order: {
@@ -23,12 +23,19 @@ export default class PollsService {
 			}
 		});
 
-		const responses = await getRepository(PollResponse).find( { memberId: member.id } );
+		const responses = await getRepository(PollResponse).find( {
+			loadRelationIds: true,
+			where: {
+				memberId: member.id
+			}
+		});
+
+		console.log(responses);
 
 		const pollsWithResponses = polls.map(poll => {
 			const pwr = new PollWithResponse();
 			Object.assign(pwr, poll);
-			pwr.response = responses.find(r => r.poll.slug === poll.slug);
+			pwr.response = responses.find(r => (r.poll as unknown as string) === poll.slug);
 			return pwr;
 		});
 

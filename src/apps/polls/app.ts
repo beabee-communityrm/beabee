@@ -80,11 +80,11 @@ app.get( '/:slug', [
 		}
 		res.redirect( `/polls/${poll.slug}#vote` );
 	} else {
-		const pollAnswer = await PollsService.getResponse( poll, req.user );
+		const response = await PollsService.getResponse( poll, req.user );
 
 		res.render( getView( poll ), {
 			poll,
-			answers: pollAnswer ? pollAnswer.answers : {},
+			answers: response ? response.answers : {},
 			preview: req.query.preview && auth.canAdmin( req )
 		} );
 	}

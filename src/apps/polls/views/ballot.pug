@@ -17,18 +17,18 @@ block contents
 			+page_header(poll.question)
 
 	.row.js-poll-ballot(
-		data-min-votes=poll.formSchema.minVotes
-		data-max-votes=poll.formSchema.maxVotes
+		data-min-votes=poll.templateSchema.minVotes
+		data-max-votes=poll.templateSchema.maxVotes
 	)
 		.col-md-offset-2.col-md-8
 			if answers.submit
 				img(src='/static/imgs/polls/hand3.png').poll-hand3
 
-				h4= poll.thanksTitle
-				!= dot.template(poll.thanksText)({answers})
+				h4= poll.templateSchema.thanksTitle
+				!= dot.template(poll.templateSchema.thanksText)({answers})
 				hr
 
-			!= poll.intro
+			!= poll.templateSchema.intro
 
 			hr#vote
 
@@ -41,26 +41,26 @@ block contents
 
 						include /views/partials/flash.pug
 
-						!= poll.formSchema.ballotInfo
+						!= poll.templateSchema.ballotInfo
 
 						.alert.alert-warning
 							| Candidates are listed randomly
-							if poll.formSchema.minVotes
-								| , you must select at least #{poll.formSchema.minVotes}
-							if poll.formSchema.maxVotes
-								if poll.formSchema.minVotes
+							if poll.templateSchema.minVotes
+								| , you must select at least #{poll.templateSchema.minVotes}
+							if poll.templateSchema.maxVotes
+								if poll.templateSchema.minVotes
 									|
 									| and
 								else
 									| , you must select
 								|
-								| at most #{poll.formSchema.maxVotes}
+								| at most #{poll.templateSchema.maxVotes}
 							| .
 							|
 							b Your vote will not be registered until you click Submit.
 
 						ul.poll-ballot-candidates
-							each candidate in poll.formSchema.candidates
+							each candidate in poll.templateSchema.candidates
 								li(style="order: " + Math.floor(Math.random() * 100))
 									label.poll-ballot-candidate
 										.poll-ballot-candidate-bio
