@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm';
 
 export type PollTemplate = 'custom'|'builder'|'ballot';
@@ -36,4 +37,10 @@ export default class Poll {
 
 	@Column()
 	allowUpdate!: boolean
+
+	get active(): boolean {
+		const now = moment.utc();
+		return !this.closed && (!this.starts || now.isAfter(this.starts)) &&
+			(!this.expires || now.isBefore(this.expires));
+	}
 }
