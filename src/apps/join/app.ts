@@ -4,7 +4,7 @@ import auth from '@core/authentication' ;
 import { Members } from '@core/database' ;
 import mandrill from '@core/mandrill' ;
 import { hasSchema } from '@core/middleware' ;
-import { AppConfig, ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
+import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
@@ -30,14 +30,7 @@ interface JoinSchema {
 
 const app = express();
 
-let app_config = {};
-
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/' , function( req, res ) {
 	res.render( 'index', { user: req.user } );
@@ -202,7 +195,4 @@ app.get('/invalid-direct-debit', (req, res) => {
 	res.render('invalid-direct-debit');
 });
 
-export default function(config: AppConfig): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

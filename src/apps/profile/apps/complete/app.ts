@@ -2,14 +2,13 @@ import express from 'express';
 
 import auth from '@core/authentication';
 import { hasSchema } from '@core/middleware';
-import { AppConfig, hasUser, wrapAsync } from '@core/utils';
+import { hasUser, wrapAsync } from '@core/utils';
 
 import { completeSchema } from './schemas.json';
 import Referral from '@models/Referral';
 import { getRepository } from 'typeorm';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
@@ -17,7 +16,6 @@ app.use( function( req, res, next ) {
 	if ( req.user?.setupComplete ) {
 		res.redirect( '/profile' );
 	} else {
-		res.locals.app = app_config;
 		next();
 	}
 } );
@@ -75,7 +73,4 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 	}
 } ) ) );
 
-export default function( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

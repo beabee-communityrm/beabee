@@ -5,7 +5,7 @@ import config from '@config';
 
 import { Members } from '@core/database';
 import { hasNewModel, hasSchema } from '@core/middleware';
-import { AppConfig, loginAndRedirect, wrapAsync } from '@core/utils';
+import { loginAndRedirect, wrapAsync } from '@core/utils';
 
 import GiftService from '@core/services/GiftService';
 import OptionsService from '@core/services/OptionsService';
@@ -15,7 +15,6 @@ import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 import { createGiftSchema, updateGiftAddressSchema } from './schema.json';
 
 const app = express();
-let app_config: AppConfig;
 
 interface CreateGiftSchema {
 	firstname: string
@@ -68,11 +67,6 @@ function schemaToAddresses(data: UpdateGiftAddressSchema): {giftAddress: Address
 }
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/', ( req, res ) => {
 	res.render( 'index', {stripePublicKey: config.stripe.public_key} );
@@ -156,7 +150,4 @@ app.get( '/failed/:id', hasNewModel(GiftFlow, 'id'), ( req, res ) => {
 	}
 } );
 
-export default function ( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

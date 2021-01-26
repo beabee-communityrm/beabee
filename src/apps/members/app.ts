@@ -4,19 +4,13 @@ import queryString from 'query-string';
 
 import auth from '@core/authentication';
 import { Members, Permissions, Projects } from '@core/database';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( ( req, res, next ) => {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.use( auth.isAdmin );
 
@@ -97,7 +91,4 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	} );
 } ) );
 
-export default function ( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

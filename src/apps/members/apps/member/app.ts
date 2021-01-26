@@ -9,7 +9,7 @@ import { Members, PollAnswers } from '@core/database';
 import mailchimp from '@core/mailchimp';
 import mandrill from '@core/mandrill';
 import { hasModel } from '@core/middleware';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 import PaymentService from '@core/services/PaymentService';
@@ -17,18 +17,12 @@ import { Member } from '@models/members';
 import ReferralsService from '@core/services/ReferralsService';
 
 const app = express();
-let app_config: AppConfig;
 
 async function getAvailableTags(): Promise<string[]> {
 	return OptionsService.getText('available-tags').split(',').map(s => s.trim());
 }
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( ( req, res, next ) => {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.use( auth.isAdmin );
 
@@ -164,7 +158,4 @@ adminApp.post( '/2fa', wrapAsync( async ( req, res ) => {
 	res.redirect( req.baseUrl );
 } ) );
 
-export default ( config: AppConfig ): express.Express => {
-	app_config = config;
-	return app;
-};
+export default app;

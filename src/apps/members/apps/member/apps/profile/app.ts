@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { hasSchema } from '@core/middleware';
-import { AppConfig, cleanEmailAddress, wrapAsync } from '@core/utils';
+import { cleanEmailAddress, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
@@ -53,6 +53,4 @@ app.post( '/', [
 	res.redirect(req.originalUrl);
 } ) );
 
-export default function (config: AppConfig): express.Express {
-	return app;
-}
+export default app;

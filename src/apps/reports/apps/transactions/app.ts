@@ -2,20 +2,14 @@ import	express from 'express';
 import moment from 'moment';
 
 import auth from '@core/authentication';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 import { Between, getRepository } from 'typeorm';
 import Payment from '@models/Payment';
 import { Members } from '@core/database';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, res ) {
 	const start = moment.utc().startOf('month');
@@ -62,7 +56,4 @@ app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, re
 	} );
 } ) );
 
-export default function( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

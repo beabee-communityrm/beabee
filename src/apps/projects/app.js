@@ -8,7 +8,6 @@ const { hasModel } = require( '@core/middleware' );
 const { wrapAsync } = require( '@core/utils' );
 
 const app = express();
-var app_config = {};
 
 function schemaToProject( data ) {
 	const { title, description, status } = data;
@@ -26,15 +25,6 @@ function schemaToEngagement( data ) {
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	next();
-} );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const projects = await Projects.find();
@@ -106,7 +96,4 @@ app.post( '/:_id', hasModel(Projects, '_id'), wrapAsync( async ( req, res ) => {
 	}
 } ) );
 
-module.exports = function( config ) {
-	app_config = config;
-	return app;
-};
+module.exports = app;

@@ -3,7 +3,7 @@ import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { hasNewModel, hasSchema } from '@core/middleware';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import PageSettingsService from '@core/services/PageSettingsService';
 
@@ -20,20 +20,10 @@ interface CreatePageSchema {
 }
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
-
-app.use( ( req, res, next ) => {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	next();
-} );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const pages = await getRepository(PageSettings).find();
@@ -79,7 +69,4 @@ app.post( '/:id', hasNewModel(PageSettings, 'id'), wrapAsync( async ( req, res )
 	}
 } ) );
 
-export default function (config: AppConfig): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

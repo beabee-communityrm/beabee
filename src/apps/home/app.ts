@@ -15,4 +15,4 @@ app.get( '/', function ( req, res ) {
 	}
 } );
 
-export default function(): express.Express { return app; }
+export default app;

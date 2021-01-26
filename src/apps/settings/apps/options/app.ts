@@ -1,19 +1,13 @@
 import express from 'express';
 
 import auth from '@core/authentication';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.use(auth.isSuperAdmin);
 
@@ -62,7 +56,4 @@ app.post( '/:key/reset', wrapAsync(async function( req, res ) {
 	res.redirect('/settings/options');
 } ) );
 
-export default function( config: AppConfig ): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

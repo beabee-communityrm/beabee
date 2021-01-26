@@ -7,13 +7,12 @@ import { getRepository } from 'typeorm';
 import auth from '@core/authentication';
 import mandrill from '@core/mandrill';
 import { hasNewModel } from '@core/middleware';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import Email from '@models/Email';
 import EmailMailing, { EmailRecipient } from '@models/EmailMailing';
 
 const app = express();
-let app_config: AppConfig;
 
 interface EmailSchema {
 	name: string
@@ -37,15 +36,6 @@ function schemaToEmail(data: EmailSchema): Email {
 app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	res.locals.breadcrumb.push( {
-		name: app_config.title,
-		url: app.mountpath
-	} );
-	next();
-} );
 
 app.get('/', wrapAsync(async (req, res) => {
 	const emails = await getRepository(Email).find();
@@ -167,7 +157,4 @@ app.post('/:id/mailings/:mailingId', hasNewModel(Email, 'id'), wrapAsync(async (
 	res.redirect(req.originalUrl);
 }));
 
-export default (config: AppConfig): express.Express => {
-	app_config = config;
-	return app;
-};
+export default app;

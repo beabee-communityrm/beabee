@@ -2,17 +2,11 @@ import express from 'express';
 import passport from 'passport';
 
 import { Members } from '@core/database';
-import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync, AppConfig } from '@core/utils';
+import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
 
 const app = express();
-let app_config: AppConfig;
 
 app.set( 'views', __dirname + '/views' );
-
-app.use( function( req, res, next ) {
-	res.locals.app = app_config;
-	next();
-} );
 
 app.get( '/' , function( req, res ) {
 	const nextParam = req.query.next as string;
@@ -51,7 +45,4 @@ app.post( '/', (req, res) => {
 	} );
 } );
 
-export default function (config: AppConfig): express.Express {
-	app_config = config;
-	return app;
-}
+export default app;

@@ -28,6 +28,4 @@ app.get( '/sso', auth.isLoggedIn, async ( req, res ) => {
 	}
 } );
 
-module.exports = function () {
-	return app;
-};
+module.exports = app;

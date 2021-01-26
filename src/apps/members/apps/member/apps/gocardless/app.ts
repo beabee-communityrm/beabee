@@ -1,7 +1,7 @@
 import express from 'express';
 
 import auth from '@core/authentication';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import PaymentService from '@core/services/PaymentService';
 
@@ -52,6 +52,4 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	res.redirect( req.originalUrl );
 } ) );
 
-export default function (config: AppConfig): express.Express {
-	return app;
-}
+export default app;
