@@ -28,6 +28,7 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 	for (const field of ['firstname', 'lastname', 'email'] as const) {
 		if (query[field]) {
 			search.rules.push({
+				id: field,
 				field,
 				type: 'string',
 				operator: 'contains',
@@ -37,6 +38,7 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 	}
 	if ( query.tag ) {
 		search.rules.push({
+			id: 'hasTag',
 			field: 'hasTag',
 			type: 'string',
 			operator: 'equal',

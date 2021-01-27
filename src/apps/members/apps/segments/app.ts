@@ -1,5 +1,4 @@
 import { hasNewModel } from '@core/middleware';
-import SegmentService from '@core/services/SegmentService';
 import { wrapAsync } from '@core/utils';
 import Segment from '@models/Segment';
 import express from 'express';
@@ -29,7 +28,7 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 		break;
 	case 'delete':
 		await getRepository(Segment).delete(segment.id);
-		req.flash('succes', 'segment-deleted');
+		req.flash('success', 'segment-deleted');
 		res.redirect('/members/segments');
 		break;
 	}

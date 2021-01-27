@@ -44,6 +44,7 @@ type RuleValue = string|number|boolean;
 type RichRuleValue = RuleValue|Date;
 
 export interface Rule {
+	id: keyof typeof fields
 	field: keyof typeof fields
 	type: 'string'|'integer'|'boolean'|'double'
 	operator: keyof typeof operators

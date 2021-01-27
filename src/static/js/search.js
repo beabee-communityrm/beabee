@@ -11,6 +11,18 @@ $('.js-advanced-form').on('submit', function (evt) {
 
 $('#builder').queryBuilder({
 	filters: [{
+		id: 'firstname',
+		label: 'First name',
+		type: 'string'
+	},{
+		id: 'lastname',
+		label: 'Last name',
+		type: 'string'
+	},{
+		id: 'email',
+		label: 'Email address',
+		type: 'string'
+	}, {
 		id: 'contributionMonthlyAmount',
 		label: 'Contribution amount (monthly)',
 		type: 'double',
