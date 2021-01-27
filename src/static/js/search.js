@@ -31,18 +31,16 @@ $('#builder').queryBuilder({
 		input: 'radio',
 		values: {1: 'Yes', 0: 'No'}
 	}, {
-		id: 'hasActiveSubscription',
-		label: 'Has active subscription',
-		type: 'boolean',
-		input: 'radio',
-		values: {1: 'Yes', 0: 'No'}
+		id: 'activeSubscription',
+		label: 'Active subscription',
+		type: 'string'
 	}, {
 		id: 'dateAdded',
-		label: 'Membership starts',
+		label: 'Membership start date',
 		type: 'datetime'
 	}, {
 		id: 'dateExpires',
-		label: 'Membership expires',
+		label: 'Membership expiry date',
 		type: 'datetime'
 	}, {
 		id: 'hasTag',
