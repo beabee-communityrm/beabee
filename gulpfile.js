@@ -52,6 +52,7 @@ function watch() {
 	});
 
 	gulp.watch(paths.css.src, buildCSS);
+	gulp.watch(paths.staticFiles.src, copyStaticFiles);
 	gulp.watch(paths.appFiles.src, copyAppFiles);
 }
 
