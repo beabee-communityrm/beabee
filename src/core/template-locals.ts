@@ -19,7 +19,6 @@ function hasPermission(perms1: string[], perms2: string[]) {
 
 export default (appConfigs: FullAppConfig[]) => (req: Request, res: Response, next: NextFunction): void => {
 	// Process which apps should be shown in menu
-	res.locals.currentUrl = req.originalUrl;
 	res.locals.menu = {
 		main: []
 	};
