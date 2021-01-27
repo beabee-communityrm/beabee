@@ -22,20 +22,14 @@ export interface ReferralGiftForm {
 }
 
 export interface AppConfig {
+	uid: string
 	title: string
 	path: string
-	permissions?: string[]
-	menu?: 'none'|'main'
-	priority?: number
-}
-
-export interface FullAppConfig extends AppConfig {
-	uid: string
 	disabled: boolean
 	priority: number
 	appPath: string
 	hidden?: boolean
-	subApps: FullAppConfig[]
+	subApps: AppConfig[]
 	menu: 'none'|'main'
 	permissions: string[]
 }
