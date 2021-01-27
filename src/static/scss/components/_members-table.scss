@@ -42,6 +42,13 @@ label.members-table-action {
 	margin-bottom: 0;
 }
 
-.members-table-row-description {
+.members-table-row-main {
 	flex-grow: 1;
+}
+
+.members-table-row-info {
+	display: flex;
+	& > :first-child {
+		flex: 0 1 300px;
+	}
 }
