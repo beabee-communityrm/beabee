@@ -27,11 +27,11 @@ block contents
 				if members.length > 0
 					small= pagination.start + ' to ' + pagination.end  + ' of ' + total
 
-			if hasFilter
-				form(method='POST')
-					+csrf
-					p.text-right
-						button(name='action' value='save-segment').btn.btn-primary Save segment
+				if hasFilter
+					form(method='POST').pull-right
+						+csrf
+						button(name='action' value='save-segment').btn.btn-sm.btn-info Save segment
+
 			if members.length > 0
 				include partials/table.pug
 				include partials/pagination.pug
