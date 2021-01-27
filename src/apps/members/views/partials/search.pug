@@ -1,9 +1,9 @@
 ul.nav.nav-pills.member-search-options
-	li.active: a(data-toggle='pill' href='#basic') Basic
-	li: a(data-toggle='pill' href='#advanced') Advanced
+	li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='pill' href='#basic') Basic
+	li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='pill' href='#advanced') Advanced
 
 .tab-content
-	.tab-pane.active#basic
+	.tab-pane#basic(class=searchType === 'basic' ? 'active' : '')
 		form( method='get' ).form-inline
 			if addToProject
 				input( type='hidden' name='addToProject' value=addToProject._id )
@@ -39,9 +39,13 @@ ul.nav.nav-pills.member-search-options
 							option( value=tag selected=search.tag === tag )= tag
 
 			.member-search-group
-				button.btn.btn-success Search
+				button(name='type' value='basic').btn.btn-success Search
 
-	.tab-pane#advanced
-		form(method='get')
-			#builder
-			button.btn.btn-success Search
+	.tab-pane#advanced(class=searchType === 'advanced' ? 'active' : '')
+		#builder
+		form(method='get').js-advanced-form
+			if addToProject
+				input( type='hidden' name='addToProject' value=addToProject._id )
+
+			input(type='hidden' name='query')
+			button(name='type' value='advanced').btn.btn-success Search

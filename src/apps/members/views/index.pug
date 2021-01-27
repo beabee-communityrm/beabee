@@ -4,62 +4,14 @@ block prepend title
 	- title = app.title
 
 block append css
-	link( rel="stylesheet", href="/static/css/query-builder.default.css" )
+	link( rel='stylesheet', href='/static/css/query-builder.default.css' )
 
 block append js
 	script( src='/static/js/lib/query-builder.standalone.js' )
-	script.
-			$('.js-get-rules').on('click', function () {
-					console.log($('#builder').queryBuilder('getRules'));
-			});
-			$('#builder').queryBuilder({
-					optgroups: {
-							contribution: 'Contribution',
-							delivery: 'Delivery address'
-					},
-					filters: [{
-							id: 'contributionMonthlyAmount',
-							label: 'Amount (monthly)',
-							optgroup: 'contribution',
-							type: 'double',
-					}, {
-							id: 'contributionPeriod',
-							label: 'Period',
-							optgroup: 'contribution',
-							type: 'string',
-							input: 'select',
-							values: {
-									'monthly': 'Monthly',
-									'annually': 'Annual',
-									'gift': 'Gift'
-							}
-					}, {
-							id: 'deliveryOptIn',
-							label: 'Opted-in',
-							optgroup: 'delivery',
-							type: 'boolean',
-							input: 'radio',
-							values: {1: 'Yes', 0: 'No'}
-					}, {
-							id: 'hasActiveSubscription',
-							label: 'Has active subscription',
-							type: 'boolean',
-							input: 'radio',
-							values: {1: 'Yes', 0: 'No'}
-					}, {
-							id: 'dateAdded',
-							label: 'Membership starts',
-							type: 'datetime'
-					}, {
-							id: 'dateExpires',
-							label: 'Membership expires',
-							type: 'datetime'
-					}, {
-							id: 'hasTag',
-							label: 'Has tag',
-							type: 'string'
-					}]
-			})
+	script
+		if search.query
+			| var searchQuery = !{search.query}
+	script( src='/static/js/search.js?v=' + git)
 
 block contents
 	.row
