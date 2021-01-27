@@ -13,7 +13,7 @@ const app = express();
 app.set( 'views', __dirname + '/views' );
 
 app.get( '/', auth.isLoggedIn, function( req, res ) {
-	res.render( 'index' );
+	res.render( 'index', {hasPassword: !!req.user?.password.hash} );
 } );
 
 app.post( '/', [
@@ -22,17 +22,19 @@ app.post( '/', [
 ], wrapAsync( hasUser( async function( req, res ) {
 	const { body, user } = req;
 
-	const hash = await auth.hashPasswordPromise( body.current, user.password.salt, user.password.iterations );
+	if (req.user.password.hash) {
+		const hash = await auth.hashPasswordPromise( body.current, user.password.salt, user.password.iterations );
 
-	if ( hash != user.password.hash ) {
-		req.log.debug( {
-			app: 'profile',
-			action: 'change-password',
-			error: 'Current password does not match users password',
-		} );
-		req.flash( 'danger', 'password-invalid' );
-		res.redirect('/profile/change-password');
-		return;
+		if ( hash != user.password.hash ) {
+			req.log.debug( {
+				app: 'profile',
+				action: 'change-password',
+				error: 'Current password does not match users password',
+			} );
+			req.flash( 'danger', 'password-invalid' );
+			res.redirect('/profile/change-password');
+			return;
+		}
 	}
 
 	const password = await auth.generatePasswordPromise( body.new );
