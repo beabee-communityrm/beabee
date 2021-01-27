@@ -20,8 +20,17 @@ block contents
 			include partials/search.pug
 	.row
 		.col-md-12
-			+page_header( title, { small: count + ' of ' + total + ' displayed' } )
-			if count > 0
+			h3
+				strong= title
+				|
+				|
+				small= pagination.start + ' to ' + pagination.end  + ' of ' + total + ' displayed'
+			if hasFilter
+				form(method='POST')
+					+csrf
+					p.text-right
+						button(name='action' value='save-segment').btn.btn-primary Save segment
+			if members.length > 0
 				include partials/table.pug
 				include partials/pagination.pug
 			else
