@@ -24,7 +24,9 @@ block contents
 				strong= title
 				|
 				|
-				small= pagination.start + ' to ' + pagination.end  + ' of ' + total + ' displayed'
+				if members.length > 0
+					small= pagination.start + ' to ' + pagination.end  + ' of ' + total
+
 			if hasFilter
 				form(method='POST')
 					+csrf

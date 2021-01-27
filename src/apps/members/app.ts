@@ -98,7 +98,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const pagination = {
 		pages, page, prev, next,
 		start: (page - 1) * limit + 1,
-		end: page * limit,
+		end: Math.min(total, page * limit),
 		total: pages.length
 	};
 
