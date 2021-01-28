@@ -1,6 +1,7 @@
 import express from 'express';
 
 import auth from '@core/authentication';
+import OptionsService from '@core/services/OptionsService';
 
 const app = express();
 
@@ -11,7 +12,12 @@ app.get( '/', function ( req, res ) {
 		// Go to first app in menu
 		res.redirect( res.locals.menu.main[0].path );
 	} else {
-		res.render( 'index' );
+		const redirectUrl = OptionsService.getText('home-redirect-url');
+		if (redirectUrl) {
+			res.redirect(redirectUrl);
+		} else {
+			res.render( 'index' );
+		}
 	}
 } );
 
