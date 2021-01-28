@@ -33,6 +33,7 @@ block contents
 						button(name='action' value='save-segment').btn.btn-sm.btn-info Save segment
 
 			if members.length > 0
+				include partials/pagination.pug
 				include partials/table.pug
 				include partials/pagination.pug
 			else
