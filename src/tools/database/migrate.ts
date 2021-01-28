@@ -2,7 +2,7 @@ import 'module-alias/register';
 
 import { Document } from 'bson';
 import mongoose from 'mongoose';
-import { ConnectionOptions, EntityManager, EntityTarget, getConnection } from 'typeorm';
+import { ConnectionOptions, EntityManager, EntityTarget, getConnection, ObjectLiteral } from 'typeorm';
 
 import config from '@config';
 
@@ -16,6 +16,8 @@ import ReferralGift from '@models/ReferralGift';
 import Referral from '@models/Referral';
 import Export from '@models/Export';
 import ExportItem from '@models/ExportItem';
+import Poll from '@models/Poll';
+import PollResponse from '@models/PollResponse';
 
 type Mapping<T> = {[K in Exclude<WritableKeysOf<T>,'id'>]: (subdoc: Document, doc: Document) => T[K]};
 
@@ -51,7 +53,7 @@ function ident<T extends readonly string[]>(fields: T): {[key in T[number]]: any
 	);
 }
 
-const newIdMap: Map<string, string> = new Map();
+const newItemMap: Map<string, ObjectLiteral> = new Map();
 
 const migrations: Migration<any>[] = [
 	createMigration(PageSettings, 'pagesettings', {
@@ -107,16 +109,48 @@ const migrations: Migration<any>[] = [
 	createMigration(Export, 'exports', {
 		...ident(['type', 'description', 'date', 'params'] as const)
 	}),
-	createMigration(ExportItem, 'members', {
-		export: doc => ({id: newIdMap.get(doc.export_id.toString())} as Export),
+	/*createMigration(ExportItem, 'members', {
+		export: doc => newItemMap.get(doc.export_id.toString()) as Export,
 		itemId: (subdoc, doc) => doc._id.toString(),
 		status: subdoc => subdoc.status
 	}, doc => doc.exports),
 	createMigration(ExportItem, 'pollanswers', {
-		export: doc => ({id: newIdMap.get(doc.export_id.toString())} as Export),
+		export: doc => newItemMap.get(doc.export_id.toString()) as Export,
 		itemId: (subdoc, doc) => doc._id.toString(),
 		status: subdoc => subdoc.status
-	}, doc => doc.exports || [])
+	}, doc => doc.exports || []),*/
+	createMigration(Poll, 'polls', {
+		...ident(['slug', 'date', 'closed', 'starts', 'expires', 'pollMergeField'] as const),
+		title: copy('question'),
+		allowUpdate: doc => !!doc.allowUpdate,
+		mcMergeField: copy('mergeField'),
+		template: copy('formTemplate'),
+		templateSchema: doc => {
+			if (doc.formTemplate === 'ballot') {
+				return {
+					...doc.formSchema,
+					intro: doc.intro,
+					thanksTitle: doc.thanksTitle,
+					thanksText: doc.thanksText
+				};
+			} else if (doc.formTemplate === 'builder') {
+				return {
+					formSchema: doc.formSchema,
+					intro: doc.intro,
+					thanksTitle: doc.thanksTitle,
+					thanksText: doc.thanksText
+				};
+			} else {
+				return {};
+			}
+		}
+	}),
+	createMigration(PollResponse, 'pollanswers', {
+		...ident(['answers', 'createdAt', 'updatedAt'] as const),
+		poll: doc => newItemMap.get(doc.poll.toString()) as Poll,
+		memberId: objectId('member'),
+		isPartial: doc => !!doc.isPartial
+	})
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
@@ -152,7 +186,9 @@ const doMigration = (migration: Migration<any>) => async (manager: EntityManager
 	for await (const items of getItems()) {
 		console.log(items.length);
 		const insert = await manager.insert(migration.model, items.map(i => i.item));
-		insert.identifiers.forEach((newItem, i) => newIdMap.set(items[i].oldId, newItem.id));
+		insert.identifiers.forEach((newItem, i) => {
+			newItemMap.set(items[i].oldId, newItem);
+		});
 	}
 };
 
