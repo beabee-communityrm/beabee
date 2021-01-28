@@ -7,7 +7,7 @@ mixin pollPanel(poll)
 	.col-md-4
 		.panel.panel-default
 			.panel-body
-				h5= poll.question
+				h5= poll.title
 				.pull-right: a(href='/polls/' + poll.slug).btn.btn-default View
 				if poll.response
 					p.text-success

@@ -2,9 +2,9 @@
 	"createPollSchema": {
 		"body": {
 			"type": "object",
-			"required": ["question", "slug", "closed", "template"],
+			"required": ["title", "slug", "closed", "template"],
 			"properties": {
-				"question": {
+				"title": {
 					"type": "string"
 				},
 				"slug": {

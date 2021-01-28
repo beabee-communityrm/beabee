@@ -11,7 +11,7 @@ block contents
 			ul
 				each poll in polls
 					li
-						a(href='/tools/polls/' + poll.slug)= poll.question
+						a(href='/tools/polls/' + poll.slug)= poll.title
 						|
 						|
 						if poll.active

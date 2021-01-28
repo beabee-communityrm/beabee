@@ -18,7 +18,7 @@ export default class Poll {
 	templateSchema!: Record<string, unknown>
 
 	@Column()
-	question!: string
+	title!: string
 
 	@Column({nullable: true})
 	mcMergeField?: string

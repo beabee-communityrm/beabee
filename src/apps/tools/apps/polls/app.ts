@@ -12,7 +12,7 @@ import PollResponse from '@models/PollResponse';
 import { Members } from '@core/database';
 
 interface CreatePollSchema {
-	question: string
+	title: string
 	slug: string
 	closed?: boolean
 	mcMergeField?: string
@@ -29,7 +29,7 @@ function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'> {
 	const { startsDate, startsTime, expiresDate, expiresTime } = data;
 
 	const poll = new Poll();
-	poll.question = data.question;
+	poll.title = data.title;
 	poll.slug = data.slug;
 	poll.closed = !!data.closed;
 	poll.mcMergeField = data.mcMergeField;

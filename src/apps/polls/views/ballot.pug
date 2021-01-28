@@ -1,7 +1,7 @@
 extends /views/base.pug
 
 block prepend title
-	- title = poll.question
+	- title = poll.title
 
 block append js
 	script(src='/static/js/poll-ballot.js?v=' + git)
@@ -14,7 +14,7 @@ block contents
 
 	.row
 		.col-md-12
-			+page_header(poll.question)
+			+page_header(poll.title)
 
 	.row.js-poll-ballot(
 		data-min-votes=poll.templateSchema.minVotes

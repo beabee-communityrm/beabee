@@ -4,9 +4,9 @@
 form(method='POST').form-horizontal
 	+csrf
 	.form-group
-		label(for='question').control-label.col-md-3 Title
+		label(for='title').control-label.col-md-3 Title
 		.col-md-9
-			input(type='text' name='question' value=poll.question required)#question.form-control
+			input(type='text' name='title' value=poll.title required)#title.form-control
 	.form-group
 		label(for='slug').control-label.col-md-3 Slug
 		.col-md-9

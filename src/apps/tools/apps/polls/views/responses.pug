@@ -1,7 +1,7 @@
 extends /views/base.pug
 
 block prepend title
-	- title = poll.question
+	- title = poll.title
 
 block append css
 	if poll.template === 'builder'
@@ -36,7 +36,7 @@ block append js
 block contents
 	.row
 		.col-md-12
-			+page_header(poll.question)
+			+page_header(poll.title)
 
 	.row
 		.col-md-offset-2.col-md-8
