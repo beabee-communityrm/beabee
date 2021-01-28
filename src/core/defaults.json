@@ -133,6 +133,11 @@
 	"flash-referral-gifts-option-deleted": "Referral gift option deleted",
 	"flash-referral-gifts-stock-deleted": "Referral gift stock deleted",
 
+	"flash-segment-created": "Segment created",
+	"flash-segment-updated": "Segment updated",
+	"flash-segment-deleted": "Segment deleted",
+	"flash-segment-no-rule-group": "No filters found for the segment",
+
 	"flash-transactional-email-created": "Transactional email created",
 	"flash-transactional-email-sending": "Transactional email is sending!",
 	"flash-transactional-email-deleted": "Transactional email deleted",

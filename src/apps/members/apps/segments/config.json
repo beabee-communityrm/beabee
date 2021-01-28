@@ -1,0 +1,8 @@
+{
+  "title": "Segments",
+  "path": "segments",
+  "menu": "main",
+  "permissions": [
+    "admin", "superadmin"
+  ]
+}

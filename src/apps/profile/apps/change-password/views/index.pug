@@ -18,7 +18,8 @@ block contents
 			+page_header( 'Change password' )
 			form( method="post" ).form-horizontal
 				+csrf
-				+input( 'password', 'Current password', 'current', { required: true, left: 4, right: 5 } )
+				if hasPassword
+					+input( 'password', 'Current password', 'current', { required: true, left: 4, right: 5 } )
 				+input( 'password', 'New password', 'new', { required: true, class: 'pw-req', left: 4, right: 5 } )
 				+input( 'password', 'Confirm password', 'verify', { required: true, class: 'pw-mat', left: 4, right: 5 } )
 

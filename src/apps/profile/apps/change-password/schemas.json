@@ -2,6 +2,7 @@
 	"changePasswordSchema": {
 		"body": {
 			"type": "object",
+			"required": ["new", "verify"],
 			"properties": {
 				"current": {
 					"type": "string",

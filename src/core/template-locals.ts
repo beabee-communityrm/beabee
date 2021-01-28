@@ -4,7 +4,7 @@ import dot from 'dot';
 
 import config from '@config';
 import { NextFunction, Request, Response } from 'express';
-import { FullAppConfig } from './utils';
+import { AppConfig } from './utils';
 
 let git = '';
 try {
@@ -17,7 +17,7 @@ function hasPermission(perms1: string[], perms2: string[]) {
 	return perms1.filter(p => perms2.includes(p)).length > 0;
 }
 
-export default (appConfigs: FullAppConfig[]) => (req: Request, res: Response, next: NextFunction): void => {
+export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: NextFunction): void => {
 	// Process which apps should be shown in menu
 	res.locals.menu = {
 		main: []
