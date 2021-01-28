@@ -5,9 +5,9 @@ import config from '@config';
 
 import { log } from '@core/logging';
 import templateLocals from '@core/template-locals';
-import { AppConfigOverride, AppConfigOverrides, FullAppConfig } from './utils';
+import { AppConfigOverride, AppConfigOverrides, AppConfig } from './utils';
 
-async function loadAppConfigs(basePath: string, overrides: AppConfigOverrides = {}): Promise<FullAppConfig[]> {
+async function loadAppConfigs(basePath: string, overrides: AppConfigOverrides = {}): Promise<AppConfig[]> {
 	const appConfigs = fs.readdirSync(basePath)
 		.filter(appDir => {
 			const path = basePath + '/' + appDir;
@@ -20,7 +20,7 @@ async function loadAppConfigs(basePath: string, overrides: AppConfigOverrides = 
 		.sort((a, b) => b.priority - a.priority);
 }
 
-async function loadAppConfig(uid: string, path: string, overrides: AppConfigOverride = {}): Promise<FullAppConfig> {
+async function loadAppConfig(uid: string, path: string, overrides: AppConfigOverride = {}): Promise<AppConfig> {
 	const appConfig = await import(path + '/config.json');
 
 	const subApps = fs.existsSync(path + '/apps') ?
@@ -43,7 +43,7 @@ async function requireApp(appPath: string): Promise<express.Express> {
 	return app.default || app;
 }
 
-async function routeApps(parentApp: express.Express, appConfigs: FullAppConfig[]) {
+async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
 	for (const appConfig of appConfigs) {
 		log.debug( {
 			app: 'app-loader',

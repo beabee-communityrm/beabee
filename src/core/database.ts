@@ -16,10 +16,11 @@ import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import Poll from '@models/Poll';
+import PollResponse from '@models/PollResponse';
 import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
 import RestartFlow from '@models/RestartFlow';
-import PollResponse from '@models/PollResponse';
+import Segment from '@models/Segment';
 
 export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
 	await new Promise<void>(resolve => {
@@ -55,7 +56,7 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 				entities: [
 					Email, EmailMailing, Export, ExportItem, GiftFlow, JoinFlow,
 					Notice, Option, PageSettings, Payment, Poll, PollResponse,
-					Referral, ReferralGift, RestartFlow,
+					Referral, ReferralGift, RestartFlow, Segment
 				]
 			});
 			log.debug( {

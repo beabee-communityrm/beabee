@@ -18,7 +18,7 @@ COPY --chown=node:node --from=builder /opt/membership-system/package.json /opt/m
 COPY --chown=node:node --from=builder /opt/membership-system/node_modules /opt/membership-system/node_modules
 COPY --chown=node:node --from=builder /opt/membership-system/built /opt/membership-system/built
 
-RUN echo ${REVISION} > /opt/membership-system/built/revision.txt
+RUN echo -n ${REVISION} > /opt/membership-system/built/revision.txt
 
 ENV NODE_ENV=production
 

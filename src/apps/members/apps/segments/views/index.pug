@@ -1,0 +1,11 @@
+extend /views/notrack
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Segments')
+
+			ul
+				each segment in segments
+					li: a(href='/members/segments/' + segment.id)= segment.name
+
