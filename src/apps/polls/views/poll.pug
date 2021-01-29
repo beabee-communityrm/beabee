@@ -76,12 +76,13 @@ block contents
 					form(method='POST')#form
 						+csrf
 						if !isLoggedIn && !code
-							.form-group
-								label(for='#guestName').control-label Your name
-								input(type='text' name='guestName' required)#guestName.form-control
-							.form-group
-								label(for='#guestEmail').control-label Your email address
-								input(type='email' name='guestEmail' required)#guestEmail.form-control
+							.well
+								.form-group
+									label(for='#guestName').control-label Your name
+									input(type='text' name='guestName' required)#guestName.form-control
+								.form-group
+									label(for='#guestEmail').control-label Your email address
+									input(type='email' name='guestEmail' required)#guestEmail.form-control
 
 						input(type='hidden' name='answers')
 
