@@ -19,6 +19,7 @@ declare global {
 			model: unknown
 			csrfToken?(): string
 			allParams: ParamsDictionary
+			answers?: Record<string, unknown>
 		}
 	}
 }
@@ -31,5 +32,6 @@ declare module 'papaparse' {
 declare module 'express-session' {
 	interface SessionData {
 		method?: 'plain' | 'totp';
+		answers?: Record<string, unknown>
 	}
 }

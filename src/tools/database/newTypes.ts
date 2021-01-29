@@ -14,6 +14,8 @@ import Email from '@models/Email';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
+import Poll from '@models/Poll';
+import PollResponse from '@models/PollResponse';
 
 export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -61,6 +63,7 @@ const exportsDrier = createDrier(Export, 'exports');
 const noticesDrier = createDrier(Notice, 'notices');
 const optionsDrier = createDrier(Option, 'options');
 const pageSettingsDrier = createDrier(PageSettings, 'pageSettings');
+const pollsDrier = createDrier(Poll, 'polls');
 
 const exportItemsDrier = createDrier(ExportItem, 'exportItems', {
 	itemId: itemId => itemId // These will be mapped to values that have already been seen
@@ -87,6 +90,11 @@ const paymentsDrier = createDrier(Payment, 'payments', {
 	memberId: objectId
 });
 
+const pollResponsesDrier = createDrier(PollResponse, 'pollResponses', {
+	id: () => uuidv4(),
+	memberId: objectId
+});
+
 const referralsGiftDrier = createDrier(ReferralGift, 'referralgifts', {
 	stock: stock => stock // Add to map so it is serialised correctly
 });
@@ -105,6 +113,8 @@ export default [
 	optionsDrier,
 	paymentsDrier,
 	pageSettingsDrier,
+	pollsDrier, // Must be before pollResponsesDrier
+	pollResponsesDrier,
 	referralsGiftDrier, // Must be before referralsDrier
 	referralsDrier,
 	exportItemsDrier // Must be after all exportable items

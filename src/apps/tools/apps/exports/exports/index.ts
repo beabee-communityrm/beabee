@@ -3,8 +3,6 @@ import churnRate from './churnRate';
 import edition from './edition';
 import gocardless from './gocardless';
 import joinReasons from './joinReasons';
-import pollAnswers from './pollAnswers';
-import pollLetter from './pollLetter';
 
 export default {
 	'active-members': activeMembers,
@@ -13,7 +11,6 @@ export default {
 	//'gift': gifts,
 	'gocardless': gocardless,
 	'join-reasons': joinReasons,
-	'poll-answers': pollAnswers,
-	'poll-letter': pollLetter,
+	//'poll-answers': pollAnswers,
 	//'referrals': referrals
 };

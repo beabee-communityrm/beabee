@@ -1,26 +1,21 @@
-import flat from 'flat';
+const flat = require('flat');
 
-import { PollAnswers, Polls } from '@core/database';
-import { Param } from '@core/utils/params';
-import Export from '@models/Export';
-import { ExportType } from './type';
-
-async function getParams(): Promise<Param[]> {
+async function getParams() {
 	return [
 		{
 			name: 'pollId',
 			label: 'Poll',
 			type: 'select',
-			values: (await Polls.find()).map(poll => [poll._id.toString(), (poll as any).question])
+			values: (await Polls.find()).map(poll => [poll._id.toString(), poll.title])
 		}
 	];
 }
 
-async function getQuery({params}: Export) {
-	return {poll: params?.pollId};
+async function getQuery({params}) {
+	return {poll: params.pollId};
 }
 
-async function getExport(pollAnswers: any[]) {
+async function getExport(pollAnswers) {
 	await PollAnswers.populate(pollAnswers, {path: 'member'});
 
 	return pollAnswers.map(pollAnswer => {
@@ -37,12 +32,12 @@ async function getExport(pollAnswers: any[]) {
 	});
 }
 
-export default {
+module.exports = {
 	name: 'Poll answers export',
 	statuses: ['added', 'seen'],
-	collection: PollAnswers,
+	collection: null,
 	itemName: 'poll answers',
 	getParams,
 	getQuery,
 	getExport
-} as ExportType<any>;
+};

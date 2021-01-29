@@ -1,32 +1,31 @@
 extends /views/base.pug
 
 block prepend title
-	- title = poll.question
+	- title = poll.title
 
 block append css
-	if poll.formTemplate === 'builder'
+	if poll.template === 'builder'
 		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
 
 block append js
-	if poll.formTemplate === 'builder'
+	if poll.template === 'builder'
 		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
 		script.
-			var pollAnswers = !{JSON.stringify(pollAnswers)};
+			var responses = !{JSON.stringify(responses)};
 
 			Formio.createForm(
-				document.getElementById('form'), !{JSON.stringify(poll.formSchema)},
+				document.getElementById('form'), !{JSON.stringify(poll.templateSchema.formSchema)},
 				{template: 'bootstrap3', readOnly: true}
 			).then(function (form) {
-				var answerI = 0;
+				var responseNo = 0;
 				function changeResponse(inc) {
-					answerI = Math.min(pollAnswers.length - 1, Math.max(0, answerI + inc));
-					var pollAnswer = pollAnswers[answerI];
-					console.log(pollAnswer);
-					form.submission = {data: pollAnswer.answers};
-					$('.js-response-i').text(answerI + 1);
+					responseNo = Math.min(responses.length - 1, Math.max(0, responseNo + inc));
+					var response = responses[responseNo];
+					form.submission = {data: response.answers};
+					$('.js-response-i').text(responseNo + 1);
 					$('.js-response-member')
-						.attr('href', '/members/' + pollAnswer.member.uuid)
-						.text(pollAnswer.member.firstname + ' ' + pollAnswer.member.lastname);
+						.attr('href', '/members/' + response.member.uuid)
+						.text(response.member.firstname + ' ' + response.member.lastname);
 				}
 
 				changeResponse(0);
@@ -37,13 +36,13 @@ block append js
 block contents
 	.row
 		.col-md-12
-			+page_header(poll.question)
+			+page_header(poll.title)
 
 	.row
 		.col-md-offset-2.col-md-8
-			p There are #{pollAnswers.length} responses
+			p There are #{responses.length} responses
 
-			if poll.formTemplate === 'builder'
+			if poll.template === 'builder'
 				p
 					button.btn.btn-primary.js-prev-response Prev
 					|

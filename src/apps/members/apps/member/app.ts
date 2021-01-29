@@ -5,7 +5,7 @@ import moment from 'moment';
 import config from '@config';
 
 import auth from '@core/authentication';
-import { Members, PollAnswers } from '@core/database';
+import { Members } from '@core/database';
 import mailchimp from '@core/mailchimp';
 import mandrill from '@core/mandrill';
 import { hasModel } from '@core/middleware';
@@ -13,8 +13,9 @@ import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 import PaymentService from '@core/services/PaymentService';
-import { Member } from '@models/members';
 import ReferralsService from '@core/services/ReferralsService';
+
+import { Member } from '@models/members';
 
 const app = express();
 
@@ -115,7 +116,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		break;
 	case 'permanently-delete':
 		// TODO: anonymise other data in poll answers
-		await PollAnswers.updateMany( { member }, { $set: { member: null } } );
+		//await PollAnswers.updateMany( { member }, { $set: { member: null } } );
 		// TODO: await RestartFlows.deleteMany( { member } );
 		
 		await Members.deleteOne( { _id: member._id } );
