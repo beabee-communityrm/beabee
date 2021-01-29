@@ -16,7 +16,7 @@ app.set( 'views', __dirname + '/views' );
 app.use( auth.isAdmin );
 
 function getAvailableTags() {
-	return Promise.resolve(OptionsService.getText('available-tags')?.split(',').map(s => s.trim()));
+	return Promise.resolve(OptionsService.getText('available-tags').split(',').map(s => s.trim()));
 }
 
 function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
