@@ -9,8 +9,8 @@ export default class PollResponse {
 	@ManyToOne(() => Poll)
 	poll!: Poll
 
-	@Column()
-	memberId!: string
+	@Column({nullable: true})
+	memberId?: string
 
 	@Column({type: 'jsonb'})
 	answers!: Record<string, unknown>
