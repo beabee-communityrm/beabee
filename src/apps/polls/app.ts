@@ -122,7 +122,7 @@ app.post( '/:slug', [
 		if (guestName && guestEmail) {
 			error = await PollsService.setGuestResponse( poll, guestName, guestEmail, req.answers! );
 		} else {
-			error = 'poll-name-needed';
+			error = 'polls-guest-fields-missing';
 		}
 	}
 
