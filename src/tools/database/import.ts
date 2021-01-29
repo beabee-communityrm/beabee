@@ -17,6 +17,11 @@ const newModelsByName = new Map(newImportTypes.map(t => [t.modelName, t.model]))
 
 async function runImport({modelName, items}: ModelData): Promise<void> {
 	console.error(`Importing ${modelName}, got ${items.length} items`);
+	if (!importsByName[modelName]) {
+		console.error('Unknown model');
+		return;
+	}
+
 	const {model, objectIds} = importsByName[modelName];
 	const itemsWithIds = items.map(item => Object.assign({}, item,
 		...objectIds ? objectIds.map(oid => ({[oid]: new ObjectId(item[oid])})) : []
@@ -62,7 +67,9 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			exportData: ModelData[]
 			newExportData: NewModelData<any>[]
 		};
-		await Promise.all(data.exportData.map(runImport));
+		for( const modelData of data.exportData) {
+			await runImport(modelData);
+		}
 
 		// Delete before in reverse order for foreign key constraints
 		for (const {modelName} of data.newExportData.slice().reverse()) {
@@ -70,8 +77,8 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			model && await getRepository(model).delete({});
 		}
 
-		for (const newExportData of data.newExportData) {
-			await runNewImport(newExportData);
+		for (const newModelData of data.newExportData) {
+			await runNewImport(newModelData);
 		}
 	} catch (err) {
 		console.log(err);
