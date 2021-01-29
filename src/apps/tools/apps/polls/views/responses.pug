@@ -23,9 +23,17 @@ block append js
 					var response = responses[responseNo];
 					form.submission = {data: response.answers};
 					$('.js-response-i').text(responseNo + 1);
-					$('.js-response-member')
-						.attr('href', '/members/' + response.member.uuid)
-						.text(response.member.firstname + ' ' + response.member.lastname);
+					$('.js-response-user-type').text(response.member ? 'Member' : 'Guest')
+					if (response.member) {
+						$('.js-response-user')
+							.html(
+								'<a href="/members/' + response.member.uuid + '">' +
+									response.member.firstname + ' ' + response.member.lastname +
+								'</a>');
+					} else {
+						$('.js-response-user')
+							.text(response.guestName + ' (' + response.guestEmail + ')');
+					}
 				}
 
 				changeResponse(0);
@@ -54,8 +62,8 @@ block contents
 				h4 Response #[span.js-response-i]
 
 				dl.dl-horizontal
-					dt Member
-					dd: a.js-response-member
+					dt.js-response-user-type
+					dd.js-response-user
 
 				#form
 			else
