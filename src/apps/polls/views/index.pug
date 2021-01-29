@@ -7,8 +7,9 @@ mixin pollPanel(poll)
 	.col-md-4
 		.panel.panel-default
 			.panel-body
-				h5= poll.title
-				.pull-right: a(href='/polls/' + poll.slug).btn.btn-default View
+				p= poll.title
+				.pull-right
+					a(href='/polls/' + poll.slug).btn.btn-default= poll.active && !poll.response ? 'Respond' : 'View'
 				if poll.response
 					p.text-success
 						span.glyphicon.glyphicon-ok
@@ -34,7 +35,7 @@ block contents
 
 			h4 Active
 
-	.row
+	.row.polls-list
 		if activePolls.length > 0
 			each poll in activePolls
 				+pollPanel(poll)
@@ -48,7 +49,7 @@ block contents
 		.col-md-12
 			h4 Archive
 
-	.row
+	.row.polls-list
 		each poll in inactivePolls
 			+pollPanel(poll)
 		else

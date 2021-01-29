@@ -7,14 +7,17 @@ block contents
 	.row
 		.col-md-12
 			+page_header('Emails')
-			p Send emails to users
 
-	each email in emails
-		.row
-			.col-md-12
-				p
-					a(href='/tools/emails/' + email.id)= email.name
-					| , created #{moment(email.date).format('DD/MM/YYYY [at] HH:mm')}
+			table.table.table-striped
+				thead
+					tr
+						th Name
+						th Created
+				tbody
+					each email in emails
+						tr
+							td(width='100%'): a(href='/tools/emails/' + email.id)= email.name
+							td= moment(email.date).format('DD/MM/YYYY')
 	.row
 		.col-md-8
 			hr

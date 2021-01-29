@@ -8,9 +8,18 @@ block contents
 		.col-md-12
 			+page_header('Notices')
 
-			each notice in notices
-				h5
-					a(href='/tools/notices/' + notice.id)= notice.name
+			table.table.table-striped
+				thead
+					tr
+						th Status
+						th Name
+						th Created
+				tbody
+					each notice in notices
+						tr
+							td: +itemStatus(notice)
+							td(width='100%'): a(href='/tools/notices/' + notice.id)= notice.name
+							td= moment(notice.createdAt).format('DD/MM/YYYY')
 
 	.row
 		.col-md-8
