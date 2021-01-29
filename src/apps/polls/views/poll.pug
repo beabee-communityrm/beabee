@@ -71,7 +71,7 @@ block contents
 						.alert.alert-info
 							| Are you Cable member?
 							|
-							a(href='/login') Login here
+							a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug)) Login here
 
 					form(method='POST')#form
 						+csrf
