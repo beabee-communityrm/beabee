@@ -81,10 +81,10 @@ async function getUserAnswers(req: Request) {
 
 app.get( '/:slug', [
 	hasNewModel( Poll, 'slug' )
-], wrapAsync( async ( req, res, next ) => {
+], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
 	if (!poll.public && !req.user) {
-		return next('route');
+		return auth.handleNotAuthed(auth.NOT_LOGGED_IN, req, res);
 	}
 
 	const answers = req.query.answers as PollResponseAnswers;
@@ -108,10 +108,10 @@ app.get( '/:slug', [
 app.post( '/:slug', [
 	hasNewModel(Poll, 'slug'),
 	hasPollAnswers
-], wrapAsync( async ( req, res, next ) => {
+], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
 	if (!poll.public && !req.user) {
-		return next('route');
+		return auth.handleNotAuthed(auth.NOT_LOGGED_IN, req, res);
 	}
 
 	let error;
