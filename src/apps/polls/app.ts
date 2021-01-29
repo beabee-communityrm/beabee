@@ -5,13 +5,14 @@ import { getRepository } from 'typeorm';
 import auth from '@core/authentication';
 import { Members } from '@core/database';
 import { hasNewModel, hasSchema } from '@core/middleware';
-import { hasUser, isSocialScraper, wrapAsync } from '@core/utils';
+import { isSocialScraper, wrapAsync } from '@core/utils';
 
 import PollsService from '@core/services/PollsService';
 
 import Poll from '@models/Poll';
 
 import schemas from './schemas.json';
+import { PollResponseAnswers } from '@models/PollResponse';
 
 function getView(poll: Poll): string {
 	switch (poll.template) {
@@ -67,32 +68,88 @@ app.get('/:slug', hasNewModel( Poll, 'slug' ), ( req, res, next ) => {
 	}
 });
 
+function getSessionAnswers(req: Request) {
+	const answers = req.session.answers;
+	delete req.session.answers;
+	return answers;
+}
+
+async function getUserAnswers(req: Request) {
+	return getSessionAnswers(req) ||
+		req.user && (await PollsService.getResponse(req.model as Poll, req.user))?.answers;
+}
+
 app.get( '/:slug', [
-	auth.isLoggedIn,
 	hasNewModel( Poll, 'slug' )
-], wrapAsync( hasUser( async ( req, res ) => {
+], wrapAsync( async ( req, res, next ) => {
 	const poll = req.model as Poll;
-	const answers = req.query.answers as Record<string, unknown>;
+	if (!poll.public && !req.user) {
+		return next('route');
+	}
+
+	const answers = req.query.answers as PollResponseAnswers;
+	// Handle partial answers from URL
 	if (answers) {
-		const error = await PollsService.setResponse( poll, req.user, answers, true );
-		if (error) {
-			req.flash('error', error);
+		if (req.user) {
+			await PollsService.setResponse( poll, req.user, answers, true );
+		} else {
+			req.session.answers = answers;
 		}
 		res.redirect( `/polls/${poll.slug}#vote` );
 	} else {
-		const response = await PollsService.getResponse( poll, req.user );
-
 		res.render( getView( poll ), {
 			poll,
-			answers: response ? response.answers : {},
+			answers: await getUserAnswers(req) || {},
 			preview: req.query.preview && auth.canAdmin( req )
 		} );
 	}
-} ) ) );
+} ) );
+
+app.post( '/:slug', [
+	hasNewModel(Poll, 'slug'),
+	hasPollAnswers
+], wrapAsync( async ( req, res, next ) => {
+	const poll = req.model as Poll;
+	if (!poll.public && !req.user) {
+		return next('route');
+	}
+
+	let error;
+	if (req.user) {
+		error = await PollsService.setResponse( poll, req.user, req.answers! );
+	} else {
+		const {guestName, guestEmail} = req.body;
+		if (guestName && guestEmail) {
+			error = await PollsService.setGuestResponse( poll, guestName, guestEmail, req.answers! );
+		} else {
+			error = 'poll-name-needed';
+		}
+	}
+
+	if (error) {
+		req.flash('error', error);
+		res.redirect( `/polls/${poll.slug}#vote`);
+	} else {
+		if (!req.user) {
+			req.session.answers = req.answers;
+		}
+		res.redirect( `/polls/${poll.slug}/thanks`);
+	}
+} ) );
+
+app.get( '/:slug/thanks', hasNewModel(Poll, 'slug'), wrapAsync(async (req, res) => {
+	const poll = req.model as Poll;
+	const answers = await getUserAnswers(req);
+	if (answers) {
+		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, answers});
+	} else {
+		res.redirect('/polls/' + poll.slug);
+	}
+}));
 
 app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
-	const answers = req.query.answers as Record<string, unknown>;
+	const answers = req.query.answers as PollResponseAnswers;
 	const pollsCode = req.params.code.toUpperCase();
 
 	// Prefill answers from URL
@@ -100,35 +157,17 @@ app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res 
 		const member = await Members.findOne( { pollsCode } );
 		if (member) {
 			const error = await PollsService.setResponse( poll, member, answers, true );
-			if (error) {
-				req.flash('error', error);
-			} else {
+			if (!error) {
 				req.session.answers = answers;
 			}
 		}
-		res.redirect( `/polls/${poll.slug}/${req.params.code}#vote` );
+		res.redirect( `/polls/${poll.slug}/${pollsCode}#vote` );
 	} else {
 		res.render( getView( poll ), {
 			poll: req.model,
-			answers: req.session.answers || {},
+			answers: getSessionAnswers(req) || {},
 			code: pollsCode
 		} );
-
-		delete req.session.answers;
-	}
-} ) );
-
-app.post( '/:slug', [
-	auth.isLoggedIn,
-	hasNewModel(Poll, 'slug'),
-	hasPollAnswers
-], wrapAsync( async ( req, res ) => {
-	const error = await PollsService.setResponse( req.model as Poll, req.user!, req.answers! );
-	if (error) {
-		req.flash('error', error);
-		res.redirect( `/polls/${req.params.slug}#vote`);
-	} else {
-		res.redirect( `/polls/${req.params.slug}#thanks`);
 	}
 } ) );
 
@@ -136,13 +175,14 @@ app.post( '/:slug/:code', [
 	hasNewModel(Poll, 'slug'),
 	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
+	const poll = req.model as Poll;
 	const pollsCode = req.params.code.toUpperCase();
 	let error;
 
 	const member = await Members.findOne( { pollsCode } );
 	if (member) {
 		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
-		error = await PollsService.setResponse( req.model as Poll, member, req.answers! );
+		error = await PollsService.setResponse( poll, member, req.answers! );
 	} else {
 		req.log.error({
 			app: 'polls',
@@ -153,10 +193,10 @@ app.post( '/:slug/:code', [
 
 	if (error) {
 		req.flash('error', error);
-		res.redirect( req.originalUrl + '#vote' );
+		res.redirect( `/polls/${poll.slug}/${pollsCode}#vote` );
 	} else {
 		req.session.answers = req.answers;
-		res.redirect( req.originalUrl + '#thanks' );
+		res.redirect( `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 

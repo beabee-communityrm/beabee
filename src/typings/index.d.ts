@@ -1,4 +1,5 @@
 import { Member } from '@models/members';
+import { PollResponseAnswers } from '@models/PollResponse';
 import { ParamsDictionary } from 'express-serve-static-core';
 
 declare global {
@@ -19,7 +20,7 @@ declare global {
 			model: unknown
 			csrfToken?(): string
 			allParams: ParamsDictionary
-			answers?: Record<string, unknown>
+			answers?: PollResponseAnswers
 		}
 	}
 }
@@ -32,6 +33,6 @@ declare module 'papaparse' {
 declare module 'express-session' {
 	interface SessionData {
 		method?: 'plain' | 'totp';
-		answers?: Record<string, unknown>
+		answers?: PollResponseAnswers
 	}
 }

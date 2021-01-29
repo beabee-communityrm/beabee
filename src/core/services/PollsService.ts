@@ -4,7 +4,7 @@ import mailchimp from '@core/mailchimp';
 
 import { Member } from '@models/members';
 import Poll from '@models/Poll';
-import PollResponse from '@models/PollResponse';
+import PollResponse, { PollResponseAnswers } from '@models/PollResponse';
 
 class PollWithResponse extends Poll {
 	response?: PollResponse;
@@ -48,7 +48,7 @@ export default class PollsService {
 		});
 	}
 
-	static async setResponse( poll: Poll, member: Member, answers: Record<string, unknown>, isPartial=false ): Promise<string|void> {
+	static async setResponse( poll: Poll, member: Member, answers: PollResponseAnswers, isPartial=false ): Promise<string|undefined> {
 		if (!member.isActiveMember) {
 			return 'polls-expired-user';
 		} else if (!poll.active) {
@@ -77,4 +77,18 @@ export default class PollsService {
 		}
 	}
 
+	static async setGuestResponse( poll: Poll, guestName: string, guestEmail: string, answers: PollResponseAnswers): Promise<string|undefined> {
+		if (!poll.active || !poll.public) {
+			return 'poll-closed';
+		}
+
+		const pollResponse = new PollResponse();
+		pollResponse.poll = poll;
+		pollResponse.guestName = guestName;
+		pollResponse.guestEmail = guestEmail;
+		pollResponse.answers = answers;
+		pollResponse.isPartial = false;
+
+		await getRepository(PollResponse).save(pollResponse);
+	}
 }

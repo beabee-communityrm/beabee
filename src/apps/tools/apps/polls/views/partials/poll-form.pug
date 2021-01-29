@@ -11,17 +11,16 @@ form(method='POST').form-horizontal
 		label(for='slug').control-label.col-md-3 Slug
 		.col-md-9
 			input(type='text' name='slug' value=poll.slug required readonly=!isNew)#slug.form-control
-	.form-group
-		label(for='template').control-label.col-md-3 Template
-		.col-md-9
-			if isNew
+	if isNew
+		.form-group
+			label(for='template').control-label.col-md-3 Template
+			.col-md-9
 				select(name='template' required)#template.form-control
 					option(value='' disabled selected) Select template
 					each template in ['custom', 'builder', 'ballot']
 						option(value=template)= template[0].toUpperCase() + template.slice(1)
-			else
-				input(type='hidden' name='template' value=poll.template)
-				.form-control-static= poll.template
+	else
+		input(type='hidden' name='template' value=poll.template)
 	if !isNew
 		.form-group
 			label(for='mergeField').control-label.col-md-3 MailChimp merge field
@@ -43,6 +42,12 @@ form(method='POST').form-horizontal
 			input(type='date', name='expiresDate' value=poll.expires ? moment.utc(poll.expires).format('YYYY-MM-DD') : '')#expires.form-control
 		.col-md-3
 			input(type='time', name='expiresTime' value=poll.expires ? moment.utc(poll.expires).format('HH:mm') : '').form-control
+	.form-group
+		.col-md-offset-3.col-md-9
+			.checkbox-inline
+				input(type='checkbox' name='public' value='true' checked=poll.public)
+				| Allow guests to respond
+	
 	if isNew
 		.form-group
 			.col-md-offset-3.col-md-9
