@@ -7,7 +7,8 @@ const Papa = require('papaparse');
 const auth = require( '@core/authentication' );
 const { SpecialUrlGroups, SpecialUrls } = require( '@core/database' );
 const { hasModel, hasSchema } = require( '@core/middleware' );
-const { loadParams, parseParams, wrapAsync } = require( '@core/utils' );
+const { wrapAsync } = require( '@core/utils' );
+const { loadParams, parseParams } = require( '@core/utils/params' );
 
 const actions = require('./actions');
 const { createSpecialUrlsSchema, updateSpecialUrlsSchema } = require( './schemas.json' );

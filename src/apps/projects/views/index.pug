@@ -8,13 +8,16 @@ block contents
 		.col-md-12
 			+page_header('Projects')
 
-			each project in projects
-				h5
-					a(href='/projects/' + project._id)
-						= project.title
-						|
-						|
-						.label.label-default= project.status
+			table.table
+				thead
+					tr
+						th Status
+						th Name
+				tbody
+					each project in projects
+						tr
+							td: .label.label-default= project.status
+							td(width='100%'): a(href='/projects/' + project._id)= project.title
 
 			hr
 

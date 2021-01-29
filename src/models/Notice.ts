@@ -30,4 +30,9 @@ export default class Notice {
 	get active(): boolean {
 		return this.enabled && (!this.expires || moment.utc(this.expires).isAfter());
 	}
+
+	// TODO: To match with polls, sync all these fields
+	get closed(): boolean {
+		return !this.enabled;
+	}
 }

@@ -2,6 +2,15 @@ $c-orange: #f7881f;
 $c-dark-orange: #623204;
 $c-agm2019-purple: #583352;
 
+.polls-list {
+	display: flex;
+	flex-wrap: wrap;
+	& .panel {
+		height: calc(100% - 25px);
+		background-color: #f4f4f4;
+	}
+}
+
 .poll-title {
 	font-family: "Open Sans Condensed";
 	font-weight: bold;

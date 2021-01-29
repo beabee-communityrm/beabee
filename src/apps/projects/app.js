@@ -41,7 +41,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 app.get( '/:_id', hasModel(Projects, '_id'), wrapAsync( async ( req, res ) => {
-	await req.model.populate('owner polls').execPopulate();
+	await req.model.populate('owner').execPopulate();
 	const projectMembers = await ProjectMembers.find( { project: req.model } ).populate( 'member engagement.member' );
 
 	projectMembers.forEach(pm => {
