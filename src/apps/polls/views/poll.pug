@@ -67,15 +67,15 @@ block contents
 
 					include /views/partials/flash.pug
 
-					if !isLoggedIn && !code
-						.alert.alert-info
-							| Are you Cable member?
-							|
-							a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug)) Login here
-
 					form(method='POST')#form
 						+csrf
+						input(type='hidden' name='answers')
+
 						if !isLoggedIn && !code
+							.alert.alert-info
+								| Are you Cable member?
+								|
+								a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug)): b Login here
 							.well
 								.form-group
 									label(for='#guestName').control-label Your name
@@ -83,8 +83,6 @@ block contents
 								.form-group
 									label(for='#guestEmail').control-label Your email address
 									input(type='email' name='guestEmail' required)#guestEmail.form-control
-
-						input(type='hidden' name='answers')
 
 					#formdata
 				else
