@@ -150,7 +150,9 @@ const migrations: Migration<any>[] = [
 		...ident(['answers', 'createdAt', 'updatedAt'] as const),
 		poll: doc => newItemMap.get(doc.poll.toString()) as Poll,
 		memberId: objectId('member'),
-		isPartial: doc => !!doc.isPartial
+		isPartial: doc => !!doc.isPartial,
+		guestName: () => undefined,
+		guestEmail: () => undefined
 	})
 ];
 
