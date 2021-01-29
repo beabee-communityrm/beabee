@@ -143,7 +143,8 @@ const migrations: Migration<any>[] = [
 			} else {
 				return {};
 			}
-		}
+		},
+		public: () => false
 	}),
 	createMigration(PollResponse, 'pollanswers', {
 		...ident(['answers', 'createdAt', 'updatedAt'] as const),

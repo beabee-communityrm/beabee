@@ -38,6 +38,9 @@ export default class Poll {
 	@Column()
 	allowUpdate!: boolean
 
+	@Column({default: false})
+	public!: boolean
+
 	get active(): boolean {
 		const now = moment.utc();
 		return !this.closed && (!this.starts || now.isAfter(this.starts)) &&
