@@ -8,9 +8,16 @@ block contents
 		.col-md-12
 			+page_header('Page settings')
 
-			each page in pages
-				h5
-					a(href='/settings/pages/' + page.id)= page.pattern
+			table.table
+				thead
+					tr
+						th Pattern
+						th Share title
+				tbody
+					each page in pages
+						tr
+							td: a(href='/settings/pages/' + page.id)= page.pattern
+							td= page.shareTitle
 
 	.row
 		.col-md-8
