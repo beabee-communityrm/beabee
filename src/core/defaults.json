@@ -27,7 +27,6 @@
 	"flash-login-failed": "Login unsuccessful",
 	"flash-login-required": "You must be logged in",
 	"flash-login-code-invalid": "Login code is invalid or has expired",
-	"flash-already-logged-in": "You are already logged in",
 	"flash-inactive-membership": "Your membership is inactive",
 	"flash-403": "You do not have access to this area",
 	"flash-information-ommited": "Important information was ommited",

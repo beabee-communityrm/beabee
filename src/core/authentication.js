@@ -303,7 +303,6 @@ var Authentication = {
 		case Authentication.NOT_LOGGED_IN:
 			return next();
 		default:
-			req.flash( 'warning', 'already-logged-in' );
 			res.redirect( OptionsService.getText('user-home-url') );
 			return;
 		}
