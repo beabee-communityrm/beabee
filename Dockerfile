@@ -18,7 +18,7 @@ COPY --chown=node:node --from=builder /opt/membership-system/package.json /opt/m
 COPY --chown=node:node --from=builder /opt/membership-system/node_modules /opt/membership-system/node_modules
 COPY --chown=node:node --from=builder /opt/membership-system/built /opt/membership-system/built
 
-COPY nginx.conf /opt/membership-system/router/nginx.conf
+COPY router/ /opt/membership-system/router/
 
 RUN echo -n ${REVISION} > /opt/membership-system/built/revision.txt
 
