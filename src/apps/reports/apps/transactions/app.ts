@@ -38,7 +38,7 @@ app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, re
 		.map(p => p.amount - p.amountRefunded)
 		.filter(amount => !isNaN(amount));
 
-	const total = successfulPayments.reduce((a, b) => a + b, 0);
+	const total = successfulPayments.reduce((a, b) => a + b, 0).toFixed(2);
 
 	// TODO: Remove when members is in ORM
 	const members = await Members.find({_id: {$in: payments.map(p => p.memberId)}});
