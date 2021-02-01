@@ -5,6 +5,7 @@ services:
     image: mongo:3.6.18
     volumes:
       - db_data:/data/db
+
   new_db:
     image: postgres:10.15
     volumes:
@@ -13,28 +14,33 @@ services:
       POSTGRES_USER: membership_system
       POSTGRES_PASSWORD: membership_system
       POSTGRES_DB: membership_system
+
   app:
     build: .
     volumes:
       - ./built:/opt/membership-system/built
-    ports:
-      - 3001:3001
     environment:
       NODE_ENV: development
+
   gc_webhook:
     build: .
     command: 'node built/webhooks/gocardless'
     volumes:
       - ./built:/opt/membership-system/built
-    ports:
-      - 3002:3002
+
   stripe_webhook:
     build: .
     command: 'node built/webhooks/stripe'
     volumes:
       - ./built:/opt/membership-system/built
+
+  router:
+    image: nginx:1.18.0-alpine
+    volumes:
+      - ./built/static:/opt/membership-system/built/static
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - 3003:3003
+      - 3001:80
 
 volumes:
   db_data:

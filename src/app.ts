@@ -38,9 +38,6 @@ app.set( 'views', __dirname + '/views' );
 app.set( 'view engine', 'pug' );
 app.set( 'view cache', false );
 
-// Setup static route (only used on dev)
-app.use( '/static', express.static( __dirname + '/static' ) );
-
 // Add logging capabilities
 installLogMiddleware( app );
 
