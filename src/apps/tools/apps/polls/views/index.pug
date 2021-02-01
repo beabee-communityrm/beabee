@@ -8,22 +8,28 @@ block contents
 		.col-md-12
 			+page_header('Polls')
 
-			ul
-				each poll in polls
-					li
-						a(href='/tools/polls/' + poll.slug)= poll.title
-						|
-						|
-						if poll.active
-							span.label.label-success Active
-						else if poll.closed
-							span.label.label-danger Closed
-						else if poll.expires
-							span.label.label-warning Expired
-						else if poll.starts
-							span.label.label-info Scheduled
+			table.table.table-striped
+				thead
+					tr
+						th Status
+						th Title
+						th Created
+				tbody
+					each poll in polls
+						tr
+							td
+								if poll.active
+									span.label.label-success Active
+								else if poll.closed
+									span.label.label-danger Closed
+								else if poll.expires
+									span.label.label-warning Expired
+								else if poll.starts
+									span.label.label-info Scheduled
+							td(width='100%'): a(href='/tools/polls/' + poll.slug)= poll.title
+							td= moment(poll.date).format('DD/MM/YYYY')
 
 	.row
 		.col-md-8
-			h4 Create a new poll
+			h4 Start a new poll
 			include partials/poll-form

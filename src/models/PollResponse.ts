@@ -1,6 +1,8 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import Poll from './Poll';
 
+export type PollResponseAnswers = Record<string, unknown>
+
 @Entity()
 export default class PollResponse {
 	@PrimaryGeneratedColumn('uuid')
@@ -12,8 +14,14 @@ export default class PollResponse {
 	@Column({nullable: true})
 	memberId?: string
 
+	@Column({nullable: true})
+	guestName?: string
+
+	@Column({nullable: true})
+	guestEmail?: string
+
 	@Column({type: 'jsonb'})
-	answers!: Record<string, unknown>
+	answers!: PollResponseAnswers
 
 	@Column()
 	isPartial!: boolean

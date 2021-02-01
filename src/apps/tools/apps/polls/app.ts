@@ -14,6 +14,7 @@ import { Members } from '@core/database';
 interface CreatePollSchema {
 	title: string
 	slug: string
+	template: PollTemplate
 	closed?: boolean
 	mcMergeField?: string
 	pollMergeField?: string
@@ -22,7 +23,7 @@ interface CreatePollSchema {
 	startsTime?: string
 	expiresDate?: string
 	expiresTime?: string
-	template: PollTemplate
+	public?: boolean
 }
 
 function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'> {
@@ -36,13 +37,11 @@ function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'> {
 	poll.pollMergeField = data.pollMergeField;
 	poll.template = data.template;
 	poll.allowUpdate = !!data.allowUpdate;
-
-	if (startsDate && startsTime) {
-		poll.starts = moment.utc(`${startsDate}T${startsTime}`).toDate();
-	}
-	if (expiresDate && expiresTime) {
-		poll.expires = moment.utc(`${expiresDate}T${expiresTime}`).toDate();
-	}
+	poll.public = !!data.public;
+	poll.starts = startsDate && startsTime ?
+		poll.starts = moment.utc(`${startsDate}T${startsTime}`).toDate() : undefined;
+	poll.expires = expiresDate && expiresTime ?
+		moment.utc(`${expiresDate}T${expiresTime}`).toDate() : undefined;
 
 	return poll;
 }

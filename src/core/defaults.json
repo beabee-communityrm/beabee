@@ -121,6 +121,7 @@
 	"flash-polls-unknown-user": "We weren't able to register your answer, please contact membership@thebristolcable.org",
 	"flash-polls-cant-update": "You have already submitted an answer",
 	"flash-polls-expired-user": "Your membership has expired, please restart it to submit your answer",
+	"flash-polls-guest-fields-missing": "Please provide your name and email address",
 
 	"flash-project-created": "Project created",
 	"flash-project-updated": "Project updated",

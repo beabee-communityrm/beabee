@@ -9,14 +9,31 @@ block append css
 block append js
 	script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
 	script.
+		var formEl = document.getElementById('form');
 		Formio.createForm(
-			document.getElementById('form'), !{JSON.stringify(poll.templateSchema.formSchema)},
-			{template: 'bootstrap3'}
+			document.getElementById('formdata'),
+			!{JSON.stringify(poll.templateSchema.formSchema)},
+			{
+				template: 'bootstrap3',
+				noAlerts: true,
+				hooks: {
+					beforeSubmit: function (submission, next) {
+						if (formEl.checkValidity()) {
+							next();
+						} else {
+							if (formEl.reportValidity) {
+								formEl.reportValidity();
+							}
+							next({message: 'Form fields missing'});
+						}
+					}
+				}
+			}
 		).then(function (form) {
 			form.submission = {data: !{JSON.stringify(answers)}};
 			form.on('submit', function (submission) {
-				$('.js-poll-form input[name=answers]').val(JSON.stringify(submission.data));
-				$('.js-poll-form').submit();
+				formEl.elements.answers.value = JSON.stringify(submission.data);
+				formEl.submit();
 			});
 		});
 
@@ -50,12 +67,25 @@ block contents
 
 					include /views/partials/flash.pug
 
-					#form
-
-					form(method='POST').js-poll-form
+					form(method='POST')#form
 						+csrf
 						input(type='hidden' name='answers')
+
+						if !isLoggedIn && !code
+							.alert.alert-info
+								| Are you Cable member?
+								|
+								a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug)): b Login here
+							.well
+								.form-group
+									label(for='#guestName').control-label Your name
+									input(type='text' name='guestName' required)#guestName.form-control
+								.form-group
+									label(for='#guestEmail').control-label Your email address
+									input(type='email' name='guestEmail' required)#guestEmail.form-control
+
+					#formdata
 				else
 					.alert.alert-info You have already answered this callout
 			else
-				.alert.alert-warning Callout is now closed
+				.alert.alert-warning Callout is closed
