@@ -8,10 +8,21 @@ block contents
 		.col-md-12
 			+page_header('Referrals')
 
-	.row
-		.col-md-8
 			h4 Gifts
 
-			ul
-				each gift in gifts
-					li: a(href='/tools/referrals/gifts/' + gift.name)= gift.label
+			table.table
+				thead
+					tr
+						th Label
+						th Min amount
+						th Status
+				tbody
+					each gift in gifts
+						tr
+							td(width="100%"): a(href='/tools/referrals/gifts/' + gift.name)= gift.label
+							td £#{gift.minAmount}
+							td
+								if gift.enabled
+									.span.label.label-success Enabled
+								else
+									.span.label.label-danger Disabled
