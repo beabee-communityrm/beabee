@@ -304,7 +304,7 @@ var Authentication = {
 			return next();
 		default:
 			req.flash( 'warning', 'already-logged-in' );
-			res.redirect( '/profile' );
+			res.redirect( OptionsService.getText('user-home-url') );
 			return;
 		}
 	},
@@ -317,7 +317,7 @@ var Authentication = {
 			return next();
 		case Authentication.NOT_MEMBER:
 			req.flash( 'warning', 'inactive-membership' );
-			res.redirect( '/profile' );
+			res.redirect( OptionsService.getText('user-home-url') );
 			return;
 		default:
 			Authentication.handleNotAuthed( status, req, res );
@@ -333,7 +333,7 @@ var Authentication = {
 			return next();
 		case Authentication.NOT_ADMIN:
 			req.flash( 'warning', '403' );
-			res.redirect( '/profile' );
+			res.redirect( OptionsService.getText('user-home-url') );
 			return;
 		default:
 			Authentication.handleNotAuthed( status, req, res );
@@ -349,7 +349,7 @@ var Authentication = {
 			return next();
 		case Authentication.NOT_ADMIN:
 			req.flash( 'warning', '403' );
-			res.redirect( '/profile' );
+			res.redirect( OptionsService.getText('user-home-url') );
 			return;
 		default:
 			Authentication.handleNotAuthed( status, req, res );
