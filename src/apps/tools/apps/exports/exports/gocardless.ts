@@ -9,11 +9,11 @@ async function getQuery() {
 }
 
 async function getExport(members: Member[]) {
-	const gcPaymentTypes = await getRepository(GCPaymentData).find();
+	const gcData = await getRepository(GCPaymentData).find();
 
 	return members
 		.map(member => {
-			const gc = gcPaymentTypes.find(gc => gc.memberId === member.id);
+			const gc = gcData.find(gc => gc.memberId === member.id);
 			return {
 				Id: member.uuid,
 				EmailAddress: member.email,
