@@ -10,6 +10,7 @@ import Payment from '@models/Payment';
 import { Member } from '@models/members';
 
 import config from '@config';
+import { ContributionPeriod } from '@core/utils';
 
 async function logMember(type: string, query: FilterQuery<Member>) {
 	const member = await db.Members.findOne(query);
@@ -28,13 +29,13 @@ async function logMemberVaryContributions(type: string, query: FilterQuery<Membe
 	for (const amount of amounts) {
 		await logMember(`${type}, £${amount}/monthly`, {
 			...query,
-			'gocardless.amount': amount,
-			'gocardless.period': 'monthly'
+			contributionMonthlyAmount: amount,
+			contributionPeriod: ContributionPeriod.Monthly
 		});
 		await logMember(`${type}, £${amount * 12}/year`, {
 			...query,
-			'gocardless.amount': amount,
-			'gocardless.period': 'annually'
+			contributionMonthlyAmount: amount,
+			contributionPeriod: ContributionPeriod.Annually
 		});
 	}
 }
@@ -69,7 +70,7 @@ async function getFilters() {
 			}}
 		},
 		isGift: {
-			'gocardless.period': 'gift'
+			contributionPeriod: ContributionPeriod.Gift
 		},
 		hasSubscription: {
 			'gocardless.subscription_id': {$exists: true}

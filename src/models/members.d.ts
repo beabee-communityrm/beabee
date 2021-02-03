@@ -33,14 +33,14 @@ interface Member extends PartialMember, Document {
 	referralCode: string,
 	pollsCode: string
 	giftCode?: string,
+	contributionMonthlyAmount?: number
+	nextContributionMonthlyAmount?: number
+	contributionPeriod?: ContributionPeriod
 	gocardless: {
 		customer_id?: string,
 		mandate_id?: string,
 		subscription_id?: string,
 		paying_fee?: boolean,
-		amount?: number,
-		period?: ContributionPeriod
-		next_amount?: number
 		cancelled_at?: Date
 	},
 	permissions: Permissions,
@@ -73,9 +73,7 @@ interface Member extends PartialMember, Document {
 	readonly isActiveMember: boolean,
 	readonly hasActiveSubscription: boolean,
 	readonly canTakePayment: boolean,
-	readonly contributionPeriod: ContributionPeriod
 	readonly contributionDescription: string
-	readonly contributionMonthlyAmount: number
 	readonly fullname: string
 	readonly setupComplete: boolean
 	readonly referralLink: string

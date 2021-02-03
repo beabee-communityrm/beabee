@@ -125,10 +125,8 @@ export default class GiftService {
 
 		member.giftCode = giftFlow.setupCode;
 
-		member.gocardless = {
-			amount: GiftService.giftMonthlyAmount,
-			period: ContributionPeriod.Gift
-		};
+		member.contributionMonthlyAmount = GiftService.giftMonthlyAmount;
+		member.contributionPeriod = ContributionPeriod.Gift;
 
 		member.memberPermission = {
 			date_added: now.toDate(),

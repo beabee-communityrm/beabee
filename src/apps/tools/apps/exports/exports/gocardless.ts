@@ -16,11 +16,11 @@ async function getExport(members: Member[]) {
 			CustomerId: member.gocardless.customer_id,
 			MandateId: member.gocardless.mandate_id,
 			SubscriptionId: member.gocardless.subscription_id,
-			Amount: member.gocardless.amount,
-			Period: member.gocardless.period,
+			Amount: member.contributionMonthlyAmount,
+			Period: member.contributionPeriod,
 			PayFee: member.gocardless.paying_fee,
 			CancelledAt: member.gocardless.cancelled_at,
-			NextAmount: member.gocardless.next_amount,
+			NextAmount: member.nextContributionMonthlyAmount,
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }
