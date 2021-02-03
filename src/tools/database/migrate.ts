@@ -11,6 +11,7 @@ import * as db from '@core/database';
 import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import Option from '@models/Option';
+import GCPaymentData from '@models/GCPaymentData';
 import GiftFlow, { GiftForm } from '@models/GiftFlow';
 import ReferralGift from '@models/ReferralGift';
 import Referral from '@models/Referral';
@@ -153,6 +154,14 @@ const migrations: Migration<any>[] = [
 		isPartial: doc => !!doc.isPartial,
 		guestName: () => undefined,
 		guestEmail: () => undefined
+	}),
+	createMigration(GCPaymentData, 'members', {
+		memberId: doc => doc._id,
+		customerId: doc => doc.gocardless && doc.gocardless.customer_id,
+		mandateId: doc => doc.gocardless && doc.gocardless.mandate_id,
+		subscriptionId: doc => doc.gocardless && doc.gocardless.subscription_id,
+		cancelledAt: doc => doc.gocardless && doc.gocardless.cancelled_at,
+		payFee: doc => doc.gocardless && doc.gocardless.paying_fee
 	})
 ];
 

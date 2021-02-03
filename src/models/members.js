@@ -1,7 +1,8 @@
 const mongoose = require( 'mongoose' );
+const moment = require( 'moment' );
 const crypto = require( 'crypto' );
 
-const { permission: { memberId } } = require( '@config' );
+const config = require( '@config' );
 
 const { getActualAmount } = require( '@core/utils' );
 
@@ -145,13 +146,6 @@ module.exports = {
 			enum: ['monthly', 'annually', 'gift']
 		},
 		nextContributionMonthlyAmount: Number,
-		gocardless: {
-			customer_id: String,
-			mandate_id: String,
-			subscription_id: String,
-			cancelled_at: Date,
-			paying_fee: Boolean
-		},
 		permissions: [ {
 			permission: {
 				type: ObjectId,
@@ -219,19 +213,25 @@ module.exports.schema.virtual( 'gravatar' ).get( function() {
 
 module.exports.schema.virtual( 'memberPermission' )
 	.get( function () {
-		return this.permissions.find(p => p.permission.equals(memberId));
+		return this.permissions.find(p => p.permission.equals(config.permission.memberId));
 	} )
 	.set( function (value) {
 		// Ensure permission is always member
-		const memberPermission = {...value, permission: memberId};
+		const memberPermission = {...value, permission: config.permission.memberId};
 
-		const i = this.permissions.findIndex(p => p.permission.equals(memberId));
+		const i = this.permissions.findIndex(p => p.permission.equals(config.permission.memberId));
 		if (i > -1) {
 			this.permissions[i] = memberPermission;
 		} else {
 			this.permissions.push(memberPermission);
 		}
 	} );
+
+module.exports.schema.virtual( 'memberMonthsRemaining' ).get( function () {
+	return Math.max(0,
+		moment.utc(this.memberPermission.date_expires)
+			.subtract(config.gracePeriod).diff(moment.utc(), 'months'));
+} );
 
 module.exports.schema.virtual( 'isActiveMember' ).get( function () {
 	const now = new Date();
@@ -255,14 +255,6 @@ module.exports.schema.virtual( 'contributionDescription' ).get( function () {
 
 module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
 	return getActualAmount(this.nextContributionMonthlyAmount, this.contributionPeriod);
-} );
-
-module.exports.schema.virtual( 'hasActiveSubscription' ).get( function () {
-	return !!this.gocardless.subscription_id;
-} );
-
-module.exports.schema.virtual( 'canTakePayment' ).get( function () {
-	return !!this.gocardless.mandate_id;
 } );
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );

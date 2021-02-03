@@ -1,9 +1,15 @@
-import { log } from '@core/logging';
-import { Members } from  '@core/database';
-import mailchimp from '@core/mailchimp';
+import moment from 'moment';
+import { getRepository } from 'typeorm';
 
-import { Member, PartialMember } from '@models/members';
+import { Members } from  '@core/database';
 import gocardless from '@core/gocardless';
+import { log } from '@core/logging';
+import mailchimp from '@core/mailchimp';
+import { Member, PartialMember } from '@models/members';
+
+import GCPaymentData from '@models/GCPaymentData';
+
+import config from '@config';
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
@@ -76,8 +82,10 @@ export default class MembersService {
 			}
 		}
 
-		if ( member.gocardless.customer_id ) {
-			await gocardless.customers.update( member.gocardless.customer_id, {
+		// TODO: Unhook this from MembersService
+		const gcData = await getRepository(GCPaymentData).findOne({memberId: member.id});
+		if ( gcData && gcData.customerId) {
+			await gocardless.customers.update( gcData.customerId, {
 				email: member.email,
 				given_name: member.firstname,
 				family_name: member.lastname

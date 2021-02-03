@@ -1,10 +1,15 @@
 import _ from 'lodash';
 import moment from 'moment';
+import { getRepository, IsNull, Not } from 'typeorm';
 
 import { Members, Permissions } from '@core/database';
+
 import config from '@config' ;
-import { ExportType } from './type';
+
 import { Member } from '@models/members';
+import GCPaymentData from '@models/GCPaymentData';
+
+import { ExportType } from './type';
 
 async function getQuery() {
 	const permission = await Permissions.findOne({slug: config.permission.member});
@@ -19,9 +24,10 @@ async function getExport(members: Member[]) {
 		expires: member.memberPermission.date_expires
 	}));
 
-	const cancellationsByMonth = _(members)
-		.filter(member => !!member.gocardless.cancelled_at)
-		.map(member => member.gocardless.cancelled_at)
+	const gcData = await getRepository(GCPaymentData).find({cancelledAt: Not(IsNull())});
+
+	const cancellationsByMonth = _(gcData)
+		.map(gc => gc.cancelledAt)
 		.groupBy(date => moment(date).format('YYYY-MM'))
 		.mapValues('length')
 		.valueOf();

@@ -1,3 +1,4 @@
+import GCPaymentData from '@models/GCPaymentData';
 import { Member } from '@models/members';
 import { PollResponseAnswers } from '@models/PollResponse';
 import { ParamsDictionary } from 'express-serve-static-core';
@@ -21,6 +22,7 @@ declare global {
 			csrfToken?(): string
 			allParams: ParamsDictionary
 			answers?: PollResponseAnswers
+			gcData?: GCPaymentData
 		}
 	}
 }

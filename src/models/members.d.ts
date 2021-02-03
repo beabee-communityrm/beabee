@@ -36,13 +36,6 @@ interface Member extends PartialMember, Document {
 	contributionMonthlyAmount?: number
 	nextContributionMonthlyAmount?: number
 	contributionPeriod?: ContributionPeriod
-	gocardless: {
-		customer_id?: string,
-		mandate_id?: string,
-		subscription_id?: string,
-		paying_fee?: boolean,
-		cancelled_at?: Date
-	},
 	permissions: Permissions,
 	memberPermission: MemberPermission,
 	otp: {
@@ -71,12 +64,13 @@ interface Member extends PartialMember, Document {
 	description?: string
 	bio?: string
 	readonly isActiveMember: boolean,
-	readonly hasActiveSubscription: boolean,
-	readonly canTakePayment: boolean,
+	//readonly hasActiveSubscription: boolean,
+	//readonly canTakePayment: boolean,
 	readonly contributionDescription: string
 	readonly fullname: string
 	readonly setupComplete: boolean
 	readonly referralLink: string
+	readonly memberMonthsRemaining: number
 }
 
 export const model: Model<Member>;

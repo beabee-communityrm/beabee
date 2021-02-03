@@ -11,6 +11,8 @@ import { ContributionPeriod } from '@core/utils';
 import Payment from '@models/Payment';
 
 import config from '@config';
+import PaymentService from './PaymentService';
+import GCPaymentData from '@models/GCPaymentData';
 
 const log = mainLogger.child({app: 'payment-webhook-service'});
 
@@ -50,34 +52,49 @@ export default class PaymentWebhookService {
 			}
 		});
 
-		if (payment.memberId && payment.subscriptionId) {
-			const member = await Members.findById(payment.memberId);
-			// Ignore if the member has a new subscription as this will be for an old payment
-			if (member && (!member.gocardless.subscription_id || member.gocardless.subscription_id === payment.subscriptionId)) {
-				const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
+		if (!payment.memberId || !payment.subscriptionId) {
+			log.info({
+				action: 'ignore-confirm-payment'
+			});
+		}
 
-				log.info({
-					action: 'extend-membership',
-					data: {
-						prevDate: member.memberPermission.date_expires,
-						newDate: nextExpiryDate
-					}
-				});
+		const member = await Members.findById(payment.memberId);
+		if (!member) {
+			log.error({
+				action: 'payment-member-not-found',
+			}, 'Payment member not found');
+			return;
+		}
 
-				member.contributionMonthlyAmount =
-					PaymentWebhookService.getSubscriptionAmount(payment, !!member.gocardless.paying_fee);
-				member.nextContributionMonthlyAmount = undefined;
+		const gcData = await PaymentService.getPaymentData(member);
+		if (!gcData) {
+			log.error({
+				action: 'payment-gc-data-not-found'
+			}, 'Member has no GC data but confirmed payments');
+			return;
+		}
 
-				if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
-					member.memberPermission.date_expires = nextExpiryDate.toDate();
+		// Ignore if the member has a new subscription as this will be for an old payment
+		if (!gcData.subscriptionId || gcData.subscriptionId === payment.subscriptionId) {
+			const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
+
+			log.info({
+				action: 'extend-membership',
+				data: {
+					prevDate: member.memberPermission.date_expires,
+					newDate: nextExpiryDate
 				}
+			});
 
-				await member.save();
-			} else {
-				log.info({
-					action: 'ignore-confirm-payment'
-				});
+			member.contributionMonthlyAmount =
+				PaymentWebhookService.getSubscriptionAmount(payment, gcData.payFee);
+			member.nextContributionMonthlyAmount = undefined;
+
+			if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
+				member.memberPermission.date_expires = nextExpiryDate.toDate();
 			}
+
+			await member.save();
 		}
 	}
 
@@ -92,8 +109,9 @@ export default class PaymentWebhookService {
 	}
 
 	static async cancelSubscription(subscriptionId: string): Promise<void> {
-		const member = await Members.findOne( {
-			'gocardless.subscription_id': subscriptionId,
+		const gcData = await getRepository(GCPaymentData).findOne({subscriptionId});
+		const member = gcData && await Members.findOne( {
+			'_id': gcData.memberId,
 			// Ignore users that cancelled online, we've already handled them
 			'cancellation.satisified': { $exists: false }
 		} );
@@ -106,9 +124,10 @@ export default class PaymentWebhookService {
 					memberId: member.id
 				}
 			});
-			member.gocardless.subscription_id = undefined;
-			member.gocardless.cancelled_at = new Date();
-			await member.save();
+			await getRepository(GCPaymentData).update(gcData!.memberId, {
+				subscriptionId: undefined,
+				cancelledAt: new Date()
+			});
 			await mandrill.sendToMember('cancelled-contribution', member);
 		} else {
 			log.info( {
@@ -121,19 +140,20 @@ export default class PaymentWebhookService {
 	}
 
 	static async cancelMandate(mandateId: string): Promise<void> {
-		const member = await Members.findOne( { 'gocardless.mandate_id': mandateId } );
+		const gcData = await getRepository(GCPaymentData).findOne({mandateId});
 
-		if ( member ) {
+		if ( gcData && gcData.mandateId === mandateId) {
 			log.info( {
 				action: 'cancel-mandate',
 				sensitive: {
-					member: member._id,
-					mandateId
+					memberId: gcData.memberId,
+					mandateId: gcData.mandateId
 				}
 			} );
 
-			member.gocardless.mandate_id = undefined;
-			await member.save();
+			await getRepository(GCPaymentData).update(gcData.memberId, {
+				mandateId: undefined
+			});
 		} else {
 			log.info( {
 				action: 'unlink-mandate',
