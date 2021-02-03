@@ -13,6 +13,11 @@ import { Member, PartialMember } from '@models/members';
 import { getRepository } from 'typeorm';
 import Payment from '@models/Payment';
 
+interface PayingMember extends Member {
+	contributionMonthlyAmount: number
+	contributionPeriod: ContributionPeriod
+}
+
 function getChargeableAmount(amount: number, period: ContributionPeriod, payFee: boolean): number {
 	const actualAmount = getActualAmount(amount, period);
 	return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
@@ -99,13 +104,13 @@ export default class PaymentService {
 
 		if (user.isActiveMember) {
 			if (user.hasActiveSubscription) {
-				await PaymentService.updateSubscription(user, paymentForm);
+				await PaymentService.updateSubscription(user as PayingMember, paymentForm);
 			} else {
 				const startDate = moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod);
 				await PaymentService.createSubscription(user, paymentForm, startDate.format('YYYY-MM-DD'));
 			}
 
-			startNow = await PaymentService.prorateSubscription(user, paymentForm);
+			startNow = await PaymentService.prorateSubscription(user as PayingMember, paymentForm);
 		} else {
 			if (user.hasActiveSubscription) {
 				await PaymentService.cancelContribution(user);
@@ -169,14 +174,15 @@ export default class PaymentService {
 			...(startDate && { start_date: startDate })
 		} );
 
+		member.contributionPeriod = paymentForm.period;
+
 		member.gocardless.subscription_id = subscription.id;
-		member.gocardless.period = paymentForm.period;
 		member.gocardless.paying_fee = paymentForm.payFee;
 
 		await member.save();
 	}
 
-	private static async updateSubscription(user: Member, paymentForm: PaymentForm): Promise<void> {
+	private static async updateSubscription(user: PayingMember, paymentForm: PaymentForm): Promise<void> {
 		// Don't update if the amount isn't actually changing
 		if (paymentForm.amount === user.contributionMonthlyAmount && paymentForm.payFee === user.gocardless.paying_fee) {
 			return;
@@ -217,7 +223,7 @@ export default class PaymentService {
 		await user.save();
 	}
 
-	private static async prorateSubscription(member: Member, paymentForm: PaymentForm): Promise<boolean> {
+	private static async prorateSubscription(member: PayingMember, paymentForm: PaymentForm): Promise<boolean> {
 		const monthsLeft = PaymentService.getMonthsLeftOnContribution(member);
 		const prorateAmount = (paymentForm.amount - member.contributionMonthlyAmount) * monthsLeft;
 
@@ -286,10 +292,10 @@ export default class PaymentService {
 		member.gocardless.cancelled_at = undefined;
 
 		if (startNow) {
-			member.gocardless.amount = paymentForm.amount;
-			member.gocardless.next_amount = undefined;
+			member.contributionMonthlyAmount = paymentForm.amount;
+			member.nextContributionMonthlyAmount = undefined;
 		} else {
-			member.gocardless.next_amount = paymentForm.amount;
+			member.nextContributionMonthlyAmount = paymentForm.amount;
 		}
 
 		await member.save();

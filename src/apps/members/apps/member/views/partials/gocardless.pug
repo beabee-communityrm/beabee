@@ -17,12 +17,12 @@ dl.dl-horizontal
 		dd –
 	dt Amount
 	dd
-		= member.gocardless.amount ? '£' + member.gocardless.amount : '–'
+		= member.contributionMonthlyAmount ? '£' + member.contributionMonthlyAmount : '–'
 		if member.gocardless.paying_fee
 			|
 			| (+ fee)
 	dt Period
-	dd= member.gocardless.period ? member.gocardless.period : '–'
+	dd= member.contributionPeriod || '–'
 	if member.gocardless.cancelled_at
 		dt Cancelled
 		dd= moment(member.gocardless.cancelled_at).format('HH:mm:ss DD/MM/YYYY')

@@ -64,8 +64,10 @@ export default class PaymentWebhookService {
 					}
 				});
 
-				member.gocardless.amount = PaymentWebhookService.getSubscriptionAmount(payment, !!member.gocardless.paying_fee);
-				member.gocardless.next_amount = undefined;
+				member.contributionMonthlyAmount =
+					PaymentWebhookService.getSubscriptionAmount(payment, !!member.gocardless.paying_fee);
+				member.nextContributionMonthlyAmount = undefined;
+
 				if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
 					member.memberPermission.date_expires = nextExpiryDate.toDate();
 				}

@@ -41,9 +41,9 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 			'gocardless.customer_id': req.body.customer_id,
 			'gocardless.mandate_id': req.body.mandate_id,
 			'gocardless.subscription_id': req.body.subscription_id,
-			'gocardless.amount': Number(req.body.amount),
-			'gocardless.period': req.body.period,
-			'gocardless.paying_fee': req.body.payFee === 'true'
+			'gocardless.paying_fee': req.body.payFee === 'true',
+			contributionMonthlyAmount: Number(req.body.amount),
+			contributionPeriod: req.body.period
 		} });
 		req.flash( 'success', 'gocardless-updated' );
 		break;

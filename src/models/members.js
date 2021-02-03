@@ -139,16 +139,16 @@ module.exports = {
 			default: Date.now,
 			required: true
 		},
+		contributionMonthlyAmount: Number,
+		contributionPeriod: {
+			type: String,
+			enum: ['monthly', 'annually', 'gift']
+		},
+		nextContributionMonthlyAmount: Number,
 		gocardless: {
 			customer_id: String,
 			mandate_id: String,
 			subscription_id: String,
-			amount: Number,
-			next_amount: Number,
-			period: {
-				type: String,
-				enum: ['monthly', 'annually', 'gift']
-			},
 			cancelled_at: Date,
 			paying_fee: Boolean
 		},
@@ -245,18 +245,6 @@ module.exports.schema.virtual( 'setupComplete' ).get( function() {
 
 module.exports.schema.virtual( 'referralLink' ).get( function () {
 	return 'https://thebristolcable.org/refer/' + this.referralCode;
-} );
-
-module.exports.schema.virtual( 'contributionMonthlyAmount' ).get( function () {
-	return this.gocardless.amount;
-} );
-
-module.exports.schema.virtual( 'nextContributionMonthlyAmount' ).get( function () {
-	return this.gocardless.next_amount;
-} );
-
-module.exports.schema.virtual( 'contributionPeriod' ).get( function () {
-	return this.gocardless.period;
 } );
 
 module.exports.schema.virtual( 'contributionDescription' ).get( function () {
