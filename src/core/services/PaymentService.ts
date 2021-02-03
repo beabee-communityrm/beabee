@@ -24,68 +24,9 @@ function getChargeableAmount(amount: number, period: ContributionPeriod, payFee:
 	return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
 }
 
-export default class PaymentService {
-	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<PartialMember|null> {
-		const customer = {
-			...await gocardless.customers.get(customerId),
-			...overrides
-		};
-
-		return !customer.given_name || !customer.family_name ? null : {
-			firstname: customer.given_name,
-			lastname: customer.family_name,
-			email: cleanEmailAddress(customer.email || ''),
-			delivery_optin: false,
-			delivery_address: {
-				line1: customer.address_line1,
-				line2: customer.address_line2,
-				city: customer.city,
-				postcode: customer.postal_code
-			}
-		};
-	}
-
-	static async getBankAccount(member: Member): Promise<CustomerBankAccount|null> {
-		const gcData = await this.getPaymentData(member);
-		if (gcData?.customerId) {
-			try {
-				const mandate = await gocardless.mandates.get(gcData.customerId);
-				return await gocardless.customerBankAccounts.get(mandate.links.customer_bank_account);
-			} catch (err) {
-				// 404s can happen on dev as we don't use real mandate IDs
-				if (config.dev && err.response && err.response.status === 404) {
-					return null;
-				}
-				throw err;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	static async getPaymentData(member: Member): Promise<GCPaymentData|undefined> {
-		return await getRepository(GCPaymentData).findOne({memberId: member.id});
-	}
-
-	static async canChangeContribution(user: Member, useExistingMandate: boolean): Promise<boolean> {
-		const gcData = await this.getPaymentData(user);
-		// No payment method available
-		if (useExistingMandate && !gcData?.mandateId) {
-			return false;
-		}
-
-		// Can always change contribution if there is no subscription
-		if (!gcData?.subscriptionId) {
-			return true;
-		}
-
-		// Monthly contributors can update their contribution even if they have
-		// pending payments, but they can't always change their mandate as this can
-		// result in double charging
-		return useExistingMandate && user.contributionPeriod === 'monthly' ||
-			!(await this.hasPendingPayment(user));
-	}
-
+// Update contribution has been split into lots of methods as it's complicated
+// and has mutable state, nothing else should use the private methods in here
+abstract class UpdateContributionPaymentService {
 	static async updateContribution(user: Member, paymentForm: PaymentForm): Promise<void> {
 		log.info( {
 			app: 'direct-debit',
@@ -106,40 +47,25 @@ export default class PaymentService {
 
 		if (user.isActiveMember) {
 			if (gcData.subscriptionId) {
-				gcData = await PaymentService.updateSubscription(user as PayingMember, gcData, paymentForm);
+				gcData = await this.updateSubscription(user as PayingMember, gcData, paymentForm);
 			} else {
 				const startDate = moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod);
-				gcData = await PaymentService.createSubscription(user, gcData, paymentForm, startDate.format('YYYY-MM-DD'));
+				gcData = await this.createSubscription(user, gcData, paymentForm, startDate.format('YYYY-MM-DD'));
 			}
 
-			startNow = await PaymentService.prorateSubscription(user as PayingMember, gcData, paymentForm);
+			startNow = await this.prorateSubscription(user as PayingMember, gcData, paymentForm);
 		} else {
 			if (gcData.subscriptionId) {
 				await PaymentService.cancelContribution(user);
 				gcData.subscriptionId = undefined;
 			}
 
-			gcData = await PaymentService.createSubscription(user, gcData, paymentForm);
+			gcData = await this.createSubscription(user, gcData, paymentForm);
 		}
 
-		gcData = await PaymentService.activateContribution(user, gcData, paymentForm, startNow);
+		gcData = await this.activateContribution(user, gcData, paymentForm, startNow);
 
 		await getRepository(GCPaymentData).save(gcData);
-	}
-
-	static async cancelContribution(member: Member): Promise<void> {
-		log.info( {
-			app: 'direct-debit',
-			action: 'cancel-subscription',
-			data: {
-				userId: member._id
-			}
-		} );
-
-		const gcData = await PaymentService.getPaymentData(member);
-		if (gcData?.subscriptionId) {
-			await gocardless.subscriptions.cancel(gcData.subscriptionId);
-		}
 	}
 
 	private static async createSubscription(member: Member, gcData: GCPaymentData, paymentForm: PaymentForm,  startDate?: string): Promise<GCPaymentData> {
@@ -295,6 +221,84 @@ export default class PaymentService {
 		}
 
 		return gcData;
+	}
+}
+
+export default class PaymentService extends UpdateContributionPaymentService {
+	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<PartialMember|null> {
+		const customer = {
+			...await gocardless.customers.get(customerId),
+			...overrides
+		};
+
+		return !customer.given_name || !customer.family_name ? null : {
+			firstname: customer.given_name,
+			lastname: customer.family_name,
+			email: cleanEmailAddress(customer.email || ''),
+			delivery_optin: false,
+			delivery_address: {
+				line1: customer.address_line1,
+				line2: customer.address_line2,
+				city: customer.city,
+				postcode: customer.postal_code
+			}
+		};
+	}
+
+	static async getBankAccount(member: Member): Promise<CustomerBankAccount|null> {
+		const gcData = await this.getPaymentData(member);
+		if (gcData?.customerId) {
+			try {
+				const mandate = await gocardless.mandates.get(gcData.customerId);
+				return await gocardless.customerBankAccounts.get(mandate.links.customer_bank_account);
+			} catch (err) {
+				// 404s can happen on dev as we don't use real mandate IDs
+				if (config.dev && err.response && err.response.status === 404) {
+					return null;
+				}
+				throw err;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	static async getPaymentData(member: Member): Promise<GCPaymentData|undefined> {
+		return await getRepository(GCPaymentData).findOne({memberId: member.id});
+	}
+
+	static async canChangeContribution(user: Member, useExistingMandate: boolean): Promise<boolean> {
+		const gcData = await this.getPaymentData(user);
+		// No payment method available
+		if (useExistingMandate && !gcData?.mandateId) {
+			return false;
+		}
+
+		// Can always change contribution if there is no subscription
+		if (!gcData?.subscriptionId) {
+			return true;
+		}
+
+		// Monthly contributors can update their contribution even if they have
+		// pending payments, but they can't always change their mandate as this can
+		// result in double charging
+		return useExistingMandate && user.contributionPeriod === 'monthly' ||
+			!(await this.hasPendingPayment(user));
+	}
+
+	static async cancelContribution(member: Member): Promise<void> {
+		log.info( {
+			app: 'direct-debit',
+			action: 'cancel-subscription',
+			data: {
+				userId: member._id
+			}
+		} );
+
+		const gcData = await PaymentService.getPaymentData(member);
+		if (gcData?.subscriptionId) {
+			await gocardless.subscriptions.cancel(gcData.subscriptionId);
+		}
 	}
 
 	static async updatePaymentMethod(member: Member, customerId: string, mandateId: string): Promise<void> {
