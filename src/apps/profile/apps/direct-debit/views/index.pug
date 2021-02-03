@@ -24,10 +24,12 @@ block contents
 				.alert.alert-info.
 					Increase your contribution to £3/month or more to receive the print edition
 
-			if user.contributionPeriod === 'gift'
+			if user.contributionPeriod === 'gift' && user.isActiveMember
 				p.
-					You #{user.isActiveMember ? 'are' : 'were'} on a gift membership. You can
-					start a contribution to continue your membership.
+					You are on a gift membership. You can start a contribution to
+					continue your membership beyond
+					#{ moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY') }
+
 				hr
 			else if gcData
 				p
