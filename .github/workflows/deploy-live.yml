@@ -42,4 +42,5 @@ jobs:
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+      - run: ssh ${{ secrets.DEPLOY_SERVER }} deploy
 
