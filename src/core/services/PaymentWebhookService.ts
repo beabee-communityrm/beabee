@@ -179,7 +179,8 @@ export default class PaymentWebhookService {
 		const payment = new Payment();
 		payment.paymentId = gcPayment.id;
 
-		const member = await Members.findOne( { 'gocardless.mandate_id': gcPayment.links.mandate } );
+		const gcData = await getRepository(GCPaymentData).findOne({mandateId: gcPayment.links.mandate });
+		const member = gcData && await Members.findById(gcData.memberId);
 		if (member) {
 			log.info({
 				action: 'create-payment',

@@ -8,7 +8,6 @@ import auth from '@core/authentication';
 import { Members } from '@core/database';
 import mailchimp from '@core/mailchimp';
 import mandrill from '@core/mandrill';
-import { hasModel } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
@@ -27,13 +26,16 @@ app.set( 'views', __dirname + '/views' );
 
 app.use( auth.isAdmin );
 
-// Bit of a hack to get parent app params
-app.use((req, res, next) => {
-	req.params = req.allParams;
-	hasModel(Members, 'uuid')(req, res, () => {
-		(req.model as Member).populate('permissions.permission', next);
-	});
-});
+app.use(wrapAsync(async (req, res, next) => {
+	// Bit of a hack to get parent app params
+	req.model = await Members.findOne({uuid: req.allParams.uuid}).populate('permissions.permission').exec();
+	if (req.model) {
+		res.locals.gcData = await PaymentService.getPaymentData(req.model as Member);
+		next();
+	} else {
+		next('route');
+	}
+}));
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;

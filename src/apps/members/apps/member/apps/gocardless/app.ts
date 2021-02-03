@@ -44,9 +44,9 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 			contributionPeriod: req.body.period
 		} });
 		await getRepository(GCPaymentData).update(member.id, {
-			customerId: req.body.customer_id,
-			mandateId: req.body.mandate_id,
-			subscriptionId: req.body.subscription_id,
+			customerId: req.body.customerId,
+			mandateId: req.body.mandateId,
+			subscriptionId: req.body.subscriptionId,
 			payFee: req.body.payFee === 'true',
 		});
 

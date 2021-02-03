@@ -27,12 +27,12 @@ app.set( 'views', __dirname + '/views' );
 app.use( auth.isLoggedIn );
 
 app.use(wrapAsync(async (req, res, next) => {
-	req.gcData = await PaymentService.getPaymentData(req.user!);
+	res.locals.gcData = await PaymentService.getPaymentData(req.user!);
 	next();
 }));
 
 function hasSubscription(req: Request, res: Response, next: NextFunction) {
-	if ( req.gcData?.subscriptionId ) {
+	if ( res.locals.gcData?.subscriptionId ) {
 		next();
 	} else {
 		req.flash( 'danger', 'contribution-doesnt-exist' );
@@ -45,7 +45,7 @@ app.get( '/', wrapAsync( hasUser(async function ( req, res ) {
 		user: req.user,
 		hasPendingPayment: await PaymentService.hasPendingPayment(req.user),
 		bankAccount: await PaymentService.getBankAccount(req.user),
-		canChange: await PaymentService.canChangeContribution(req.user, !!req.gcData?.mandateId),
+		canChange: await PaymentService.canChangeContribution(req.user, !!res.locals.gcData?.mandateId),
 		monthsLeft: req.user.memberMonthsRemaining
 	} );
 } ) ) );

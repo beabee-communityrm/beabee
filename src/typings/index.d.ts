@@ -22,7 +22,6 @@ declare global {
 			csrfToken?(): string
 			allParams: ParamsDictionary
 			answers?: PollResponseAnswers
-			gcData?: GCPaymentData
 		}
 	}
 }

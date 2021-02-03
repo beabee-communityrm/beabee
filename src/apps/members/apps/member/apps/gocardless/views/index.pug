@@ -24,7 +24,7 @@ mixin commonSubscriptionFields(idPrefix, periodReadOnly)
 	+input( 'checkbox', 'Paying fee', 'payFee', {
 		left: 3, right: 4,
 		options: {'true': 'Yes'},
-		value: member.gocardless.paying_fee,
+		value: gcData.payFee,
 		id: idPrefix + 'PayFee'
 	})
 
@@ -66,8 +66,8 @@ block contents
 			form( method="post" ).form-horizontal
 				+csrf
 				input( type='hidden' name='action' value='force-update' )
-				+input( 'text', 'Customer ID', 'customer_id', { value: member.gocardless.customer_id, left: 3, right: 4 } )
-				+input( 'text', 'Mandate ID', 'mandate_id', { value: member.gocardless.mandate_id, left: 3, right: 4 } )
-				+input( 'text', 'Subscription ID', 'subscription_id', { value: member.gocardless.subscription_id, left: 3, right: 4 } )
+				+input( 'text', 'Customer ID', 'customerId', { value: gcData.customerId, left: 3, right: 4 } )
+				+input( 'text', 'Mandate ID', 'mandateId', { value: gcData.mandateId, left: 3, right: 4 } )
+				+input( 'text', 'Subscription ID', 'subscriptionId', { value: gcData.subscriptionId, left: 3, right: 4 } )
 				+commonSubscriptionFields('force', false)
 				+form_button( 'Update', 'danger', { left: 3 } )
