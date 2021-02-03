@@ -248,9 +248,14 @@ module.exports.schema.virtual( 'referralLink' ).get( function () {
 } );
 
 module.exports.schema.virtual( 'contributionDescription' ).get( function () {
-	const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
-	return this.contributionPeriod === 'gift' ? 'Gift' :
-		`£${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
+	if (!this.contributionPeriod) {
+		return 'None';
+	} else if (this.contributionPeriod === 'gift') {
+		return 'Gift';
+	} else {
+		const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
+		return `£${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
+	}
 } );
 
 module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
