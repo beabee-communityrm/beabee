@@ -44,7 +44,7 @@ block contents
 					if hasPendingPayment
 						| we are currently processing your payment.
 					else
-						if gcData.suscriptionId
+						if gcData.subscriptionId
 							| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'} around
 						else
 							| it #{user.isActiveMember ? 'will expire' : 'expired'} on
