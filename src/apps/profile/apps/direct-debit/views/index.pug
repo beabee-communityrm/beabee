@@ -28,6 +28,7 @@ block contents
 				p.
 					You #{user.isActiveMember ? 'are' : 'were'} on a gift membership. You can
 					start a contribution to continue your membership.
+				hr
 			else if gcData
 				p
 					| You #{user.isActiveMember ? 'contribute' : 'previously contributed'}
@@ -49,13 +50,14 @@ block contents
 						|
 						= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
 						| .
+				hr
+
+			h4 #{!gcData ? 'Start' : gcData.subscriptionId ? 'Update' : 'Restart'} contribution
 
 			if user.nextContributionAmount
 				p.alert.alert-success.
 					You updated your contribution amount, it will change to
 					£#{user.nextContributionAmount} on your next payment
-
-			h4 #{!gcData ? 'Start' : gcData.subscriptionId ? 'Update' : 'Restart'} contribution
 
 			if canChange
 				include partials/change-subscription
