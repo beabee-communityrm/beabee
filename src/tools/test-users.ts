@@ -11,6 +11,7 @@ import { Member } from '@models/members';
 
 import config from '@config';
 import { ContributionPeriod } from '@core/utils';
+import GCPaymentData from '@models/GCPaymentData';
 
 async function logMember(type: string, query: FilterQuery<Member>) {
 	const member = await db.Members.findOne(query);
@@ -49,6 +50,11 @@ async function getFilters() {
 	const membersWithScheduledPayments = scheduledPayments.map(p => p.memberId);
 	const membersWithFailedPayments = failedPayments.map(p => p.memberId);
 
+	const gcData = await getRepository(GCPaymentData).find();
+	const membersWithSubscriptions = gcData.filter(gc => !!gc.subscriptionId).map(gc => gc.memberId);
+	const membersWithCancellations = gcData.filter(gc => !!gc.cancelledAt).map(gc => gc.memberId);
+	const membersWithPayingFee = gcData.filter(gc => !!gc.payFee).map(gc => gc.memberId);
+
 	const permissions = await db.Permissions.find();
 
 	return {
@@ -73,10 +79,10 @@ async function getFilters() {
 			contributionPeriod: ContributionPeriod.Gift
 		},
 		hasSubscription: {
-			'gocardless.subscription_id': {$exists: true}
+			_id: {$in: membersWithSubscriptions}
 		},
 		hasCancelled: {
-			'gocardless.cancelled_at': {$exists: true}
+			_id: {$in: membersWithCancellations}
 		},
 		noScheduledPayments: {
 			_id: {$nin: membersWithScheduledPayments}
@@ -91,7 +97,7 @@ async function getFilters() {
 			_id: {$in: membersWithFailedPayments}
 		},
 		isPayingFee: {
-			'gocardless.paying_fee': true
+			_id: {$in: membersWithPayingFee}
 		}
 	};
 }
