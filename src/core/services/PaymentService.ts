@@ -247,9 +247,9 @@ export default class PaymentService extends UpdateContributionPaymentService {
 
 	static async getBankAccount(member: Member): Promise<CustomerBankAccount|null> {
 		const gcData = await this.getPaymentData(member);
-		if (gcData?.customerId) {
+		if (gcData?.mandateId) {
 			try {
-				const mandate = await gocardless.mandates.get(gcData.customerId);
+				const mandate = await gocardless.mandates.get(gcData.mandateId);
 				return await gocardless.customerBankAccounts.get(mandate.links.customer_bank_account);
 			} catch (err) {
 				// 404s can happen on dev as we don't use real mandate IDs
