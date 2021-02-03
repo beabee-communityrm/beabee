@@ -1,19 +1,28 @@
 import express from 'express';
+import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { wrapAsync } from '@core/utils';
 
 import PaymentService from '@core/services/PaymentService';
 
-import { Member } from '@models/members';
-import { getRepository } from 'typeorm';
 import GCPaymentData from '@models/GCPaymentData';
+import { Member } from '@models/members';
 
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
 app.use(auth.isSuperAdmin);
+
+app.use((req, res, next) => {
+	if (res.locals.gcData) {
+		next();
+	} else {
+		req.flash('error', 'gocardless-no-data');
+		res.redirect('/members/' + (req.model as Member).uuid);
+	}
+});
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;

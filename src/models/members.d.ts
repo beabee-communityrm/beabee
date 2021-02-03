@@ -64,8 +64,6 @@ interface Member extends PartialMember, Document {
 	description?: string
 	bio?: string
 	readonly isActiveMember: boolean,
-	//readonly hasActiveSubscription: boolean,
-	//readonly canTakePayment: boolean,
 	readonly contributionDescription: string
 	readonly fullname: string
 	readonly setupComplete: boolean

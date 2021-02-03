@@ -116,6 +116,7 @@ export default class PaymentService {
 		} else {
 			if (gcData.subscriptionId) {
 				await PaymentService.cancelContribution(user);
+				gcData.subscriptionId = undefined;
 			}
 
 			gcData = await PaymentService.createSubscription(user, gcData, paymentForm);

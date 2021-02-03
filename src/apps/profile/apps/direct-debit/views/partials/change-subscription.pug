@@ -1,9 +1,11 @@
+- hasActiveSubscription = gcData && !!gcData.subscriptionId
+
 form(
 	method='post'
 	data-amount=user.contributionMonthlyAmount
-	data-paying-fee=gcData.payFee
+	data-paying-fee=gcData && gcData.payFee
 	data-active-member=user.isActiveMember
-	data-active-subscription=user.hasActiveSubscription
+	data-active-subscription=hasActiveSubscription
 	data-next=moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
 	data-months=monthsLeft
 ).form-horizontal.js-update-form
@@ -17,7 +19,7 @@ form(
 				input( type='number', name='amount', id='amount', value=user.contributionMonthlyAmount, required, min=1, step=1 ).form-control.js-new-amount-input
 				span.input-group-addon / month
 	
-	if user.hasActiveSubscription
+	if hasActiveSubscription
 		input(type='hidden' name='period' value=user.contributionPeriod)
 	else
 		.form-group
@@ -44,13 +46,13 @@ form(
 				label.radio-inline
 					input(
 						type='radio' name='payFee' value='true' required
-						checked=gcData.payFee || !user.hasActiveSubscription
+						checked=!hasActiveSubscription || gcData.payFee
 					)
 					| Yes
 				label.radio-inline
 					input(
 						type='radio' name='payFee' value='false' required
-						checked=!gcData.payFee && user.hasActiveSubscription
+						checked=hasActiveSubscription && !gcData.payFee
 					)
 					| No
 			p(style='padding-top:7px;margin:0').js-new-fee-force: i £1/month contributions must absorb the fee
@@ -60,7 +62,7 @@ form(
 				.panel-body
 					| Our payment processor charges us per transaction so we receive less
 					| from monthly contributions.
-					if user.hasActiveSubscription
+					if hasActiveSubscription
 						|
 						|
 						+emailSupport('Contact us')
@@ -157,7 +159,3 @@ form(
 	.form-group
 		.col-md-offset-3.col-md-9
 			button.btn.btn-success Submit
-
-if user.hasActiveSubscription
-	p.
-		To change your payment cycle please contact #[+emailSupport].
