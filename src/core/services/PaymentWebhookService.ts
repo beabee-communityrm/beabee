@@ -87,7 +87,7 @@ export default class PaymentWebhookService {
 			});
 
 			member.contributionMonthlyAmount =
-				PaymentWebhookService.getSubscriptionAmount(payment, gcData.payFee);
+				PaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
 			member.nextContributionMonthlyAmount = undefined;
 
 			if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {

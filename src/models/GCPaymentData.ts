@@ -17,6 +17,6 @@ export default class GCPaymentData {
   @Column({ nullable: true })
   cancelledAt?: Date;
 
-  @Column()
-  payFee!: boolean;
+  @Column({nullable: true})
+  payFee?: boolean;
 }
