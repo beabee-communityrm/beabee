@@ -156,7 +156,7 @@ const migrations: Migration<any>[] = [
 		guestEmail: () => undefined
 	}),
 	createMigration(GCPaymentData, 'members', {
-		memberId: doc => doc._id,
+		memberId: objectId('_id'),
 		customerId: doc => doc.gocardless && doc.gocardless.customer_id,
 		mandateId: doc => doc.gocardless && doc.gocardless.mandate_id,
 		subscriptionId: doc => doc.gocardless && doc.gocardless.subscription_id,
