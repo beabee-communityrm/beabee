@@ -22,7 +22,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		family_name: req.body.last_name
 	} : {};
 
-	const memberObj = await PaymentService.customerToMember(req.body.customer_id, overrides);
+	const memberObj = await PaymentService.customerToMember(req.body.customerId, overrides);
 	if (memberObj) {
 		const member = await MembersService.createMember(memberObj);
 		res.redirect( app.mountpath + '/' + member.uuid );
