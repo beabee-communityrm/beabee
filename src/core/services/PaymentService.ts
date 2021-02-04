@@ -303,7 +303,15 @@ export default class PaymentService extends UpdateContributionPaymentService {
 			});
 
 			if (gcData.subscriptionId) {
-				await gocardless.subscriptions.cancel(gcData.subscriptionId);
+				try {
+					await gocardless.subscriptions.cancel(gcData.subscriptionId);
+				} catch (err) {
+					// Ignore already cancelled errors
+					const errors: {reason: string}[] = err.response?.data?.error?.errors;
+					if (!errors || !errors.find(e => e.reason === 'cancellation_failed')) {
+						throw err;
+					}
+				}
 			}
 
 			member.nextContributionMonthlyAmount = undefined;
