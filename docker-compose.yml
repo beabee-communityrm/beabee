@@ -38,6 +38,8 @@ services:
     build: .
     user: root
     command: 'crond -f -d 0'
+    volumes:
+      - ./built:/opt/membership-system/built
 
   router:
     image: nginx:1.18.0-alpine
