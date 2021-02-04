@@ -23,26 +23,5 @@ block contents
 						dt Contribution
 						dd= user.contributionDescription
 
-					if gcData
-						if !user.isActiveMember
-							.alert.alert-danger Your membership has expired
-
-							if gcData.subscriptionId
-								p.
-									This is probably because your last payment failed, please
-									contact #[+emailSupport].
-							else
-								p.
-									To restart your membership please update your
-									#[a(href='/profile/direct-debit') contribution details].
-						else if gcData.cancelledAt
-							.alert.alert-warning You cancelled your contribution
-
-							p
-								| Your membership will expire on
-								|
-								= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
-								| . To stop your membership expiring
-								|
-								a(href='/profile/direct-debit') restart your contribution
-								| .
+					if !user.isActiveMember
+						.alert.alert-danger Your membership has expired
