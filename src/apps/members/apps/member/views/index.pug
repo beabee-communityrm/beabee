@@ -30,8 +30,16 @@ block contents
 						dl.dl-horizontal
 							dt Type
 							dd= member.contributionType
-							if gcData
-								include partials/gocardless.pug
+							dt Amount
+							dd
+								= member.contributionMonthlyAmount ? '£' + member.contributionMonthlyAmount : '–'
+								if gcData.payFee
+									|
+									| (+ fee)
+							dt Period
+							dd= member.contributionPeriod || '–'
+														if gcData
+							include partials/gocardless.pug
 				.row
 					.col-md-12
 						include partials/permissions.pug

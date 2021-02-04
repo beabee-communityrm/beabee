@@ -11,13 +11,6 @@ dd: +gcLink(gcData.mandateId, 'mandates')
 dt Subscription ID
 dd: +gcLink(gcData.subscriptionId, 'subscriptions')
 dt Amount
-dd
-	= member.contributionMonthlyAmount ? '£' + member.contributionMonthlyAmount : '–'
-	if gcData.payFee
-		|
-		| (+ fee)
-dt Period
-dd= member.contributionPeriod || '–'
 if gcData.cancelledAt
 	dt Cancelled
 	dd= moment(gcData.cancelledAt).format('HH:mm:ss DD/MM/YYYY')
