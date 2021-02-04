@@ -18,12 +18,13 @@ block contents
 			else if gcData && gcData.cancelledAt
 				.alert.alert-warning You cancelled your contribution
 
-			if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
-				a(href='/profile/delivery').alert.alert-warning.
-					You are eligible to receive the print edition, #[b click here to set your delivery address]
-			else if user.contributionMonthlyAmount < 3
-				.alert.alert-info.
-					Increase your contribution to £3/month or more to receive the print edition
+			if user.isActiveMember
+				if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
+					a(href='/profile/delivery').alert.alert-warning.
+						You are eligible to receive the print edition, #[b click here to set your delivery address]
+				else if user.contributionMonthlyAmount < 3
+					.alert.alert-info.
+						Increase your contribution to £3/month or more to receive the print edition
 
 			if user.contributionPeriod === 'gift' && user.isActiveMember
 				p.
