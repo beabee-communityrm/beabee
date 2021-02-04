@@ -263,7 +263,8 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 	}
 
 	static async getPaymentData(member: Member): Promise<GCPaymentData|undefined> {
-		return await getRepository(GCPaymentData).findOne({memberId: member.id});
+		return member.contributionType === ContributionType.GoCardless ?
+			await getRepository(GCPaymentData).findOne({memberId: member.id}) : undefined;
 	}
 
 	static async canChangeContribution(user: Member, useExistingMandate: boolean): Promise<boolean> {
