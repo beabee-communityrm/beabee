@@ -31,6 +31,7 @@ const fields = {
 	'firstname': 'firstname',
 	'lastname': 'lastname',
 	'email': 'email',
+	'contributionType': 'contributionType',
 	'contributionMonthlyAmount': 'contributionMonthlyAmount',
 	'contributionPeriod': 'contributionPeriod',
 	'deliveryOptIn': 'delivery_optin',
