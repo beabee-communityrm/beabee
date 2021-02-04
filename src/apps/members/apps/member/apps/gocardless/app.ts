@@ -4,7 +4,7 @@ import { getRepository } from 'typeorm';
 import auth from '@core/authentication';
 import { wrapAsync } from '@core/utils';
 
-import PaymentService from '@core/services/PaymentService';
+import GCPaymentService from '@core/services/GCPaymentService';
 
 import GCPaymentData from '@models/GCPaymentData';
 import { Member } from '@models/members';
@@ -28,7 +28,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
 	res.render( 'index', {
 		member: req.model,
-		canChange: await PaymentService.canChangeContribution( member, true ),
+		canChange: await GCPaymentService.canChangeContribution( member, true ),
 		monthsLeft: member.memberMonthsRemaining
 	} );
 } ) );
@@ -38,7 +38,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 
 	switch ( req.body.action ) {
 	case 'update-subscription':
-		await PaymentService.updateContribution(member, {
+		await GCPaymentService.updateContribution(member, {
 			amount: Number(req.body.amount),
 			period: req.body.period,
 			prorate: req.body.prorate === 'true',

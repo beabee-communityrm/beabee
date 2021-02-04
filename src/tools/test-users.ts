@@ -5,13 +5,13 @@ import { FilterQuery } from 'mongoose';
 import { ConnectionOptions, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
-
-import Payment from '@models/Payment';
-import { Member } from '@models/members';
+import { ContributionPeriod, ContributionType } from '@core/utils';
 
 import config from '@config';
-import { ContributionPeriod } from '@core/utils';
+
 import GCPaymentData from '@models/GCPaymentData';
+import Payment from '@models/Payment';
+import { Member } from '@models/members';
 
 async function logMember(type: string, query: FilterQuery<Member>) {
 	const member = await db.Members.findOne(query);
@@ -76,7 +76,7 @@ async function getFilters() {
 			}}
 		},
 		isGift: {
-			contributionPeriod: ContributionPeriod.Gift
+			contributionType: ContributionType.Gift
 		},
 		hasSubscription: {
 			_id: {$in: membersWithSubscriptions}

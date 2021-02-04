@@ -140,6 +140,7 @@ module.exports = {
 			default: Date.now,
 			required: true
 		},
+		contributionType: String,
 		contributionMonthlyAmount: Number,
 		contributionPeriod: {
 			type: String,
@@ -248,10 +249,10 @@ module.exports.schema.virtual( 'referralLink' ).get( function () {
 } );
 
 module.exports.schema.virtual( 'contributionDescription' ).get( function () {
-	if (!this.contributionPeriod) {
-		return 'None';
-	} else if (this.contributionPeriod === 'gift') {
+	if (this.contributionType === 'gift') {
 		return 'Gift';
+	} else if (!this.contributionPeriod) {
+		return 'None';
 	} else {
 		const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
 		return `£${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;

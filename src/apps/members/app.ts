@@ -68,7 +68,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const filter = ruleGroup ? parseRuleGroup(ruleGroup) : {};
 
 	// Hack to keep permission filter until it becomes a rule
-	if (query.permission || !query.show_inactive) {
+	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
 		const permissionSearch = {
 			...(query.permission && {
 				permission: permissions.find(p => p.slug === query.permission)

@@ -3,7 +3,7 @@ import express from 'express';
 import { wrapAsync } from '@core/utils';
 import auth from '@core/authentication';
 
-import PaymentService from '@core/services/PaymentService';
+import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
 
 const app = express();
@@ -22,7 +22,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		family_name: req.body.last_name
 	} : {};
 
-	const memberObj = await PaymentService.customerToMember(req.body.customerId, overrides);
+	const memberObj = await GCPaymentService.customerToMember(req.body.customerId, overrides);
 	if (memberObj) {
 		const member = await MembersService.createMember(memberObj);
 		res.redirect( app.mountpath + '/' + member.uuid );

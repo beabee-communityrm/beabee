@@ -10,7 +10,7 @@ import config from '@config';
 
 import JoinFlowService, { CompletedJoinFlow }  from '@core/services/JoinFlowService';
 import MembersService  from '@core/services/MembersService';
-import PaymentService from '@core/services/PaymentService';
+import GCPaymentService from '@core/services/GCPaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import { JoinForm } from '@models/JoinFlow';
@@ -89,8 +89,8 @@ app.post( '/referral/:code', [
 } ) );
 
 async function handleJoin(req: Request, res: Response, member: Member, {customerId, mandateId, joinForm}: CompletedJoinFlow): Promise<void> {
-	await PaymentService.updatePaymentMethod(member, customerId, mandateId);
-	await PaymentService.updateContribution(member, joinForm);
+	await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
+	await GCPaymentService.updateContribution(member, joinForm);
 
 	if (joinForm.referralCode) {
 		const referrer = await Members.findOne({referralCode: joinForm.referralCode});
@@ -116,7 +116,7 @@ app.get( '/complete', [
 		return res.redirect( app.mountpath + '/complete/failed');
 	}
 
-	const partialMember = await PaymentService.customerToMember(joinFlow.customerId);
+	const partialMember = await GCPaymentService.customerToMember(joinFlow.customerId);
 	if (!partialMember) {
 		req.log.error({
 			app: 'join',
@@ -171,7 +171,7 @@ app.get('/restart/:id', wrapAsync(async (req, res, next) => {
 	if (restartFlow) {
 		const member = await Members.findById(restartFlow.memberId);
 		if (member) {
-			if (member.isActiveMember || !await PaymentService.canChangeContribution(member, false)) {
+			if (member.isActiveMember || !await GCPaymentService.canChangeContribution(member, false)) {
 				res.redirect( app.mountpath + '/restart/failed' );
 			} else {
 				await handleJoin(req, res, member, restartFlow);

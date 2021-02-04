@@ -11,7 +11,7 @@ import mandrill from '@core/mandrill';
 import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
-import PaymentService from '@core/services/PaymentService';
+import GCPaymentService from '@core/services/GCPaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import { Member } from '@models/members';
@@ -30,7 +30,7 @@ app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
 	req.model = await Members.findOne({uuid: req.allParams.uuid}).populate('permissions.permission').exec();
 	if (req.model) {
-		res.locals.gcData = await PaymentService.getPaymentData(req.model as Member);
+		res.locals.gcData = await GCPaymentService.getPaymentData(req.model as Member);
 		next();
 	} else {
 		next('route');
@@ -39,7 +39,7 @@ app.use(wrapAsync(async (req, res, next) => {
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
-	const payments = await PaymentService.getPayments(member);
+	const payments = await GCPaymentService.getPayments(member);
 
 	const successfulPayments = payments
 		.filter(p => p.isSuccessful)
@@ -124,7 +124,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		await Members.deleteOne( { _id: member._id } );
 
 		await ReferralsService.permanentlyDeleteMember(member);
-		await PaymentService.permanentlyDeleteMember(member);
+		await GCPaymentService.permanentlyDeleteMember(member);
 
 		await mailchimp.mainList.permanentlyDeleteMember(member);
 

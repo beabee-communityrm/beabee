@@ -42,6 +42,7 @@ async function getExport(members: Member[]): Promise<Record<string, any>[]> {
 			LastName: member.lastname,
 			ReferralLink: member.referralLink,
 			PollsCode: member.pollsCode,
+			ContributionType: member.contributionType,
 			ContributionMonthlyAmount: member.contributionMonthlyAmount,
 			ContributionPeriod: member.contributionPeriod,
 			ContributionDescription: member.contributionDescription
