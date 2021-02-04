@@ -213,6 +213,7 @@ abstract class UpdateContributionPaymentService {
 			member.nextContributionMonthlyAmount = paymentForm.amount;
 		}
 
+		member.contributionType = ContributionType.GoCardless;
 		await member.save();
 
 		if (wasInactive) {
