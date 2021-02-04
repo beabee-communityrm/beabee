@@ -109,25 +109,18 @@ export default class PaymentWebhookService {
 	}
 
 	static async cancelSubscription(subscriptionId: string): Promise<void> {
+		log.info({
+			action: 'cancel-subscription',
+			sensitive: {
+				subscriptionId
+			}
+		});
+
 		const gcData = await getRepository(GCPaymentData).findOne({subscriptionId});
-		const member = gcData && await Members.findOne( {
-			'_id': gcData.memberId,
-			// Ignore users that cancelled online, we've already handled them
-			'cancellation.satisified': { $exists: false }
-		} );
+		const member = gcData && await Members.findById(gcData.memberId);
 
 		if ( member ) {
-			log.info({
-				action: 'cancel-subscription',
-				sensitive: {
-					subscriptionId,
-					memberId: member.id
-				}
-			});
-			await getRepository(GCPaymentData).update(gcData!.memberId, {
-				subscriptionId: undefined,
-				cancelledAt: new Date()
-			});
+			await PaymentService.cancelContribution(member);
 			await mandrill.sendToMember('cancelled-contribution', member);
 		} else {
 			log.info( {

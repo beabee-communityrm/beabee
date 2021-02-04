@@ -296,8 +296,18 @@ export default class PaymentService extends UpdateContributionPaymentService {
 		} );
 
 		const gcData = await PaymentService.getPaymentData(member);
-		if (gcData?.subscriptionId) {
-			await gocardless.subscriptions.cancel(gcData.subscriptionId);
+		if (gcData) {
+			await getRepository(GCPaymentData).update(gcData.memberId, {
+				subscriptionId: undefined,
+				cancelledAt: new Date()
+			});
+
+			if (gcData.subscriptionId) {
+				await gocardless.subscriptions.cancel(gcData.subscriptionId);
+			}
+
+			member.nextContributionMonthlyAmount = undefined;
+			await member.save();
 		}
 	}
 
