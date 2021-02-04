@@ -162,7 +162,7 @@ const migrations: Migration<any>[] = [
 		subscriptionId: doc => doc.gocardless && doc.gocardless.subscription_id,
 		cancelledAt: doc => doc.gocardless && doc.gocardless.cancelled_at,
 		payFee: doc => doc.gocardless && doc.gocardless.paying_fee
-	})
+	}, doc => doc.contributionPeriod === 'gift' ? []: [doc])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
