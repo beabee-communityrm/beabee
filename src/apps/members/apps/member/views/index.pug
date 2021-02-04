@@ -26,8 +26,12 @@ block contents
 					.col-md-6
 						include partials/codes.pug
 					.col-md-6
-						if gcData
-							include partials/gocardless.pug
+						h4 Contribution
+						dl
+							dt Type
+							dd= member.contributionType
+							if gcData
+								include partials/gocardless.pug
 				.row
 					.col-md-12
 						include partials/permissions.pug
