@@ -8,7 +8,7 @@ import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import { ContributionPeriod } from '@core/utils';
 
-import GCPaymentService from '@core/services/PaymentService';
+import GCPaymentService from '@core/services/GCPaymentService';
 
 import GCPaymentData from '@models/GCPaymentData';
 import Payment from '@models/Payment';

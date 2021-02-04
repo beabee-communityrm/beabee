@@ -5,7 +5,7 @@ import { getRepository } from 'typeorm';
 import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import MembersService from '@core/services/MembersService';
-import { ContributionPeriod, ContributionType, isDuplicateIndex } from '@core/utils';
+import { ContributionType, isDuplicateIndex } from '@core/utils';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 import stripe from '@core/stripe';
