@@ -63,11 +63,11 @@ module.exports = [
 				return false;
 			}
 
-			if ( req.user.hasActiveSubscription && await PaymentService.canChangeContribution( req.user, true ) ) {
+			if ( await PaymentService.canChangeContribution( req.user, true ) ) {
 				await PaymentService.updateContribution(req.user, {
 					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount,
 					period: req.user.contributionPeriod,
-					payFee: req.user.gocardless.paying_fee,
+					payFee: false,
 					prorate: false
 				});
 			} else {
@@ -86,7 +86,7 @@ module.exports = [
 				return false;
 			}
 
-			if ( req.user.hasActiveSubscription && await PaymentService.canChangeContribution( req.user, true ) ) {
+			if ( await PaymentService.canChangeContribution( req.user, true ) ) {
 				await PaymentService.updateContribution(req.user, {
 					amount: req.user.contributionMonthlyAmount,
 					period: req.user.contributionPeriod,

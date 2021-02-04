@@ -1,5 +1,7 @@
 import { Members } from '@core/database';
+import GCPaymentData from '@models/GCPaymentData';
 import { Member } from '@models/members';
+import { getRepository } from 'typeorm';
 import { ExportType } from './type';
 
 async function getQuery() {
@@ -7,21 +9,28 @@ async function getQuery() {
 }
 
 async function getExport(members: Member[]) {
+	const gcData = await getRepository(GCPaymentData).find();
+
 	return members
-		.map(member => ({
-			Id: member.uuid,
-			EmailAddress: member.email,
-			FirstName: member.firstname,
-			LastName: member.lastname,
-			CustomerId: member.gocardless.customer_id,
-			MandateId: member.gocardless.mandate_id,
-			SubscriptionId: member.gocardless.subscription_id,
-			Amount: member.contributionMonthlyAmount,
-			Period: member.contributionPeriod,
-			PayFee: member.gocardless.paying_fee,
-			CancelledAt: member.gocardless.cancelled_at,
-			NextAmount: member.nextContributionMonthlyAmount,
-		}))
+		.map(member => {
+			const gc = gcData.find(gc => gc.memberId === member.id);
+			return {
+				Id: member.uuid,
+				EmailAddress: member.email,
+				FirstName: member.firstname,
+				LastName: member.lastname,
+				Amount: member.contributionMonthlyAmount,
+				Period: member.contributionPeriod,
+				NextAmount: member.nextContributionMonthlyAmount,
+				...(gc && {
+					CustomerId: gc.customerId,
+					MandateId: gc.mandateId,
+					SubscriptionId: gc.subscriptionId,
+					PayFee: gc.payFee,
+					CancelledAt: gc.cancelledAt,
+				})
+			};
+		})
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }
 

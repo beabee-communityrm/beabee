@@ -25,23 +25,3 @@ block contents
 
 					if !user.isActiveMember
 						.alert.alert-danger Your membership has expired
-
-						if user.hasActiveSubscription
-							p.
-								This is probably because your last payment failed, please
-								contact #[+emailSupport].
-						else
-							p.
-								To restart your membership please update your
-								#[a(href='/profile/direct-debit') contribution details].
-					else if !user.hasActiveSubscription && user.contributionPeriod !== 'gift'
-						.alert.alert-warning You cancelled your contribution
-
-						p
-							| Your membership will expire on
-							|
-							= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
-							| . To stop your membership expiring please update your
-							|
-							a(href='/profile/direct-debit') contribution details
-							| .

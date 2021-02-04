@@ -9,12 +9,11 @@ block contents
 			+page_header( 'Add member' )
 			p.
 				You can manually add a member directly using an existing
-				GoCardless customer and active mandate.
+				GoCardless customer.
 			form(method='POST').form-horizontal
 				+csrf
 				input(type='hidden' name='step' value='1')
-				+input( 'text', 'Customer ID', 'customer_id', { required: true, left: 3, right: 4 } )
-				+input( 'text', 'Mandate ID', 'mandate_id', { required: true, left: 3, right: 4 } )
+				+input( 'text', 'Customer ID', 'customerId', { required: true, left: 3, right: 4 } )
 				p.
 					By default the member's name will be pulled from their direct debit.
 					You can choose to override that if you wish

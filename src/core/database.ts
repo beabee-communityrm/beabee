@@ -9,6 +9,7 @@ import Email from '@models/Email';
 import EmailMailing from '@models/EmailMailing';
 import Export from '@models/Export';
 import ExportItem from '@models/ExportItem';
+import GCPaymentData from '@models/GCPaymentData';
 import GiftFlow from '@models/GiftFlow';
 import JoinFlow from '@models/JoinFlow';
 import Notice from '@models/Notice';
@@ -54,9 +55,9 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 			await createConnection({
 				...dbConfig,
 				entities: [
-					Email, EmailMailing, Export, ExportItem, GiftFlow, JoinFlow,
-					Notice, Option, PageSettings, Payment, Poll, PollResponse,
-					Referral, ReferralGift, RestartFlow, Segment
+					Email, EmailMailing, Export, ExportItem, GiftFlow, GCPaymentData,
+					JoinFlow, Notice, Option, PageSettings, Payment, Poll,
+					PollResponse, Referral, ReferralGift, RestartFlow, Segment
 				]
 			});
 			log.debug( {

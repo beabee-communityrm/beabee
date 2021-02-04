@@ -26,7 +26,8 @@ block contents
 					.col-md-6
 						include partials/codes.pug
 					.col-md-6
-						include partials/gocardless.pug
+						if gcData
+							include partials/gocardless.pug
 				.row
 					.col-md-12
 						include partials/permissions.pug

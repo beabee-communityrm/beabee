@@ -1,10 +1,12 @@
 import express from 'express';
+import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { wrapAsync } from '@core/utils';
 
 import PaymentService from '@core/services/PaymentService';
 
+import GCPaymentData from '@models/GCPaymentData';
 import { Member } from '@models/members';
 
 const app = express();
@@ -13,12 +15,21 @@ app.set( 'views', __dirname + '/views' );
 
 app.use(auth.isSuperAdmin);
 
+app.use((req, res, next) => {
+	if (res.locals.gcData) {
+		next();
+	} else {
+		req.flash('error', 'gocardless-no-data');
+		res.redirect('/members/' + (req.model as Member).uuid);
+	}
+});
+
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
 	res.render( 'index', {
 		member: req.model,
-		canChange: await PaymentService.canChangeContribution( member, member.canTakePayment ),
-		monthsLeft: PaymentService.getMonthsLeftOnContribution( member )
+		canChange: await PaymentService.canChangeContribution( member, true ),
+		monthsLeft: member.memberMonthsRemaining
 	} );
 } ) );
 
@@ -38,13 +49,16 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 
 	case 'force-update':
 		await member.update({ $set: {
-			'gocardless.customer_id': req.body.customer_id,
-			'gocardless.mandate_id': req.body.mandate_id,
-			'gocardless.subscription_id': req.body.subscription_id,
-			'gocardless.paying_fee': req.body.payFee === 'true',
 			contributionMonthlyAmount: Number(req.body.amount),
 			contributionPeriod: req.body.period
 		} });
+		await getRepository(GCPaymentData).update(member.id, {
+			customerId: req.body.customerId,
+			mandateId: req.body.mandateId,
+			subscriptionId: req.body.subscriptionId,
+			payFee: req.body.payFee === 'true',
+		});
+
 		req.flash( 'success', 'gocardless-updated' );
 		break;
 	}

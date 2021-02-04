@@ -15,63 +15,63 @@ block contents
 			+page_header( 'Contribution details' )
 			if !user.isActiveMember
 				.alert.alert-danger Your membership has expired
-			else if !user.hasActiveSubscription && user.contributionPeriod !== 'gift'
+			else if gcData && gcData.cancelledAt
 				.alert.alert-warning You cancelled your contribution
-			else if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
-				a(href='/profile/delivery').alert.alert-warning.
-					You are eligible to receive the print edition, #[b click here to set your delivery address]
-			else if user.contributionMonthlyAmount < 3
-				.alert.alert-info.
-					Increase your contribution to £3/month or more to receive the print edition
 
-			p
-				| You
-				|
-				if user.contributionPeriod === 'gift'
-					| #{user.isActiveMember ? 'are' : 'were'} on a gift membership
-				else
-					= user.isActiveMember ? 'contribute' : 'previously contributed'
-					|
+			if user.isActiveMember
+				if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
+					a(href='/profile/delivery').alert.alert-info.
+						You are eligible to receive the print edition, #[b click here to set your delivery address]
+				else if user.contributionMonthlyAmount < 3
+					.alert.alert-info.
+						Increase your contribution to £3/month or more to receive the print edition
+
+			if user.contributionPeriod === 'gift' && user.isActiveMember
+				p.
+					You are on a gift membership. You can start a contribution to
+					continue your membership beyond
+					#{ moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY') }
+
+				hr
+			else if gcData
+				p
+					| You #{user.isActiveMember ? 'contribute' : 'previously contributed'}
 					|
 					= user.contributionDescription
-					if user.gocardless.paying_fee
+					if gcData.payFee
 						|
 						| (+ fee)
-				| ,
-				|
-				if hasPendingPayment
-					| we are currently processing your payment.
-				else
-					if user.hasActiveSubscription
-						| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'}  around
+					| ,
+					|
+					if hasPendingPayment
+						| we are currently processing your payment.
 					else
-						| it #{user.isActiveMember ? 'will expire' : 'expired'} on
-					|
-					|
-					= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
-					| .
-				if user.contributionPeriod === 'gift'
-					|
-					| You can start a contribution to continue your Cable membership
-					| beyond this date.
+						if gcData.subscriptionId
+							| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'} around
+						else
+							| it #{user.isActiveMember ? 'will expire' : 'expired'} on
+						|
+						|
+						= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
+						| .
+				hr
 
-			if user.hasActiveSubscription && user.nextContributionAmount
+			h4 #{!gcData ? 'Start' : gcData.subscriptionId ? 'Update' : 'Restart'} contribution
+
+			if user.nextContributionAmount
 				p.alert.alert-success.
 					You updated your contribution amount, it will change to
 					£#{user.nextContributionAmount} on your next payment
-
-			hr
-
-			h4 #{user.contributionPeriod === 'gift' ? 'Start' : user.hasActiveSubscription ? 'Update' : 'Restart'} contribution
 
 			if canChange
 				include partials/change-subscription
 			else
 				p.
-					Your contribution is currently processing and can't be changed online right now.
-					Please contact #[+emailSupport] if you wish to do so.
+					Your contribution is currently processing and can't be changed
+					until it has completed. Please check back in a few days or contact
+					#[+emailSupport] for help.
 
-			if user.hasActiveSubscription
+			if gcData && gcData.subscriptionId
 				hr
 
 				h4 Cancel contribution

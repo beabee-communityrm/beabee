@@ -22,8 +22,17 @@ interface UpdateSubscriptionSchema {
 
 const app = express();
 
+app.set( 'views', __dirname + '/views' );
+
+app.use( auth.isLoggedIn );
+
+app.use(wrapAsync(async (req, res, next) => {
+	res.locals.gcData = await PaymentService.getPaymentData(req.user!);
+	next();
+}));
+
 function hasSubscription(req: Request, res: Response, next: NextFunction) {
-	if ( req.user?.hasActiveSubscription ) {
+	if ( res.locals.gcData?.subscriptionId ) {
 		next();
 	} else {
 		req.flash( 'danger', 'contribution-doesnt-exist' );
@@ -31,17 +40,13 @@ function hasSubscription(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-app.set( 'views', __dirname + '/views' );
-
-app.use( auth.isLoggedIn );
-
 app.get( '/', wrapAsync( hasUser(async function ( req, res ) {
 	res.render( 'index', {
 		user: req.user,
 		hasPendingPayment: await PaymentService.hasPendingPayment(req.user),
 		bankAccount: await PaymentService.getBankAccount(req.user),
-		canChange: await PaymentService.canChangeContribution(req.user, req.user.canTakePayment),
-		monthsLeft: PaymentService.getMonthsLeftOnContribution(req.user)
+		canChange: await PaymentService.canChangeContribution(req.user, !!res.locals.gcData?.mandateId),
+		monthsLeft: req.user.memberMonthsRemaining
 	} );
 } ) ) );
 
