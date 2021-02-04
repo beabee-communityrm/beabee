@@ -259,7 +259,8 @@ module.exports.schema.virtual( 'contributionDescription' ).get( function () {
 } );
 
 module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
-	return getActualAmount(this.nextContributionMonthlyAmount, this.contributionPeriod);
+	return this.nextContributionMonthlyAmount &&
+		getActualAmount(this.nextContributionMonthlyAmount, this.contributionPeriod);
 } );
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );

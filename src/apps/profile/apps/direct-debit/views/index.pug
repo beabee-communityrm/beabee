@@ -15,9 +15,10 @@ block contents
 			+page_header( 'Contribution details' )
 			if !user.isActiveMember
 				.alert.alert-danger Your membership has expired
-			else if user.contributionPeriod !== 'gift' && gcData && gcData.cancelledAt
+			else if gcData && gcData.cancelledAt
 				.alert.alert-warning You cancelled your contribution
-			else if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
+
+			if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
 				a(href='/profile/delivery').alert.alert-warning.
 					You are eligible to receive the print edition, #[b click here to set your delivery address]
 			else if user.contributionMonthlyAmount < 3
@@ -65,8 +66,9 @@ block contents
 				include partials/change-subscription
 			else
 				p.
-					Your contribution is currently processing and can't be changed online right now.
-					Please contact #[+emailSupport] if you wish to do so.
+					Your contribution is currently processing and can't be changed
+					until it has completed. Please check back in a few days or contact
+					#[+emailSupport] for help.
 
 			if gcData && gcData.subscriptionId
 				hr
