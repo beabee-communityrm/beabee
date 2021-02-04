@@ -137,7 +137,7 @@ export default class PaymentWebhookService {
 	static async cancelMandate(mandateId: string): Promise<void> {
 		const gcData = await getRepository(GCPaymentData).findOne({mandateId});
 
-		if ( gcData && gcData.mandateId === mandateId) {
+		if ( gcData ) {
 			log.info( {
 				action: 'cancel-mandate',
 				sensitive: {
