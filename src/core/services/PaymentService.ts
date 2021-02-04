@@ -341,18 +341,19 @@ export default class PaymentService extends UpdateContributionPaymentService {
 	}
 
 	static async hasPendingPayment(member: Member): Promise<boolean> {
-		// TODO: this would be more accurate if we asked GC directly
-		const payments = await getRepository(Payment).find({
-			select: ['chargeDate', 'status'],
-			where: {
-				memberId: member.id
-			},
-			order: {chargeDate: 'DESC'},
-			take: 1
-		});
+		const gcData = await PaymentService.getPaymentData(member);
+		if (gcData && gcData.subscriptionId) {
+			for (const status of Payment.pendingStatuses) {
+				const payments = await gocardless.payments.list({
+					limit: 1, status, subscription: gcData.subscriptionId
+				});
+				if (payments.length > 0) {
+					return true;
+				}
+			}
+		}
 
-		// Should always be at least 1 payment, but maybe the webhook is slow?
-		return payments.length === 0 || payments[0].isPending;
+		return false;
 	}
 
 	static async getPayments(member: Member): Promise<Payment[]> {
