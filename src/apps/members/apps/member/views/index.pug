@@ -18,6 +18,9 @@ block contents
 					include partials/profile.pug
 			if access( 'superadmin' )
 				.row
+					.col-md-12
+						include partials/permissions.pug
+				.row
 					.col-md-6
 						include partials/system.pug
 					.col-md-6
@@ -30,11 +33,12 @@ block contents
 						dl.dl-horizontal
 							dt Type
 							dd= member.contributionType
+							dt Amount
+							dd= member.contributionMonthlyAmount ? '£' + member.contributionMonthlyAmount : '–'
+							dt Period
+							dd= member.contributionPeriod || '–'
 							if gcData
 								include partials/gocardless.pug
-				.row
-					.col-md-12
-						include partials/permissions.pug
 				.row
 					.col-md-12
 						include partials/payments.pug

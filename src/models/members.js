@@ -249,7 +249,7 @@ module.exports.schema.virtual( 'referralLink' ).get( function () {
 } );
 
 module.exports.schema.virtual( 'contributionDescription' ).get( function () {
-	if (this.contributionType === 'gift') {
+	if (this.contributionType === 'Gift') {
 		return 'Gift';
 	} else if (!this.contributionPeriod) {
 		return 'None';

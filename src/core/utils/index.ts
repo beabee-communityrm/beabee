@@ -9,9 +9,9 @@ export enum ContributionPeriod {
 }
 
 export enum ContributionType {
-	GoCardless = 'gocardless',
-	Manual = 'manual',
-	Gift = 'gift'
+	GoCardless = 'GoCardless',
+	Manual = 'Manual',
+	Gift = 'Gift'
 }
 
 export interface PaymentForm {
