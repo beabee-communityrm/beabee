@@ -20,7 +20,7 @@ block contents
 
 			if user.isActiveMember
 				if user.contributionMonthlyAmount >= 3 && !user.delivery_optin
-					a(href='/profile/delivery').alert.alert-warning.
+					a(href='/profile/delivery').alert.alert-info.
 						You are eligible to receive the print edition, #[b click here to set your delivery address]
 				else if user.contributionMonthlyAmount < 3
 					.alert.alert-info.
