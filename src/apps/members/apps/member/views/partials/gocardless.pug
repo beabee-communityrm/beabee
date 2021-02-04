@@ -4,6 +4,8 @@ mixin gcLink(id, type)
 	else
 		| –
 
+dt Paying fee?
+dd= gcData.payFee ? 'Yes' : 'No'
 dt Customer ID
 dd: +gcLink(gcData.customerId, 'customers')
 dt Mandate ID

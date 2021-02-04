@@ -34,15 +34,11 @@ block contents
 							dt Type
 							dd= member.contributionType
 							dt Amount
-							dd
-								= member.contributionMonthlyAmount ? '£' + member.contributionMonthlyAmount : '–'
-								if gcData.payFee
-									|
-									| (+ fee)
+							dd= member.contributionMonthlyAmount ? '£' + member.contributionMonthlyAmount : '–'
 							dt Period
 							dd= member.contributionPeriod || '–'
-														if gcData
-							include partials/gocardless.pug
+							if gcData
+								include partials/gocardless.pug
 				.row
 					.col-md-12
 						include partials/payments.pug
