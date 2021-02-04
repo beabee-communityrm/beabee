@@ -2,7 +2,7 @@ import express from 'express';
 
 import auth from '@core/authentication';
 import { hasSchema } from '@core/middleware';
-import { hasUser, wrapAsync } from '@core/utils';
+import { ContributionType, hasUser, wrapAsync } from '@core/utils';
 
 import { completeSchema } from './schemas.json';
 import Referral from '@models/Referral';
@@ -25,7 +25,7 @@ app.use(auth.isLoggedIn);
 app.get( '/', wrapAsync( async function( req, res ) {
 	const referral = await getRepository(Referral).findOne({refereeId: req.user?.id});
 
-	const isGift = req.user?.contributionPeriod === 'gift';
+	const isGift = req.user?.contributionType === ContributionType.Gift;
 	const isReferralWithGift = referral && referral.refereeGift;
 
 	res.render( 'complete', { user: req.user, isReferralWithGift, isGift } );
@@ -44,7 +44,7 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 	const referral = await getRepository(Referral).findOne({refereeId: user.id});
 
 	const needAddress = delivery_optin || referral && referral.refereeGift ||
-		user.contributionPeriod === 'gift';
+		user.contributionType === ContributionType.Gift;
 	const gotAddress = delivery_line1 && delivery_city && delivery_postcode;
 
 	if (needAddress && !gotAddress) {

@@ -1,5 +1,5 @@
 import { Document, Model } from 'mongoose';
-import { ContributionPeriod } from '@core/utils';
+import { ContributionPeriod, ContributionType } from '@core/utils';
 
 interface Permission {
 	permission?: string
@@ -27,7 +27,9 @@ interface PartialMember {
 		city?: string,
 		postcode?: string
 	}
+	contributionType: ContributionType
 }
+
 interface Member extends PartialMember, Document {
 	uuid: string
 	referralCode: string,

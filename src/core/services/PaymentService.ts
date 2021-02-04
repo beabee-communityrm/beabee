@@ -4,7 +4,7 @@ import { getRepository } from 'typeorm';
 
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
-import { cleanEmailAddress, ContributionPeriod, getActualAmount, PaymentForm } from  '@core/utils';
+import { cleanEmailAddress, ContributionPeriod, ContributionType, getActualAmount, PaymentForm } from  '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
@@ -241,7 +241,8 @@ export default class PaymentService extends UpdateContributionPaymentService {
 				line2: customer.address_line2,
 				city: customer.city,
 				postcode: customer.postal_code
-			}
+			},
+			contributionType: ContributionType.GoCardless
 		};
 	}
 

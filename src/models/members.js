@@ -140,6 +140,10 @@ module.exports = {
 			default: Date.now,
 			required: true
 		},
+		contributionType: {
+			type: String,
+			enum: ['GoCardless', 'Manual']
+		},
 		contributionMonthlyAmount: Number,
 		contributionPeriod: {
 			type: String,

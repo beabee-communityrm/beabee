@@ -3,7 +3,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import auth from '@core/authentication' ;
 import mandrill from '@core/mandrill' ;
 import{ hasSchema } from '@core/middleware' ;
-import { ContributionPeriod, hasUser, PaymentForm, RequestWithUser, wrapAsync } from '@core/utils' ;
+import { ContributionPeriod, ContributionType, hasUser, PaymentForm, RequestWithUser, wrapAsync } from '@core/utils' ;
 
 import config from '@config' ;
 
@@ -63,7 +63,7 @@ function schemaToPaymentForm(data: UpdateSubscriptionSchema): {useMandate: boole
 }
 
 async function handleChangeContribution(req: RequestWithUser, form: PaymentForm) {
-	const wasGift = req.user.contributionPeriod === 'gift';
+	const wasGift = req.user.contributionType === ContributionType.Gift;
 	await PaymentService.updateContribution(req.user, form);
 	if (wasGift) {
 		await mandrill.sendToMember('welcome-post-gift', req.user);

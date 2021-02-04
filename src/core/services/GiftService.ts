@@ -5,7 +5,7 @@ import { getRepository } from 'typeorm';
 import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import MembersService from '@core/services/MembersService';
-import { ContributionPeriod, isDuplicateIndex } from '@core/utils';
+import { ContributionPeriod, ContributionType, isDuplicateIndex } from '@core/utils';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 import stripe from '@core/stripe';
@@ -120,13 +120,13 @@ export default class GiftService {
 			lastname,
 			email,
 			delivery_address: deliveryAddress || {},
-			delivery_optin: !!deliveryAddress?.line1
+			delivery_optin: !!deliveryAddress?.line1,
+			contributionType: ContributionType.Gift
 		});
 
 		member.giftCode = giftFlow.setupCode;
 
 		member.contributionMonthlyAmount = GiftService.giftMonthlyAmount;
-		member.contributionPeriod = ContributionPeriod.Gift;
 
 		member.memberPermission = {
 			date_added: now.toDate(),
