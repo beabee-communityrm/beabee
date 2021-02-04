@@ -8,7 +8,7 @@ import { ContributionPeriod, ContributionType, hasUser, PaymentForm, RequestWith
 import config from '@config' ;
 
 import JoinFlowService from '@core/services/JoinFlowService' ;
-import PaymentService from '@core/services/PaymentService' ;
+import GCPaymentService from '@core/services/GCPaymentService' ;
 
 import { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
 
@@ -27,7 +27,7 @@ app.set( 'views', __dirname + '/views' );
 app.use( auth.isLoggedIn );
 
 app.use(wrapAsync(async (req, res, next) => {
-	res.locals.gcData = await PaymentService.getPaymentData(req.user!);
+	res.locals.gcData = await GCPaymentService.getPaymentData(req.user!);
 	next();
 }));
 
@@ -43,9 +43,9 @@ function hasSubscription(req: Request, res: Response, next: NextFunction) {
 app.get( '/', wrapAsync( hasUser(async function ( req, res ) {
 	res.render( 'index', {
 		user: req.user,
-		hasPendingPayment: await PaymentService.hasPendingPayment(req.user),
-		bankAccount: await PaymentService.getBankAccount(req.user),
-		canChange: await PaymentService.canChangeContribution(req.user, !!res.locals.gcData?.mandateId),
+		hasPendingPayment: await GCPaymentService.hasPendingPayment(req.user),
+		bankAccount: await GCPaymentService.getBankAccount(req.user),
+		canChange: await GCPaymentService.canChangeContribution(req.user, !!res.locals.gcData?.mandateId),
 		monthsLeft: req.user.memberMonthsRemaining
 	} );
 } ) ) );
@@ -64,7 +64,7 @@ function schemaToPaymentForm(data: UpdateSubscriptionSchema): {useMandate: boole
 
 async function handleChangeContribution(req: RequestWithUser, form: PaymentForm) {
 	const wasGift = req.user.contributionType === ContributionType.Gift;
-	await PaymentService.updateContribution(req.user, form);
+	await GCPaymentService.updateContribution(req.user, form);
 	if (wasGift) {
 		await mandrill.sendToMember('welcome-post-gift', req.user);
 		req.flash( 'success', 'contribution-gift-updated' );
@@ -80,7 +80,7 @@ app.post( '/', [
 
 	let redirectUrl = '/profile/direct-debit';
 
-	if ( await PaymentService.canChangeContribution( req.user, useMandate ) ) {
+	if ( await GCPaymentService.canChangeContribution( req.user, useMandate ) ) {
 		req.log.info( {
 			app: 'direct-debit',
 			action: 'update-subscription',
@@ -111,10 +111,10 @@ app.post( '/', [
 app.get( '/complete', [
 	hasSchema( completeFlowSchema ).orRedirect('/profile')
 ], wrapAsync( hasUser(async (req, res) => {
-	if (await PaymentService.canChangeContribution(req.user, false)) {
+	if (await GCPaymentService.canChangeContribution(req.user, false)) {
 		const joinFlow = await JoinFlowService.completeJoinFlow( req.query.redirect_flow_id as string );
 		if (joinFlow) {
-			await PaymentService.updatePaymentMethod(req.user, joinFlow.customerId, joinFlow.mandateId);
+			await GCPaymentService.updatePaymentMethod(req.user, joinFlow.customerId, joinFlow.mandateId);
 			await handleChangeContribution(req, joinFlow.joinForm);
 		} else {
 			req.flash('warning', 'contribution-updating-failed' );
@@ -141,7 +141,7 @@ app.post( '/cancel-subscription', [
 			'cancellation': { satisfied, reason, other }
 		} } );
 
-		await PaymentService.cancelContribution( user );
+		await GCPaymentService.cancelContribution( user );
 
 		await mandrill.sendToMember('cancelled-contribution-no-survey', user);
 

@@ -8,15 +8,16 @@ import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
 import { ContributionPeriod } from '@core/utils';
 
+import GCPaymentService from '@core/services/PaymentService';
+
+import GCPaymentData from '@models/GCPaymentData';
 import Payment from '@models/Payment';
 
 import config from '@config';
-import PaymentService from './PaymentService';
-import GCPaymentData from '@models/GCPaymentData';
 
 const log = mainLogger.child({app: 'payment-webhook-service'});
 
-export default class PaymentWebhookService {
+export default class GCPaymentWebhookService {
 	static async updatePayment(gcPaymentId: string): Promise<Payment> {
 		log.info({
 			action: 'update-payment',
@@ -26,9 +27,9 @@ export default class PaymentWebhookService {
 		});
 
 		const gcPayment = await gocardless.payments.get(gcPaymentId);
-		let payment = await getRepository(Payment).findOne({paymentId: gcPayment.id});
+		let payment = await getRepository(Payment).findOne({ paymentId: gcPayment.id });
 		if (!payment) {
-			payment = await PaymentWebhookService.createPayment(gcPayment);
+			payment = await GCPaymentWebhookService.createPayment(gcPayment);
 		}
 
 		payment.status = gcPayment.status;
@@ -67,7 +68,7 @@ export default class PaymentWebhookService {
 			return;
 		}
 
-		const gcData = await PaymentService.getPaymentData(member);
+		const gcData = await GCPaymentService.getPaymentData(member);
 		if (!gcData) {
 			log.error({
 				action: 'payment-gc-data-not-found'
@@ -75,7 +76,7 @@ export default class PaymentWebhookService {
 			return;
 		}
 
-		const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
+		const nextExpiryDate = await GCPaymentWebhookService.calcPaymentExpiryDate(payment);
 
 		log.info({
 			action: 'extend-membership',
@@ -86,7 +87,7 @@ export default class PaymentWebhookService {
 		});
 
 		if (member.nextContributionMonthlyAmount) {
-			const newAmount = PaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
+			const newAmount = GCPaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
 			if (newAmount === member.nextContributionMonthlyAmount) {
 				member.contributionMonthlyAmount = newAmount;
 				member.nextContributionMonthlyAmount = undefined;
@@ -107,7 +108,7 @@ export default class PaymentWebhookService {
 				gcPaymentId, status
 			}
 		});
-		await getRepository(Payment).update({paymentId: gcPaymentId}, {status});
+		await getRepository(Payment).update({ paymentId: gcPaymentId }, { status });
 	}
 
 	static async cancelSubscription(subscriptionId: string): Promise<void> {
@@ -118,44 +119,44 @@ export default class PaymentWebhookService {
 			}
 		});
 
-		const gcData = await getRepository(GCPaymentData).findOne({subscriptionId});
+		const gcData = await getRepository(GCPaymentData).findOne({ subscriptionId });
 		const member = gcData && await Members.findById(gcData.memberId);
 
-		if ( member ) {
-			await PaymentService.cancelContribution(member);
+		if (member) {
+			await GCPaymentService.cancelContribution(member);
 			await mandrill.sendToMember('cancelled-contribution', member);
 		} else {
-			log.info( {
+			log.info({
 				action: 'unlink-subscription',
 				sensitive: {
 					subscriptionId
 				}
-			} );
+			});
 		}
 	}
 
 	static async cancelMandate(mandateId: string): Promise<void> {
-		const gcData = await getRepository(GCPaymentData).findOne({mandateId});
+		const gcData = await getRepository(GCPaymentData).findOne({ mandateId });
 
-		if ( gcData ) {
-			log.info( {
+		if (gcData) {
+			log.info({
 				action: 'cancel-mandate',
 				sensitive: {
 					memberId: gcData.memberId,
 					mandateId: gcData.mandateId
 				}
-			} );
+			});
 
 			await getRepository(GCPaymentData).update(gcData.memberId, {
 				mandateId: undefined
 			});
 		} else {
-			log.info( {
+			log.info({
 				action: 'unlink-mandate',
 				sensitive: {
 					mandateId
 				}
-			} );
+			});
 		}
 	}
 
@@ -164,7 +165,7 @@ export default class PaymentWebhookService {
 			const subscription = await gocardless.subscriptions.get(payment.subscriptionId);
 			return subscription.upcoming_payments.length > 0 ?
 				moment.utc(subscription.upcoming_payments[0].charge_date).add(config.gracePeriod) :
-				moment.utc(payment.chargeDate).add(PaymentWebhookService.getSubscriptionDuration(subscription));
+				moment.utc(payment.chargeDate).add(GCPaymentWebhookService.getSubscriptionDuration(subscription));
 		} else {
 			return moment.utc();
 		}
@@ -174,7 +175,7 @@ export default class PaymentWebhookService {
 		const payment = new Payment();
 		payment.paymentId = gcPayment.id;
 
-		const gcData = await getRepository(GCPaymentData).findOne({mandateId: gcPayment.links.mandate });
+		const gcData = await getRepository(GCPaymentData).findOne({ mandateId: gcPayment.links.mandate });
 		const member = gcData && await Members.findById(gcData.memberId);
 		if (member) {
 			log.info({
@@ -197,17 +198,17 @@ export default class PaymentWebhookService {
 		if (gcPayment.links.subscription) {
 			const subscription = await gocardless.subscriptions.get(gcPayment.links.subscription);
 			payment.subscriptionId = gcPayment.links.subscription;
-			payment.subscriptionPeriod = PaymentWebhookService.getSubscriptionPeriod(subscription);
+			payment.subscriptionPeriod = GCPaymentWebhookService.getSubscriptionPeriod(subscription);
 		}
 
 		return payment;
 	}
 
-	private static getSubscriptionPeriod(subscription: Subscription): ContributionPeriod|undefined {
+	private static getSubscriptionPeriod(subscription: Subscription): ContributionPeriod | undefined {
 		const interval = Number(subscription.interval);
 		const intervalUnit = subscription.interval_unit;
 		if (interval === 12 && intervalUnit === SubscriptionIntervalUnit.Monthly ||
-				interval === 1 && intervalUnit === SubscriptionIntervalUnit.Yearly)
+			interval === 1 && intervalUnit === SubscriptionIntervalUnit.Yearly)
 			return ContributionPeriod.Annually;
 		if (interval === 1 && intervalUnit === 'monthly')
 			return ContributionPeriod.Monthly;
@@ -219,10 +220,10 @@ export default class PaymentWebhookService {
 		return;
 	}
 
-	private static getSubscriptionDuration({interval, interval_unit}: Subscription) {
+	private static getSubscriptionDuration({ interval, interval_unit }: Subscription) {
 		const unit = interval_unit === 'weekly' ? 'weeks' :
 			interval_unit === 'monthly' ? 'months' : 'years';
-		return moment.duration({[unit]: Number(interval)});
+		return moment.duration({ [unit]: Number(interval) });
 	}
 
 	private static getSubscriptionAmount(payment: Payment, payFee: boolean): number {
