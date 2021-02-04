@@ -56,6 +56,7 @@ export default class PaymentWebhookService {
 			log.info({
 				action: 'ignore-confirm-payment'
 			});
+			return;
 		}
 
 		const member = await Members.findById(payment.memberId);
@@ -74,28 +75,29 @@ export default class PaymentWebhookService {
 			return;
 		}
 
-		// Ignore if the member has a new subscription as this will be for an old payment
-		if (!gcData.subscriptionId || gcData.subscriptionId === payment.subscriptionId) {
-			const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
+		const nextExpiryDate = await PaymentWebhookService.calcPaymentExpiryDate(payment);
 
-			log.info({
-				action: 'extend-membership',
-				data: {
-					prevDate: member.memberPermission.date_expires,
-					newDate: nextExpiryDate
-				}
-			});
-
-			member.contributionMonthlyAmount =
-				PaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
-			member.nextContributionMonthlyAmount = undefined;
-
-			if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
-				member.memberPermission.date_expires = nextExpiryDate.toDate();
+		log.info({
+			action: 'extend-membership',
+			data: {
+				prevDate: member.memberPermission.date_expires,
+				newDate: nextExpiryDate
 			}
+		});
 
-			await member.save();
+		if (member.nextContributionMonthlyAmount) {
+			const newAmount = PaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
+			if (newAmount === member.nextContributionMonthlyAmount) {
+				member.contributionMonthlyAmount = newAmount;
+				member.nextContributionMonthlyAmount = undefined;
+			}
 		}
+
+		if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
+			member.memberPermission.date_expires = nextExpiryDate.toDate();
+		}
+
+		await member.save();
 	}
 
 	static async updatePaymentStatus(gcPaymentId: string, status: string): Promise<void> {
