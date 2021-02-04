@@ -10,7 +10,6 @@ dt Mandate ID
 dd: +gcLink(gcData.mandateId, 'mandates')
 dt Subscription ID
 dd: +gcLink(gcData.subscriptionId, 'subscriptions')
-dt Amount
 if gcData.cancelledAt
 	dt Cancelled
 	dd= moment(gcData.cancelledAt).format('HH:mm:ss DD/MM/YYYY')
