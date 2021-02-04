@@ -65,7 +65,7 @@ abstract class UpdateContributionPaymentService {
 
 		gcData = await this.activateContribution(user, gcData, paymentForm, startNow);
 
-		await getRepository(GCPaymentData).save(gcData);
+		await getRepository(GCPaymentData).update(gcData.memberId, gcData);
 	}
 
 	private static async createSubscription(member: Member, gcData: GCPaymentData, paymentForm: PaymentForm,  startDate?: string): Promise<GCPaymentData> {
