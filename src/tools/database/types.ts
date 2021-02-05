@@ -65,25 +65,9 @@ const members: Properties = {
 	})
 };
 
-const projects: Properties = {
-	owner: objectId
-};
-
-const projectMembers: Properties = {
-	_id: objectId,
-	member: objectId,
-	tag: () => chance.word(),
-	engagement: (): Properties => ({
-		member: objectId,
-		notes: () => chance.sentence()
-	})
-};
-
 const models: ModelExporter[] = [
 	{ model: db.Permissions as unknown as Model<MDocument> },
-	{ model: db.Members as unknown as Model<MDocument>, properties: members, objectIds: ['_id'] },
-	{ model: db.Projects , properties: projects, objectIds: ['owner'] },
-	{ model: db.ProjectMembers, properties: projectMembers, objectIds: ['_id', 'member'] }
+	{ model: db.Members as unknown as Model<MDocument>, properties: members, objectIds: ['_id'] }
 ];
 
 export default models;

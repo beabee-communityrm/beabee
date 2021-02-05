@@ -17,6 +17,9 @@ import PageSettings from '@models/PageSettings';
 import Poll from '@models/Poll';
 import PollResponse from '@models/PollResponse';
 import GCPaymentData from '@models/GCPaymentData';
+import Project from '@models/Project';
+import ProjectMember from '@models/ProjectMember';
+import ProjectEngagement from '@models/ProjectEngagement';
 
 export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -103,6 +106,23 @@ const pollResponsesDrier = createDrier(PollResponse, 'pollResponses', {
 	memberId: objectId
 });
 
+const projectsDrier = createDrier(Project, 'projects', {
+	ownerId: objectId
+});
+
+const projectMembersDrier = createDrier(ProjectMember, 'projectMemers', {
+	id: () => uuidv4(),
+	memberId: objectId,
+	tag: () => chance.profession(),
+});
+
+const projectEngagmentsDrier = createDrier(ProjectEngagement, 'projectEngagements', {
+	id: () => uuidv4(),
+	member1Id: objectId,
+	member2Id: objectId,
+	notes: () => chance.sentence()
+});
+
 const referralsGiftDrier = createDrier(ReferralGift, 'referralgifts', {
 	stock: stock => stock // Add to map so it is serialised correctly
 });
@@ -124,6 +144,9 @@ export default [
 	pageSettingsDrier,
 	pollsDrier, // Must be before pollResponsesDrier
 	pollResponsesDrier,
+	projectsDrier,
+	projectMembersDrier,
+	projectEngagmentsDrier,
 	referralsGiftDrier, // Must be before referralsDrier
 	referralsDrier,
 	exportItemsDrier // Must be after all exportable items
