@@ -3,6 +3,7 @@
 (function () {
 	var $form = $('.js-join-form');
 	var $formMore = $form.find('.js-join-form-more');
+	var $paper = $form.find('.js-join-paper');
 	var $sustain = $form.find('.js-join-sustain');
 
 	var $amount = $form.find('.js-join-amount');
@@ -49,6 +50,7 @@
 		if (amount) {
 			$formMore.removeClass('hidden-js');
 
+			$paper.toggleClass('hidden', amount < 3);
 			$sustain.toggleClass('hidden', amount >= 3);
 
 			$gift

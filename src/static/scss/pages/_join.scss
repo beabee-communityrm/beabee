@@ -95,22 +95,13 @@ $bp-join-why: 768px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-bottom: 2rem;
-
-	h1 {
-		font-size: 48px;
-		margin: 0;
-	}
+	margin: 0 0 2rem;
+	font-size: 48px;
 }
 
-.join-title-logo {
-	display: none;
-	@media (min-width: 460px) {
-		display: block;
-		margin-right: 2rem;
-		width: 120px;
-		height: 120px;
-	}
+.join-paper {
+	width: 40px;
+	margin-right: 0.5rem;
 }
 
 .join-options {

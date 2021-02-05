@@ -18,10 +18,18 @@ block body
 					| You're already a member! Not #{user.firstname}?
 					| #[a(href='/logout').alert-link Click here] to logout
 
-			.join-title
-				div
-					img(src='/static/svg/logo.svg').join-title-logo
-				h1 Join 2,200#[br]members
+			h1.join-title.text-center.
+				Join 2,300 people building a new kind of newspaper
+
+			p.
+				All members become co-owners of the Bristol Cable, with exclusive
+				opportunities to have a say while supporting quality journalism and
+				our innovative model.
+
+			p.
+				Chip in a £3/month or more and get the Cable print edition sent
+				directly to your door.
+	
 
 			if referrer
 				.join-referrer
@@ -65,8 +73,14 @@ block body
 						Find out more about the referral scheme
 						#[a(href='https://thebristolcable.org/referafriend', target='_blank') here].
 				else
+					.hidden.js-join-paper
+						h4
+							img(src='/static/imgs/join/newspaper.png').join-paper
+							| We'll send you a copy in the post!
 					.hidden.js-join-sustain
-						h3 Want a copy in the post?
+						h4
+							img(src='/static/imgs/join/newspaper.png').join-paper
+							| Want a copy in the post?
 						p.
 							If you chip in £3 or more a month, or £36 a year, we will send
 							you a copy of each quarterly print edition in the post.
@@ -205,10 +219,7 @@ block body
 							training to create pathways for more people to get into
 							journalism.
 	.join-footer
-		.join-title
-			div
-				img(src='/static/svg/logo.svg').join-title-logo
-			h1.join-ts Join us#[br]today
+		h1.join-title.join-ts Join us today
 		.text-center
 			h3.join-ts Join 2,200 others and own your media
 			a(href='#join').btn.btn-success.btn-lg Join now
