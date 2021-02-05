@@ -177,9 +177,9 @@ const migrations: Migration<any>[] = [
 	}),
 	createMigration(ProjectEngagement, 'projectmembers', {
 		...ident(['date', 'notes', 'type'] as const),
-		toMemberId: objectId('member'),
+		byMemberId: objectId('member'),
 		project: (subDoc, doc) => newItemMap.get(doc.project.toString()) as Project,
-		byMemberId: (subDoc, doc) => doc.member.toString(),
+		toMemberId: (subDoc, doc) => doc.member.toString(),
 	}, doc => doc.engagement || [])
 ];
 
