@@ -1,4 +1,11 @@
-version: '3.2'
+version: '3.4'
+
+x-base-app: &base-app
+  build: .
+  volumes:
+    - ./built:/opt/membership-system/built
+  environment:
+    NODE_ENV: development
 
 services:
   db:
@@ -15,24 +22,20 @@ services:
       POSTGRES_PASSWORD: membership_system
       POSTGRES_DB: membership_system
 
-  app:
-    build: .
-    volumes:
-      - ./built:/opt/membership-system/built
-    environment:
-      NODE_ENV: development
+  app: *base-app
 
   gc_webhook:
-    build: .
+    <<: *base-app
     command: 'node built/webhooks/gocardless'
-    volumes:
-      - ./built:/opt/membership-system/built
 
   stripe_webhook:
-    build: .
+    <<: *base-app
     command: 'node built/webhooks/stripe'
-    volumes:
-      - ./built:/opt/membership-system/built
+
+  cron:
+    <<: *base-app
+    user: root
+    command: 'crond -f -d 0'
 
   router:
     image: nginx:1.18.0-alpine

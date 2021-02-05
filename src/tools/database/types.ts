@@ -24,10 +24,6 @@ const chance = new Chance();
 
 // TODO: anonymise dates
 
-function randomId(len: number) {
-	return crypto.randomBytes(6).toString('hex').slice(0, len).toUpperCase();
-}
-
 let codeNo = 0;
 function uniqueCode(): string {
 	codeNo++;
@@ -41,7 +37,7 @@ const objectId = () => new mongoose.Types.ObjectId().toString();
 const members: Properties = {
 	_id: objectId,
 	uuid: () => chance.guid({version: 4}),
-	email: () => chance.email(),
+	email: () => chance.email({domain: 'example.com', length: 10}),
 	firstname: () => chance.first(),
 	lastname: () => chance.last(),
 	otp: () => ({}),
@@ -55,9 +51,6 @@ const members: Properties = {
 	notes: () => chance.sentence(),
 	'contact.telephone': () => chance.phone(),
 	'contact.twitter': () => chance.twitter(),
-	'gocardless.customer_id': () => 'CU' + randomId(12),
-	'gocardless.mandate_id': () => 'MA' + randomId(12),
-	'gocardless.subscription_id': () => 'SB' + randomId(12),
 	'delivery_address.line1': () => chance.address(),
 	'delivery_address.line2': () => chance.pickone(['Cabot', 'Easton', 'Southmead', 'Hanham']),
 	'delivery_address.city': () => 'Bristol',

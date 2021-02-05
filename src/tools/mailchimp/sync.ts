@@ -1,29 +1,55 @@
-require('module-alias/register');
+import 'module-alias/register';
 
-const config = require( '@config' );
+import axios from 'axios';
+import crypto from 'crypto';
+import JSONStream from 'JSONStream';
+import gunzip from 'gunzip-maybe';
+import moment from 'moment';
+import tar from 'tar-stream';
+import { ConnectionOptions } from 'typeorm';
 
-const axios = require( 'axios' );
-const crypto = require( 'crypto' );
-const JSONStream = require( 'JSONStream' );
-const gunzip = require( 'gunzip-maybe' );
-const moment = require( 'moment' );
-const tar = require( 'tar-stream' );
+import * as db from '@core/database';
+import mailchimp from '@core/mailchimp';
+import { cleanEmailAddress } from '@core/utils';
 
-const mailchimp = require( '@core/mailchimp' );
-const db = require( '@core/database' );
-const { cleanEmailAddress } = require( '@core/utils' );
+import { Member } from '@models/members';
 
-function emailToHash(email) {
+import config from '@config';
+
+interface DeleteOperation {
+	method: 'DELETE'
+	path: string
+	operation_id: string
+}
+interface PatchOperation {
+	method: 'PATCH'
+	path: string
+	body: string
+	operation_id: string;
+}
+
+type Operation = DeleteOperation|PatchOperation;
+
+interface Batch {
+	id: string
+	status: string
+	finished_operations: number
+	total_operations: number
+	errored_operations: number
+	response_body_url: string
+}
+
+function emailToHash(email: string) {
 	return crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
 }
 
 // Ignore 405s from delete operations
-function validateStatus(statusCode, operationId) {
+function validateStatus(statusCode: number, operationId: string) {
 	return statusCode < 400 ||
 		operationId.startsWith('delete') && (statusCode === 404 || statusCode === 405);
 }
 
-function memberToOperation(listId, member) {
+function memberToOperation(listId: string, member: Member): Operation {
 	const emailHash = emailToHash(member.email);
 	const path = 'lists/' + listId + '/members/' + emailHash;
 
@@ -51,13 +77,13 @@ function memberToOperation(listId, member) {
 	};
 }
 
-async function fetchMembers(startDate, endDate) {
+async function fetchMembers(startDate: string|undefined, endDate: string|undefined): Promise<Member[]> {
 	const dateFilter = {
-		...startDate && {$gte: moment(startDate).toDate()},
-		$lte: endDate ? moment(endDate).toDate() : new Date()
+		$gte: startDate ? moment(startDate).toDate() : moment().subtract({d: 1, h: 2}).toDate(),
+		$lte: moment(endDate).toDate()
 	};
 
-	console.log('Start date:', startDate ? dateFilter.$gte.toISOString() : 'none');
+	console.log('Start date:', dateFilter.$gte.toISOString());
 	console.log('End date:', dateFilter.$lte.toISOString());
 
 	console.log('# Fetching members');
@@ -74,24 +100,14 @@ async function fetchMembers(startDate, endDate) {
 	});
 
 	console.log(`Got ${members.length} members`);
-
-	return members.map(member => {
+	members.forEach(member => {
 		console.log(member.isActiveMember ? 'U' : 'D', member.email);
-
-		return {
-			firstname: member.firstname,
-			lastname: member.lastname,
-			email: member.email,
-			referralLink: member.referralLink,
-			isActiveMember: member.isActiveMember
-		};
 	});
+	return members;
 }
 
-async function processMembers(members) {
-	const operations = config.mailchimp.lists
-		.map(listId => members.map(memberToOperation.bind(null, listId)))
-		.reduce((a, b) => [...a, ...b], []);
+async function processMembers(members: Member[]) {
+	const operations = members.map(member => memberToOperation(config.mailchimp.mainList, member));
 
 	const updates = operations.filter(o => o.method === 'PATCH').length;
 	const deletes = operations.filter(o => o.method === 'DELETE').length;
@@ -107,12 +123,12 @@ async function processMembers(members) {
 	}
 }
 
-async function createBatch(operations) {
+async function createBatch(operations: Operation[]) {
 	console.log('# Starting batch job');
 	return await mailchimp.batches.create(operations);
 }
 
-async function waitForBatch(batch) {
+async function waitForBatch(batch: Batch): Promise<Batch> {
 	console.log('# Got update for batch', batch.id);
 	console.log('Status:', batch.status);
 	console.log(`Operations: ${batch.finished_operations}/${batch.total_operations}`);
@@ -126,7 +142,7 @@ async function waitForBatch(batch) {
 	}
 }
 
-async function checkBatchErrors(batch) {
+async function checkBatchErrors(batch: Batch) {
 	console.log('# Checking errors');
 
 	if (batch.errored_operations > 0) {
@@ -146,7 +162,7 @@ async function checkBatchErrors(batch) {
 			if (header.type === 'file') {
 				console.log('Checking file', header.name);
 				stream.pipe(JSONStream.parse('*'))
-					.on('data', data => {
+					.on('data', (data: any) => {
 						if (!validateStatus(data.status_code, data.operation_id)) {
 							console.error(`Unexpected error for ${data.operation_id}, got ${data.status_code}`);
 						}
@@ -169,14 +185,14 @@ async function checkBatchErrors(batch) {
 	}
 }
 
-async function dispatchOperations(operations) {
+async function dispatchOperations(operations: Operation[]) {
 	for (const operation of operations) {
 		try {
 			await mailchimp.instance({
 				method: operation.method,
 				url: operation.path,
-				...operation.body && {data: JSON.parse(operation.body)},
-				validateStatus: status => validateStatus(status, operation.operation_id)
+				...operation.method === 'PATCH' && {data: JSON.parse(operation.body)},
+				validateStatus: (status: number) => validateStatus(status, operation.operation_id)
 			});
 		} catch (err) {
 			console.log(err);
@@ -184,7 +200,7 @@ async function dispatchOperations(operations) {
 	}
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	const isTest = process.argv[2] === '-n';
 	try {
 		const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);

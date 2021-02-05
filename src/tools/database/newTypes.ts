@@ -16,6 +16,7 @@ import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
 import Poll from '@models/Poll';
 import PollResponse from '@models/PollResponse';
+import GCPaymentData from '@models/GCPaymentData';
 
 export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -69,6 +70,13 @@ const exportItemsDrier = createDrier(ExportItem, 'exportItems', {
 	itemId: itemId => itemId // These will be mapped to values that have already been seen
 });
 
+const gcPaymentDataDrier = createDrier(GCPaymentData, 'gcPaymentData', {
+	memberId: objectId,
+	customerId: randomId(12, 'CU'),
+	mandateId: randomId(12, 'MD'),
+	subscriptionId: randomId(12, 'SB')
+});
+
 const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 	id: () => uuidv4(),
 	setupCode: uniqueCode,
@@ -76,10 +84,10 @@ const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 	giftForm: createDrier(GiftForm, 'giftForm', {
 		firstname: () => chance.first(),
 		lastname: () => chance.last(),
-		email: () => chance.email(),
+		email: () => chance.email({domain: 'example.com', length: 10}),
 		message: () => chance.sentence(),
 		fromName: () => chance.name(),
-		fromEmail: () => chance.email()
+		fromEmail: () => chance.email({domain: 'example.com', length: 10}),
 	})
 });
 
@@ -108,6 +116,7 @@ const referralsDrier = createDrier(Referral, 'referrals', {
 export default [
 	emailDrier,
 	exportsDrier,
+	gcPaymentDataDrier,
 	giftFlowDrier,
 	noticesDrier,
 	optionsDrier,

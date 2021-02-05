@@ -1,9 +1,14 @@
+import { getRepository, IsNull, Not } from 'typeorm';
+
 import { Members, Permissions } from '@core/database';
 import { Param } from '@core/utils/params';
 
 import config from '@config' ;
+
 import Export from '@models/Export';
 import { Member } from '@models/members';
+import GCPaymentData from '@models/GCPaymentData';
+
 import { ExportType } from './type';
 
 async function getParams(): Promise<Param[]> {
@@ -16,18 +21,16 @@ async function getParams(): Promise<Param[]> {
 
 async function getQuery({params}: Export): Promise<any> {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
+	const membersWithSubs = params?.hasActiveSubscription && 
+		await getRepository(GCPaymentData).find({subscriptionId: Not(IsNull())});
+
 	return {
 		permissions: {$elemMatch: {
 			permission,
 			date_expires: {$gte: new Date()}
 		}},
-		...(params?.hasActiveSubscription ? {'gocardless.subscription_id': {$exists: true, $ne: ''}} : {})
+		...(membersWithSubs && {_id: {$in: membersWithSubs.map(m => m.memberId)}})
 	};
-}
-
-function anonymisePostcode(postcode: string): string {
-	return postcode &&
-		(postcode[0] + postcode.substr(1, postcode.length - 3).replace(/[A-Za-z0-9]/g, '•') + postcode.substr(-2));
 }
 
 async function getExport(members: Member[]): Promise<Record<string, any>[]> {
@@ -39,11 +42,10 @@ async function getExport(members: Member[]): Promise<Record<string, any>[]> {
 			LastName: member.lastname,
 			ReferralLink: member.referralLink,
 			PollsCode: member.pollsCode,
+			ContributionType: member.contributionType,
 			ContributionMonthlyAmount: member.contributionMonthlyAmount,
 			ContributionPeriod: member.contributionPeriod,
-			ContributionDescription: member.contributionDescription,
-			ContributionPayingFee: member.gocardless.paying_fee,
-			Postcode: member.delivery_optin ? anonymisePostcode(member.delivery_address.postcode!) : ''
+			ContributionDescription: member.contributionDescription
 		}))
 		.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
 }

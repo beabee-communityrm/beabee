@@ -1,5 +1,5 @@
 import { Document, Model } from 'mongoose';
-import { ContributionPeriod } from '@core/utils';
+import { ContributionPeriod, ContributionType } from '@core/utils';
 
 interface Permission {
 	permission?: string
@@ -27,22 +27,17 @@ interface PartialMember {
 		city?: string,
 		postcode?: string
 	}
+	contributionType: ContributionType
 }
+
 interface Member extends PartialMember, Document {
 	uuid: string
 	referralCode: string,
 	pollsCode: string
 	giftCode?: string,
-	gocardless: {
-		customer_id?: string,
-		mandate_id?: string,
-		subscription_id?: string,
-		paying_fee?: boolean,
-		amount?: number,
-		period?: ContributionPeriod
-		next_amount?: number
-		cancelled_at?: Date
-	},
+	contributionMonthlyAmount?: number
+	nextContributionMonthlyAmount?: number
+	contributionPeriod?: ContributionPeriod
 	permissions: Permissions,
 	memberPermission: MemberPermission,
 	otp: {
@@ -71,14 +66,11 @@ interface Member extends PartialMember, Document {
 	description?: string
 	bio?: string
 	readonly isActiveMember: boolean,
-	readonly hasActiveSubscription: boolean,
-	readonly canTakePayment: boolean,
-	readonly contributionPeriod: ContributionPeriod
 	readonly contributionDescription: string
-	readonly contributionMonthlyAmount: number
 	readonly fullname: string
 	readonly setupComplete: boolean
 	readonly referralLink: string
+	readonly memberMonthsRemaining: number
 }
 
 export const model: Model<Member>;

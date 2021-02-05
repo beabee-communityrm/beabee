@@ -8,6 +8,7 @@ import Export from '@models/Export';
 import { Member } from '@models/members';
 import { ExportType } from './type';
 import { getRepository } from 'typeorm';
+import { ContributionType } from '@core/utils';
 
 async function getParams(): Promise<Param[]> {
 	return [{
@@ -24,8 +25,7 @@ async function getParams(): Promise<Param[]> {
 async function getQuery({params}: Export) {
 	const permission = await Permissions.findOne( { slug: config.permission.member });
 	return {
-		// TODO: switch this to contributionMonthlyAmount
-		'gocardless.amount': {
+		contributionMonthlyAmount: {
 			$gte: params?.monthlyAmountThreshold === undefined ? 3 : params?.monthlyAmountThreshold
 		},
 		permissions: {$elemMatch: {
@@ -59,7 +59,7 @@ async function getExport(members: Member[], {id: exportId}: Export) {
 				City: member.delivery_address.city,
 				Postcode: postcode,
 				ReferralLink: member.referralLink,
-				IsGift: member.contributionPeriod === 'gift',
+				IsGift: member.contributionType === ContributionType.Gift,
 				// TODO: IsFirstEdition: _.every(member.exports, e => getExportNo(e.export_id) >= currentExportNo),
 				NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
 				ContributionMonthlyAmount: member.contributionMonthlyAmount

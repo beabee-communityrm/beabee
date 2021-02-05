@@ -5,8 +5,13 @@ import { QueryFailedError } from 'typeorm';
 
 export enum ContributionPeriod {
 	Monthly = 'monthly',
-	Annually = 'annually',
-	Gift = 'gift'
+	Annually = 'annually'
+}
+
+export enum ContributionType {
+	GoCardless = 'GoCardless',
+	Manual = 'Manual',
+	Gift = 'Gift'
 }
 
 export interface PaymentForm {

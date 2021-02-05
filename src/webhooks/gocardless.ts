@@ -9,7 +9,7 @@ import { installMiddleware, log } from '@core/logging';
 import * as db from '@core/database';
 import gocardless from '@core/gocardless';
 
-import PaymentWebhookService from '@core/services/PaymentWebhookService';
+import GCPaymentWebhookService from '@core/services/GCPaymentWebhookService';
 
 import config from '@config';
 
@@ -105,11 +105,11 @@ async function handlePaymentResourceEvent( event: Event ) {
 	// limited. It seems like we can pretty safely assume paid out payments
 	// haven't changed though.
 	if ( event.action === 'paid_out' ) {
-		await PaymentWebhookService.updatePaymentStatus(event.links.payment, 'paid_out');
+		await GCPaymentWebhookService.updatePaymentStatus(event.links.payment, 'paid_out');
 	} else {
-		const payment = await PaymentWebhookService.updatePayment(event.links.payment);
+		const payment = await GCPaymentWebhookService.updatePayment(event.links.payment);
 		if (event.action === 'confirmed') {
-			await PaymentWebhookService.confirmPayment(payment);
+			await GCPaymentWebhookService.confirmPayment(payment);
 		}
 	}
 }
@@ -125,7 +125,7 @@ async function handleSubscriptionResourceEvent( event: Event ) {
 	case 'customer_approval_denied':
 	case 'cancelled':
 	case 'finished':
-		await PaymentWebhookService.cancelSubscription(event.links.subscription);
+		await GCPaymentWebhookService.cancelSubscription(event.links.subscription);
 		break;
 	}
 }
@@ -152,12 +152,12 @@ async function handleMandateResourceEvent( event: Event ) {
 	case 'failed':
 	case 'expired':
 		// Remove the mandate from the database
-		await PaymentWebhookService.cancelMandate(event.links.mandate);
+		await GCPaymentWebhookService.cancelMandate(event.links.mandate);
 		break;
 	}
 }
 
 async function handleRefundResourceEvent( event: Event ) {
 	const refund = await gocardless.refunds.get( event.links.refund );
-	await PaymentWebhookService.updatePayment(refund.links.payment);
+	await GCPaymentWebhookService.updatePayment(refund.links.payment);
 }

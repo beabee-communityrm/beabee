@@ -1,28 +1,17 @@
-h4 GoCardless
-dl.dl-horizontal
-	dt Customer ID
-	if member.gocardless.customer_id
-		dd: a( href="https://manage.gocardless.com/customers/" + member.gocardless.customer_id ) #{ member.gocardless.customer_id }
+mixin gcLink(id, type)
+	if id
+		a(href=`https://manage.gocardless.com/${type}/${id}`)= id
 	else
-		dd –
-	dt Mandate ID
-	if member.gocardless.mandate_id
-		dd: a( href="https://manage.gocardless.com/mandates/" + member.gocardless.mandate_id ) #{ member.gocardless.mandate_id }
-	else
-		dd –
-	dt Subscription ID
-	if member.gocardless.subscription_id
-		dd: a( href="https://manage.gocardless.com/subscriptions/" + member.gocardless.subscription_id ) #{ member.gocardless.subscription_id }
-	else
-		dd –
-	dt Amount
-	dd
-		= member.gocardless.amount ? '£' + member.gocardless.amount : '–'
-		if member.gocardless.paying_fee
-			|
-			| (+ fee)
-	dt Period
-	dd= member.gocardless.period ? member.gocardless.period : '–'
-	if member.gocardless.cancelled_at
-		dt Cancelled
-		dd= moment(member.gocardless.cancelled_at).format('HH:mm:ss DD/MM/YYYY')
+		| –
+
+dt Paying fee?
+dd= gcData.payFee ? 'Yes' : 'No'
+dt Customer ID
+dd: +gcLink(gcData.customerId, 'customers')
+dt Mandate ID
+dd: +gcLink(gcData.mandateId, 'mandates')
+dt Subscription ID
+dd: +gcLink(gcData.subscriptionId, 'subscriptions')
+if gcData.cancelledAt
+	dt Cancelled
+	dd= moment(gcData.cancelledAt).format('HH:mm:ss DD/MM/YYYY')

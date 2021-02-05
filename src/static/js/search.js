@@ -23,6 +23,12 @@ $('#builder').queryBuilder({
 		label: 'Email address',
 		type: 'string'
 	}, {
+		id: 'contributionType',
+		label: 'Contribution type',
+		type: 'string',
+		input: 'select',
+		values: ['Gift', 'GoCardless', 'Manual']
+	}, {
 		id: 'contributionMonthlyAmount',
 		label: 'Contribution amount (monthly)',
 		type: 'double',
@@ -33,8 +39,7 @@ $('#builder').queryBuilder({
 		input: 'select',
 		values: {
 			'monthly': 'Monthly',
-			'annually': 'Annual',
-			'gift': 'Gift'
+			'annually': 'Annual'
 		}
 	}, {
 		id: 'deliveryOptIn',

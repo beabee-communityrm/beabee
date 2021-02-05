@@ -68,7 +68,7 @@ export default class ReferralsService {
 		const referral = new Referral();
 		referral.referrerId = referrer?.id;
 		referral.refereeId = referee.id;
-		referral.refereeAmount = referee.contributionMonthlyAmount;
+		referral.refereeAmount = referee.contributionMonthlyAmount || 0;
 		referral.refereeGift = {name: giftForm.referralGift || ''} as ReferralGift;
 		referral.refereeGiftOptions = giftForm.referralGiftOptions;
 
@@ -78,7 +78,7 @@ export default class ReferralsService {
 
 		await mandrill.sendToMember('successful-referral', referrer, {
 			refereeName: referee.firstname,
-			isEligible: referee.contributionMonthlyAmount >= 3
+			isEligible: referee.contributionMonthlyAmount && referee.contributionMonthlyAmount >= 3
 		});
 	}
 

@@ -1,7 +1,8 @@
 const mongoose = require( 'mongoose' );
+const moment = require( 'moment' );
 const crypto = require( 'crypto' );
 
-const { permission: { memberId } } = require( '@config' );
+const config = require( '@config' );
 
 const { getActualAmount } = require( '@core/utils' );
 
@@ -139,19 +140,13 @@ module.exports = {
 			default: Date.now,
 			required: true
 		},
-		gocardless: {
-			customer_id: String,
-			mandate_id: String,
-			subscription_id: String,
-			amount: Number,
-			next_amount: Number,
-			period: {
-				type: String,
-				enum: ['monthly', 'annually', 'gift']
-			},
-			cancelled_at: Date,
-			paying_fee: Boolean
+		contributionType: String,
+		contributionMonthlyAmount: Number,
+		contributionPeriod: {
+			type: String,
+			enum: ['monthly', 'annually', 'gift']
 		},
+		nextContributionMonthlyAmount: Number,
 		permissions: [ {
 			permission: {
 				type: ObjectId,
@@ -217,29 +212,27 @@ module.exports.schema.virtual( 'gravatar' ).get( function() {
 	return '//www.gravatar.com/avatar/' + md5;
 } );
 
-module.exports.schema.virtual( 'gocardless.actualAmount' ).get( function () {
-	return getActualAmount(this.gocardless.amount, this.gocardless.period);
-} );
-
-module.exports.schema.virtual( 'gocardless.nextActualAmount' ).get( function () {
-	return getActualAmount(this.gocardless.next_amount, this.gocardless.period);
-} );
-
 module.exports.schema.virtual( 'memberPermission' )
 	.get( function () {
-		return this.permissions.find(p => p.permission.equals(memberId));
+		return this.permissions.find(p => p.permission.equals(config.permission.memberId));
 	} )
 	.set( function (value) {
 		// Ensure permission is always member
-		const memberPermission = {...value, permission: memberId};
+		const memberPermission = {...value, permission: config.permission.memberId};
 
-		const i = this.permissions.findIndex(p => p.permission.equals(memberId));
+		const i = this.permissions.findIndex(p => p.permission.equals(config.permission.memberId));
 		if (i > -1) {
 			this.permissions[i] = memberPermission;
 		} else {
 			this.permissions.push(memberPermission);
 		}
 	} );
+
+module.exports.schema.virtual( 'memberMonthsRemaining' ).get( function () {
+	return Math.max(0,
+		moment.utc(this.memberPermission.date_expires)
+			.subtract(config.gracePeriod).diff(moment.utc(), 'months'));
+} );
 
 module.exports.schema.virtual( 'isActiveMember' ).get( function () {
 	const now = new Date();
@@ -255,37 +248,20 @@ module.exports.schema.virtual( 'referralLink' ).get( function () {
 	return 'https://thebristolcable.org/refer/' + this.referralCode;
 } );
 
-module.exports.schema.virtual( 'contributionAmount' ).get( function () {
-	return getActualAmount(this.gocardless.amount, this.gocardless.period);
-} );
-
-module.exports.schema.virtual( 'contributionMonthlyAmount' ).get( function () {
-	return this.gocardless.amount;
-} );
-
-module.exports.schema.virtual( 'contributionPeriod' ).get( function () {
-	return this.gocardless.period;
-} );
-
 module.exports.schema.virtual( 'contributionDescription' ).get( function () {
-	return this.contributionPeriod === 'gift' ? 'Gift' :
-		`£${this.contributionAmount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
+	if (this.contributionType === 'Gift') {
+		return 'Gift';
+	} else if (!this.contributionPeriod) {
+		return 'None';
+	} else {
+		const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
+		return `£${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
+	}
 } );
 
 module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
-	return getActualAmount(this.gocardless.next_amount, this.gocardless.period);
-} );
-
-module.exports.schema.virtual( 'nextContributionMonthlyAmount' ).get( function () {
-	return this.gocardless.next_amount;
-} );
-
-module.exports.schema.virtual( 'hasActiveSubscription' ).get( function () {
-	return !!this.gocardless.subscription_id;
-} );
-
-module.exports.schema.virtual( 'canTakePayment' ).get( function () {
-	return !!this.gocardless.mandate_id;
+	return this.nextContributionMonthlyAmount &&
+		getActualAmount(this.nextContributionMonthlyAmount, this.contributionPeriod);
 } );
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );
