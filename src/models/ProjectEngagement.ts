@@ -10,10 +10,10 @@ export default class ProjectEngagement {
 	project!: Project
 
 	@Column()
-  member1Id!: string
+  byMemberId!: string
 
   @Column()
-  member2Id!: string
+  toMemberId!: string
   
   @CreateDateColumn()
   date!: Date

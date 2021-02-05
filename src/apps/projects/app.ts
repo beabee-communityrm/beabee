@@ -20,20 +20,59 @@ interface CreateProjectSchema {
 	status: string
 }
 
-const app = express();
+interface CreateEngagementSchema {
+	type: string
+	date: string
+	time: string
+	notes: string
+	memberId: string
+}
 
-function schemaToProject( data: CreateProjectSchema ): Partial<Project> {
+interface UpdateProjectAction extends CreateProjectSchema {
+	action: 'update'
+}
+
+interface AddMembersAction {
+	action: 'add-members'
+	memberIds: string[]
+}
+
+interface UpdateMemberTagAction {
+	action: 'update-member-tag'
+	projectMemberId: string
+	tag: string
+}
+
+interface AddMemberEngagementAction extends CreateEngagementSchema {
+	action: 'add-member-engagement'
+}
+
+interface DeleteMemberEngagementAction {
+	action: 'delete-member-engagement'
+	projectEngagementId: string
+}
+
+interface DeleteProjectAction {
+	action: 'delete'
+}
+
+type UpdateAction = UpdateProjectAction|AddMembersAction|UpdateMemberTagAction|AddMemberEngagementAction|DeleteMemberEngagementAction|DeleteProjectAction;
+
+function schemaToProject( data: CreateProjectSchema ): Pick<Project,'title'|'description'|'status'> {
 	const { title, description, status } = data;
 	return { title, description, status };
 }
 
-function schemaToEngagement( data ) {
+function schemaToEngagement( data: CreateEngagementSchema ): Pick<ProjectEngagement,'type'|'notes'|'date'|'toMemberId'> {
 	const { type, date, time, notes } = data;
 	return {
 		type, notes,
-		date: moment(`${date}T${time}`)
+		date: moment(`${date}T${time}`).toDate(),
+		toMemberId: data.memberId
 	};
 }
+
+const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
@@ -45,7 +84,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 } ) );
 
 app.post( '/', hasSchema(createProjectSchema).orFlash, wrapAsync( async ( req, res ) => {
-	const project = await getRepository(Project).create( {
+	const project = await getRepository(Project).save( {
 		...schemaToProject( req.body ),
 		ownerId: req.user?.id
 	} );
@@ -60,21 +99,21 @@ app.get( '/:id', hasNewModel(Project, 'id'), wrapAsync( async ( req, res ) => {
 	const engagements = await getRepository(ProjectEngagement).find({project});
 
 	// TODO: remove when members is in ORM
-	const members = await Members.find({id: {$in: [
+	const members = await Members.find({_id: {$in: [
 		project.ownerId,
 		...projectMembers.map(m => m.memberId),
-		...engagements.map(m => m.member1Id),
-		...engagements.map(m => m.member2Id)
+		...engagements.map(m => m.byMemberId),
+		...engagements.map(m => m.toMemberId)
 	]}});
 
 	const engagementsWithMember = engagements.map(e => ({
 		...e,
-		member1: members.find(m => m.id === e.member1Id),
-		member2: members.find(m => m.id === e.member2Id)
-	}))
+		byMember: members.find(m => m.id === e.byMemberId),
+		toMember: members.find(m => m.id === e.toMemberId)
+	}));
 
 	const projectMembersWithEngagement = projectMembers.map(pm => {
-		const memberEngagements = engagementsWithMember.filter(e => pm.memberId === e.member2Id);
+		const memberEngagements = engagementsWithMember.filter(e => pm.memberId === e.toMemberId);
 		return {
 			...pm,
 			member: members.find(m => m.id === pm.memberId),
@@ -91,39 +130,38 @@ app.get( '/:id', hasNewModel(Project, 'id'), wrapAsync( async ( req, res ) => {
 } ) );
 
 app.post( '/:id', hasNewModel(Project, 'id'), wrapAsync( async ( req, res ) => {
+	const data = req.body as UpdateAction;
 	const project = req.model as Project;
-	switch ( req.body.action ) {
+
+	console.log('here');
+
+	switch ( data.action ) {
 	case 'update':
-		await getRepository(Project).update(project.id, schemaToProject(req.body));
+		await getRepository(Project).update(project.id, schemaToProject(data));
 		req.flash( 'success', 'project-updated' );
 		res.redirect( req.originalUrl );
 		break;
 	case 'add-members':
-		await getRepository(ProjectMember).insert((req.body.members as string[]).map(memberId => ({
-			project, memberId,
+		await getRepository(ProjectMember).insert(data.memberIds.map(memberId => ({
+			project, memberId
 		})));
 		req.flash( 'success', 'project-members-added' );
 		res.redirect( req.originalUrl );
 		break;
 	case 'update-member-tag':
-		await getRepository(ProjectMember).update( req.body.pmId, { tag: req.body.tag } );
+		await getRepository(ProjectMember).update( data.projectMemberId, { tag: data.tag } );
 		res.redirect( req.originalUrl + '#members' );
 		break;
 	case 'add-member-engagement':
-		await ProjectMembers.updateOne( { _id: req.body.pmId }, {
-			$push: { engagement: {
-				...schemaToEngagement( req.body ),
-				member: req.user
-			} }
-		} );
+		await getRepository(ProjectEngagement).insert({
+			...schemaToEngagement(data),
+			project,
+			byMemberId: req.user?.id,
+		});
 		res.redirect( req.originalUrl + '#members' );
 		break;
 	case 'delete-member-engagement':
-		await ProjectMembers.updateOne( { _id: req.body.pmId }, {
-			$pull: { engagement: {
-				_id: req.body.eId
-			} }
-		} );
+		await getRepository(ProjectEngagement).delete(data.projectEngagementId);
 		res.redirect( req.originalUrl + '#members' );
 		break;
 	case 'delete':

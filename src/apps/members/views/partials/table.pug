@@ -5,13 +5,13 @@ mixin membersTable
 				a(href='/members/' + member.uuid).members-table-row-link
 				if addToProject
 					label.members-table-action
-						input(type='checkbox' name='members[]' value=member._id)
+						input(type='checkbox' name='memberIds[]' value=member._id)
 				+membersTableBasicInfo(member)
 				span(style='flex: 0 1 120px')= member.contributionType
 				span(style='flex: 0 1 120px')= member.contributionDescription
 
 if addToProject
-	form(method='POST' action='/projects/' + addToProject._id)
+	form(method='POST' action='/projects/' + addToProject.id)
 		+csrf
 		p Select the members to add to #[b= addToProject.title]
 		p

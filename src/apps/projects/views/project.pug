@@ -28,7 +28,7 @@ block contents
 		.col-md-6
 			h4 Members
 		.col-md-6.text-right
-			a(href='/members?addToProject=' + project._id).btn.btn-primary
+			a(href='/members?addToProject=' + project.id).btn.btn-sm.btn-primary
 				span.glyphicon.glyphicon-plus
 				|
 				|
@@ -39,7 +39,7 @@ block contents
 			if projectMembers.length > 0
 				.members-table
 					each pm in projectMembers
-						- pmId = 'pm_' + pm._id
+						- pmId = 'pm_' + pm.id
 						.members-table-row
 							a(href='#' + pmId data-toggle='collapse').members-table-row-link.collapsed
 							span.projects-member-caret: span.caret
@@ -60,7 +60,7 @@ block contents
 									.col-md-3
 										form(method='POST')
 											+csrf
-											input(type='hidden' name='pmId' value=pm._id)
+											input(type='hidden' name='projectMemberId' value=pm.id)
 											.form-group
 												.input-group
 													input(type='text' name='tag' placeholder='Project tag' value=pm.tag).form-control
@@ -87,7 +87,7 @@ block contents
 										h5 Add engagement
 										form(method='POST')
 											+csrf
-											input(type='hidden' name='pmId' value=pm._id)
+											input(type='hidden' name='memberId' value=pm.member.id)
 											.form-group
 												label(for=pmId + '_engagement_type').control-label Type
 												select(name='type' id=pmId + '_engagement_type' required).form-control
@@ -107,22 +107,21 @@ block contents
 											.form-group
 												button(name='action' value='add-member-engagement').btn.btn-primary Add
 									.col-md-6
-										h5 Previous engagement
-										if pm.engagementByDate.length > 0
+										h5 Previous engagements
+										if pm.engagementsByDate.length > 0
 											ol
-												each e in pm.engagementByDate
+												each e in pm.engagementsByDate
 													li
 														form(method='POST').pull-right
 															+csrf
-															input(type='hidden' name='pmId' value=pm._id)
-															input(type='hidden' name='eId' value=e._id)
+															input(type='hidden' name='projectEngagementId' value=e.id)
 															button(name='action' value='delete-member-engagement').btn.btn-xs.btn-danger
 																span.glyphicon.glyphicon-trash
 														= e.type
 														|
 														| by
 														|
-														a(href='/members/' + e.member.uuid)= e.member.firstname
+														a(href='/members/' + e.byMember.uuid)= e.byMember.firstname
 														|
 														| at
 														|
@@ -143,7 +142,7 @@ block contents
 		.col-md-6
 			h4 Callouts
 		.col-md-6.text-right
-			a(href='/tools/polls/create?addToProject=' + project._id).btn.btn-primary
+			a(href='/tools/polls/create?addToProject=' + project.id).btn.btn-sm.btn-primary
 				span.glyphicon.glyphicon-plus
 				|
 				|
@@ -151,16 +150,7 @@ block contents
 
 	.row
 		.col-md-12
-			if project.polls.length > 0
-				table
-					thead
-						th Title
-					tbody
-						each poll in project.polls
-							tr
-								td= poll.title
-			else
-				.alert.alert-info No callouts
+			.alert.alert-info No callouts
 
 			hr
 

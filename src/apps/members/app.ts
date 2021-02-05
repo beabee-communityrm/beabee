@@ -1,13 +1,16 @@
 import express, { Request } from 'express';
 import queryString from 'query-string';
+import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import { Members, Permissions, Projects } from '@core/database';
+import { Members, Permissions } from '@core/database';
 import { wrapAsync } from '@core/utils';
 import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
 
 import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
+
+import Project from '@models/Project';
 
 const app = express();
 
@@ -104,7 +107,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 		total: pages.length
 	};
 
-	const addToProject = query.addToProject && await Projects.findById( query.addToProject );
+	const addToProject = query.addToProject && await getRepository(Project).findOne( query.addToProject as string );
 
 	res.render( 'index', {
 		permissions, availableTags, search: query,

@@ -118,8 +118,8 @@ const projectMembersDrier = createDrier(ProjectMember, 'projectMemers', {
 
 const projectEngagmentsDrier = createDrier(ProjectEngagement, 'projectEngagements', {
 	id: () => uuidv4(),
-	member1Id: objectId,
-	member2Id: objectId,
+	byMemberId: objectId,
+	toMemberId: objectId,
 	notes: () => chance.sentence()
 });
 
