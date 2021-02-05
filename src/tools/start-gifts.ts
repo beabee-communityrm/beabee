@@ -12,7 +12,7 @@ import GiftFlow from '@models/GiftFlow';
 
 import config from '@config';
 
-async function main(date: string) {
+async function main(date: string|undefined) {
 	const fromDate = moment.utc(date).startOf('day');
 	const toDate = moment.utc(date).endOf('day');
 

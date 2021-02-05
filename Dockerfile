@@ -19,6 +19,7 @@ COPY --chown=node:node --from=builder /opt/membership-system/node_modules /opt/m
 COPY --chown=node:node --from=builder /opt/membership-system/built /opt/membership-system/built
 
 COPY router/ /opt/membership-system/router/
+COPY crontab /etc/crontabs/root
 
 RUN echo -n ${REVISION} > /opt/membership-system/built/revision.txt
 
