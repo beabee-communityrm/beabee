@@ -37,7 +37,7 @@ const objectId = () => new mongoose.Types.ObjectId().toString();
 const members: Properties = {
 	_id: objectId,
 	uuid: () => chance.guid({version: 4}),
-	email: () => chance.email({domain: 'example.com'}),
+	email: () => chance.email({domain: 'example.com', length: 10}),
 	firstname: () => chance.first(),
 	lastname: () => chance.last(),
 	otp: () => ({}),

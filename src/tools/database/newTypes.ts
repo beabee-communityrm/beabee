@@ -84,10 +84,10 @@ const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 	giftForm: createDrier(GiftForm, 'giftForm', {
 		firstname: () => chance.first(),
 		lastname: () => chance.last(),
-		email: () => chance.email({domain: 'example.com'}),
+		email: () => chance.email({domain: 'example.com', length: 10}),
 		message: () => chance.sentence(),
 		fromName: () => chance.name(),
-		fromEmail: () => chance.email({domain: 'example.com'})
+		fromEmail: () => chance.email({domain: 'example.com', length: 10}),
 	})
 });
 
