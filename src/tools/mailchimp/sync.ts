@@ -79,11 +79,11 @@ function memberToOperation(listId: string, member: Member): Operation {
 
 async function fetchMembers(startDate: string|undefined, endDate: string|undefined): Promise<Member[]> {
 	const dateFilter = {
-		$gte: startDate ? moment(startDate).toDate() : moment().subtract({d: -1, h: -2}).toDate(),
+		$gte: startDate ? moment(startDate).toDate() : moment().subtract({d: 1, h: 2}).toDate(),
 		$lte: moment(endDate).toDate()
 	};
 
-	console.log('Start date:', startDate ? dateFilter.$gte.toISOString() : 'none');
+	console.log('Start date:', dateFilter.$gte.toISOString());
 	console.log('End date:', dateFilter.$lte.toISOString());
 
 	console.log('# Fetching members');
