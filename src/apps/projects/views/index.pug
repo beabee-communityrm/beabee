@@ -17,7 +17,7 @@ block contents
 					each project in projects
 						tr
 							td: .label.label-default= project.status
-							td(width='100%'): a(href='/projects/' + project._id)= project.title
+							td(width='100%'): a(href='/projects/' + project.id)= project.title
 
 			hr
 

@@ -6,7 +6,7 @@ ul.nav.nav-pills.member-search-options
 	.tab-pane#basic(class=searchType === 'basic' ? 'active' : '')
 		form( method='get' ).form-inline
 			if addToProject
-				input( type='hidden' name='addToProject' value=addToProject._id )
+				input( type='hidden' name='addToProject' value=addToProject.id )
 
 			.member-search-group
 				.form-group
@@ -45,7 +45,7 @@ ul.nav.nav-pills.member-search-options
 		#builder
 		form(method='get').js-advanced-form
 			if addToProject
-				input( type='hidden' name='addToProject' value=addToProject._id )
+				input( type='hidden' name='addToProject' value=addToProject.id )
 
 			input(type='hidden' name='query')
 			button(name='type' value='advanced').btn.btn-success Search

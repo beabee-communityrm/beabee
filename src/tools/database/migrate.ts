@@ -19,6 +19,9 @@ import Export from '@models/Export';
 import ExportItem from '@models/ExportItem';
 import Poll from '@models/Poll';
 import PollResponse from '@models/PollResponse';
+import Project from '@models/Project';
+import ProjectMember from '@models/ProjectMember';
+import ProjectEngagement from '@models/ProjectEngagement';
 
 type Mapping<T> = {[K in Exclude<WritableKeysOf<T>,'id'>]: (subdoc: Document, doc: Document) => T[K]};
 
@@ -57,7 +60,7 @@ function ident<T extends readonly string[]>(fields: T): {[key in T[number]]: any
 const newItemMap: Map<string, ObjectLiteral> = new Map();
 
 const migrations: Migration<any>[] = [
-	createMigration(PageSettings, 'pagesettings', {
+	/*createMigration(PageSettings, 'pagesettings', {
 		...ident(['pattern', 'shareUrl', 'shareTitle', 'shareDescription', 'shareImage'] as const),
 	}),
 	createMigration(Payment, 'payments', {
@@ -110,7 +113,7 @@ const migrations: Migration<any>[] = [
 	createMigration(Export, 'exports', {
 		...ident(['type', 'description', 'date', 'params'] as const)
 	}),
-	/*createMigration(ExportItem, 'members', {
+	createMigration(ExportItem, 'members', {
 		export: doc => newItemMap.get(doc.export_id.toString()) as Export,
 		itemId: (subdoc, doc) => doc._id.toString(),
 		status: subdoc => subdoc.status
@@ -119,7 +122,7 @@ const migrations: Migration<any>[] = [
 		export: doc => newItemMap.get(doc.export_id.toString()) as Export,
 		itemId: (subdoc, doc) => doc._id.toString(),
 		status: subdoc => subdoc.status
-	}, doc => doc.exports || []),*/
+	}, doc => doc.exports || []),
 	createMigration(Poll, 'polls', {
 		...ident(['slug', 'date', 'closed', 'starts', 'expires', 'pollMergeField'] as const),
 		title: copy('question'),
@@ -162,7 +165,22 @@ const migrations: Migration<any>[] = [
 		subscriptionId: doc => doc.gocardless && doc.gocardless.subscription_id,
 		cancelledAt: doc => doc.gocardless && doc.gocardless.cancelled_at,
 		payFee: doc => doc.gocardless && doc.gocardless.paying_fee
-	}, doc => doc.contributionPeriod === 'gift' ? []: [doc])
+	}, doc => doc.contributionPeriod === 'gift' ? []: [doc]),*/
+	createMigration(Project, 'projects', {
+		...ident(['title', 'description', 'status', 'date'] as const),
+		ownerId: objectId('owner'),
+	}),
+	createMigration(ProjectMember, 'projectmembers', {
+		project: doc => newItemMap.get(doc.project.toString()) as Project,
+		memberId: objectId('member'),
+		tag: copy('tag')
+	}),
+	createMigration(ProjectEngagement, 'projectmembers', {
+		...ident(['date', 'notes', 'type'] as const),
+		byMemberId: objectId('member'),
+		project: (subDoc, doc) => newItemMap.get(doc.project.toString()) as Project,
+		toMemberId: (subDoc, doc) => doc.member.toString(),
+	}, doc => doc.engagement || [])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {

@@ -4,6 +4,8 @@ import mongoose, { Document, DocumentDefinition, FilterQuery, Model } from 'mong
 import { EntityTarget, getCustomRepository, getRepository, ObjectType, Repository } from 'typeorm';
 
 import ajv from '@core/ajv';
+import { wrapAsync, isInvalidType } from '@core/utils';
+
 import OptionsService from'@core/services/OptionsService';
 
 import config from '@config';
@@ -120,18 +122,24 @@ export function hasModel<T extends Document>(modelCls: Model<T>, prop: keyof Doc
 }
 
 export function hasNewModel<T>(entity: EntityTarget<T>, prop: keyof T): RequestHandler {
-	return async (req, res, next) => {
+	return wrapAsync(async (req, res, next) => {
 		if (!req.model || (req.model as any)[prop] !== req.params[prop as string]) {
-			req.model = await getRepository(entity).findOne({where: {
-				[prop]: req.params[prop as string]
-			}});
+			try {
+				req.model = await getRepository(entity).findOne({where: {
+					[prop]: req.params[prop as string]
+				}});
+			} catch (err) {
+				if (!isInvalidType(err)) {
+					throw err;
+				}
+			}
 		}
 		if (req.model) {
 			next();
 		} else {
 			next('route');
 		}
-	};
+	});
 }
 
 export function hasNewModel2<R extends Repository<T>, T>(entityRespository: ObjectType<R>, prop: keyof T): RequestHandler {

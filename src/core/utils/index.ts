@@ -120,3 +120,11 @@ export function isDuplicateIndex(error: Error, key: string): boolean {
 	}
 	return false;
 }
+
+export function isInvalidType(error: Error): boolean {
+	if (error instanceof QueryFailedError) {
+		const pgError = error as unknown as PgError;
+		return pgError.code === '22P02';
+	}
+	return false;
+}

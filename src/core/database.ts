@@ -18,6 +18,9 @@ import PageSettings from '@models/PageSettings';
 import Payment from '@models/Payment';
 import Poll from '@models/Poll';
 import PollResponse from '@models/PollResponse';
+import Project from '@models/Project';
+import ProjectEngagement from '@models/ProjectEngagement';
+import ProjectMember from '@models/ProjectMember';
 import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
 import RestartFlow from '@models/RestartFlow';
@@ -57,7 +60,8 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 				entities: [
 					Email, EmailMailing, Export, ExportItem, GiftFlow, GCPaymentData,
 					JoinFlow, Notice, Option, PageSettings, Payment, Poll,
-					PollResponse, Referral, ReferralGift, RestartFlow, Segment
+					PollResponse, Project, ProjectMember, ProjectEngagement, Referral,
+					ReferralGift, RestartFlow, Segment
 				]
 			});
 			log.debug( {
@@ -87,7 +91,5 @@ export async function close(): Promise<void> {
 
 export { model as Members } from '@models/members';
 export { model as Permissions } from '@models/permissions';
-export { model as ProjectMembers } from '@models/project-members';
-export { model as Projects } from '@models/projects';
 export { model as SpecialUrlGroups } from '@models/special-url-groups';
 export { model as SpecialUrls } from '@models/special-urls';
