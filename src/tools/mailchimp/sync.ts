@@ -100,11 +100,10 @@ async function fetchMembers(startDate: string|undefined, endDate: string|undefin
 	});
 
 	console.log(`Got ${members.length} members`);
-
-	return members.map(member => {
+	members.forEach(member => {
 		console.log(member.isActiveMember ? 'U' : 'D', member.email);
-		return member;
 	});
+	return members;
 }
 
 async function processMembers(members: Member[]) {
