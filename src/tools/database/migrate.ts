@@ -165,7 +165,7 @@ const migrations: Migration<any>[] = [
 		subscriptionId: doc => doc.gocardless && doc.gocardless.subscription_id,
 		cancelledAt: doc => doc.gocardless && doc.gocardless.cancelled_at,
 		payFee: doc => doc.gocardless && doc.gocardless.paying_fee
-	}, doc => doc.contributionPeriod === 'gift' ? []: [doc]),*/
+	}, doc => doc.contributionPeriod === 'gift' ? []: [doc]),
 	createMigration(Project, 'projects', {
 		...ident(['title', 'description', 'status', 'date'] as const),
 		ownerId: objectId('owner'),
@@ -180,7 +180,7 @@ const migrations: Migration<any>[] = [
 		byMemberId: objectId('member'),
 		project: (subDoc, doc) => newItemMap.get(doc.project.toString()) as Project,
 		toMemberId: (subDoc, doc) => doc.member.toString(),
-	}, doc => doc.engagement || [])
+	}, doc => doc.engagement || [])*/
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {

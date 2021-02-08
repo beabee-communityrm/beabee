@@ -14,6 +14,7 @@ block contents
 						th Status
 						th Title
 						th Created
+						th Responses
 				tbody
 					each poll in polls
 						tr
@@ -28,6 +29,7 @@ block contents
 									span.label.label-info Scheduled
 							td(width='100%'): a(href='/tools/polls/' + poll.slug)= poll.title
 							td= moment(poll.date).format('DD/MM/YYYY')
+							td= poll.responseCount
 
 	.row
 		.col-md-8

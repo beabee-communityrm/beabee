@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import ProjectMember from './ProjectMember';
 
 @Entity()
 export default class Project {
@@ -19,4 +20,9 @@ export default class Project {
 
 	@Column()
 	status!: string
+
+	@OneToMany(() => ProjectMember, pm => pm.project)
+	members!: ProjectMember[]
+
+	memberCount?: number
 }

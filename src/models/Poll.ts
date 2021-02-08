@@ -1,5 +1,6 @@
 import moment from 'moment';
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import PollResponse from './PollResponse';
 
 export type PollTemplate = 'custom'|'builder'|'ballot';
 
@@ -40,6 +41,11 @@ export default class Poll {
 
 	@Column({default: false})
 	public!: boolean
+
+	@OneToMany(() => PollResponse, r => r.poll)
+	responses!: PollResponse[]
+
+	responseCount?: number
 
 	get active(): boolean {
 		const now = moment.utc();

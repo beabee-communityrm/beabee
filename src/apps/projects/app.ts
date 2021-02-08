@@ -1,7 +1,7 @@
 import express from 'express';
 import _ from 'lodash';
 import moment from 'moment';
-import { getRepository } from 'typeorm';
+import { createQueryBuilder, getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { hasNewModel, hasSchema } from '@core/middleware';
@@ -79,7 +79,10 @@ app.set( 'views', __dirname + '/views' );
 app.use( auth.isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
-	const projects = await getRepository(Project).find();
+	const projects = await createQueryBuilder(Project, 'p')
+		.loadRelationCountAndMap('p.memberCount', 'p.members')
+		.getMany();
+
 	res.render( 'index', { projects } );
 } ) );
 

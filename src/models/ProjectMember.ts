@@ -7,7 +7,7 @@ export default class ProjectMember {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@ManyToOne(() => Project)
+	@ManyToOne(() => Project, p => p.members)
 	project!: Project
 
 	@Column()

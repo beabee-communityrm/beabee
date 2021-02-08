@@ -8,7 +8,7 @@ export default class PollResponse {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@ManyToOne(() => Poll)
+	@ManyToOne(() => Poll, p => p.responses)
 	poll!: Poll
 
 	@Column({nullable: true})
