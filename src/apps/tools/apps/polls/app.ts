@@ -7,7 +7,7 @@ import { wrapAsync } from '@core/utils';
 
 import { createPollSchema } from './schemas.json';
 import Poll, { PollTemplate } from '@models/Poll';
-import { getRepository } from 'typeorm';
+import { createQueryBuilder, getRepository } from 'typeorm';
 import PollResponse from '@models/PollResponse';
 import { Members } from '@core/database';
 
@@ -26,7 +26,7 @@ interface CreatePollSchema {
 	public?: boolean
 }
 
-function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'> {
+function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'|'responses'> {
 	const { startsDate, startsTime, expiresDate, expiresTime } = data;
 
 	const poll = new Poll();
@@ -53,7 +53,10 @@ app.set( 'views', __dirname + '/views' );
 app.use( auth.isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
-	const polls = await getRepository(Poll).find();
+	const polls = await createQueryBuilder(Poll, 'p')
+		.loadRelationCountAndMap('p.responseCount', 'p.responses')
+		.getMany();
+
 	res.render( 'index', { polls } );
 } ) );
 
