@@ -9,31 +9,39 @@ block append css
 block append js
 	script( src='/static/js/lib/query-builder.standalone.js' )
 	script
-		if search.query
-			| var searchQuery = !{search.query}
+		if searchRuleGroup
+			| var searchRuleGroup = !{JSON.stringify(searchRuleGroup)};
 	script( src='/static/js/search.js?v=' + git)
 
 block contents
 	.row
 		.col-md-12
-			+page_header( 'Search' )
-			include partials/search.pug
-	.row
-		.col-md-12
-			h3
-				strong= title
-				|
-				|
-				if members.length > 0
-					small= pagination.start + ' to ' + pagination.end  + ' of ' + total
+			.page-header
+				if segment
+					.pull-right
+						a(href='/members/segments/' + segment.id).btn.btn-default
+							i.glyphicon.glyphicon-cog
+				h3
+					| Members#{segment ? ': ' + segment.name : ''}
 
-				if hasFilter
-					form(method='POST').pull-right
-						+csrf
-						button(name='action' value='save-segment').btn.btn-sm.btn-info Save segment
+			include partials/search.pug
+
+			.members-table-actions
+				form(method='POST')
+					+csrf
+					if segment
+						if searchQuery.rules
+							button(name='action' value='update-segment').btn.btn-sm.btn-warning Update segment
+					else
+						button(name='action' value='save-segment').btn.btn-sm.btn-primary Save as segment
+				if members.length > 0
+					if 0
+						form(method='POST')
+							+csrf
+							button(name='action' value='add-tag').btn.btn-sm.btn-default Add tag
+					include partials/pagination.pug
 
 			if members.length > 0
-				include partials/pagination.pug
 				include partials/table.pug
 				include partials/pagination.pug
 			else

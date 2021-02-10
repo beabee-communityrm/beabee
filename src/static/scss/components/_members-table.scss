@@ -1,3 +1,24 @@
+.members-table-actions {
+	display: flex;
+	margin: 4rem 0 2rem;
+
+	.btn {
+		margin-right: 0.5rem;
+	}
+}
+
+.members-table-results {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	flex: 1 1 auto;
+
+	.pagination {
+		margin: 0;
+		margin-left: 1rem;
+	}
+}
+
 .members-table {
 	margin-bottom: 20px;
 }

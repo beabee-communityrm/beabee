@@ -1,12 +1,18 @@
-ul.nav.nav-pills.member-search-options
-	li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='pill' href='#basic') Basic
-	li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='pill' href='#advanced') Advanced
+if !segment
+	ul.nav.nav-pills.member-search-options
+		li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='pill' href='#basic') Basic
+		li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='pill' href='#advanced') Advanced
+
+mixin searchState
+	if segment
+		input( type='hidden' name='segment' value=segment.id )
+	if addToProject
+		input( type='hidden' name='addToProject' value=addToProject.id )
 
 .tab-content
 	.tab-pane#basic(class=searchType === 'basic' ? 'active' : '')
 		form( method='get' ).form-inline
-			if addToProject
-				input( type='hidden' name='addToProject' value=addToProject.id )
+			+searchState
 
 			.member-search-group
 				.form-group
@@ -14,29 +20,29 @@ ul.nav.nav-pills.member-search-options
 					select( name='permission' ).form-control
 						option( value='' ) Show all
 						each permission, p in permissions
-							option( value=permission.slug, selected=( search.permission == permission.slug ? true : false ) ) #{ permission.name }
+							option( value=permission.slug, selected=( searchQuery.permission == permission.slug ? true : false ) ) #{ permission.name }
 				.form-group
 					.checkbox
 						label( for='show_inactive' )
-							input( type='checkbox' name='show_inactive', value='true', checked=search.show_inactive )#show_inactive
+							input( type='checkbox' name='show_inactive', value='true', checked=searchQuery.show_inactive )#show_inactive
 							|  Show inactive members
 			.member-search-group
 				.form-group
 					label( for='firstname' ).control-label First name
-					input( type='text', name='firstname', value=search.firstname ).form-control#firstname
+					input( type='text', name='firstname', value=searchQuery.firstname ).form-control#firstname
 				.form-group
 					label( for='lastname' ).control-label Last name
-					input( type='text', name='lastname', value=search.lastname ).form-control#lastname
+					input( type='text', name='lastname', value=searchQuery.lastname ).form-control#lastname
 				.form-group
 					label( for='email' ).control-label Email
-					input( type='text', name='email', value=search.email ).form-control#email
+					input( type='text', name='email', value=searchQuery.email ).form-control#email
 			.member-search-group
 				.form-group
 					label( for='tag' ).control-label Tag
 					select( name='tag' ).form-control#tag
 						option(value='') Show all
 						each tag in availableTags
-							option( value=tag selected=search.tag === tag )= tag
+							option( value=tag selected=searchQuery.tag === tag )= tag
 
 			.member-search-group
 				button(name='type' value='basic').btn.btn-success Search
@@ -44,8 +50,7 @@ ul.nav.nav-pills.member-search-options
 	.tab-pane#advanced(class=searchType === 'advanced' ? 'active' : '')
 		#builder
 		form(method='get').js-advanced-form
-			if addToProject
-				input( type='hidden' name='addToProject' value=addToProject.id )
+			+searchState
 
-			input(type='hidden' name='query')
+			input(type='hidden' name='rules')
 			button(name='type' value='advanced').btn.btn-success Search
