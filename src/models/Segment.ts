@@ -14,4 +14,6 @@ export default class Segment {
 
 	@Column({type: 'jsonb'})
 	ruleGroup!: RuleGroup
+
+	memberCount?: number
 }

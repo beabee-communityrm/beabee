@@ -113,7 +113,7 @@ mixin membersTableBasicInfo(member)
 			if !search || tag.name !== search.tag
 				|
 				|
-				a(href='/members/?tag=' + encodeURIComponent(tag.name)).label.label-info.members-table-action= tag.name
+				a(href='/members/?type=basic&tag=' + encodeURIComponent(tag.name)).label.label-info.members-table-action= tag.name
 
 mixin paymentStatus(payment)
 	case payment.status

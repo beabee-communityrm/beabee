@@ -1,8 +1,12 @@
-import { hasNewModel } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
-import Segment from '@models/Segment';
 import express from 'express';
 import { getRepository } from 'typeorm';
+
+import { Members } from '@core/database';
+import { hasNewModel } from '@core/middleware';
+import { wrapAsync } from '@core/utils';
+import { parseRuleGroup } from '@core/utils/rules';
+
+import Segment from '@models/Segment';
 
 const app = express();
 
@@ -10,6 +14,9 @@ app.set( 'views', __dirname + '/views' );
 
 app.get('/', wrapAsync(async (req, res) => {
 	const segments = await getRepository(Segment).find();
+	for (const segment of segments) {
+		segment.memberCount = await Members.count(parseRuleGroup(segment.ruleGroup));
+	}
 	res.render('index', {segments});
 }));
 

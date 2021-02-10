@@ -1,9 +1,9 @@
 /* global window, $ */
 
 $('.js-advanced-form').on('submit', function (evt) {
-	var query = $('#builder').queryBuilder('getRules');
-	if (query) {
-		this.elements.query.value = JSON.stringify(query);
+	var rules = $('#builder').queryBuilder('getRules');
+	if (rules) {
+		this.elements.rules.value = JSON.stringify(rules);
 	} else {
 		evt.preventDefault();
 	}
@@ -66,6 +66,6 @@ $('#builder').queryBuilder({
 	}]
 });
 
-if (window.searchQuery) {
-	$('#builder').queryBuilder('setRules', window.searchQuery);
+if (window.searchRuleGroup) {
+	$('#builder').queryBuilder('setRules', window.searchRuleGroup);
 }

@@ -9,7 +9,7 @@ block append css
 block append js
 	script( src='/static/js/lib/query-builder.standalone.js' )
 	script.
-		var searchQuery = !{JSON.stringify(segment.ruleGroup)}
+		var searchRuleGroup = !{JSON.stringify(segment.ruleGroup)}
 	script( src='/static/js/search.js?v=' + git)
 
 block contents

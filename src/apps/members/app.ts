@@ -11,6 +11,7 @@ import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
 
 import Project from '@models/Project';
+import Segment from '@models/Segment';
 
 const app = express();
 
@@ -52,10 +53,10 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 	return search.rules.length > 0 ? search : undefined;
 }
 
-function getRuleGroup(query: Request['query']): RuleGroup|undefined {
+function getSearchRuleGroup(query: Request['query']): RuleGroup|undefined {
 	return query.type === 'basic' ? convertBasicSearch(query) :
-		typeof query.query === 'string' ?
-			JSON.parse(query.query) as RuleGroup : undefined;
+		typeof query.rules === 'string' ?
+			JSON.parse(query.rules) as RuleGroup : undefined;
 }
 
 app.get( '/', wrapAsync( async ( req, res ) => {
@@ -63,12 +64,11 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const permissions = await Permissions.find();
 	const availableTags = await getAvailableTags();
 
-	const searchType = query.type || 'basic';
-	const page = query.page ? Number( query.page ) : 1;
-	const limit = query.limit ? Number( query.limit ) : 25;
+	const segment = query.segment ? await getRepository(Segment).findOne(query.segment as string) : undefined;
+	const searchType = query.type || (segment ? 'advanced' : 'basic');
+	const searchRuleGroup = getSearchRuleGroup(query) || segment && segment.ruleGroup;
 
-	const ruleGroup = getRuleGroup(query);
-	const filter = ruleGroup ? parseRuleGroup(ruleGroup) : {};
+	const filter = searchRuleGroup ? parseRuleGroup(searchRuleGroup) : {};
 
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
@@ -89,6 +89,9 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 		filter.$and.push( { permissions: { $elemMatch: permissionSearch } } );
 	}
 	
+	const page = query.page ? Number( query.page ) : 1;
+	const limit = query.limit ? Number( query.limit ) : 25;
+
 	const total = await Members.count( filter );
 	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
 
@@ -110,20 +113,38 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const addToProject = query.addToProject && await getRepository(Project).findOne( query.addToProject as string );
 
 	res.render( 'index', {
-		permissions, availableTags, search: query,
-		searchType, members, pagination, total,
-		hasFilter: !!ruleGroup,
+		permissions, availableTags, members, pagination, total,
+		segment,
+		searchQuery: query,
+		searchType,
+		searchRuleGroup,
 		addToProject
 	} );
 } ) );
 
 app.post('/', wrapAsync(async (req, res) => {
-	const ruleGroup = getRuleGroup(req.query);
-	if (ruleGroup) {
-		const segment = await SegmentService.createSegment('Untitled segment', ruleGroup);
-		res.redirect('/members/segments/' + segment.id);
-	} else {
+	const searchRuleGroup = getSearchRuleGroup(req.query);
+	if (!searchRuleGroup) {
 		req.flash('error', 'segment-no-rule-group');
+		res.redirect(req.originalUrl);
+		return;
+	}
+
+	let segment = req.query.segment && await getRepository(Segment).findOne(req.query.segment as string);
+
+	switch (req.body.action) {
+	case 'save-segment':
+		segment = await SegmentService.createSegment('Untitled segment', searchRuleGroup);
+		break;
+	case 'update-segment':
+		if (segment) {
+			await getRepository(Segment).update(segment.id, {ruleGroup: searchRuleGroup});
+		}
+		break;
+	}
+	if (segment) {
+		res.redirect('/members/?segment=' + segment.id);
+	} else {
 		res.redirect(req.originalUrl);
 	}
 }));
