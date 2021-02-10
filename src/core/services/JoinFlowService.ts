@@ -7,6 +7,7 @@ import { getActualAmount } from '@core/utils';
 import JoinFlow, { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
 import RestartFlow from '@models/RestartFlow';
+import OptionsService from './OptionsService';
 
 export interface CompletedJoinFlow {
     customerId: string,
@@ -20,7 +21,7 @@ export default class JoinFlowService {
 		const actualAmount = getActualAmount(joinForm.amount, joinForm.period);
 
 		const redirectFlow = await gocardless.redirectFlows.create({
-			description: `Membership: £${actualAmount}/${joinForm.period}${joinForm.payFee ? ' (+ fee)' : ''}`,
+			description: `Membership: ${OptionsService.currencySymbol}${actualAmount}/${joinForm.period}${joinForm.payFee ? ' (+ fee)' : ''}`,
 			session_token: sessionToken,
 			success_redirect_url: completeUrl,
 			...redirectFlowParams

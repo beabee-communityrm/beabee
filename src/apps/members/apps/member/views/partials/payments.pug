@@ -21,12 +21,12 @@ if payments.length > 0
 						td #{ payment.description }
 						td: +paymentStatus(payment)
 						td
-							| #{ payment.amount ? '£' + payment.amount : '–' }
+							| #{ payment.amount ? currencySymbol + payment.amount : '–' }
 							if payment.amountRefunded
-								|  (-£#{payment.amountRefunded})
+								|  (-#{currencySymbol}#{payment.amountRefunded})
 			tfoot
 				tr
 					th( colspan=5 ) Total
-					th £ #{ total }
+					th #{currencySymbol}#{ total }
 else
 	p Member has no payment history

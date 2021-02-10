@@ -51,6 +51,14 @@ export default class OptionsService {
 		return OptionsService.optionCache;
 	}
 
+	static get currencySymbol(): string {
+		switch (OptionsService.getText('currency_code').toLowerCase()) {
+		case 'gbp': return '£';
+		case 'eur': return '€';
+		default: return '?';
+		}
+	}
+
 	static async set(key: string, value: string|number|boolean): Promise<void> {
 		const option = OptionsService.get(key);
 		if (option) {
