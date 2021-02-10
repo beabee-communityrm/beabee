@@ -1,10 +1,13 @@
+import dot from 'dot';
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
-import dot from 'dot';
+
+import { AppConfig } from '@core/utils';
+
+import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
-import { NextFunction, Request, Response } from 'express';
-import { AppConfig } from './utils';
 
 let git = '';
 try {
@@ -48,6 +51,7 @@ export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: 
 	res.locals.isLoggedIn = !!req.user;
 	res.locals.git = git;
 	res.locals.dev = config.dev;
+	res.locals.currencySymbol = OptionsService.currencySymbol;
 
 	// Add some libraries
 	res.locals.moment = moment;

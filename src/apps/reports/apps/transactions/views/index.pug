@@ -45,10 +45,10 @@ block contents
 									td #{ moment( payment.chargeDate ).format( 'DD/MM/YYYY' ) }
 									td #{ payment.description }
 									td: +paymentStatus(payment)
-									td #{ payment.amount ? '£' + payment.amount : '–' }
+									td #{ payment.amount ? currencySymbol + payment.amount : '–' }
 						tfoot
 							tr
 								th( colspan=6 ) Total confirmed
-								th £#{ total }
+								th #{currencySymbol}#{ total }
 			else
 				+messageBlock( 'info', 'There are no transactions this month.' )

@@ -34,7 +34,7 @@ block contents
 							dt Type
 							dd= member.contributionType
 							dt Amount
-							dd= member.contributionMonthlyAmount ? '£' + member.contributionMonthlyAmount : '–'
+							dd= member.contributionMonthlyAmount ? currencySymbol + member.contributionMonthlyAmount : '–'
 							dt Period
 							dd= member.contributionPeriod || '–'
 							if gcData

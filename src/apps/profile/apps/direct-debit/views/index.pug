@@ -61,7 +61,7 @@ block contents
 			if user.nextContributionAmount
 				p.alert.alert-success.
 					You updated your contribution amount, it will change to
-					£#{user.nextContributionAmount} on your next payment
+					#{currencySymbol}#{user.nextContributionAmount} on your next payment
 
 			if canChange
 				include partials/change-subscription

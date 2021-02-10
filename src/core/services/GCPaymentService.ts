@@ -13,6 +13,7 @@ import config from '@config';
 import GCPaymentData from '@models/GCPaymentData';
 import { Member, PartialMember } from '@models/members';
 import Payment from '@models/Payment';
+import OptionsService from './OptionsService';
 
 interface PayingMember extends Member {
 	contributionMonthlyAmount: number
@@ -87,7 +88,7 @@ abstract class UpdateContributionPaymentService {
 
 		const subscription = await gocardless.subscriptions.create( {
 			amount: this.getChargeableAmount(paymentForm.amount, paymentForm.period, paymentForm.payFee).toString(),
-			currency: CustomerCurrency.GBP,
+			currency: OptionsService.getText('currency_code').toUpperCase(),
 			interval_unit: paymentForm.period === ContributionPeriod.Annually ? SubscriptionIntervalUnit.Yearly: SubscriptionIntervalUnit.Monthly,
 			name: 'Membership',
 			links: {
@@ -155,7 +156,7 @@ abstract class UpdateContributionPaymentService {
 		if (prorateAmount > 0 && paymentForm.prorate) {
 			await gocardless.payments.create({
 				amount: (prorateAmount * 100).toFixed(0),
-				currency: PaymentCurrency.GBP,
+				currency: OptionsService.getText('currency_code').toUpperCase() as PaymentCurrency,
 				description: 'One-off payment to start new contribution',
 				links: {
 					mandate: gcData.mandateId

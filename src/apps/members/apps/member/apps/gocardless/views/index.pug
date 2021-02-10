@@ -6,7 +6,7 @@ block prepend title
 
 mixin commonSubscriptionFields(idPrefix, periodReadOnly)
 	+input( 'number', 'Monthly amount', 'amount', {
-		left: 3, right: 4, before: '£',
+		left: 3, right: 4, before: currencySymbol,
 		value: member.contributionMonthlyAmount,
 		id: idPrefix + 'Amount'
 	})

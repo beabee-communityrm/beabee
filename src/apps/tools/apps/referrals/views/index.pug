@@ -20,7 +20,7 @@ block contents
 					each gift in gifts
 						tr
 							td(width="100%"): a(href='/tools/referrals/gifts/' + gift.name)= gift.label
-							td £#{gift.minAmount}
+							td #{currencySymbol}#{gift.minAmount}
 							td
 								if gift.enabled
 									.span.label.label-success Enabled
