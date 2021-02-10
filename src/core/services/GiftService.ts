@@ -4,8 +4,10 @@ import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
 import mandrill from '@core/mandrill';
-import MembersService from '@core/services/MembersService';
 import { ContributionType, isDuplicateIndex } from '@core/utils';
+
+import MembersService from '@core/services/MembersService';
+import OptionsService from '@core/services/OptionsService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 import stripe from '@core/stripe';
@@ -33,7 +35,7 @@ export default class GiftService {
 			line_items: [{
 				name: `Gift membership - ${giftForm.months} month${giftForm.months != 1 ? 's' : ''}`,
 				amount: giftForm.months * GiftService.giftMonthlyAmount * 100,
-				currency: 'gbp',
+				currency: OptionsService.getText('currency_code').toLowerCase(),
 				quantity: 1
 			}]
 		});
