@@ -9,6 +9,9 @@ export default class Segment {
 	@Column()
 	name!: string
 
+	@Column({default: ''})
+	description!: string
+
 	@Column({type: 'jsonb'})
 	ruleGroup!: RuleGroup
 }

@@ -19,14 +19,17 @@ block contents
 
 	.row
 		.col-md-8
-			h4 Update segment
 			form(method='POST').form-horizontal
 				+csrf
 				.form-group
 					label.col-md-3.control-label Name
 					.col-md-9
 						input(type='text' name='name' value=segment.name required).form-control
-				
+				.form-group
+					label(for='description').control-label.col-md-3 Description
+					.col-md-9
+						textarea(name='description' required)#intro.form-control= segment.description
+							
 				.form-group
 					.col-md-9.col-md-offset-3
 						button(name='action' value='update').btn.btn-success Update

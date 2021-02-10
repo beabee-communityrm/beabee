@@ -5,7 +5,14 @@ block contents
 		.col-md-12
 			+page_header('Segments')
 
-			ul
-				each segment in segments
-					li: a(href='/members/segments/' + segment.id)= segment.name
+			table.table
+				thead
+					tr
+						th Name
+						th Members
+				tbody
+					each segment in segments
+						tr
+							td(width='100%'): a(href='/members/segments/' + segment.id)= segment.name
+							td 0
 
