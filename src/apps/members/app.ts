@@ -124,27 +124,19 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 app.post('/', wrapAsync(async (req, res) => {
 	const searchRuleGroup = getSearchRuleGroup(req.query);
-	if (!searchRuleGroup) {
-		req.flash('error', 'segment-no-rule-group');
-		res.redirect(req.originalUrl);
-		return;
-	}
-
-	let segment = req.query.segment && await getRepository(Segment).findOne(req.query.segment as string);
-
-	switch (req.body.action) {
-	case 'save-segment':
-		segment = await SegmentService.createSegment('Untitled segment', searchRuleGroup);
-		break;
-	case 'update-segment':
-		if (segment) {
-			await getRepository(Segment).update(segment.id, {ruleGroup: searchRuleGroup});
+	if (searchRuleGroup) {
+		if (req.body.action === 'save-segment') {
+			const segment = await SegmentService.createSegment('Untitled segment', searchRuleGroup);
+			res.redirect('/members/?segment=' + segment.id);
+		} else if (req.body.action === 'update-segment' && req.query.segment) {
+			const segmentId = req.query.segment as string;
+			await getRepository(Segment).update(segmentId, {ruleGroup: searchRuleGroup});
+			res.redirect('/members/?segment=' + segmentId);
+		} else {
+			res.redirect(req.originalUrl);
 		}
-		break;
-	}
-	if (segment) {
-		res.redirect('/members/?segment=' + segment.id);
 	} else {
+		req.flash('error', 'segment-no-rule-group');
 		res.redirect(req.originalUrl);
 	}
 }));
