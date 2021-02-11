@@ -18,10 +18,10 @@ interface MandrillMessage {
 		merge_vars: {
 			rcpt: string,
 			vars?: {name: string, content: unknown}[]
-		}[]
+		}[],
+		attachments?: {type: string, name: string, content: string}[]
 	}
 	send_at?: string
-	attachments?: {type: string, name: string, content: string}[]
 }
 
 export default class MandrillEmailProvider implements EmailProvider {
@@ -90,10 +90,10 @@ export default class MandrillEmailProvider implements EmailProvider {
 						name: mergeField,
 						content: r.mergeFields![mergeField]
 					}))
-				}))
+				})),
+				...opts?.attachments && {attachments: opts.attachments}
 			},
 			...opts?.sendAt && {send_at: opts.sendAt},
-			...opts?.attachments && {attachments: opts.attachments}
 		};
 	}
 }
