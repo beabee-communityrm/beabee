@@ -16,27 +16,27 @@ interface MandrillTemplate {
 }
 
 interface MandrillMessage {
-	message: {
-		to: {email: string, name: string}[]
-		merge_vars: {
-			rcpt: string,
-			vars?: {name: string, content: unknown}[]
-		}[],
-		attachments?: {type: string, name: string, content: string}[]
-	}
-	send_at?: string
+	to: {email: string, name: string}[]
+	merge_vars: {
+		rcpt: string,
+		vars?: {name: string, content: unknown}[]
+	}[],
+	attachments?: {type: string, name: string, content: string}[]
 }
 
 export default class MandrillEmailProvider implements EmailProvider {
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
 		const resp = await new Promise((resolve, reject) => {
 			this.client.messages.send({
-				...this.createMessageData(recipients, opts),
-				from_email: from.email,
-				from_name: from.name,
-				html: body,
-				auto_text: true,
-				subject
+				message: {
+					...this.createMessageData(recipients, opts),
+					from_name: from.name,
+					from_email: from.email,
+					subject,
+					html: body,
+					auto_text: true
+				},
+				...opts?.sendAt && {send_at: opts.sendAt}
 			}, resolve, reject);
 		});
 
@@ -61,7 +61,8 @@ export default class MandrillEmailProvider implements EmailProvider {
 				this.client.messages.sendTemplate({
 					...this.createMessageData(recipients, opts),
 					template_name: templateId,
-					template_content: []
+					template_content: [],
+					...opts?.sendAt && {send_at: opts.sendAt}
 				}, resolve, reject);
 			});
 			log.debug({
@@ -101,18 +102,16 @@ export default class MandrillEmailProvider implements EmailProvider {
 	
 	private createMessageData(recipients: EmailRecipient[], opts?: EmailOptions): MandrillMessage {
 		return {
-			message: {
-				to: recipients.map(r => r.to),
-				merge_vars: recipients.map(r => ({
-					rcpt: r.to.email,
-					vars: r.mergeFields && Object.keys(r.mergeFields).map(mergeField => ({
-						name: mergeField,
-						content: r.mergeFields![mergeField]
-					}))
-				})),
-				...opts?.attachments && {attachments: opts.attachments}
-			},
-			...opts?.sendAt && {send_at: opts.sendAt},
+			to: recipients.map(r => r.to),
+			merge_vars: recipients.map(r => ({
+				rcpt: r.to.email,
+				vars: r.mergeFields && Object.keys(r.mergeFields).map(mergeField => ({
+					name: mergeField,
+					content: r.mergeFields![mergeField]
+				}))
+			})),
+			...opts?.attachments && {attachments: opts.attachments}
+		};
 		};
 	}
 }
