@@ -137,13 +137,9 @@ app.post( '/cancel-subscription', [
 	const { user, body: { satisfied, reason, other } } = req;
 
 	try {
-		await user.update( { $set: {
-			'cancellation': { satisfied, reason, other }
-		} } );
-
+		user.cancellation = {satisfied, reason, other};
+		await user.update();
 		await GCPaymentService.cancelContribution( user );
-
-		await mandrill.sendToMember('cancelled-contribution-no-survey', user);
 
 		req.flash( 'success', 'contribution-cancelled' );
 	} catch ( error ) {

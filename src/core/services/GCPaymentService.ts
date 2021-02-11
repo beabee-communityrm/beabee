@@ -304,6 +304,10 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 				cancelledAt: new Date()
 			});
 
+			const emailTemplate = member.cancellation?.satisfied !== undefined ?
+				'cancelled-contribution-no-survey' : 'cancelled-contribution';
+			await EmailService.sendToMember(emailTemplate, member);
+
 			if (gcData.subscriptionId) {
 				try {
 					await gocardless.subscriptions.cancel(gcData.subscriptionId);

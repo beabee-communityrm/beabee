@@ -65,6 +65,11 @@ interface Member extends PartialMember, Document {
 	}[]
 	description?: string
 	bio?: string
+	cancellation?: {
+		satisfied: number,
+		reason: string,
+		other: string
+	}
 	readonly isActiveMember: boolean,
 	readonly contributionDescription: string
 	readonly fullname: string
