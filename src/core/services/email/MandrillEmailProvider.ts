@@ -112,6 +112,5 @@ export default class MandrillEmailProvider implements EmailProvider {
 			})),
 			...opts?.attachments && {attachments: opts.attachments}
 		};
-		};
 	}
 }
