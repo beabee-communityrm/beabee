@@ -49,6 +49,13 @@ export default class MandrillEmailProvider implements EmailProvider {
 	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
 		const [templateType, templateId] = template.split('_', 2);
 
+		log.debug({
+			action: 'send-template',
+			data: {
+				templateType, templateId
+			}
+		});
+
 		if (templateType === 'mandrill') {
 			const resp = await new Promise((resolve, reject) => {
 				this.client.messages.sendTemplate({
