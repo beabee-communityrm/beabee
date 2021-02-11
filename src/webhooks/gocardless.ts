@@ -10,6 +10,7 @@ import * as db from '@core/database';
 import gocardless from '@core/gocardless';
 
 import GCPaymentWebhookService from '@core/services/GCPaymentWebhookService';
+import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
 
@@ -69,7 +70,9 @@ log.info( {
 	action: 'start'
 } );
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(() => {
+db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+	await OptionsService.reload();
+
 	const listener = app.listen( config.gocardless.port, config.host, function () {
 		log.debug( {
 			action: 'start-webserver',
