@@ -109,13 +109,12 @@ class EmailService implements EmailProvider {
 				template, providerTemplate, recipients
 			}
 		});
-		await this.provider.sendTemplate(template, recipients, opts);
+		await this.provider.sendTemplate(providerTemplate, recipients, opts);
 	}
 
 	async sendTemplateToMember<T extends MemberEmailTemplateId, P = MemberEmailTemplates[T] extends MemberTemplateFn<infer U> ? U : never>(
 		template: T, member: Member, params?: any, opts?: EmailOptions
 	): Promise<void> {
-		const providerTemplate = this.providerTemplateMap[template];
 		const mergeFields = {
 			FNAME: member.firstname,
 			...memberEmailTemplates[template](member, params)
@@ -123,15 +122,11 @@ class EmailService implements EmailProvider {
 
 		log.info({
 			action: 'send-template-to-member',
-			data: {
-				template, providerTemplate,
-				memberId: member.id,
-				mergeFields
-			}
+			data: { memberId: member.id }
 		});
 
 		const recipients = [{to: {email: member.email, name: member.fullname}, mergeFields}];
-		await this.provider.sendTemplate(providerTemplate, recipients, opts);
+		await this.sendTemplate(template, recipients, opts);
 	}
 
 	async getTemplates(): Promise<EmailTemplate[]> {
