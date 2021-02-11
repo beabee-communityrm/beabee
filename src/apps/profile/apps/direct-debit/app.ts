@@ -138,7 +138,7 @@ app.post( '/cancel-subscription', [
 
 	try {
 		user.cancellation = {satisfied, reason, other};
-		await user.update();
+		await user.save();
 		await GCPaymentService.cancelContribution( user );
 
 		req.flash( 'success', 'contribution-cancelled' );
