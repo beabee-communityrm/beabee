@@ -29,7 +29,7 @@ export default class MandrillEmailProvider implements EmailProvider {
 				html: body,
 				auto_text: true,
 				subject,
-				...this.recipientsToMessage(recipients),
+				message: this.recipientsToMessage(recipients),
 				...opts?.sendAt && {send_at: opts.sendAt},
 				...opts?.attachments && {attachments: opts.attachments}
 			}, resolve, reject);
@@ -37,8 +37,6 @@ export default class MandrillEmailProvider implements EmailProvider {
 	}
 
 	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
-		const message = this.recipientsToMessage(recipients);
-
 		const [templateType, templateId] = template.split('_', 2);
 
 		if (templateType === 'mandrill') {
@@ -46,7 +44,7 @@ export default class MandrillEmailProvider implements EmailProvider {
 				this.client.messages.sendTemplate({
 					template_name: templateId,
 					template_content: [],
-					message,
+					message: this.recipientsToMessage(recipients),
 					...opts?.sendAt && {send_at: opts.sendAt},
 					...opts?.attachments && {attachments: opts.attachments}
 				}, resolve, reject);
