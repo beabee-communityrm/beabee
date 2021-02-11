@@ -42,7 +42,7 @@ export default class SMTPEmailProvider implements EmailProvider {
 	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
 		const email = await getRepository(Email).findOne(template);
 		if (email) {
-			this.sendEmail(
+			await this.sendEmail(
 				{name: email.fromName, email: email.fromEmail},
 				recipients,
 				email.subject,

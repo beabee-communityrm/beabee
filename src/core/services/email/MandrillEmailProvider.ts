@@ -1,11 +1,14 @@
 import mandrill from 'mandrill-api/mandrill';
 import { getRepository } from 'typeorm';
 
+import { log as mainLogger } from '@core/logging';
 import OptionsService from '@core/services/OptionsService';
 
 import Email from '@models/Email';
 
 import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '.';
+
+const log = mainLogger.child({app: 'mandrill-email-provider'});
 
 interface MandrillTemplate {
 	slug: string
@@ -26,7 +29,7 @@ interface MandrillMessage {
 
 export default class MandrillEmailProvider implements EmailProvider {
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
-		await new Promise((resolve, reject) => {
+		const resp = await new Promise((resolve, reject) => {
 			this.client.messages.send({
 				...this.createMessageData(recipients, opts),
 				from_email: from.email,
@@ -36,18 +39,27 @@ export default class MandrillEmailProvider implements EmailProvider {
 				subject
 			}, resolve, reject);
 		});
+
+		log.debug({
+			action: 'sent-email',
+			data: resp
+		});
 	}
 
 	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
 		const [templateType, templateId] = template.split('_', 2);
 
 		if (templateType === 'mandrill') {
-			await new Promise((resolve, reject) => {
+			const resp = await new Promise((resolve, reject) => {
 				this.client.messages.sendTemplate({
 					...this.createMessageData(recipients, opts),
 					template_name: templateId,
 					template_content: []
 				}, resolve, reject);
+			});
+			log.debug({
+				action: 'sent-template',
+				data: resp
 			});
 		} else if (templateType === 'local') {
 			const email = await getRepository(Email).findOne(templateId);
