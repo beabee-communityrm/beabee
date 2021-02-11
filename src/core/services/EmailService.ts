@@ -1,5 +1,6 @@
 import moment from 'moment';
 
+import { log as mainLogger } from '@core/logging';
 import OptionsService from '@core/services/OptionsService';
 
 import { Member } from '@models/members';
@@ -29,6 +30,8 @@ function wrapper<T extends readonly string[]>(keys: T, fn: MemberTemplateFn<T>):
 function wrapper3<T extends readonly string[]>(keys: T, fn: TemplateFn<T>): TemplateFn<T> {
 	return fn;
 }
+
+const log = mainLogger.child({app: 'email-service'});
 
 const emailTemplates = {
 	'purchased-gift': wrapper3(
@@ -89,21 +92,44 @@ const emailProviders: {[key: string]: EmailProvider} = {
 
 class EmailService implements EmailProvider {
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
+		log.info({
+			action: 'send-email',
+			data: {
+				from, recipients, subject
+			}
+		});
 		await this.provider.sendEmail(from, recipients, subject, body, opts);
 	}
 
 	async sendTemplate(template: EmailTemplateId, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
+		const providerTemplate = this.providerTemplateMap[template];
+		log.info({
+			action: 'send-template',
+			data: {
+				template, providerTemplate, recipients
+			}
+		});
 		await this.provider.sendTemplate(template, recipients, opts);
 	}
 
 	async sendTemplateToMember<T extends MemberEmailTemplateId, P = MemberEmailTemplates[T] extends MemberTemplateFn<infer U> ? U : never>(
 		template: T, member: Member, params?: any, opts?: EmailOptions
 	): Promise<void> {
+		const providerTemplate = this.providerTemplateMap[template];
 		const mergeFields = {
 			FNAME: member.firstname,
 			...memberEmailTemplates[template](member, params)
 		};
-		const providerTemplate = this.providerTemplateMap[template];
+
+		log.info({
+			action: 'send-template-to-member',
+			data: {
+				template, providerTemplate,
+				memberId: member.id,
+				mergeFields
+			}
+		});
+
 		const recipients = [{to: {email: member.email, name: member.fullname}, mergeFields}];
 		await this.provider.sendTemplate(providerTemplate, recipients, opts);
 	}
