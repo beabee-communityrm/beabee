@@ -5,9 +5,10 @@ import Papa from 'papaparse';
 import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import mandrill from '@core/mandrill';
 import { hasNewModel } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
+
+import EmailService from '@core/services/EmailService';
 
 import Email from '@models/Email';
 import EmailMailing, { EmailRecipient } from '@models/EmailMailing';
@@ -124,28 +125,20 @@ app.post('/:id/mailings/:mailingId', hasNewModel(Email, 'id'), wrapAsync(async (
 
 	const {emailField, nameField, mergeFields}: SendSchema = req.body;
 
-	const message = {
-		to: mailing.recipients.map(recipient => ({
+	const recipients = mailing.recipients.map(recipient => ({
+		to: {
 			email: recipient[emailField],
-			name: recipient[nameField]
-		})),
-		merge_vars: mailing.recipients.map(recipient => ({
-			rcpt: recipient[emailField],
-			vars: _.map(mergeFields, (value, key) => ({
-				name: key,
-				content: recipient[value]
-			}))
-		}))
-	};
+			name: recipient[nameField],
+		},
+		mergeFields: _.mapValues(mergeFields, valueField => recipient[valueField])
+	}));
 
-	await mandrill.send({
-		from_email: email.fromEmail,
-		from_name: email.fromName,
-		html: email.body.replace(/\r\n/g, '<br/>'),
-		auto_text: true,
-		subject: email.subject,
-		...message
-	});
+	await EmailService.sendEmail(
+		{email: email.fromEmail, name: email.fromName},
+		recipients,
+		email.subject,
+		email.body.replace(/\r\n/g, '<br/>')
+	);
 
 	await getRepository(EmailMailing).update(mailing.id, {
 		sentDate: new Date(),

@@ -6,9 +6,9 @@ import { Member } from '@models/members';
 
 import config from '@config';
 
-import { EmailProvider, Template } from './email';
+import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from './email';
 import MandrillEmailProvider from './email/MandrillEmailProvider';
-import LocalEmailProvider from './email/LocalEmailProvider';
+import SMTPEmailProvider from './email/SMTPEmailProvider';
 
 interface TemplateFn {
 	(member: Member, params: Record<string, unknown>): {[key: string]: unknown}
@@ -41,38 +41,45 @@ const memberEmailTemplates: {[key: string]: TemplateFn} = {
 		PURCHASER: fromName,
 		MESSAGE: message,
 		ACTIVATELINK: config.audience + '/gift/' + member.giftCode
-	}),
-	'expired-special-url-resend': (member, {url}) => ({
-		URL: url
 	})
 };
 
 const emailProviders: {[key: string]: EmailProvider} = {
 	mandrill: new MandrillEmailProvider(),
-	local: new LocalEmailProvider()
+	smpt: new SMTPEmailProvider()
 };
 
-export default class EmailService {
-	static async send(template: string): Promise<void> {
-		//await EmailService.getProvider().send(templates[template]);
+class EmailService implements EmailProvider {
+	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
+		await this.provider.sendEmail(from, recipients, subject, body, opts);
 	}
 
-	static async sendToMember(template: string, member: Member, params?: Record<string, unknown>, sendAt?: string): Promise<void> {
-		const mergeFields = memberEmailTemplates[template](member, params || {});
+	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
+		await this.provider.sendTemplate(template, recipients, opts);
+	}
+
+	async sendTemplateToMember(template: string, member: Member, params?: Record<string, unknown>, opts?: EmailOptions): Promise<void> {
+		const mergeFields = {
+			FNAME: member.firstname,
+			...memberEmailTemplates[template](member, params || {})
+		};
 		const providerTemplate = this.providerTemplateMap[template];
-		await EmailService.provider.sendToMember(member, providerTemplate, mergeFields, sendAt);
+		const recipients = [{to: {email: member.email, name: member.fullname}, mergeFields}];
+		await this.provider.sendTemplate(providerTemplate, recipients, opts);
 	}
 
-	static async getTemplates(): Promise<Template[]> {
-		return await EmailService.provider.getTemplates();
+	async getTemplates(): Promise<EmailTemplate[]> {
+		return await this.provider.getTemplates();
 	}
 
-	private static get providerTemplateMap() {
-		return JSON.parse(OptionsService.getText('email-templates'));
-	}
-
-	private static get provider(): EmailProvider {
+	private get provider(): EmailProvider {
 		const provider = OptionsService.getText('email-provider');
 		return emailProviders[provider];
 	}
+
+	private get providerTemplateMap() {
+		return JSON.parse(OptionsService.getText('email-templates'));
+	}
 }
+
+export default new EmailService();

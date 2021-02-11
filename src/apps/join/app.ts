@@ -129,7 +129,7 @@ app.get( '/complete', [
 	try {
 		const newMember = await MembersService.createMember(partialMember);
 		await handleJoin(req, res, newMember, joinFlow);
-		await EmailService.sendToMember('welcome', newMember);
+		await EmailService.sendTemplateToMember('welcome', newMember);
 	} catch ( saveError ) {
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
@@ -139,7 +139,7 @@ app.get( '/complete', [
 					res.redirect( app.mountpath + '/duplicate-email' );
 				} else {
 					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-					await EmailService.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
+					await EmailService.sendTemplateToMember('restart-membership', oldMember, {code: restartFlow.id});
 					res.redirect( app.mountpath + '/expired-member' );
 				}
 			} else {

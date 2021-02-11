@@ -78,7 +78,7 @@ export default class ReferralsService {
 		await ReferralsService.updateGiftStock(giftForm);
 
 		if (referrer) {
-			await EmailService.sendToMember('successful-referral', referrer, {
+			await EmailService.sendTemplateToMember('successful-referral', referrer, {
 				refereeName: referee.firstname,
 				isEligible: referee.contributionMonthlyAmount && referee.contributionMonthlyAmount >= 3
 			});

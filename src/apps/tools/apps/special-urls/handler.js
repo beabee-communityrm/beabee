@@ -4,8 +4,9 @@ const moment = require( 'moment' );
 const mongoose = require( 'mongoose' );
 
 const { SpecialUrls } = require( '@core/database' );
-const mandrill = require( '@core/mandrill' );
 const { wrapAsync } = require( '@core/utils' );
+
+const { default: EmailService } = require('@core/services/EmailService');
 
 const actions = require( './actions' );
 const { getSpecialUrlUrl } = require( './utils' );
@@ -52,25 +53,18 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 			expires: moment.utc().add(specialUrl.group.urlDuration, 'hours')
 		} );
 
-		await mandrill.sendMessage( 'expired-special-url-resend', {
-			to: [{
+		const recipients = [{
+			to: {
 				email: specialUrl.email,
 				name: specialUrl.firstname + ' ' + specialUrl.lastname
-			}],
-			merge_vars: [{
-				rcpt: specialUrl.email,
-				vars: [
-					{
-						name: 'FNAME',
-						content: specialUrl.firstname
-					},
-					{
-						name: 'URL',
-						content: getSpecialUrlUrl( newSpecialUrl )
-					}
-				]
-			}]
-		} );
+			},
+			mergeFields: {
+				FNAME: specialUrl.firstname,
+				URL: getSpecialUrlUrl( newSpecialUrl )
+			}
+		}];
+
+		await EmailService.sendTemplate('expired-special-url-resend', recipients);
 
 		res.render( 'resend' );
 	}

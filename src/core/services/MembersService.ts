@@ -6,9 +6,10 @@ import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/mailchimp';
 
+import EmailService from '@core/services/EmailService';
+
 import GCPaymentData from '@models/GCPaymentData';
 import { Member, PartialMember } from '@models/members';
-import EmailService from './EmailService';
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
@@ -97,6 +98,6 @@ export default class MembersService {
 		member.password.reset_code = code;
 		await member.save();
 
-		await EmailService.sendToMember('reset-password', member);
+		await EmailService.sendTemplateToMember('reset-password', member);
 	}
 }

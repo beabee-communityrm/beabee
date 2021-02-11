@@ -306,7 +306,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
 			const emailTemplate = member.cancellation?.satisfied !== undefined ?
 				'cancelled-contribution-no-survey' : 'cancelled-contribution';
-			await EmailService.sendToMember(emailTemplate, member);
+			await EmailService.sendTemplateToMember(emailTemplate, member);
 
 			if (gcData.subscriptionId) {
 				try {

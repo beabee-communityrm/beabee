@@ -66,7 +66,7 @@ async function handleChangeContribution(req: RequestWithUser, form: PaymentForm)
 	const wasGift = req.user.contributionType === ContributionType.Gift;
 	await GCPaymentService.updateContribution(req.user, form);
 	if (wasGift) {
-		await EmailService.sendToMember('welcome-post-gift', req.user);
+		await EmailService.sendTemplateToMember('welcome-post-gift', req.user);
 		req.flash( 'success', 'contribution-gift-updated' );
 	} else {
 		req.flash( 'success', 'contribution-updated' );

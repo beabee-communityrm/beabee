@@ -3,17 +3,16 @@ import moment from 'moment';
 import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
-import mandrill from '@core/mandrill';
+import stripe from '@core/stripe';
 import { ContributionType, isDuplicateIndex } from '@core/utils';
 
+import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
-import stripe from '@core/stripe';
 
 import config from '@config';
-import EmailService from './EmailService';
 
 const log = mainLogger.child({app: 'gift-service'});
 
@@ -65,33 +64,20 @@ export default class GiftService {
 			const now = moment.utc();
 
 			const giftCard = GiftService.createGiftCard(giftFlow.setupCode);
+			const attachments = [{
+				type: 'application/pdf',
+				name: 'Gift card.pdf',
+				content: giftCard.toString('base64')
+			}];
 
-			await mandrill.sendMessage('purchased-gift', {
-				to: [{
-					email: fromEmail,
-					name:  fromName
-				}],
-				merge_vars: [{
-					rcpt: fromEmail,
-					vars: [{
-						name: 'PURCHASER',
-						content: fromName,
-					}, {
-						name: 'GIFTEE',
-						content: firstname
-					}, {
-						name: 'GIFTDATE',
-						content: moment.utc(startDate).format('MMMM Do')
-					}]
-				}],
-				...(giftCard && {
-					attachments: [{
-						type: 'application/pdf',
-						name: 'Gift card.pdf',
-						content: giftCard.toString('base64')
-					}]
-				})
-			});
+			await EmailService.sendTemplate('purchased-gift', [{
+				to: {email: fromEmail, name: fromName},
+				mergeFields: {
+					PURCHASER: fromName,
+					GIFTEE: firstname,
+					GIFTDATE: moment.utc(startDate).format('MMMM Do')
+				}
+			}], {attachments});
 
 			// Immediately process gifts for today
 			if (moment.utc(startDate).isSame(now, 'day')) {
@@ -138,7 +124,7 @@ export default class GiftService {
 		await member.save();
 
 		const sendAt = sendImmediately ? undefined : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
-		await EmailService.sendToMember('giftee-success', member, { fromName, message }, sendAt);
+		await EmailService.sendTemplateToMember('giftee-success', member, { fromName, message }, {sendAt});
 
 		await MembersService.addMemberToMailingLists(member);
 	}

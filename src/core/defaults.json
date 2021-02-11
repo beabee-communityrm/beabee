@@ -11,6 +11,10 @@
 	"support-email-from": "UK Makerspace Membership",
 	"currency_code": "GBP",
 
+	"email-provider": "mandrill",
+	"email-settings": "",
+	"email-templates": "",
+
 	"footer-strapline": "",
 	"footer-privacy-link-text": "Privacy policy",
 	"footer-privacy-link-url": "http://example.com/privacy",

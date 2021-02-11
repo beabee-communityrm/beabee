@@ -4,9 +4,8 @@ import { getRepository } from 'typeorm';
 import OptionsService from '@core/services/OptionsService';
 
 import Email from '@models/Email';
-import { Member } from '@models/members';
 
-import { EmailProvider, Template } from '.';
+import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '.';
 
 interface MandrillTemplate {
 	slug: string
@@ -17,12 +16,56 @@ interface MandrillMessage {
 	to: {email: string, name: string}[]
 	merge_vars: {
 		rcpt: string,
-		vars: {name: string, content: unknown}[]
+		vars?: {name: string, content: unknown}[]
 	}[]
 }
 
 export default class MandrillEmailProvider implements EmailProvider {
-	async getTemplates(): Promise<Template[]> {
+	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
+		await new Promise((resolve, reject) => {
+			this.client.messages.send({
+				from_email: from.email,
+				from_name: from.name,
+				html: body,
+				auto_text: true,
+				subject,
+				...this.recipientsToMessage(recipients),
+				...opts?.sendAt && {send_at: opts.sendAt},
+				...opts?.attachments && {attachments: opts.attachments}
+			}, resolve, reject);
+		});
+	}
+
+	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
+		const message = this.recipientsToMessage(recipients);
+
+		const [templateType, templateId] = template.split('_', 2);
+
+		if (templateType === 'mandrill') {
+			await new Promise((resolve, reject) => {
+				this.client.messages.sendTemplate({
+					template_name: templateId,
+					template_content: [],
+					message,
+					...opts?.sendAt && {send_at: opts.sendAt},
+					...opts?.attachments && {attachments: opts.attachments}
+				}, resolve, reject);
+			});
+		} else if (templateType === 'local') {
+			const email = await getRepository(Email).findOne(templateId);
+			if (email) {
+				this.sendEmail(
+					{email: email.fromEmail, name: email.fromName},
+					recipients,
+					email.subject,
+					email.body.replace(/\r\n/g, '<br/>'),
+					opts
+				);
+			}
+		}
+	}
+
+	async getTemplates(): Promise<EmailTemplate[]> {
 		const templates: MandrillTemplate[] = await new Promise((resolve, reject) => {
 			this.client.templates.list(resolve, reject);
 		});
@@ -35,63 +78,20 @@ export default class MandrillEmailProvider implements EmailProvider {
 		];
 	}
 
-	async sendToMember(member: Member, templateId: string, mergeFields: Record<string, unknown>, sendAt?: string): Promise<void> {
-		const message = this.memberToMessage(member, mergeFields);
-		await this.sendTemplate(templateId, message, sendAt);
-	}
-
 	private get client() {
 		return new mandrill.Mandrill(OptionsService.getText('email-settings'));
 	}
 	
-	private memberToMessage(member: Member, params: Record<string, unknown>): MandrillMessage {
-		const mergeVars = Object.keys(params).map(key => ({
-			name: key,
-			content: params[key]
-		}));
-
+	private recipientsToMessage(recipients: EmailRecipient[]): MandrillMessage {
 		return {
-			to: [{
-				email: member.email,
-				name: member.fullname
-			}],
-			merge_vars: [{
-				rcpt: member.email,
-				vars: [
-					{
-						name: 'FNAME',
-						content: member.firstname
-					},
-					...mergeVars
-				]
-			}],
+			to: recipients.map(r => r.to),
+			merge_vars: recipients.map(r => ({
+				rcpt: r.to.email,
+				vars: r.mergeFields && Object.keys(r.mergeFields).map(mergeField => ({
+					name: mergeField,
+					content: r.mergeFields![mergeField]
+				}))
+			}))
 		};
-	}
-
-	private async sendTemplate(templateId: string, message: MandrillMessage, sendAt?: string): Promise<void> {
-		if (templateId.startsWith('mandrill_')) {
-			await new Promise((resolve, reject) => {
-				this.client.messages.sendTemplate({
-					template_name: templateId,
-					template_content: [],
-					message,
-					...(sendAt ? {send_at: sendAt} : {})
-				}, resolve, reject);
-			});
-		} else {
-			const email = await getRepository(Email).findOne(templateId.replace('local_', ''));
-			if (email) {
-				await new Promise((resolve, reject) => {
-					this.client.messages.send({
-						from_email: email.fromEmail,
-						from_name: email.fromName,
-						html: email.body.replace(/\r\n/g, '<br/>'),
-						auto_text: true,
-						subject: email.subject,
-						...message
-					}, resolve, reject);
-				});
-			}
-		}
 	}
 }
