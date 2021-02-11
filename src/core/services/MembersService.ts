@@ -1,15 +1,14 @@
-import moment from 'moment';
 import { getRepository } from 'typeorm';
 
+import auth from '@core/authentication';
 import { Members } from  '@core/database';
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/mailchimp';
-import { Member, PartialMember } from '@models/members';
 
 import GCPaymentData from '@models/GCPaymentData';
-
-import config from '@config';
+import { Member, PartialMember } from '@models/members';
+import EmailService from './EmailService';
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
@@ -91,5 +90,13 @@ export default class MembersService {
 				family_name: member.lastname
 			} );
 		}
+	}
+
+	static async resetMemberPassword(member: Member): Promise<void> {
+		const code = auth.generateCode();
+		member.password.reset_code = code;
+		await member.save();
+
+		await EmailService.sendToMember('reset-password', member);
 	}
 }

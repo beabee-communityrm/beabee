@@ -1,12 +1,11 @@
 import express from 'express';
 
-import { Members } from '@core/database';
-
 import auth from '@core/authentication';
-import mandrill from '@core/mandrill';
+import { Members } from '@core/database';
 import { hasSchema } from '@core/middleware';
 import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 
+import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 
 import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
@@ -26,13 +25,8 @@ app.post( '/', hasSchema(getResetCodeSchema).orFlash, wrapAsync( async function(
 	const { body: { email } } = req;
 
 	const member = await Members.findOne( { email: cleanEmailAddress(email) } );
-
 	if (member) {
-		const code = auth.generateCode();
-		member.password.reset_code = code;
-		await member.save();
-
-		await mandrill.sendToMember('reset-password', member);
+		await MembersService.resetMemberPassword(member);
 	}
 
 	const passwordResetMessage = OptionsService.getText('flash-password-reset') || '';
