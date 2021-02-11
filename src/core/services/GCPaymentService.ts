@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Customer, CustomerBankAccount, CustomerCurrency, PaymentCurrency, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
+import { Customer, CustomerBankAccount, PaymentCurrency, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 import { getRepository } from 'typeorm';
 
 import gocardless from '@core/gocardless';
@@ -14,7 +14,6 @@ import GCPaymentData from '@models/GCPaymentData';
 import { Member, PartialMember } from '@models/members';
 import Payment from '@models/Payment';
 import OptionsService from './OptionsService';
-import EmailService from './EmailService';
 
 interface PayingMember extends Member {
 	contributionMonthlyAmount: number
