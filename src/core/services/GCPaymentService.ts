@@ -14,6 +14,7 @@ import GCPaymentData from '@models/GCPaymentData';
 import { Member, PartialMember } from '@models/members';
 import Payment from '@models/Payment';
 import OptionsService from './OptionsService';
+import EmailService from './EmailService';
 
 interface PayingMember extends Member {
 	contributionMonthlyAmount: number

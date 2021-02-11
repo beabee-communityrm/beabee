@@ -2,12 +2,12 @@ import express, { Request, Response } from 'express';
 
 import auth from '@core/authentication' ;
 import { Members } from '@core/database' ;
-import mandrill from '@core/mandrill' ;
 import { hasSchema } from '@core/middleware' ;
 import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
+import EmailService from '@core/services/EmailService';
 import JoinFlowService, { CompletedJoinFlow }  from '@core/services/JoinFlowService';
 import MembersService  from '@core/services/MembersService';
 import GCPaymentService from '@core/services/GCPaymentService';
@@ -129,7 +129,7 @@ app.get( '/complete', [
 	try {
 		const newMember = await MembersService.createMember(partialMember);
 		await handleJoin(req, res, newMember, joinFlow);
-		await mandrill.sendToMember('welcome', newMember);
+		await EmailService.sendToMember('welcome', newMember);
 	} catch ( saveError ) {
 		// Duplicate email
 		if ( saveError.code === 11000 ) {
@@ -139,7 +139,7 @@ app.get( '/complete', [
 					res.redirect( app.mountpath + '/duplicate-email' );
 				} else {
 					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-					await mandrill.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
+					await EmailService.sendToMember('restart-membership', oldMember, {code: restartFlow.id});
 					res.redirect( app.mountpath + '/expired-member' );
 				}
 			} else {

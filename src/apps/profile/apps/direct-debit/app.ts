@@ -1,14 +1,14 @@
 import express, { NextFunction, Request, Response } from 'express';
 
 import auth from '@core/authentication' ;
-import mandrill from '@core/mandrill' ;
 import{ hasSchema } from '@core/middleware' ;
 import { ContributionPeriod, ContributionType, hasUser, PaymentForm, RequestWithUser, wrapAsync } from '@core/utils' ;
 
-import config from '@config' ;
+import config from '@config';
 
-import JoinFlowService from '@core/services/JoinFlowService' ;
+import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService' ;
+import JoinFlowService from '@core/services/JoinFlowService' ;
 
 import { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
 
@@ -66,7 +66,7 @@ async function handleChangeContribution(req: RequestWithUser, form: PaymentForm)
 	const wasGift = req.user.contributionType === ContributionType.Gift;
 	await GCPaymentService.updateContribution(req.user, form);
 	if (wasGift) {
-		await mandrill.sendToMember('welcome-post-gift', req.user);
+		await EmailService.sendToMember('welcome-post-gift', req.user);
 		req.flash( 'success', 'contribution-gift-updated' );
 	} else {
 		req.flash( 'success', 'contribution-updated' );

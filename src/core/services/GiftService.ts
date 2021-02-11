@@ -13,6 +13,7 @@ import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 import stripe from '@core/stripe';
 
 import config from '@config';
+import EmailService from './EmailService';
 
 const log = mainLogger.child({app: 'gift-service'});
 
@@ -136,8 +137,8 @@ export default class GiftService {
 		};
 		await member.save();
 
-		const sendAt = sendImmediately ? null : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
-		await mandrill.sendToMember('giftee-success', member, { fromName, message }, sendAt);
+		const sendAt = sendImmediately ? undefined : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
+		await EmailService.sendToMember('giftee-success', member, { fromName, message }, sendAt);
 
 		await MembersService.addMemberToMailingLists(member);
 	}
