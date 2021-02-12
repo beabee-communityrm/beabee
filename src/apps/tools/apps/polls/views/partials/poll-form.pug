@@ -17,8 +17,8 @@ form(method='POST').form-horizontal
 			.col-md-9
 				select(name='template' required)#template.form-control
 					option(value='' disabled selected) Select template
-					each template in ['custom', 'builder', 'ballot']
-						option(value=template)= template[0].toUpperCase() + template.slice(1)
+					option(value='builder') Form builder
+					option(value='ballot') Ballot
 	else
 		input(type='hidden' name='template' value=poll.template)
 	if !isNew
