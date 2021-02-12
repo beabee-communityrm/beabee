@@ -38,7 +38,8 @@
 		"access_token": "",
 		"secret": "",
 		"sandbox": true,
-		"port": 3002
+		"port": 3002,
+		"internalPort": 3092
 	},
 	"mailchimp": {
 		"api_key": "",
@@ -53,7 +54,8 @@
 		"public_key": "",
 		"secret_key": "",
 		"webhook_secret": "",
-		"port": 3003
+		"port": 3003,
+		"internalPort": 3093
 	},
 	"password-tries": 3,
 	"iterations": 50000,

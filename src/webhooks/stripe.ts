@@ -58,6 +58,13 @@ app.post( '/', wrapAsync(async (req, res) => {
 	res.sendStatus(200);
 }));
 
+const internalApp = express();
+
+internalApp.post('/reload', wrapAsync(async (req, res) => {
+	await OptionsService.reload();
+	res.sendStatus(200);
+}));
+
 // Start server
 log.info( {
 	action: 'start'
@@ -65,13 +72,14 @@ log.info( {
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	await OptionsService.reload();
-	const listener = app.listen( config.stripe.port, config.host, function () {
-		log.debug( {
-			action: 'start-webserver',
-			message: 'Started',
-			address: listener.address()
-		} );
+
+	app.listen( config.stripe.port, config.host, function () {
+		log.debug( {action: 'start-webserver'} );
 	} );
+
+	internalApp.listen(config.stripe.internalPort, config.host, () => {
+		log.debug( {action: 'internal-webserver-started'} );
+	});
 });
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session ) {

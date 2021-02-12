@@ -8,6 +8,7 @@ import { ConnectionOptions } from 'typeorm';
 import { installMiddleware, log } from '@core/logging';
 import * as db from '@core/database';
 import gocardless from '@core/gocardless';
+import { wrapAsync } from '@core/utils';
 
 import GCPaymentWebhookService from '@core/services/GCPaymentWebhookService';
 import OptionsService from '@core/services/OptionsService';
@@ -30,7 +31,7 @@ app.get( '/ping', function( req, res ) {
 	res.sendStatus( 200 );
 } );
 
-app.post( '/', textBodyParser, async function( req, res ) {
+app.post( '/', textBodyParser, wrapAsync(async (req, res) => {
 	const valid = gocardless.webhooks.validate( req );
 
 	if ( valid ) {
@@ -63,7 +64,14 @@ app.post( '/', textBodyParser, async function( req, res ) {
 		}, 'Invalid webhook signature' );
 		res.sendStatus( 498 );
 	}
-} );
+} ) );
+
+const internalApp = express();
+
+internalApp.post('/reload', wrapAsync(async (req, res) => {
+	await OptionsService.reload();
+	res.sendStatus(200);
+}));
 
 // Start server
 log.info( {
@@ -73,13 +81,13 @@ log.info( {
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	await OptionsService.reload();
 
-	const listener = app.listen( config.gocardless.port, config.host, function () {
-		log.debug( {
-			action: 'start-webserver',
-			message: 'Started',
-			address: listener.address()
-		} );
+	app.listen( config.gocardless.port, config.host, function () {
+		log.debug( {action: 'start-webserver'} );
 	} );
+
+	internalApp.listen(config.gocardless.internalPort, config.host, () => {
+		log.debug( {action: 'internal-webserver-started'} );
+	});
 });
 
 async function handleEventResource( event: Event ) {
