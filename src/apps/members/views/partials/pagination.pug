@@ -1,34 +1,23 @@
+mixin page(pageNo)
+	- page = pagination.pages[pageNo - 1]
+	if pagination.page != page.number
+		li: a( href=page.path ) #{ page.number }
+	else
+		li( class='active' )
+			a #{ page.number }
+
 .members-table-results
 	small= pagination.start + ' to ' + pagination.end  + ' of ' + total
-	ul.pagination.pagination-sm
-		li( class=( ! pagination.prev ? 'disabled' : null ) ): a( href=( pagination.prev ? pagination.prev.path : null ) ) &larr;
-		each page, p in pagination.pages
-			if pagination.total > 15
-				- window = 5
-				- first = window
-				- last = pagination.total - window;
-				- half = Math.floor( pagination.total / 2 )
-
-				if pagination.page > first && pagination.page <= last
-					- first = first - 1
-					- last = last + 1
-
-				if page.number > first && page.number <= half && page.number == pagination.page
-					include page.pug
-					li( class='disabled' ): a &hellip;
-
-				if page.number <= last && page.number > half && page.number == pagination.page
-					include page.pug
-					li( class='disabled' ): a &hellip;
-
-				if page.number == first + 1
-					li( class='disabled' ): a &hellip;
-
-				if page.number <= first
-					include page.pug
-
-				if page.number > last
-					include page.pug
-			else
-				include page.pug
-		li( class=( ! pagination.next ? 'disabled' : null ) ): a( href=( pagination.next ? pagination.next.path : null ) ) &rarr;
+	if pagination.total > 1
+		- window = pagination.total > 5 ? 1 : 3;
+		- start = Math.max(2, pagination.page - window)
+		- end = Math.min(pagination.total - 1, pagination.page + window)
+		ul.pagination.pagination-sm
+			+page(1)
+			if start > 2
+				li( class='disabled' ): a &hellip;
+			while start <= end
+				+page(start++)
+			if end < pagination.total - 1
+				li( class='disabled' ): a &hellip;
+			+page(pagination.total)
