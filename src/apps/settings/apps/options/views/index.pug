@@ -5,24 +5,25 @@ block prepend title
 	- heading = title
 
 block contents
+	.alert.alert-danger.
+		Changing these options can break things, proceed with caution
+
 	.table-responsive
 		table.table.table-striped.table-condensed
 			thead
 				tr
 					th Key
 					th Value
-					th Manage
+					th
 			tbody
 				each option in options
 					tr
 						td #{ option.key }
 						td #{ option.value }
-						td
+						td(style='white-space: nowrap')
 							a( href="/settings/options/" + option.key + "/edit" ).btn.btn-default.btn-xs
 								span.glyphicon.glyphicon-pencil
-								|  Edit
 							if ! option.default
 								| 
 								a( href="/settings/options/" + option.key + "/reset" ).btn.btn-default.btn-xs
 									span.glyphicon.glyphicon-remove
-									|  Reset

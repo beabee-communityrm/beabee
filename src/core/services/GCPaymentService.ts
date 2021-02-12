@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Customer, CustomerBankAccount, CustomerCurrency, PaymentCurrency, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
+import { Customer, CustomerBankAccount, PaymentCurrency, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 import { getRepository } from 'typeorm';
 
 import gocardless from '@core/gocardless';

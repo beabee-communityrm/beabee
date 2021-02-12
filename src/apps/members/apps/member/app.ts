@@ -7,7 +7,6 @@ import config from '@config';
 import auth from '@core/authentication';
 import { Members } from '@core/database';
 import mailchimp from '@core/mailchimp';
-import mandrill from '@core/mandrill';
 import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
@@ -140,16 +139,6 @@ const adminApp = express.Router( { mergeParams: true } );
 app.use(adminApp);
 
 adminApp.use(auth.isSuperAdmin);
-
-adminApp.get( '/emails', (req, res) => {
-	res.render( 'emails' , { member: req.model } );
-} );
-
-adminApp.post( '/emails', wrapAsync( async ( req, res ) => {
-	await mandrill.sendToMember(req.body.email, req.model);
-	req.flash( 'success', 'emails-sent');
-	res.redirect(req.baseUrl + '/emails');
-} ) );
 
 adminApp.get( '/2fa', ( req, res ) => {
 	res.render( '2fa', { member: req.model } );

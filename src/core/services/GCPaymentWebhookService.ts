@@ -5,9 +5,9 @@ import { getRepository } from 'typeorm';
 import { Members } from '@core/database';
 import gocardless from '@core/gocardless';
 import { log as mainLogger } from '@core/logging';
-import mandrill from '@core/mandrill';
 import { ContributionPeriod } from '@core/utils';
 
+import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';
 
 import GCPaymentData from '@models/GCPaymentData';
@@ -124,7 +124,9 @@ export default class GCPaymentWebhookService {
 
 		if (member) {
 			await GCPaymentService.cancelContribution(member);
-			await mandrill.sendToMember('cancelled-contribution', member);
+			const emailTemplate = member.cancellation?.satisfied !== undefined ?
+				'cancelled-contribution-no-survey' : 'cancelled-contribution';
+			await EmailService.sendTemplateToMember(emailTemplate, member);
 		} else {
 			log.info({
 				action: 'unlink-subscription',

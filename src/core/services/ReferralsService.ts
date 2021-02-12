@@ -2,8 +2,9 @@ import _ from 'lodash';
 import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
-import mandrill from '@core/mandrill';
 import { ReferralGiftForm } from '@core/utils';
+
+import EmailService from '@core/services/EmailService';
 
 import { Member } from '@models/members';
 import ReferralGift from '@models/ReferralGift';
@@ -76,10 +77,12 @@ export default class ReferralsService {
 
 		await ReferralsService.updateGiftStock(giftForm);
 
-		await mandrill.sendToMember('successful-referral', referrer, {
-			refereeName: referee.firstname,
-			isEligible: referee.contributionMonthlyAmount && referee.contributionMonthlyAmount >= 3
-		});
+		if (referrer) {
+			await EmailService.sendTemplateToMember('successful-referral', referrer, {
+				refereeName: referee.firstname,
+				isEligible: referee.contributionMonthlyAmount && referee.contributionMonthlyAmount >= 3
+			});
+		}
 	}
 
 	static async getMemberReferrals(referrer: Member): Promise<Referral[]> {

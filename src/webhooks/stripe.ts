@@ -11,6 +11,7 @@ import stripe from '@core/stripe';
 import { wrapAsync } from '@core/utils';
 
 import GiftService from '@core/services/GiftService';
+import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
 
@@ -62,7 +63,8 @@ log.info( {
 	action: 'start'
 } );
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(() => {
+db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+	await OptionsService.reload();
 	const listener = app.listen( config.stripe.port, config.host, function () {
 		log.debug( {
 			action: 'start-webserver',
