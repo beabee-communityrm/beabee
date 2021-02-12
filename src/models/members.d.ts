@@ -56,10 +56,7 @@ interface Member extends PartialMember, Document {
 		tries?: number
 	},
 	delivery_copies?: number,
-	join_shareable?: boolean,
 	joined?: Date,
-	join_reason?: string,
-	join_how?: string,
 	tags: {
 		name: string
 	}[]
