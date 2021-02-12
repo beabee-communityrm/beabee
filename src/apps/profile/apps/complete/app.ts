@@ -54,7 +54,7 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 	const referral = await getRepository(Referral).findOne({refereeId: user.id});
 
 	const joinPoll = await getJoinPoll();
-	if (joinPoll) {
+	if (joinPoll && req.body.data) {
 		await PollsService.setResponse(joinPoll, user, req.body.data);
 	}
 
