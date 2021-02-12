@@ -15,6 +15,9 @@
 	"email-settings": "",
 	"email-templates": "",
 
+	"join-poll": "",
+	"cancellation-poll": "",
+
 	"footer-strapline": "",
 	"footer-privacy-link-text": "Privacy policy",
 	"footer-privacy-link-url": "http://example.com/privacy",

@@ -1,0 +1,12 @@
+if poll.hidden
+	|
+	|
+	span.label.label-primary Hidden
+if Options('join-poll') === poll.slug
+	|
+	|
+	span.label.label-info Join poll
+if Options('cancellation-poll') === poll.slug
+	|
+	|
+	span.label.label-info Cancellation poll

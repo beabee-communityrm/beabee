@@ -18,16 +18,10 @@ block contents
 				tbody
 					each poll in polls
 						tr
-							td
-								if poll.active
-									span.label.label-success Active
-								else if poll.closed
-									span.label.label-danger Closed
-								else if poll.expires
-									span.label.label-warning Expired
-								else if poll.starts
-									span.label.label-info Scheduled
-							td(width='100%'): a(href='/tools/polls/' + poll.slug)= poll.title
+							td: +itemStatus(poll)
+							td(width='100%')
+								a(href='/tools/polls/' + poll.slug)= poll.title
+								include partials/poll-tags
 							td= moment(poll.date).format('DD/MM/YYYY')
 							td= poll.responseCount
 

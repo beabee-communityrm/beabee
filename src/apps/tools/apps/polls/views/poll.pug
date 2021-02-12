@@ -64,14 +64,8 @@ block contents
 			dl.dl-horizontal
 				dt Status
 				dd
-					if poll.active
-						span.label.label-success Active
-					else if poll.closed
-						span.label.label-danger Closed
-					else if poll.expires
-						span.label.label-warning Expired
-					else if poll.starts
-						span.label.label-info Scheduled
+					+itemStatus(poll)
+					include partials/poll-tags
 				dt Created
 				dd= moment(poll.date).format('DD/MM/YYYY [at] HH:mm')
 				dt Update answers?
