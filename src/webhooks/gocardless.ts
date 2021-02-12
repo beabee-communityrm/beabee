@@ -86,7 +86,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 		log.debug( {action: 'start-webserver'} );
 	} );
 
-	internalApp.listen(config.internalPort, config.host, () => {
+	internalApp.listen(config.gocardless.internalPort, config.host, () => {
 		log.debug( {action: 'internal-webserver-started'} );
 	});
 });
