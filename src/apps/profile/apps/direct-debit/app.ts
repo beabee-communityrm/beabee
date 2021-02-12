@@ -9,6 +9,8 @@ import config from '@config';
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService' ;
 import JoinFlowService from '@core/services/JoinFlowService' ;
+import OptionsService from '@core/services/OptionsService';
+import PollsService from '@core/services/PollsService';
 
 import { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
 
@@ -126,9 +128,16 @@ app.get( '/complete', [
 	res.redirect( '/profile/direct-debit' );
 } ) ) );
 
-app.get( '/cancel-subscription', hasSubscription, ( req, res ) => {
-	res.render( 'cancel-subscription' );
-} );
+async function getCancellationPoll() {
+	const pollId = OptionsService.getText('cancellation-poll');
+	return pollId ? await PollsService.getPoll(pollId) : undefined;
+}
+
+app.get( '/cancel-subscription', hasSubscription, wrapAsync(async ( req, res ) => {
+	res.render( 'cancel-subscription', {
+		cancellationPoll: await getCancellationPoll()
+	});
+} ) );
 
 app.post( '/cancel-subscription', [
 	hasSubscription,
