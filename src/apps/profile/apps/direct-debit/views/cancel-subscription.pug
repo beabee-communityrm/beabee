@@ -3,6 +3,17 @@ extends /views/base.pug
 block prepend title
 	- title = 'Cancel contribution'
 
+block append css
+	if cancellationPoll
+		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
+
+block append js
+	if cancellationPoll
+		script.
+			window.pollSchema = !{JSON.stringify(cancellationPoll.templateSchema.formSchema)};
+		script(src='/static/js/lib/formio.full.min.js')
+		script(src='/static/js/embedded-poll.js?v' + git)
+
 block contents
 	.row
 		.col-md-3
@@ -11,11 +22,11 @@ block contents
 		.col-md-9.col-lg-7
 			+page_header( 'Cancel your contribution' )
 
-			form( method="post" )
+			form(method="post")#pollForm
 				+csrf
 				if cancellationPoll
 					.hidden-nojs
 						!= cancellationPoll.templateSchema.intro
-					#cancellationPoll
+					#pollFields
 				p
-					button( role="button").btn.btn-danger Cancel contribution
+					button.btn.btn-danger Cancel contribution

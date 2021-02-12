@@ -12,26 +12,10 @@ block append js
 	+passwordRequirementsJS
 	script(src='/static/js/delivery-address.js')
 	if joinPoll
-		script(src='/static/js/lib/formio.full.min.js')
 		script.
-			var joinFormEl = document.getElementById('joinForm');
-			Formio.createForm(
-				document.getElementById('joinPoll'),
-				!{JSON.stringify(joinPoll.templateSchema.formSchema)},
-				{
-					template: 'bootstrap3',
-					noAlerts: true
-				}
-			).then(function (form) {
-				joinFormEl.addEventListener('submit', function (evt) {
-					evt.preventDefault();
-					form.submit();
-				});
-				form.on('submit', function (submission) {
-					joinFormEl.submit();
-				});
-			})
-
+			window.pollSchema = !{JSON.stringify(joinPoll.templateSchema.formSchema)};
+		script(src='/static/js/lib/formio.full.min.js')
+		script(src='/static/js/embedded-poll.js?v' + git)
 
 block body
 	header.join-header-static
@@ -48,7 +32,7 @@ block body
 
 				include /views/partials/flash
 
-				form( method="post" ).form-horizontal#joinForm
+				form( method="post" ).form-horizontal#pollForm
 					+csrf
 
 					.row
@@ -132,6 +116,6 @@ block body
 							.col-md-12
 								!= joinPoll.templateSchema.intro
 								.col-md-12
-									#joinPoll
+									#pollFields
 
 					button.btn.btn-success.btn-lg Save
