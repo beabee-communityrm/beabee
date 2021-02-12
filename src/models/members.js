@@ -118,14 +118,6 @@ module.exports = {
 			}
 		},
 		delivery_copies: Number,
-		billing_location: {
-			lat: Number,
-			lng: Number
-		},
-		delivery_location: {
-			lat: Number,
-			lng: Number
-		},
 		tags: [{
 			added: {
 				type: Date,
@@ -169,32 +161,10 @@ module.exports = {
 			}
 		} ],
 		last_seen: Date,
-		join_reason: String,
-		join_reason_more: String,
-		join_how: String,
-		join_known: String,
-		join_more: String,
-		join_shareable: Boolean,
-		cancellation: {
-			satisfied: Number,
-			reason: String,
-			other: String
-		},
 		exports: [ {
 			export_id: {
 				type: ObjectId,
 				ref: 'Exports',
-				required: true
-			},
-			status: {
-				type: String,
-				required: true
-			}
-		} ],
-		notices: [ {
-			notice_id: {
-				type: ObjectId,
-				ref: 'Notices',
 				required: true
 			},
 			status: {
