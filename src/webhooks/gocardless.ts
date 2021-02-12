@@ -70,7 +70,6 @@ const internalApp = express();
 
 internalApp.post('/reload', wrapAsync(async (req, res) => {
 	await OptionsService.reload();
-	log.debug({ action: 'reload' });
 	res.sendStatus(200);
 }));
 
