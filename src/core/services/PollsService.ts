@@ -11,12 +11,12 @@ class PollWithResponse extends Poll {
 }
 
 export default class PollsService {
-	static async getPollsWithResponses(member: Member): Promise<PollWithResponse[]> {
+	static async getVisiblePollsWithResponses(member: Member): Promise<PollWithResponse[]> {
 
 		const polls = await getRepository(Poll).find({
 			where: [
-				{starts: IsNull()},
-				{starts: LessThan(new Date())}
+				{starts: IsNull(), hidden: false},
+				{starts: LessThan(new Date()), hidden: false}
 			],
 			order: {
 				date: 'DESC'

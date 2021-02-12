@@ -24,6 +24,7 @@ interface CreatePollSchema {
 	expiresDate?: string
 	expiresTime?: string
 	public?: boolean
+	hidden?: boolean
 }
 
 function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'|'responses'> {
@@ -38,6 +39,7 @@ function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'|'re
 	poll.template = data.template;
 	poll.allowUpdate = !!data.allowUpdate;
 	poll.public = !!data.public;
+	poll.hidden = !!data.hidden;
 	poll.starts = startsDate && startsTime ?
 		poll.starts = moment.utc(`${startsDate}T${startsTime}`).toDate() : undefined;
 	poll.expires = expiresDate && expiresTime ?

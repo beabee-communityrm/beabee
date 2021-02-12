@@ -17,6 +17,12 @@
 				"closed": {
 					"type": "boolean"
 				},
+				"public": {
+					"type": "boolean"
+				},
+				"hidden": {
+					"type": "boolean"
+				},
 				"mcMergeField": {
 					"type": "string"
 				},

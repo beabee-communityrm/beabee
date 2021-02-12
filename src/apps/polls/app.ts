@@ -45,7 +45,7 @@ const app = express();
 app.set( 'views', __dirname + '/views' );
 
 app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
-	const polls = await PollsService.getPollsWithResponses(req.user!);
+	const polls = await PollsService.getVisiblePollsWithResponses(req.user!);
 	const [activePolls, inactivePolls] = _.partition(polls, p => p.active);
 	res.render( 'index', { activePolls, inactivePolls } );
 } ) );

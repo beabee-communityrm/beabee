@@ -42,6 +42,9 @@ export default class Poll {
 	@Column({default: false})
 	public!: boolean
 
+	@Column({default: false})
+	hidden!: boolean
+
 	@OneToMany(() => PollResponse, r => r.poll)
 	responses!: PollResponse[]
 
