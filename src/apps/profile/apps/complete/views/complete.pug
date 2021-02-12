@@ -3,12 +3,35 @@ extends /views/base.pug
 block prepend title
 	- title = app.title
 
+block append css
+	+passwordRequirementsCSS
+	if joinPoll
+		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
+
 block append js
 	+passwordRequirementsJS
 	script(src='/static/js/delivery-address.js')
+	if joinPoll
+		script(src='/static/js/lib/formio.full.min.js')
+		script.
+			var joinFormEl = document.getElementById('joinForm');
+			Formio.createForm(
+				document.getElementById('joinPoll'),
+				!{JSON.stringify(joinPoll.templateSchema.formSchema)},
+				{
+					template: 'bootstrap3',
+					noAlerts: true
+				}
+			).then(function (form) {
+				joinFormEl.addEventListener('submit', function (evt) {
+					evt.preventDefault();
+					form.submit();
+				});
+				form.on('submit', function (submission) {
+					joinFormEl.submit();
+				});
+			})
 
-block append css
-	+passwordRequirementsCSS
 
 block body
 	header.join-header-static
@@ -25,7 +48,7 @@ block body
 
 				include /views/partials/flash
 
-				form( method="post" ).form-horizontal
+				form( method="post" ).form-horizontal#joinForm
 					+csrf
 
 					.row
@@ -104,77 +127,11 @@ block body
 									.js-delivery-details
 										+deliveryAddress
 
-					if isGift
-						input(type='hidden' name='reason' value='Gift membership')
-						input(type='hidden' name='how' value='Gift membership')
-						input(type='hidden' name='known' value='Gift membership')
-					else
-						.row
+					if !isGift && joinPoll
+						.row.hidden-nojs
 							.col-md-12
-								h4 And finally…
-
-								p.
-									Could you tell us what brings you to the Cable? It
-									would really help us understand what we can do to
-									make the the co-operative stronger.
-
-								.form-group
-									div.col-md-12
-										h5 1. What best describes the main reason you have joined the Cable?
-										select(name='reason' required).form-control
-											option(value='' selected disabled) Please select one
-											option To support the Cable’s investigative journalism
-											option The Cable is providing an alternative to mainstream journalism in Bristol
-											option The Cable’s efforts to work with and amplify community voices
-											option To get involved in the Cable
-											option To support a new model for journalism
-
-										label.control-label Can you tell us a bit more about your motivation for joining today?
-										textarea(name='reason_more').form-control.join-reason-box
-
-								.form-group
-									div.col-md-12
-										h5 2. What is the main way you came across the Cable?
-										select(name='how' required).form-control
-											option(value='' selected disabled) Please select one
-											option Friends or family
-											option Google or other search engine
-											option Facebook
-											option Twitter
-											option Newsletter
-											option A copy was posted through my door
-											option Picked up a copy in a public location
-											option Public event
-											option Gift membership
-											option Met Cable staff
-											option Other
-
-								.form-group
-									div.col-md-12
-										h5 3. How long have you known about the Cable?
-										select(name='known' required).form-control
-											option(value='' selected disabled) Please select one
-											option Less than a year
-											option 1-2 years
-											option 3 years or more
-
-								.form-group
-									div.col-md-12
-										h5 4. What would you like to see the Cable do more of?
-										textarea(name='more').form-control.join-reason-box
-
-								p.
-									Hearing from members is the most powerful way we can
-									encourage others to join our community. With your
-									permission, we'd like to use your answers and first
-									name in communications.
-
-								.form-group
-									.col-md-12
-										.checkbox
-											label
-												input(type='checkbox', name='shareable', value='true')
-												| Yes, you can show my answers and first
-												| name in communications
+								!= joinPoll.templateSchema.intro
+								.col-md-12
+									#joinPoll
 
 					button.btn.btn-success.btn-lg Save

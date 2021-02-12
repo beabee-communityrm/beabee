@@ -1,12 +1,21 @@
 import express from 'express';
+import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
 import { hasSchema } from '@core/middleware';
 import { ContributionType, hasUser, wrapAsync } from '@core/utils';
 
-import { completeSchema } from './schemas.json';
+import OptionsService from '@core/services/OptionsService';
+import PollsService from '@core/services/PollsService';
+
 import Referral from '@models/Referral';
-import { getRepository } from 'typeorm';
+
+import { completeSchema } from './schemas.json';
+
+async function getJoinPoll() {
+	const joinPollId = OptionsService.getText('join-poll');
+	return joinPollId ? await PollsService.getPoll(joinPollId) : undefined;
+}
 
 const app = express();
 
@@ -25,23 +34,29 @@ app.use(auth.isLoggedIn);
 app.get( '/', wrapAsync( async function( req, res ) {
 	const referral = await getRepository(Referral).findOne({refereeId: req.user?.id});
 
-	const isGift = req.user?.contributionType === ContributionType.Gift;
-	const isReferralWithGift = referral && referral.refereeGift;
-
-	res.render( 'complete', { user: req.user, isReferralWithGift, isGift } );
+	res.render( 'complete', {
+		user: req.user,
+		isReferralWithGift: referral && referral.refereeGift,
+		isGift: req.user?.contributionType === ContributionType.Gift,
+		joinPoll: await getJoinPoll()
+	} );
 } ) );
 
 app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async function( req, res ) {
 	const {
 		body: {
 			password, delivery_optin, delivery_line1, delivery_line2,
-			delivery_city, delivery_postcode, reason, reason_more, how, known,
-			more,  shareable
+			delivery_city, delivery_postcode
 		},
 		user
 	} = req;
 
 	const referral = await getRepository(Referral).findOne({refereeId: user.id});
+
+	const joinPoll = await getJoinPoll();
+	if (joinPoll) {
+		await PollsService.setResponse(joinPoll, user, req.body.data);
+	}
 
 	const needAddress = delivery_optin || referral && referral.refereeGift ||
 		user.contributionType === ContributionType.Gift;
@@ -60,13 +75,7 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 				line2: delivery_line2,
 				city: delivery_city,
 				postcode: delivery_postcode
-			} : {},
-			join_reason: reason,
-			join_reason_more: reason_more,
-			join_how: how,
-			join_known: known,
-			join_more: more,
-			join_shareable: !!shareable,
+			} : {}
 		} } );
 
 		res.redirect( '/profile' );

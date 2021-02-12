@@ -12,7 +12,6 @@ class PollWithResponse extends Poll {
 
 export default class PollsService {
 	static async getVisiblePollsWithResponses(member: Member): Promise<PollWithResponse[]> {
-
 		const polls = await getRepository(Poll).find({
 			where: [
 				{starts: IsNull(), hidden: false},
@@ -29,8 +28,6 @@ export default class PollsService {
 				memberId: member.id
 			}
 		});
-
-		console.log(responses);
 
 		const pollsWithResponses = polls.map(poll => {
 			const pwr = new PollWithResponse();
@@ -90,5 +87,9 @@ export default class PollsService {
 		pollResponse.isPartial = false;
 
 		await getRepository(PollResponse).save(pollResponse);
+	}
+
+	static async getPoll(pollSlug: string): Promise<Poll|undefined> {
+		return await getRepository(Poll).findOne(pollSlug);
 	}
 }
