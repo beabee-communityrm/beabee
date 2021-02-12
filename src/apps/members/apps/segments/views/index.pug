@@ -9,12 +9,14 @@ block contents
 				thead
 					tr
 						th Name
+						th Description
 						th Members
 						th
 				tbody
 					each segment in segments
 						tr
 							td(width='100%'): a(href='/members/?segment=' + segment.id)= segment.name
+							td= segment.description
 							td= segment.memberCount
 							td
 								a(href='/members/segments/' + segment.id).btn.btn-xs.btn-default
