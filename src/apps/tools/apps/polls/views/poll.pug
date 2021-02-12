@@ -32,7 +32,7 @@ mixin candidateSchema(candidateNo, candidate)
 
 block append css
 	if poll.template === 'builder'
-		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
 		style.
 			.formcomponents { position: sticky; top: 1rem }
 			#builder { margin-bottom: 2rem; }
@@ -44,7 +44,7 @@ block prepend js
 
 block append js
 	if poll.template === 'builder'
-		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+		script(src='/static/js/lib/formio.full.min.js')
 		script.
 			Formio.builder(
 				document.getElementById('builder'),

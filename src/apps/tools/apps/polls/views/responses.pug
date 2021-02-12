@@ -5,11 +5,11 @@ block prepend title
 
 block append css
 	if poll.template === 'builder'
-		link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
 
 block append js
 	if poll.template === 'builder'
-		script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+		script(src='/static/js/lib/formio.full.min.js')
 		script.
 			var responses = !{JSON.stringify(responses)};
 
