@@ -1,6 +1,5 @@
 const mongoose = require( 'mongoose' );
 const moment = require( 'moment' );
-const crypto = require( 'crypto' );
 
 const config = require( '@config' );
 
@@ -177,11 +176,6 @@ module.exports = {
 
 module.exports.schema.virtual( 'fullname' ).get( function() {
 	return this.firstname + ' ' + this.lastname;
-} );
-
-module.exports.schema.virtual( 'gravatar' ).get( function() {
-	var md5 = crypto.createHash( 'md5' ).update( this.email ).digest( 'hex' );
-	return '//www.gravatar.com/avatar/' + md5;
 } );
 
 module.exports.schema.virtual( 'memberPermission' )
