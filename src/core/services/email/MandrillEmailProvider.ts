@@ -59,7 +59,7 @@ export default class MandrillEmailProvider implements EmailProvider {
 		if (templateType === 'mandrill') {
 			const resp = await new Promise((resolve, reject) => {
 				this.client.messages.sendTemplate({
-					...this.createMessageData(recipients, opts),
+					message: this.createMessageData(recipients, opts),
 					template_name: templateId,
 					template_content: [],
 					...opts?.sendAt && {send_at: opts.sendAt}
