@@ -12,7 +12,7 @@ import JoinFlowService from '@core/services/JoinFlowService' ;
 import OptionsService from '@core/services/OptionsService';
 import PollsService from '@core/services/PollsService';
 
-import { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
+import { completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
 
 interface UpdateSubscriptionSchema {
 	amount: number,
@@ -139,27 +139,14 @@ app.get( '/cancel-subscription', hasSubscription, wrapAsync(async ( req, res ) =
 	});
 } ) );
 
-app.post( '/cancel-subscription', [
-	hasSubscription,
-	hasSchema(cancelSubscriptionSchema).orFlash
-], wrapAsync( hasUser(async ( req, res ) => {
-	const { user, body: { satisfied, reason, other } } = req;
-
-	try {
-		user.cancellation = {satisfied, reason, other};
-		await user.save();
-		await GCPaymentService.cancelContribution( user );
-
-		req.flash( 'success', 'contribution-cancelled' );
-	} catch ( error ) {
-		req.log.error( {
-			app: 'direct-debit',
-			action: 'cancel-subscription',
-			error
-		});
-
-		req.flash( 'danger', 'contribution-cancellation-err' );
+app.post( '/cancel-subscription', hasSubscription,  wrapAsync( hasUser(async ( req, res ) => {
+	const cancellationPoll = await getCancellationPoll();
+	if (cancellationPoll && req.body.data) {
+		await PollsService.setResponse(cancellationPoll, req.user, req.body.data);
 	}
+
+	await GCPaymentService.cancelContribution( req.user );
+	req.flash( 'success', 'contribution-cancelled' );
 
 	res.redirect( '/profile/direct-debit' );
 } ) ) );

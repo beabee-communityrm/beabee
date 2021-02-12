@@ -123,9 +123,9 @@ export default class GCPaymentWebhookService {
 		const member = gcData && await Members.findById(gcData.memberId);
 
 		if (member) {
-			await GCPaymentService.cancelContribution(member);
-			const emailTemplate = member.cancellation?.satisfied !== undefined ?
+			const emailTemplate = gcData?.cancelledAt !== undefined ?
 				'cancelled-contribution-no-survey' : 'cancelled-contribution';
+			await GCPaymentService.cancelContribution(member);
 			await EmailService.sendTemplateToMember(emailTemplate, member);
 		} else {
 			log.info({
