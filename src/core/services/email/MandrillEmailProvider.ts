@@ -11,6 +11,10 @@ import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate
 
 const log = mainLogger.child({app: 'mandrill-email-provider'});
 
+interface MandrillConfig {
+	api_key: string
+}
+
 interface MandrillTemplate {
 	slug: string
 	name: string
@@ -29,7 +33,7 @@ export default class MandrillEmailProvider implements EmailProvider {
 	private readonly client: any
 
 	constructor() {
-		this.client = new mandrill.Mandrill(config.email.settings.api_key);
+		this.client = new mandrill.Mandrill((config.email.settings as unknown as MandrillConfig).api_key);
 	}
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
