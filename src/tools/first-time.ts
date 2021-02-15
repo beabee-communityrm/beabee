@@ -1,5 +1,7 @@
 import 'module-alias/register';
 
+import { ConnectionOptions } from 'typeorm';
+
 import config from '@config';
 import * as db from '@core/database';
 
@@ -24,7 +26,7 @@ async function main() {
 	console.log(`Set 'permission.memberId' to "${member._id}" in config/config.json`);
 }
 
-db.connect( config.mongo ).then(async () => {
+db.connect( config.mongo, config.db as ConnectionOptions ).then(async () => {
 	await main();
 	await db.close();
 });

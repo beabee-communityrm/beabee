@@ -28,7 +28,7 @@ import ReferralGift from '@models/ReferralGift';
 import RestartFlow from '@models/RestartFlow';
 import Segment from '@models/Segment';
 
-export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ): Promise<void> {
+export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): Promise<void> {
 	await new Promise<void>(resolve => {
 		mongoose.connect( mongoUrl, {
 			useNewUrlParser: true,
@@ -55,31 +55,29 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 		} );
 	});
 
-	if (dbConfig) {
-		try {
-			await createConnection({
-				...dbConfig,
-				entities: [
-					Email, EmailMailing, Export, ExportItem, GiftFlow, GCPaymentData,
-					JoinFlow, Notice, Option, PageSettings, Payment, Poll,
-					PollResponse, Project, ProjectMember, ProjectEngagement, Referral,
-					ReferralGift, RestartFlow, Segment
-				]
-			});
-			log.debug( {
-				app: 'database',
-				action: 'connect',
-				message: 'Connected to database'
-			} );
-			await OptionsService.reload();
-		} catch (error) {
-			log.error({
-				app: 'database',
-				action: 'connect',
-				message: 'Error connecting to database',
-				error
-			});
-		}
+	try {
+		await createConnection({
+			...dbConfig,
+			entities: [
+				Email, EmailMailing, Export, ExportItem, GiftFlow, GCPaymentData,
+				JoinFlow, Notice, Option, PageSettings, Payment, Poll,
+				PollResponse, Project, ProjectMember, ProjectEngagement, Referral,
+				ReferralGift, RestartFlow, Segment
+			]
+		});
+		log.debug( {
+			app: 'database',
+			action: 'connect',
+			message: 'Connected to database'
+		} );
+		await OptionsService.reload();
+	} catch (error) {
+		log.error({
+			app: 'database',
+			action: 'connect',
+			message: 'Error connecting to database',
+			error
+		});
 	}
 }
 
