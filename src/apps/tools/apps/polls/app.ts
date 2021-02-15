@@ -75,7 +75,10 @@ app.get( '/:slug', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => {
 
 app.get( '/:slug/responses', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => {
 	const responses = await getRepository(PollResponse).find({
-		where: {poll: req.model }
+		where: {poll: req.model},
+		order: {
+			createdAt: 'ASC'
+		}
 	});
 	// TODO: Remove when members are in ORM
 	const members = await Members.find({_id: {$in: responses.map(r => r.memberId)}}, 'firstname lastname uuid');
