@@ -95,3 +95,11 @@
     font-weight: 900;
     font-style: normal;
 }
+
+@font-face{
+  font-family: 'FontAwesome';
+  src:url(/static/fonts/fontawesome-webfont.woff2?v=4.7.0) format('woff2'),
+    url(/static/fonts/fontawesome-webfont.woff?v=4.7.0) format('woff');
+  font-weight:400;
+  font-style:normal
+}
