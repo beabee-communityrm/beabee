@@ -9,6 +9,5 @@ export default {
 	'edition': edition,
 	//'gift': gifts,
 	'gocardless': gocardless,
-	//'poll-answers': pollAnswers,
 	//'referrals': referrals
 };
