@@ -2,7 +2,7 @@
 	"completeSchema": {
 		"body": {
 			"type": "object",
-			"required": ["password", "verify", "reason", "how", "known", "delivery_optin"],
+			"required": ["password", "verify", "delivery_optin"],
 			"properties": {
 				"password": {
 					"type": "string",
@@ -12,24 +12,6 @@
 					"const": {
 						"$data": "1/password"
 					}
-				},
-				"reason": {
-					"type": "string"
-				},
-				"reason_more": {
-					"type": "string"
-				},
-				"how": {
-					"type": "string"
-				},
-				"known": {
-					"type": "string"
-				},
-				"more": {
-					"type": "string"
-				},
-				"shareable": {
-					"type": "boolean"
 				},
 				"delivery_optin": {
 					"type": "boolean"

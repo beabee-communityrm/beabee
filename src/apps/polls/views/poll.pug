@@ -4,10 +4,10 @@ block prepend title
 	- title = poll.title
 
 block append css
-	link(rel='stylesheet' href='https://unpkg.com/formiojs@latest/dist/formio.full.min.css')
+	link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
 
 block append js
-	script(src='https://unpkg.com/formiojs@latest/dist/formio.full.min.js')
+	script(src='/static/js/lib/formio.full.min.js')
 	script.
 		var formEl = document.getElementById('form');
 		Formio.createForm(

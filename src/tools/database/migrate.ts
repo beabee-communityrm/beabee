@@ -181,6 +181,37 @@ const migrations: Migration<any>[] = [
 		project: (subDoc, doc) => newItemMap.get(doc.project.toString()) as Project,
 		toMemberId: (subDoc, doc) => doc.member.toString(),
 	}, doc => doc.engagement || [])*/
+	createMigration(PollResponse, 'members', {
+		poll: () => ({slug: 'join-survey'} as Poll),
+		memberId: objectId('_id'),
+		guestName: () => undefined,
+		guestEmail: () => undefined,
+		answers: doc => ({
+			'WhatBestDescribesTheMainReasonYouHaveJoinedTheCable': doc.join_reason,
+			'canYouTellUsABitMoreAboutYourMotivationForJoiningToday': doc.join_reason_more,
+			'WhatIsTheMainWayYouCameAcrossTheCable': doc.join_how,
+			'HowLongHaveYouKnownAboutTheCable': doc.join_known,
+			'WhatWouldYouLikeToSeeTheCableDoMoreOf': doc.join_more,
+			...doc.join_shareable ? {'yesYouCanShowMyAnswersAndFirstNameInCommunications': '1'} : {}
+		}),
+		isPartial: () => false,
+		createdAt: doc => doc.joined,
+		updatedAt: doc => doc.joined
+	}, doc => doc.join_reason ? [doc] : []),
+	createMigration(PollResponse, 'members', {
+		poll: () => ({slug: 'cancellation-survey'} as Poll),
+		memberId: objectId('_id'),
+		guestName: () => undefined,
+		guestEmail: () => undefined,
+		answers: doc => ({
+			'howSatisfiedHaveYouBeenInGeneral': doc.cancellation.satisfied,
+			'whyAreYouCancelling': doc.cancellation.reason,
+			'canYouTellUsABitMoreAboutYourReason': doc.cancellation.other
+		}),
+		isPartial: () => false,
+		createdAt: doc => doc.gocardless.cancelled_at,
+		updatedAt: doc => doc.gocardless.cancelled_at
+	}, doc => doc.cancellation && doc.gocardless?.cancelled_at ? [doc] : [])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {

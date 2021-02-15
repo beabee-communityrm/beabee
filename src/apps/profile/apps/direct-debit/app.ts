@@ -9,8 +9,10 @@ import config from '@config';
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService' ;
 import JoinFlowService from '@core/services/JoinFlowService' ;
+import OptionsService from '@core/services/OptionsService';
+import PollsService from '@core/services/PollsService';
 
-import { cancelSubscriptionSchema, completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
+import { completeFlowSchema, updateSubscriptionSchema } from './schemas.json';
 
 interface UpdateSubscriptionSchema {
 	amount: number,
@@ -126,31 +128,27 @@ app.get( '/complete', [
 	res.redirect( '/profile/direct-debit' );
 } ) ) );
 
-app.get( '/cancel-subscription', hasSubscription, ( req, res ) => {
-	res.render( 'cancel-subscription' );
-} );
+async function getCancellationPoll() {
+	const pollId = OptionsService.getText('cancellation-poll');
+	return pollId ? await PollsService.getPoll(pollId) : undefined;
+}
 
-app.post( '/cancel-subscription', [
-	hasSubscription,
-	hasSchema(cancelSubscriptionSchema).orFlash
-], wrapAsync( hasUser(async ( req, res ) => {
-	const { user, body: { satisfied, reason, other } } = req;
+app.get( '/cancel-subscription', hasSubscription, wrapAsync(async ( req, res ) => {
+	res.render( 'cancel-subscription', {
+		cancellationPoll: await getCancellationPoll()
+	});
+} ) );
 
-	try {
-		user.cancellation = {satisfied, reason, other};
-		await user.save();
-		await GCPaymentService.cancelContribution( user );
-
-		req.flash( 'success', 'contribution-cancelled' );
-	} catch ( error ) {
-		req.log.error( {
-			app: 'direct-debit',
-			action: 'cancel-subscription',
-			error
-		});
-
-		req.flash( 'danger', 'contribution-cancellation-err' );
+app.post( '/cancel-subscription', hasSubscription,  wrapAsync( hasUser(async ( req, res ) => {
+	const cancellationPoll = await getCancellationPoll();
+	if (cancellationPoll && req.body.data) {
+		await PollsService.setResponse(cancellationPoll, req.user, req.body.data);
 	}
+
+	await GCPaymentService.cancelContribution( req.user );
+	await EmailService.sendTemplateToMember('cancelled-contribution-no-survey', req.user);
+
+	req.flash( 'success', 'contribution-cancelled' );
 
 	res.redirect( '/profile/direct-debit' );
 } ) ) );

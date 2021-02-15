@@ -1,23 +1,4 @@
 {
-	"cancelSubscriptionSchema": {
-		"body": {
-			"type": "object",
-			"required": ["satisfied", "reason"],
-			"properties": {
-				"satisfied": {
-					"type": "integer",
-					"minimum": 1,
-					"maximum": 5
-				},
-				"reason": {
-					"type": "string"
-				},
-				"other": {
-					"type": "string"
-				}
-			}
-		}
-	},
 	"updateSubscriptionSchema": {
 		"body": {
 			"type": "object",

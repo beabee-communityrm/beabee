@@ -1,7 +1,7 @@
 import { ParamValue } from '@core/utils/params';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export type ExportTypeId = 'active-members'|'churn-rate'|'edition'|'gocardless'|'join-reasons';
+export type ExportTypeId = 'active-members'|'churn-rate'|'edition'|'gocardless'
 
 @Entity()
 export default class Export {
