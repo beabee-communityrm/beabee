@@ -5,6 +5,8 @@ import { createConnection, getConnection, ConnectionOptions } from 'typeorm';
 
 import { log } from '@core/logging';
 
+import OptionsService from '@core/services/OptionsService';
+
 import Email from '@models/Email';
 import EmailMailing from '@models/EmailMailing';
 import Export from '@models/Export';
@@ -69,6 +71,7 @@ export async function connect( mongoUrl: string, dbConfig?: ConnectionOptions ):
 				action: 'connect',
 				message: 'Connected to database'
 			} );
+			await OptionsService.reload();
 		} catch (error) {
 			log.error({
 				app: 'database',

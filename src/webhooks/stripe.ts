@@ -71,8 +71,6 @@ log.info( {
 } );
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
-	await OptionsService.reload();
-
 	app.listen( config.stripe.port, config.host, function () {
 		log.debug( {action: 'start-webserver'} );
 	} );

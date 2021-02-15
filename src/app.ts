@@ -46,7 +46,7 @@ app.use( helmet( { contentSecurityPolicy: false } ) );
 
 database.connect( config.mongo, config.db as ConnectionOptions ).then(async () => {
 	// Load some caches and make them immediately available
-	await Promise.all([OptionsService.reload(), PageSettingsService.reload()]);
+	await PageSettingsService.reload();
 	app.use((req, res, next) => {
 		res.locals.Options = (opt: string) => OptionsService.getText(opt);
 		res.locals.pageSettings = PageSettingsService.getPath(req.path);
