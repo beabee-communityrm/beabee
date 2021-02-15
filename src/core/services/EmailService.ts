@@ -85,12 +85,11 @@ type MemberEmailTemplates = typeof memberEmailTemplates;
 type MemberEmailTemplateId = keyof MemberEmailTemplates;
 type EmailTemplateId = MemberEmailTemplateId | keyof typeof emailTemplates;
 
-const emailProviders: {[key: string]: EmailProvider} = {
-	mandrill: new MandrillEmailProvider(),
-	smpt: new SMTPEmailProvider()
-};
-
 class EmailService implements EmailProvider {
+
+	private provider: EmailProvider = config.email.provider === 'mandrill' ?
+		new MandrillEmailProvider() : new SMTPEmailProvider()
+
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
 		log.info({
 			action: 'send-email',
@@ -131,11 +130,6 @@ class EmailService implements EmailProvider {
 
 	async getTemplates(): Promise<EmailTemplate[]> {
 		return await this.provider.getTemplates();
-	}
-
-	private get provider(): EmailProvider {
-		const provider = OptionsService.getText('email-provider');
-		return emailProviders[provider];
 	}
 
 	private get providerTemplateMap() {

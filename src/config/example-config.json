@@ -34,6 +34,10 @@
 		"api_username": "",
 		"api_key": ""
 	},
+	"email": {
+		"provider": "smtp",
+		"settings": {}
+	},
 	"gocardless": {
 		"access_token": "",
 		"secret": "",
@@ -46,9 +50,6 @@
 		"datacenter": "",
 		"mainList": "",
 		"mainListGroups": []
-	},
-	"mandrill": {
-		"api_key": ""
 	},
 	"stripe": {
 		"public_key": "",

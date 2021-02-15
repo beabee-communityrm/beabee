@@ -2,9 +2,10 @@ import mandrill from 'mandrill-api/mandrill';
 import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
-import OptionsService from '@core/services/OptionsService';
 
 import Email from '@models/Email';
+
+import config from '@config';
 
 import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '.';
 
@@ -25,6 +26,12 @@ interface MandrillMessage {
 }
 
 export default class MandrillEmailProvider implements EmailProvider {
+	private readonly client: any
+
+	constructor() {
+		this.client = new mandrill.Mandrill(config.email.settings);
+	}
+
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
 		const resp = await new Promise((resolve, reject) => {
 			this.client.messages.send({
@@ -96,10 +103,6 @@ export default class MandrillEmailProvider implements EmailProvider {
 		];
 	}
 
-	private get client() {
-		return new mandrill.Mandrill(OptionsService.getText('email-settings'));
-	}
-	
 	private createMessageData(recipients: EmailRecipient[], opts?: EmailOptions): MandrillMessage {
 		return {
 			to: recipients.map(r => r.to),

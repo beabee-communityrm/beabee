@@ -1,16 +1,25 @@
 import nodemailer from 'nodemailer';
+import Mail from 'nodemailer/lib/mailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
-import OptionsService from '@core/services/OptionsService';
 
 import Email from '@models/Email';
 
 import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '.';
 
+import config from '@config';
+
 const log = mainLogger.child({app: 'smtp-email-provider'});
 
 export default class SMTPEmailProvider implements EmailProvider {
+	private readonly client: Mail;
+
+	constructor() {
+		this.client = nodemailer.createTransport(config.email.settings as unknown as SMTPTransport);
+	}
+
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
 		if (opts?.sendAt) {
 			log.error({error: 'send-at-not-supported'}, 'SMTPEmailProvider doesn\'t support sendAt, ignoring email');
@@ -55,9 +64,5 @@ export default class SMTPEmailProvider implements EmailProvider {
 	async getTemplates(): Promise<EmailTemplate[]> {
 		const emails = await getRepository(Email).find();
 		return emails.map(email => ({id: email.id, name: email.name}));
-	}
-
-	private get client() {
-		return nodemailer.createTransport(JSON.parse(OptionsService.getText('email-settings')));
 	}
 }
