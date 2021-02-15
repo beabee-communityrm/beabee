@@ -1,5 +1,6 @@
 import express from 'express';
 import moment from 'moment';
+import Papa from 'papaparse';
 
 import auth from '@core/authentication';
 import { hasNewModel, hasSchema } from '@core/middleware';
@@ -114,8 +115,54 @@ app.post( '/:slug', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => 
 		req.flash( 'success', 'polls-deleted' );
 		res.redirect( '/tools/polls' );
 		break;
+	case 'export-responses': {
+		const exportName = `responses-${poll.title}_${moment().format()}.csv`;
+		const responses = await getRepository(PollResponse).find({where: {poll}, order: {createdAt: 'ASC'}});
+		const members = await Members.find({_id: {$in: responses.map(r => r.memberId)}});
+		const exportData = responses.map(response => {
+			const member = members.find(m => m.id === response.memberId);
+			return {
+				'FirstName': member?.firstname,
+				'LastName': member?.lastname,
+				'FullName': member?.fullname,
+				'EmailAddress': member?.email,
+				'Date': response.createdAt,
+				...convertAnswers(poll, response.answers)
+			};
+		});
+		res.attachment(exportName).send(Papa.unparse(exportData));
+		break;
+	}
+	}
+} ) );
+
+interface ComponentSchema {
+	key: string
+	label?: string
+	input?: boolean
+	data?: {
+		values: {label: string, value: string}[]
+	}
+}
+
+function convertAnswers(poll: Poll, answers: Record<string, unknown>): Record<string, unknown> {
+	if (poll.template !== 'builder') {
+		return answers;
 	}
 
-} ) );
+	const formSchema = poll.templateSchema.formSchema as {components: ComponentSchema[]}
+	return Object.assign(
+		{},
+		...formSchema.components
+			.filter(component => component.input)
+			.map(component => {
+				const rawAnswer = answers[component.key];
+				const answer = component.data?.values.find(v => v.value === rawAnswer)?.label || rawAnswer;
+				return {
+					[component.label || component.key]: answer
+				};
+			})
+	);
+}
 
 export default app;
