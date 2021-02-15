@@ -29,7 +29,7 @@ export default class MandrillEmailProvider implements EmailProvider {
 	private readonly client: any
 
 	constructor() {
-		this.client = new mandrill.Mandrill(config.email.settings);
+		this.client = new mandrill.Mandrill(config.email.settings.api_key);
 	}
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
