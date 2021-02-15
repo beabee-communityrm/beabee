@@ -146,6 +146,8 @@ app.post( '/cancel-subscription', hasSubscription,  wrapAsync( hasUser(async ( r
 	}
 
 	await GCPaymentService.cancelContribution( req.user );
+	await EmailService.sendTemplateToMember('cancelled-contribution-no-survey', req.user);
+
 	req.flash( 'success', 'contribution-cancelled' );
 
 	res.redirect( '/profile/direct-debit' );
