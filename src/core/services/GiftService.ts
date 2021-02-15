@@ -8,7 +8,6 @@ import { ContributionType, isDuplicateIndex } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
-import OptionsService from '@core/services/OptionsService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 

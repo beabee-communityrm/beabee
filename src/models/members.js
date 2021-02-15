@@ -5,8 +5,6 @@ const config = require( '@config' );
 
 const { getActualAmount } = require( '@core/utils' );
 
-const { default: OptionsService } = require( '@core/services/OptionsService');
-
 const ObjectId = mongoose.Schema.ObjectId;
 
 module.exports = {

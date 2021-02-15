@@ -13,7 +13,6 @@ import config from '@config';
 import GCPaymentData from '@models/GCPaymentData';
 import { Member, PartialMember } from '@models/members';
 import Payment from '@models/Payment';
-import OptionsService from './OptionsService';
 
 interface PayingMember extends Member {
 	contributionMonthlyAmount: number

@@ -5,8 +5,6 @@ import moment from 'moment';
 
 import { AppConfig } from '@core/utils';
 
-import OptionsService from '@core/services/OptionsService';
-
 import config from '@config';
 
 let git = '';
