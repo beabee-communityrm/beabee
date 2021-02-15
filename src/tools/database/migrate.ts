@@ -209,9 +209,9 @@ const migrations: Migration<any>[] = [
 			'canYouTellUsABitMoreAboutYourReason': doc.cancellation.other
 		}),
 		isPartial: () => false,
-		createdAt: doc => doc.gocardless?.cancelled_at,
-		updatedAt: doc => doc.gocardless?.cancelled_at
-	}, doc => doc.cancellation ? [doc] : [])
+		createdAt: doc => doc.gocardless.cancelled_at,
+		updatedAt: doc => doc.gocardless.cancelled_at
+	}, doc => doc.cancellation && doc.gocardless?.cancelled_at ? [doc] : [])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
