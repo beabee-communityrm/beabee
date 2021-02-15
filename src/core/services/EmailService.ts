@@ -87,7 +87,7 @@ type EmailTemplateId = MemberEmailTemplateId | keyof typeof emailTemplates;
 
 class EmailService implements EmailProvider {
 
-	private provider: EmailProvider = config.email.provider === 'mandrill' ?
+	private readonly provider: EmailProvider = config.email.provider === 'mandrill' ?
 		new MandrillEmailProvider() : new SMTPEmailProvider()
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
