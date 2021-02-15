@@ -181,6 +181,23 @@ const migrations: Migration<any>[] = [
 		project: (subDoc, doc) => newItemMap.get(doc.project.toString()) as Project,
 		toMemberId: (subDoc, doc) => doc.member.toString(),
 	}, doc => doc.engagement || [])*/
+	createMigration(PollResponse, 'members', {
+		poll: () => ({slug: 'join-survey'} as Poll),
+		memberId: objectId('_id'),
+		guestName: () => undefined,
+		guestEmail: () => undefined,
+		answers: doc => ({
+			'WhatBestDescribesTheMainReasonYouHaveJoinedTheCable': doc.join_reason,
+			'canYouTellUsABitMoreAboutYourMotivationForJoiningToday': doc.join_reason_more,
+			'WhatIsTheMainWayYouCameAcrossTheCable': doc.join_how,
+			'HowLongHaveYouKnownAboutTheCable': doc.join_known,
+			'WhatWouldYouLikeToSeeTheCableDoMoreOf': doc.join_more,
+			...doc.join_shareable ? {'yesYouCanShowMyAnswersAndFirstNameInCommunications': '1'} : {}
+		}),
+		isPartial: () => false,
+		createdAt: doc => doc.joined,
+		updatedAt: doc => doc.joined
+	}, doc => doc.join_reason ? [doc] : [])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
