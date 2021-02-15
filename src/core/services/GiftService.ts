@@ -8,7 +8,6 @@ import { ContributionType, isDuplicateIndex } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
-import OptionsService from '@core/services/OptionsService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 
@@ -35,7 +34,7 @@ export default class GiftService {
 			line_items: [{
 				name: `Gift membership - ${giftForm.months} month${giftForm.months != 1 ? 's' : ''}`,
 				amount: giftForm.months * GiftService.giftMonthlyAmount * 100,
-				currency: OptionsService.getText('currency_code').toLowerCase(),
+				currency: config.currencyCode.toLowerCase(),
 				quantity: 1
 			}]
 		});

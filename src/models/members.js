@@ -5,8 +5,6 @@ const config = require( '@config' );
 
 const { getActualAmount } = require( '@core/utils' );
 
-const { default: OptionsService } = require( '@core/services/OptionsService');
-
 const ObjectId = mongoose.Schema.ObjectId;
 
 module.exports = {
@@ -221,7 +219,7 @@ module.exports.schema.virtual( 'contributionDescription' ).get( function () {
 		return 'None';
 	} else {
 		const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
-		return `${OptionsService.currencySymbol}${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
+		return `${config.currencySymbol}${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
 	}
 } );
 
