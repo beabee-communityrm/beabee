@@ -51,7 +51,7 @@ export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: 
 	res.locals.isLoggedIn = !!req.user;
 	res.locals.git = git;
 	res.locals.dev = config.dev;
-	res.locals.currencySymbol = OptionsService.currencySymbol;
+	res.locals.currencySymbol = config.currencySymbol;
 
 	// Add some libraries
 	res.locals.moment = moment;

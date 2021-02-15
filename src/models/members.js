@@ -221,7 +221,7 @@ module.exports.schema.virtual( 'contributionDescription' ).get( function () {
 		return 'None';
 	} else {
 		const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
-		return `${OptionsService.currencySymbol}${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
+		return `${config.currencySymbol}${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
 	}
 } );
 

@@ -57,6 +57,8 @@
 		"port": 3003,
 		"internalPort": 3093
 	},
+	"currencyCode": "GBP",
+	"currencySymbol": "£",
 	"password-tries": 3,
 	"iterations": 50000,
 	"gracePeriod": {

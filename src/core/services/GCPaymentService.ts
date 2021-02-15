@@ -88,7 +88,7 @@ abstract class UpdateContributionPaymentService {
 
 		const subscription = await gocardless.subscriptions.create( {
 			amount: this.getChargeableAmount(paymentForm.amount, paymentForm.period, paymentForm.payFee).toString(),
-			currency: OptionsService.getText('currency_code').toUpperCase(),
+			currency: config.currencyCode.toUpperCase(),
 			interval_unit: paymentForm.period === ContributionPeriod.Annually ? SubscriptionIntervalUnit.Yearly: SubscriptionIntervalUnit.Monthly,
 			name: 'Membership',
 			links: {
@@ -156,7 +156,7 @@ abstract class UpdateContributionPaymentService {
 		if (prorateAmount > 0 && paymentForm.prorate) {
 			await gocardless.payments.create({
 				amount: (prorateAmount * 100).toFixed(0),
-				currency: OptionsService.getText('currency_code').toUpperCase() as PaymentCurrency,
+				currency: config.currencyCode.toUpperCase() as PaymentCurrency,
 				description: 'One-off payment to start new contribution',
 				links: {
 					mandate: gcData.mandateId
