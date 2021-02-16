@@ -18,7 +18,6 @@ declare global {
 		export interface Request {
 			flash(level: 'info'|'success'|'warning'|'error'|'danger', message: string): void
 			model: unknown
-			csrfToken?(): string
 			allParams: ParamsDictionary
 			answers?: PollResponseAnswers
 		}

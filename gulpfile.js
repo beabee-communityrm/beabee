@@ -16,7 +16,7 @@ const paths = {
 		dest: './built/static'
 	},
 	appFiles: {
-		src: ['./src/**/*.{json,pug,sh}', './config/**/*'],
+		src: ['./src/**/*.{json,pug,sh,sql}', './config/**/*'],
 		dest: './built'
 	}
 };

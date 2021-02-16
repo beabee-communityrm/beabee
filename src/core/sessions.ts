@@ -1,31 +1,28 @@
-var session = require( 'express-session' ),
-	config = require( '@config' ),
-	cookie = require('cookie-parser'),
-	body = require( 'body-parser' ),
-	passport = require( 'passport' );
-var csrf = require( 'csurf' );
+import body from 'body-parser';
+import cleanDeep from 'clean-deep';
+import cookie from 'cookie-parser';
+import _pgSession from 'connect-pg-simple';
+import csrf from 'csurf';
+import express, { ErrorRequestHandler } from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import { getConnection } from 'typeorm';
+import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
 
-const cleanDeep = require( 'clean-deep');
+import config from '@config';
 
-var MongoDBStore = require( 'connect-mongodb-session' )( session );
+const pgSession = _pgSession(session);
 
-module.exports =  function( app ) {
-	// Sessions + Cookies
-	var store = new MongoDBStore( {
-		uri: config.mongo,
-		collection: 'sessions'
-	} );
-	store.on( 'error', function( error ) {
-		console.log( error );
-	} );
-
+export default (app: express.Express): void => {
 	app.use( cookie() );
 	app.use( session( {
 		name: config.session,
 		secret: config.secret,
 		cookie: config.cookie,
 		saveUninitialized: false,
-		store: store,
+		store: new pgSession({
+			pool: (getConnection().driver as PostgresDriver).master
+		}),
 		resave: false,
 		rolling: true
 	} ) );
@@ -57,18 +54,12 @@ module.exports =  function( app ) {
 	} );
 
 	// CSRF
-	app.use( function( req, res, next ) {
-		if ( req.url.match( /^\/api/i ) ) {
-			next();
-		} else {
-			csrf()( req, res, next );
-		}
-	} );
+	app.use( csrf() );
 
-	app.use( function( err, req, res, next ) {
+	app.use( function ( err, req, res, next ) {
 		if ( err.code == 'EBADCSRFTOKEN' ) {
 			return res.status( 403 ).send( 'Error: Please make sure cookies are enabled. (CSRF token invalid)' );
 		}
 		next( err );
-	} );
+	} as ErrorRequestHandler );
 };
