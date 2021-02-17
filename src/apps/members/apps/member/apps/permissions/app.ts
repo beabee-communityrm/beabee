@@ -1,7 +1,7 @@
 import express from 'express';
 
 import auth from '@core/authentication';
-import { AppConfig, wrapAsync } from '@core/utils';
+import { wrapAsync } from '@core/utils';
 
 import { Member, Permission } from '@models/members';
 import { Permissions } from '@core/database';

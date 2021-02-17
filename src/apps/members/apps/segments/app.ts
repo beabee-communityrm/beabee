@@ -8,7 +8,6 @@ import { parseRuleGroup } from '@core/utils/rules';
 
 import EmailService  from '@core/services/EmailService';
 
-import Email from '@models/Email';
 import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 

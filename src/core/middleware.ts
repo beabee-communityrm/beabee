@@ -1,7 +1,7 @@
 import { ErrorObject, FormatParams, RequiredParams, ValidateFunction } from 'ajv';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import mongoose, { Document, DocumentDefinition, FilterQuery, Model } from 'mongoose';
-import { EntityTarget, getCustomRepository, getRepository, ObjectType, Repository } from 'typeorm';
+import { EntityTarget, getRepository } from 'typeorm';
 
 import ajv from '@core/ajv';
 import { wrapAsync, isInvalidType } from '@core/utils';
