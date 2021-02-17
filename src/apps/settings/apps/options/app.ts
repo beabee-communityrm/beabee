@@ -17,8 +17,8 @@ app.get( '/', function( req, res ) {
 } );
 
 app.get( '/:key/edit', function( req, res ) {
-	const option = OptionsService.get(req.params.key);
-	if ( option ) {
+	if (OptionsService.isKey(req.params.key)) {
+		const option = OptionsService.get(req.params.key);
 		res.locals.breadcrumb.push( {
 			name: option.key
 		} );
@@ -31,14 +31,16 @@ app.get( '/:key/edit', function( req, res ) {
 } );
 
 app.post( '/:key/edit', wrapAsync( async function( req, res ) {
-	await OptionsService.set(req.params.key, req.body.value || '');
-	req.flash( 'success', 'option-updated' );
+	if (OptionsService.isKey(req.params.key)) {
+		await OptionsService.set(req.params.key, req.body.value || '');
+		req.flash( 'success', 'option-updated' );
+	}
 	res.redirect( '/settings/options' );
 } ) );
 
 app.get( '/:key/reset', function( req, res ) {
-	const option = OptionsService.get(req.params.key);
-	if ( option ) {
+	if ( OptionsService.isKey(req.params.key) ) {
+		const option = OptionsService.get(req.params.key);
 		res.locals.breadcrumb.push( {
 			name: option.key
 		} );
@@ -51,8 +53,10 @@ app.get( '/:key/reset', function( req, res ) {
 } );
 
 app.post( '/:key/reset', wrapAsync(async function( req, res ) {
-	await OptionsService.reset(req.params.key);
-	req.flash( 'success', 'option-reset' );
+	if (OptionsService.isKey(req.params.key)) {
+		await OptionsService.reset(req.params.key);
+		req.flash( 'success', 'option-reset' );
+	}
 	res.redirect('/settings/options');
 } ) );
 

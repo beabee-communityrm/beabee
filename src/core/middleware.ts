@@ -40,7 +40,7 @@ function convertErrorsToMessages(errors: ErrorObject[]): string[] {
 			}
 		} )
 		.map( key => {
-			return OptionsService.getText( key ) ||
+			return OptionsService.isKey( key ) ? OptionsService.getText( key ) :
 				(config.dev ? key : genericErrorMessage);
 		} )
 	// Don't show duplicate errors twice
