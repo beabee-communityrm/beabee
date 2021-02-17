@@ -132,7 +132,11 @@ class EmailService implements EmailProvider {
 		return await this.provider.getTemplates();
 	}
 
-	private get providerTemplateMap() {
+	get emailTemplateIds(): EmailTemplateId[] {
+		return [...Object.keys(emailTemplates), ...Object.keys(memberEmailTemplates)] as EmailTemplateId[];
+	}
+
+	get providerTemplateMap() {
 		return OptionsService.getJSON('email-templates');
 	}
 }

@@ -58,6 +58,7 @@
 	"flash-delivery-updated": "Your delivery details have been updated",
 
 	"flash-emails-sent": "Transactional email sent",
+	"flash-emails-templates-updated": "Email templates updated",
 
 	"flash-permission-404": "Permission not found",
 	"flash-permission-created": "Permission created",

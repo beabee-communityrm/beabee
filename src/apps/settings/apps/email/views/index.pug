@@ -1,0 +1,31 @@
+extends /views/base.pug
+
+block prepend title
+	- title = app.title
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Email settings')
+
+			dl.dl-horizontal
+				dt Provider
+				dd= emailProvider
+
+	.row
+		.col-md-8
+			h4 Email templates
+
+			form(method='POST').form-horizontal
+				each emailTemplate in emailTemplates
+					.form-group
+						label.col-md-6.control-label=emailTemplate
+						.col-md-6
+							select(name=`providerTemplates[${emailTemplate}]`).form-control
+								option(value='') None
+								each providerTemplate in providerTemplates
+									option(
+										value=providerTemplate.id
+										selected=providerTemplate.id === providerTemplateMap[emailTemplate]
+									)= providerTemplate.name
+				button.btn.btn-primary Save
