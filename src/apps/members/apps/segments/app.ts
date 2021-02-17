@@ -91,11 +91,8 @@ app.post('/:id/email', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) =>
 	const segment = req.model as Segment;
 	const data = req.body as CreateEmail;
 
-	const members = await Members.find(parseRuleGroup(segment.ruleGroup));
-
 	if (data.type === 'one-off') {
-		const email = await getRepository(Email).findOne(data.email);
-
+		throw new Error('Not implemented');
 	} else {
 		await getRepository(SegmentOngoingEmail).save({
 			segment,
