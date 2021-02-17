@@ -141,18 +141,3 @@ export function hasNewModel<T>(entity: EntityTarget<T>, prop: keyof T): RequestH
 		}
 	});
 }
-
-export function hasNewModel2<R extends Repository<T>, T>(entityRespository: ObjectType<R>, prop: keyof T): RequestHandler {
-	return async (req, res, next) => {
-		if (!req.model || (req.model as any)[prop] !== req.params[prop as string]) {
-			req.model = await getCustomRepository(entityRespository).findOne({
-				where: {[prop]: req.params[prop as string]}
-			});
-		}
-		if (req.model) {
-			next();
-		} else {
-			next('route');
-		}
-	};
-}
