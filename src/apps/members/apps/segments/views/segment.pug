@@ -43,17 +43,6 @@ block contents
 		.col-md-12
 			hr
 
-			h4 Rules
-
-			#builder
-
-			form(method='POST').js-advanced-form
-				+csrf
-				input(type='hidden' name='query')
-				button(name='action' value='update-rules').btn.btn-success Update rules
-
-			hr
-
 			h4#ongoingemails
 				| Ongoing emails
 				|
@@ -101,6 +90,17 @@ block contents
 											i.glyphicon.glyphicon-trash
 			else
 				p No ongoing emails
+
+			hr
+
+			h4 Rules
+
+			#builder
+
+			form(method='POST').js-advanced-form
+				+csrf
+				input(type='hidden' name='query')
+				button(name='action' value='update-rules').btn.btn-success Update rules
 
 			hr
 
