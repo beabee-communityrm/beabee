@@ -49,7 +49,7 @@ block contents
 
 			hr
 
-			h4#automations Automations
+			h4#ongoingemails Ongoing emails
 
 			if ongoingEmails.length > 0
 				table.table
@@ -84,13 +84,12 @@ block contents
 											class=ongoingEmail.enabled ? 'btn-danger' : 'btn-success'
 										).btn.btn-xs
 											i.glyphicon(class='glyphicon-' + (ongoingEmail.enabled ? 'stop' : 'play'))
+											span= ongoingEmail.enabled ? 'Stop' : 'Start'
 			else
 				p No automations
 
 			hr
 
-	.row
-		.col-md-8
 			h4 Delete segment
 
 			form(method='POST')

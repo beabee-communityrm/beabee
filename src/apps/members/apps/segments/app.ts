@@ -50,7 +50,7 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 			req.body.ongoingEmailId,
 			{enabled: req.body.ongoingEmailEnabled === 'true'}
 		);
-		res.redirect('/members/segments/' + segment.id + '#automations');
+		res.redirect('/members/segments/' + segment.id + '#ongoingemails');
 		break;
 	case 'delete':
 		await getRepository(Segment).delete(segment.id);
@@ -100,7 +100,7 @@ app.post('/:id/email', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) =>
 			enabled: !!data.enabled
 		});
 
-		res.redirect('/members/segments/' + segment.id + '#automations');
+		res.redirect('/members/segments/' + segment.id + '#ongoingemails');
 	}
 }));
 
