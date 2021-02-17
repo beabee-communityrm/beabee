@@ -85,17 +85,21 @@ block contents
 									= ongoingEmail.trigger === 'onJoin' ? 'join' : 'leave'
 									|
 									| the segment
-								td
+								td(style='white-space: nowrap').text-right
 									form(method='POST')
 										+csrf
 										input(type='hidden' name='ongoingEmailId' value=ongoingEmail.id)
 										input(type='hidden' name='ongoingEmailEnabled' value=ongoingEmail.enabled ? 'false' : 'true')
 										button(
 											name='action' value='toggle-ongoing-email'
-											class=ongoingEmail.enabled ? 'btn-danger' : 'btn-success'
+											class=ongoingEmail.enabled ? 'btn-warning' : 'btn-success'
 										).btn.btn-xs
-											i.glyphicon(class='glyphicon-' + (ongoingEmail.enabled ? 'stop' : 'play'))
-											span= ongoingEmail.enabled ? 'Stop' : 'Start'
+											i.glyphicon(class='glyphicon-' + (ongoingEmail.enabled ? 'pause' : 'play'))
+											span= ongoingEmail.enabled ? 'Pause' : 'Start'
+										|
+										|
+										button(name='action' value='delete-ongoing-email').btn.btn-xs.btn-danger
+											i.glyphicon.glyphicon-trash
 			else
 				p No automations
 

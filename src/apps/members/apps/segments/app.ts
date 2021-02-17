@@ -52,6 +52,10 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 		);
 		res.redirect('/members/segments/' + segment.id + '#ongoingemails');
 		break;
+	case 'delete-ongoing-email':
+		await getRepository(SegmentOngoingEmail).delete(req.body.ongoingEmailId);
+		res.redirect('/members/segments/' + segment.id + '#ongoingemails');
+		break;
 	case 'delete':
 		await getRepository(Segment).delete(segment.id);
 		req.flash('success', 'segment-deleted');
