@@ -44,3 +44,15 @@ textarea.form-control {
 	min-width: 100%;
 	max-width: 100%;
 }
+
+.btn .glyphicon {
+	vertical-align: middle;
+	margin-top: -5px;
+	& + span {
+		margin-left: 6px;
+	}
+}
+
+.radio {
+	padding-left: 20px;
+}
