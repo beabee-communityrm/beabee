@@ -57,10 +57,10 @@ block contents
 			h4#ongoingemails
 				| Ongoing emails
 				|
+				a(href='/members/segments/' + segment.id + '/email').btn.btn-xs.btn-default
+					i.glyphicon.glyphicon-send
+					span New email
 
-			a(href='/members/segments/' + segment.id + '/email').btn.btn-xs.btn-default
-				i.glyphicon.glyphicon-send
-				span New email
 
 			if ongoingEmails.length > 0
 				table.table
@@ -101,7 +101,7 @@ block contents
 										button(name='action' value='delete-ongoing-email').btn.btn-xs.btn-danger
 											i.glyphicon.glyphicon-trash
 			else
-				p No automations
+				p No ongoing emails
 
 			hr
 
