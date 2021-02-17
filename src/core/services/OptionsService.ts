@@ -62,6 +62,10 @@ export default class OptionsService {
 		}
 	}
 
+	static getJSON(key: OptionKey): any {
+		return JSON.parse(OptionsService.getText(key));
+	}
+
 	static getAll(): Record<OptionKey, OptionWithDefault> {
 		return OptionsService.optionCache;
 	}

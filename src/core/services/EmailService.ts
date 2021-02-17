@@ -133,7 +133,7 @@ class EmailService implements EmailProvider {
 	}
 
 	private get providerTemplateMap() {
-		return JSON.parse(OptionsService.getText('email-templates'));
+		return OptionsService.getJSON('email-templates');
 	}
 }
 
