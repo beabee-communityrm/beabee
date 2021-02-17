@@ -65,10 +65,14 @@ async function processSegment(segment: Segment) {
 		await db.Members.find({_id: {$in: oldSegmentMemberIds}}) : [];
 
 	for (const outgoingEmail of outgoingEmails) {
-		await EmailService.sendRawTemplate(
-			outgoingEmail.emailTemplateId,
-			membersToRecipients(outgoingEmail.trigger === 'onLeave' ? oldMembers : newMembers)
-		);
+		const emailMembers = outgoingEmail.trigger === 'onLeave' ? oldMembers :
+			outgoingEmail.trigger === 'onJoin' ? newMembers : [];
+		if (emailMembers.length > 0) {
+			await EmailService.sendRawTemplate(
+				outgoingEmail.emailTemplateId,
+				membersToRecipients(emailMembers)
+			);
+		}
 	}
 }
 
