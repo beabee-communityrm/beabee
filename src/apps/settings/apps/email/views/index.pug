@@ -17,6 +17,7 @@ block contents
 			h4 Email templates
 
 			form(method='POST').form-horizontal
+				+csrf
 				each emailTemplate in emailTemplates
 					.form-group
 						label.col-md-6.control-label=emailTemplate
@@ -28,4 +29,6 @@ block contents
 										value=providerTemplate.id
 										selected=providerTemplate.id === providerTemplateMap[emailTemplate]
 									)= providerTemplate.name
-				button.btn.btn-primary Save
+				.form-group
+					.col-md-offset-6.col-md-6
+						button.btn.btn-success Save

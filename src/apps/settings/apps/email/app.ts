@@ -26,7 +26,7 @@ app.get('/', wrapAsync(async (req, res) => {
 
 app.post('/', wrapAsync(async (req, res) => {
 	await OptionsService.set('email-templates', JSON.stringify(req.body.providerTemplates));
-	req.flash('success', 'email-templates-updated');
+	req.flash('success', 'emails-templates-updated');
 	res.redirect(req.originalUrl);
 }));
 
