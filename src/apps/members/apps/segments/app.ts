@@ -27,6 +27,9 @@ app.get('/', wrapAsync(async (req, res) => {
 app.get('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 	const segment = req.model as Segment;
 	const ongoingEmails = await getRepository(SegmentOngoingEmail).find({where: {segment}});
+	for (const ongoingEmail of ongoingEmails) {
+		ongoingEmail.emailTemplate = await EmailService.getTemplate(ongoingEmail.emailTemplateId);
+	}
 	res.render('segment', {segment, ongoingEmails});
 }));
 

@@ -63,11 +63,17 @@ block contents
 							tr
 								td: +itemStatus(ongoingEmail)
 								td(width='100%')
-									| Send #{ongoingEmail.emailTemplateId} to users when they
+									| Send
+									|
+									| "
+									= ongoingEmail.emailTemplate ? ongoingEmail.emailTemplate.name : 'UNKNOWN'
+									| "
+									|
+									| to users when they
 									|
 									= ongoingEmail.trigger === 'onJoin' ? 'join' : 'leave'
 									|
-									| leave the segment
+									| the segment
 								td
 									form(method='POST')
 										+csrf

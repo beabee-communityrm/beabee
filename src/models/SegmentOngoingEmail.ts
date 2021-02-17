@@ -1,4 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { EmailTemplate } from '@core/services/email';
+
 import Segment from './Segment';
 
 @Entity()
@@ -20,6 +23,8 @@ export default class SegmentOngoingEmail {
 
 	@Column({default: false})
 	enabled!: boolean
+
+	emailTemplate?: EmailTemplate;
 
 	// TODO: To match with polls, sync all these fields
 	get active(): boolean {
