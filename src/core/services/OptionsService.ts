@@ -8,7 +8,9 @@ import config from '@config';
 
 import Option from '@models/Option';
 
-const defaultOptions: {[key: string]: string} = _defaultOptions;
+export type OptionKey = keyof typeof _defaultOptions;
+const defaultOptions: {[key in OptionKey]: string} = _defaultOptions;
+
 const log = mainLogger.child({app: 'options-service'});
 
 interface OptionWithDefault extends Option {
@@ -16,49 +18,55 @@ interface OptionWithDefault extends Option {
 }
 
 export default class OptionsService {
-	private static optionCache: Record<string, OptionWithDefault>;
+	private static optionCache: Record<OptionKey, OptionWithDefault>;
+
+	static isKey(s: string): s is OptionKey {
+		return s in defaultOptions;
+	}
 
 	static async reload(): Promise<void> {
 		log.debug({action: 'reload'});
-		OptionsService.optionCache = {};
-		for (const key in defaultOptions) {
-			OptionsService.optionCache[key] = {
+		const newCache: Partial<Record<OptionKey, OptionWithDefault>> = {};
+		for (const key of Object.keys(defaultOptions)) {
+			newCache[key as OptionKey] = {
 				key,
-				value: defaultOptions[key],
+				value: defaultOptions[key as OptionKey],
 				default: true
 			};
 		}
 		(await getRepository(Option).find()).map(option => {
-			OptionsService.optionCache[option.key] = {...option, default: false};
+			if (OptionsService.isKey(option.key)) {
+				newCache[option.key] = {...option, default: false};
+			}
 		});
+
+		OptionsService.optionCache = newCache as Record<OptionKey, OptionWithDefault>;
 	}
 
-	static get(key: string): OptionWithDefault|undefined {
+	static get(key: OptionKey): OptionWithDefault {
 		return OptionsService.optionCache[key];
 	}
 
-	static getText(key: string): string {
-		return OptionsService.get(key)?.value || '';
+	static getText(key: OptionKey): string {
+		return OptionsService.get(key).value;
 	}
 
-	static getInt(key: string): number|undefined {
-		const option = OptionsService.get(key);
-		return option && parseInt(option.value);
+	static getInt(key: OptionKey): number {
+		return parseInt(OptionsService.getText(key));
 	}
 
-	static getBool(key: string): boolean|undefined {
-		switch (OptionsService.get(key)?.value) {
+	static getBool(key: OptionKey): boolean {
+		switch (OptionsService.getText(key)) {
 		case 'true': return true;
-		case 'false': return false;
-		default: return;
+		default: return false;
 		}
 	}
 
-	static getAll(): Record<string, OptionWithDefault> {
+	static getAll(): Record<OptionKey, OptionWithDefault> {
 		return OptionsService.optionCache;
 	}
 
-	static async set(key: string, value: string|number|boolean): Promise<void> {
+	static async set(key: OptionKey, value: string|number|boolean): Promise<void> {
 		const option = OptionsService.get(key);
 		if (option) {
 			option.value = value.toString();
@@ -68,7 +76,7 @@ export default class OptionsService {
 		}
 	}
 
-	static async reset(key: string): Promise<void> {
+	static async reset(key: OptionKey): Promise<void> {
 		const option = OptionsService.get(key);
 		if (option) {
 			option.value = defaultOptions[key];

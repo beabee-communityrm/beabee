@@ -11,7 +11,7 @@ import { log, installMiddleware as installLogMiddleware } from '@core/logging';
 import quickflash from '@core/quickflash';
 import sessions from '@core/sessions';
 
-import OptionsService from '@core/services/OptionsService';
+import OptionsService, { OptionKey } from '@core/services/OptionsService';
 import PageSettingsService from '@core/services/PageSettingsService';
 
 import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
@@ -48,7 +48,7 @@ database.connect( config.mongo, config.db as ConnectionOptions ).then(async () =
 	// Load some caches and make them immediately available
 	await PageSettingsService.reload();
 	app.use((req, res, next) => {
-		res.locals.Options = (opt: string) => OptionsService.getText(opt);
+		res.locals.Options = (opt: OptionKey) => OptionsService.getText(opt);
 		res.locals.pageSettings = PageSettingsService.getPath(req.path);
 		next();
 	});
