@@ -60,3 +60,12 @@ textarea.form-control {
 		padding-left: 0;
 	}
 }
+
+.table {
+	th:first-child, td:first-child {
+		padding-left: 0;
+	}
+	th:last-child, td:last-child {
+		padding-right: 0;
+	}
+}
