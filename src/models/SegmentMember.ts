@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
 import Segment from './Segment';
 
 @Entity()
@@ -8,4 +8,7 @@ export default class SegmentMember {
 
   @PrimaryColumn()
   memberId!: string
+
+  @CreateDateColumn()
+  date!: Date
 }

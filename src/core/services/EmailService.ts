@@ -128,6 +128,16 @@ class EmailService implements EmailProvider {
 		await this.sendTemplate(template, recipients, opts);
 	}
 
+	async sendRawTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
+		log.info({
+			action: 'send-raw-template',
+			data: {
+				template, recipients
+			}
+		});
+		await this.provider.sendTemplate(template, recipients, opts);
+	}
+
 	async getTemplates(): Promise<EmailTemplate[]> {
 		return await this.provider.getTemplates();
 	}
