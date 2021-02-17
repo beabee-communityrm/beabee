@@ -53,6 +53,10 @@ textarea.form-control {
 	}
 }
 
-.radio {
+.radio,
+.checkbox {
 	padding-left: 20px;
+	.form-inline & {
+		padding-left: 0;
+	}
 }

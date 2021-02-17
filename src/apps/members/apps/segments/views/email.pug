@@ -1,0 +1,57 @@
+extend /views/notrack
+
+block title
+	- title = segment.name
+
+block contents
+	.row
+		.col-md-12
+			+page_header(segment.name)
+
+	.row
+		.col-md-8
+			h4 New email
+			form(method='POST').form-horizontal
+				+csrf
+				.js-reveal
+					.form-group
+						.control-label.col-md-3 Type
+						.col-md-9
+							label.radio-inline
+								input(type='radio' name='type' value='one-off' required checked).js-reveal-types
+								| One-off
+							| 
+							label.radio-inline
+								input(type='radio' name='type' value='ongoing' required).js-reveal-types
+								| Ongoing
+
+					.form-group.hidden.js-reveal-type(data-type='ongoing')
+						.control-label.col-md-3 Send when
+						.col-md-9
+							label.radio 
+								input(type='radio' name='trigger' value='onJoin' required)
+								| User joins segment
+							label.radio 
+								input(type='radio' name='trigger' value='onLeave' required)
+								| User leaves segment
+							p.help-block Ongoing emails are triggered once per day
+
+					.form-group
+						label(for='email').control-label.col-md-3 Email
+						.col-md-9
+							select(name='email' required).form-control#email
+								option(value='' selected disabled) Select one
+								each emailTemplate in emailTemplates
+									option(value=emailTemplate.id)= emailTemplate.name
+
+					.form-group.hidden.js-reveal-type(data-type='ongoing')
+						.col-md-offset-3.col-md-9
+							label.checkbox
+								input(type='checkbox' name='enabled' value='true')
+								| Enable now
+
+					.form-group
+						.col-md-offset-3.col-md-9
+							button.btn.btn-success
+								span.js-reveal-type(data-type='one-off') Preview
+								span.hidden.js-reveal-type(data-type='ongoing') Save
