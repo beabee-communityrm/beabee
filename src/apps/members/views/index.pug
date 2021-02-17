@@ -29,10 +29,11 @@ block contents
 			.members-table-actions
 				form(method='POST')
 					+csrf
-					if segment && searchQuery.rules
-						button(name='action' value='update-segment').btn.btn-xs.btn-warning
-							i.glyphicon.glyphicon-floppy-disk
-							span Update segment
+					if segment
+						if searchQuery.rules
+							button(name='action' value='update-segment').btn.btn-xs.btn-warning
+								i.glyphicon.glyphicon-floppy-disk
+								span Update segment
 					else if searchRuleGroup
 						button(name='action' value='save-segment').btn.btn-xs.btn-primary
 							i.glyphicon.glyphicon-floppy-disk
