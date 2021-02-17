@@ -28,6 +28,7 @@ import ReferralGift from '@models/ReferralGift';
 import RestartFlow from '@models/RestartFlow';
 import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
+import SegmentMember from '@models/SegmentMember';
 
 export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): Promise<void> {
 	await new Promise<void>(resolve => {
@@ -61,9 +62,9 @@ export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): 
 			...dbConfig,
 			entities: [
 				Email, EmailMailing, Export, ExportItem, GiftFlow, GCPaymentData,
-				JoinFlow, Notice, Option, PageSettings, Payment, Poll,
-				PollResponse, Project, ProjectMember, ProjectEngagement, Referral,
-				ReferralGift, RestartFlow, Segment, SegmentOngoingEmail
+				JoinFlow, Notice, Option, PageSettings, Payment, Poll, PollResponse,
+				Project, ProjectMember, ProjectEngagement, Referral, ReferralGift,
+				RestartFlow, Segment, SegmentOngoingEmail, SegmentMember
 			]
 		});
 		log.debug( {
