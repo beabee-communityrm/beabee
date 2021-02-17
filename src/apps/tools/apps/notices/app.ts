@@ -1,15 +1,14 @@
 import express from 'express';
 import moment from 'moment';
-import { getCustomRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import { hasNewModel2, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import NoticeRepository from '@core/repositories/NoticeRepository';
+import Notice from '@models/Notice';
 
 import { createNoticeSchema } from './schemas.json';
-import Notice from '@models/Notice';
 
 const app = express();
 
@@ -39,34 +38,33 @@ app.set( 'views', __dirname + '/views' );
 app.use( auth.isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
-	const notices = await getCustomRepository(NoticeRepository).find();
+	const notices = await getRepository(Notice).find();
 	res.render( 'index', { notices } );
 } ) );
 
 app.post( '/', hasSchema( createNoticeSchema ).orFlash, wrapAsync( async ( req, res ) => {
 	const notice = schemaToNotice(req.body);
-	await getCustomRepository(NoticeRepository).save(notice);
+	await getRepository(Notice).save(notice);
 	req.flash('success', 'notices-created');
 	res.redirect('/tools/notices/' + notice.id);
 } ) );
 
-app.get( '/:id', hasNewModel2(NoticeRepository, 'id'), wrapAsync( async ( req, res ) => {
+app.get( '/:id', hasNewModel(Notice, 'id'), wrapAsync( async ( req, res ) => {
 	res.render( 'notice', { notice: req.model } );
 } ) );
 
-app.post( '/:id', hasNewModel2(NoticeRepository, 'id'), wrapAsync( async ( req, res ) => {
+app.post( '/:id', hasNewModel(Notice, 'id'), wrapAsync( async ( req, res ) => {
 	const notice = req.model as Notice;
-	const noticeRepository = getCustomRepository(NoticeRepository);
 
 	switch ( req.body.action ) {
 	case 'update':
-		await noticeRepository.update(notice.id, schemaToNotice(req.body));
+		await getRepository(Notice).update(notice.id, schemaToNotice(req.body));
 		req.flash( 'success', 'notices-updated' );
 		res.redirect( '/tools/notices/' + notice.id );
 		break;
 
 	case 'delete':
-		await noticeRepository.delete(notice);
+		await getRepository(Notice).delete(notice.id);
 		req.flash( 'success', 'notices-deleted' );
 		res.redirect( '/tools/notices' );
 		break;
