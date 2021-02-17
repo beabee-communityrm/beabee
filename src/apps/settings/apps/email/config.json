@@ -1,0 +1,7 @@
+{
+	"title": "Email",
+	"path": "email",
+	"permissions": [
+		"superadmin"
+	]
+}

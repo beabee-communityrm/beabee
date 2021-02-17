@@ -102,8 +102,8 @@ export default class MandrillEmailProvider implements EmailProvider {
 		const emails = await getRepository(Email).find();
 
 		return [
-			...emails.map(email => ({id: 'local_' + email.id, name: email.name})),
-			...templates.map(template => ({id: 'mandrill_' + template.slug, name: template.name}))
+			...emails.map(email => ({id: 'local_' + email.id, name: 'Local: ' + email.name})),
+			...templates.map(template => ({id: 'mandrill_' + template.slug, name: 'Mandrill: ' + template.name}))
 		];
 	}
 
