@@ -107,6 +107,19 @@ export default class MandrillEmailProvider implements EmailProvider {
 		];
 	}
 
+	async getTemplate(template: string): Promise<EmailTemplate|undefined> {
+		const [templateType, templateId] = template.split('_', 2);
+		if (templateType === 'mandrill') {
+			return;
+		} else if (templateType === 'local') {
+			const email = await getRepository(Email).findOne(templateId);
+			return email && {
+				id: email.id,
+				name: email.name
+			};
+		}
+	}
+
 	private createMessageData(recipients: EmailRecipient[], opts?: EmailOptions): MandrillMessage {
 		return {
 			to: recipients.map(r => r.to),
