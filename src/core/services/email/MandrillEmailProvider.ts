@@ -103,7 +103,7 @@ export default class MandrillEmailProvider implements EmailProvider {
 
 		return [
 			...emails.map(email => ({id: 'local_' + email.id, name: 'Local: ' + email.name})),
-			...templates.map(template => ({id: 'mandrill_' + template.slug, name: 'Remote: ' + template.name}))
+			...templates.map(template => ({id: 'mandrill_' + template.slug, name: 'Mandrill: ' + template.name}))
 		];
 	}
 
