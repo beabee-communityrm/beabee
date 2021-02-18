@@ -65,4 +65,12 @@ export default class SMTPEmailProvider implements EmailProvider {
 		const emails = await getRepository(Email).find();
 		return emails.map(email => ({id: email.id, name: email.name}));
 	}
+
+	async getTemplate(template: string): Promise<EmailTemplate|undefined> {
+		const email = await getRepository(Email).findOne(template);
+		return email && {
+			id: email.id,
+			name: email.name
+		};
+	}
 }

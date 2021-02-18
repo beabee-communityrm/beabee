@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import Email from '@models/Email';
 
-export type EmailRecipient = Record<string, string>;
+export type EmailMailingRecipient = Record<string, string>;
 
 @Entity()
 export default class EmailMailing {
@@ -18,7 +18,7 @@ export default class EmailMailing {
     sentDate?: Date;
 
     @Column({type: 'jsonb'})
-    recipients!: EmailRecipient[];
+    recipients!: EmailMailingRecipient[];
 
     @Column({nullable: true})
     emailField?: string

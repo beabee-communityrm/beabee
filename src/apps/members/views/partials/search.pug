@@ -22,10 +22,9 @@ mixin searchState
 						each permission, p in permissions
 							option( value=permission.slug, selected=( searchQuery.permission == permission.slug ? true : false ) ) #{ permission.name }
 				.form-group
-					.checkbox
-						label( for='show_inactive' )
-							input( type='checkbox' name='show_inactive', value='true', checked=searchQuery.show_inactive )#show_inactive
-							|  Show inactive members
+					label.checkbox
+						input( type='checkbox' name='show_inactive', value='true', checked=searchQuery.show_inactive )#show_inactive
+						|  Show inactive members
 			.member-search-group
 				.form-group
 					label( for='firstname' ).control-label First name
@@ -45,7 +44,9 @@ mixin searchState
 							option( value=tag selected=searchQuery.tag === tag )= tag
 
 			.member-search-group
-				button(name='type' value='basic').btn.btn-success Search
+				button(name='type' value='basic').btn.btn-success
+					i.glyphicon.glyphicon-search
+					span Search
 
 	.tab-pane#advanced(class=searchType === 'advanced' ? 'active' : '')
 		#builder
@@ -53,4 +54,6 @@ mixin searchState
 			+searchState
 
 			input(type='hidden' name='rules')
-			button(name='type' value='advanced').btn.btn-success Search
+			button(name='type' value='advanced').btn.btn-success
+				i.glyphicon.glyphicon-search
+				span Search

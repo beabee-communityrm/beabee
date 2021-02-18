@@ -7,6 +7,10 @@
 		var $parent = $revealTypes.parents('.js-reveal');
 		var $revealType = $parent.find('.js-reveal-type');
 
+		if ($revealTypes.is(':radio') && !$revealTypes.prop('checked')) {
+			return;
+		}
+
 		var currentType = $revealTypes.is(':checkbox') ?
 			($revealTypes.prop('checked') ? $revealTypes.prop('name') : undefined) :
 			$revealTypes.val();

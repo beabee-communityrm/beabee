@@ -44,3 +44,28 @@ textarea.form-control {
 	min-width: 100%;
 	max-width: 100%;
 }
+
+.btn .glyphicon {
+	vertical-align: middle;
+	margin-top: -5px;
+	& + span {
+		margin-left: 6px;
+	}
+}
+
+.radio,
+.checkbox {
+	padding-left: 20px;
+	.form-inline & {
+		padding-left: 0;
+	}
+}
+
+.table {
+	th:first-child, td:first-child {
+		padding-left: 0;
+	}
+	th:last-child, td:last-child {
+		padding-right: 0;
+	}
+}

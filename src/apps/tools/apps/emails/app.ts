@@ -11,7 +11,7 @@ import { wrapAsync } from '@core/utils';
 import EmailService from '@core/services/EmailService';
 
 import Email from '@models/Email';
-import EmailMailing, { EmailRecipient } from '@models/EmailMailing';
+import EmailMailing, { EmailMailingRecipient } from '@models/EmailMailing';
 
 const app = express();
 
@@ -76,13 +76,13 @@ app.post('/:id', hasNewModel(Email, 'id'), wrapAsync(async (req, res) => {
 
 app.post('/:id/mailings', hasNewModel(Email, 'id'), busboy(), (req, res) => {
 	const email = req.model as Email;
-	let recipients: EmailRecipient[];
+	let recipients: EmailMailingRecipient[];
 
 	req.busboy.on('file', (fieldname, file) => {
 		Papa.parse(file, {
 			header: true,
 			complete: function (results) {
-				recipients = results.data as EmailRecipient[];
+				recipients = results.data as EmailMailingRecipient[];
 			}
 		});
 	});

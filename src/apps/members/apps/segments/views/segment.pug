@@ -1,6 +1,6 @@
 extend /views/notrack
 
-block title
+block prepend title
 	- title = segment.name
 
 block append css
@@ -15,7 +15,12 @@ block append js
 block contents
 	.row
 		.col-md-12
-			+page_header(segment.name)
+			.page-header
+				.pull-right
+					a(href='/members?segment=' + segment.id).btn.btn-default
+						i.glyphicon.glyphicon-user
+						span Members
+				h3= segment.name
 
 	.row
 		.col-md-8
@@ -28,7 +33,7 @@ block contents
 				.form-group
 					label(for='description').control-label.col-md-3 Description
 					.col-md-9
-						textarea(name='description' required)#intro.form-control= segment.description
+						textarea(name='description')#intro.form-control= segment.description
 							
 				.form-group
 					.col-md-9.col-md-offset-3
@@ -36,6 +41,56 @@ block contents
 
 	.row
 		.col-md-12
+			hr
+
+			h4#ongoingemails
+				| Ongoing emails
+				|
+				a(href='/members/segments/' + segment.id + '/email').btn.btn-xs.btn-default
+					i.glyphicon.glyphicon-send
+					span New email
+
+
+			if ongoingEmails.length > 0
+				table.table
+					thead
+						tr
+							th Status
+							th Description
+							th
+					tbody
+						each ongoingEmail in ongoingEmails
+							tr
+								td: +itemStatus(ongoingEmail)
+								td(width='100%')
+									| Send
+									|
+									| "
+									= ongoingEmail.emailTemplate ? ongoingEmail.emailTemplate.name : 'UNKNOWN'
+									| "
+									|
+									| to users when they
+									|
+									= ongoingEmail.trigger === 'onJoin' ? 'join' : 'leave'
+									|
+									| the segment
+								td(style='white-space: nowrap').text-right
+									form(method='POST')
+										+csrf
+										input(type='hidden' name='ongoingEmailId' value=ongoingEmail.id)
+										input(type='hidden' name='ongoingEmailEnabled' value=ongoingEmail.enabled ? 'false' : 'true')
+										button(
+											name='action' value='toggle-ongoing-email'
+											class=ongoingEmail.enabled ? 'btn-warning' : 'btn-success'
+										).btn.btn-xs
+											i.glyphicon(class='glyphicon-' + (ongoingEmail.enabled ? 'pause' : 'play'))
+										|
+										|
+										button(name='action' value='delete-ongoing-email').btn.btn-xs.btn-danger
+											i.glyphicon.glyphicon-trash
+			else
+				p No ongoing emails
+
 			hr
 
 			h4 Rules
@@ -49,14 +104,6 @@ block contents
 
 			hr
 
-			h4 Automations
-
-			.alert.alert-info Coming soon
-
-			hr
-
-	.row
-		.col-md-8
 			h4 Delete segment
 
 			form(method='POST')
