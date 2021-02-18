@@ -32,13 +32,17 @@ block contents
 						h4 Contribution
 						dl.dl-horizontal
 							dt Type
-							dd= member.contributionType
-							dt Amount
-							dd= member.contributionMonthlyAmount ? currencySymbol + member.contributionMonthlyAmount : '–'
-							dt Period
-							dd= member.contributionPeriod || '–'
-							if gcData
-								include partials/gocardless.pug
+							dd= member.contributionType || '–'
+							if member.contributionType
+								dt Amount
+								dd= member.contributionMonthlyAmount ? currencySymbol + member.contributionMonthlyAmount : '–'
+								dt Period
+								dd= member.contributionPeriod || '–'
+								case member.contributionType
+									when 'GoCardless'
+										include partials/gocardless.pug
+									when 'Manual'
+										include partials/manual.pug
 				.row
 					.col-md-12
 						include partials/payments.pug

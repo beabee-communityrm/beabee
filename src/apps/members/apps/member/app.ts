@@ -11,6 +11,7 @@ import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 import GCPaymentService from '@core/services/GCPaymentService';
+import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import { Member } from '@models/members';
@@ -29,7 +30,7 @@ app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
 	req.model = await Members.findOne({uuid: req.allParams.uuid}).populate('permissions.permission').exec();
 	if (req.model) {
-		res.locals.gcData = await GCPaymentService.getPaymentData(req.model as Member);
+		res.locals.paymentData = await PaymentService.getPaymentData(req.model as Member);
 		next();
 	} else {
 		next('route');

@@ -5,13 +5,13 @@ mixin gcLink(id, type)
 		| –
 
 dt Paying fee?
-dd= gcData.payFee ? 'Yes' : 'No'
+dd= paymentData.payFee ? 'Yes' : 'No'
 dt Customer ID
-dd: +gcLink(gcData.customerId, 'customers')
+dd: +gcLink(paymentData.customerId, 'customers')
 dt Mandate ID
-dd: +gcLink(gcData.mandateId, 'mandates')
+dd: +gcLink(paymentData.mandateId, 'mandates')
 dt Subscription ID
-dd: +gcLink(gcData.subscriptionId, 'subscriptions')
-if gcData.cancelledAt
+dd: +gcLink(paymentData.subscriptionId, 'subscriptions')
+if paymentData.cancelledAt
 	dt Cancelled
-	dd= moment(gcData.cancelledAt).format('HH:mm:ss DD/MM/YYYY')
+	dd= moment(paymentData.cancelledAt).format('HH:mm:ss DD/MM/YYYY')

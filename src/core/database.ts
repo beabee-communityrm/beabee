@@ -14,6 +14,7 @@ import ExportItem from '@models/ExportItem';
 import GCPaymentData from '@models/GCPaymentData';
 import GiftFlow from '@models/GiftFlow';
 import JoinFlow from '@models/JoinFlow';
+import ManualPaymentData from '@models/ManualPaymentData';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
@@ -62,9 +63,10 @@ export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): 
 			...dbConfig,
 			entities: [
 				Email, EmailMailing, Export, ExportItem, GiftFlow, GCPaymentData,
-				JoinFlow, Notice, Option, PageSettings, Payment, Poll, PollResponse,
-				Project, ProjectMember, ProjectEngagement, Referral, ReferralGift,
-				RestartFlow, Segment, SegmentOngoingEmail, SegmentMember
+				JoinFlow, ManualPaymentData, Notice, Option, PageSettings, Payment,
+				Poll, PollResponse, Project, ProjectMember, ProjectEngagement,
+				Referral, ReferralGift, RestartFlow, Segment, SegmentOngoingEmail,
+				SegmentMember
 			]
 		});
 		log.debug( {
@@ -85,11 +87,7 @@ export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): 
 
 export async function close(): Promise<void> {
 	await mongoose.disconnect();
-	try {
-		await getConnection().close();
-	} catch (error) { 
-		// TODO: remove once typeorm connection always open
-	}
+	await getConnection().close();
 }
 
 export { model as Members } from '@models/members';
