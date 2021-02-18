@@ -1,4 +1,4 @@
-import { Payment as GCPayment, Subscription, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
+import { Payment as GCApiPayment, Subscription, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 import moment, { Moment } from 'moment';
 import { getRepository } from 'typeorm';
 
@@ -10,15 +10,15 @@ import { ContributionPeriod } from '@core/utils';
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';
 
+import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
-import Payment from '@models/Payment';
 
 import config from '@config';
 
 const log = mainLogger.child({app: 'payment-webhook-service'});
 
 export default class GCPaymentWebhookService {
-	static async updatePayment(gcPaymentId: string): Promise<Payment> {
+	static async updatePayment(gcPaymentId: string): Promise<GCPayment> {
 		log.info({
 			action: 'update-payment',
 			data: {
@@ -27,7 +27,7 @@ export default class GCPaymentWebhookService {
 		});
 
 		const gcPayment = await gocardless.payments.get(gcPaymentId);
-		let payment = await getRepository(Payment).findOne({ paymentId: gcPayment.id });
+		let payment = await getRepository(GCPayment).findOne({ paymentId: gcPayment.id });
 		if (!payment) {
 			payment = await GCPaymentWebhookService.createPayment(gcPayment);
 		}
@@ -38,12 +38,12 @@ export default class GCPaymentWebhookService {
 		payment.amountRefunded = Number(gcPayment.amount_refunded) / 100;
 		payment.chargeDate = moment.utc(gcPayment.charge_date).toDate();
 
-		await getRepository(Payment).save(payment);
+		await getRepository(GCPayment).save(payment);
 
 		return payment;
 	}
 
-	static async confirmPayment(payment: Payment): Promise<void> {
+	static async confirmPayment(payment: GCPayment): Promise<void> {
 		log.info({
 			action: 'confirm-payment',
 			data: {
@@ -108,7 +108,7 @@ export default class GCPaymentWebhookService {
 				gcPaymentId, status
 			}
 		});
-		await getRepository(Payment).update({ paymentId: gcPaymentId }, { status });
+		await getRepository(GCPayment).update({ paymentId: gcPaymentId }, { status });
 	}
 
 	static async cancelSubscription(subscriptionId: string): Promise<void> {
@@ -160,7 +160,7 @@ export default class GCPaymentWebhookService {
 		}
 	}
 
-	private static async calcPaymentExpiryDate(payment: Payment): Promise<Moment> {
+	private static async calcPaymentExpiryDate(payment: GCPayment): Promise<Moment> {
 		if (payment.subscriptionId) {
 			const subscription = await gocardless.subscriptions.get(payment.subscriptionId);
 			return subscription.upcoming_payments.length > 0 ?
@@ -171,18 +171,18 @@ export default class GCPaymentWebhookService {
 		}
 	}
 
-	private static async createPayment(gcPayment: GCPayment): Promise<Payment> {
-		const payment = new Payment();
-		payment.paymentId = gcPayment.id;
+	private static async createPayment(gcApiPayment: GCApiPayment): Promise<GCPayment> {
+		const payment = new GCPayment();
+		payment.paymentId = gcApiPayment.id;
 
-		const gcData = await getRepository(GCPaymentData).findOne({ mandateId: gcPayment.links.mandate });
+		const gcData = await getRepository(GCPaymentData).findOne({ mandateId: gcApiPayment.links.mandate });
 		const member = gcData && await Members.findById(gcData.memberId);
 		if (member) {
 			log.info({
 				action: 'create-payment',
 				data: {
 					memberId: member._id,
-					gcPaymentId: gcPayment.id
+					gcPaymentId: gcApiPayment.id
 				}
 			});
 			payment.memberId = member._id.toString();
@@ -190,14 +190,14 @@ export default class GCPaymentWebhookService {
 			log.info({
 				action: 'create-unlinked-payment',
 				data: {
-					gcPaymentId: gcPayment.id
+					gcPaymentId: gcApiPayment.id
 				}
 			});
 		}
 
-		if (gcPayment.links.subscription) {
-			const subscription = await gocardless.subscriptions.get(gcPayment.links.subscription);
-			payment.subscriptionId = gcPayment.links.subscription;
+		if (gcApiPayment.links.subscription) {
+			const subscription = await gocardless.subscriptions.get(gcApiPayment.links.subscription);
+			payment.subscriptionId = gcApiPayment.links.subscription;
 			payment.subscriptionPeriod = GCPaymentWebhookService.getSubscriptionPeriod(subscription);
 		}
 
@@ -226,7 +226,7 @@ export default class GCPaymentWebhookService {
 		return moment.duration({ [unit]: Number(interval) });
 	}
 
-	private static getSubscriptionAmount(payment: Payment, payFee: boolean): number {
+	private static getSubscriptionAmount(payment: GCPayment, payFee: boolean): number {
 		const amount = payment.amount / (payment.subscriptionPeriod === ContributionPeriod.Annually ? 12 : 1);
 		return payFee ? Math.round(100 * (amount - 0.2) * 0.99) / 100 : amount;
 	}

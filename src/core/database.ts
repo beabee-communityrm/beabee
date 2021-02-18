@@ -11,6 +11,7 @@ import Email from '@models/Email';
 import EmailMailing from '@models/EmailMailing';
 import Export from '@models/Export';
 import ExportItem from '@models/ExportItem';
+import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
 import GiftFlow from '@models/GiftFlow';
 import JoinFlow from '@models/JoinFlow';
@@ -18,7 +19,6 @@ import ManualPaymentData from '@models/ManualPaymentData';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
-import Payment from '@models/Payment';
 import Poll from '@models/Poll';
 import PollResponse from '@models/PollResponse';
 import Project from '@models/Project';
@@ -62,11 +62,11 @@ export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): 
 		await createConnection({
 			...dbConfig,
 			entities: [
-				Email, EmailMailing, Export, ExportItem, GiftFlow, GCPaymentData,
-				JoinFlow, ManualPaymentData, Notice, Option, PageSettings, Payment,
-				Poll, PollResponse, Project, ProjectMember, ProjectEngagement,
-				Referral, ReferralGift, RestartFlow, Segment, SegmentOngoingEmail,
-				SegmentMember
+				Email, EmailMailing, Export, ExportItem, GiftFlow, GCPayment,
+				GCPaymentData, JoinFlow, ManualPaymentData, Notice, Option,
+				PageSettings, Poll, PollResponse, Project, ProjectMember,
+				ProjectEngagement, Referral, ReferralGift, RestartFlow, Segment,
+				SegmentOngoingEmail, SegmentMember
 			]
 		});
 		log.debug( {
