@@ -1,6 +1,7 @@
 import { getRepository } from 'typeorm';
 
 import PageSettings from '@models/PageSettings';
+import OptionsService from './OptionsService';
 
 interface PageSettingsCache extends PageSettings {
 	patternRegex: RegExp
@@ -9,21 +10,20 @@ interface PageSettingsCache extends PageSettings {
 type JustPageSettings = Omit<PageSettings, 'id'|'pattern'>;
 
 export default class PageSettingsService {
-	private static pathCache: Record<string, JustPageSettings> = {};
+	private static pathCache: Record<string, JustPageSettings|'default'> = {};
 	private static psCache: PageSettingsCache[] = [];
 
-	private static readonly defaultPageSettings = {
-		shareUrl: '/',
-		shareTitle: 'The Bristol Cable: News, Investigations & Events | The city\'s media co-operative.',
-		shareDescription: 'Latest Bristol news, investigations &amp; events. The city\'s media co-operative – created and owned by local people. Sticking up for Bristol.',
-		shareImage: 'https://membership.thebristolcable.org/static/imgs/share.jpg'
-	};
-
 	static getPath(path: string): JustPageSettings {
-		if (this.pathCache[path] === undefined) {
-			this.pathCache[path] = this.psCache.find(ps => ps.patternRegex.test(path)) || this.defaultPageSettings;
+		let cache = this.pathCache[path];
+		if (cache === undefined) {
+			cache = this.pathCache[path] = this.psCache.find(ps => ps.patternRegex.test(path)) || 'default';
 		}
-		return this.pathCache[path];
+		return cache === 'default' ? {
+			shareUrl: '/',
+			shareTitle: OptionsService.getText('share-title'),
+			shareDescription: OptionsService.getText('share-description'),
+			shareImage: OptionsService.getText('share-image'),
+		} : cache;
 	}
 
 	static async reload(): Promise<void> {
