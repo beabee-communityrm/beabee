@@ -193,9 +193,10 @@ module.exports.schema.virtual( 'memberPermission' )
 	} );
 
 module.exports.schema.virtual( 'memberMonthsRemaining' ).get( function () {
-	return Math.max(0,
+	return this.memberPermission ? Math.max(0,
 		moment.utc(this.memberPermission.date_expires)
-			.subtract(config.gracePeriod).diff(moment.utc(), 'months'));
+			.subtract(config.gracePeriod).diff(moment.utc(), 'months')) :
+		0;
 } );
 
 module.exports.schema.virtual( 'isActiveMember' ).get( function () {
