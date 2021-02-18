@@ -369,7 +369,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
 		const gcData = await GCPaymentService.getPaymentData(member);
-		await getRepository(Payment).delete({memberId: member.id});
+		await getRepository(GCPayment).delete({memberId: member.id});
 		if (gcData?.mandateId) {
 			await gocardless.mandates.cancel(gcData.mandateId);
 		}

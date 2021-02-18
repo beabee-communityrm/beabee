@@ -4,8 +4,9 @@ import moment from 'moment';
 import auth from '@core/authentication';
 import { wrapAsync } from '@core/utils';
 import { Between, getRepository } from 'typeorm';
-import Payment from '@models/Payment';
 import { Members } from '@core/database';
+
+import GCPayment from '@models/GCPayment';
 
 const app = express();
 
@@ -26,7 +27,7 @@ app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, re
 	const end = start.clone().add(1, 'month');
 	const previous = start.clone().subtract(1, 'month');
 
-	const payments = await getRepository(Payment).find({
+	const payments = await getRepository(GCPayment).find({
 		where: {
 			createdAt: Between(start.toDate(), end.toDate())
 		},
