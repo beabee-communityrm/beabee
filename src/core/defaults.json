@@ -33,7 +33,7 @@
 
 	"email-templates": "{}",
 
-	"tracking_code": "",
+	"tracking-code": "",
 
 	"flash-logged-in": "Login successful",
 	"flash-logged-out": "Logged out",
