@@ -1,18 +1,8 @@
-import dot from 'dot';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import moment from 'moment';
 
 import { AppConfig } from '@core/utils';
 
 import config from '@config';
-
-let git = '';
-try {
-	git = fs.readFileSync( __dirname + '/../revision.txt' ).toString();
-} catch (e) {
-	git = 'DEV';
-}
 
 function hasPermission(perms1: string[], perms2: string[]) {
 	return perms1.filter(p => perms2.includes(p)).length > 0;
@@ -45,17 +35,8 @@ export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: 
 		}
 	}
 
-	// Define some locals
+	// Permissions
 	res.locals.isLoggedIn = !!req.user;
-	res.locals.git = git;
-	res.locals.dev = config.dev;
-	res.locals.currencySymbol = config.currencySymbol;
-
-	// Add some libraries
-	res.locals.moment = moment;
-	res.locals.dot = dot;
-
-	// Template permissions
 	res.locals.access = function( permission: string ) {
 		if ( !req.user ) return false;
 		if ( req.user.quickPermissions.indexOf( config.permission.superadmin ) != -1 ) return true;

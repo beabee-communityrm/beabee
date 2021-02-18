@@ -1,20 +1,24 @@
 {
 	"organisation": "UK Makerspace",
 	"software-name": "Membership System",
+	"logo": "/static/svg/logo.svg",
+
 	"home-text": "Hello there Makers!",
 	"home-link-text": "Find out more",
 	"home-link-url": "http://example.com/about",
 	"home-redirect-url": "",
+
 	"user-home-url": "/profile",
-	"logo": "/static/svg/logo.svg",
+
 	"support-email": "membership@example.com",
 	"support-email-from": "UK Makerspace Membership",
 
-	"email-templates": "{}",
+	"available-tags": "",
 
 	"join-poll": "",
 	"cancellation-poll": "",
 
+	"share-twitter-handle": "",
 	"share-title": "",
 	"share-description": "",
 	"share-image": "",
@@ -27,9 +31,9 @@
 	"footer-facebook-link-url": "",
 	"footer-twitter-link-url": "",
 
-	"tracking": "",
+	"email-templates": "{}",
 
-	"available-tags": "",
+	"tracking-code": "",
 
 	"flash-logged-in": "Login successful",
 	"flash-logged-out": "Logged out",

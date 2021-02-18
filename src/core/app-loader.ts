@@ -1,11 +1,20 @@
 import fs from 'fs';
+import dot from 'dot';
 import express from 'express';
+import moment from 'moment';
 
 import config from '@config';
 
 import { log } from '@core/logging';
 import templateLocals from '@core/template-locals';
 import { AppConfigOverride, AppConfigOverrides, AppConfig } from './utils';
+
+let git = '';
+try {
+	git = fs.readFileSync( __dirname + '/../revision.txt' ).toString();
+} catch (e) {
+	git = 'DEV';
+}
 
 async function loadAppConfigs(basePath: string, overrides: AppConfigOverrides = {}): Promise<AppConfig[]> {
 	const appConfigs = fs.readdirSync(basePath)
@@ -52,7 +61,20 @@ async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
 		} );
 
 		const app = await requireApp(appConfig.appPath);
+
+		// For pug templates
 		app.locals.basedir = __dirname + '/..';
+
+		// Global locals
+		app.locals.git = git;
+		app.locals.audience = config.audience;
+		app.locals.currencySymbol = config.currencySymbol;
+		app.locals.dev = config.dev;
+
+		// Global libraries
+		app.locals.moment = moment;
+		app.locals.dot = dot;
+
 		parentApp.use('/' + appConfig.path, (req, res, next) => {
 			res.locals.app = appConfig;
 			// Bit of a hack to pass all params everywhere

@@ -52,7 +52,6 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	res.render( 'index', {
 		member, payments, total, availableTags,
-		audience: config.audience,
 		password_tries: config['password-tries'],
 	} );
 } ) );
