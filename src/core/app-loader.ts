@@ -61,11 +61,17 @@ async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
 		} );
 
 		const app = await requireApp(appConfig.appPath);
+
+		// For pug templates
 		app.locals.basedir = __dirname + '/..';
+
+		// Global locals
 		app.locals.git = git;
-		app.locals.audienceBlah = 'blah' + config.audience;
-		app.locals.dev = config.dev;
+		app.locals.audience = config.audience;
 		app.locals.currencySymbol = config.currencySymbol;
+		app.locals.dev = config.dev;
+
+		// Global libraries
 		app.locals.moment = moment;
 		app.locals.dot = dot;
 
