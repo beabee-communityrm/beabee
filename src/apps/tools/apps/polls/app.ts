@@ -86,7 +86,8 @@ app.get( '/:slug/responses', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, 
 	const members = await Members.find({_id: {$in: responses.map(r => r.memberId)}}, 'firstname lastname uuid');
 	const responsesWithMember = responses.map(response => ({
 		...response,
-		member: members.find(m => m.id === response.memberId)
+		member: members.find(m => m.id === response.memberId),
+		updatedAtText: moment.utc(response.updatedAt).format('HH:mm DD/MM/YYYY')
 	}));
 	res.render( 'responses', { poll: req.model, responses: responsesWithMember });
 } ) );
