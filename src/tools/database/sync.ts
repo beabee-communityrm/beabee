@@ -13,8 +13,6 @@ const sessionSqlPath = path.join(__dirname, 'session.sql');
 db.connect(config.mongo, {...config.db, logging: true} as ConnectionOptions).then(async () => {
 	const connection = getConnection();
 
-	await connection.query('ALTER TABLE payment RENAME TO gc_payment');
-
 	await connection.synchronize();
 
 	const res = await connection.query(
