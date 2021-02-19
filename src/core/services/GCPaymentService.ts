@@ -1,10 +1,10 @@
 import moment from 'moment';
-import { Customer, CustomerBankAccount, PaymentCurrency, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
+import { Customer, CustomerBankAccount, PaymentCurrency, RedirectFlow, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 import { getRepository } from 'typeorm';
 
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
-import { cleanEmailAddress, ContributionPeriod, ContributionType, getActualAmount, PaymentForm } from  '@core/utils';
+import { cleanEmailAddress, ContributionPeriod, ContributionType, PaymentForm } from  '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
@@ -18,6 +18,10 @@ import Payment from '@models/Payment';
 interface PayingMember extends Member {
 	contributionMonthlyAmount: number
 	contributionPeriod: ContributionPeriod
+}
+
+function getActualAmount(amount: number, period: ContributionPeriod): number {
+	return amount * ( period === ContributionPeriod.Annually ? 12 : 1 );
 }
 
 // Update contribution has been split into lots of methods as it's complicated
@@ -376,5 +380,21 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 		if (gcData?.customerId) {
 			await gocardless.customers.remove(gcData.customerId);
 		}
+	}
+
+	static async createRedirectFlow(sessionToken: string, completeUrl: string, paymentForm: PaymentForm, redirectFlowParams={}): Promise<RedirectFlow> {
+		const actualAmount = getActualAmount(paymentForm.amount, paymentForm.period);
+		return await gocardless.redirectFlows.create({
+			description: `Membership: ${config.currencySymbol}${actualAmount}/${paymentForm.period}${paymentForm.payFee ? ' (+ fee)' : ''}`,
+			session_token: sessionToken,
+			success_redirect_url: completeUrl,
+			...redirectFlowParams
+		});
+	}
+
+	static async completeRedirectFlow(redirectFlowId: string, sessionToken: string): Promise<RedirectFlow> {
+		return await gocardless.redirectFlows.complete(redirectFlowId, {
+			session_token: sessionToken
+		});
 	}
 }

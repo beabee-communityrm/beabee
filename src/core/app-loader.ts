@@ -6,8 +6,14 @@ import moment from 'moment';
 import config from '@config';
 
 import { log } from '@core/logging';
-import templateLocals from '@core/template-locals';
-import { AppConfigOverride, AppConfigOverrides, AppConfig } from './utils';
+import templateLocals, { AppConfig } from '@core/template-locals';
+
+type AppConfigOverrides = Record<string, AppConfigOverride>;
+
+interface AppConfigOverride {
+	config?: Partial<AppConfig>
+	subApps?: AppConfigOverrides
+}
 
 let git = '';
 try {

@@ -26,33 +26,8 @@ export interface ReferralGiftForm {
 	referralGiftOptions?: Record<string, string>
 }
 
-export interface AppConfig {
-	uid: string
-	title: string
-	path: string
-	disabled: boolean
-	priority: number
-	appPath: string
-	hidden?: boolean
-	subApps: AppConfig[]
-	menu: 'none'|'main'
-	permissions: string[]
-}
-
-export type AppConfigOverrides = Record<string, AppConfigOverride>;
-
-export interface AppConfigOverride {
-	config?: Partial<AppConfig>
-	subApps?: AppConfigOverrides
-}
-
-
 export function isValidNextUrl(url: string): boolean {
 	return /^\/([^/]|$)/.test(url);
-}
-
-export function getActualAmount(amount: number, period: ContributionPeriod): number {
-	return amount * ( period === ContributionPeriod.Annually ? 12 : 1 );
 }
 
 export function wrapAsync(fn: RequestHandler): RequestHandler {
