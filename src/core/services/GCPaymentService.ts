@@ -10,6 +10,7 @@ import MembersService from '@core/services/MembersService';
 
 import config from '@config';
 
+import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
 import { Member, PartialMember } from '@models/members';
 import Payment from '@models/Payment';
@@ -344,7 +345,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 	static async hasPendingPayment(member: Member): Promise<boolean> {
 		const gcData = await GCPaymentService.getPaymentData(member);
 		if (gcData && gcData.subscriptionId) {
-			for (const status of Payment.pendingStatuses) {
+			for (const status of GCPayment.pendingStatuses) {
 				const payments = await gocardless.payments.list({
 					limit: 1, status, subscription: gcData.subscriptionId
 				});
@@ -358,7 +359,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 	}
 
 	static async getPayments(member: Member): Promise<Payment[]> {
-		return await getRepository(Payment).find({
+		return await getRepository(GCPayment).find({
 			where: {
 				memberId: member.id
 			},
@@ -368,7 +369,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
 		const gcData = await GCPaymentService.getPaymentData(member);
-		await getRepository(Payment).delete({memberId: member.id});
+		await getRepository(GCPayment).delete({memberId: member.id});
 		if (gcData?.mandateId) {
 			await gocardless.mandates.cancel(gcData.mandateId);
 		}

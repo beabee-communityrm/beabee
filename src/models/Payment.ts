@@ -1,30 +1,8 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { ContributionPeriod } from '@core/utils';
+import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity()
-export default class Payment {
-	static readonly pendingStatuses = [
-		'pending_customer_approval',
-		'pending_submission',
-		'submitted'
-	];
-
-	static readonly successStatuses = [
-		'confirmed',
-		'paid_out'
-	];
-
+export default abstract class Payment {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
-
-	@Column({unique: true})
-	paymentId!: string
-
-	@Column({nullable: true})
-	subscriptionId?: string
-
-	@Column({nullable: true})
-	subscriptionPeriod?: ContributionPeriod
 
 	@Column({nullable: true})
 	memberId?: string
@@ -50,11 +28,6 @@ export default class Payment {
 	@UpdateDateColumn()
 	updatedAt!: Date
 
-	get isPending(): boolean {
-		return Payment.pendingStatuses.indexOf(this.status) > -1;
-	}
-
-	get isSuccessful(): boolean {
-		return Payment.successStatuses.indexOf(this.status) > -1;
-	}
+	abstract get isPending(): boolean
+	abstract get isSuccessful(): boolean
 }

@@ -4,22 +4,22 @@ import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { Chance } from 'chance';
 
-import Payment from '@models/Payment';
-import GiftFlow, { GiftForm } from '@models/GiftFlow';
-import Referral from '@models/Referral';
-import ReferralGift from '@models/ReferralGift';
+import Email from '@models/Email';
 import Export from '@models/Export';
 import ExportItem from '@models/ExportItem';
-import Email from '@models/Email';
+import GCPayment from '@models/GCPayment';
+import GCPaymentData from '@models/GCPaymentData';
+import GiftFlow, { GiftForm } from '@models/GiftFlow';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
 import Poll from '@models/Poll';
 import PollResponse from '@models/PollResponse';
-import GCPaymentData from '@models/GCPaymentData';
 import Project from '@models/Project';
 import ProjectMember from '@models/ProjectMember';
 import ProjectEngagement from '@models/ProjectEngagement';
+import Referral from '@models/Referral';
+import ReferralGift from '@models/ReferralGift';
 
 export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -73,6 +73,13 @@ const exportItemsDrier = createDrier(ExportItem, 'exportItems', {
 	itemId: itemId => itemId // These will be mapped to values that have already been seen
 });
 
+const gcPaymentsDrier = createDrier(GCPayment, 'gcPayments', {
+	id: () => uuidv4(),
+	paymentId: randomId(12, 'PM'),
+	subscriptionId: randomId(12, 'SB'),
+	memberId: objectId
+});
+
 const gcPaymentDataDrier = createDrier(GCPaymentData, 'gcPaymentData', {
 	memberId: objectId,
 	customerId: randomId(12, 'CU'),
@@ -92,13 +99,6 @@ const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 		fromName: () => chance.name(),
 		fromEmail: () => chance.email({domain: 'example.com', length: 10}),
 	})
-});
-
-const paymentsDrier = createDrier(Payment, 'payments', {
-	id: () => uuidv4(),
-	paymentId: randomId(12, 'PM'),
-	subscriptionId: randomId(12, 'SB'),
-	memberId: objectId
 });
 
 const pollResponsesDrier = createDrier(PollResponse, 'pollResponses', {
@@ -140,7 +140,7 @@ export default [
 	giftFlowDrier,
 	noticesDrier,
 	optionsDrier,
-	paymentsDrier,
+	gcPaymentsDrier,
 	pageSettingsDrier,
 	pollsDrier, // Must be before pollResponsesDrier
 	pollResponsesDrier,

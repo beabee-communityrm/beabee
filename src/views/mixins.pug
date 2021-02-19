@@ -127,7 +127,7 @@ mixin paymentStatus(payment)
 		when 'cancelled'
 			span.label.label-danger( title=payment.status ) Cancelled
 		when 'pending_customer_approval'
-			span.label.label-danger( title=payment.stastus ) Approval needed
+			span.label.label-danger( title=payment.status ) Approval needed
 		when 'customer_approval_denied'
 			span.label.label-danger( title=payment.status ) Approval denied
 		when 'failed'

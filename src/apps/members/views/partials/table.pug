@@ -7,7 +7,6 @@ mixin membersTable
 					label.members-table-action
 						input(type='checkbox' name='memberIds[]' value=member._id)
 				+membersTableBasicInfo(member)
-				span(style='flex: 0 1 120px')= member.contributionType
 				span(style='flex: 0 1 120px')= member.contributionDescription
 
 if addToProject
