@@ -20,10 +20,6 @@ interface PayingMember extends Member {
 	contributionPeriod: ContributionPeriod
 }
 
-function getActualAmount(amount: number, period: ContributionPeriod): number {
-	return amount * ( period === ContributionPeriod.Annually ? 12 : 1 );
-}
-
 // Update contribution has been split into lots of methods as it's complicated
 // and has mutable state, nothing else should use the private methods in here
 abstract class UpdateContributionPaymentService {
@@ -67,7 +63,7 @@ abstract class UpdateContributionPaymentService {
 	}
 
 	private static getChargeableAmount(amount: number, period: ContributionPeriod, payFee: boolean): number {
-		const actualAmount = getActualAmount(amount, period);
+		const actualAmount = GCPaymentService.getActualAmount(amount, period);
 		return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
 	}
 
@@ -272,6 +268,10 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			await getRepository(GCPaymentData).findOne({memberId: member.id}) : undefined;
 	}
 
+	static getActualAmount(amount: number, period: ContributionPeriod): number {
+		return amount * ( period === ContributionPeriod.Annually ? 12 : 1 );
+	}
+
 	static async canChangeContribution(user: Member, useExistingMandate: boolean): Promise<boolean> {
 		const gcData = await this.getPaymentData(user);
 		// No payment method available
@@ -383,7 +383,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 	}
 
 	static async createRedirectFlow(sessionToken: string, completeUrl: string, paymentForm: PaymentForm, redirectFlowParams={}): Promise<RedirectFlow> {
-		const actualAmount = getActualAmount(paymentForm.amount, paymentForm.period);
+		const actualAmount = GCPaymentService.getActualAmount(paymentForm.amount, paymentForm.period);
 		return await gocardless.redirectFlows.create({
 			description: `Membership: ${config.currencySymbol}${actualAmount}/${paymentForm.period}${paymentForm.payFee ? ' (+ fee)' : ''}`,
 			session_token: sessionToken,

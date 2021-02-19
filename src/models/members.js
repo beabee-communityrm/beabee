@@ -1,9 +1,9 @@
 const mongoose = require( 'mongoose' );
 const moment = require( 'moment' );
 
-const config = require( '@config' );
+const { default: GCPaymentService } = require( '@core/services/GCPaymentService' );
 
-const { getActualAmount } = require( '@core/utils' );
+const config = require( '@config' );
 
 const ObjectId = mongoose.Schema.ObjectId;
 
@@ -219,14 +219,14 @@ module.exports.schema.virtual( 'contributionDescription' ).get( function () {
 	} else if (!this.contributionPeriod) {
 		return 'None';
 	} else {
-		const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
+		const amount = GCPaymentService.getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
 		return `${config.currencySymbol}${amount}/${this.contributionPeriod === 'monthly' ? 'month' : 'year'}`;
 	}
 } );
 
 module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
 	return this.nextContributionMonthlyAmount &&
-		getActualAmount(this.nextContributionMonthlyAmount, this.contributionPeriod);
+		GCPaymentService.getActualAmount(this.nextContributionMonthlyAmount, this.contributionPeriod);
 } );
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );
