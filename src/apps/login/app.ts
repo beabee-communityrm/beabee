@@ -1,8 +1,11 @@
 import express from 'express';
 import passport from 'passport';
+import { getRepository } from 'typeorm';
 
-import { Members, Permissions } from '@core/database';
+import { Members } from '@core/database';
 import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
+
+import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
 
@@ -21,12 +24,8 @@ app.get( '/' , function( req, res ) {
 
 if (config.dev) {
 	app.get('/as/:permission', wrapAsync( async (req, res) => {
-		const permissions = await Permissions.find();
-		const member = await Members.findOne({permissions: {
-			$elemMatch: {
-				permission: permissions.find(p => p.slug === req.params.permission)
-			}
-		}});
+		const permission = await getRepository(MemberPermission).findOne({permission: req.params.permission});
+		const member = permission && await Members.findById(permission.memberId);
 		if (member) {
 			loginAndRedirect(req, res, member);
 		} else {

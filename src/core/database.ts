@@ -30,6 +30,7 @@ import RestartFlow from '@models/RestartFlow';
 import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 import SegmentMember from '@models/SegmentMember';
+import MemberPermission from '@models/MemberPermission';
 
 export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): Promise<void> {
 	await new Promise<void>(resolve => {
@@ -63,8 +64,8 @@ export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): 
 			...dbConfig,
 			entities: [
 				Email, EmailMailing, Export, ExportItem, GiftFlow, GCPayment,
-				GCPaymentData, JoinFlow, ManualPaymentData, Notice, Option,
-				PageSettings, Poll, PollResponse, Project, ProjectMember,
+				GCPaymentData, JoinFlow, ManualPaymentData, MemberPermission, Notice,
+				Option, PageSettings, Poll, PollResponse, Project, ProjectMember,
 				ProjectEngagement, Referral, ReferralGift, RestartFlow, Segment,
 				SegmentOngoingEmail, SegmentMember
 			]

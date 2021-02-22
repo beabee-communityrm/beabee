@@ -1,15 +1,16 @@
 import express, { Request } from 'express';
 import queryString from 'query-string';
-import { getRepository } from 'typeorm';
+import { getRepository, MoreThan } from 'typeorm';
 
 import auth from '@core/authentication';
-import { Members, Permissions } from '@core/database';
+import { Members } from '@core/database';
 import { wrapAsync } from '@core/utils';
 import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
 
 import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
 
+import MemberPermission from '@models/MemberPermission';
 import Project from '@models/Project';
 import Segment from '@models/Segment';
 
@@ -61,7 +62,6 @@ function getSearchRuleGroup(query: Request['query']): RuleGroup|undefined {
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const { query } = req;
-	const permissions = await Permissions.find();
 	const availableTags = await getAvailableTags();
 
 	const segment = query.segment ? await getRepository(Segment).findOne(query.segment as string) : undefined;
@@ -72,21 +72,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
-		const permissionSearch = {
-			...(query.permission && {
-				permission: permissions.find(p => p.slug === query.permission)
-			}),
-			...(!query.show_inactive && {
-				date_added: { $lte: new Date() },
-				$or: [
-					{ date_expires: null },
-					{ date_expires: { $gt: new Date() } }
-				]
-			})
-		};
+		const memberPermissions = await getRepository(MemberPermission).find({
+			permission: query.permission as string,
+			...!query.show_inactive && {dateExpires: MoreThan(new Date())}
+		});
 
 		if (!filter.$and) filter.$and = [];
-		filter.$and.push( { permissions: { $elemMatch: permissionSearch } } );
+		filter.$and.push( { _id: { $in: memberPermissions.map(p => p.memberId) } } );
 	}
 	
 	const page = query.page ? Number( query.page ) : 1;
@@ -113,7 +105,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const addToProject = query.addToProject && await getRepository(Project).findOne( query.addToProject as string );
 
 	res.render( 'index', {
-		permissions, availableTags, members, pagination, total,
+		availableTags, members, pagination, total,
 		segment,
 		searchQuery: query,
 		searchType,

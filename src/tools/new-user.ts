@@ -7,8 +7,9 @@ import config from '@config';
 
 import Auth from '@core/authentication';
 import * as db from '@core/database';
-import { ConnectionOptions } from 'typeorm';
+import { ConnectionOptions, getRepository } from 'typeorm';
 import { Member } from '@models/members';
+import MemberPermission from '@models/MemberPermission';
 
 const questions: QuestionCollection[] = [];
 
@@ -72,10 +73,6 @@ questions.push( {
 
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
-	const member = config.permission.memberId;
-	const admin = (await db.Permissions.findOne({slug: config.permission.admin}))!._id;
-	const superadmin = (await db.Permissions.findOne({slug: config.permission.superadmin}))!._id;
-
 	const answers = await inquirer.prompt( questions );
 
 	const password = await Auth.generatePasswordPromise(answers.password);
@@ -88,50 +85,45 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			hash: password.hash,
 			salt: password.salt,
 			iterations: password.iterations
-		},
-		permissions: [] as Partial<Member['permissions'][number]>[]
+		}
 	};
 
+	const member = await new db.Members(user).save();
+
 	if ( answers.membership != 'No' ) {
-		const memberPermission: Partial<Member['memberPermission']> = {
-			permission: member
-		};
+		const memberPermission = new MemberPermission();
+		memberPermission.permission = 'member';
+		memberPermission.memberId = member.id;
+
 		const now = moment();
 		switch ( answers.membership ) {
-		case 'Yes':
-			memberPermission.date_added = now.toDate();
-			break;
 		case 'Yes (expires after 1 month)':
-			memberPermission.date_added = now.toDate();
-			memberPermission.date_expires = now.add( '1', 'months' ).toDate();
+			memberPermission.dateExpires = now.add( '1', 'months' ).toDate();
 			break;
 		case 'Yes (expired yesterday)':
-			memberPermission.date_expires = now.subtract( '1', 'day' ).toDate();
-			memberPermission.date_added = now.subtract( '1', 'months' ).toDate();
+			memberPermission.dateAdded = now.subtract( '1', 'months' ).toDate();
+			memberPermission.dateExpires = now.subtract( '1', 'day' ).toDate();
 			break;
 		}
 
-		user.permissions.push(memberPermission);
+		await getRepository(MemberPermission).save(memberPermission);
 	}
 
 	if ( answers.permission != 'None' ) {
-		const adminPermission: Partial<Member['permissions'][number]> = {
-			date_added: moment().toDate()
-		};
+		const adminPermission = new MemberPermission();
+		adminPermission.memberId = member.id;
 
 		switch ( answers.permission ) {
 		case 'Admin':
-			adminPermission.permission = admin;
+			adminPermission.permission = 'admin';
 			break;
 		case 'Super Admin':
-			adminPermission.permission = superadmin;
+			adminPermission.permission = 'superadmin';
 			break;
 		}
 
-		user.permissions!.push( adminPermission as Member['permissions'][number] );
+		await getRepository(MemberPermission).save(adminPermission);
 	}
-
-	await new db.Members(user).save();
 
 	await db.close();
 } );

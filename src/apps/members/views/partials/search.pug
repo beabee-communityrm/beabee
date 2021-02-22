@@ -19,8 +19,8 @@ mixin searchState
 					label( for='permission' ).control-label Permission
 					select( name='permission' ).form-control
 						option( value='' ) Show all
-						each permission, p in permissions
-							option( value=permission.slug, selected=( searchQuery.permission == permission.slug ? true : false ) ) #{ permission.name }
+						each permission in ['access', 'member', 'admin', 'superadmin']
+							option( value=permission, selected=( searchQuery.permission == permission ? true : false ) )= permission
 				.form-group
 					.checkbox
 						label

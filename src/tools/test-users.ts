@@ -2,7 +2,7 @@ import 'module-alias/register';
 
 import moment from 'moment';
 import { FilterQuery } from 'mongoose';
-import { ConnectionOptions, getRepository } from 'typeorm';
+import { ConnectionOptions, getRepository, LessThan, MoreThan } from 'typeorm';
 
 import * as db from '@core/database';
 import { ContributionPeriod, ContributionType } from '@core/utils';
@@ -12,6 +12,7 @@ import config from '@config';
 import GCPaymentData from '@models/GCPaymentData';
 import Payment from '@models/Payment';
 import { Member } from '@models/members';
+import MemberPermission from '@models/MemberPermission';
 
 async function logMember(type: string, query: FilterQuery<Member>) {
 	const member = await db.Members.findOne(query);
@@ -47,6 +48,14 @@ async function getFilters() {
 	const scheduledPayments = await getRepository(Payment).find({status: 'pending_submission'});
 	const failedPayments = await getRepository(Payment).find({status: 'failed'});
 
+	const activeMemberPermissions = await getRepository(MemberPermission).find({
+		permission: 'member', dateExpires: MoreThan(new Date())
+	});
+	const inactiveMemberPermissions = await getRepository(MemberPermission).find({
+		permission: 'member', dateExpires: LessThan(new Date())
+	});
+	const superAdminPermission = await getRepository(MemberPermission).find({permission: 'superadmin'});
+
 	const membersWithScheduledPayments = scheduledPayments.map(p => p.memberId);
 	const membersWithFailedPayments = failedPayments.map(p => p.memberId);
 
@@ -55,25 +64,15 @@ async function getFilters() {
 	const membersWithCancellations = gcData.filter(gc => !!gc.cancelledAt).map(gc => gc.memberId);
 	const membersWithPayingFee = gcData.filter(gc => !!gc.payFee).map(gc => gc.memberId);
 
-	const permissions = await db.Permissions.find();
-
 	return {
 		isActive: {
-			permissions: {$elemMatch: {
-				permission: config.permission.memberId,
-				date_expires: {$gte: now}
-			}}
+			_id: {$in: activeMemberPermissions.map(m => m.memberId)}
 		},
 		isInactive: {
-			permissions: {$elemMatch: {
-				permission: config.permission.memberId,
-				date_expires: {$lte: now}
-			}}
+			_id: {$in: inactiveMemberPermissions.map(m => m.memberId)}
 		},
 		isSuperAdmin: {
-			permissions: {$elemMatch: {
-				permission: permissions.find(p => p.slug === 'superadmin')
-			}}
+			_id: {$in: superAdminPermission.map(s => s.memberId)}
 		},
 		isGift: {
 			contributionType: ContributionType.Gift
@@ -106,58 +105,42 @@ async function main() {
 	const filters = await getFilters();
 
 	await logMemberVaryContributions('Active, no scheduled payments', {
-		...filters.isActive,
-		...filters.noScheduledPayments
+		$and: [filters.isActive, filters.noScheduledPayments]
 	});
 
 	await logMemberVaryContributions('Active, has scheduled payments', {
-		...filters.isActive,
-		...filters.hasScheduledPayments
+		$and: [filters.isActive, filters.hasScheduledPayments]
 	});
 
 	await logMemberVaryContributions('Inactive due to failed payment', {
-		...filters.hasSubscription,
-		...filters.isInactive,
-		...filters.hasFailedPayments
+		$and: [filters.hasSubscription, filters.isInactive, filters.hasFailedPayments]
 	});
 
 	await logMemberVaryContributions('Inactive due to failed payment, has scheduled payments', {
-		...filters.hasSubscription,
-		...filters.isInactive,
-		...filters.hasFailedPayments,
-		...filters.hasScheduledPayments
+		$and: [filters.hasSubscription, filters.isInactive, filters.hasFailedPayments, filters.hasScheduledPayments]
 	});
 	await logMemberVaryContributions('Cancelled active member', {
-
-		...filters.isActive,
-		...filters.hasCancelled
+		$and: [filters.isActive, filters.hasCancelled]
 	});
 
 	await logMemberVaryContributions('Cancelled inactive member', {
-		...filters.isInactive,
-		...filters.hasCancelled
+		$and: [filters.isInactive, filters.hasCancelled]
 	});
 
 	await logMember('Active, gift membership', {
-		...filters.isActive,
-		...filters.isGift
+		$and: [filters.isActive, filters.isGift]
 	});
 
 	await logMember('Inactive, gift membership', {
-		...filters.isInactive,
-		...filters.isGift
+		$and: [filters.isInactive, filters.isGift]
 	});
 
 	await logMember('Active, paying fee', {
-		...filters.isActive,
-		...filters.isPayingFee
+		$and: [filters.isActive, filters.isPayingFee]
 	});
 
 	await logMember('Super admin account', {
-		$and: [
-			filters.isActive,
-			filters.isSuperAdmin
-		]
+		$and: [filters.isActive, filters.isSuperAdmin]
 	});
 }
 

@@ -66,7 +66,6 @@ const members: Properties = {
 };
 
 const models: ModelExporter[] = [
-	{ model: db.Permissions as unknown as Model<MDocument> },
 	{ model: db.Members as unknown as Model<MDocument>, properties: members, objectIds: ['_id'] }
 ];
 

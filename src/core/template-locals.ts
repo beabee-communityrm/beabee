@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 
-import config from '@config';
-
 export interface AppConfig {
 	uid: string
 	title: string
@@ -50,13 +48,8 @@ export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: 
 	res.locals.isLoggedIn = !!req.user;
 	res.locals.access = function( permission: string ) {
 		if ( !req.user ) return false;
-		if ( req.user.quickPermissions.indexOf( config.permission.superadmin ) != -1 ) return true;
-		if ( permission == 'member' ) permission = config.permission.member;
-		if ( permission == 'admin' ) permission = config.permission.admin;
-		if ( permission == 'superadmin' ) permission = config.permission.superadmin;
-		if ( permission == 'access' ) permission = config.permission.access;
-
-		return ( req.user.quickPermissions.indexOf( permission ) != -1 ? true : false );
+		return req.user.quickPermissions.indexOf('superadmin') > -1 ||
+			req.user.quickPermissions.indexOf(permission) > -1;
 	};
 
 	// Prepare a CSRF token if available
@@ -64,7 +57,6 @@ export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: 
 
 	// Load config + prepare breadcrumbs
 	res.locals.config = {};
-	res.locals.config.permission = config.permission;
 	res.locals.breadcrumb = [];
 
 	next();
