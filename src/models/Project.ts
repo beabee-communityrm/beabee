@@ -21,6 +21,9 @@ export default class Project {
 	@Column()
 	status!: string
 
+	@Column()
+	groupName?: string
+
 	@OneToMany(() => ProjectMember, pm => pm.project)
 	members!: ProjectMember[]
 
