@@ -1,10 +1,10 @@
 import moment from 'moment';
-import { Customer, CustomerBankAccount, PaymentCurrency, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
+import { Customer, CustomerBankAccount, PaymentCurrency, RedirectFlow, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 import { getRepository } from 'typeorm';
 
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
-import { cleanEmailAddress, ContributionPeriod, ContributionType, getActualAmount, PaymentForm } from  '@core/utils';
+import { cleanEmailAddress, ContributionPeriod, ContributionType, PaymentForm } from  '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
@@ -63,7 +63,7 @@ abstract class UpdateContributionPaymentService {
 	}
 
 	private static getChargeableAmount(amount: number, period: ContributionPeriod, payFee: boolean): number {
-		const actualAmount = getActualAmount(amount, period);
+		const actualAmount = GCPaymentService.getActualAmount(amount, period);
 		return payFee ? Math.floor(actualAmount / 0.99 * 100) + 20 : actualAmount * 100;
 	}
 
@@ -268,6 +268,10 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			await getRepository(GCPaymentData).findOne({memberId: member.id}) : undefined;
 	}
 
+	static getActualAmount(amount: number, period: ContributionPeriod): number {
+		return amount * ( period === ContributionPeriod.Annually ? 12 : 1 );
+	}
+
 	static async canChangeContribution(user: Member, useExistingMandate: boolean): Promise<boolean> {
 		const gcData = await this.getPaymentData(user);
 		// No payment method available
@@ -376,5 +380,21 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 		if (gcData?.customerId) {
 			await gocardless.customers.remove(gcData.customerId);
 		}
+	}
+
+	static async createRedirectFlow(sessionToken: string, completeUrl: string, paymentForm: PaymentForm, redirectFlowParams={}): Promise<RedirectFlow> {
+		const actualAmount = GCPaymentService.getActualAmount(paymentForm.amount, paymentForm.period);
+		return await gocardless.redirectFlows.create({
+			description: `Membership: ${config.currencySymbol}${actualAmount}/${paymentForm.period}${paymentForm.payFee ? ' (+ fee)' : ''}`,
+			session_token: sessionToken,
+			success_redirect_url: completeUrl,
+			...redirectFlowParams
+		});
+	}
+
+	static async completeRedirectFlow(redirectFlowId: string, sessionToken: string): Promise<RedirectFlow> {
+		return await gocardless.redirectFlows.complete(redirectFlowId, {
+			session_token: sessionToken
+		});
 	}
 }

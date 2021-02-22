@@ -1,8 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { AppConfig } from '@core/utils';
-
 import config from '@config';
+
+export interface AppConfig {
+	uid: string
+	title: string
+	path: string
+	disabled: boolean
+	priority: number
+	appPath: string
+	hidden?: boolean
+	subApps: AppConfig[]
+	menu: 'none'|'main'
+	permissions: string[]
+}
 
 function hasPermission(perms1: string[], perms2: string[]) {
 	return perms1.filter(p => perms2.includes(p)).length > 0;

@@ -1,14 +1,12 @@
 import { getRepository } from 'typeorm';
 
 import auth from '@core/authentication';
-import gocardless from '@core/gocardless';
-import { getActualAmount } from '@core/utils';
+
+import GCPaymentService from '@core/services/GCPaymentService';
 
 import JoinFlow, { JoinForm } from '@models/JoinFlow';
 import { Member } from '@models/members';
 import RestartFlow from '@models/RestartFlow';
-
-import config from '@config';
 
 export interface CompletedJoinFlow {
     customerId: string,
@@ -19,15 +17,7 @@ export interface CompletedJoinFlow {
 export default class JoinFlowService {
 	static async createJoinFlow(completeUrl: string, joinForm: JoinForm, redirectFlowParams={}): Promise<string> {
 		const sessionToken = auth.generateCode();
-		const actualAmount = getActualAmount(joinForm.amount, joinForm.period);
-
-		const redirectFlow = await gocardless.redirectFlows.create({
-			description: `Membership: ${config.currencySymbol}${actualAmount}/${joinForm.period}${joinForm.payFee ? ' (+ fee)' : ''}`,
-			session_token: sessionToken,
-			success_redirect_url: completeUrl,
-			...redirectFlowParams
-		});
-
+		const redirectFlow = await GCPaymentService.createRedirectFlow(sessionToken, completeUrl, joinForm, redirectFlowParams);
 		const joinFlow = new JoinFlow();
 		joinFlow.redirectFlowId = redirectFlow.id;
 		joinFlow.sessionToken = sessionToken;
@@ -43,10 +33,7 @@ export default class JoinFlowService {
 		const joinFlow = await joinFlowRepository.findOne({redirectFlowId});
 
 		if (joinFlow) {
-			const redirectFlow = await gocardless.redirectFlows.complete(redirectFlowId, {
-				session_token: joinFlow.sessionToken
-			});
-
+			const redirectFlow = await GCPaymentService.completeRedirectFlow(joinFlow.redirectFlowId, joinFlow.sessionToken);
 			await joinFlowRepository.delete(joinFlow.id);
 
 			return {
