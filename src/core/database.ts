@@ -91,6 +91,5 @@ export async function close(): Promise<void> {
 }
 
 export { model as Members } from '@models/members';
-export { model as Permissions } from '@models/permissions';
 export { model as SpecialUrlGroups } from '@models/special-url-groups';
 export { model as SpecialUrls } from '@models/special-urls';
