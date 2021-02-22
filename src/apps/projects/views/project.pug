@@ -19,6 +19,8 @@ block contents
 				dd= moment(project.date).format('DD/MM/YYYY [at] HH:mm')
 				dt Owner
 				dd: a(href='/members/' + project.owner.uuid)= project.owner.fullname
+				dt Members
+				dd= projectMembers.length
 	
 	.row
 		.col-md-12

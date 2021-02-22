@@ -17,12 +17,16 @@ block append js
 				document.getElementById('form'), !{JSON.stringify(poll.templateSchema.formSchema)},
 				{template: 'bootstrap3', readOnly: true}
 			).then(function (form) {
-				var responseNo = 0;
-				function changeResponse(inc) {
-					responseNo = Math.min(responses.length - 1, Math.max(0, responseNo + inc));
+				var currentResponseNo = 0;
+
+				function setResponse(responseNo) {
 					var response = responses[responseNo];
+					if (!response) return;
+
 					form.submission = {data: response.answers};
 					$('.js-response-i').text(responseNo + 1);
+					$('.js-response-no').val(responseNo + 1);
+					$('.js-response-date').text(response.updatedAtText);
 					$('.js-response-user-type').text(response.member ? 'Member' : 'Guest')
 					if (response.member) {
 						$('.js-response-user')
@@ -34,11 +38,22 @@ block append js
 						$('.js-response-user')
 							.text(response.guestName + ' (' + response.guestEmail + ')');
 					}
+
+					currentResponseNo = responseNo;
 				}
 
-				changeResponse(0);
-				$('.js-prev-response').click(changeResponse.bind(null, -1));
-				$('.js-next-response').click(changeResponse.bind(null, 1));
+				function changeResponse(inc) {
+					currentResponseNo = Math.min(responses.length - 1, Math.max(0, currentResponseNo + inc));
+					setResponse(currentResponseNo);
+				}
+
+				setResponse(0);
+				$('.js-step-response').click(function () {
+					changeResponse(Number(this.value));
+				});
+				$('.js-set-response').on('click input', function () {
+					setResponse(Number(this.value) - 1);
+				});
 			});
 
 block contents
@@ -51,11 +66,17 @@ block contents
 			p There are #{responses.length} responses
 
 			if poll.template === 'builder'
-				p
-					button.btn.btn-primary.js-prev-response Prev
-					|
-					|
-					button.btn.btn-primary.js-next-response Next
+				.input-group
+					.input-group-btn
+						button(value=1).btn.btn-default.js-set-response
+							i.glyphicon.glyphicon-fast-backward
+						button(value=-1).btn.btn-default.js-step-response
+							i.glyphicon.glyphicon-step-backward
+						button(value=1).btn.btn-default.js-step-response
+							i.glyphicon.glyphicon-step-forward
+						button(value=responses.length).btn.btn-default.js-set-response
+							i.glyphicon.glyphicon-fast-forward
+					input(type='number' value=1 style='width:90px').form-control.js-set-response.js-response-no
 
 				hr
 
@@ -64,6 +85,8 @@ block contents
 				dl.dl-horizontal
 					dt.js-response-user-type
 					dd.js-response-user
+					dt Date
+					dd.js-response-date
 
 				#form
 			else
