@@ -17,7 +17,8 @@ import ProjectEngagement from '@models/ProjectEngagement';
 interface CreateProjectSchema {
 	title: string
 	description: string
-	status: string
+	status: string,
+	groupName?: string
 }
 
 interface CreateEngagementSchema {
@@ -58,9 +59,9 @@ interface DeleteProjectAction {
 
 type UpdateAction = UpdateProjectAction|AddMembersAction|UpdateMemberTagAction|AddMemberEngagementAction|DeleteMemberEngagementAction|DeleteProjectAction;
 
-function schemaToProject( data: CreateProjectSchema ): Pick<Project,'title'|'description'|'status'> {
-	const { title, description, status } = data;
-	return { title, description, status };
+function schemaToProject( data: CreateProjectSchema ): Pick<Project,'title'|'description'|'status'|'groupName'> {
+	const { title, description, status, groupName } = data;
+	return { title, description, status, groupName };
 }
 
 function schemaToEngagement( data: CreateEngagementSchema ): Pick<ProjectEngagement,'type'|'notes'|'date'|'toMemberId'> {

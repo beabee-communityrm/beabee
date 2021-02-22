@@ -18,6 +18,11 @@ form(method='POST').form-horizontal
 				option(value='' selected disabled) Choose one
 				each status in ['New','In progress', 'Finished']
 					option(selected=project.status === status)= status
+	.form-group
+		label(for='groupName').control-label.col-md-3 Group name
+		.col-md-9
+			input(type='text' name='groupName' value=project.groupName)#groupName.form-control
+			p.help-block This must match the group name in Discourse
 
 	.form-group
 		.col-md-offset-3.col-md-9
