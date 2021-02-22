@@ -28,12 +28,14 @@ block contents
 					.form-group.hidden.js-reveal-type(data-type='ongoing')
 						.control-label.col-md-3 Send when
 						.col-md-9
-							label.radio 
-								input(type='radio' name='trigger' value='onJoin' required)
-								| User joins segment
-							label.radio 
-								input(type='radio' name='trigger' value='onLeave' required)
-								| User leaves segment
+							.radio
+								label
+									input(type='radio' name='trigger' value='onJoin' required)
+									| User joins segment
+							.radio
+								label
+									input(type='radio' name='trigger' value='onLeave' required)
+									| User leaves segment
 							p.help-block Ongoing emails are triggered once per day
 
 					.form-group
@@ -46,9 +48,10 @@ block contents
 
 					.form-group.hidden.js-reveal-type(data-type='ongoing')
 						.col-md-offset-3.col-md-9
-							label.checkbox
-								input(type='checkbox' name='enabled' value='true')
-								| Enable now
+							.checkbox
+								label
+									input(type='checkbox' name='enabled' value='true')
+									| Enable now
 
 					.form-group
 						.col-md-offset-3.col-md-9

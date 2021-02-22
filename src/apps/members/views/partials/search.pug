@@ -22,9 +22,10 @@ mixin searchState
 						each permission, p in permissions
 							option( value=permission.slug, selected=( searchQuery.permission == permission.slug ? true : false ) ) #{ permission.name }
 				.form-group
-					label.checkbox
-						input( type='checkbox' name='show_inactive', value='true', checked=searchQuery.show_inactive )#show_inactive
-						|  Show inactive members
+					.checkbox
+						label
+							input( type='checkbox' name='show_inactive', value='true', checked=searchQuery.show_inactive )#show_inactive
+							|  Show inactive members
 			.member-search-group
 				.form-group
 					label( for='firstname' ).control-label First name
