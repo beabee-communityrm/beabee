@@ -3,6 +3,7 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 import mongoose, { Document, DocumentDefinition, FilterQuery, Model } from 'mongoose';
 import { EntityTarget, getRepository } from 'typeorm';
 
+import * as auth from '@core/authentication';
 import ajv from '@core/ajv';
 import { wrapAsync, isInvalidType } from '@core/utils';
 
@@ -140,4 +141,59 @@ export function hasNewModel<T>(entity: EntityTarget<T>, prop: keyof T): RequestH
 			next('route');
 		}
 	});
+}
+
+export function isLoggedIn( req: Request, res: Response, next: NextFunction ): void {
+	const status = auth.loggedIn( req );
+
+	switch ( status ) {
+	case auth.AuthenticationStatus.LOGGED_IN:
+		return next();
+	default:
+		auth.handleNotAuthed( status, req, res );
+		return;
+	}
+}
+
+export function isNotLoggedIn( req: Request, res: Response, next: NextFunction ): void {
+	const status = auth.loggedIn( req );
+	switch ( status ) {
+	case auth.AuthenticationStatus.NOT_LOGGED_IN:
+		return next();
+	default:
+		res.redirect( OptionsService.getText('user-home-url') );
+		return;
+	}
+}
+
+// Express middleware to redirect users without admin/superadmin privileges
+export function isAdmin( req: Request, res: Response, next: NextFunction ): void {
+	const status = auth.canAdmin( req );
+	switch ( status ) {
+	case auth.AuthenticationStatus.LOGGED_IN:
+		return next();
+	case auth.AuthenticationStatus.NOT_ADMIN:
+		req.flash( 'warning', '403' );
+		res.redirect( OptionsService.getText('user-home-url') );
+		return;
+	default:
+		auth.handleNotAuthed( status, req, res );
+		return;
+	}
+}
+
+// Express middleware to redirect users without superadmin privilages
+export function isSuperAdmin( req: Request, res: Response, next: NextFunction ): void {
+	const status = auth.canSuperAdmin( req );
+	switch ( status ) {
+	case auth.AuthenticationStatus.LOGGED_IN:
+		return next();
+	case auth.AuthenticationStatus.NOT_ADMIN:
+		req.flash( 'warning', '403' );
+		res.redirect( OptionsService.getText('user-home-url') );
+		return;
+	default:
+		auth.handleNotAuthed( status, req, res );
+		return;
+	}
 }

@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import passport from 'passport';
 import passportLocal from 'passport-local';
 import passportTotp from 'passport-totp';
@@ -197,20 +197,6 @@ export function loggedIn( req: Request ): AuthenticationStatus {
 	}
 }
 
-// Checks if the user is an active member (has paid or has admin powers)
-export function activeMember( req: Request ): AuthenticationStatus {
-	// Check user is logged in
-	const status = loggedIn( req );
-	if ( status != AuthenticationStatus.LOGGED_IN ) {
-		return status;
-	} else {
-		if ( checkPermission( req, 'member' ) ) return AuthenticationStatus.LOGGED_IN;
-		if ( checkPermission( req, 'superadmin' ) ) return AuthenticationStatus.LOGGED_IN;
-		if ( checkPermission( req, 'admin' ) ) return AuthenticationStatus.LOGGED_IN;
-	}
-	return AuthenticationStatus.NOT_MEMBER;
-}
-
 // Checks if the user has an active admin or superadmin privilage
 export function canAdmin( req: Request ): AuthenticationStatus {
 	// Check user is logged in
@@ -254,79 +240,6 @@ export function handleNotAuthed( status: AuthenticationStatus, req: Request, res
 		return;
 	}
 }
-
-// Express middleware to redirect logged out users
-export function isLoggedIn( req: Request, res: Response, next: NextFunction ): void {
-	const status = loggedIn( req );
-
-	switch ( status ) {
-	case AuthenticationStatus.LOGGED_IN:
-		return next();
-	default:
-		handleNotAuthed( status, req, res );
-		return;
-	}
-}
-
-export function isNotLoggedIn( req: Request, res: Response, next: NextFunction ): void {
-	const status = loggedIn( req );
-	switch ( status ) {
-	case AuthenticationStatus.NOT_LOGGED_IN:
-		return next();
-	default:
-		res.redirect( OptionsService.getText('user-home-url') );
-		return;
-	}
-}
-
-// Express middleware to redirect inactive members
-export function isMember( req: Request, res: Response, next: NextFunction): void {
-	const status = activeMember( req );
-	switch ( status ) {
-	case AuthenticationStatus.LOGGED_IN:
-		return next();
-	case AuthenticationStatus.NOT_MEMBER:
-		req.flash( 'warning', 'inactive-membership' );
-		res.redirect( OptionsService.getText('user-home-url') );
-		return;
-	default:
-		handleNotAuthed( status, req, res );
-		return;
-	}
-}
-
-// Express middleware to redirect users without admin/superadmin privileges
-export function isAdmin( req: Request, res: Response, next: NextFunction ): void {
-	const status = canAdmin( req );
-	switch ( status ) {
-	case AuthenticationStatus.LOGGED_IN:
-		return next();
-	case AuthenticationStatus.NOT_ADMIN:
-		req.flash( 'warning', '403' );
-		res.redirect( OptionsService.getText('user-home-url') );
-		return;
-	default:
-		handleNotAuthed( status, req, res );
-		return;
-	}
-}
-
-// Express middleware to redirect users without superadmin privilages
-export function isSuperAdmin( req: Request, res: Response, next: NextFunction ): void {
-	const status = canSuperAdmin( req );
-	switch ( status ) {
-	case AuthenticationStatus.LOGGED_IN:
-		return next();
-	case AuthenticationStatus.NOT_ADMIN:
-		req.flash( 'warning', '403' );
-		res.redirect( OptionsService.getText('user-home-url') );
-		return;
-	default:
-		handleNotAuthed( status, req, res );
-		return;
-	}
-}
-
 // Checks password meets requirements
 export function passwordRequirements( password: string ): string|true {
 	if ( ! password )
