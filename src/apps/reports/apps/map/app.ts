@@ -1,6 +1,7 @@
 import axios from 'axios';
 import express from 'express';
 
+import auth from '@core/authentication';
 import { Members } from '@core/database';
 import { log } from '@core/logging';
 import { wrapAsync } from '@core/utils';
@@ -10,6 +11,8 @@ import config from '@config';
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
+
+app.use(auth.isAdmin);
 
 interface PostcodeResponse {
 	status: number
@@ -42,7 +45,7 @@ async function getPostcodes(postcodes: string[]): Promise<PostcodeCache[]> {
 	log.info({
 		app: 'map',
 		action: 'get-postcodes',
-	}, `Fetching ${unknownPostcodes.length} postcodes`);
+	}, `Getting ${unknownPostcodes.length} postcodes`);
 
 	for (let i = 0; i < unknownPostcodes.length; i += 100) {
 		const unknownPostcodesSlice = unknownPostcodes.slice(i, i + 100);
