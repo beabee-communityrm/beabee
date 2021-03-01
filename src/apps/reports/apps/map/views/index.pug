@@ -49,8 +49,12 @@ block append js
 
 		heatmapLayer.addTo(map);
 
-
-		fetch('/reports/map/locations').then(resp => {
+		fetch('/static/js/wards.geojson').then(resp => {
+			return resp.json();
+		}).then(data => {
+			L.geoJSON(data, {style: {weight: 2}}).addTo(map);
+			return fetch('/reports/map/locations');
+		}).then(resp => {
 			return resp.json();
 		}).then(data => {
 			heatmapLayer.setData({
