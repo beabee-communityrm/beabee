@@ -1,21 +1,6 @@
 import { Document, Model } from 'mongoose';
 import { ContributionPeriod, ContributionType } from '@core/utils';
 
-interface Permission {
-	permission?: string
-	date_added: Date
-	date_expires?: Date
-	remove?(): void
-}
-
-interface MemberPermission extends Permission {
-	date_expires: Date
-}
-
-interface Permissions extends Array<Permission> {
-	id(s: string): Permission
-}
-
 interface PartialMember {
 	email: string,
 	firstname: string,
@@ -37,9 +22,7 @@ interface Member extends PartialMember, Document {
 	giftCode?: string,
 	contributionMonthlyAmount?: number
 	nextContributionMonthlyAmount?: number
-	contributionPeriod?: ContributionPeriod
-	permissions: Permissions,
-	memberPermission: MemberPermission,
+	contributionPeriod?: ContributionPeriod,
 	otp: {
 		key?: string,
 		activated?: boolean
