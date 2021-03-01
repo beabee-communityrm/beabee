@@ -5,6 +5,8 @@ import { Members } from '@core/database';
 import { log } from '@core/logging';
 import { wrapAsync } from '@core/utils';
 
+import config from '@config';
+
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
@@ -70,7 +72,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/locations', wrapAsync(async (req, res) => {
-	const members = await Members.find({'delivery_address.postcode': {$exists: 1}}, 'delivery_address.postcode');
+	const members = await Members.find({
+		'delivery_address.postcode': {$exists: 1},
+		permissions: {$elemMatch: {
+			permission: config.permission.memberId,
+			date_expires: {$gte: new Date()}
+		}},
+	}, 'delivery_address.postcode');
 	const memberPostcodes = members.map(m => m.delivery_address!.postcode!);
 	const postcodes = await getPostcodes(memberPostcodes);
 	res.send({postcodes});
