@@ -25,19 +25,38 @@ block append js
 		integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
 		crossorigin=""
 	)
+	script(src='/static/js/lib/heatmap.min.js')
+	script(src='/static/js/lib/leaflet-heatmap.js')
 	script.
 
-		var map = L.map('map').setView([51.455313, -2.591902], 13);
+		var map = L.map('map', {
+			maxZoom: 14
+		}).setView([51.455313, -2.591902], 13);
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 		}).addTo(map);
 
+		var heatmapLayer = new HeatmapOverlay({
+			// radius should be small ONLY if scaleRadius is true (or small radius is intended)
+			"radius": 20,
+			"maxOpacity": .8,
+			// which field name in your data represents the latitude - default "lat"
+			latField: 'lat',
+			// which field name in your data represents the longitude - default "lng"
+			lngField: 'lng'
+		});
+
+		heatmapLayer.addTo(map);
+
+
 		fetch('/reports/map/locations').then(resp => {
 			return resp.json();
 		}).then(data => {
-			console.log(data);
-			data.postcodes.forEach(postcode => {
-				L.circle([postcode.latitude, postcode.longitude], {radius: 20, color: 'red', opacity: 0.2}).addTo(map);
-			})
+			heatmapLayer.setData({
+				max: 5,
+				data: data.postcodes.map(postcode => ({
+					lat: postcode.latitude, lng: postcode.longitude, value: 1
+				}))
+			});
 		});

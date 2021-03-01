@@ -1,13 +1,18 @@
 import axios from 'axios';
 import express from 'express';
 
+import auth from '@core/authentication';
 import { Members } from '@core/database';
 import { log } from '@core/logging';
 import { wrapAsync } from '@core/utils';
 
+import config from '@config';
+
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
+
+app.use(auth.isAdmin);
 
 interface PostcodeResponse {
 	status: number
@@ -40,7 +45,7 @@ async function getPostcodes(postcodes: string[]): Promise<PostcodeCache[]> {
 	log.info({
 		app: 'map',
 		action: 'get-postcodes',
-	}, `Fetching ${unknownPostcodes.length} postcodes`);
+	}, `Getting ${unknownPostcodes.length} postcodes`);
 
 	for (let i = 0; i < unknownPostcodes.length; i += 100) {
 		const unknownPostcodesSlice = unknownPostcodes.slice(i, i + 100);
@@ -70,7 +75,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/locations', wrapAsync(async (req, res) => {
-	const members = await Members.find({'delivery_address.postcode': {$exists: 1}}, 'delivery_address.postcode');
+	const members = await Members.find({
+		'delivery_address.postcode': {$exists: 1},
+		permissions: {$elemMatch: {
+			permission: config.permission.memberId,
+			date_expires: {$gte: new Date()}
+		}},
+	}, 'delivery_address.postcode');
 	const memberPostcodes = members.map(m => m.delivery_address!.postcode!);
 	const postcodes = await getPostcodes(memberPostcodes);
 	res.send({postcodes});
