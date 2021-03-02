@@ -1,0 +1,66 @@
+extends /views/base
+
+block contents
+	.row
+		.col-md-12
+			+page_header('Map')
+
+			#map
+
+block append css
+	link(
+		rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+		integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+		crossorigin=""
+	)
+	style.
+		#map {
+			width: 100%;
+			height: 500px;
+		}
+
+block append js
+	script(
+		src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+		integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+		crossorigin=""
+	)
+	script(src='/static/js/lib/heatmap.min.js')
+	script(src='/static/js/lib/leaflet-heatmap.js')
+	script.
+
+		var map = L.map('map', {
+			maxZoom: 14
+		}).setView([51.455313, -2.591902], 13);
+
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+		}).addTo(map);
+
+		var heatmapLayer = new HeatmapOverlay({
+			// radius should be small ONLY if scaleRadius is true (or small radius is intended)
+			"radius": 20,
+			"maxOpacity": .8,
+			// which field name in your data represents the latitude - default "lat"
+			latField: 'lat',
+			// which field name in your data represents the longitude - default "lng"
+			lngField: 'lng'
+		});
+
+		heatmapLayer.addTo(map);
+
+		fetch('/static/js/wards.geojson').then(resp => {
+			return resp.json();
+		}).then(data => {
+			L.geoJSON(data, {style: {weight: 2}}).addTo(map);
+			return fetch('/reports/map/locations');
+		}).then(resp => {
+			return resp.json();
+		}).then(data => {
+			heatmapLayer.setData({
+				max: 5,
+				data: data.postcodes.map(postcode => ({
+					lat: postcode.latitude, lng: postcode.longitude, value: 1
+				}))
+			});
+		});

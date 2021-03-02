@@ -26,6 +26,10 @@ export interface ReferralGiftForm {
 	referralGiftOptions?: Record<string, string>
 }
 
+export function getActualAmount(amount: number, period: ContributionPeriod): number {
+	return amount * ( period === ContributionPeriod.Annually ? 12 : 1 );
+}
+
 export function isValidNextUrl(url: string): boolean {
 	return /^\/([^/]|$)/.test(url);
 }
