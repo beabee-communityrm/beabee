@@ -2,7 +2,7 @@
 	"title": "Tools",
 	"path": "tools",
 	"permissions": [
-		"superadmin"
+		"superadmin", "admin"
 	],
 	"menu": "main",
 	"hidden": true,
