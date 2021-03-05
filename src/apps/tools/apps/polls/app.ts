@@ -151,7 +151,7 @@ function convertAnswers(poll: Poll, answers: Record<string, unknown>): Record<st
 		return answers;
 	}
 
-	const formSchema = poll.templateSchema.formSchema as {components: ComponentSchema[]}
+	const formSchema = poll.templateSchema.formSchema as {components: ComponentSchema[]};
 	return Object.assign(
 		{},
 		...formSchema.components
