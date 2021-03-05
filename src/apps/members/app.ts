@@ -73,7 +73,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
 		const memberships = await getRepository(MemberPermission).find({
-			permission: query.permission as PermissionType,
+			...query.permission && {permission: query.permission as PermissionType},
 			...!query.show_inactive && {dateExpires: MoreThan(new Date())}
 		});
 
