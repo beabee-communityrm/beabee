@@ -48,7 +48,7 @@ function schemaToGiftForm(data: CreateGiftSchema): GiftForm {
 	giftForm.firstname = data.firstname;
 	giftForm.lastname = data.lastname;
 	giftForm.email = data.email;
-	giftForm.startDate = moment.utc(data.startDate).toDate();
+	giftForm.startDate = moment.utc(data.startDate + 'T00:00:00').toDate();
 	giftForm.message = data.message;
 	giftForm.fromName = data.fromName;
 	giftForm.fromEmail = data.fromEmail;
