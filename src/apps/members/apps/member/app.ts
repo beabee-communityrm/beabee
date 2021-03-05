@@ -4,9 +4,10 @@ import moment from 'moment';
 
 import config from '@config';
 
-import auth from '@core/authentication';
+import { canSuperAdmin, generateCode } from '@core/authentication';
 import { Members } from '@core/database';
 import mailchimp from '@core/mailchimp';
+import { isAdmin, isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
@@ -24,7 +25,7 @@ async function getAvailableTags(): Promise<string[]> {
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
@@ -59,7 +60,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 app.post( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
 	
-	if (!req.body.action.startsWith('save-') && !auth.canSuperAdmin(req)) {
+	if (!req.body.action.startsWith('save-') && !canSuperAdmin(req)) {
 		req.flash('error', '403');
 		res.redirect(req.baseUrl);
 		return;
@@ -103,7 +104,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	case 'login-override':
 		await member.update({$set: {
 			loginOverride: {
-				code: auth.generateCode(),
+				code: generateCode(),
 				expires: moment().add(24, 'hours').toDate()
 			}
 		}});
@@ -111,7 +112,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		break;
 	case 'password-reset':
 		await member.update({$set: {
-			'password.reset_code': auth.generateCode()
+			'password.reset_code': generateCode()
 		}});
 		req.flash('success', 'member-password-reset-generated');
 		break;
@@ -138,7 +139,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 const adminApp = express.Router( { mergeParams: true } );
 app.use(adminApp);
 
-adminApp.use(auth.isSuperAdmin);
+adminApp.use(isSuperAdmin);
 
 adminApp.get( '/2fa', ( req, res ) => {
 	res.render( '2fa', { member: req.model } );
