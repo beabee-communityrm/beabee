@@ -14,6 +14,7 @@ import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
 import { Member, PartialMember } from '@models/members';
 import Payment from '@models/Payment';
+import MemberPermission from '@models/MemberPermission';
 
 interface PayingMember extends Member {
 	contributionMonthlyAmount: number
@@ -45,7 +46,8 @@ abstract class UpdateContributionPaymentService {
 			if (gcData.subscriptionId) {
 				gcData = await this.updateSubscription(user as PayingMember, gcData, paymentForm);
 			} else {
-				const startDate = moment.utc(user.memberPermission.date_expires).subtract(config.gracePeriod);
+				const membershipExpiryDate = user.permissions.find(p => p.permission === 'member')!.dateExpires;
+				const startDate = moment.utc(membershipExpiryDate).subtract(config.gracePeriod);
 				gcData = await this.createSubscription(user, gcData, paymentForm, startDate.format('YYYY-MM-DD'));
 			}
 
@@ -191,18 +193,20 @@ abstract class UpdateContributionPaymentService {
 		} );
 
 		const wasInactive = !member.isActiveMember;
-
-		if (member.memberPermission) {
-			// If subscription will charge after current end date extend to accommodate
-			if (nextChargeDate.isAfter(member.memberPermission.date_expires)) {
-				member.memberPermission.date_expires = nextChargeDate.toDate();
-			}
-		} else {
-			member.memberPermission = {
-				date_added: new Date(),
-				date_expires: nextChargeDate.toDate()
-			};
+		
+		let membership = member.permissions.find(p => p.permission === 'member');
+		if (!membership) {
+			membership = getRepository(MemberPermission).create({
+				memberId: member.id,
+				permission: 'member',
+				dateExpires: nextChargeDate.toDate()
+			});
+			// TODO: Remove once member is in ORM
+			member.permissions.push(membership);
+		} else if (membership.dateExpires && nextChargeDate.isAfter(membership.dateExpires)) {
+			membership.dateExpires = nextChargeDate.toDate();
 		}
+		await getRepository(MemberPermission).save(membership);
 
 		gcData.cancelledAt = undefined;
 		await getRepository(GCPaymentData).update(gcData.memberId, gcData);

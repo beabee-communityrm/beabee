@@ -1,3 +1,4 @@
+import { PermissionType } from '@models/MemberPermission';
 import { NextFunction, Request, Response } from 'express';
 
 export interface AppConfig {
@@ -46,7 +47,7 @@ export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: 
 
 	// Permissions
 	res.locals.isLoggedIn = !!req.user;
-	res.locals.access = function( permission: string ) {
+	res.locals.access = function( permission: PermissionType ) {
 		if ( !req.user ) return false;
 		return req.user.quickPermissions.indexOf('superadmin') > -1 ||
 			req.user.quickPermissions.indexOf(permission) > -1;

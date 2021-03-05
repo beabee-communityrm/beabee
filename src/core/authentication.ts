@@ -4,18 +4,17 @@ import passport from 'passport';
 import passportLocal from 'passport-local';
 import passportTotp from 'passport-totp';
 import base32 from 'thirty-two';
-
-const LocalStrategy = passportLocal.Strategy;
-const TotpStrategy = passportTotp.Strategy;
+import { getRepository } from 'typeorm';
 
 import config from '@config';
 
 import { Members } from '@core/database';
 import { cleanEmailAddress, getNextParam, sleep } from '@core/utils';
 
-import OptionsService from './services/OptionsService';
-import { getRepository, IsNull, MoreThan } from 'typeorm';
-import MemberPermission from '@models/MemberPermission';
+import OptionsService from '@core/services/OptionsService';
+
+import MemberPermission, { PermissionType } from '@models/MemberPermission';
+import { Member } from '@models/members';
 
 export enum AuthenticationStatus {
 	LOGGED_IN = 1,
@@ -25,16 +24,19 @@ export enum AuthenticationStatus {
 	REQUIRES_2FA = -3
 }
 
+interface PassportUser {
+	_id: string
+}
+
 export function load( app: express.Express ): void {
 	// Add support for local authentication in Passport.js
-	passport.use( new LocalStrategy( {
+	passport.use( new passportLocal.Strategy( {
 		usernameField: 'email'
 	}, async function( email, password, done ) {
-
 		if ( email ) email = cleanEmailAddress(email);
 
 		const user = await Members.findOne( { email } );
-		if ( user ) {
+		if (user) {
 			const tries = user.password.tries || 0;
 			// Has account exceeded it's password tries?
 			if ( tries >= config['password-tries'] ) {
@@ -47,17 +49,18 @@ export function load( app: express.Express ): void {
 
 			const hash = await hashPassword( password, user.password.salt, user.password.iterations );
 			if ( hash === user.password.hash ) {
+				const passportUser: PassportUser = {_id: user.id };
 
 				if ( user.password.reset_code ) {
 					user.password.reset_code = undefined;
 					await user.save();
-					return done( null, { _id: user._id }, { message: 'password-reset-attempt' } );
+					return done( null, passportUser, { message: 'password-reset-attempt' } );
 				}
 
 				if ( tries > 0 ) {
 					user.password.tries = 0;
 					await user.save();
-					return done( null, { _id: user._id }, { message: OptionsService.getText( 'flash-account-attempts' ).replace( '%', tries.toString() ) } );
+					return done( null, passportUser, { message: OptionsService.getText( 'flash-account-attempts' ).replace( '%', tries.toString() ) } );
 				}
 
 				if ( user.password.iterations < config.iterations ) {
@@ -65,7 +68,7 @@ export function load( app: express.Express ): void {
 					await user.save();
 				}
 
-				return done( null, { _id: user._id }, { message: 'logged-in' } );
+				return done( null, passportUser, { message: 'logged-in' } );
 			} else {
 				// If password doesn't match, increment tries and save
 				user.password.tries = tries + 1;
@@ -79,11 +82,12 @@ export function load( app: express.Express ): void {
 	} ) );
 
 	// Add support for TOTP authentication in Passport.js
-	passport.use( new TotpStrategy( {
+	passport.use( new passportTotp.Strategy( {
 		window: 1,
-	}, function( user, done ) {
+	}, function( _user, done ) {
+		const user = _user as Member;
 		if ( user.otp.key ) {
-			return done( null, base32.decode( user.otp.key ), 30 );
+			return done( null, base32.decode( user.otp.key ).toString(), 30 );
 		}
 		return done( null, false );
 	})
@@ -97,29 +101,24 @@ export function load( app: express.Express ): void {
 
 	// Passport.js deserialise user function
 	passport.deserializeUser( async function( data, done ) {
-		const member = await Members.findById( data._id ).populate( 'permissions.permission' );
+		const passportUser = data as PassportUser;
+		const member = await Members.findById( passportUser._id );
 		if ( member ) {
 			// Update last seen
 			member.last_seen = new Date();
 			await member.save();
 
-			const userPermissions = await getRepository(MemberPermission).find({
-				where: [
-					{memberId: member.id, dateExpires: IsNull()},
-					{memberId: member.id, dateExpires: MoreThan(new Date())},
-				]
-			});
-
 			const user = {
 				...member,
-				quickPermissions: ['loggedIn', ...userPermissions.map(up => up.permission)]
+				quickPermissions: [
+					'loggedIn',
+					...member.permissions.filter(p => p.isActive).map(p => p.permission)
+				]
 			};
 
-			// Return user data
 			return done( null, user );
 		} else {
-			// Display login required message if user _id not found.
-			return done( null, false, { message: 'login-required' } );
+			return done( null, false );
 		}
 	} );
 
@@ -135,16 +134,6 @@ export function generateOTPSecret(): Promise<string> {
 		crypto.randomBytes( 16, function( ex, raw ) {
 			const secret = base32.encode( raw );
 			resolve(secret.toString().replace(/=/g, ''));
-		} );
-	});
-}
-
-// Used for generating activation codes for new accounts, discourse linking, and password reset
-// returns a 10 byte / 20 character hex string
-export function generateActivationCode(): Promise<string> {
-	return new Promise(resolve => {
-		crypto.randomBytes( 10, function( ex, code ) {
-			resolve( code.toString( 'hex' ) );
 		} );
 	});
 }
@@ -197,6 +186,11 @@ export function loggedIn( req: Request ): AuthenticationStatus {
 	}
 }
 
+// Checks if the user has an active specified permission
+function checkPermission( req: Request, permission: PermissionType ): boolean {
+	return req.user ? req.user.quickPermissions.indexOf( permission ) !== -1 : false;
+}
+
 // Checks if the user has an active admin or superadmin privilage
 export function canAdmin( req: Request ): AuthenticationStatus {
 	// Check user is logged in
@@ -220,11 +214,6 @@ export function canSuperAdmin( req: Request ): AuthenticationStatus {
 		if ( checkPermission( req, 'superadmin' ) ) return AuthenticationStatus.LOGGED_IN;
 	}
 	return AuthenticationStatus.NOT_ADMIN;
-}
-
-// Checks if the user has an active specified permission
-export function checkPermission( req: Request, permission: string ): boolean {
-	return req.user ? req.user.quickPermissions.indexOf( permission ) !== -1 : false;
 }
 
 export function handleNotAuthed( status: AuthenticationStatus, req: Request, res: Response ): void {

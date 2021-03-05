@@ -10,7 +10,7 @@ import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
 import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
 
-import MemberPermission from '@models/MemberPermission';
+import MemberPermission, { PermissionType } from '@models/MemberPermission';
 import Project from '@models/Project';
 import Segment from '@models/Segment';
 
@@ -73,7 +73,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
 		const memberPermissions = await getRepository(MemberPermission).find({
-			permission: query.permission as string,
+			permission: query.permission as PermissionType,
 			...!query.show_inactive && {dateExpires: MoreThan(new Date())}
 		});
 

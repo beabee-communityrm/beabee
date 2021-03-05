@@ -59,13 +59,19 @@ const memberEmailTemplates = {
 	'reset-password': wrapper2(member => ({
 		RPLINK: config.audience + '/password-reset/code/' + member.password.reset_code
 	})),
-	'cancelled-contribution': wrapper2(member => ({
-		EXPIRES: moment(member.memberPermission.date_expires).format('dddd Do MMMM'),
-		MEMBERSHIPID: member.uuid
-	})),
-	'cancelled-contribution-no-survey': wrapper2(member => ({
-		EXPIRES: moment(member.memberPermission.date_expires).format('dddd Do MMMM')
-	})),
+	'cancelled-contribution': wrapper2(member => {
+		const dateExpires = member.permissions.find(p => p.permission === 'member')?.dateExpires;
+		return {
+			EXPIRES: dateExpires ? moment.utc(dateExpires).format('dddd Do MMMM') : '-',
+			MEMBERSHIPID: member.uuid
+		};
+	}),
+	'cancelled-contribution-no-survey': wrapper2(member => {
+		const dateExpires = member.permissions.find(p => p.permission === 'member')?.dateExpires;
+		return {
+			EXPIRES: dateExpires ? moment.utc(dateExpires).format('dddd Do MMMM') : '-'
+		};
+	}),
 	'restart-membership': wrapper(['code'] as const, (member, {code}) => ({
 		RESTARTLINK: config.audience + '/join/restart/' + code
 	})),

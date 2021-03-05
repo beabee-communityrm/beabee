@@ -12,6 +12,7 @@ import MembersService from '@core/services/MembersService';
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 
 import config from '@config';
+import MemberPermission from '@models/MemberPermission';
 
 const log = mainLogger.child({app: 'gift-service'});
 
@@ -111,16 +112,18 @@ export default class GiftService {
 			delivery_optin: !!deliveryAddress?.line1,
 			contributionType: ContributionType.Gift
 		});
-
 		member.giftCode = giftFlow.setupCode;
-
 		member.contributionMonthlyAmount = GiftService.giftMonthlyAmount;
-
-		member.memberPermission = {
-			date_added: now.toDate(),
-			date_expires: now.clone().add(months, 'months').toDate()
-		};
 		await member.save();
+
+		const membership = new MemberPermission();
+		membership.permission = 'member';
+		membership.memberId = member.id;
+		membership.dateExpires = now.clone().add(months, 'months').toDate();
+		await getRepository(MemberPermission).save(membership);
+
+		// TODO: Remove once member is in ORM
+		member.permissions.push(membership);
 
 		const sendAt = sendImmediately ? undefined : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
 		await EmailService.sendTemplateToMember('giftee-success', member, { fromName, message }, {sendAt});

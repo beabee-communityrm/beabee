@@ -1,14 +1,14 @@
-import _ from 'lodash';
+import { Brackets, createQueryBuilder, getRepository, LessThan, MoreThan } from 'typeorm';
 
-import { Members, Permissions } from '@core/database';
-import config from  '@config' ;
-import { Param } from '@core/utils/params.js';
+import { Members } from '@core/database';
+import { ContributionType } from '@core/utils';
+import { Param } from '@core/utils/params';
 
 import Export from '@models/Export';
 import { Member } from '@models/members';
+import MemberPermission from '@models/MemberPermission';
+
 import { ExportType } from './type';
-import { getRepository } from 'typeorm';
-import { ContributionType } from '@core/utils';
 
 async function getParams(): Promise<Param[]> {
 	return [{
@@ -23,15 +23,20 @@ async function getParams(): Promise<Param[]> {
 }
 
 async function getQuery({params}: Export) {
-	const permission = await Permissions.findOne( { slug: config.permission.member });
+	const now = new Date();
+	const memberPermissions = await createQueryBuilder(MemberPermission, 'mp')
+		.where({permission: 'member', dateAdded: LessThan(now)})
+		.andWhere(new Brackets(qb => {
+			qb.where('mp.dateExpires >= :now', {now})
+				.orWhere('mp.dateExpires = NULL');
+		}))
+		.getMany();
+
 	return {
+		_id: {$in: memberPermissions.map(p => p.memberId)},
 		contributionMonthlyAmount: {
 			$gte: params?.monthlyAmountThreshold === undefined ? 3 : params?.monthlyAmountThreshold
 		},
-		permissions: {$elemMatch: {
-			permission,
-			date_expires: {$gte: new Date()}
-		}},
 		...(!params?.includeNonOptIn && {delivery_optin: true})
 	};
 }

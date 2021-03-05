@@ -1,3 +1,4 @@
+import { PermissionType } from '@models/MemberPermission';
 import { Member } from '@models/members';
 import { PollResponseAnswers } from '@models/PollResponse';
 import { ParamsDictionary } from 'express-serve-static-core';
@@ -12,7 +13,7 @@ declare global {
 
 	namespace Express {
 		export interface User extends Member {
-			quickPermissions: string[]
+			quickPermissions: (PermissionType|'loggedIn')[]
 		}
 
 		export interface Request {

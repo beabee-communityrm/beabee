@@ -5,7 +5,7 @@ import { getRepository } from 'typeorm';
 import { Members } from '@core/database';
 import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
 
-import MemberPermission from '@models/MemberPermission';
+import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 import config from '@config';
 
@@ -24,7 +24,9 @@ app.get( '/' , function( req, res ) {
 
 if (config.dev) {
 	app.get('/as/:permission', wrapAsync( async (req, res) => {
-		const permission = await getRepository(MemberPermission).findOne({permission: req.params.permission});
+		const permission = await getRepository(MemberPermission).findOne({
+			permission: req.params.permission as PermissionType
+		});
 		const member = permission && await Members.findById(permission.memberId);
 		if (member) {
 			loginAndRedirect(req, res, member);

@@ -14,6 +14,7 @@ import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
 
 import config from '@config';
+import MemberPermission from '@models/MemberPermission';
 
 const log = mainLogger.child({app: 'payment-webhook-service'});
 
@@ -76,12 +77,20 @@ export default class GCPaymentWebhookService {
 			return;
 		}
 
+		const membership = member.permissions.find(p => p.permission === 'member');
+		if (!membership) {
+			log.error({
+				action: 'membership-not-found'
+			}, 'Member has no membership records');
+			return;
+		}
+
 		const nextExpiryDate = await GCPaymentWebhookService.calcPaymentExpiryDate(payment);
 
 		log.info({
 			action: 'extend-membership',
 			data: {
-				prevDate: member.memberPermission.date_expires,
+				prevDate: membership.dateExpires,
 				newDate: nextExpiryDate
 			}
 		});
@@ -94,10 +103,11 @@ export default class GCPaymentWebhookService {
 			}
 		}
 
-		if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
-			member.memberPermission.date_expires = nextExpiryDate.toDate();
+		if (nextExpiryDate.isAfter(membership.dateExpires)) {
+			membership.dateExpires = nextExpiryDate.toDate();
 		}
 
+		await getRepository(MemberPermission).save(membership);
 		await member.save();
 	}
 

@@ -1,13 +1,12 @@
-import { getRepository, IsNull, Not } from 'typeorm';
+import { getRepository, In, IsNull, MoreThan, Not } from 'typeorm';
 
-import { Members, Permissions } from '@core/database';
+import { Members } from '@core/database';
 import { Param } from '@core/utils/params';
 
-import config from '@config' ;
-
 import Export from '@models/Export';
-import { Member } from '@models/members';
 import GCPaymentData from '@models/GCPaymentData';
+import { Member } from '@models/members';
+import MemberPermission from '@models/MemberPermission';
 
 import { ExportType } from './type';
 
@@ -20,16 +19,18 @@ async function getParams(): Promise<Param[]> {
 }
 
 async function getQuery({params}: Export): Promise<any> {
-	const permission = await Permissions.findOne( { slug: config.permission.member });
-	const membersWithSubs = params?.hasActiveSubscription && 
-		await getRepository(GCPaymentData).find({subscriptionId: Not(IsNull())});
+	const memberPermissions = await getRepository(MemberPermission).find({
+		permission: 'member', dateExpires: MoreThan(new Date())
+	});
+
+	const members: {memberId: string}[] = params?.hasActiveSubscription ?
+		await getRepository(GCPaymentData).find({
+			memberId: In(memberPermissions.map(p => p.memberId)),
+			subscriptionId: Not(IsNull())
+		}) : memberPermissions;
 
 	return {
-		permissions: {$elemMatch: {
-			permission,
-			date_expires: {$gte: new Date()}
-		}},
-		...(membersWithSubs && {_id: {$in: membersWithSubs.map(m => m.memberId)}})
+		_id: {$in: members.map(m => m.memberId)}
 	};
 }
 

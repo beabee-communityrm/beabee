@@ -4,6 +4,8 @@ const moment = require( 'moment' );
 const { getActualAmount } = require( '@core/utils' );
 
 const config = require( '@config' );
+const { getRepository } = require('typeorm');
+const { default: MemberPermission } = require('./MemberPermission');
 
 const ObjectId = mongoose.Schema.ObjectId;
 
@@ -176,33 +178,16 @@ module.exports.schema.virtual( 'fullname' ).get( function() {
 	return this.firstname + ' ' + this.lastname;
 } );
 
-module.exports.schema.virtual( 'memberPermission' )
-	.get( function () {
-		return this.permissions.find(p => p.permission.equals(config.permission.memberId));
-	} )
-	.set( function (value) {
-		// Ensure permission is always member
-		const memberPermission = {...value, permission: config.permission.memberId};
-
-		const i = this.permissions.findIndex(p => p.permission.equals(config.permission.memberId));
-		if (i > -1) {
-			this.permissions[i] = memberPermission;
-		} else {
-			this.permissions.push(memberPermission);
-		}
-	} );
-
 module.exports.schema.virtual( 'memberMonthsRemaining' ).get( function () {
-	return this.memberPermission ? Math.max(0,
-		moment.utc(this.memberPermission.date_expires)
-			.subtract(config.gracePeriod).diff(moment.utc(), 'months')) :
-		0;
+	const membership = this.permissions.find(p => p.permission === 'member');
+	return membership ? Math.max(0,
+		moment.utc(membership.dateExpires)
+			.subtract(config.gracePeriod).diff(moment.utc(), 'months')) : 0;
 } );
 
 module.exports.schema.virtual( 'isActiveMember' ).get( function () {
-	const now = new Date();
-	return this.memberPermission && this.memberPermission.date_added < now &&
-		(!this.memberPermission.date_expires || this.memberPermission.date_expires > now);
+	const membership = this.permissions.find(p => p.permission === 'member');
+	return membership && membership.isActive;
 } );
 
 module.exports.schema.virtual( 'setupComplete' ).get( function() {
@@ -228,5 +213,15 @@ module.exports.schema.virtual( 'nextContributionAmount' ).get( function () {
 	return this.nextContributionMonthlyAmount &&
 		getActualAmount(this.nextContributionMonthlyAmount, this.contributionPeriod);
 } );
+
+module.exports.schema.post('find', async function (docs) {
+	for (const doc of docs) {
+		doc.permissions = await getRepository(MemberPermission).find({memberId: doc.id});
+	}
+});
+
+module.exports.schema.post('findOne', async function (doc) {
+	doc.permissions = await getRepository(MemberPermission).find({memberId: doc.id});
+});
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );

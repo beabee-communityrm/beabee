@@ -17,7 +17,6 @@ import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import { Member } from '@models/members';
-import MemberPermission from '@models/MemberPermission';
 
 const app = express();
 
@@ -33,7 +32,6 @@ app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
 	const member = await Members.findOne({uuid: req.allParams.uuid});
 	if (member) {
-		member.permissions = await getRepository(MemberPermission).find({memberId: member.id});
 		req.model = member;
 		res.locals.paymentData = await PaymentService.getPaymentData(member);
 		next();

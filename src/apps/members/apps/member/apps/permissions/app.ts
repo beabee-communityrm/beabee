@@ -6,7 +6,7 @@ import { hasSchema, isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import { Member } from '@models/members';
-import MemberPermission from '@models/MemberPermission';
+import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 import { createPermissionSchema, updatePermissionSchema } from './schemas.json';
 
@@ -32,6 +32,7 @@ app.post( '/', hasSchema(createPermissionSchema).orFlash, wrapAsync( async (req,
 	}
 
 	const newPermission = new MemberPermission();
+	newPermission.permission = permission;
 	newPermission.memberId = member.id;
 	newPermission.dateAdded = moment(startDate + 'T' + startTime).toDate();
 
@@ -79,10 +80,7 @@ app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( a
 		return;
 	}
 
-	await getRepository(MemberPermission).update({
-		memberId: member.id,
-		permission: permission.permission
-	}, {dateAdded, dateExpires});
+	await getRepository(MemberPermission).save({...permission, dateAdded, dateExpires});
 
 	req.flash( 'success', 'permission-updated' );
 	res.redirect( req.baseUrl );
@@ -90,7 +88,7 @@ app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( a
 
 app.post( '/:id/revoke', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
-	const permission = req.params.id as MemberPermission['permission'];
+	const permission = req.params.id as PermissionType;
 	await getRepository(MemberPermission).delete({memberId: member.id, permission});
 
 	req.flash( 'success', 'permission-removed' );
