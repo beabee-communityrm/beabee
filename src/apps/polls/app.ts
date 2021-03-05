@@ -100,7 +100,7 @@ app.get( '/:slug', [
 		res.render( getView( poll ), {
 			poll,
 			answers: await getUserAnswers(req) || {},
-			preview: req.query.preview && auth.canAdmin( req )
+			preview: req.query.preview && auth.canAdmin( req ) === auth.LOGGED_IN
 		} );
 	}
 } ) );
