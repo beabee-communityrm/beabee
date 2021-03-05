@@ -108,14 +108,11 @@ export function load( app: express.Express ): void {
 			member.last_seen = new Date();
 			await member.save();
 
-			const user = {
-				...member,
-				quickPermissions: [
-					'loggedIn',
-					...member.permissions.filter(p => p.isActive).map(p => p.permission)
-				]
-			};
-
+			const user = member as Express.User;
+			user.quickPermissions = [
+				'loggedIn',
+				...member.permissions.filter(p => p.isActive).map(p => p.permission)
+			];
 			return done( null, user );
 		} else {
 			return done( null, false );
