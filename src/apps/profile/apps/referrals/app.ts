@@ -1,7 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 
-import auth from '@core/authentication';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
 
 import ReferralsService from '@core/services/ReferralsService';
@@ -30,7 +29,7 @@ function hasOwnReferral(req: Request, res: Response, next: NextFunction) {
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isLoggedIn );
+app.use( isLoggedIn );
 
 app.get( '/', wrapAsync( hasUser( async ( req, res ) => {
 	const referrals = await ReferralsService.getMemberReferrals(req.user);

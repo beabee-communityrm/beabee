@@ -1,7 +1,7 @@
 import	express from 'express';
 
-import auth from '@core/authentication';
-import { hasSchema } from '@core/middleware';
+import { hashPassword, generatePassword } from '@core/authentication';
+import { hasSchema, isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
@@ -12,18 +12,17 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.get( '/', auth.isLoggedIn, function( req, res ) {
+app.use(isLoggedIn);
+
+app.get( '/', function( req, res ) {
 	res.render( 'index', {hasPassword: !!req.user?.password.hash} );
 } );
 
-app.post( '/', [
-	auth.isLoggedIn,
-	hasSchema( changePasswordSchema ).orFlash
-], wrapAsync( hasUser( async function( req, res ) {
+app.post( '/', hasSchema( changePasswordSchema ).orFlash, wrapAsync( hasUser( async function( req, res ) {
 	const { body, user } = req;
 
 	if (req.user.password.hash) {
-		const hash = await auth.hashPasswordPromise( body.current, user.password.salt, user.password.iterations );
+		const hash = await hashPassword( body.current, user.password.salt, user.password.iterations );
 
 		if ( hash != user.password.hash ) {
 			req.log.debug( {
@@ -37,7 +36,7 @@ app.post( '/', [
 		}
 	}
 
-	const password = await auth.generatePasswordPromise( body.new );
+	const password = await generatePassword( body.new );
 
 	await MembersService.updateMember(user, {
 		password: {

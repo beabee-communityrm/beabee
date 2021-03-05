@@ -1,8 +1,8 @@
 import express from 'express';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { hasSchema } from '@core/middleware';
+import { generatePassword } from '@core/authentication';
+import { hasSchema, isLoggedIn } from '@core/middleware';
 import { ContributionType, hasUser, wrapAsync } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
@@ -29,7 +29,7 @@ app.use( function( req, res, next ) {
 	}
 } );
 
-app.use(auth.isLoggedIn);
+app.use(isLoggedIn);
 
 app.get( '/', wrapAsync( async function( req, res ) {
 	const referral = await getRepository(Referral).findOne({refereeId: req.user?.id});
@@ -66,7 +66,7 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 		req.flash( 'error', 'address-required' );
 		res.redirect( req.originalUrl );
 	} else {
-		const hashedPassword = await auth.generatePasswordPromise( password );
+		const hashedPassword = await generatePassword( password );
 		await user.update( { $set: {
 			password: hashedPassword,
 			delivery_optin,

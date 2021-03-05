@@ -1,18 +1,21 @@
 import express from 'express';
 import DiscourseSSO from 'discourse-sso';
+import { getRepository } from 'typeorm';
 
 import config from '@config';
 
-import auth from '@core/authentication';
+import { isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
-import { getRepository } from 'typeorm';
-import ProjectMember from '@models/ProjectMember';
 
-const app = express();
+import ProjectMember from '@models/ProjectMember';
 
 const sso = new DiscourseSSO( config.discourse.sso_secret );
 
-app.get( '/sso', auth.isLoggedIn, wrapAsync(hasUser(async ( req, res ) => {
+const app = express();
+
+app.use(isLoggedIn);
+
+app.get( '/sso', wrapAsync(hasUser(async ( req, res ) => {
 	const { sso: payload, sig } = req.query;
 
 	if (payload && sig && sso.validate(payload as string, sig as string)) {

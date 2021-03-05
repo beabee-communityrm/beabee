@@ -1,7 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 
-import auth from '@core/authentication' ;
-import{ hasSchema } from '@core/middleware' ;
+import{ hasSchema, isLoggedIn } from '@core/middleware' ;
 import { ContributionPeriod, ContributionType, hasUser, PaymentForm, RequestWithUser, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
@@ -26,7 +25,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isLoggedIn );
+app.use( isLoggedIn );
 
 app.use(wrapAsync(async (req, res, next) => {
 	res.locals.gcData = await GCPaymentService.getPaymentData(req.user!);

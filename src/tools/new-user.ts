@@ -5,10 +5,9 @@ import moment from 'moment';
 
 import config from '@config';
 
-import Auth from '@core/authentication';
+import { generatePassword, passwordRequirements } from '@core/authentication';
 import * as db from '@core/database';
 import { ConnectionOptions, getRepository } from 'typeorm';
-import { Member } from '@models/members';
 import MemberPermission from '@models/MemberPermission';
 
 const questions: QuestionCollection[] = [];
@@ -49,7 +48,7 @@ questions.push( {
 	name: 'password',
 	message: 'Password',
 	validate: function( s ) {
-		return Auth.passwordRequirements( s );
+		return passwordRequirements( s );
 	}
 } );
 
@@ -75,7 +74,7 @@ questions.push( {
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	const answers = await inquirer.prompt( questions );
 
-	const password = await Auth.generatePasswordPromise(answers.password);
+	const password = await generatePassword(answers.password);
 
 	const user = {
 		firstname: answers.firstname,

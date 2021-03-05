@@ -1,10 +1,10 @@
 import	express from 'express';
 import moment from 'moment';
-
-import auth from '@core/authentication';
-import { wrapAsync } from '@core/utils';
 import { Between, getRepository } from 'typeorm';
+
 import { Members } from '@core/database';
+import { isSuperAdmin } from '@core/middleware';
+import { wrapAsync } from '@core/utils';
 
 import GCPayment from '@models/GCPayment';
 
@@ -12,7 +12,9 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.get( '/:year?/:month?', auth.isSuperAdmin, wrapAsync(async function( req, res ) {
+app.use(isSuperAdmin);
+
+app.get( '/:year?/:month?', wrapAsync(async function( req, res ) {
 	const start = moment.utc().startOf('month');
 	if (req.params.month && req.params.year) {
 		start.set({month: Number(req.params.month) - 1, year: Number(req.params.year)});

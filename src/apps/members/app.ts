@@ -2,8 +2,8 @@ import express, { Request } from 'express';
 import queryString from 'query-string';
 import { getRepository, MoreThan } from 'typeorm';
 
-import auth from '@core/authentication';
 import { Members } from '@core/database';
+import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
 
@@ -18,7 +18,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 function getAvailableTags() {
 	return Promise.resolve(OptionsService.getText('available-tags').split(',').map(s => s.trim()));

@@ -2,9 +2,9 @@ import express, { NextFunction, Request, Response } from 'express';
 import _ from 'lodash';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
+import * as auth from '@core/authentication';
 import { Members } from '@core/database';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isLoggedIn } from '@core/middleware';
 import { isSocialScraper, wrapAsync } from '@core/utils';
 
 import PollsService from '@core/services/PollsService';
@@ -44,7 +44,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
+app.get( '/', isLoggedIn, wrapAsync( async ( req, res ) => {
 	const polls = await PollsService.getVisiblePollsWithResponses(req.user!);
 	const [activePolls, inactivePolls] = _.partition(polls, p => p.active);
 	res.render( 'index', { activePolls, inactivePolls } );
@@ -53,7 +53,7 @@ app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
 // TODO: move this to the main site
 app.get( '/campaign2019', wrapAsync( async ( req, res, next ) => {
 	const poll = await getRepository(Poll).findOne( { slug: 'campaign2019' } );
-	if ( auth.loggedIn( req ) === auth.NOT_LOGGED_IN ) {
+	if ( auth.loggedIn( req ) === auth.AuthenticationStatus.NOT_LOGGED_IN ) {
 		res.render( 'polls/campaign2019-landing', { poll } );
 	} else {
 		next();
@@ -84,7 +84,7 @@ app.get( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
 	if (!poll.public && !req.user) {
-		return auth.handleNotAuthed(auth.NOT_LOGGED_IN, req, res);
+		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
 	const answers = req.query.answers as PollResponseAnswers;
@@ -100,7 +100,7 @@ app.get( '/:slug', [
 		res.render( getView( poll ), {
 			poll,
 			answers: await getUserAnswers(req) || {},
-			preview: req.query.preview && auth.canAdmin( req ) === auth.LOGGED_IN
+			preview: req.query.preview && auth.canAdmin( req ) === auth.AuthenticationStatus.LOGGED_IN
 		} );
 	}
 } ) );
@@ -111,7 +111,7 @@ app.post( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
 	if (!poll.public && !req.user) {
-		return auth.handleNotAuthed(auth.NOT_LOGGED_IN, req, res);
+		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
 	let error;

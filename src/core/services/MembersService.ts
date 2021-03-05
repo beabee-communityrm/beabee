@@ -1,6 +1,6 @@
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
+import { generateCode } from '@core/authentication';
 import { Members } from  '@core/database';
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
@@ -94,7 +94,7 @@ export default class MembersService {
 	}
 
 	static async resetMemberPassword(member: Member): Promise<void> {
-		const code = auth.generateCode();
+		const code = generateCode();
 		member.password.reset_code = code;
 		await member.save();
 

@@ -1,16 +1,16 @@
 import express from 'express';
 
 import { wrapAsync } from '@core/utils';
-import auth from '@core/authentication';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
+import { isSuperAdmin } from '@core/middleware';
 
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use(auth.isSuperAdmin);
+app.use(isSuperAdmin);
 
 app.get('/', (req, res) => {
 	res.render('index');

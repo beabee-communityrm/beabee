@@ -2,8 +2,7 @@ import express from 'express';
 import moment from 'moment';
 import Papa from 'papaparse';
 
-import auth from '@core/authentication';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import { createPollSchema } from './schemas.json';
@@ -53,7 +52,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const polls = await createQueryBuilder(Poll, 'p')

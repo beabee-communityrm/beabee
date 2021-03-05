@@ -1,7 +1,7 @@
 import express from 'express';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
+import { isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import GCPaymentService from '@core/services/GCPaymentService';
@@ -13,7 +13,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use(auth.isSuperAdmin);
+app.use(isSuperAdmin);
 
 app.use((req, res, next) => {
 	if (res.locals.gcData) {

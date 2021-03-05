@@ -1,9 +1,9 @@
 import axios from 'axios';
 import express from 'express';
 
-import auth from '@core/authentication';
 import { Members } from '@core/database';
 import { log } from '@core/logging';
+import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import config from '@config';
@@ -12,7 +12,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use(auth.isAdmin);
+app.use(isAdmin);
 
 interface PostcodeResponse {
 	status: number

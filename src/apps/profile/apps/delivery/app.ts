@@ -1,7 +1,6 @@
 import	express from 'express';
 
-import auth from '@core/authentication';
-import { hasSchema } from '@core/middleware';
+import { hasSchema, isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
 
 import { updateSchema } from './schemas.json';
@@ -11,14 +10,13 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.get( '/', auth.isLoggedIn, function( req, res ) {
+app.use(isLoggedIn);
+
+app.get( '/', function( req, res ) {
 	res.render( 'index', { user: req.user } );
 } );
 
-app.post( '/', [
-	auth.isLoggedIn,
-	hasSchema(updateSchema).orFlash
-], wrapAsync( hasUser(async function( req, res ) {
+app.post( '/', hasSchema(updateSchema).orFlash, wrapAsync( hasUser(async function( req, res ) {
 	const { body: { delivery_optin, delivery_line1, delivery_line2, delivery_city,
 		delivery_postcode } } = req;
 

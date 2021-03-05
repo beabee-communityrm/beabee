@@ -2,8 +2,7 @@ import express from 'express';
 import Papa from 'papaparse';
 import { getRepository } from 'typeorm';
 
-import auth from  '@core/authentication' ;
-import { hasNewModel, hasSchema } from  '@core/middleware' ;
+import { hasNewModel, hasSchema, isAdmin } from  '@core/middleware' ;
 import { wrapAsync } from  '@core/utils' ;
 import { loadParams, parseParams } from '@core/utils/params';
 
@@ -71,7 +70,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get( '/', wrapAsync( async function( req, res ) {
 	const exports = await getRepository(Export).find();

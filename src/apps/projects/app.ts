@@ -3,8 +3,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { createQueryBuilder, getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import Project from '@models/Project';
@@ -77,7 +76,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const projects = await createQueryBuilder(Project, 'p')

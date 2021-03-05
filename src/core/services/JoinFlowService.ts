@@ -1,6 +1,6 @@
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
+import { generateCode } from '@core/authentication';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 
@@ -16,7 +16,7 @@ export interface CompletedJoinFlow {
 
 export default class JoinFlowService {
 	static async createJoinFlow(completeUrl: string, joinForm: JoinForm, redirectFlowParams={}): Promise<string> {
-		const sessionToken = auth.generateCode();
+		const sessionToken = generateCode();
 		const redirectFlow = await GCPaymentService.createRedirectFlow(sessionToken, completeUrl, joinForm, redirectFlowParams);
 		const joinFlow = new JoinFlow();
 		joinFlow.redirectFlowId = redirectFlow.id;

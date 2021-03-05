@@ -2,8 +2,7 @@ import express from 'express';
 import _ from 'lodash';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import ReferralGift from '@models/ReferralGift';
@@ -14,7 +13,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const gifts = await getRepository(ReferralGift).find();

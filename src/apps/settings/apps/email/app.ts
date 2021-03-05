@@ -1,18 +1,18 @@
 import express from 'express';
 
-import auth from '@core/authentication';
+import { isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
+import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
-import OptionsService from '@core/services/OptionsService';
 
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use(auth.isSuperAdmin);
+app.use(isSuperAdmin);
 
 app.get('/', wrapAsync(async (req, res) => {
 	console.log(EmailService.providerTemplateMap);

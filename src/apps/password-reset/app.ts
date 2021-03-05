@@ -1,8 +1,8 @@
 import express from 'express';
 
-import auth from '@core/authentication';
+import { generatePassword } from '@core/authentication';
 import { Members } from '@core/database';
-import { hasSchema } from '@core/middleware';
+import { hasSchema, isNotLoggedIn } from '@core/middleware';
 import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
@@ -15,7 +15,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isNotLoggedIn );
+app.use( isNotLoggedIn );
 
 app.get( '/' , function( req, res ) {
 	res.render( 'index' );
@@ -46,7 +46,7 @@ app.get( '/code/:password_reset_code', function( req, res ) {
 app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash, wrapAsync( async function( req, res ) {
 	const member = await Members.findOne( { 'password.reset_code': req.body.password_reset_code } );
 	if (member) {
-		const password = await auth.generatePasswordPromise( req.body.password );
+		const password = await generatePassword( req.body.password );
 
 		await member.update( { $set: {
 			'password.salt': password.salt,

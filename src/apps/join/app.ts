@@ -1,8 +1,7 @@
 import express, { Request, Response } from 'express';
 
-import auth from '@core/authentication' ;
 import { Members } from '@core/database' ;
-import { hasSchema } from '@core/middleware' ;
+import { hasSchema, isNotLoggedIn } from '@core/middleware' ;
 import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
@@ -60,7 +59,7 @@ function schemaToJoinForm(data: JoinSchema): JoinForm {
 }
 
 app.post( '/', [
-	auth.isNotLoggedIn,
+	isNotLoggedIn,
 	hasSchema(joinSchema).orFlash
 ], wrapAsync(async function( req, res ) {
 	const joinForm = schemaToJoinForm(req.body);
@@ -72,7 +71,7 @@ app.post( '/', [
 }));
 
 app.post( '/referral/:code', [
-	auth.isNotLoggedIn,
+	isNotLoggedIn,
 	hasSchema(joinSchema).orFlash,
 	hasSchema(referralSchema).orFlash
 ], wrapAsync( async function ( req, res ) {
@@ -101,7 +100,7 @@ async function handleJoin(req: Request, res: Response, member: Member, {customer
 }
 
 app.get( '/complete', [
-	auth.isNotLoggedIn,
+	isNotLoggedIn,
 	hasSchema(completeSchema).orRedirect( '/join' )
 ], wrapAsync(async function( req, res ) {
 	const joinFlow = await JoinFlowService.completeJoinFlow(req.query.redirect_flow_id as string);

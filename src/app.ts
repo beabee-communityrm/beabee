@@ -5,7 +5,7 @@ import helmet from 'helmet';
 import flash from 'express-flash';
 
 import appLoader from '@core/app-loader';
-import auth from '@core/authentication';
+import { load as loadAuth } from '@core/authentication';
 import * as database from '@core/database';
 import { log, installMiddleware as installLogMiddleware } from '@core/logging';
 import quickflash from '@core/quickflash';
@@ -54,7 +54,7 @@ database.connect( config.mongo, config.db as ConnectionOptions ).then(async () =
 	});
 
 	// Handle authentication
-	auth.load( app );
+	loadAuth(app);
 
 	// Handle sessions
 	sessions( app );

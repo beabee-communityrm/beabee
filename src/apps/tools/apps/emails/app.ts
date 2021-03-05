@@ -4,8 +4,7 @@ import _ from 'lodash';
 import Papa from 'papaparse';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { hasNewModel } from '@core/middleware';
+import { hasNewModel, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
@@ -36,7 +35,7 @@ function schemaToEmail(data: EmailSchema): Email {
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get('/', wrapAsync(async (req, res) => {
 	const emails = await getRepository(Email).find();
