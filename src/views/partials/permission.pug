@@ -1,5 +1,7 @@
 span.list-group-item( class=( permission.dateAdded > moment() || permission.dateExpires != undefined && permission.dateExpires < moment() ? 'disabled' : '' ) )
-	h5.list-group-item-heading #{ permission.permission }
+	h5.list-group-item-heading
+		= permission.permission[0].toUpperCase()
+		= permission.permission.slice(1)
 	p.list-group-item-text Valid&nbsp;
 		time( datetime=moment( permission.dateAdded, moment.ISO_8601 ), title=moment( permission.dateAdded ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( permission.dateAdded ).format( 'DD/MM/Y' ) }
 		if permission.dateExpires

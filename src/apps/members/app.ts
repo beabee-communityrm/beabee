@@ -72,9 +72,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
-		const qb = createQueryBuilder(MemberPermission, 'mp');
-		qb.where('TRUE');
-
+		const qb = createQueryBuilder(MemberPermission, 'mp').where('TRUE');
 		if (query.permission) {
 			qb.andWhere('mp.permission = :permission', {permission: query.permission});
 		}
@@ -84,7 +82,6 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 					.orWhere('mp.dateExpires >= :dateExpires', {dateExpires: new Date()});
 			}));
 		}
-
 		const memberships = await qb.getMany();
 
 		if (!filter.$and) filter.$and = [];
