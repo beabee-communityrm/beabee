@@ -87,13 +87,13 @@ async function fetchMembers(startDate: string|undefined, endDate: string|undefin
 
 	console.log('# Fetching members');
 
-	const memberPermissions = await getRepository(MemberPermission).find({
+	const memberships = await getRepository(MemberPermission).find({
 		where: [
 			{permission: 'member', dateAdded: Between(actualStartDate, actualEndDate)},
 			{permission: 'member', dateExpires: Between(actualStartDate, actualEndDate)},
 		]
 	});
-	const members = await db.Members.find({_id: {$in: memberPermissions.map(mp => mp.memberId)}});
+	const members = await db.Members.find({_id: {$in: memberships.map(mp => mp.memberId)}});
 	console.log(`Got ${members.length} members`);
 	members.forEach(member => {
 		console.log(member.isActiveMember ? 'U' : 'D', member.email);

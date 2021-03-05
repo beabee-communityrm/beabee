@@ -19,15 +19,15 @@ async function getParams(): Promise<Param[]> {
 }
 
 async function getQuery({params}: Export): Promise<any> {
-	const memberPermissions = await getRepository(MemberPermission).find({
+	const memberships = await getRepository(MemberPermission).find({
 		permission: 'member', dateExpires: MoreThan(new Date())
 	});
 
 	const members: {memberId: string}[] = params?.hasActiveSubscription ?
 		await getRepository(GCPaymentData).find({
-			memberId: In(memberPermissions.map(p => p.memberId)),
+			memberId: In(memberships.map(p => p.memberId)),
 			subscriptionId: Not(IsNull())
-		}) : memberPermissions;
+		}) : memberships;
 
 	return {
 		_id: {$in: members.map(m => m.memberId)}

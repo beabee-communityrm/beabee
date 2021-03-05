@@ -72,13 +72,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
-		const memberPermissions = await getRepository(MemberPermission).find({
+		const memberships = await getRepository(MemberPermission).find({
 			permission: query.permission as PermissionType,
 			...!query.show_inactive && {dateExpires: MoreThan(new Date())}
 		});
 
 		if (!filter.$and) filter.$and = [];
-		filter.$and.push( { _id: { $in: memberPermissions.map(p => p.memberId) } } );
+		filter.$and.push( { _id: { $in: memberships.map(p => p.memberId) } } );
 	}
 	
 	const page = query.page ? Number( query.page ) : 1;

@@ -24,7 +24,7 @@ async function getParams(): Promise<Param[]> {
 
 async function getQuery({params}: Export) {
 	const now = new Date();
-	const memberPermissions = await createQueryBuilder(MemberPermission, 'mp')
+	const memberships = await createQueryBuilder(MemberPermission, 'mp')
 		.where({permission: 'member', dateAdded: LessThan(now)})
 		.andWhere(new Brackets(qb => {
 			qb.where('mp.dateExpires >= :now', {now})
@@ -33,7 +33,7 @@ async function getQuery({params}: Export) {
 		.getMany();
 
 	return {
-		_id: {$in: memberPermissions.map(p => p.memberId)},
+		_id: {$in: memberships.map(p => p.memberId)},
 		contributionMonthlyAmount: {
 			$gte: params?.monthlyAmountThreshold === undefined ? 3 : params?.monthlyAmountThreshold
 		},

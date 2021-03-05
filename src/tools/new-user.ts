@@ -90,22 +90,22 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 	const member = await new db.Members(user).save();
 
 	if ( answers.membership != 'No' ) {
-		const memberPermission = new MemberPermission();
-		memberPermission.permission = 'member';
-		memberPermission.memberId = member.id;
+		const membership = new MemberPermission();
+		membership.permission = 'member';
+		membership.memberId = member.id;
 
 		const now = moment();
 		switch ( answers.membership ) {
 		case 'Yes (expires after 1 month)':
-			memberPermission.dateExpires = now.add( '1', 'months' ).toDate();
+			membership.dateExpires = now.add( '1', 'months' ).toDate();
 			break;
 		case 'Yes (expired yesterday)':
-			memberPermission.dateAdded = now.subtract( '1', 'months' ).toDate();
-			memberPermission.dateExpires = now.subtract( '1', 'day' ).toDate();
+			membership.dateAdded = now.subtract( '1', 'months' ).toDate();
+			membership.dateExpires = now.subtract( '1', 'day' ).toDate();
 			break;
 		}
 
-		await getRepository(MemberPermission).save(memberPermission);
+		await getRepository(MemberPermission).save(membership);
 	}
 
 	if ( answers.permission != 'None' ) {
