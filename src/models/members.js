@@ -207,7 +207,9 @@ module.exports.schema.post('find', async function (docs) {
 });
 
 module.exports.schema.post('findOne', async function (doc) {
-	doc.permissions = await getRepository(MemberPermission).find({memberId: doc.id});
+	if (doc) {
+		doc.permissions = await getRepository(MemberPermission).find({memberId: doc.id});
+	}
 });
 
 module.exports.model = mongoose.model( module.exports.name, module.exports.schema );
