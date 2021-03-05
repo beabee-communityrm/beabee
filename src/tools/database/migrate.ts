@@ -22,6 +22,7 @@ import PollResponse from '@models/PollResponse';
 import Project from '@models/Project';
 import ProjectMember from '@models/ProjectMember';
 import ProjectEngagement from '@models/ProjectEngagement';
+import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 type Mapping<T> = {[K in Exclude<WritableKeysOf<T>,'id'>]: (subdoc: Document, doc: Document) => T[K]};
 
@@ -58,6 +59,13 @@ function ident<T extends readonly string[]>(fields: T): {[key in T[number]]: any
 }
 
 const newItemMap: Map<string, ObjectLiteral> = new Map();
+
+const permissionToName: {[key: string]: PermissionType} = {
+	'5b30d2d9ae965b19f2503dfc': 'access',
+	'5b30d2d9ae965b19f2503dfb': 'superadmin',
+	'5b30d2d9ae965b19f2503dfa': 'admin',
+	'5b30d2d9ae965b19f2503df9': 'member'
+};
 
 const migrations: Migration<any>[] = [
 	/*createMigration(PageSettings, 'pagesettings', {
@@ -181,7 +189,7 @@ const migrations: Migration<any>[] = [
 		project: (subDoc, doc) => newItemMap.get(doc.project.toString()) as Project,
 		toMemberId: (subDoc, doc) => doc.member.toString(),
 	}, doc => doc.engagement || [])*/
-	createMigration(PollResponse, 'members', {
+	/*createMigration(PollResponse, 'members', {
 		poll: () => ({slug: 'join-survey'} as Poll),
 		memberId: objectId('_id'),
 		guestName: () => undefined,
@@ -211,7 +219,13 @@ const migrations: Migration<any>[] = [
 		isPartial: () => false,
 		createdAt: doc => doc.gocardless.cancelled_at,
 		updatedAt: doc => doc.gocardless.cancelled_at
-	}, doc => doc.cancellation && doc.gocardless?.cancelled_at ? [doc] : [])
+	}, doc => doc.cancellation && doc.gocardless?.cancelled_at ? [doc] : [])*/
+	createMigration(MemberPermission, 'members', {
+		memberId: (subdoc, doc) => doc._id.toString(),
+		permission: subdoc => permissionToName[subdoc.permission.toString()],
+		dateAdded: subdoc => subdoc.date_added,
+		dateExpires: subdoc => subdoc.date_expires
+	}, doc => doc.permissions || [])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
@@ -230,7 +244,9 @@ const doMigration = (migration: Migration<any>) => async (manager: EntityManager
 				for (const key in migration.itemMap) {
 					item[key] = migration.itemMap[key](subdoc, doc);
 				}
-				items.push({oldId: subdoc._id.toString(), item});
+				if (subdoc._id) {
+					items.push({oldId: subdoc._id.toString(), item});
+				}
 			}
 
 			if (items.length >= 1000) {
