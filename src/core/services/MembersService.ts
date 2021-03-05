@@ -19,11 +19,14 @@ export default class MembersService {
 
 	static async createMember(memberObj: PartialMember): Promise<Member> {
 		try {
-			return await Members.create({
+			const member = await Members.create({
 				...memberObj,
 				referralCode: MembersService.generateMemberCode(memberObj),
 				pollsCode: MembersService.generateMemberCode(memberObj)
 			} as Member);
+			// TODO: remove when member in ORM
+			member.permissions = [];
+			return member;
 		} catch (saveError) {
 			const {code, message} = saveError;
 			if (code === 11000 && (message.indexOf('referralCode') > -1 || message.indexOf('pollsCode') > -1)) {
