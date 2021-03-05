@@ -1,6 +1,6 @@
 import express, { Request } from 'express';
 import queryString from 'query-string';
-import { getRepository, MoreThan } from 'typeorm';
+import { Brackets, createQueryBuilder, getRepository, MoreThan } from 'typeorm';
 
 import { Members } from '@core/database';
 import { isAdmin } from '@core/middleware';
@@ -72,10 +72,20 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
-		const memberships = await getRepository(MemberPermission).find({
-			...query.permission && {permission: query.permission as PermissionType},
-			...!query.show_inactive && {dateExpires: MoreThan(new Date())}
-		});
+		const qb = createQueryBuilder(MemberPermission, 'mp');
+		qb.where('TRUE');
+
+		if (query.permission) {
+			qb.andWhere('mp.permission = :permission', {permission: query.permission});
+		}
+		if (!query.show_inactive) {
+			qb.andWhere(new Brackets(qb => {
+				qb.where('mp.dateExpires IS NULL')
+					.orWhere('mp.dateExpires >= :dateExpires', {dateExpires: new Date()});
+			}));
+		}
+
+		const memberships = await qb.getMany();
 
 		if (!filter.$and) filter.$and = [];
 		filter.$and.push( { _id: { $in: memberships.map(p => p.memberId) } } );
