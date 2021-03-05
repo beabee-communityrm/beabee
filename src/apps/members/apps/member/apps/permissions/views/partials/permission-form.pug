@@ -13,18 +13,15 @@ form( method="post" )
 	.form-group
 		label Start
 		br
-		if current != undefined && current.date_added
-			- date = current.date_added
-		else
-			- date = moment()
+		- date = current ? current.dateAdded : moment();
 		input( type="time", name="startTime", value=moment( date ).format( 'HH:mm' ), style="display: inline; width: auto;" ).form-control
 		| &nbsp;
 		input( type="date", name="startDate", value=moment( date ).format( 'YYYY-MM-DD' ), style="display: inline; width: auto;" ).form-control
 	.form-group
 		label Expires
 		br
-		input( type="time", name="expiryTime", value=( current && current.date_expires ? moment( current.date_expires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" ).form-control
+		input( type="time", name="expiryTime", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" ).form-control
 		| &nbsp;
-		input( type="date", name="expiryDate", value=( current && current.date_expires ? moment( current.date_expires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" ).form-control
+		input( type="date", name="expiryDate", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" ).form-control
 	.form-group
 		button.btn.btn-primary #{ action }

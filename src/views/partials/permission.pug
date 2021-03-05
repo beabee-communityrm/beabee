@@ -1,31 +1,19 @@
-span.list-group-item( class=( permission.date_added > moment() || permission.date_expires != undefined && permission.date_expires < moment() ? 'disabled' : '' ) )
-	h5.list-group-item-heading #{ permission.permission.name }
-		if access( 'admin' )
-			if permission.permission.slug == config.permission.member
-				| 
-				small: span.label.label-success Membership
-			if permission.permission.slug == config.permission.superadmin
-				| 
-				small: span.label.label-danger Super Admin
-			if permission.permission.slug == config.permission.admin
-				| 
-				small: span.label.label-primary Admin
-	if permission.permission.description
-		p.list-group-item-text #{ permission.permission.description }
+span.list-group-item( class=( permission.dateAdded > moment() || permission.dateExpires != undefined && permission.dateExpires < moment() ? 'disabled' : '' ) )
+	h5.list-group-item-heading #{ permission.permission }
 	p.list-group-item-text Valid&nbsp;
-		time( datetime=moment( permission.date_added, moment.ISO_8601 ), title=moment( permission.date_added ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( permission.date_added ).format( 'DD/MM/Y' ) }
-		if permission.date_expires
+		time( datetime=moment( permission.dateAdded, moment.ISO_8601 ), title=moment( permission.dateAdded ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( permission.dateAdded ).format( 'DD/MM/Y' ) }
+		if permission.dateExpires
 			|  &mdash;
-			time( datetime=moment( permission.date_expires, moment.ISO_8601 ), title=moment( permission.date_expires ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( permission.date_expires ).format( 'DD/MM/Y' ) }
+			time( datetime=moment( permission.dateExpires, moment.ISO_8601 ), title=moment( permission.dateExpires ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( permission.dateExpires ).format( 'DD/MM/Y' ) }
 
 		else
 			|  onwards
-	span( style="position: absolute; top: 1em; right: 1em;" )
-		if access( 'superadmin' )
-			a( href="/members/" + member.uuid + "/permissions/" + permission._id + "/modify", style="margin-right: 1em;" )
+	if access( 'superadmin' )
+		span( style="position: absolute; top: 1em; right: 1em;" )
+			a( href="/members/" + member.uuid + "/permissions/" + permission.permission + "/modify", style="margin-right: 1em;" )
 				span.glyphicon.glyphicon-pencil
 			form(
-				action="/members/" + member.uuid + "/permissions/" + permission._id + "/revoke",
+				action="/members/" + member.uuid + "/permissions/" + permission.permission + "/revoke",
 				method="post",
 				style="display:inline;"
 				onclick="return confirm('Are you sure?')"
