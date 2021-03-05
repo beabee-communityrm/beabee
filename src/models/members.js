@@ -140,25 +140,6 @@ module.exports = {
 			enum: ['monthly', 'annually', 'gift']
 		},
 		nextContributionMonthlyAmount: Number,
-		permissions: [ {
-			permission: {
-				type: ObjectId,
-				ref: 'Permissions',
-				required: true
-			},
-			date_added: {
-				type: Date,
-				default: Date.now,
-				required: true
-			},
-			date_expires: {
-				type: Date
-			},
-			admin: {
-				type: Boolean,
-				default: false
-			}
-		} ],
 		last_seen: Date,
 		exports: [ {
 			export_id: {

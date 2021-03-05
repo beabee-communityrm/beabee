@@ -5,7 +5,7 @@ module.exports = [
 	{
 		name: 'Log in',
 		run: async ( req ) => {
-			const member = await Members.findOne( { email: req.specialUrl.email } ).populate( 'permissions.permission' );
+			const member = await Members.findOne( { email: req.specialUrl.email } );
 
 			if (!member) {
 				throw Error('Unknown member');
@@ -16,18 +16,11 @@ module.exports = [
 					// Force session to be temporary
 					req.session.cookie.expires = false;
 
-					// TODO: remove this, currently copied from auth deserializeUser
-					let permissions = [];
-					// Loop through permissions check they are active right now and add those to the array
-					for ( var p = 0; p < member.permissions.length; p++ ) {
-						if ( member.permissions[p].date_added <= new Date() ) {
-							if ( ! member.permissions[p].date_expires || member.permissions[p].date_expires > new Date() ) {
-								permissions.push( member.permissions[p].permission.slug );
-							}
-						}
-					}
-
-					req.user.quickPermissions = permissions;
+					// TODO: Copied from core/authentication, check why is this needed
+					req.user.quickPermissions = [
+						'loggedIn',
+						...member.permissions.filter(p => p.isActive).map(p => p.permission)
+					];
 
 					resolve();
 

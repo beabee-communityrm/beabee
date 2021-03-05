@@ -7,6 +7,8 @@ import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import config from '@config';
+import { getRepository, MoreThan } from 'typeorm';
+import MemberPermission from '@models/MemberPermission';
 
 const app = express();
 
@@ -75,12 +77,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/locations', wrapAsync(async (req, res) => {
+	const memberships = await getRepository(MemberPermission).find({
+		permission: 'member',
+		dateExpires: MoreThan(new Date())
+	});
 	const members = await Members.find({
+		_id: {$in: memberships.map(m => m.memberId)},
 		'delivery_address.postcode': {$exists: 1},
-		permissions: {$elemMatch: {
-			permission: config.permission.memberId,
-			date_expires: {$gte: new Date()}
-		}},
 	}, 'delivery_address.postcode');
 	const memberPostcodes = members.map(m => m.delivery_address!.postcode!);
 	const postcodes = await getPostcodes(memberPostcodes);
