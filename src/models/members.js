@@ -185,6 +185,11 @@ module.exports.schema.virtual( 'memberMonthsRemaining' ).get( function () {
 			.subtract(config.gracePeriod).diff(moment.utc(), 'months')) : 0;
 } );
 
+module.exports.schema.virtual( 'membershipExpires' ).get( function () {
+	const membership = this.permissions.find(p => p.permission === 'member');
+	return membership && membership.dateExpires;
+} );
+
 module.exports.schema.virtual( 'isActiveMember' ).get( function () {
 	const membership = this.permissions.find(p => p.permission === 'member');
 	return membership && membership.isActive;

@@ -30,7 +30,7 @@ block contents
 				p.
 					You are on a gift membership. You can start a contribution to
 					continue your membership beyond
-					#{ moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY') }
+					#{ moment(user.membershipExpires).format('dddd, MMMM Do YYYY') }
 
 				hr
 			else if gcData
@@ -52,7 +52,7 @@ block contents
 							| it #{user.isActiveMember ? 'will expire' : 'expired'} on
 						|
 						|
-						= moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
+						= moment(user.membershipExpires).format('dddd, MMMM Do YYYY')
 						| .
 				hr
 

@@ -6,7 +6,7 @@ form(
 	data-paying-fee=gcData && gcData.payFee
 	data-active-member=user.isActiveMember
 	data-active-subscription=hasActiveSubscription
-	data-next=moment(user.memberPermission.date_expires).format('dddd, MMMM Do YYYY')
+	data-next=moment(user.membershipExpires).format('dddd, MMMM Do YYYY')
 	data-months=monthsLeft
 ).form-horizontal.js-update-form
 	+csrf
@@ -118,7 +118,7 @@ form(
 							input(type='radio' name='prorate' value='false' required)
 							| No, I'll wait until
 							|
-							= moment(user.memberPermission.date_expires).format('DD/MM/YYYY')
+							= moment(user.membershipExpires).format('DD/MM/YYYY')
 							|
 							| to start my new contribution
 					p

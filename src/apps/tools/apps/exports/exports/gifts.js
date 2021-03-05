@@ -30,7 +30,7 @@ async function getExport(giftFlows) {
 			GifteeName: member.fullname,
 			GifteeFirstName: member.firstname,
 			GifteeEmail: member.email,
-			GifteeExpiryDate: member.memberPermission.date_expires.toISOString(),
+			GifteeExpiryDate: member.membershipExpires.toISOString(),
 			GifteeHasActivated: !member.password.hash,
 			GifteeHasConverted: member.contributionPeriod !== 'gift',
 			...addressFields(member.delivery_address)
