@@ -48,7 +48,7 @@ function schemaToGiftForm(data: CreateGiftSchema): GiftForm {
 	giftForm.firstname = data.firstname;
 	giftForm.lastname = data.lastname;
 	giftForm.email = data.email;
-	giftForm.startDate = moment.utc(data.startDate + 'T00:00:00').toDate();
+	giftForm.startDate = moment.utc(data.startDate).toDate();
 	giftForm.message = data.message;
 	giftForm.fromName = data.fromName;
 	giftForm.fromEmail = data.fromEmail;
@@ -76,7 +76,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	let error;
 	const giftForm = schemaToGiftForm(req.body);
 
-	if (moment(giftForm.startDate).isBefore('day')) {
+	if (moment(giftForm.startDate).isBefore(undefined, 'day')) {
 		error = 'flash-gifts-date-in-the-past' as const;
 	} else {
 		const member = await Members.findOne({email: giftForm.email});
