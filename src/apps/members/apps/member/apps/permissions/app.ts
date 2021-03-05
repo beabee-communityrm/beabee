@@ -1,11 +1,14 @@
 import express from 'express';
+import moment from 'moment';
+import { getRepository } from 'typeorm';
 
-import { isSuperAdmin } from '@core/middleware';
+import { hasSchema, isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import { Member, Permission } from '@models/members';
-import { Permissions } from '@core/database';
-import moment from 'moment';
+import { Member } from '@models/members';
+import MemberPermission from '@models/MemberPermission';
+
+import { createPermissionSchema, updatePermissionSchema } from './schemas.json';
 
 const app = express();
 
@@ -14,50 +17,34 @@ app.set( 'views', __dirname + '/views' );
 app.use(isSuperAdmin);
 
 app.get( '/', wrapAsync( async ( req, res ) => {
-	const permissions = await Permissions.find();
-	res.render( 'index', { permissions, member: req.model } );
+	res.render( 'index', { member: req.model } );
 } ) );
 
-app.post( '/', wrapAsync( async (req, res ) => {
-	const { permission: slug, start_time, start_date, expiry_date, expiry_time } = req.body;
+app.post( '/', hasSchema(createPermissionSchema).orFlash, wrapAsync( async (req, res ) => {
+	const { permission, startTime, startDate, expiryDate, expiryTime } = req.body;
 	const member = req.model as Member;
 
-	if ( !slug ) {
-		req.flash( 'danger', 'information-ommited' );
-		res.redirect( req.originalUrl );
-		return;
-	}
-
-	const permission = await Permissions.findOne( { slug } );
-	if ( !permission ) {
-		req.flash( 'warning', 'permission-404' );
-		res.redirect( req.originalUrl );
-		return;
-	}
-
-	const dupe = member.permissions.find(p => (p.permission as any).equals(permission));
+	const dupe = member.permissions.find(p => p.permission === permission);
 	if ( dupe ) {
 		req.flash( 'danger', 'permission-duplicate' );
 		res.redirect( req.originalUrl );
 		return;
 	}
 
-	const new_permission: Permission = {
-		permission: permission._id,
-		date_added: (start_date && start_time ? moment( start_date + 'T' + start_time ) : moment()).toDate()
-	};
+	const newPermission = new MemberPermission();
+	newPermission.memberId = member.id;
+	newPermission.dateAdded = moment(startDate + 'T' + startTime).toDate();
 
-	if ( expiry_date && expiry_time ) {
-		new_permission.date_expires = moment( expiry_date + 'T' + expiry_time ).toDate();
-		if ( new_permission.date_added >= new_permission.date_expires ) {
+	if (expiryDate && expiryTime) {
+		newPermission.dateExpires = moment(expiryDate + 'T' + expiryTime).toDate();
+		if (newPermission.dateAdded >= newPermission.dateExpires) {
 			req.flash( 'warning', 'permission-expiry-error' );
 			res.redirect( req.originalUrl );
 			return;
 		}
 	}
 
-	member.permissions.push(new_permission);
-	await member.save();
+	await getRepository(MemberPermission).save(newPermission);
 
 	res.redirect( req.originalUrl );
 } ) );
@@ -65,7 +52,7 @@ app.post( '/', wrapAsync( async (req, res ) => {
 app.get( '/:id/modify', wrapAsync( async ( req, res ) =>{
 	const member = req.model as Member;
 
-	const permission = member.permissions.id(req.params.id);
+	const permission = member.permissions.find(p => p.permission === req.params.id);
 	if ( permission ) {
 		res.render( 'permission', { member, current: permission } );
 	} else {
@@ -74,34 +61,28 @@ app.get( '/:id/modify', wrapAsync( async ( req, res ) =>{
 	}
 } ) );
 
-app.post( '/:id/modify', wrapAsync( async ( req, res ) => {
-	const { body: { start_date, start_time, expiry_date, expiry_time } } = req;
+app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( async ( req, res, next ) => {
+	const { body: { startDate, startTime, expiryDate, expiryTime } } = req;
 	const member = req.model as Member;
 
-	const permission = member.permissions.id( req.params.id );
+	const permission = member.permissions.find(p => p.permission === req.params.id);
 	if ( !permission ) {
-		req.flash( 'warning', 'permission-404' );
+		return next('route');
+	}
+
+	const dateAdded = moment(startDate + 'T' + startTime).toDate();
+	const dateExpires = expiryDate && expiryTime ? moment(expiryDate + 'T' + expiryTime).toDate() : undefined;
+
+	if ( dateExpires && dateAdded >= dateExpires ) {
+		req.flash( 'warning', 'permission-expiry-error' );
 		res.redirect( req.baseUrl );
 		return;
 	}
 
-	if ( start_date !== '' && start_time !== '' ) {
-		permission.date_added = moment( start_date + 'T' + start_time ).toDate();
-	}
-
-	if ( expiry_date !== '' && expiry_time !== '' ) {
-		permission.date_expires = moment( expiry_date + 'T' + expiry_time ).toDate();
-
-		if ( permission.date_added >= permission.date_expires ) {
-			req.flash( 'warning', 'permission-expiry-error' );
-			res.redirect( req.baseUrl );
-			return;
-		}
-	} else {
-		permission.date_expires = undefined;
-	}
-
-	await member.save();
+	await getRepository(MemberPermission).update({
+		memberId: member.id,
+		permission: permission.permission
+	}, {dateAdded, dateExpires});
 
 	req.flash( 'success', 'permission-updated' );
 	res.redirect( req.baseUrl );
@@ -109,14 +90,10 @@ app.post( '/:id/modify', wrapAsync( async ( req, res ) => {
 
 app.post( '/:id/revoke', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
-	const permission = member.permissions.id( req.params.id );
-	if ( permission ) {
-		permission.remove!();
-		await member.save();
-		req.flash( 'success', 'permission-removed' );
-	} else {
-		req.flash( 'warning', 'permission-404' );
-	}
+	const permission = req.params.id as MemberPermission['permission'];
+	await getRepository(MemberPermission).delete({memberId: member.id, permission});
+
+	req.flash( 'success', 'permission-removed' );
 	res.redirect( req.baseUrl );
 } ) );
 

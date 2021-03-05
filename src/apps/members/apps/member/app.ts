@@ -1,6 +1,7 @@
 import express from 'express';
 import _ from 'lodash';
 import moment from 'moment';
+import { getRepository } from 'typeorm';
 
 import config from '@config';
 
@@ -16,6 +17,7 @@ import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import { Member } from '@models/members';
+import MemberPermission from '@models/MemberPermission';
 
 const app = express();
 
@@ -29,9 +31,11 @@ app.use( isAdmin );
 
 app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
-	req.model = await Members.findOne({uuid: req.allParams.uuid}).populate('permissions.permission').exec();
-	if (req.model) {
-		res.locals.paymentData = await PaymentService.getPaymentData(req.model as Member);
+	const member = await Members.findOne({uuid: req.allParams.uuid});
+	if (member) {
+		member.permissions = await getRepository(MemberPermission).find({memberId: member.id});
+		req.model = member;
+		res.locals.paymentData = await PaymentService.getPaymentData(member);
 		next();
 	} else {
 		next('route');

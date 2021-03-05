@@ -1,5 +1,6 @@
 import { Document, Model } from 'mongoose';
 import { ContributionPeriod, ContributionType } from '@core/utils';
+import MemberPermission from './MemberPermission';
 
 interface PartialMember {
 	email: string,
@@ -52,6 +53,7 @@ interface Member extends PartialMember, Document {
 	readonly setupComplete: boolean
 	readonly referralLink: string
 	readonly memberMonthsRemaining: number
+	permissions: MemberPermission[]
 }
 
 export const model: Model<Member>;

@@ -6,7 +6,7 @@ export default class MemberPermission {
 	memberId!: string
 
 	@PrimaryColumn()
-	permission!: string
+	permission!: 'access'|'member'|'admin'|'superadmin';
 
 	@CreateDateColumn()
 	dateAdded!: Date
