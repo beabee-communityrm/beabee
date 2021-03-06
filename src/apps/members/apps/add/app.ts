@@ -25,7 +25,8 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	const memberObj = await GCPaymentService.customerToMember(req.body.customerId, overrides);
 	if (memberObj) {
 		const member = await MembersService.createMember(memberObj);
-		res.redirect( app.mountpath + '/' + member.uuid );
+		await GCPaymentService.updatePaymentMethod(member, req.body.customerId, req.body.mandateId);
+		res.redirect( '/members/' + member.uuid );
 	} else {
 		req.flash('error', 'member-add-invalid-direct-debit');
 		res.redirect( app.mountpath + '/add' );
