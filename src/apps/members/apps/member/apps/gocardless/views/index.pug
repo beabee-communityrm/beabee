@@ -24,7 +24,7 @@ mixin commonSubscriptionFields(idPrefix, periodReadOnly)
 	+input( 'checkbox', 'Paying fee', 'payFee', {
 		left: 3, right: 4,
 		options: {'true': 'Yes'},
-		value: gcData.payFee,
+		value: paymentData.payFee,
 		id: idPrefix + 'PayFee'
 	})
 
@@ -35,8 +35,8 @@ block contents
 		.col-md-9
 			+page_header( title )
 
-			h4= gcData.subscriptionId ? 'Update contribution' : 'Start contribution'
-			if !gcData.mandateId
+			h4= paymentData.subscriptionId ? 'Update contribution' : 'Start contribution'
+			if !paymentData.mandateId
 				.alert.alert-warning User does not have an active payment method
 			else if !canChange
 				.alert.alert-warning Can't change contribution at the moment, probably due to pending payments
@@ -44,7 +44,7 @@ block contents
 				form( method="post").form-horizontal
 					+csrf
 					input( type='hidden' name='action' value='update-subscription' )
-					+commonSubscriptionFields('update', !!gcData.subscriptionId)
+					+commonSubscriptionFields('update', !!paymentData.subscriptionId)
 
 					if monthsLeft > 0
 						.form-group
@@ -57,7 +57,7 @@ block contents
 										|
 										small (#{monthsLeft} months left until next payment)
 
-					+form_button( gcData.subscriptionId ? 'Update' : 'Start', 'success', { left: 3 } )
+					+form_button( paymentData.subscriptionId ? 'Update' : 'Start', 'success', { left: 3 } )
 
 			h4 Manual update
 			.alert.alert-danger.
@@ -66,8 +66,8 @@ block contents
 			form( method="post" ).form-horizontal
 				+csrf
 				input( type='hidden' name='action' value='force-update' )
-				+input( 'text', 'Customer ID', 'customerId', { value: gcData.customerId, left: 3, right: 4 } )
-				+input( 'text', 'Mandate ID', 'mandateId', { value: gcData.mandateId, left: 3, right: 4 } )
-				+input( 'text', 'Subscription ID', 'subscriptionId', { value: gcData.subscriptionId, left: 3, right: 4 } )
+				+input( 'text', 'Customer ID', 'customerId', { value: paymentData.customerId, left: 3, right: 4 } )
+				+input( 'text', 'Mandate ID', 'mandateId', { value: paymentData.mandateId, left: 3, right: 4 } )
+				+input( 'text', 'Subscription ID', 'subscriptionId', { value: paymentData.subscriptionId, left: 3, right: 4 } )
 				+commonSubscriptionFields('force', false)
 				+form_button( 'Update', 'danger', { left: 3 } )

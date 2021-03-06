@@ -16,7 +16,7 @@ app.set( 'views', __dirname + '/views' );
 app.use(auth.isSuperAdmin);
 
 app.use((req, res, next) => {
-	if (res.locals.gcData) {
+	if (res.locals.paymentData) {
 		next();
 	} else {
 		req.flash('error', 'gocardless-no-data');
