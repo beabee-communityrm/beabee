@@ -28,8 +28,7 @@ app.post( '/', hasSchema(updateSchema).orFlash, wrapAsync( hasUser(async functio
 
 		req.flash( 'success', 'account-updated' );
 	} catch ( error ) {
-		// Duplicate key (on email)
-		if ( error.code === 11000 ) {
+		if (isDuplicateIndex(error, 'email')) {
 			req.flash( 'danger', 'email-duplicate' );
 		} else {
 			throw error;
