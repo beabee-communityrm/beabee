@@ -3,8 +3,9 @@ import	express from 'express';
 import { hasSchema, isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
 
-import { updateSchema } from './schemas.json';
 import MembersService from '@core/services/MembersService';
+
+import { updateSchema } from './schemas.json';
 
 const app = express();
 
@@ -20,16 +21,12 @@ app.post( '/', hasSchema(updateSchema).orFlash, wrapAsync( hasUser(async functio
 	const { body: { delivery_optin, delivery_line1, delivery_line2, delivery_city,
 		delivery_postcode } } = req;
 
-	await MembersService.updateMember(req.user, {
-		delivery_optin,
-		delivery_address: delivery_optin ? {
-			line1: delivery_line1,
-			line2: delivery_line2,
-			city: delivery_city,
-			postcode: delivery_postcode
-		} : {}
+	await MembersService.updateDeliveryAddress(req.user, delivery_optin, {
+		line1: delivery_line1,
+		line2: delivery_line2,
+		city: delivery_city,
+		postcode: delivery_postcode
 	});
-
 
 	req.log.info( {
 		app: 'profile',

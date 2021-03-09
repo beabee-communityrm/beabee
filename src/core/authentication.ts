@@ -8,13 +8,13 @@ import { getRepository } from 'typeorm';
 
 import config from '@config';
 
-import { Members } from '@core/database';
 import { cleanEmailAddress, getNextParam, sleep } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
 
-import MemberPermission, { PermissionType } from '@models/MemberPermission';
-import { Member } from '@models/members';
+import Member, { Password } from '@models/Member';
+import { PermissionType } from '@models/MemberPermission';
+import MembersService from './services/MembersService';
 
 export enum AuthenticationStatus {
 	LOGGED_IN = 1,
@@ -25,7 +25,7 @@ export enum AuthenticationStatus {
 }
 
 interface PassportUser {
-	_id: string
+	id: string
 }
 
 export function load( app: express.Express ): void {
@@ -35,7 +35,7 @@ export function load( app: express.Express ): void {
 	}, async function( email, password, done ) {
 		if ( email ) email = cleanEmailAddress(email);
 
-		const user = await Members.findOne( { email } );
+		const user = await getRepository(Member).findOne( { email } );
 		if (user) {
 			const tries = user.password.tries || 0;
 			// Has account exceeded it's password tries?
@@ -49,30 +49,27 @@ export function load( app: express.Express ): void {
 
 			const hash = await hashPassword( password, user.password.salt, user.password.iterations );
 			if ( hash === user.password.hash ) {
-				const passportUser: PassportUser = {_id: user.id };
+				const passportUser: PassportUser = {id: user.id};
 
-				if ( user.password.reset_code ) {
-					user.password.reset_code = undefined;
-					await user.save();
+				if ( user.password.resetCode ) {
+					await MembersService.updateMember(user, {password: {...user.password, resetCode: undefined}});
 					return done( null, passportUser, { message: 'password-reset-attempt' } );
 				}
 
 				if ( tries > 0 ) {
-					user.password.tries = 0;
-					await user.save();
+					await MembersService.updateMember(user, {password: {...user.password, tries: 0}});
 					return done( null, passportUser, { message: OptionsService.getText( 'flash-account-attempts' ).replace( '%', tries.toString() ) } );
 				}
 
 				if ( user.password.iterations < config.iterations ) {
-					user.password = await generatePassword(password);
-					await user.save();
+					await MembersService.updateMember(user, {password: await generatePassword(password)});
 				}
 
 				return done( null, passportUser, { message: 'logged-in' } );
 			} else {
 				// If password doesn't match, increment tries and save
 				user.password.tries = tries + 1;
-				await user.save();
+				await MembersService.updateMember(user, {password: {...user.password, tries: tries + 1}});
 			}
 		}
 
@@ -102,11 +99,11 @@ export function load( app: express.Express ): void {
 	// Passport.js deserialise user function
 	passport.deserializeUser( async function( data, done ) {
 		const passportUser = data as PassportUser;
-		const member = await Members.findById( passportUser._id );
+		const member = await getRepository(Member).findOne( passportUser.id );
 		if ( member ) {
 			// Update last seen
-			member.last_seen = new Date();
-			await member.save();
+			member.lastSeen = new Date();
+			await getRepository(Member).update(member.id, {lastSeen: member.lastSeen});
 
 			const user = member as Express.User;
 			user.quickPermissions = [
@@ -160,11 +157,12 @@ export function hashPassword( password: string, salt: string, iterations: number
 }
 
 // Utility function generates a salt and hash from a plain text password
-export async function generatePassword( password: string ): Promise<{salt: string, hash: string, iterations: number}> {
+export async function generatePassword( password: string ): Promise<Password> {
 	const salt = await generateSalt();
 	const hash = await hashPassword(password, salt, config.iterations);
 	return {
-		salt, hash, iterations: config.iterations
+		salt, hash, iterations: config.iterations,
+		tries: 0
 	};
 }
 

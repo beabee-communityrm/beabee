@@ -2,7 +2,6 @@ import	express from 'express';
 import moment from 'moment';
 import { Between, getRepository } from 'typeorm';
 
-import { Members } from '@core/database';
 import { isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
@@ -33,7 +32,8 @@ app.get( '/:year?/:month?', wrapAsync(async function( req, res ) {
 		where: {
 			createdAt: Between(start.toDate(), end.toDate())
 		},
-		order: {chargeDate: 'DESC'}
+		order: {chargeDate: 'DESC'},
+		relations: ['member']
 	});
 
 	const successfulPayments = payments
@@ -43,15 +43,8 @@ app.get( '/:year?/:month?', wrapAsync(async function( req, res ) {
 
 	const total = successfulPayments.reduce((a, b) => a + b, 0).toFixed(2);
 
-	// TODO: Remove when members is in ORM
-	const members = await Members.find({_id: {$in: payments.map(p => p.memberId)}});
-	const paymentsWithMembers = payments.map(p => ({
-		...p,
-		member: members.find(m => m._id.equals(p.memberId))
-	}));
-
 	res.render( 'index', {
-		payments: paymentsWithMembers,
+		payments,
 		total: total,
 		next: end,
 		previous: previous,

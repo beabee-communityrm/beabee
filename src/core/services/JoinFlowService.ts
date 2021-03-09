@@ -5,7 +5,7 @@ import { generateCode } from '@core/authentication';
 import GCPaymentService from '@core/services/GCPaymentService';
 
 import JoinFlow, { JoinForm } from '@models/JoinFlow';
-import { Member } from '@models/members';
+import Member from '@models/Member';
 import RestartFlow from '@models/RestartFlow';
 
 export interface CompletedJoinFlow {
@@ -46,7 +46,7 @@ export default class JoinFlowService {
 
 	static async createRestartFlow(member: Member, completedJoinFlow: CompletedJoinFlow): Promise<RestartFlow> {
 		const restartFlow = new RestartFlow();
-		restartFlow.memberId = member._id.toString();
+		restartFlow.member = member;
 		restartFlow.customerId = completedJoinFlow.customerId;
 		restartFlow.mandateId = completedJoinFlow.mandateId;
 		restartFlow.joinForm = completedJoinFlow.joinForm;
@@ -58,7 +58,10 @@ export default class JoinFlowService {
 
 	static async completeRestartFlow(restartFlowId: string): Promise<RestartFlow|undefined> {
 		const restartFlowRepository = getRepository(RestartFlow);
-		const restartFlow = await restartFlowRepository.findOne(restartFlowId);
+		const restartFlow = await restartFlowRepository.findOne({
+			where: {restartFlowId},
+			relations: ['member']
+		});
 		if (restartFlow) {
 			await restartFlowRepository.delete(restartFlow.id);
 			return restartFlow;

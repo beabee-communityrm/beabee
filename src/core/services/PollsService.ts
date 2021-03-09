@@ -2,7 +2,7 @@ import { getRepository, IsNull, LessThan } from 'typeorm';
 
 import mailchimp from '@core/mailchimp';
 
-import { Member } from '@models/members';
+import Member from '@models/Member';
 import Poll from '@models/Poll';
 import PollResponse, { PollResponseAnswers } from '@models/PollResponse';
 
@@ -41,7 +41,7 @@ export default class PollsService {
 
 	static async getResponse(poll: Poll, member: Member): Promise<PollResponse|undefined> {
 		return await getRepository(PollResponse).findOne({
-			poll: {slug: poll.slug}, memberId: member.id
+			poll: {slug: poll.slug}, member
 		});
 	}
 
@@ -61,7 +61,7 @@ export default class PollsService {
 
 		const pollResponse = new PollResponse();
 		pollResponse.poll = poll;
-		pollResponse.memberId = member.id;
+		pollResponse.member = member;
 		pollResponse.answers = answers;
 		pollResponse.isPartial = isPartial;
 

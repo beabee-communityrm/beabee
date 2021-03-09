@@ -1,14 +1,13 @@
 import axios from 'axios';
 import express from 'express';
 
-import { Members } from '@core/database';
 import { log } from '@core/logging';
 import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import config from '@config';
-import { getRepository, MoreThan } from 'typeorm';
+import { Brackets, createQueryBuilder } from 'typeorm';
 import MemberPermission from '@models/MemberPermission';
+import MemberProfile from '@models/MemberProfile';
 
 const app = express();
 
@@ -77,15 +76,18 @@ app.get('/', (req, res) => {
 });
 
 app.get('/locations', wrapAsync(async (req, res) => {
-	const memberships = await getRepository(MemberPermission).find({
-		permission: 'member',
-		dateExpires: MoreThan(new Date())
-	});
-	const members = await Members.find({
-		_id: {$in: memberships.map(m => m.memberId)},
-		'delivery_address.postcode': {$exists: 1},
-	}, 'delivery_address.postcode');
-	const memberPostcodes = members.map(m => m.delivery_address!.postcode!);
+	const now = new Date();
+	const profiles = await createQueryBuilder(MemberProfile, 'profile')
+		.innerJoin(MemberPermission, 'mp')
+		.where('profile.deliveryOptIn = true')
+		.andWhere('mp.permission === "member" AND mp.dateAdded <= :now', {now})
+		.andWhere(new Brackets(qb =>
+			qb.where('mp.dateExpires >= :now', {now})
+				.orWhere('mp.dateExpires = NULL')
+		))
+		.getMany();
+
+	const memberPostcodes = profiles.map(p => p.deliveryAddress?.postcode).filter((p): p is string => !!p);
 	const postcodes = await getPostcodes(memberPostcodes);
 	res.send({postcodes});
 }));

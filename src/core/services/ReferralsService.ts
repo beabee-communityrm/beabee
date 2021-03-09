@@ -6,10 +6,9 @@ import { ReferralGiftForm } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 
-import { Member } from '@models/members';
+import Member from '@models/Member';
 import ReferralGift from '@models/ReferralGift';
 import Referral from '@models/Referral';
-import { Members } from '@core/database';
 
 const log = mainLogger.child({app: 'referrals-service'});
 
@@ -55,7 +54,7 @@ export default class ReferralsService {
 		}
 	}
 
-	static async createReferral(referrer: Member|null, referee: Member, giftForm: ReferralGiftForm): Promise<void> {
+	static async createReferral(referrer: Member|undefined, referee: Member, giftForm: ReferralGiftForm): Promise<void> {
 		log.info({
 			'action': 'create-referral',
 			data: {
@@ -67,8 +66,8 @@ export default class ReferralsService {
 		});
 		
 		const referral = new Referral();
-		referral.referrerId = referrer?.id;
-		referral.refereeId = referee.id;
+		referral.referrer = referrer;
+		referral.referee = referee;
 		referral.refereeAmount = referee.contributionMonthlyAmount || 0;
 		referral.refereeGift = {name: giftForm.referralGift || ''} as ReferralGift;
 		referral.refereeGiftOptions = giftForm.referralGiftOptions;
@@ -86,18 +85,10 @@ export default class ReferralsService {
 	}
 
 	static async getMemberReferrals(referrer: Member): Promise<Referral[]> {
-		const referrals = await getRepository(Referral).find({
-			relations: ['referrerGift'],
-			where: {referrerId: referrer.id}
+		return await getRepository(Referral).find({
+			relations: ['referrerGift', 'referee'],
+			where: {referrer}
 		});
-		
-		// TODO: Remove when members in ORM
-		const referees = await Members.find({_id: {$in: referrals.map(r => r.refereeId)}});
-
-		return referrals.map(referral => ({
-			...referral,
-			referee: referees.find(m => m.id === referral.refereeId)
-		}));
 	}
 
 	static async setReferrerGift(referral: Referral, giftForm: ReferralGiftForm): Promise<boolean> {
@@ -116,6 +107,6 @@ export default class ReferralsService {
 	}
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
-		await getRepository(Referral).update({referrerId: member.id}, {referrerId: undefined});
+		await getRepository(Referral).update({referrer: member}, {referrer: undefined});
 	}
 }

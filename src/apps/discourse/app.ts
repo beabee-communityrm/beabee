@@ -20,7 +20,7 @@ app.get( '/sso', wrapAsync(hasUser(async ( req, res ) => {
 
 	if (payload && sig && sso.validate(payload as string, sig as string)) {
 		const projectMemberships = await getRepository(ProjectMember).find({
-			where: {memberId: req.user.id},
+			where: {member: req.user},
 			relations: ['project']
 		});
 
@@ -32,7 +32,7 @@ app.get( '/sso', wrapAsync(hasUser(async ( req, res ) => {
 		const loginPayload = {
 			nonce,
 			email: req.user.email,
-			external_id: req.user.uuid,
+			external_id: req.user.id,
 			name: req.user.fullname,
 			username: req.user.email,
 			add_groups: groups

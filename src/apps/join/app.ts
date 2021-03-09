@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
+import { getRepository } from 'typeorm';
 
-import { Members } from '@core/database' ;
 import { hasSchema, isNotLoggedIn } from '@core/middleware' ;
-import { ContributionPeriod, loginAndRedirect, wrapAsync } from '@core/utils' ;
+import { ContributionPeriod, isDuplicateIndex, loginAndRedirect, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
@@ -13,7 +13,7 @@ import GCPaymentService from '@core/services/GCPaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import { JoinForm } from '@models/JoinFlow';
-import { Member } from '@models/members';
+import Member from '@models/Member';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
 
@@ -36,7 +36,7 @@ app.get( '/' , function( req, res ) {
 } );
 
 app.get( '/referral/:code', wrapAsync( async function( req, res ) {
-	const referrer = await Members.findOne( { referralCode: req.params.code.toUpperCase() } );
+	const referrer = await getRepository(Member).findOne( { referralCode: req.params.code.toUpperCase() } );
 	if ( referrer ) {
 		const gifts = await ReferralsService.getGifts();
 		res.render( 'index', { user: req.user, referrer, gifts } );
@@ -92,7 +92,7 @@ async function handleJoin(req: Request, res: Response, member: Member, {customer
 	await GCPaymentService.updateContribution(member, joinForm);
 
 	if (joinForm.referralCode) {
-		const referrer = await Members.findOne({referralCode: joinForm.referralCode});
+		const referrer = await getRepository(Member).findOne({referralCode: joinForm.referralCode});
 		await ReferralsService.createReferral(referrer, member, joinForm);
 	}
 
@@ -129,10 +129,9 @@ app.get( '/complete', [
 		const newMember = await MembersService.createMember(partialMember);
 		await handleJoin(req, res, newMember, joinFlow);
 		await EmailService.sendTemplateToMember('welcome', newMember);
-	} catch ( saveError ) {
-		// Duplicate email
-		if ( saveError.code === 11000 ) {
-			const oldMember = await Members.findOne({email: partialMember.email});
+	} catch (error) {
+		if (isDuplicateIndex(error, 'email')) {
+			const oldMember = await getRepository(Member).findOne({email: partialMember.email});
 			if (oldMember) {
 				if (oldMember.isActiveMember) {
 					res.redirect( app.mountpath + '/duplicate-email' );
@@ -152,7 +151,7 @@ app.get( '/complete', [
 				res.redirect( app.mountpath + '/complete/failed');
 			}
 		} else {
-			throw saveError;
+			throw error;
 		}
 	}
 }));
@@ -168,18 +167,14 @@ app.get('/restart/failed', (req, res) => {
 app.get('/restart/:id', wrapAsync(async (req, res, next) => {
 	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
 	if (restartFlow) {
-		const member = await Members.findById(restartFlow.memberId);
-		if (member) {
-			if (member.isActiveMember || !await GCPaymentService.canChangeContribution(member, false)) {
-				res.redirect( app.mountpath + '/restart/failed' );
-			} else {
-				await handleJoin(req, res, member, restartFlow);
-			}
-			return;
+		if (restartFlow.member.isActiveMember || !await GCPaymentService.canChangeContribution(restartFlow.member, false)) {
+			res.redirect( app.mountpath + '/restart/failed' );
+		} else {
+			await handleJoin(req, res, restartFlow.member, restartFlow);
 		}
+	} else {
+		next('route');
 	}
-
-	next('route');
 }));
 
 app.get('/expired-member', (req, res) => {

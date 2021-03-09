@@ -5,8 +5,9 @@ import { cleanEmailAddress, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
+import Member from '@models/Member';
+
 import { updateProfileSchema } from './schemas.json';
-import { Member } from '@models/members';
 
 const app = express();
 
@@ -25,21 +26,21 @@ app.post( '/', [
 			delivery_line2, delivery_city, delivery_postcode
 		}
 	} = req;
+	const member = req.model as Member;
 
 	const cleanedEmail = cleanEmailAddress(email);
 
 	try {
-		await MembersService.updateMember(req.model as Member, {
+		await MembersService.updateMember(member, {
 			email: cleanedEmail,
 			firstname,
-			lastname,
-			delivery_optin,
-			delivery_address: delivery_optin ? {
-				line1: delivery_line1,
-				line2: delivery_line2,
-				city: delivery_city,
-				postcode: delivery_postcode
-			} : {}
+			lastname
+		});
+		await MembersService.updateDeliveryAddress(member, delivery_optin, {
+			line1: delivery_line1,
+			line2: delivery_line2,
+			city: delivery_city,
+			postcode: delivery_postcode
 		});
 	} catch ( saveError ) {
 		// Duplicate key (on email)

@@ -1,15 +1,15 @@
 import express from 'express';
 import moment from 'moment';
 import Papa from 'papaparse';
+import { createQueryBuilder, getRepository } from 'typeorm';
 
 import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import { createPollSchema } from './schemas.json';
 import Poll, { PollTemplate } from '@models/Poll';
-import { createQueryBuilder, getRepository } from 'typeorm';
 import PollResponse from '@models/PollResponse';
-import { Members } from '@core/database';
+
+import { createPollSchema } from './schemas.json';
 
 interface CreatePollSchema {
 	title: string
@@ -79,16 +79,14 @@ app.get( '/:slug/responses', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, 
 		where: {poll: req.model},
 		order: {
 			createdAt: 'ASC'
-		}
+		},
+		relations: ['member']
 	});
-	// TODO: Remove when members are in ORM
-	const members = await Members.find({_id: {$in: responses.map(r => r.memberId)}}, 'firstname lastname uuid');
-	const responsesWithMember = responses.map(response => ({
+	const responsesWithText = responses.map(response => ({
 		...response,
-		member: members.find(m => m.id === response.memberId),
 		updatedAtText: moment.utc(response.updatedAt).format('HH:mm DD/MM/YYYY')
 	}));
-	res.render( 'responses', { poll: req.model, responses: responsesWithMember });
+	res.render( 'responses', { poll: req.model, responses: responsesWithText });
 } ) );
 
 app.post( '/:slug', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => {
@@ -118,15 +116,19 @@ app.post( '/:slug', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => 
 		break;
 	case 'export-responses': {
 		const exportName = `responses-${poll.title}_${moment().format()}.csv`;
-		const responses = await getRepository(PollResponse).find({where: {poll}, order: {createdAt: 'ASC'}});
-		const members = await Members.find({_id: {$in: responses.map(r => r.memberId)}});
+		const responses = await getRepository(PollResponse).find({
+			where: {poll},
+			order: {createdAt: 'ASC'},
+			relations: ['member']
+		});
 		const exportData = responses.map(response => {
-			const member = members.find(m => m.id === response.memberId);
 			return {
-				'FirstName': member?.firstname,
-				'LastName': member?.lastname,
-				'FullName': member?.fullname,
-				'EmailAddress': member?.email,
+				...response.member && {
+					'FirstName': response.member.firstname,
+					'LastName': response.member.lastname,
+					'FullName': response.member.fullname,
+					'EmailAddress': response.member.email,
+				},
 				'Date': response.createdAt,
 				...convertAnswers(poll, response.answers)
 			};

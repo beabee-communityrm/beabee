@@ -1,7 +1,7 @@
 import { ErrorObject, FormatParams, RequiredParams, ValidateFunction } from 'ajv';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import mongoose, { Document, DocumentDefinition, FilterQuery, Model } from 'mongoose';
-import { EntityTarget, getRepository } from 'typeorm';
+import { EntityTarget, FindOneOptions, getRepository } from 'typeorm';
 
 import * as auth from '@core/authentication';
 import ajv from '@core/ajv';
@@ -122,13 +122,16 @@ export function hasModel<T extends Document>(modelCls: Model<T>, prop: keyof Doc
 	};
 }
 
-export function hasNewModel<T>(entity: EntityTarget<T>, prop: keyof T): RequestHandler {
+export function hasNewModel<T>(entity: EntityTarget<T>, prop: keyof T, findOpts: FindOneOptions<T> = {}): RequestHandler {
 	return wrapAsync(async (req, res, next) => {
 		if (!req.model || (req.model as any)[prop] !== req.params[prop as string]) {
 			try {
-				req.model = await getRepository(entity).findOne({where: {
-					[prop]: req.params[prop as string]
-				}});
+				req.model = await getRepository(entity).findOne({
+					where: {
+						[prop]: req.params[prop as string]
+					},
+					...findOpts
+				});
 			} catch (err) {
 				if (!isInvalidType(err)) {
 					throw err;

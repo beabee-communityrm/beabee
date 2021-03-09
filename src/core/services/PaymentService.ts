@@ -1,8 +1,11 @@
+import { getRepository } from 'typeorm';
+
 import { ContributionType } from '@core/utils';
+
 import GCPaymentData from '@models/GCPaymentData';
 import ManualPaymentData from '@models/ManualPaymentData';
-import { Member } from '@models/members';
-import { getRepository } from 'typeorm';
+import Member from '@models/Member';
+
 import GCPaymentService from './GCPaymentService';
 
 export default class PaymentService {

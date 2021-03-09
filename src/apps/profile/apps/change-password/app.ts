@@ -36,16 +36,8 @@ app.post( '/', hasSchema( changePasswordSchema ).orFlash, wrapAsync( hasUser( as
 		}
 	}
 
-	const password = await generatePassword( body.new );
-
 	await MembersService.updateMember(user, {
-		password: {
-			salt: password.salt,
-			hash: password.hash,
-			iterations: password.iterations,
-			reset_code: undefined,
-			tries: 0
-		}
+		password: await generatePassword(body.new)
 	});
 
 	req.log.info( {

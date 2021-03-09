@@ -1,15 +1,17 @@
 import { getRepository } from 'typeorm';
 
 import { generateCode } from '@core/authentication';
-import { Members } from  '@core/database';
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/mailchimp';
 
 import EmailService from '@core/services/EmailService';
 
+import { Address } from '@models/GiftFlow';
 import GCPaymentData from '@models/GCPaymentData';
-import { Member, PartialMember } from '@models/members';
+import Member, { PartialMember } from '@models/Member';
+import MemberProfile from '@models/MemberProfile';
+import { isDuplicateIndex } from '@core/utils';
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
@@ -17,23 +19,25 @@ export default class MembersService {
 		return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
 	}
 
-	static async createMember(memberObj: PartialMember): Promise<Member> {
+	static async createMember(partialMember: PartialMember, partialProfile: Partial<MemberProfile> = {}): Promise<Member> {
 		try {
-			const member = await Members.create({
-				...memberObj,
-				referralCode: MembersService.generateMemberCode(memberObj),
-				pollsCode: MembersService.generateMemberCode(memberObj)
-			} as Member);
-			// TODO: remove when member in ORM
-			member.permissions = [];
+			const member = getRepository(Member).create({
+				...partialMember,
+				referralCode: this.generateMemberCode(partialMember),
+				pollsCode: this.generateMemberCode(partialMember),
+				permissions: []
+			});
+			await getRepository(Member).save(member);
+
+			const profile = getRepository(MemberProfile).create({...partialProfile, member});
+			await getRepository(MemberProfile).save(profile);
+
 			return member;
-		} catch (saveError) {
-			const {code, message} = saveError;
-			if (code === 11000 && (message.indexOf('referralCode') > -1 || message.indexOf('pollsCode') > -1)) {
-				// Retry with a different referral code
-				return await MembersService.createMember(memberObj);
+		} catch (error) {
+			if (isDuplicateIndex(error, 'referralCode') || isDuplicateIndex(error, 'pollsCode')) {
+				return await MembersService.createMember(partialMember);
 			}
-			throw saveError;
+			throw error;
 		}
 	}
 
@@ -44,7 +48,7 @@ export default class MembersService {
 			log.error({
 				app: 'join-utils',
 				error: err,
-			}, 'Adding member to MailChimp failed, probably a bad email address: ' + member.uuid);
+			}, 'Adding member to MailChimp failed, probably a bad email address: ' + member.id);
 		}
 	}
 
@@ -65,11 +69,24 @@ export default class MembersService {
 		const oldEmail = member.email;
 
 		member = Object.assign(member, 	updates);
-		await member.save();
+		await getRepository(Member).save(member);
 
 		if (needsSync) {
 			await MembersService.syncMemberDetails(member, oldEmail);
 		}
+	}
+
+	static async updateDeliveryAddress(member: Member, optIn: boolean, address?: Address): Promise<boolean> {
+		if (!optIn && !address) {
+			return false;
+		}
+
+		await getRepository(MemberProfile).update(member.id, {
+			deliveryOptIn: optIn,
+			deliveryAddress: optIn ? address : undefined
+		});
+
+		return true;
 	}
 
 	static async syncMemberDetails(member: Member, oldEmail: string): Promise<void> {
@@ -86,7 +103,7 @@ export default class MembersService {
 		}
 
 		// TODO: Unhook this from MembersService
-		const gcData = await getRepository(GCPaymentData).findOne({memberId: member.id});
+		const gcData = await getRepository(GCPaymentData).findOne({member});
 		if ( gcData && gcData.customerId) {
 			await gocardless.customers.update( gcData.customerId, {
 				email: member.email,
@@ -96,11 +113,16 @@ export default class MembersService {
 		}
 	}
 
-	static async resetMemberPassword(member: Member): Promise<void> {
-		const code = generateCode();
-		member.password.reset_code = code;
-		await member.save();
+	static async resetMemberPassword(email: string): Promise<void> {
+		const member = await getRepository(Member).findOne({email});
+		if (member) {
+			member.password.resetCode = generateCode();
+			await getRepository(Member).save(member);
+			await EmailService.sendTemplateToMember('reset-password', member);
+		}
+	}
 
-		await EmailService.sendTemplateToMember('reset-password', member);
+	static async permanentlyDeleteMember(member: Member): Promise<void> {
+		await getRepository(Member).delete(member.id);
 	}
 }

@@ -12,10 +12,10 @@ import * as db from '@core/database';
 import mailchimp from '@core/mailchimp';
 import { cleanEmailAddress } from '@core/utils';
 
-import { Member } from '@models/members';
+import Member  from '@models/Member';
+import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
-import MemberPermission from '@models/MemberPermission';
 
 interface DeleteOperation {
 	method: 'DELETE'
@@ -91,14 +91,14 @@ async function fetchMembers(startDate: string|undefined, endDate: string|undefin
 		where: [
 			{permission: 'member', dateAdded: Between(actualStartDate, actualEndDate)},
 			{permission: 'member', dateExpires: Between(actualStartDate, actualEndDate)},
-		]
+		],
+		relations: ['member']
 	});
-	const members = await db.Members.find({_id: {$in: memberships.map(mp => mp.memberId)}});
-	console.log(`Got ${members.length} members`);
-	members.forEach(member => {
+	console.log(`Got ${memberships.length} members`);
+	return memberships.map(({member}) => {
 		console.log(member.isActiveMember ? 'U' : 'D', member.email);
+		return member;
 	});
-	return members;
 }
 
 async function processMembers(members: Member[]) {

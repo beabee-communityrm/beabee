@@ -1,19 +1,21 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import Project from './Project';
+
+import type Member from './Member';
+import type Project from './Project';
 
 @Entity()
 export default class ProjectEngagement {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@ManyToOne(() => Project)
+	@ManyToOne('Project')
 	project!: Project
 
-	@Column()
-  byMemberId!: string
+	@ManyToOne('Member')
+  byMember!: Member
 
-  @Column()
-  toMemberId!: string
+	@ManyToOne('Member')
+  toMember!: Member
   
   @CreateDateColumn()
   date!: Date

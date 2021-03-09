@@ -9,7 +9,7 @@ import { parseRuleGroup } from '@core/utils/rules';
 import EmailService from '@core/services/EmailService';
 import { EmailRecipient } from '@core/services/email';
 
-import { Member } from '@models/members';
+import Member from '@models/Member';
 import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 import SegmentMember from '@models/SegmentMember';
@@ -33,25 +33,26 @@ async function processSegment(segment: Segment) {
 		data: {segmentName: segment.name}
 	});
 
-	const members = await db.Members.find(parseRuleGroup(segment.ruleGroup));
-	const memberIds = members.map(m => m.id);
-	const segmentMembers = await getRepository(SegmentMember).find({where: {segment}});
-	const segmentMemberIds = segmentMembers.map(sm => sm.memberId);
+	const matchedMembers = await parseRuleGroup(segment.ruleGroup).getMany();
 
-	const newMembers = members.filter(m => segmentMemberIds.indexOf(m.id) === -1);
-	const oldSegmentMemberIds = segmentMembers.filter(sm => memberIds.indexOf(sm.memberId) === -1).map(sm => sm.memberId);
+	const segmentMembers = await getRepository(SegmentMember).find({
+		where: {segment}, loadRelationIds: true
+	}) as unknown as WithRelationIds<SegmentMember, 'member'>[];
+
+	const newMembers = matchedMembers.filter(m => segmentMembers.every(sm => sm.member !== m.id));
+	const oldSegmentMembers = segmentMembers.filter(sm => matchedMembers.every(m => m.id !== sm.member));
 
 	log.info({
 		action: 'segment-membership',
 		data: {
 			existingMembers: segmentMembers.length,
 			newMembers: newMembers.length,
-			oldMembers: oldSegmentMemberIds.length
+			oldMembers: oldSegmentMembers.length
 		}
 	});
 
 	await getRepository(SegmentMember).delete({
-		segment, memberId: In(oldSegmentMemberIds)
+		segment, member: In(oldSegmentMembers.map(sm => ({id: sm.member}) as Member))
 	});
 	await getRepository(SegmentMember).insert(newMembers.map(m => ({
 		segment: segment,
@@ -62,7 +63,7 @@ async function processSegment(segment: Segment) {
 
 	// Only fetch old members if we need to
 	const oldMembers = outgoingEmails.some(oe => oe.trigger === 'onLeave') ?
-		await db.Members.find({_id: {$in: oldSegmentMemberIds}}) : [];
+		await getRepository(Member).findByIds(oldSegmentMembers.map(sm => sm.member)) : [];
 
 	for (const outgoingEmail of outgoingEmails) {
 		const emailMembers = outgoingEmail.trigger === 'onLeave' ? oldMembers :

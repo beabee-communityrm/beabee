@@ -1,5 +1,6 @@
 import { RuleGroup } from '@core/utils/rules';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import type SegmentMember from './SegmentMember';
 
 @Entity()
 export default class Segment {
@@ -14,6 +15,9 @@ export default class Segment {
 
 	@Column({type: 'jsonb'})
 	ruleGroup!: RuleGroup
+
+	@OneToMany('SegmentMember', 'segment')
+	members!: SegmentMember[]
 
 	memberCount?: number
 }

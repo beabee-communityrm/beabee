@@ -43,9 +43,9 @@ export default (app: express.Express): void => {
 	app.use( passport.session() );
 
 	app.use( ( req, res, next ) => {
-		const uuid = req.user && req.user.uuid || req.cookies.memberId;
-		if ( uuid ) {
-			res.cookie('memberId', uuid, {
+		const memberId = req.user?.id || req.cookies.memberId;
+		if ( memberId ) {
+			res.cookie('memberId', memberId, {
 				maxAge: 365 * 24 * 60 * 60 * 1000
 			});
 		}

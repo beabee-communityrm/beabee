@@ -1,10 +1,10 @@
 import express from 'express';
 
+import { isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
-import { isSuperAdmin } from '@core/middleware';
 
 const app = express();
 
@@ -22,11 +22,11 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		family_name: req.body.last_name
 	} : {};
 
-	const memberObj = await GCPaymentService.customerToMember(req.body.customerId, overrides);
-	if (memberObj) {
-		const member = await MembersService.createMember(memberObj);
+	const partialMember = await GCPaymentService.customerToMember(req.body.customerId, overrides);
+	if (partialMember) {
+		const member = await MembersService.createMember(partialMember);
 		await GCPaymentService.updatePaymentMethod(member, req.body.customerId, req.body.mandateId);
-		res.redirect( '/members/' + member.uuid );
+		res.redirect( '/members/' + member.id );
 	} else {
 		req.flash('error', 'member-add-invalid-direct-debit');
 		res.redirect( app.mountpath + '/add' );

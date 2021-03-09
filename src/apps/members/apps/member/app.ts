@@ -1,22 +1,22 @@
 import express from 'express';
-import _ from 'lodash';
 import moment from 'moment';
 import { getRepository } from 'typeorm';
 
 import config from '@config';
 
 import { canSuperAdmin, generateCode } from '@core/authentication';
-import { Members } from '@core/database';
 import mailchimp from '@core/mailchimp';
 import { isAdmin, isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
+import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 import GCPaymentService from '@core/services/GCPaymentService';
 import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
-import { Member } from '@models/members';
+import Member from '@models/Member';
+import MemberProfile from '@models/MemberProfile';
 
 const app = express();
 
@@ -30,7 +30,7 @@ app.use( isAdmin );
 
 app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
-	const member = await Members.findOne({uuid: req.allParams.uuid});
+	const member = await getRepository(Member).findOne(req.allParams.uuid);
 	if (member) {
 		req.model = member;
 		res.locals.paymentData = await PaymentService.getPaymentData(member);
@@ -61,6 +61,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 app.post( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
+	const profile = await getRepository(MemberProfile).findOne(member.id);
 	
 	if (!req.body.action.startsWith('save-') && !canSuperAdmin(req)) {
 		req.flash('error', '403');
@@ -68,65 +69,51 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		return;
 	}
 
+	if (!profile) {
+		throw Error('No profile for member');
+	}
+
 	switch (req.body.action) {
 	case 'save-about': {
-		const exisingTagNames = member.tags.map(tag => tag.name);
-		const newTagNames = _.difference(req.body.tags, exisingTagNames);
-		const deletedTagNames = _.difference(exisingTagNames, req.body.tags);
-
-		for (const tagName of deletedTagNames) {
-			(member.tags as any).find((tag: any) => tag.name === tagName).remove();
-		}
-		for (const tagName of newTagNames) {
-			member.tags.push({name: tagName});
-		}
-
-		member.description = req.body.description;
-		member.bio = req.body.bio;
-
-		await member.save();
-
+		profile.tags = req.body.tags;
+		profile.description = req.body.description;
+		profile.bio = req.body.bio;
+		await getRepository(MemberProfile).save(profile);
 		req.flash('success', 'member-updated');
 		break;
 	}
 	case 'save-contact':
-		await member.update({$set: {
-			'contact.telephone': req.body.telephone,
-			'contact.twitter': req.body.twitter,
-			'contact.preferred': req.body.preferred
-		}});
+		profile.telephone = req.body.telephone;
+		profile.twitter = req.body.twitter;
+		profile.preferredContact = req.body.preferred;
+		await getRepository(MemberProfile).save(profile);
 		req.flash('success', 'member-updated');
 		break;
 	case 'save-notes':
-		await member.update({$set: {
-			'notes': req.body.notes
-		}});
+		profile.notes = req.body.notes;
 		req.flash('success', 'member-updated');
 		break;
 	case 'login-override':
-		await member.update({$set: {
-			loginOverride: {
-				code: generateCode(),
-				expires: moment().add(24, 'hours').toDate()
-			}
-		}});
+		await MembersService.updateMember(member, {
+			loginOverride: {code: generateCode(), expires: moment().add(24, 'hours').toDate()}
+		});
 		req.flash('success', 'member-login-override-generated');
 		break;
 	case 'password-reset':
-		await member.update({$set: {
-			'password.reset_code': generateCode()
-		}});
+		await MembersService.updateMember(member, {
+			password: {...member.password, resetCode: generateCode()}
+		});
 		req.flash('success', 'member-password-reset-generated');
 		break;
 	case 'permanently-delete':
 		// TODO: anonymise other data in poll answers
 		//await PollAnswers.updateMany( { member }, { $set: { member: null } } );
 		// TODO: await RestartFlows.deleteMany( { member } );
-		
-		await Members.deleteOne( { _id: member._id } );
 
 		await ReferralsService.permanentlyDeleteMember(member);
 		await GCPaymentService.permanentlyDeleteMember(member);
+
+		await MembersService.permanentlyDeleteMember(member);
 
 		await mailchimp.mainList.permanentlyDeleteMember(member);
 
@@ -148,7 +135,9 @@ adminApp.get( '/2fa', ( req, res ) => {
 } );
 
 adminApp.post( '/2fa', wrapAsync( async ( req, res ) => {
-	await (req.model as Member).update({$set: {'opt.key': ''}});
+	await MembersService.updateMember(req.model as Member, {
+		otp: {activated: false}
+	});
 	req.flash( 'success', '2fa-disabled' );
 	res.redirect( req.baseUrl );
 } ) );

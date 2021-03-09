@@ -1,7 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-
-import { Member } from '@models/members';
 import { QueryFailedError } from 'typeorm';
+
+import Member from '@models/Member';
 
 export enum ContributionPeriod {
 	Monthly = 'monthly',

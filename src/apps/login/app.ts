@@ -2,12 +2,13 @@ import express from 'express';
 import passport from 'passport';
 import { getRepository } from 'typeorm';
 
-import { Members } from '@core/database';
 import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
 
+import Member from '@models/Member';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 import config from '@config';
+import moment from 'moment';
 
 const app = express();
 
@@ -25,11 +26,13 @@ app.get( '/' , function( req, res ) {
 if (config.dev) {
 	app.get('/as/:permission', wrapAsync( async (req, res) => {
 		const permission = await getRepository(MemberPermission).findOne({
-			permission: req.params.permission as PermissionType
+			where: {
+				permission: req.params.permission as PermissionType
+			},
+			relations: ['member']
 		});
-		const member = permission && await Members.findById(permission.memberId);
-		if (member) {
-			loginAndRedirect(req, res, member);
+		if (permission) {
+			loginAndRedirect(req, res, permission.member);
 		} else {
 			res.redirect('/login');
 		}
@@ -38,14 +41,9 @@ if (config.dev) {
 
 app.get( '/:code', wrapAsync( async function( req, res ) {
 	const nextParam = req.query.next as string;
-	const member = await Members.findOne( {
-		'loginOverride.code': req.params.code,
-		'loginOverride.expires': {$gt: new Date()}
-	} );
+	const member = await getRepository(Member).findOne({loginOverride: {code: req.params.code}});
 
-	if (member) {
-		await member.update({$unset: {loginOverride: 1}});
-
+	if (member && moment.utc(member.loginOverride?.expires).isAfter()) {
 		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
 	} else {
 		req.flash('error', 'login-code-invalid');

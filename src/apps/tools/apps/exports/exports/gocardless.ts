@@ -1,4 +1,3 @@
-import { Members } from '@core/database';
 import GCPaymentData from '@models/GCPaymentData';
 import { Member } from '@models/members';
 import { getRepository } from 'typeorm';

@@ -1,8 +1,8 @@
 import escapeStringRegexp from 'escape-string-regexp';
 import moment, { DurationInputArg2 } from 'moment';
-import { FilterQuery } from 'mongoose';
+import { createQueryBuilder, SelectQueryBuilder } from 'typeorm';
 
-import { Member } from '@models/members';
+import Member from '@models/Member';
 
 const operators = {
 	equal: (v: RichRuleValue[]) => ( v[0] ),
@@ -79,17 +79,20 @@ function parseValue(value: RuleValue): RichRuleValue {
 	}
 }
 
-function parseRule(rule: Rule): FilterQuery<Member> {
+function parseRule(rule: Rule): SelectQueryBuilder<Member> {
+	return createQueryBuilder(Member).where('TRUE');
+	/*
 	const values = Array.isArray(rule.value) ? rule.value : [rule.value];
 	return {
 		[fields[rule.field]]: operators[rule.operator](values.map(parseValue))
-	};
+	};*/
 }
 
-export function parseRuleGroup(query: RuleGroup): FilterQuery<Member> {
-	return {
+export function parseRuleGroup(query: RuleGroup): SelectQueryBuilder<Member> {
+	return createQueryBuilder(Member, 'm').where('TRUE');
+	/*return {
 		[query.condition === 'AND' ? '$and' : '$or']: query.rules.map(rule => (
 			isRuleGroup(rule) ? parseRuleGroup(rule) : parseRule(rule)
 		))
-	};
+	};*/
 }

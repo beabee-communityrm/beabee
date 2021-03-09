@@ -12,7 +12,7 @@ import config from '@config';
 
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
-import { Member, PartialMember } from '@models/members';
+import Member, { PartialMember } from '@models/Member';
 import Payment from '@models/Payment';
 import MemberPermission from '@models/MemberPermission';
 
@@ -29,7 +29,7 @@ abstract class UpdateContributionPaymentService {
 			app: 'direct-debit',
 			action: 'update-contribution',
 			data: {
-				userId: user._id,
+				userId: user.id,
 				paymentForm
 			}
 		} );
@@ -74,7 +74,7 @@ abstract class UpdateContributionPaymentService {
 			app: 'direct-debit',
 			action: 'create-subscription',
 			data: {
-				userId: member._id,
+				userId: member.id,
 				paymentForm,
 				startDate
 			}
@@ -100,7 +100,7 @@ abstract class UpdateContributionPaymentService {
 		} );
 
 		member.contributionPeriod = paymentForm.period;
-		await member.save();
+		await getRepository(Member).save(member);
 
 		gcData.subscriptionId = subscription.id;
 		gcData.payFee = paymentForm.payFee;
@@ -119,7 +119,7 @@ abstract class UpdateContributionPaymentService {
 			app: 'direct-debit',
 			action: 'update-subscription-amount',
 			data: {
-				userId: user._id,
+				userId: user.id,
 				chargeableAmount
 			}
 		} );
@@ -151,7 +151,7 @@ abstract class UpdateContributionPaymentService {
 		log.info( {
 			app: 'direct-debit',
 			action: 'prorate-subscription',
-			data: { userId: member._id, paymentForm, monthsLeft, prorateAmount }
+			data: { userId: member.id, paymentForm, monthsLeft, prorateAmount }
 		} );
 
 
@@ -185,7 +185,7 @@ abstract class UpdateContributionPaymentService {
 			app: 'direct-debit',
 			action: 'activate-contribution',
 			data: {
-				userId: member._id,
+				userId: member.id,
 				paymentForm,
 				startNow,
 				nextChargeDate
@@ -197,19 +197,14 @@ abstract class UpdateContributionPaymentService {
 		let membership = member.permissions.find(p => p.permission === 'member');
 		if (!membership) {
 			membership = getRepository(MemberPermission).create({
-				memberId: member.id,
+				member,
 				permission: 'member',
 				dateExpires: nextChargeDate.toDate()
 			});
-			// TODO: Remove once member is in ORM
 			member.permissions.push(membership);
 		} else if (membership.dateExpires && nextChargeDate.isAfter(membership.dateExpires)) {
 			membership.dateExpires = nextChargeDate.toDate();
 		}
-		await getRepository(MemberPermission).save(membership);
-
-		gcData.cancelledAt = undefined;
-		await getRepository(GCPaymentData).update(gcData.memberId, gcData);
 
 		if (startNow) {
 			member.contributionMonthlyAmount = paymentForm.amount;
@@ -219,7 +214,10 @@ abstract class UpdateContributionPaymentService {
 		}
 
 		member.contributionType = ContributionType.GoCardless;
-		await member.save();
+		await getRepository(Member).save(member);
+
+		gcData.cancelledAt = undefined;
+		await getRepository(GCPaymentData).save(gcData);
 
 		if (wasInactive) {
 			await MembersService.addMemberToMailingLists(member);
@@ -234,17 +232,11 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			...overrides
 		};
 
+		// TODO: add back delivery address
 		return !customer.given_name || !customer.family_name ? null : {
 			firstname: customer.given_name,
 			lastname: customer.family_name,
 			email: cleanEmailAddress(customer.email || ''),
-			delivery_optin: false,
-			delivery_address: {
-				line1: customer.address_line1,
-				line2: customer.address_line2,
-				city: customer.city,
-				postcode: customer.postal_code
-			},
 			contributionType: ContributionType.GoCardless
 		};
 	}
@@ -268,7 +260,12 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 	}
 
 	static async getPaymentData(member: Member): Promise<GCPaymentData|undefined> {
-		return await getRepository(GCPaymentData).findOne({memberId: member.id});
+		const paymentData = await getRepository(GCPaymentData).findOne({member});
+		// TODO: is this necessary?
+		if (paymentData) {
+			paymentData.member = member;
+		}
+		return paymentData;
 	}
 
 	static async canChangeContribution(user: Member, useExistingMandate: boolean): Promise<boolean> {
@@ -295,14 +292,14 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			app: 'direct-debit',
 			action: 'cancel-subscription',
 			data: {
-				userId: member._id
+				userId: member.id
 			}
 		} );
 
 		const gcData = await GCPaymentService.getPaymentData(member);
 		if (gcData) {
 			// Do this before cancellation to avoid webhook race conditions
-			await getRepository(GCPaymentData).update(gcData.memberId, {
+			await getRepository(GCPaymentData).update(gcData.member.id, {
 				subscriptionId: undefined,
 				cancelledAt: new Date()
 			});
@@ -312,7 +309,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			}
 
 			member.nextContributionMonthlyAmount = undefined;
-			await member.save();
+			await getRepository(Member).save(member);
 		}
 	}
 
@@ -323,7 +320,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			app: 'direct-debit',
 			action: 'update-payment-method',
 			data: {
-				userId: member._id,
+				userId: member.id,
 				gcData,
 				customerId,
 				mandateId
@@ -332,12 +329,12 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
 		if (gcData.mandateId) {
 			// Remove subscription before cancelling mandate to stop the webhook triggering a cancelled email
-			await getRepository(GCPaymentData).update(gcData.memberId, {subscriptionId: undefined});
+			await getRepository(GCPaymentData).update(gcData.member.id, {subscriptionId: undefined});
 			await gocardless.mandates.cancel(gcData.mandateId);
 		}
 
 		// This could be creating payment data for the first time
-		gcData.memberId = member.id;
+		gcData.member = member;
 		gcData.customerId = customerId;
 		gcData.mandateId = mandateId;
 		gcData.subscriptionId = undefined;
@@ -372,7 +369,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
 		const gcData = await GCPaymentService.getPaymentData(member);
-		await getRepository(GCPayment).delete({memberId: member.id});
+		await getRepository(GCPayment).delete({member});
 		if (gcData?.mandateId) {
 			await gocardless.mandates.cancel(gcData.mandateId);
 		}

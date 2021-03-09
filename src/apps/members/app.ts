@@ -1,8 +1,7 @@
 import express, { Request } from 'express';
 import queryString from 'query-string';
-import { Brackets, createQueryBuilder, getRepository, MoreThan } from 'typeorm';
+import { Brackets, createQueryBuilder, getRepository, } from 'typeorm';
 
-import { Members } from '@core/database';
 import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
@@ -10,7 +9,7 @@ import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
 import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
 
-import MemberPermission, { PermissionType } from '@models/MemberPermission';
+import Member from '@models/Member';
 import Project from '@models/Project';
 import Segment from '@models/Segment';
 
@@ -68,31 +67,30 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const searchType = query.type || (segment ? 'advanced' : 'basic');
 	const searchRuleGroup = getSearchRuleGroup(query) || segment && segment.ruleGroup;
 
-	const filter = searchRuleGroup ? parseRuleGroup(searchRuleGroup) : {};
+	const filter = searchRuleGroup ? parseRuleGroup(searchRuleGroup) : createQueryBuilder(Member, 'm');
+	// Always load permissions
+	filter.innerJoinAndSelect('m.permissions', 'mp');
 
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
-		const qb = createQueryBuilder(MemberPermission, 'mp').where('TRUE');
 		if (query.permission) {
-			qb.andWhere('mp.permission = :permission', {permission: query.permission});
+			filter.andWhere('mp.permission = :permission', {permission: query.permission});
 		}
 		if (!query.show_inactive) {
-			qb.andWhere(new Brackets(qb => {
+			filter.andWhere(new Brackets(qb => {
 				qb.where('mp.dateExpires IS NULL')
 					.orWhere('mp.dateExpires >= :dateExpires', {dateExpires: new Date()});
 			}));
 		}
-		const memberships = await qb.getMany();
-
-		if (!filter.$and) filter.$and = [];
-		filter.$and.push( { _id: { $in: memberships.map(p => p.memberId) } } );
 	}
 	
 	const page = query.page ? Number( query.page ) : 1;
 	const limit = query.limit ? Number( query.limit ) : 25;
 
-	const total = await Members.count( filter );
-	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
+	const [members, total] = await filter
+		.orderBy({lastname: 'ASC', firstname: 'ASC'})
+		.skip(limit * (page-1))
+		.take(limit).getManyAndCount();
 
 	const pages = [ ...Array( Math.ceil( total / limit ) ) ].map( ( v, page ) => ( {
 		number: page + 1,

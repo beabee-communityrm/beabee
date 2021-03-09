@@ -10,9 +10,10 @@ import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
+import Member from '@models/Member';
+import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
-import MemberPermission from '@models/MemberPermission';
 
 const log = mainLogger.child({app: 'gift-service'});
 
@@ -105,28 +106,30 @@ export default class GiftService {
 		await getRepository(GiftFlow).update(giftFlow.id, {processed: true});
 
 		const member = await MembersService.createMember({
-			firstname,
-			lastname,
-			email,
-			delivery_address: deliveryAddress || {},
-			delivery_optin: !!deliveryAddress?.line1,
+			firstname, lastname, email,
 			contributionType: ContributionType.Gift
+		}, {
+			deliveryOptIn: !!deliveryAddress?.line1,
+			deliveryAddress: deliveryAddress
 		});
-		member.giftCode = giftFlow.setupCode;
+
 		member.contributionMonthlyAmount = GiftService.giftMonthlyAmount;
-		await member.save();
 
 		const membership = new MemberPermission();
 		membership.permission = 'member';
-		membership.memberId = member.id;
 		membership.dateExpires = now.clone().add(months, 'months').toDate();
-		await getRepository(MemberPermission).save(membership);
-
-		// TODO: Remove once member is in ORM
 		member.permissions.push(membership);
 
+		await getRepository(Member).save(member);
+
+		await getRepository(GiftFlow).update(giftFlow.id, {giftee: member});
+
 		const sendAt = sendImmediately ? undefined : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
-		await EmailService.sendTemplateToMember('giftee-success', member, { fromName, message }, {sendAt});
+		await EmailService.sendTemplateToMember(
+			'giftee-success', member,
+			{fromName, message, giftCode: giftFlow.setupCode},
+			{sendAt}
+		);
 
 		await MembersService.addMemberToMailingLists(member);
 	}

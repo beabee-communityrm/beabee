@@ -9,6 +9,7 @@ import { generatePassword, passwordRequirements } from '@core/authentication';
 import * as db from '@core/database';
 import { ConnectionOptions, getRepository } from 'typeorm';
 import MemberPermission from '@models/MemberPermission';
+import Member from '@models/Member';
 
 const questions: QuestionCollection[] = [];
 
@@ -76,7 +77,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 
 	const password = await generatePassword(answers.password);
 
-	const user = {
+	const member = getRepository(Member).create({
 		firstname: answers.firstname,
 		lastname: answers.lastname,
 		email: answers.email,
@@ -84,15 +85,13 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			hash: password.hash,
 			salt: password.salt,
 			iterations: password.iterations
-		}
-	};
-
-	const member = await new db.Members(user).save();
+		},
+		permissions: []
+	});
 
 	if ( answers.membership != 'No' ) {
 		const membership = new MemberPermission();
 		membership.permission = 'member';
-		membership.memberId = member.id;
 
 		const now = moment();
 		switch ( answers.membership ) {
@@ -105,12 +104,11 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			break;
 		}
 
-		await getRepository(MemberPermission).save(membership);
+		member.permissions.push(membership);
 	}
 
 	if ( answers.permission != 'None' ) {
 		const adminPermission = new MemberPermission();
-		adminPermission.memberId = member.id;
 
 		switch ( answers.permission ) {
 		case 'Admin':
@@ -121,8 +119,10 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 			break;
 		}
 
-		await getRepository(MemberPermission).save(adminPermission);
+		member.permissions.push(adminPermission);
 	}
+
+	await getRepository(Member).save(member);
 
 	await db.close();
 } );

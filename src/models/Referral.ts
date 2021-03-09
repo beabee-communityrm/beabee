@@ -1,4 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import type Member from './Member';
 import ReferralGift from './ReferralGift';
 
 @Entity()
@@ -9,11 +11,11 @@ export default class Referral {
 	@CreateDateColumn()
 	date!: Date
 
-	@Column({nullable: true})
-	referrerId?: string
+	@ManyToOne('Member', {nullable: true})
+	referrer?: Member
 
-	@Column()
-	refereeId!: string
+	@ManyToOne('Member')
+	referee!: Member
 
 	@Column()
 	refereeAmount!: number
