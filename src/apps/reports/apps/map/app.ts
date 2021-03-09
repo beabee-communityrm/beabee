@@ -1,11 +1,11 @@
 import axios from 'axios';
 import express from 'express';
+import { Brackets, createQueryBuilder } from 'typeorm';
 
 import { log } from '@core/logging';
 import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import { Brackets, createQueryBuilder } from 'typeorm';
 import MemberPermission from '@models/MemberPermission';
 import MemberProfile from '@models/MemberProfile';
 

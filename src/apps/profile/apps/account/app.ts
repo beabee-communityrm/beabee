@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { hasSchema, isLoggedIn } from '@core/middleware';
-import { cleanEmailAddress, hasUser, wrapAsync } from '@core/utils';
+import { cleanEmailAddress, hasUser, isDuplicateIndex, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 

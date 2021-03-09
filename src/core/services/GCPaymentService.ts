@@ -99,8 +99,7 @@ abstract class UpdateContributionPaymentService {
 			...(startDate && { start_date: startDate })
 		} );
 
-		member.contributionPeriod = paymentForm.period;
-		await getRepository(Member).save(member);
+		await MembersService.updateMember(member, {contributionPeriod: paymentForm.period});
 
 		gcData.subscriptionId = subscription.id;
 		gcData.payFee = paymentForm.payFee;
@@ -308,8 +307,9 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 				await gocardless.subscriptions.cancel(gcData.subscriptionId);
 			}
 
-			member.nextContributionMonthlyAmount = undefined;
-			await getRepository(Member).save(member);
+			await MembersService.updateMember(member, {
+				nextContributionMonthlyAmount: undefined
+			});
 		}
 	}
 

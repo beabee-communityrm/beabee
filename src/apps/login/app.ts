@@ -43,7 +43,7 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 	const nextParam = req.query.next as string;
 	const member = await getRepository(Member).findOne({loginOverride: {code: req.params.code}});
 
-	if (member && moment.utc(member.loginOverride?.expires).isAfter()) {
+	if (member && member.loginOverride && moment.utc(member.loginOverride.expires).isAfter()) {
 		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
 	} else {
 		req.flash('error', 'login-code-invalid');

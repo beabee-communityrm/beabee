@@ -11,10 +11,10 @@ import config from '@config';
 import { cleanEmailAddress, getNextParam, sleep } from '@core/utils';
 
 import OptionsService from '@core/services/OptionsService';
+import MembersService from '@core/services/MembersService';
 
 import Member, { Password } from '@models/Member';
 import { PermissionType } from '@models/MemberPermission';
-import MembersService from './services/MembersService';
 
 export enum AuthenticationStatus {
 	LOGGED_IN = 1,
@@ -101,9 +101,7 @@ export function load( app: express.Express ): void {
 		const passportUser = data as PassportUser;
 		const member = await getRepository(Member).findOne( passportUser.id );
 		if ( member ) {
-			// Update last seen
-			member.lastSeen = new Date();
-			await getRepository(Member).update(member.id, {lastSeen: member.lastSeen});
+			await MembersService.updateMember(member, {lastSeen: new Date()});
 
 			const user = member as Express.User;
 			user.quickPermissions = [

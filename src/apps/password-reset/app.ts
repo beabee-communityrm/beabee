@@ -1,4 +1,5 @@
 import express from 'express';
+import { getRepository } from 'typeorm';
 
 import { generatePassword } from '@core/authentication';
 import { hasSchema, isNotLoggedIn } from '@core/middleware';
@@ -7,10 +8,9 @@ import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 
-import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
-import { getRepository } from 'typeorm';
 import Member from '@models/Member';
 
+import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
 
 const app = express();
 
