@@ -76,17 +76,8 @@ export default class MembersService {
 		}
 	}
 
-	static async updateDeliveryAddress(member: Member, optIn: boolean, address?: Address): Promise<boolean> {
-		if (!optIn && !address) {
-			return false;
-		}
-
-		await getRepository(MemberProfile).update(member.id, {
-			deliveryOptIn: optIn,
-			deliveryAddress: optIn ? address : undefined
-		});
-
-		return true;
+	static async updateMemberProfile(member: Member, updates: Partial<MemberProfile>): Promise<void> {
+		await getRepository(MemberProfile).update(member.id, updates);
 	}
 
 	static async syncMemberDetails(member: Member, oldEmail: string): Promise<void> {

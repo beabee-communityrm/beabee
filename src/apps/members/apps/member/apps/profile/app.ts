@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { hasSchema } from '@core/middleware';
-import { cleanEmailAddress, wrapAsync } from '@core/utils';
+import { cleanEmailAddress, isDuplicateIndex, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
@@ -36,18 +36,20 @@ app.post( '/', [
 			firstname,
 			lastname
 		});
-		await MembersService.updateDeliveryAddress(member, delivery_optin, {
-			line1: delivery_line1,
-			line2: delivery_line2,
-			city: delivery_city,
-			postcode: delivery_postcode
+		await MembersService.updateMemberProfile(member, {
+			deliveryOptIn: delivery_optin,
+			deliveryAddress: delivery_optin ? {
+				line1: delivery_line1,
+				line2: delivery_line2,
+				city: delivery_city,
+				postcode: delivery_postcode
+			} : undefined
 		});
-	} catch ( saveError ) {
-		// Duplicate key (on email)
-		if ( saveError.code === 11000 ) {
+	} catch (error) {
+		if (isDuplicateIndex(error, 'email')) {
 			req.flash( 'danger', 'email-duplicate' );
 		} else {
-			throw saveError;
+			throw error;
 		}
 	}
 

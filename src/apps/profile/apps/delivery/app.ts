@@ -21,11 +21,14 @@ app.post( '/', hasSchema(updateSchema).orFlash, wrapAsync( hasUser(async functio
 	const { body: { delivery_optin, delivery_line1, delivery_line2, delivery_city,
 		delivery_postcode } } = req;
 
-	await MembersService.updateDeliveryAddress(req.user, delivery_optin, {
-		line1: delivery_line1,
-		line2: delivery_line2,
-		city: delivery_city,
-		postcode: delivery_postcode
+	await MembersService.updateMemberProfile(req.user, {
+		deliveryOptIn: delivery_optin,
+		deliveryAddress: delivery_optin ? {
+			line1: delivery_line1,
+			line2: delivery_line2,
+			city: delivery_city,
+			postcode: delivery_postcode
+		} : undefined
 	});
 
 	req.log.info( {

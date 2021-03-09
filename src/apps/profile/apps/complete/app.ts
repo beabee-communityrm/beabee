@@ -71,13 +71,15 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 		await MembersService.updateMember(user, {
 			password: await generatePassword(password)
 		});
-
-		await MembersService.updateDeliveryAddress(user, delivery_optin, needAddress ? {
-			line1: delivery_line1,
-			line2: delivery_line2,
-			city: delivery_city,
-			postcode: delivery_postcode
-		} : undefined);
+		await MembersService.updateMemberProfile(user, {
+			deliveryOptIn: delivery_optin,
+			deliveryAddress: needAddress ? {
+				line1: delivery_line1,
+				line2: delivery_line2,
+				city: delivery_city,
+				postcode: delivery_postcode
+			} : undefined
+		});
 
 		res.redirect( '/profile' );
 	}

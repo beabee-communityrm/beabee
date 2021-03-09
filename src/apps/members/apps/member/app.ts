@@ -16,7 +16,6 @@ import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
 import Member from '@models/Member';
-import MemberProfile from '@models/MemberProfile';
 
 const app = express();
 
@@ -61,7 +60,6 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 app.post( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
-	const profile = await getRepository(MemberProfile).findOne(member.id);
 	
 	if (!req.body.action.startsWith('save-') && !canSuperAdmin(req)) {
 		req.flash('error', '403');
@@ -69,28 +67,28 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		return;
 	}
 
-	if (!profile) {
-		throw Error('No profile for member');
-	}
-
 	switch (req.body.action) {
 	case 'save-about': {
-		profile.tags = req.body.tags;
-		profile.description = req.body.description;
-		profile.bio = req.body.bio;
-		await getRepository(MemberProfile).save(profile);
+		await MembersService.updateMemberProfile(member, {
+			tags: req.body.tags,
+			description: req.body.description,
+			bio: req.body.description
+		});
 		req.flash('success', 'member-updated');
 		break;
 	}
 	case 'save-contact':
-		profile.telephone = req.body.telephone;
-		profile.twitter = req.body.twitter;
-		profile.preferredContact = req.body.preferred;
-		await getRepository(MemberProfile).save(profile);
+		await MembersService.updateMemberProfile(member, {
+			telephone: req.body.telephone,
+			twitter: req.body.twitter,
+			preferredContact: req.body.preferred
+		});
 		req.flash('success', 'member-updated');
 		break;
 	case 'save-notes':
-		profile.notes = req.body.notes;
+		await MembersService.updateMemberProfile(member, {
+			notes: req.body.notes
+		});
 		req.flash('success', 'member-updated');
 		break;
 	case 'login-override':
