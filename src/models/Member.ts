@@ -49,7 +49,7 @@ export default class Member implements PartialMember {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@Column()
+	@Column({unique: true})
 	email!: string
 
 	@Column()
@@ -85,10 +85,10 @@ export default class Member implements PartialMember {
 	@Column({type: 'real', nullable: true})
 	nextContributionMonthlyAmount?: number
 
-	@Column({nullable: true})
+	@Column({unique: true, nullable: true})
 	referralCode?: string
 
-	@Column()
+	@Column({unique: true})
 	pollsCode!: string
 
 	@OneToMany('MemberPermission', 'member', {eager: true, cascade: true})
