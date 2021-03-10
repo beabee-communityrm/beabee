@@ -3,6 +3,7 @@ import { createQueryBuilder, getRepository } from 'typeorm';
 
 import { hasNewModel } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
+import buildQuery from '@core/utils/rules';
 
 import EmailService  from '@core/services/EmailService';
 
@@ -14,9 +15,10 @@ const app = express();
 app.set( 'views', __dirname + '/views' );
 
 app.get('/', wrapAsync(async (req, res) => {
-	const segments = await createQueryBuilder(Segment, 's')
-		.loadRelationCountAndMap('s.memberCount', 's.members')
-		.getMany();
+	const segments = await createQueryBuilder(Segment, 's').getMany();
+	for (const segment of segments) {
+		segment.memberCount = await buildQuery(segment.ruleGroup).getCount();
+	}
 
 	res.render('index', {segments});
 }));

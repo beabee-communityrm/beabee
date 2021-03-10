@@ -4,7 +4,7 @@ import { ConnectionOptions, getRepository, In } from 'typeorm';
 
 import * as db from '@core/database';
 import { log as mainLogger } from '@core/logging';
-import { parseRuleGroup } from '@core/utils/rules';
+import buildQuery from '@core/utils/rules';
 
 import EmailService from '@core/services/EmailService';
 import { EmailRecipient } from '@core/services/email';
@@ -33,7 +33,7 @@ async function processSegment(segment: Segment) {
 		data: {segmentName: segment.name}
 	});
 
-	const matchedMembers = await parseRuleGroup(segment.ruleGroup).getMany();
+	const matchedMembers = await buildQuery(segment.ruleGroup).getMany();
 
 	const segmentMembers = await getRepository(SegmentMember).find({
 		where: {segment}, loadRelationIds: true
