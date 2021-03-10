@@ -88,15 +88,15 @@ if access('superadmin')
 		.panel-body
 			dl.dl-horizontal
 				dt Opt in?
-				dd= member.delivery_optin ? 'Yes' : 'No'
-				if member.delivery_optin
+				dd= member.profile.deliveryOptIn ? 'Yes' : 'No'
+				if member.profile.deliveryOptIn
 					dt Address
 					dd
-						=  member.delivery_address.line1
+						=  member.profile.deliveryAddress.line1
 						br
-						if member.delivery_address.line2
-							= member.delivery_address.line2
+						if member.profile.deliveryAddress.line2
+							= member.profile.deliveryAddress.line2
 							br
-						= member.delivery_address.city
+						= member.profile.deliveryAddress.city
 						br
-						= member.delivery_address.postcode
+						= member.profile.deliveryAddress.postcode
