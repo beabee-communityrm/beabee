@@ -67,7 +67,7 @@ export default class Member implements PartialMember {
 	@CreateDateColumn()
 	joined!: Date
 
-	@Column()
+	@Column({nullable: true})
 	lastSeen?: Date
 
 	@Column({type: 'jsonb', nullable: true})

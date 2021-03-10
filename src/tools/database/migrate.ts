@@ -233,15 +233,17 @@ const migrations: Migration<any>[] = [
 		id: doc => doc.uuid,
 		lastSeen: copy('last_seen'),
 		password: doc => ({
-			hash: doc.password.hash,
-			salt: doc.password.salt,
+			hash: doc.password.hash || '',
+			salt: doc.password.salt || '',
 			tries: doc.password.tries || 0,
-			iterations: doc.password.iterations
+			iterations: doc.password.iterations || 0
 		}),
 		otp: doc => doc.otp && doc.otp.activated ? {
 			key: doc.otp.key,
 			activated: true
-		} : {activated: false},
+		} : {
+			activated: false
+		},
 		permissions: () => [],
 		profile: () => undefined,
 		loginOverride: () => undefined
@@ -253,7 +255,7 @@ const migrations: Migration<any>[] = [
 		preferredContact: doc => doc.contact?.preferred || '',
 		member: doc => ({id: doc.uuid}) as Member,
 		tags: doc => doc.tags ? doc.tags.map((t: {name: string}) => t.name) : [],
-		deliveryOptIn: doc => doc.delivery_optin,
+		deliveryOptIn: doc => doc.delivery_optin || false,
 		deliveryAddress: doc => doc.delivery_optin ? ({
 			line1: doc.delivery_address.line1,
 			line2: doc.delivery_address.line2,
