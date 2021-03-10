@@ -93,8 +93,9 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	const [members, total] = await filter
 		.orderBy({lastname: 'ASC', firstname: 'ASC'})
-		.skip(limit * (page-1))
-		.take(limit).getManyAndCount();
+		.offset(limit * (page - 1))
+		.limit(limit)
+		.getManyAndCount();
 
 	const pages = [ ...Array( Math.ceil( total / limit ) ) ].map( ( v, page ) => ( {
 		number: page + 1,
