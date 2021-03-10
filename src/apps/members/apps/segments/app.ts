@@ -44,6 +44,13 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 		req.flash('success', 'segment-updated');
 		res.redirect(req.originalUrl);
 		break;
+	case 'update-rules':
+		await getRepository(Segment).update(segment.id, {
+			ruleGroup: JSON.parse(req.body.rules)
+		});
+		req.flash('success', 'segment-updated');
+		res.redirect(req.originalUrl);
+		break;
 	case 'toggle-ongoing-email':
 		await getRepository(SegmentOngoingEmail).update(
 			req.body.ongoingEmailId,
