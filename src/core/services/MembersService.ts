@@ -9,8 +9,11 @@ import { isDuplicateIndex } from '@core/utils';
 import EmailService from '@core/services/EmailService';
 
 import GCPaymentData from '@models/GCPaymentData';
-import Member, { PartialMember } from '@models/Member';
+import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
+
+export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
+export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
@@ -18,23 +21,32 @@ export default class MembersService {
 		return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
 	}
 
-	static async createMember(partialMember: PartialMember, partialProfile: Partial<MemberProfile> = {}): Promise<Member> {
+	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile): Promise<Member> {
 		try {
 			const member = getRepository(Member).create({
-				...partialMember,
 				referralCode: this.generateMemberCode(partialMember),
 				pollsCode: this.generateMemberCode(partialMember),
-				permissions: []
+				permissions: [],
+				password: {
+					hash: '',
+					salt: '',
+					iterations: 0,
+					tries: 0
+				},
+				...partialMember,
 			});
 			await getRepository(Member).save(member);
 
-			const profile = getRepository(MemberProfile).create({...partialProfile, member});
+			const profile = getRepository(MemberProfile).create({
+				...partialProfile,
+				member
+			});
 			await getRepository(MemberProfile).save(profile);
 
 			return member;
 		} catch (error) {
 			if (isDuplicateIndex(error, 'referralCode') || isDuplicateIndex(error, 'pollsCode')) {
-				return await MembersService.createMember(partialMember);
+				return await MembersService.createMember(partialMember, partialProfile);
 			}
 			throw error;
 		}

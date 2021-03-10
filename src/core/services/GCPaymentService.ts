@@ -6,13 +6,13 @@ import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import { cleanEmailAddress, ContributionPeriod, ContributionType, getActualAmount, PaymentForm } from  '@core/utils';
 
-import MembersService from '@core/services/MembersService';
+import MembersService, { PartialMember, PartialMemberProfile } from '@core/services/MembersService';
 
 import config from '@config';
 
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
-import Member, { PartialMember } from '@models/Member';
+import Member  from '@models/Member';
 import Payment from '@models/Payment';
 import MemberPermission from '@models/MemberPermission';
 
@@ -225,19 +225,33 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<PartialMember|null> {
+	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<{member: PartialMember, profile: PartialMemberProfile}|null> {
 		const customer = {
 			...await gocardless.customers.get(customerId),
 			...overrides
 		};
 
-		// TODO: add back delivery address
-		return !customer.given_name || !customer.family_name ? null : {
-			firstname: customer.given_name,
-			lastname: customer.family_name,
-			email: cleanEmailAddress(customer.email || ''),
-			contributionType: ContributionType.GoCardless
-		};
+		if (customer.given_name && customer.family_name) {
+			return {
+				member: {
+					firstname: customer.given_name,
+					lastname: customer.family_name,
+					email: cleanEmailAddress(customer.email || ''),
+					contributionType: ContributionType.GoCardless
+				},
+				profile: {
+					deliveryOptIn: false,
+					deliveryAddress: {
+						line1: customer.address_line1 || '', 
+						line2: customer.address_line2,
+						city: customer.city || '',
+						postcode: customer.postal_code || ''
+					}
+				}
+			};
+		} else {
+			return null;
+		}
 	}
 
 	static async getBankAccount(member: Member): Promise<CustomerBankAccount|null> {

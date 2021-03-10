@@ -24,7 +24,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 
 	const partialMember = await GCPaymentService.customerToMember(req.body.customerId, overrides);
 	if (partialMember) {
-		const member = await MembersService.createMember(partialMember);
+		const member = await MembersService.createMember(partialMember.member, partialMember.profile);
 		await GCPaymentService.updatePaymentMethod(member, req.body.customerId, req.body.mandateId);
 		res.redirect( '/members/' + member.id );
 	} else {

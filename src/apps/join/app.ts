@@ -126,12 +126,12 @@ app.get( '/complete', [
 	}
 
 	try {
-		const newMember = await MembersService.createMember(partialMember);
+		const newMember = await MembersService.createMember(partialMember.member, partialMember.profile);
 		await handleJoin(req, res, newMember, joinFlow);
 		await EmailService.sendTemplateToMember('welcome', newMember);
 	} catch (error) {
 		if (isDuplicateIndex(error, 'email')) {
-			const oldMember = await getRepository(Member).findOne({email: partialMember.email});
+			const oldMember = await getRepository(Member).findOne({email: partialMember.member.email});
 			if (oldMember) {
 				if (oldMember.isActiveMember) {
 					res.redirect( app.mountpath + '/duplicate-email' );

@@ -12,13 +12,6 @@ interface LoginOverride {
 	expires: Date
 }
 
-export interface PartialMember {
-	email: string,
-	firstname: string,
-	lastname: string,
-	contributionType: ContributionType
-}
-
 export class Password {
 	@Column()
 	hash!: string
@@ -45,7 +38,7 @@ class OneTimePassword {
 }
 
 @Entity()
-export default class Member implements PartialMember {
+export default class Member {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 

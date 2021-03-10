@@ -1,7 +1,5 @@
 import moment, { DurationInputArg2 } from 'moment';
-import {
-	Brackets, createQueryBuilder, SelectQueryBuilder, WhereExpression
-} from 'typeorm';
+import { Brackets, createQueryBuilder, SelectQueryBuilder, WhereExpression } from 'typeorm';
 
 import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
