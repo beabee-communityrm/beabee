@@ -3,7 +3,7 @@ import type Member from './Member';
 import type Project from './Project';
 
 @Entity()
-@Unique(['project', 'memberId'])
+@Unique(['project', 'member'])
 export default class ProjectMember {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
