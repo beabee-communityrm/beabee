@@ -103,7 +103,7 @@ class QueryBuilder {
 
 	constructor(ruleGroup?: RuleGroup) {
 		this.mainQb = createQueryBuilder(Member, 'm');
-		this.mainQb.innerJoinAndSelect('m.permissions', 'mp');
+		this.mainQb.leftJoinAndSelect('m.permissions', 'mp');
 		this.mainQb.innerJoinAndSelect('m.profile', 'profile');
 		if (ruleGroup) {
 			this.parseRuleGroup(ruleGroup)(this.mainQb);
