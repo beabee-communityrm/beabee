@@ -90,8 +90,8 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 	return search.rules.length > 0 ? search : undefined;
 }
 
-function getSearchRuleGroup(query: Request['query']): RuleGroup|undefined {
-	return query.type === 'basic' ? convertBasicSearch(query) :
+function getSearchRuleGroup(query: Request['query'], searchType?: string): RuleGroup|undefined {
+	return (searchType || query.type) === 'basic' ? convertBasicSearch(query) :
 		typeof query.rules === 'string' ?
 			JSON.parse(query.rules) as RuleGroup : undefined;
 }
@@ -101,8 +101,8 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const availableTags = await getAvailableTags();
 
 	const segment = query.segment ? await getRepository(Segment).findOne(query.segment as string) : undefined;
-	const searchType = query.type || (segment ? 'advanced' : 'basic');
-	const searchRuleGroup = getSearchRuleGroup(query) || segment && segment.ruleGroup;
+	const searchType = query.type as string || (segment ? 'advanced' : 'basic');
+	const searchRuleGroup = getSearchRuleGroup(query, searchType) || segment && segment.ruleGroup;
 
 	const filter = buildQuery(searchRuleGroup);
 
