@@ -76,7 +76,7 @@ $('#builder').queryBuilder({
 		type: 'datetime'
 	}, {
 		id: 'tags',
-		label: 'Has tag',
+		label: 'Tags',
 		type: 'string'
 	}]
 });
