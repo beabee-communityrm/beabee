@@ -10,6 +10,8 @@ import * as db from '@core/database';
 import { ConnectionOptions, getRepository } from 'typeorm';
 import MemberPermission from '@models/MemberPermission';
 import Member from '@models/Member';
+import MembersService from '@core/services/MembersService';
+import { ContributionType } from '@core/utils';
 
 const questions: QuestionCollection[] = [];
 
@@ -77,16 +79,19 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 
 	const password = await generatePassword(answers.password);
 
-	const member = getRepository(Member).create({
+	const member = await MembersService.createMember({
 		firstname: answers.firstname,
 		lastname: answers.lastname,
 		email: answers.email,
+		contributionType: ContributionType.Manual,
 		password: {
 			hash: password.hash,
 			salt: password.salt,
-			iterations: password.iterations
+			iterations: password.iterations,
+			tries: 0
 		},
-		permissions: []
+	}, {
+		deliveryOptIn: false
 	});
 
 	if ( answers.membership != 'No' ) {
