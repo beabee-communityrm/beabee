@@ -24,15 +24,16 @@ block contents
 					label.col-md-3.control-label Delivery opt in
 					.col-md-4
 						label.radio-inline
-							input(type='radio', name='delivery_optin', value='true', checked=member.delivery_optin)
+							input(type='radio', name='delivery_optin', value='true', checked=member.profile.deliveryOptIn)
 							| Yes
 						| 
 						label.radio-inline
-							input(type='radio', name='delivery_optin', value='false', checked=!member.delivery_optin)
+							input(type='radio', name='delivery_optin', value='false', checked=!member.profile.deliveryOptIn)
 							| No
 
-				+input( 'text', 'Address line 1', 'delivery_line1', { value: member.delivery_address.line1, left: 3, right: 4 } )
-				+input( 'text', 'Address line 2', 'delivery_line2', { value: member.delivery_address.line2, left: 3, right: 4 } )
-				+input( 'text', 'City/town', 'delivery_city', { value: member.delivery_address.city, left: 3, right: 4 } )
-				+input( 'text', 'Postcode', 'delivery_postcode', { value: member.delivery_address.postcode, left: 3, right: 4 } )
+				- deliveryAddress = member.profile.deliveryAddress || {}
+				+input( 'text', 'Address line 1', 'delivery_line1', { value: deliveryAddress.line1, left: 3, right: 4 } )
+				+input( 'text', 'Address line 2', 'delivery_line2', { value: deliveryAddress.line2, left: 3, right: 4 } )
+				+input( 'text', 'City/town', 'delivery_city', { value: deliveryAddress.city, left: 3, right: 4 } )
+				+input( 'text', 'Postcode', 'delivery_postcode', { value: deliveryAddress.postcode, left: 3, right: 4 } )
 				+form_button( 'Update', 'success', {left: 3} )

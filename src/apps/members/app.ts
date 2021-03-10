@@ -68,8 +68,9 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const searchRuleGroup = getSearchRuleGroup(query) || segment && segment.ruleGroup;
 
 	const filter = searchRuleGroup ? parseRuleGroup(searchRuleGroup) : createQueryBuilder(Member, 'm');
-	// Always load permissions
+	// Always load permissions and profile
 	filter.innerJoinAndSelect('m.permissions', 'mp');
+	filter.innerJoinAndSelect('m.profile', 'profile');
 
 	// Hack to keep permission filter until it becomes a rule
 	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
@@ -77,10 +78,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 			filter.andWhere('mp.permission = :permission', {permission: query.permission});
 		}
 		if (!query.show_inactive) {
-			filter.andWhere(new Brackets(qb => {
-				qb.where('mp.dateExpires IS NULL')
-					.orWhere('mp.dateExpires >= :dateExpires', {dateExpires: new Date()});
-			}));
+			const now = new Date();
+			filter
+				.andWhere('mp.dateAdded <= :now', {now})
+				.andWhere(new Brackets(qb => {
+					qb.where('mp.dateExpires IS NULL')
+						.orWhere('mp.dateExpires >= :now', {now});
+				}));
 		}
 	}
 	

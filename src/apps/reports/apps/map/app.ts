@@ -78,9 +78,9 @@ app.get('/', (req, res) => {
 app.get('/locations', wrapAsync(async (req, res) => {
 	const now = new Date();
 	const profiles = await createQueryBuilder(MemberProfile, 'profile')
-		.innerJoin(MemberPermission, 'mp')
+		.innerJoin(MemberPermission, 'mp', 'profile.memberId = mp.memberId')
 		.where('profile.deliveryOptIn = true')
-		.andWhere('mp.permission === "member" AND mp.dateAdded <= :now', {now})
+		.andWhere('mp.permission = \'member\' AND mp.dateAdded <= :now', {now})
 		.andWhere(new Brackets(qb =>
 			qb.where('mp.dateExpires >= :now', {now})
 				.orWhere('mp.dateExpires = NULL')

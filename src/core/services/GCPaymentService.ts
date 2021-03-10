@@ -360,9 +360,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
 	static async getPayments(member: Member): Promise<Payment[]> {
 		return await getRepository(GCPayment).find({
-			where: {
-				memberId: member.id
-			},
+			where: {member: member.id},
 			order: {chargeDate: 'DESC'}
 		});
 	}

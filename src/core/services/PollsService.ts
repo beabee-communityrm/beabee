@@ -24,9 +24,7 @@ export default class PollsService {
 
 		const responses = await getRepository(PollResponse).find( {
 			loadRelationIds: true,
-			where: {
-				memberId: member.id
-			}
+			where: {member}
 		});
 
 		const pollsWithResponses = polls.map(poll => {

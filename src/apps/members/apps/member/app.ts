@@ -29,7 +29,10 @@ app.use( isAdmin );
 
 app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
-	const member = await getRepository(Member).findOne(req.allParams.uuid);
+	const member = await getRepository(Member).findOne({
+		where: {id: req.allParams.uuid},
+		relations: ['profile']
+	});
 	if (member) {
 		req.model = member;
 		res.locals.paymentData = await PaymentService.getPaymentData(member);

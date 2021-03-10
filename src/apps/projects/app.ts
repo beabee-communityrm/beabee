@@ -100,7 +100,7 @@ app.get( '/:id', hasNewModel(Project, 'id', {relations: ['owner']}), wrapAsync( 
 	
 	const projectMembers = await getRepository(ProjectMember).find({
 		where: {project},
-		relations: ['member']
+		relations: ['member', 'member.profile']
 	});
 	const engagements = await getRepository(ProjectEngagement).find({
 		where: {project},

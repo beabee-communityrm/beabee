@@ -15,9 +15,9 @@ mixin editablePanel(title, id)
 				button(name='action' value='save-' + id).btn.btn-primary.btn-sm Save
 
 mixin memberTag(tag)
-	a(href='/members/?tag=' + encodeURIComponent(tag.name) data-tag=tag.name).label.label-info.member-tag.js-edit-member-tag
-		input(type='hidden' name='tags[]' value=tag.name)
-		= tag.name
+	a(href='/members/?tag=' + encodeURIComponent(tag) data-tag=tag).label.label-info.member-tag.js-edit-member-tag
+		input(type='hidden' name='tags[]' value=tag)
+		= tag
 		span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
 
 script(type='text/template').js-edit-member-tag-template
@@ -35,7 +35,7 @@ script(type='text/template').js-edit-member-tag-template
 	p
 		| Tags:
 		span.js-edit-member-tags
-			each tag in member.tags
+			each tag in member.profile.tags
 				+memberTag(tag)
 	p.hidden.js-edit-member-hidden.form-inline
 		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
@@ -53,7 +53,7 @@ script(type='text/template').js-edit-member-tag-template
 					|
 					select(name='preferred' disabled)#preferred.form-control
 						each p in ['', 'None', 'Email', 'Telephone', 'Twitter']
-							option(selected=member.contact.preferred === p)= p
+							option(selected=member.profile.preferredContact === p)= p
 	.row
 		.col-md-12
 			.form-group
@@ -67,13 +67,13 @@ script(type='text/template').js-edit-member-tag-template
 				.input-group
 					span.input-group-addon
 						span.glyphicon.glyphicon-earphone
-					input(type='text' name='telephone' value=member.contact.telephone readonly).form-control
+					input(type='text' name='telephone' value=member.profile.telephone readonly).form-control
 		.col-md-6
 			.form-group
 				.input-group
 					span.input-group-addon
 						img(src='/static/imgs/twitter.png')
-					input(type='text' name='twitter' value=member.contact.twitter readonly).form-control
+					input(type='text' name='twitter' value=member.profile.twitter readonly).form-control
 
 +editablePanel('Notes', 'notes')
 	.form-group
@@ -83,7 +83,7 @@ if access('superadmin')
 	.panel.panel-default
 		.panel-heading
 			h3.panel-title
-				.pull-right: a(href=`/members/${member.uuid}/profile`): span.glyphicon.glyphicon-edit
+				.pull-right: a(href=`/members/${member.id}/profile`): span.glyphicon.glyphicon-edit
 				| Delivery details
 		.panel-body
 			dl.dl-horizontal

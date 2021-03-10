@@ -1,10 +1,7 @@
 h4 System
 dl.dl-horizontal
-	dt UUID
-	dd #{ member.uuid }
-	if access( 'superadmin' )
-		dt DB ID
-		dd #{ member._id }
+	dt ID
+	dd #{ member.id }
 	dt Joined
 	dd #{ moment( member.joined ).format( 'HH:mm:ss DD/MM/YYYY' ) }
 	dt Last seen
