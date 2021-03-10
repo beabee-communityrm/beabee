@@ -3,16 +3,16 @@ import _ from 'lodash';
 import { getRepository } from 'typeorm';
 
 import * as auth from '@core/authentication';
-import { Members } from '@core/database';
 import { hasNewModel, hasSchema, isLoggedIn } from '@core/middleware';
 import { isSocialScraper, wrapAsync } from '@core/utils';
 
 import PollsService from '@core/services/PollsService';
 
+import Member from '@models/Member';
 import Poll from '@models/Poll';
+import { PollResponseAnswers } from '@models/PollResponse';
 
 import schemas from './schemas.json';
-import { PollResponseAnswers } from '@models/PollResponse';
 
 function getView(poll: Poll): string {
 	switch (poll.template) {
@@ -154,7 +154,7 @@ app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res 
 
 	// Prefill answers from URL
 	if (answers) {
-		const member = await Members.findOne( { pollsCode } );
+		const member = await getRepository(Member).findOne( { pollsCode } );
 		if (member) {
 			const error = await PollsService.setResponse( poll, member, answers, true );
 			if (!error) {
@@ -179,7 +179,7 @@ app.post( '/:slug/:code', [
 	const pollsCode = req.params.code.toUpperCase();
 	let error;
 
-	const member = await Members.findOne( { pollsCode } );
+	const member = await getRepository(Member).findOne( { pollsCode } );
 	if (member) {
 		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 		error = await PollsService.setResponse( poll, member, req.answers! );
