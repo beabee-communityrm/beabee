@@ -4,14 +4,13 @@ import { generateCode } from '@core/authentication';
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/mailchimp';
+import { isDuplicateIndex } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 
-import { Address } from '@models/GiftFlow';
 import GCPaymentData from '@models/GCPaymentData';
 import Member, { PartialMember } from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
-import { isDuplicateIndex } from '@core/utils';
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {

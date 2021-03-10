@@ -66,11 +66,7 @@ app.get( '/:id/modify', wrapAsync( async ( req, res ) =>{
 app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( async ( req, res, next ) => {
 	const { body: { startDate, startTime, expiryDate, expiryTime } } = req;
 	const member = req.model as Member;
-
-	const permission = member.permissions.find(p => p.permission === req.params.id);
-	if ( !permission ) {
-		return next('route');
-	}
+	const permission = req.params.id as PermissionType;
 
 	const dateAdded = moment(startDate + 'T' + startTime).toDate();
 	const dateExpires = expiryDate && expiryTime ? moment(expiryDate + 'T' + expiryTime).toDate() : undefined;
@@ -81,7 +77,10 @@ app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( a
 		return;
 	}
 
-	await getRepository(MemberPermission).save({...permission, dateAdded, dateExpires});
+	await getRepository(MemberPermission).update(
+		{member, permission},
+		{dateAdded, dateExpires}
+	);
 
 	req.flash( 'success', 'permission-updated' );
 	res.redirect( req.baseUrl );
