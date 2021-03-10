@@ -181,7 +181,7 @@ app.post( '/:slug/:code', [
 
 	const member = await getRepository(Member).findOne( { pollsCode } );
 	if (member) {
-		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+		res.cookie('memberId', member.id, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 		error = await PollsService.setResponse( poll, member, req.answers! );
 	} else {
 		req.log.error({
