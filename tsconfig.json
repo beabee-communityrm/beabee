@@ -11,6 +11,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strict": true,
+    "sourceMap": true,
     "baseUrl": "./",
     "paths": {
       "*": ["./node_modules/*"],
