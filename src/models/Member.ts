@@ -85,8 +85,8 @@ export default class Member implements PartialMember {
 	@Column({type: 'real', nullable: true})
 	nextContributionMonthlyAmount?: number
 
-	@Column({unique: true, nullable: true})
-	referralCode?: string
+	@Column({unique: true})
+	referralCode!: string
 
 	@Column({unique: true})
 	pollsCode!: string
