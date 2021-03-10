@@ -60,7 +60,18 @@ $('#builder').queryBuilder({
 		label: 'Membership expiry date',
 		type: 'datetime'
 	}, {
-		id: 'hasTag',
+		id: 'permission',
+		label: 'Permission',
+		type: 'string',
+		input: 'select',
+		values: {
+			'access': 'Access',
+			'member': 'Member',
+			'admin': 'Admin',
+			'superadmin': 'Superadmin'
+		}
+	}, {
+		id: 'tags',
 		label: 'Has tag',
 		type: 'string'
 	}]

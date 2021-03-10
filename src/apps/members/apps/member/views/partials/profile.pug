@@ -21,16 +21,16 @@ mixin memberTag(tag)
 		span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
 
 script(type='text/template').js-edit-member-tag-template
-	+memberTag({name: 'XXX'})
+	+memberTag('XXX')
 
 +editablePanel('About', 'about')
 	.form-group
 		label(for="description").control-label Description
-		input(type='text' name='description' value=member.description readonly)#description.form-control
+		input(type='text' name='description' value=member.profile.description readonly)#description.form-control
 
 	.form-group
 		label(for='bio').control-label Bio
-		textarea(name='bio' readonly)#bio.form-control.member-about= member.bio
+		textarea(name='bio' readonly)#bio.form-control.member-about= member.profile.bio
 
 	p
 		| Tags:
@@ -77,7 +77,7 @@ script(type='text/template').js-edit-member-tag-template
 
 +editablePanel('Notes', 'notes')
 	.form-group
-		textarea(name='notes' readonly).form-control.member-about= member.notes
+		textarea(name='notes' readonly).form-control.member-about= member.profile.notes
 
 if access('superadmin')
 	.panel.panel-default

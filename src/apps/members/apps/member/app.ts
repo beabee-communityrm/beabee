@@ -70,21 +70,23 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		return;
 	}
 
+	console.log(req.body);
+
 	switch (req.body.action) {
 	case 'save-about': {
 		await MembersService.updateMemberProfile(member, {
-			tags: req.body.tags,
-			description: req.body.description,
-			bio: req.body.description
+			tags: req.body.tags || [],
+			description: req.body.description || '',
+			bio: req.body.bio || ''
 		});
 		req.flash('success', 'member-updated');
 		break;
 	}
 	case 'save-contact':
 		await MembersService.updateMemberProfile(member, {
-			telephone: req.body.telephone,
-			twitter: req.body.twitter,
-			preferredContact: req.body.preferred
+			telephone: req.body.telephone || '',
+			twitter: req.body.twitter || '',
+			preferredContact: req.body.preferred || ''
 		});
 		req.flash('success', 'member-updated');
 		break;

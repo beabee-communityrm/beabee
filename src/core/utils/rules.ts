@@ -1,52 +1,69 @@
-import escapeStringRegexp from 'escape-string-regexp';
 import moment, { DurationInputArg2 } from 'moment';
-import { createQueryBuilder, SelectQueryBuilder } from 'typeorm';
+import {
+	Brackets, createQueryBuilder, SelectQueryBuilder, WhereExpression
+} from 'typeorm';
 
 import Member from '@models/Member';
+import MemberProfile from '@models/MemberProfile';
+import MemberPermission from '@models/MemberPermission';
 
 const operators = {
-	equal: (v: RichRuleValue[]) => ( v[0] ),
-	not_equal: (v: RichRuleValue[]) => ( { '$ne': v[0] } ),
-	in: (v: RichRuleValue[]) => ( { '$in': v } ),
-	not_in: (v: RichRuleValue[]) => ( { '$nin': v } ),
-	less: (v: RichRuleValue[]) => ( { '$lt': v[0] } ),
-	less_or_equal: (v: RichRuleValue[]) => ( { '$lte': v[0] } ),
-	greater: (v: RichRuleValue[]) => ( { '$gt': v[0] } ),
-	greater_or_equal: (v: RichRuleValue[]) => ( { '$gte': v[0] } ),
-	between: (v: RichRuleValue[]) => ( { '$gte': v[0], '$lte': v[1] } ),
-	not_between: (v: RichRuleValue[]) => ( { '$lt': v[0], '$gt': v[1] } ),
-	begins_with: (v: RichRuleValue[]) => ( { '$regex': '^' + escapeStringRegexp(v[0] + '') } ),
-	not_begins_with: (v: RichRuleValue[]) => ( { '$regex': '^(?!' + escapeStringRegexp(v[0] + '') + ')' } ),
-	contains: (v: RichRuleValue[]) => ( { '$regex': escapeStringRegexp(v[0] + ''), '$options': 'i' } ),
-	not_contains: (v: RichRuleValue[]) => ( { '$regex': '^((?!' + escapeStringRegexp(v[0] + '') + ').)*$', '$options': 'si' } ),
-	ends_with: (v: RichRuleValue[]) => ( { '$regex': escapeStringRegexp(v[0] + '') + '$' } ),
-	not_ends_with: (v: RichRuleValue[]) => ( { '$regex': '(?<!' + escapeStringRegexp(v[0] + '') + ')$' } ),
-	is_empty: () => ( '' ),
-	is_not_empty: () => ( { '$ne': '' } ),
-	is_null: () => ( null ),
-	is_not_null: () => ( { '$ne': null }  ),
+	equal: (v: RichRuleValue[]) => ['= :a', {a: v[0]}] as const,
+	not_equal: (v: RichRuleValue[]) => ['<> :a', {a: v[0]}] as const,
+	in: (v: RichRuleValue[]) => ['IN (:...v)', {v}] as const,
+	not_in: (v: RichRuleValue[]) => ['NOT IN (:...v)', {v}] as const,
+	less: (v: RichRuleValue[]) => ['< :a', {a: v[0]}] as const,
+	less_or_equal: (v: RichRuleValue[]) => ['<= :a', {a: v[0]}] as const,
+	greater: (v: RichRuleValue[]) => ['> :a', {a: v[0]}] as const,
+	greater_or_equal: (v: RichRuleValue[]) => ['>= :a', {a: v[0]}] as const,
+	between: (v: RichRuleValue[]) => ['BETWEEN :a AND :b', {a: v[0], b: v[1]}] as const,
+	not_between: (v: RichRuleValue[]) => ['NOT BETWEEN :a AND :b', {a: v[0], b: v[1]}] as const,
+	begins_with: (v: RichRuleValue[]) => ['ILIKE :a', {a: v[0] + '%'}] as const,
+	not_begins_with: (v: RichRuleValue[]) => ['NOT ILIKE :a', {a: v[0] + '%'}] as const,
+	contains: (v: RichRuleValue[]) => ['ILIKE :a', {a: '%' + v[0] + '%'}] as const,
+	not_contains: (v: RichRuleValue[]) => ['NOT ILIKE :a', {a: '%' + v[0] + '%'}] as const,
+	ends_with: (v: RichRuleValue[]) => ['ILIKE :a', {a: '%' + v[0]}] as const,
+	not_ends_with: (v: RichRuleValue[]) => ['NOT ILIKE :a', {a: '%' + v[0]}] as const,
+	is_empty: () => ['= \'\'', {}] as const,
+	is_not_empty: () => ['<> \'\'', {}] as const,
+	is_null: () => ['IS NULL', {}] as const,
+	is_not_null: () => ['IS NOT NULL', {}] as const,
+	contains_jsonb: (v: RichRuleValue[]) => ['? :a', {a: v[0]}] as const
 } as const;
 
-const fields = {
-	'firstname': 'firstname',
-	'lastname': 'lastname',
-	'email': 'email',
-	'contributionType': 'contributionType',
-	'contributionMonthlyAmount': 'contributionMonthlyAmount',
-	'contributionPeriod': 'contributionPeriod',
-	'deliveryOptIn': 'delivery_optin',
-	'activeSubscription': 'gocardless.subscription_id',
-	'dateAdded': 'permissions.0.date_added',
-	'dateExpires': 'permissions.0.date_expires',
-	'hasTag': 'tags.name'
+const memberFields = [
+	'id',
+	'firstname',
+	'lastname',
+	'email',
+	'joined',
+	'contributionType',
+	'contributionMonthlyAmount',
+	'contributionPeriod',
+] as const;
+
+const profileFields = [
+	'deliveryOptIn',
+	'tags'
+] as const;
+
+const permissionFields = [
+	'dateAdded',
+	'dateExpires',
+	'permission'
+] as const;
+
+const gcPaymentDataFields = {
+	'activeSubscription': 'subscriptionId'
 } as const;
 
+type RuleId = typeof memberFields[number]|typeof profileFields[number]|typeof permissionFields[number]
 type RuleValue = string|number|boolean;
 type RichRuleValue = RuleValue|Date;
 
 export interface Rule {
-	id: keyof typeof fields
-	field: keyof typeof fields
+	id: RuleId
+	field: RuleId
 	type: 'string'|'integer'|'boolean'|'double'
 	operator: keyof typeof operators
 	value: RuleValue|RuleValue[]
@@ -79,20 +96,69 @@ function parseValue(value: RuleValue): RichRuleValue {
 	}
 }
 
-function parseRule(rule: Rule): SelectQueryBuilder<Member> {
-	return createQueryBuilder(Member).where('TRUE');
-	/*
-	const values = Array.isArray(rule.value) ? rule.value : [rule.value];
-	return {
-		[fields[rule.field]]: operators[rule.operator](values.map(parseValue))
-	};*/
+class QueryBuilder {
+	private params: Record<string, unknown> = {};
+	private paramNo = 0;
+
+	readonly mainQb: SelectQueryBuilder<Member>;
+
+	constructor(ruleGroup?: RuleGroup) {
+		this.mainQb = createQueryBuilder(Member, 'm');
+		this.mainQb.innerJoinAndSelect('m.permissions', 'mp');
+		this.mainQb.innerJoinAndSelect('m.profile', 'profile');
+		if (ruleGroup) {
+			this.parseRuleGroup(ruleGroup)(this.mainQb);
+			this.mainQb.setParameters(this.params);
+		}
+	}
+
+	private parseRule = (rule: Rule) => (qb: WhereExpression): void => {
+		const values = Array.isArray(rule.value) ? rule.value : [rule.value];
+		const parsedValues = values.map(parseValue);
+
+		const [where, params] = operators[rule.operator](parsedValues);
+
+		// Horrible code to make sure param names are unique
+		const suffix = '_' + this.paramNo;
+		for (const paramKey in params) {
+			this.params[paramKey + suffix] = params[paramKey as keyof typeof params];
+		}
+		const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
+
+		if (memberFields.indexOf(rule.field as any) > -1) {
+			qb.where(`m.${rule.field} ${namedWhere}`);
+		} else if (profileFields.indexOf(rule.field as any) > -1) {
+			const table = 'profile' + suffix;
+			const subQb = createQueryBuilder()
+				.subQuery()
+				.select(`${table}.memberId`)
+				.from(MemberProfile, table)
+				.where(`${table}.${rule.field} ${namedWhere}`);
+
+			qb.where('id IN ' + subQb.getQuery());
+		} else if (permissionFields.indexOf(rule.field as any) > -1) {
+			const table = 'mp' + suffix;
+			const subQb = createQueryBuilder()
+				.subQuery()
+				.select(`${table}.memberId`)
+				.from(MemberPermission, table)
+				.where(`${table}.${rule.field} ${namedWhere}`);
+
+			qb.where('id IN ' + subQb.getQuery());
+		}
+
+		this.paramNo++;
+	}
+
+	private parseRuleGroup = (ruleGroup: RuleGroup) => (qb: WhereExpression) => {
+		qb.where(ruleGroup.condition === 'AND' ? 'TRUE' : 'FALSE');
+		const conditionFn = ruleGroup.condition === 'AND' ? 'andWhere' as const : 'orWhere' as const;
+		for (const rule of ruleGroup.rules) {
+			qb[conditionFn](new Brackets(isRuleGroup(rule) ? this.parseRuleGroup(rule) : this.parseRule(rule)));
+		}
+	}
 }
 
-export function parseRuleGroup(query: RuleGroup): SelectQueryBuilder<Member> {
-	return createQueryBuilder(Member, 'm').where('TRUE');
-	/*return {
-		[query.condition === 'AND' ? '$and' : '$or']: query.rules.map(rule => (
-			isRuleGroup(rule) ? parseRuleGroup(rule) : parseRule(rule)
-		))
-	};*/
+export default function buildQuery(ruleGroup?: RuleGroup): SelectQueryBuilder<Member> {
+	return new QueryBuilder(ruleGroup).mainQb;
 }

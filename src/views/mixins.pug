@@ -107,7 +107,7 @@ mixin membersTableBasicInfo(member)
 		div.members-table-row-info
 			span= member.fullname
 			span= member.email
-		small= member.description
+		small= member.profile.description
 	span
 		each tag in member.profile.tags
 			if !search || tag !== search.tag

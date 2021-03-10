@@ -1,15 +1,14 @@
 import express, { Request } from 'express';
 import queryString from 'query-string';
-import { Brackets, createQueryBuilder, getRepository, } from 'typeorm';
+import { Brackets, getRepository } from 'typeorm';
 
 import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
-import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
+import buildQuery, { RuleGroup } from '@core/utils/rules';
 
 import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
 
-import Member from '@models/Member';
 import Project from '@models/Project';
 import Segment from '@models/Segment';
 
@@ -42,11 +41,49 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 	}
 	if ( query.tag ) {
 		search.rules.push({
-			id: 'hasTag',
-			field: 'hasTag',
+			id: 'tags',
+			field: 'tags',
+			type: 'string',
+			operator: 'contains_jsonb',
+			value: query.tag as string
+		});
+	}
+
+	if (query.permission) {
+		search.rules.push({
+			id: 'permission',
+			field: 'permission',
 			type: 'string',
 			operator: 'equal',
-			value: query.tag as string
+			value: query.permission as string
+		});
+	}
+
+	if (!query.show_inactive) {
+		search.rules.push({
+			condition: 'AND',
+			rules: [{
+				id: 'dateAdded',
+				field: 'dateAdded',
+				type: 'string',
+				operator: 'less',
+				value: '$now'
+			}, {
+				condition: 'OR',
+				rules: [{
+					id: 'dateExpires',
+					field: 'dateExpires',
+					type: 'string',
+					operator: 'is_null',
+					value: ''
+				}, {
+					id: 'dateExpires',
+					field: 'dateExpires',
+					type: 'string',
+					operator: 'greater',
+					value: '$now'
+				}]
+			}]
 		});
 	}
 
@@ -67,27 +104,8 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const searchType = query.type || (segment ? 'advanced' : 'basic');
 	const searchRuleGroup = getSearchRuleGroup(query) || segment && segment.ruleGroup;
 
-	const filter = searchRuleGroup ? parseRuleGroup(searchRuleGroup) : createQueryBuilder(Member, 'm');
-	// Always load permissions and profile
-	filter.innerJoinAndSelect('m.permissions', 'mp');
-	filter.innerJoinAndSelect('m.profile', 'profile');
+	const filter = buildQuery(searchRuleGroup);
 
-	// Hack to keep permission filter until it becomes a rule
-	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
-		if (query.permission) {
-			filter.andWhere('mp.permission = :permission', {permission: query.permission});
-		}
-		if (!query.show_inactive) {
-			const now = new Date();
-			filter
-				.andWhere('mp.dateAdded <= :now', {now})
-				.andWhere(new Brackets(qb => {
-					qb.where('mp.dateExpires IS NULL')
-						.orWhere('mp.dateExpires >= :now', {now});
-				}));
-		}
-	}
-	
 	const page = query.page ? Number( query.page ) : 1;
 	const limit = query.limit ? Number( query.limit ) : 25;
 
@@ -109,7 +127,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 		pages, page, prev, next,
 		start: (page - 1) * limit + 1,
 		end: Math.min(total, page * limit),
-		total: pages.length
+		total: pages.length,
 	};
 
 	const addToProject = query.addToProject && await getRepository(Project).findOne( query.addToProject as string );
