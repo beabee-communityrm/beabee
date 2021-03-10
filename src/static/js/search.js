@@ -46,22 +46,10 @@ $('#builder').queryBuilder({
 		label: 'Delivery opted-in',
 		type: 'boolean',
 		input: 'radio',
-		values: {1: 'Yes', 0: 'No'}
-	}, {
-		id: 'activeSubscription',
-		label: 'Active subscription',
-		type: 'string'
-	}, {
-		id: 'dateAdded',
-		label: 'Membership start date',
-		type: 'datetime'
-	}, {
-		id: 'dateExpires',
-		label: 'Membership expiry date',
-		type: 'datetime'
+		values: {true: 'Yes', false: 'No'}
 	}, {
 		id: 'permission',
-		label: 'Permission',
+		label: 'Permission type',
 		type: 'string',
 		input: 'select',
 		values: {
@@ -70,6 +58,14 @@ $('#builder').queryBuilder({
 			'admin': 'Admin',
 			'superadmin': 'Superadmin'
 		}
+	}, {
+		id: 'dateAdded',
+		label: 'Permission start date',
+		type: 'datetime'
+	}, {
+		id: 'dateExpires',
+		label: 'Permission expiry date',
+		type: 'datetime'
 	}, {
 		id: 'tags',
 		label: 'Has tag',
