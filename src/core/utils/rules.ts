@@ -37,6 +37,7 @@ const memberFields = [
 	'lastname',
 	'email',
 	'joined',
+	'lastSeen',
 	'contributionType',
 	'contributionMonthlyAmount',
 	'contributionPeriod',

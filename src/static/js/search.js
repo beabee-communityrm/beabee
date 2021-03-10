@@ -23,6 +23,14 @@ $('#builder').queryBuilder({
 		label: 'Email address',
 		type: 'string'
 	}, {
+		id: 'joined',
+		label: 'Joined',
+		type: 'datetime'
+	}, {
+		id: 'lastSeen',
+		label: 'Last seen',
+		type: 'datetime'
+	}, {
 		id: 'contributionType',
 		label: 'Contribution type',
 		type: 'string',
