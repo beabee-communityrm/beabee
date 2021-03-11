@@ -70,8 +70,6 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		return;
 	}
 
-	console.log(req.body);
-
 	switch (req.body.action) {
 	case 'save-about': {
 		await MembersService.updateMemberProfile(member, {
