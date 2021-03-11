@@ -159,7 +159,8 @@ export async function generatePassword( password: string ): Promise<Password> {
 	const salt = await generateSalt();
 	const hash = await hashPassword(password, salt, config.iterations);
 	return {
-		salt, hash, iterations: config.iterations,
+		salt, hash,
+		iterations: config.iterations,
 		tries: 0
 	};
 }

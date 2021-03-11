@@ -80,7 +80,7 @@ export default class MembersService {
 		const oldEmail = member.email;
 
 		member = Object.assign(member, 	updates);
-		await getRepository(Member).save(member);
+		await getRepository(Member).update(member.id, updates);
 
 		if (needsSync) {
 			await MembersService.syncMemberDetails(member, oldEmail);

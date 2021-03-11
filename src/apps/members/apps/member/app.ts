@@ -139,7 +139,7 @@ adminApp.get( '/2fa', ( req, res ) => {
 
 adminApp.post( '/2fa', wrapAsync( async ( req, res ) => {
 	await MembersService.updateMember(req.model as Member, {
-		otp: {activated: false}
+		otp: {key: undefined, activated: false}
 	});
 	req.flash( 'success', '2fa-disabled' );
 	res.redirect( req.baseUrl );

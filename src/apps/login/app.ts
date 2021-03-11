@@ -4,6 +4,8 @@ import { createQueryBuilder, getRepository } from 'typeorm';
 
 import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
 
+import MembersService from '@core/services/MembersService';
+
 import Member from '@models/Member';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
@@ -46,6 +48,7 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 		.getOne();
 
 	if (member) {
+		await MembersService.updateMember(member, {loginOverride: undefined});
 		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
 	} else {
 		req.flash('error', 'login-code-invalid');

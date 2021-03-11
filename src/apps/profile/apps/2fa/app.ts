@@ -84,7 +84,7 @@ app.post( '/disable', wrapAsync( hasUser(async function( req, res ) {
 	const test = totp.verify( req.body.code, base32.decode( req.user.otp.key || '' ) );
 	const hash = await hashPassword( req.body.password, req.user.password.salt, req.user.password.iterations );
 	if ( test && Math.abs( test.delta ) < 2 && hash === req.user.password.hash ) {
-		await MembersService.updateMember(req.user, {otp: {activated: false}});
+		await MembersService.updateMember(req.user, {otp: {key: undefined, activated: false}});
 		req.flash( 'success', '2fa-disabled' );
 		res.redirect( '/profile/2fa' );
 	} else {

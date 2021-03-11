@@ -45,7 +45,10 @@ app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash,
 	const member = await getRepository(Member).findOne({password: {resetCode: req.body.password_reset_code }});
 	if (member) {
 		await MembersService.updateMember(member, {
-			password: await generatePassword( req.body.password )
+			password: {
+				...await generatePassword( req.body.password ),
+				resetCode: undefined
+			}
 		});
 
 		req.flash( 'success', 'password-changed' );
