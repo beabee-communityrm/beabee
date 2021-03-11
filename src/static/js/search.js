@@ -56,6 +56,12 @@ $('#builder').queryBuilder({
 		input: 'radio',
 		values: {true: 'Yes', false: 'No'}
 	}, {
+		id: 'activeMembership',
+		label: 'Has active membership',
+		type: 'boolean',
+		input: 'radio',
+		values: {true: 'Yes', false: 'No'}
+	}, {
 		id: 'permission',
 		label: 'Permission type',
 		type: 'string',

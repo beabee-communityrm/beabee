@@ -52,11 +52,15 @@ const permissionFields = [
 	'permission'
 ] as const;
 
+const complexFields = [
+	'activeMembership'
+] as const;
+
 const gcPaymentDataFields = {
 	'activeSubscription': 'subscriptionId'
 } as const;
 
-type RuleId = typeof memberFields[number]|typeof profileFields[number]|typeof permissionFields[number]
+type RuleId = typeof memberFields[number]|typeof profileFields[number]|typeof permissionFields[number]|typeof complexFields[number]
 type RuleValue = string|number|boolean;
 type RichRuleValue = RuleValue|Date;
 
@@ -124,7 +128,58 @@ class QueryBuilder {
 		}
 		const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
 
-		if (memberFields.indexOf(rule.field as any) > -1) {
+		if (rule.field === 'activeMembership') {
+			if (rule.value === true) {
+				this.parseRuleGroup({
+					condition: 'AND',
+					rules: [{
+						id: 'permission',
+						field: 'permission',
+						type: 'string',
+						operator: 'equal',
+						value: 'member'
+					}, {
+						id: 'dateAdded',
+						field: 'dateAdded',
+						type: 'string',
+						operator: 'less',
+						value: '$now'
+					}, {
+						condition: 'OR',
+						rules: [{
+							id: 'dateExpires',
+							field: 'dateExpires',
+							type: 'string',
+							operator: 'is_null',
+							value: ''
+						}, {
+							id: 'dateExpires',
+							field: 'dateExpires',
+							type: 'string',
+							operator: 'greater',
+							value: '$now'
+						}]
+					}]
+				})(qb);
+			} else {
+				this.parseRuleGroup({
+					condition: 'OR',
+					rules: [{
+						id: 'dateAdded',
+						field: 'dateAdded',
+						type: 'string',
+						operator: 'greater',
+						value: '$now'
+					}, {
+						id: 'dateExpires',
+						field: 'dateExpires',
+						type: 'string',
+						operator: 'less',
+						value: '$now'
+					}]
+				})(qb);
+			}
+		} else if (memberFields.indexOf(rule.field as any) > -1) {
 			qb.where(`m.${rule.field} ${namedWhere}`);
 		} else if (profileFields.indexOf(rule.field as any) > -1) {
 			const table = 'profile' + suffix;
@@ -149,7 +204,7 @@ class QueryBuilder {
 		this.paramNo++;
 	}
 
-	private parseRuleGroup = (ruleGroup: RuleGroup) => (qb: WhereExpression) => {
+	private parseRuleGroup = (ruleGroup: RuleGroup) => (qb: WhereExpression): void => {
 		qb.where(ruleGroup.condition === 'AND' ? 'TRUE' : 'FALSE');
 		const conditionFn = ruleGroup.condition === 'AND' ? 'andWhere' as const : 'orWhere' as const;
 		for (const rule of ruleGroup.rules) {

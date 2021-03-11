@@ -61,29 +61,11 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 
 	if (!query.show_inactive) {
 		search.rules.push({
-			condition: 'AND',
-			rules: [{
-				id: 'dateAdded',
-				field: 'dateAdded',
-				type: 'string',
-				operator: 'less',
-				value: '$now'
-			}, {
-				condition: 'OR',
-				rules: [{
-					id: 'dateExpires',
-					field: 'dateExpires',
-					type: 'string',
-					operator: 'is_null',
-					value: ''
-				}, {
-					id: 'dateExpires',
-					field: 'dateExpires',
-					type: 'string',
-					operator: 'greater',
-					value: '$now'
-				}]
-			}]
+			id: 'activeMembership',
+			field: 'activeMembership',
+			type: 'boolean',
+			operator: 'equal',
+			value: true
 		});
 	}
 
