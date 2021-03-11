@@ -48,23 +48,21 @@ passport.use( new passportLocal.Strategy( {
 
 		const hash = await hashPassword( password, user.password.salt, user.password.iterations );
 		if ( hash === user.password.hash ) {
-			const passportUser: PassportUser = {id: user.id};
-
 			if ( user.password.resetCode ) {
 				await MembersService.updateMember(user, {password: {...user.password, resetCode: undefined}});
-				return done( null, passportUser, { message: 'password-reset-attempt' } );
+				return done( null, user, { message: 'password-reset-attempt' } );
 			}
 
 			if ( tries > 0 ) {
 				await MembersService.updateMember(user, {password: {...user.password, tries: 0}});
-				return done( null, passportUser, { message: OptionsService.getText( 'flash-account-attempts' ).replace( '%', tries.toString() ) } );
+				return done( null, user, { message: OptionsService.getText( 'flash-account-attempts' ).replace( '%', tries.toString() ) } );
 			}
 
 			if ( user.password.iterations < config.iterations ) {
 				await MembersService.updateMember(user, {password: await generatePassword(password)});
 			}
 
-			return done( null, passportUser, { message: 'logged-in' } );
+			return done( null, user, { message: 'logged-in' } );
 		} else {
 			// If password doesn't match, increment tries and save
 			user.password.tries = tries + 1;
@@ -92,13 +90,12 @@ passport.use( new passportTotp.Strategy( {
 
 // Passport.js serialise user function
 passport.serializeUser( function( data, done ) {
-	done( null, data );
+	done( null, (data as Member).id );
 } );
 
 // Passport.js deserialise user function
 passport.deserializeUser( async function( data, done ) {
-	const passportUser = data as PassportUser;
-	const member = await getRepository(Member).findOne( passportUser.id );
+	const member = await getRepository(Member).findOne( data as string );
 	if ( member ) {
 		await MembersService.updateMember(member, {lastSeen: new Date()});
 
