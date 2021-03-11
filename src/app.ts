@@ -17,8 +17,6 @@ import PageSettingsService from '@core/services/PageSettingsService';
 
 import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
 
-import '@core/authentication'; // Configure passport
-
 import config from '@config';
 
 if ( !config.gocardless.sandbox && config.dev ) {

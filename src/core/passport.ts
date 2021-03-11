@@ -12,7 +12,7 @@ import { generatePassword, hashPassword } from '@core/utils/auth';
 import OptionsService from '@core/services/OptionsService';
 import MembersService from '@core/services/MembersService';
 
-import Member  from '@models/Member';
+import Member from '@models/Member';
 
 // Add support for local authentication in Passport.js
 passport.use( new passportLocal.Strategy( {
@@ -95,3 +95,5 @@ passport.deserializeUser( async function( data, done ) {
 		return done( null, false );
 	}
 } );
+
+export default passport;

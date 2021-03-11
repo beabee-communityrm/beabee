@@ -4,9 +4,10 @@ import _pgSession from 'connect-pg-simple';
 import csrf from 'csurf';
 import express, { ErrorRequestHandler } from 'express';
 import session from 'express-session';
-import passport from 'passport';
 import { getConnection } from 'typeorm';
 import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
+
+import passport from '@core/passport';
 
 import config from '@config';
 
