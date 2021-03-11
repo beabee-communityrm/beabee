@@ -83,7 +83,11 @@ passport.serializeUser( function( data, done ) {
 passport.deserializeUser( async function( data, done ) {
 	const member = await getRepository(Member).findOne( data as string );
 	if ( member ) {
-		await MembersService.updateMember(member, {lastSeen: new Date()});
+		// Debounce last seen updates, we don't need to know to the second
+		const now = new Date();
+		if (!member.lastSeen || (+now - +member.lastSeen > 60000)) {
+			await MembersService.updateMember(member, {lastSeen: now});
+		}
 
 		const user = member as Express.User;
 		user.quickPermissions = [
