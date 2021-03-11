@@ -216,7 +216,7 @@ abstract class UpdateContributionPaymentService {
 		await getRepository(Member).save(member);
 
 		gcData.cancelledAt = undefined;
-		await getRepository(GCPaymentData).save(gcData);
+		await getRepository(GCPaymentData).update(gcData.member.id, gcData);
 
 		if (wasInactive) {
 			await MembersService.addMemberToMailingLists(member);
