@@ -34,27 +34,29 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		} else {
 			req.flash('error', 'member-add-invalid-direct-debit');
 		}
-	} else if (req.body.type === ContributionType.Manual) {
+	} else {
 		member = await MembersService.createMember({
 			email: req.body.email,
 			firstname: req.body.firstname,
 			lastname: req.body.lastname,
-			contributionType: ContributionType.Manual
+			contributionType: req.body.type
 		}, {
 			deliveryOptIn: false
 		});
-		const paymentData = getRepository(ManualPaymentData).create({
-			member,
-			source: req.body.source || '',
-			reference: req.body.reference || ''
-		});
-		await getRepository(ManualPaymentData).save(paymentData);
+		if (req.body.type === ContributionType.Manual) {
+			const paymentData = getRepository(ManualPaymentData).create({
+				member,
+				source: req.body.source || '',
+				reference: req.body.reference || ''
+			});
+			await getRepository(ManualPaymentData).save(paymentData);
+		}
 	}
 
 	if (member) {
 		res.redirect( '/members/' + member.id );
 	} else {
-		res.redirect( app.mountpath + '/add' );
+		res.redirect( '/members/add' );
 	}
 } ) );
 
