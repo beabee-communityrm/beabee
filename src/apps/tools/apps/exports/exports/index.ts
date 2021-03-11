@@ -5,8 +5,8 @@ import gocardless from './gocardless';
 export default {
 	'active-members': activeMembers,
 	//'churn-rate': churnRate,
-	'edition': edition,
+	//'edition': edition,
 	//'gift': gifts,
-	'gocardless': gocardless,
+	//'gocardless': gocardless,
 	//'referrals': referrals
 };

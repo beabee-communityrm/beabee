@@ -1,14 +1,14 @@
-import { getRepository, In, IsNull, MoreThan, Not } from 'typeorm';
+import { Brackets, createQueryBuilder, getRepository, SelectQueryBuilder } from 'typeorm';
 
-import { Members } from '@core/database';
 import { Param } from '@core/utils/params';
 
 import Export from '@models/Export';
 import GCPaymentData from '@models/GCPaymentData';
-import { Member } from '@models/members';
+import Member from '@models/Member';
 import MemberPermission from '@models/MemberPermission';
 
-import { ExportType } from './type';
+import type { ExportType } from '../app';
+import ExportItem from '@models/ExportItem';
 
 async function getParams(): Promise<Param[]> {
 	return [{
@@ -18,26 +18,43 @@ async function getParams(): Promise<Param[]> {
 	}];
 }
 
-async function getQuery({params}: Export): Promise<any> {
-	const memberships = await getRepository(MemberPermission).find({
-		permission: 'member', dateExpires: MoreThan(new Date())
-	});
+async function getItemsById(ids: string[]): Promise<Member[]> {
+	return getRepository(Member).findByIds(ids);
+}
 
-	const members: {memberId: string}[] = params?.hasActiveSubscription ?
-		await getRepository(GCPaymentData).find({
-			memberId: In(memberships.map(p => p.memberId)),
-			subscriptionId: Not(IsNull())
-		}) : memberships;
+function getQuery({params}: Export, items: ExportItem[]): SelectQueryBuilder<MemberPermission> {
+	const now = new Date();
+	const memberships = createQueryBuilder(MemberPermission, 'mp')
+		.innerJoinAndSelect(Member, 'm')
+		.where('mp.permission = \'member\' AND mp.dateAdded <= :now')
+		.andWhere(new Brackets(qb => {
+			qb.where('mp.dateExpires IS NULL')
+				.orWhere('mp.dateExpires > :now');
+		}))
+		.andWhere('m.id NOT IN (:...ids)')
+		.setParameters({now, ids: items.map(item => item.itemId)});
 
-	return {
-		_id: {$in: members.map(m => m.memberId)}
-	};
+	if (params?.hasActiveSubscription) {
+		memberships
+			.innerJoin(GCPaymentData, 'gc', 'gc.memberId = m.memberId')
+			.andWhere('gc.subscriptionId IS NOT NULL');
+	}
+
+	return memberships;
+}
+
+async function getEligibleItems(ex: Export, items: ExportItem[]): Promise<Member[]> {
+	return (await getQuery(ex, items).getMany()).map(m => m.member);
+}
+
+async function getEligibleItemIds(ex: Export, items: ExportItem[]): Promise<string[]> {
+	return (await getQuery(ex, items).select('m.id').getMany()).map(m => m.member.id);
 }
 
 async function getExport(members: Member[]): Promise<Record<string, any>[]> {
 	return members
 		.map(member => ({
-			Id: member.uuid,
+			Id: member.id,
 			EmailAddress: member.email,
 			FirstName: member.firstname,
 			LastName: member.lastname,
@@ -54,9 +71,10 @@ async function getExport(members: Member[]): Promise<Record<string, any>[]> {
 export default {
 	name: 'Active members export',
 	statuses: ['added', 'seen'],
-	collection: Members,
 	itemName: 'active members',
 	getParams,
-	getQuery,
+	getItemsById,
+	getNewItems: getEligibleItems,
+	getNewItemIds: getEligibleItemIds,
 	getExport
 } as ExportType<Member>;
