@@ -9,11 +9,11 @@ block contents
 			+page_header( 'Add member' )
 			form(method='POST').form-horizontal.js-reveal
 				+csrf
-				.form-group
-					+input( 'text', 'First name', 'firstname', { required: true, left: 3, right: 5 } )
-					+input( 'text', 'Last name', 'lastname', { required: true, left: 3, right: 5 } )
-					+input( 'text', 'Email address', 'email', { required: true, left: 3, right: 5 } )
+				+input( 'text', 'First name', 'firstname', { required: true, left: 3, right: 5 } )
+				+input( 'text', 'Last name', 'lastname', { required: true, left: 3, right: 5 } )
+				+input( 'text', 'Email address', 'email', { required: true, left: 3, right: 5 } )
 
+				.form-group
 					label.col-md-3.control-label Contribution type
 					.col-md-5
 						select(name='type' required).js-reveal-types.form-control
