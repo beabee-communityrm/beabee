@@ -1,6 +1,6 @@
 import express from 'express';
 import passport from 'passport';
-import { getRepository } from 'typeorm';
+import { createQueryBuilder, getRepository } from 'typeorm';
 
 import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
 
@@ -8,7 +8,6 @@ import Member from '@models/Member';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 import config from '@config';
-import moment from 'moment';
 
 const app = express();
 
@@ -41,9 +40,12 @@ if (config.dev) {
 
 app.get( '/:code', wrapAsync( async function( req, res ) {
 	const nextParam = req.query.next as string;
-	const member = await getRepository(Member).findOne({loginOverride: {code: req.params.code}});
+	const member = await createQueryBuilder(Member, 'm')
+		.where('m.loginOverride ->> \'code\' = :code', {code: req.params.code})
+		.andWhere('m.loginOverride ->> \'expires\' > :now', {now: new Date()})
+		.getOne();
 
-	if (member && member.loginOverride && moment.utc(member.loginOverride.expires).isAfter()) {
+	if (member) {
 		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
 	} else {
 		req.flash('error', 'login-code-invalid');
