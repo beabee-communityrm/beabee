@@ -4,10 +4,10 @@ import { getRepository } from 'typeorm';
 
 import config from '@config';
 
-import { canSuperAdmin, generateCode } from '@core/authentication';
 import mailchimp from '@core/mailchimp';
 import { isAdmin, isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
+import { canSuperAdmin, generateCode } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';

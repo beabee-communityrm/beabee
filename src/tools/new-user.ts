@@ -2,16 +2,18 @@ import 'module-alias/register';
 
 import inquirer, { QuestionCollection } from 'inquirer';
 import moment from 'moment';
+import { ConnectionOptions, getRepository } from 'typeorm';
+
+import * as db from '@core/database';
+import { ContributionType } from '@core/utils';
+import { generatePassword, passwordRequirements } from '@core/utils/auth';
+
+import MembersService from '@core/services/MembersService';
 
 import config from '@config';
 
-import { generatePassword, passwordRequirements } from '@core/authentication';
-import * as db from '@core/database';
-import { ConnectionOptions, getRepository } from 'typeorm';
 import MemberPermission from '@models/MemberPermission';
 import Member from '@models/Member';
-import MembersService from '@core/services/MembersService';
-import { ContributionType } from '@core/utils';
 
 const questions: QuestionCollection[] = [];
 

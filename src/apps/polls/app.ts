@@ -2,9 +2,9 @@ import express, { NextFunction, Request, Response } from 'express';
 import _ from 'lodash';
 import { getRepository } from 'typeorm';
 
-import * as auth from '@core/authentication';
 import { hasNewModel, hasSchema, isLoggedIn } from '@core/middleware';
 import { isSocialScraper, wrapAsync } from '@core/utils';
+import * as auth from '@core/utils/auth';
 
 import PollsService from '@core/services/PollsService';
 

@@ -1,6 +1,6 @@
 import { getRepository } from 'typeorm';
 
-import { generateCode } from '@core/authentication';
+import { generateCode } from '@core/utils/auth';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 

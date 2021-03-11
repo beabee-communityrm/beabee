@@ -3,9 +3,9 @@ import { totp } from 'notp';
 import base32 from 'thirty-two';
 import querystring from 'querystring';
 
-import { generateOTPSecret, hashPassword } from '@core/authentication';
 import { isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
+import { generateOTPSecret, hashPassword } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';

@@ -1,15 +1,14 @@
 import express from 'express';
 import { getRepository } from 'typeorm';
 
-import { generatePassword } from '@core/authentication';
 import { hasSchema, isLoggedIn } from '@core/middleware';
 import { ContributionType, hasUser, wrapAsync } from '@core/utils';
+import { generatePassword } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 import PollsService from '@core/services/PollsService';
 
-import Member from '@models/Member';
 import Referral from '@models/Referral';
 
 import { completeSchema } from './schemas.json';

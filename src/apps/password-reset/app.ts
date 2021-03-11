@@ -1,9 +1,9 @@
 import express from 'express';
 import { getRepository } from 'typeorm';
 
-import { generatePassword } from '@core/authentication';
 import { hasSchema, isNotLoggedIn } from '@core/middleware';
 import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
+import { generatePassword } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';

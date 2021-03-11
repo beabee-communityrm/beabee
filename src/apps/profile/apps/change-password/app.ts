@@ -1,8 +1,8 @@
 import	express from 'express';
 
-import { hashPassword, generatePassword } from '@core/authentication';
 import { hasSchema, isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
+import { hashPassword, generatePassword } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 

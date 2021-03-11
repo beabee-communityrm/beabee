@@ -1,10 +1,10 @@
 import { getRepository } from 'typeorm';
 
-import { generateCode } from '@core/authentication';
 import gocardless from '@core/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/mailchimp';
 import { isDuplicateIndex } from '@core/utils';
+import { generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
 
