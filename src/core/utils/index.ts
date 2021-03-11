@@ -11,7 +11,8 @@ export enum ContributionPeriod {
 export enum ContributionType {
 	GoCardless = 'GoCardless',
 	Manual = 'Manual',
-	Gift = 'Gift'
+	Gift = 'Gift',
+	None = 'None'
 }
 
 export interface PaymentForm {

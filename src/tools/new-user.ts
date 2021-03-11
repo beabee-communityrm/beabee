@@ -83,7 +83,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 		firstname: answers.firstname,
 		lastname: answers.lastname,
 		email: answers.email,
-		contributionType: ContributionType.Manual,
+		contributionType: ContributionType.None,
 		password: {
 			hash: password.hash,
 			salt: password.salt,

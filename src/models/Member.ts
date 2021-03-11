@@ -97,7 +97,7 @@ export default class Member {
 	get contributionDescription(): string {
 		if (this.contributionType === 'Gift') {
 			return 'Gift';
-		} else if (!this.contributionPeriod || !this.contributionMonthlyAmount) {
+		} else if (this.contributionType === 'None' || !this.contributionPeriod || !this.contributionMonthlyAmount) {
 			return 'None';
 		} else {
 			const amount = getActualAmount(this.contributionMonthlyAmount, this.contributionPeriod);
