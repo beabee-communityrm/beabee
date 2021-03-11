@@ -113,10 +113,6 @@ export function load( app: express.Express ): void {
 			return done( null, false );
 		}
 	} );
-
-	// Include support for passport and sessions
-	app.use( passport.initialize() );
-	app.use( passport.session() );
 }
 
 // Used for generating an OTP secret for 2FA

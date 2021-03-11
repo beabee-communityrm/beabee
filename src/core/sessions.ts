@@ -1,6 +1,5 @@
 import body from 'body-parser';
 import cleanDeep from 'clean-deep';
-import cookie from 'cookie-parser';
 import _pgSession from 'connect-pg-simple';
 import csrf from 'csurf';
 import express, { ErrorRequestHandler } from 'express';
@@ -14,7 +13,6 @@ import config from '@config';
 const pgSession = _pgSession(session);
 
 export default (app: express.Express): void => {
-	app.use( cookie() );
 	app.use( session( {
 		name: config.session,
 		secret: config.secret,
