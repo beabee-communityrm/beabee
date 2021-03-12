@@ -52,17 +52,6 @@ NOTE: Lower non-major versions probably work but haven't been tested
 
 ### From scratch (no data export)
 
-1. Run first time script
-   ```bash
-   docker-compose exec app node tools/first-time
-   ```
-
-1. Set `permission.memberId` in `config/config.json` as indicated and apply
-   changes
-   ```bash
-   docker-compose restart
-   ```
-
 1. Create a new super admin
    ```bash
    docker-compose exec app node tools/new-user
