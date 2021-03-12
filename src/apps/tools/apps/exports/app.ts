@@ -1,31 +1,26 @@
 import express from 'express';
 import Papa from 'papaparse';
-import { EntityTarget, getRepository, SelectQueryBuilder } from 'typeorm';
+import { getRepository, SelectQueryBuilder } from 'typeorm';
 
 import { hasNewModel, hasSchema, isAdmin } from  '@core/middleware' ;
 import { wrapAsync } from '@core/utils' ;
-import { loadParams, Param, parseParams } from '@core/utils/params';
+import { Param, parseParams } from '@core/utils/params';
 
 import Export, { ExportTypeId } from '@models/Export';
 import ExportItem from '@models/ExportItem';
 
 import { createSchema, updateSchema } from './schemas.json';
 
-import exportTypes from './exports';
+import ExportTypes from './exports';
 
-const exportTypesWithTypeId = Object.entries(exportTypes).map(([type, exportType]) => ({
-	...exportType, type
-}));
-
-export interface ExportType<T> {
-	name: string
-	statuses: string[]
-	itemName: string,
+export interface ExportType<T extends any> {
+	exportName: string
+	itemName: string
+	itemStatuses: string[]
+	idColumn: string
 	getParams?(): Promise<Param[]>
-	getItemsById(ids: string[]): Promise<T[]>
-	getNewItems(ex: Export, exportItems: ExportItem[]): Promise<T[]>
-	getNewItemIds(ex: Export, exportItems: ExportItem[]): Promise<string[]>
-	getExport(items: T[], ex: Export): Promise<Record<string, any>[]>
+	getQuery(ex: Export): SelectQueryBuilder<T>
+	getExport(ex: Export, items: T[]): Promise<Record<string, unknown>[]>
 }
 
 interface CreateSchema {
@@ -59,7 +54,7 @@ async function schemaToExport(data: CreateSchema): Promise<Export> {
 	const exportDetails = new Export();
 	exportDetails.type = data.type;
 	exportDetails.description = data.description;
-	exportDetails.params = data.params ? await parseParams(exportTypes[data.type], data.params) : null;
+	exportDetails.params = data.params ? await parseParams(new ExportTypes[data.type](), data.params) : null;
 	return exportDetails;
 }
 
@@ -72,12 +67,20 @@ app.use( isAdmin );
 app.get( '/', wrapAsync( async function( req, res ) {
 	const exports = await getRepository(Export).find();
 
-	const exportsByType = Object.keys(exportTypes).map(type => ({
-		name: exportTypes[type as ExportTypeId].name,
+	const exportsByType = Object.keys(ExportTypes).map(type => ({
+		exportName: new ExportTypes[type as ExportTypeId]().exportName,
 		exports: exports.filter(e => e.type === type)
 	}));
 
-	const exportTypesWithParams = await loadParams(exportTypesWithTypeId);
+	const exportTypesWithParams = [];
+	for (const type in ExportTypes) {
+		const exportType = new ExportTypes[type as ExportTypeId]();
+		exportType.type = type;
+		exportType.params = await exportType.getParams();
+		exportTypesWithParams.push(exportType);
+	}
+
+	console.log(exportTypesWithParams);
 
 	res.render('index', {exportsByType, exportTypesWithParams});
 } ) );
@@ -90,12 +93,12 @@ app.post( '/', hasSchema(createSchema).orFlash, wrapAsync( async function( req, 
 
 app.get( '/:id', hasNewModel(Export, 'id'), wrapAsync( async function( req, res ) {
 	const exportDetails = req.model as Export;
-	const exportType = exportTypes[exportDetails.type];
+	const exportType = new ExportTypes[exportDetails.type](exportDetails);
 
 	const exportItems = await getRepository(ExportItem).find({export: exportDetails});
-	const newItemIds = await exportType.getNewItemIds(exportDetails, exportItems);
+	const newItemIds = await exportType.getNewItemIds();
 
-	const exportItemsByStatus = exportType.statuses.map(status => ({
+	const exportItemsByStatus = exportType.itemStatuses.map(status => ({
 		name: status,
 		items: exportItems.filter(item => item.status === status)
 	}));
@@ -105,25 +108,26 @@ app.get( '/:id', hasNewModel(Export, 'id'), wrapAsync( async function( req, res 
 		exportType,
 		exportItems,
 		exportItemsByStatus,
-		newItemIds
+		newItemCount: newItemIds.length
 	});
 } ) );
 
 app.get('/:id/items/:status', hasNewModel(Export, 'id'), wrapAsync(async (req, res) => {
 	const exportDetails = req.model as Export;
-	const exportType = exportTypes[exportDetails.type];
-
-	const exportItems = await getRepository(ExportItem).find({export: exportDetails});
+	const exportType = new ExportTypes[exportDetails.type](exportDetails);
 
 	const items = req.params.status === 'new' ?
-		await exportType.getNewItems(exportDetails, exportItems) :
-		await exportType.getItemsById(
-			exportItems.filter(ei => ei.status === req.params.status).map(ei => ei.itemId)
-		);
+		await exportType.getNewItems() :
+		await exportType.getItems(req.params.status);
+
+	const exportData = await exportType.getExport(items as any);
+
+	const fields = 'fields' in exportData ? exportData.fields : Object.keys(exportData[0]);
+	const data = 'data' in exportData ? exportData.data :
+		exportData.map(row => fields.map(field => row[field]));
 
 	res.render('items', {
-		items: await exportType.getExport(items, exportDetails),
-		exportDetails,
+		fields, data, exportDetails,
 		status: req.params.status
 	});
 }));
@@ -134,15 +138,14 @@ app.post( '/:id', [
 ], wrapAsync( async function( req, res ) {
 	const data = req.body as UpdateSchema;
 	const exportDetails = req.model as Export;
-	const exportType = exportTypes[exportDetails.type];
+	const exportType = new ExportTypes[exportDetails.type](exportDetails);
 
 	if (data.action === 'add') {
-		const exportItems = await getRepository(ExportItem).find({export: exportDetails});
-		const newItemIds = await exportType.getNewItemIds(exportDetails, exportItems);
+		const newItemIds = await exportType.getNewItemIds();
 		const newExportItems = newItemIds.map(id => ({
 			itemId: id,
 			export: exportDetails,
-			status: exportType.statuses[0]
+			status: exportType.itemStatuses[0]
 		}));
 		await getRepository(ExportItem).insert(newExportItems);
 
@@ -158,14 +161,10 @@ app.post( '/:id', [
 		res.redirect('/tools/exports/' + exportDetails.id);
 
 	} else if (data.action === 'export') {
-		const exportItems = await getRepository(ExportItem).find({
-			where: {export: exportDetails, ...(data.status && {status: data.status})}
-		});
-
-		const items = await exportType.getItemsById(exportItems.map(ei => ei.itemId));
+		const items = await exportType.getItems(data.status);
 
 		const exportName = `export-${exportDetails.description}_${new Date().toISOString()}.csv`;
-		const exportData = await exportType.getExport(items, exportDetails);
+		const exportData = await exportType.getExport(items as any);
 
 		res.attachment(exportName).send(Papa.unparse(exportData));
 

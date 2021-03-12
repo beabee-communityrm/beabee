@@ -10,19 +10,18 @@ block contents
 
 			p Status: #{status}
 			
-			if items.length > 0
-				- headers = Object.keys(items[0]);
+			if data.length > 0
 				div(style='overflow-x: auto')
 					table.table
 						thead
 							tr
-								each header in headers
-									th= header
+								each field in fields
+									th= field
 						tbody
-							each item in items
+							each row in data
 								tr
-									each header in headers
-										td= item[header]
+									each value in row
+										td= value
 			else
-				.alert.alert-info No items
+				.alert.alert-info No data
 

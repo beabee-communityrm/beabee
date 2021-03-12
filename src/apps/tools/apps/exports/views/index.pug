@@ -10,7 +10,7 @@ block contents
 
 			each exportType in exportsByType
 				if exportType.exports.length > 0
-					h5= exportType.name
+					h5= exportType.exportName
 					p
 						each e in exportType.exports
 							a(href='/tools/exports/' + e.id)= e.description
@@ -33,7 +33,7 @@ block contents
 							select(name='type', id='type' required).form-control.js-reveal-types
 								option(value='' selected disabled) Select one
 								each exportType in exportTypesWithParams
-									option(value=exportType.type)= exportType.name
+									option(value=exportType.type)= exportType.exportName
 					
 					each exportType in exportTypesWithParams
 						.hidden.js-reveal-type(data-type=exportType.type)
