@@ -14,6 +14,8 @@ import Poll from '@models/Poll';
 import schemas from './schemas.json';
 import { PollResponseAnswers } from '@models/PollResponse';
 
+import config from '@config';
+
 function getView(poll: Poll): string {
 	switch (poll.template) {
 	case 'ballot': return 'ballot';
@@ -49,6 +51,24 @@ app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
 	const [activePolls, inactivePolls] = _.partition(polls, p => p.active);
 	res.render( 'index', { activePolls, inactivePolls } );
 } ) );
+
+app.get('/_oembed', wrapAsync( async (req, res, next) => {
+	const url = req.query.url as string;
+	if (url && url.startsWith(config.audience + '/polls/')) {
+		const pollId = url.replace(config.audience + '/polls/', '');
+		const poll = await getRepository(Poll).findOne(pollId);
+		if (poll) {
+			res.send({
+				type: 'rich',
+				title: poll.title,
+				html: '<iframe src="' + url + '" frameborder="0" style="display: block; width: 100%"></iframe>'
+			});
+			return;
+		}
+	}
+
+	next('route');
+}));
 
 // TODO: move this to the main site
 app.get( '/campaign2019', wrapAsync( async ( req, res, next ) => {
