@@ -25,7 +25,7 @@ async function logMember(type: string, conditions: Brackets[]) {
 	console.log('# ' + type);
 	if (member) {
 		console.log(member.fullname + ', ' + member.email);
-		console.log(config.audience + '/members/' + member.id);
+		console.log(config.audience + '/login/as/' + member.id);
 	} else {
 		console.log('No member found');
 	}

@@ -7,7 +7,7 @@ import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core
 import MembersService from '@core/services/MembersService';
 
 import Member from '@models/Member';
-import MemberPermission, { PermissionType } from '@models/MemberPermission';
+import MemberPermission, { PermissionType, PermissionTypes } from '@models/MemberPermission';
 
 import config from '@config';
 
@@ -25,15 +25,22 @@ app.get( '/' , function( req, res ) {
 } );
 
 if (config.dev) {
-	app.get('/as/:permission', wrapAsync( async (req, res) => {
-		const permission = await getRepository(MemberPermission).findOne({
-			where: {
-				permission: req.params.permission as PermissionType
-			},
-			relations: ['member']
-		});
-		if (permission) {
-			loginAndRedirect(req, res, permission.member);
+	app.get('/as/:id', wrapAsync( async (req, res) => {
+		let member;
+		if (PermissionTypes.indexOf(req.params.id as PermissionType) > -1) {
+			const permission = await getRepository(MemberPermission).findOne({
+				where: {
+					permission: req.params.id as PermissionType
+				},
+				relations: ['member']
+			});
+			member = permission?.member;
+		} else {
+			member = await getRepository(Member).findOne(req.params.id);
+		}
+
+		if (member) {
+			loginAndRedirect(req, res, member);
 		} else {
 			res.redirect('/login');
 		}
