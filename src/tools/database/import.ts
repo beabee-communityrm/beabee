@@ -24,7 +24,6 @@ async function runNewImport<T>({modelName, items}: NewModelData<T>): Promise<voi
 			console.error(`Finished importing ${modelName}`);
 		} catch (err) {
 			console.error(`Error importing ${modelName}`);
-			console.error(items);
 			console.error(err);
 		}
 	}
