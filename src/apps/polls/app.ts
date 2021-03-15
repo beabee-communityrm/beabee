@@ -79,7 +79,7 @@ async function getUserAnswers(req: Request) {
 		req.user && (await PollsService.getResponse(req.model as Poll, req.user))?.answers;
 }
 
-app.get( '/:slug', [
+app.get( '/:slug:embed(/embed)?', [
 	hasNewModel( Poll, 'slug' )
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
@@ -98,6 +98,7 @@ app.get( '/:slug', [
 		res.redirect( `/polls/${poll.slug}#vote` );
 	} else {
 		res.render( getView( poll ), {
+			isEmbed: !!req.params.embed,
 			poll,
 			answers: await getUserAnswers(req) || {},
 			preview: req.query.preview && auth.canAdmin( req ) === auth.LOGGED_IN

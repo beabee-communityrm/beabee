@@ -27,70 +27,74 @@ html
 				link( rel="stylesheet", href="/static/css/style.css?v=" + git )
 	body( class=( dev ? 'dev' : '' ) )
 		script.
+			document.
 			document.body.className += ' has-js';
 
 		.wrapper
-			block header
-				header.header
-					.container
-						.row
-							.col-xs-6
-								a( href=Options( 'home-link-url' ) )
-									img( src=Options('logo') ).header-logo
-							.col-xs-6.text-right
-								block login
-									if isLoggedIn
-										a( href="/logout" ) Logout
-									else
-										a( href="/login" ) Login
+			if !isEmbed
+				block header
+					header.header
+						.container
+							.row
+								.col-xs-6
+									a( href=Options( 'home-link-url' ) )
+										img( src=Options('logo') ).header-logo
+								.col-xs-6.text-right
+									block login
+										if isLoggedIn
+											a( href="/logout" ) Logout
+										else
+											a( href="/login" ) Login
 
 
 			main.main
 				block body
 					.container
-						block navbar
-							include partials/navbar.pug
-						block flashes
-							include partials/flash.pug
-						block heading
-							if heading
-								+page_header( heading )
+						if !isEmbed
+							block navbar
+								include partials/navbar.pug
+							block flashes
+								include partials/flash.pug
+							block heading
+								if heading
+									+page_header( heading )
 						block contents
 
-			footer.footer.small
-				.container
-					.row
-						.col-sm-6
-							p
-								= Options( 'organisation' )
-								br
-								= Options( 'footer-strapline' )
-						.col-sm-6
-							ul.footer-links
-								li
-									a( href=Options( 'footer-privacy-link-url' ) )= Options( 'footer-privacy-link-text' )
-								li
-									a( href=Options( 'footer-terms-link-url' ) )= Options( 'footer-terms-link-text' )
-								if Options( 'footer-facebook-link-url' )
+			if !isEmbed
+				footer.footer.small
+					.container
+						.row
+							.col-sm-6
+								p
+									= Options( 'organisation' )
+									br
+									= Options( 'footer-strapline' )
+							.col-sm-6
+								ul.footer-links
 									li
-										a( href=Options( 'footer-facebook-link-url' ) ) Facebook
-								if Options( 'footer-twitter-link-url' )
+										a( href=Options( 'footer-privacy-link-url' ) )= Options( 'footer-privacy-link-text' )
 									li
-										a( href=Options( 'footer-twitter-link-url' ) ) Twitter
+										a( href=Options( 'footer-terms-link-url' ) )= Options( 'footer-terms-link-text' )
+									if Options( 'footer-facebook-link-url' )
+										li
+											a( href=Options( 'footer-facebook-link-url' ) ) Facebook
+									if Options( 'footer-twitter-link-url' )
+										li
+											a( href=Options( 'footer-twitter-link-url' ) ) Twitter
 
-					.row
-						.col-sm-12
-							a( href="https://github.com/thebristolcable/membership-system", target="_blank" ) Contribute on GitHub
-							span.text-muted  (#{ git })
+						.row
+							.col-sm-12
+								a( href="https://github.com/thebristolcable/membership-system", target="_blank" ) Contribute on GitHub
+								span.text-muted  (#{ git })
 
 		block js
+			if isEmbed
+				script( src="/static/js/lib/iframeResizer.contentWindow-4.3.1.min.js")
 			script( src="/static/js/lib/jquery.js" )
 			script( src="/static/js/lib/bootstrap.js" )
 			script( src="/static/js/script.js?v=" + git )
 
-
-		script( src="/membership.js" )
-
 		block tracking
+			script( src="/membership.js" )
 			if Options('tracking-code')
 				!= Options('tracking-code')
