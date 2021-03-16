@@ -16,6 +16,11 @@ mixin copyFields
 		label(for='thanksText').control-label.col-md-2 Thank you text
 		.col-md-10
 			textarea(name='templateSchema[thanksText]' required)#thanksText.form-control= poll.templateSchema.thanksText
+	.form-group
+		label(for='thanksRedirect').control-label.col-md-2 Thank you redirect
+		.col-md-10
+			input(type='text' name='templateSchema[thanksRedirect]' value=poll.templateSchema.thanksRedirect required)#thanksRedirect.form-control
+			p.help-block If you fill this in then the user won't see the thank you text above
 
 mixin candidateSchema(candidateNo, candidate)
 	li.js-repeater-item

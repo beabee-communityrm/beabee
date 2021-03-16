@@ -157,7 +157,7 @@ app.post( '/:slug', [
 		if (!req.user) {
 			req.session.answers = req.answers;
 		}
-		res.redirect( `/polls/${poll.slug}/thanks`);
+		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
@@ -220,7 +220,7 @@ app.post( '/:slug/:code', [
 		res.redirect( `/polls/${poll.slug}/${pollsCode}#vote` );
 	} else {
 		req.session.answers = req.answers;
-		res.redirect( `/polls/${poll.slug}/thanks`);
+		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
