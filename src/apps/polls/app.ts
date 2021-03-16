@@ -129,7 +129,7 @@ app.get( '/:slug:embed(/embed)?', [
 	}
 } ) );
 
-app.post( '/:slug:embed(/embed)?', [
+app.post( '/:slug', [
 	hasNewModel(Poll, 'slug'),
 	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
@@ -150,27 +150,24 @@ app.post( '/:slug:embed(/embed)?', [
 		}
 	}
 
-	const pollUrl = '/polls/' + poll.slug + (req.params.embed ? '/embed' : '');
-
 	if (error) {
 		req.flash('error', error);
-		res.redirect( pollUrl + '#vote' );
+		res.redirect( `/polls/${poll.slug}#vote`);
 	} else {
 		if (!req.user) {
 			req.session.answers = req.answers;
 		}
-		res.redirect( pollUrl + '/thanks' );
+		res.redirect( `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
-app.get( '/:slug:embed(/embed)?/thanks', hasNewModel(Poll, 'slug'), wrapAsync(async (req, res) => {
+app.get( '/:slug/thanks', hasNewModel(Poll, 'slug'), wrapAsync(async (req, res) => {
 	const poll = req.model as Poll;
 	const answers = await getUserAnswers(req);
-	const isEmbed = !!req.params.embed;
 	if (answers) {
-		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, isEmbed, answers});
+		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, answers});
 	} else {
-		res.redirect('/polls/' + poll.slug + (isEmbed ? '/embed' : ''));
+		res.redirect('/polls/' + poll.slug);
 	}
 }));
 
