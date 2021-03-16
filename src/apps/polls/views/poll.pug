@@ -68,7 +68,7 @@ block contents
 
 					include /views/partials/flash.pug
 
-					form(method='POST')#form
+					form(method='POST' target="_top")#form
 						+csrf
 						input(type='hidden' name='answers')
 
@@ -76,7 +76,7 @@ block contents
 							.alert.alert-info
 								| Are you Cable member?
 								|
-								a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug)): b Login here
+								a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug) target="_top"): b Login here
 							.well
 								.form-group
 									label(for='#guestName').control-label Your name
