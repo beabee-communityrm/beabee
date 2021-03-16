@@ -55,13 +55,13 @@ app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
 app.get('/_oembed', wrapAsync( async (req, res, next) => {
 	const url = req.query.url as string;
 	if (url && url.startsWith(config.audience + '/polls/')) {
-		const pollId = url.replace(config.audience + '/polls/', '');
+		const pollId = url.replace(config.audience + '/polls/', '').replace(/\/embed\/?/, '');
 		const poll = await getRepository(Poll).findOne(pollId);
 		if (poll) {
 			res.send({
 				type: 'rich',
 				title: poll.title,
-				html: '<iframe src="' + url + '" frameborder="0" style="display: block; width: 100%"></iframe>'
+				html: `<iframe src="${config.audience}/polls/${pollId}/embed" frameborder="0" style="display: block; width: 100%"></iframe>`
 			});
 			return;
 		}
@@ -117,9 +117,12 @@ app.get( '/:slug:embed(/embed)?', [
 		}
 		res.redirect( `/polls/${poll.slug}#vote` );
 	} else {
+		const isEmbed = !!req.params.embed;
+		if (isEmbed) {
+			res.removeHeader('X-Frame-Options');
+		}
 		res.render( getView( poll ), {
-			isEmbed: !!req.params.embed,
-			poll,
+			poll, isEmbed,
 			answers: await getUserAnswers(req) || {},
 			preview: req.query.preview && auth.canAdmin( req ) === auth.LOGGED_IN
 		} );
