@@ -40,9 +40,10 @@ block append js
 block flashes
 
 block contents
-	.row
-		.col-md-12
-			+page_header(poll.title)
+	if !isEmbed
+		.row
+			.col-md-12
+				+page_header(poll.title)
 
 	.row
 		.col-md-offset-2.col-md-8
@@ -67,7 +68,7 @@ block contents
 
 					include /views/partials/flash.pug
 
-					form(method='POST')#form
+					form(method='POST' target="_top")#form
 						+csrf
 						input(type='hidden' name='answers')
 
@@ -75,7 +76,7 @@ block contents
 							.alert.alert-info
 								| Are you Cable member?
 								|
-								a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug)): b Login here
+								a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug) target="_top"): b Login here
 							.well
 								.form-group
 									label(for='#guestName').control-label Your name

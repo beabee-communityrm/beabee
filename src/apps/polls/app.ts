@@ -14,6 +14,8 @@ import { PollResponseAnswers } from '@models/PollResponse';
 
 import schemas from './schemas.json';
 
+import config from '@config';
+
 function getView(poll: Poll): string {
 	switch (poll.template) {
 	case 'ballot': return 'ballot';
@@ -50,6 +52,24 @@ app.get( '/', isLoggedIn, wrapAsync( async ( req, res ) => {
 	res.render( 'index', { activePolls, inactivePolls } );
 } ) );
 
+app.get('/_oembed', wrapAsync( async (req, res, next) => {
+	const url = req.query.url as string;
+	if (url && url.startsWith(config.audience + '/polls/')) {
+		const pollId = url.replace(config.audience + '/polls/', '').replace(/\/embed\/?/, '');
+		const poll = await getRepository(Poll).findOne(pollId);
+		if (poll) {
+			res.send({
+				type: 'rich',
+				title: poll.title,
+				html: `<iframe src="${config.audience}/polls/${pollId}/embed" frameborder="0" style="display: block; width: 100%"></iframe>`
+			});
+			return;
+		}
+	}
+
+	next('route');
+}));
+
 // TODO: move this to the main site
 app.get( '/campaign2019', wrapAsync( async ( req, res, next ) => {
 	const poll = await getRepository(Poll).findOne( { slug: 'campaign2019' } );
@@ -79,7 +99,7 @@ async function getUserAnswers(req: Request) {
 		req.user && (await PollsService.getResponse(req.model as Poll, req.user))?.answers;
 }
 
-app.get( '/:slug', [
+app.get( '/:slug:embed(/embed)?', [
 	hasNewModel( Poll, 'slug' )
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
@@ -97,8 +117,12 @@ app.get( '/:slug', [
 		}
 		res.redirect( `/polls/${poll.slug}#vote` );
 	} else {
+		const isEmbed = !!req.params.embed;
+		if (isEmbed) {
+			res.removeHeader('X-Frame-Options');
+		}
 		res.render( getView( poll ), {
-			poll,
+			poll, isEmbed,
 			answers: await getUserAnswers(req) || {},
 			preview: req.query.preview && auth.canAdmin( req ) === auth.AuthenticationStatus.LOGGED_IN
 		} );
