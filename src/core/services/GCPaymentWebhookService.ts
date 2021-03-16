@@ -95,6 +95,8 @@ export default class GCPaymentWebhookService {
 			if (newAmount === payment.member.nextContributionMonthlyAmount) {
 				payment.member.contributionMonthlyAmount = newAmount;
 				payment.member.nextContributionMonthlyAmount = undefined;
+				// TODO: Fix save not saving undefined as NULL
+				await getRepository(Member).update(payment.member.id, {nextContributionMonthlyAmount: undefined});
 			}
 		}
 
