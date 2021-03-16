@@ -1,9 +1,10 @@
 extends /views/base.pug
 
 block contents
-	.row
-		.col-md-12
-			+page_header(poll.title)
+	if !isEmbed
+		.row
+			.col-md-12
+				+page_header(poll.title)
 
 	.row
 		.col-md-offset-2.col-md-8
@@ -11,7 +12,3 @@ block contents
 
 			h4#thanks= poll.templateSchema.thanksTitle
 			!= dot.template(poll.templateSchema.thanksText)({answers})
-
-			hr
-
-			!= poll.templateSchema.intro
