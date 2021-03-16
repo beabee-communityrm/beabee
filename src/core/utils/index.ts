@@ -94,7 +94,8 @@ interface PgError {
 export function isDuplicateIndex(error: Error, key: string): boolean {
 	if (error instanceof QueryFailedError) {
 		const pgError = error as unknown as PgError;
-		if (pgError.code === '23505' && pgError.detail.indexOf(`^Key (${key}).* already exists`)) {
+		const keyTest = new RegExp(`^Key \\("?${key}"?\\).* already exists`);
+		if (pgError.code === '23505' && keyTest.test(pgError.detail)) {
 			return true;
 		}
 	}
