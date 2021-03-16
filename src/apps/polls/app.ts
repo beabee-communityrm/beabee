@@ -168,9 +168,6 @@ app.get( '/:slug:embed(/embed)?/thanks', hasNewModel(Poll, 'slug'), wrapAsync(as
 	const answers = await getUserAnswers(req);
 	const isEmbed = !!req.params.embed;
 	if (answers) {
-		if (isEmbed) {
-			res.removeHeader('X-Frame-Options');
-		}
 		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, isEmbed, answers});
 	} else {
 		res.redirect('/polls/' + poll.slug + (isEmbed ? '/embed' : ''));
