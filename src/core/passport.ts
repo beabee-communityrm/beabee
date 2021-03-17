@@ -81,23 +81,26 @@ passport.serializeUser( function( data, done ) {
 
 // Passport.js deserialise user function
 passport.deserializeUser( async function( data, done ) {
-	const member = await getRepository(Member).findOne( data as string );
-	if ( member ) {
-		// Debounce last seen updates, we don't need to know to the second
-		const now = new Date();
-		if (!member.lastSeen || (+now - +member.lastSeen > 60000)) {
-			await MembersService.updateMember(member, {lastSeen: now});
-		}
+	try {
+		const member = await getRepository(Member).findOne( data as string );
+		if ( member ) {
+			// Debounce last seen updates, we don't need to know to the second
+			const now = new Date();
+			if (!member.lastSeen || (+now - +member.lastSeen > 60000)) {
+				await MembersService.updateMember(member, {lastSeen: now});
+			}
 
-		const user = member as Express.User;
-		user.quickPermissions = [
-			'loggedIn',
-			...member.permissions.filter(p => p.isActive).map(p => p.permission)
-		];
-		return done( null, user );
-	} else {
-		return done( null, false );
-	}
+			const user = member as Express.User;
+			user.quickPermissions = [
+				'loggedIn',
+				...member.permissions.filter(p => p.isActive).map(p => p.permission)
+			];
+			return done( null, user );
+		}
+	// eslint-disable-next-line no-empty
+	} catch (err) {}
+
+	done( null, false );
 } );
 
 export default passport;
