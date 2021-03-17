@@ -3,7 +3,7 @@ import { getRepository, IsNull, LessThan } from 'typeorm';
 import mailchimp from '@core/mailchimp';
 
 import Member from '@models/Member';
-import Poll from '@models/Poll';
+import Poll, { PollAccess } from '@models/Poll';
 import PollResponse, { PollResponseAnswers } from '@models/PollResponse';
 
 class PollWithResponse extends Poll {
@@ -73,7 +73,7 @@ export default class PollsService {
 	}
 
 	static async setGuestResponse( poll: Poll, guestName: string, guestEmail: string, answers: PollResponseAnswers): Promise<string|undefined> {
-		if (!poll.active || !poll.public) {
+		if (!poll.active || poll.access === PollAccess.Member) {
 			return 'poll-closed';
 		}
 

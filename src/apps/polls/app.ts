@@ -9,7 +9,7 @@ import * as auth from '@core/utils/auth';
 import PollsService from '@core/services/PollsService';
 
 import Member from '@models/Member';
-import Poll from '@models/Poll';
+import Poll, { PollAccess } from '@models/Poll';
 import { PollResponseAnswers } from '@models/PollResponse';
 
 import schemas from './schemas.json';
@@ -103,7 +103,7 @@ app.get( '/:slug:embed(/embed)?', [
 	hasNewModel( Poll, 'slug' )
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
-	if (!poll.public && !req.user) {
+	if (poll.access === PollAccess.Member && !req.user) {
 		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
@@ -134,7 +134,7 @@ app.post( '/:slug', [
 	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
-	if (!poll.public && !req.user) {
+	if (poll.access === PollAccess.Member && !req.user) {
 		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
