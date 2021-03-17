@@ -1,10 +1,9 @@
 import express from 'express';
-import { getRepository } from 'typeorm';
+import { createQueryBuilder, getRepository } from 'typeorm';
 
-import { Members } from '@core/database';
 import { hasNewModel } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
-import { parseRuleGroup } from '@core/utils/rules';
+import buildQuery from '@core/utils/rules';
 
 import EmailService  from '@core/services/EmailService';
 
@@ -16,10 +15,11 @@ const app = express();
 app.set( 'views', __dirname + '/views' );
 
 app.get('/', wrapAsync(async (req, res) => {
-	const segments = await getRepository(Segment).find();
+	const segments = await createQueryBuilder(Segment, 's').getMany();
 	for (const segment of segments) {
-		segment.memberCount = await Members.count(parseRuleGroup(segment.ruleGroup));
+		segment.memberCount = await buildQuery(segment.ruleGroup).getCount();
 	}
+
 	res.render('index', {segments});
 }));
 
@@ -40,6 +40,13 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 		await getRepository(Segment).update(segment.id, {
 			name: req.body.name,
 			description: req.body.description || ''
+		});
+		req.flash('success', 'segment-updated');
+		res.redirect(req.originalUrl);
+		break;
+	case 'update-rules':
+		await getRepository(Segment).update(segment.id, {
+			ruleGroup: JSON.parse(req.body.rules)
 		});
 		req.flash('success', 'segment-updated');
 		res.redirect(req.originalUrl);

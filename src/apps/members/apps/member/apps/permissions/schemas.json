@@ -1,0 +1,54 @@
+{
+  "createPermissionSchema": {
+    "body": {
+      "type": "object",
+      "required": ["permission", "startTime", "startDate"],
+      "properties": {
+        "permission": {
+          "type": "string",
+          "enum": ["access", "member", "admin", "superadmin"]
+        },
+        "startTime": {
+          "type": "string",
+          "format": "time2"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "expiryTime": {
+          "type": "string",
+          "format": "time2"
+        },
+        "expiryDate": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  },
+  "updatePermissionSchema": {
+    "body": {
+      "type": "object",
+      "required": ["startTime", "startDate"],
+      "properties": {
+        "startTime": {
+          "type": "string",
+          "format": "time2"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "expiryTime": {
+          "type": "string",
+          "format": "time2"
+        },
+        "expiryDate": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  }
+}

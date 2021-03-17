@@ -16,6 +16,9 @@ import GCPaymentData from '@models/GCPaymentData';
 import GiftFlow from '@models/GiftFlow';
 import JoinFlow from '@models/JoinFlow';
 import ManualPaymentData from '@models/ManualPaymentData';
+import Member from '@models/Member';
+import MemberPermission from '@models/MemberPermission';
+import MemberProfile from '@models/MemberProfile';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
@@ -63,10 +66,10 @@ export async function connect( mongoUrl: string, dbConfig: ConnectionOptions ): 
 			...dbConfig,
 			entities: [
 				Email, EmailMailing, Export, ExportItem, GiftFlow, GCPayment,
-				GCPaymentData, JoinFlow, ManualPaymentData, Notice, Option,
-				PageSettings, Poll, PollResponse, Project, ProjectMember,
-				ProjectEngagement, Referral, ReferralGift, RestartFlow, Segment,
-				SegmentOngoingEmail, SegmentMember
+				GCPaymentData, JoinFlow, ManualPaymentData, Member, MemberProfile,
+				MemberPermission, Notice, Option, PageSettings, Poll, PollResponse,
+				Project, ProjectMember, ProjectEngagement, Referral, ReferralGift,
+				RestartFlow, Segment, SegmentOngoingEmail, SegmentMember
 			]
 		});
 		log.debug( {
@@ -90,7 +93,5 @@ export async function close(): Promise<void> {
 	await getConnection().close();
 }
 
-export { model as Members } from '@models/members';
-export { model as Permissions } from '@models/permissions';
 export { model as SpecialUrlGroups } from '@models/special-url-groups';
 export { model as SpecialUrls } from '@models/special-urls';

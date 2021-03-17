@@ -40,16 +40,17 @@ block contents
 
 				p
 					label(style='padding-top: 0').radio-inline
-						input(type='radio' name='delivery_optin' value='true' required checked=user.delivery_optin).js-delivery-opt
+						input(type='radio' name='delivery_optin' value='true' required checked=user.profile.deliveryOptIn).js-delivery-opt
 						| Yes
 					label(style='padding-top: 0').radio-inline
-						input(type='radio' name='delivery_optin' value='false' required checked=!user.delivery_optin).js-delivery-opt
+						input(type='radio' name='delivery_optin' value='false' required checked=!user.profile.deliveryOptIn).js-delivery-opt
 						| No
 
-				.js-delivery-details(class={'hidden-js': !user.delivery_optin})
-					+input( 'text', 'Address line 1', 'delivery_line1', { value: user.delivery_address.line1, left: 3, right: 9 } )
-					+input( 'text', 'Address line 2', 'delivery_line2', { value: user.delivery_address.line2, left: 3, right: 9 } )
-					+input( 'text', 'City/town', 'delivery_city', { value: user.delivery_address.city, left: 3, right: 5 } )
-					+input( 'text', 'Postcode', 'delivery_postcode', { value: user.delivery_address.postcode, left: 3, right: 5 } )
+				.js-delivery-details(class={'hidden-js': !user.profile.deliveryOptIn})
+					- deliveryAddress = user.profile.deliveryAddress || {}
+					+input( 'text', 'Address line 1', 'delivery_line1', { value: deliveryAddress.line1, left: 3, right: 9 } )
+					+input( 'text', 'Address line 2', 'delivery_line2', { value: deliveryAddress.line2, left: 3, right: 9 } )
+					+input( 'text', 'City/town', 'delivery_city', { value: deliveryAddress.city, left: 3, right: 5 } )
+					+input( 'text', 'Postcode', 'delivery_postcode', { value: deliveryAddress.postcode, left: 3, right: 5 } )
 				
 				button.btn.btn-success Save

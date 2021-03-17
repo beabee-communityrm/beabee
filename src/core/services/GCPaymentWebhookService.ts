@@ -2,7 +2,6 @@ import { Payment as GCApiPayment, Subscription, SubscriptionIntervalUnit } from 
 import moment, { Moment } from 'moment';
 import { getRepository } from 'typeorm';
 
-import { Members } from '@core/database';
 import gocardless from '@core/gocardless';
 import { log as mainLogger } from '@core/logging';
 import { ContributionPeriod } from '@core/utils';
@@ -12,6 +11,7 @@ import GCPaymentService from '@core/services/GCPaymentService';
 
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
+import Member from '@models/Member';
 
 import config from '@config';
 
@@ -27,7 +27,11 @@ export default class GCPaymentWebhookService {
 		});
 
 		const gcPayment = await gocardless.payments.get(gcPaymentId);
-		let payment = await getRepository(GCPayment).findOne({ paymentId: gcPayment.id });
+		let payment = await getRepository(GCPayment).findOne({
+			where: {paymentId: gcPayment.id},
+			relations: ['member']
+		});
+
 		if (!payment) {
 			payment = await GCPaymentWebhookService.createPayment(gcPayment);
 		}
@@ -48,31 +52,31 @@ export default class GCPaymentWebhookService {
 			action: 'confirm-payment',
 			data: {
 				paymentId: payment.paymentId,
-				memberId: payment.memberId,
+				memberId: payment.member?.id,
 				subscriptionId: payment.subscriptionId
 			}
 		});
 
-		if (!payment.memberId || !payment.subscriptionId) {
+		if (!payment.member || !payment.subscriptionId) {
 			log.info({
 				action: 'ignore-confirm-payment'
 			});
 			return;
 		}
 
-		const member = await Members.findById(payment.memberId);
-		if (!member) {
-			log.error({
-				action: 'payment-member-not-found',
-			}, 'Payment member not found');
-			return;
-		}
-
-		const gcData = await GCPaymentService.getPaymentData(member);
+		const gcData = await GCPaymentService.getPaymentData(payment.member);
 		if (!gcData) {
 			log.error({
 				action: 'payment-gc-data-not-found'
 			}, 'Member has no GC data but confirmed payments');
+			return;
+		}
+
+		const membership = payment.member.permissions.find(p => p.permission === 'member');
+		if (!membership) {
+			log.error({
+				action: 'membership-not-found'
+			}, 'Member has no membership permission');
 			return;
 		}
 
@@ -81,24 +85,26 @@ export default class GCPaymentWebhookService {
 		log.info({
 			action: 'extend-membership',
 			data: {
-				prevDate: member.memberPermission.date_expires,
+				prevDate: membership.dateExpires,
 				newDate: nextExpiryDate
 			}
 		});
 
-		if (member.nextContributionMonthlyAmount) {
+		if (payment.member.nextContributionMonthlyAmount) {
 			const newAmount = GCPaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
-			if (newAmount === member.nextContributionMonthlyAmount) {
-				member.contributionMonthlyAmount = newAmount;
-				member.nextContributionMonthlyAmount = undefined;
+			if (newAmount === payment.member.nextContributionMonthlyAmount) {
+				payment.member.contributionMonthlyAmount = newAmount;
+				payment.member.nextContributionMonthlyAmount = undefined;
+				// TODO: Fix save not saving undefined as NULL
+				await getRepository(Member).update(payment.member.id, {nextContributionMonthlyAmount: undefined});
 			}
 		}
 
-		if (nextExpiryDate.isAfter(member.memberPermission.date_expires)) {
-			member.memberPermission.date_expires = nextExpiryDate.toDate();
+		if (nextExpiryDate.isAfter(membership.dateExpires)) {
+			membership.dateExpires = nextExpiryDate.toDate();
 		}
 
-		await member.save();
+		await getRepository(Member).save(payment.member);
 	}
 
 	static async updatePaymentStatus(gcPaymentId: string, status: string): Promise<void> {
@@ -119,12 +125,13 @@ export default class GCPaymentWebhookService {
 			}
 		});
 
-		const gcData = await getRepository(GCPaymentData).findOne({ subscriptionId });
-		const member = gcData && await Members.findById(gcData.memberId);
-
-		if (member) {
-			await GCPaymentService.cancelContribution(member, true);
-			await EmailService.sendTemplateToMember('cancelled-contribution', member);
+		const gcData = await getRepository(GCPaymentData).findOne({
+			where: {subscriptionId},
+			relations: ['member']
+		});
+		if (gcData) {
+			await GCPaymentService.cancelContribution(gcData.member, true);
+			await EmailService.sendTemplateToMember('cancelled-contribution', gcData.member);
 		} else {
 			log.info({
 				action: 'unlink-subscription',
@@ -136,18 +143,21 @@ export default class GCPaymentWebhookService {
 	}
 
 	static async cancelMandate(mandateId: string): Promise<void> {
-		const gcData = await getRepository(GCPaymentData).findOne({ mandateId });
+		const gcData = await getRepository(GCPaymentData).findOne({
+			where: {mandateId},
+			loadRelationIds: true
+		}) as unknown as WithRelationIds<GCPaymentData, 'member'>;
 
 		if (gcData) {
 			log.info({
 				action: 'cancel-mandate',
 				sensitive: {
-					memberId: gcData.memberId,
+					memberId: gcData.member,
 					mandateId: gcData.mandateId
 				}
 			});
 
-			await getRepository(GCPaymentData).update(gcData.memberId, {
+			await getRepository(GCPaymentData).update(gcData.member, {
 				mandateId: undefined
 			});
 		} else {
@@ -175,17 +185,19 @@ export default class GCPaymentWebhookService {
 		const payment = new GCPayment();
 		payment.paymentId = gcApiPayment.id;
 
-		const gcData = await getRepository(GCPaymentData).findOne({ mandateId: gcApiPayment.links.mandate });
-		const member = gcData && await Members.findById(gcData.memberId);
-		if (member) {
+		const gcData = await getRepository(GCPaymentData).findOne({
+			where: {mandateId: gcApiPayment.links.mandate },
+			relations: ['member']
+		});
+		if (gcData) {
 			log.info({
 				action: 'create-payment',
 				data: {
-					memberId: member._id,
+					memberId: gcData.member.id,
 					gcPaymentId: gcApiPayment.id
 				}
 			});
-			payment.memberId = member._id.toString();
+			payment.member = gcData.member;
 		} else {
 			log.info({
 				action: 'create-unlinked-payment',

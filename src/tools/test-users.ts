@@ -1,164 +1,145 @@
 import 'module-alias/register';
 
 import moment from 'moment';
-import { FilterQuery } from 'mongoose';
-import { ConnectionOptions, getRepository } from 'typeorm';
+import { Brackets, ConnectionOptions, createQueryBuilder } from 'typeorm';
 
 import * as db from '@core/database';
-import { ContributionPeriod, ContributionType } from '@core/utils';
+import { ContributionPeriod, ContributionType, getActualAmount } from '@core/utils';
 
 import config from '@config';
 
+import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
-import Payment from '@models/Payment';
-import { Member } from '@models/members';
+import Member from '@models/Member';
 
-async function logMember(type: string, query: FilterQuery<Member>) {
-	const member = await db.Members.findOne(query);
+async function logMember(type: string, conditions: Brackets[]) {
+	const qb = createQueryBuilder(Member, 'm')
+		.innerJoinAndSelect('m.permissions', 'mp')
+		.where('TRUE');
+
+	for (const condition of conditions) {
+		qb.andWhere(condition);
+	}
+
+	const member = await qb.getOne();
 	console.log('# ' + type);
 	if (member) {
 		console.log(member.fullname + ', ' + member.email);
-		console.log(config.audience + '/members/' + member.uuid);
+		console.log(config.audience + '/login/as/' + member.id);
 	} else {
 		console.log('No member found');
 	}
 	console.log();
 }
 
-async function logMemberVaryContributions(type: string, query: FilterQuery<Member>) {
+async function logMemberVaryContributions(type: string, conditions: Brackets[]) {
 	const amounts = [1, 3, 5];
 	for (const amount of amounts) {
-		await logMember(`${type}, £${amount}/monthly`, {
-			...query,
-			contributionMonthlyAmount: amount,
-			contributionPeriod: ContributionPeriod.Monthly
-		});
-		await logMember(`${type}, £${amount * 12}/year`, {
-			...query,
-			contributionMonthlyAmount: amount,
-			contributionPeriod: ContributionPeriod.Annually
-		});
+		for (const period of [ContributionPeriod.Monthly, ContributionPeriod.Annually]) {
+			await logMember(`${type}, £${getActualAmount(amount, period)}/${period}`, [
+				...conditions,
+				new Brackets(
+					qb => qb.where('m.contributionMonthlyAmount = :amount AND m.contributionPeriod = :period', {
+						amount, period
+					})
+				)
+			]);
+		}
 	}
 }
 
 async function getFilters() {
 	const now = moment.utc();
 
-	const scheduledPayments = await getRepository(Payment).find({status: 'pending_submission'});
-	const failedPayments = await getRepository(Payment).find({status: 'failed'});
-
-	const membersWithScheduledPayments = scheduledPayments.map(p => p.memberId);
-	const membersWithFailedPayments = failedPayments.map(p => p.memberId);
-
-	const gcData = await getRepository(GCPaymentData).find();
-	const membersWithSubscriptions = gcData.filter(gc => !!gc.subscriptionId).map(gc => gc.memberId);
-	const membersWithCancellations = gcData.filter(gc => !!gc.cancelledAt).map(gc => gc.memberId);
-	const membersWithPayingFee = gcData.filter(gc => !!gc.payFee).map(gc => gc.memberId);
-
-	const permissions = await db.Permissions.find();
+	const hasScheduledPayments = createQueryBuilder().subQuery()
+		.select('gc.memberId').from(GCPayment, 'gc').where('gc.status = \'pending_submission\'');
+	const hasFailedPayments = createQueryBuilder().subQuery()
+		.select('gc.memberId').from(GCPayment, 'gc').where('gc.status = \'failed\'');
+	const hasSubscription = createQueryBuilder().subQuery()
+		.select('gc.memberId').from(GCPaymentData, 'gc').where('gc.subscriptionId IS NOT NULL');
+	const hasCancelled = createQueryBuilder().subQuery()
+		.select('gc.memberId').from(GCPaymentData, 'gc').where('gc.cancelledAt IS NOT NULL');
+	const isPayingFee = createQueryBuilder().subQuery()
+		.select('gc.memberId').from(GCPaymentData, 'gc').where('gc.payFee = TRUE');
 
 	return {
-		isActive: {
-			permissions: {$elemMatch: {
-				permission: config.permission.memberId,
-				date_expires: {$gte: now}
-			}}
-		},
-		isInactive: {
-			permissions: {$elemMatch: {
-				permission: config.permission.memberId,
-				date_expires: {$lte: now}
-			}}
-		},
-		isSuperAdmin: {
-			permissions: {$elemMatch: {
-				permission: permissions.find(p => p.slug === 'superadmin')
-			}}
-		},
-		isGift: {
-			contributionType: ContributionType.Gift
-		},
-		hasSubscription: {
-			_id: {$in: membersWithSubscriptions}
-		},
-		hasCancelled: {
-			_id: {$in: membersWithCancellations}
-		},
-		noScheduledPayments: {
-			_id: {$nin: membersWithScheduledPayments}
-		},
-		hasScheduledPayments: {
-			_id: {$in: membersWithScheduledPayments}
-		},
-		noFailedPayments: {
-			_id: {$nin: membersWithFailedPayments}
-		},
-		hasFailedPayments: {
-			_id: {$in: membersWithFailedPayments}
-		},
-		isPayingFee: {
-			_id: {$in: membersWithPayingFee}
-		}
-	};
+		isActive: new Brackets(
+			qb => qb.where('mp.permission = \'member\' AND mp.dateExpires > :now', {now})
+		),
+		isInactive: new Brackets(
+			qb => qb.where('mp.permission = \'member\' AND mp.dateExpires < :now', {now})
+		),
+		isSuperAdmin: new Brackets(
+			qb => qb.where('mp.permission = \'superadmin\'')
+		),
+		isGift: new Brackets(
+			qb => qb.where('m.contributionType = :gift', {gift: ContributionType.Gift})
+		),
+		hasSubscription: new Brackets(
+			qb => qb.where('m.id IN ' + hasSubscription.getQuery())
+		),
+		hasCancelled: new Brackets(
+			qb => qb.where('m.id IN ' + hasCancelled.getQuery())
+		),
+		isPayingFee: new Brackets(
+			qb => qb.where('m.id IN ' + isPayingFee.getQuery())
+		),
+		noScheduledPayments: new Brackets(
+			qb => qb.where('m.id NOT IN ' + hasScheduledPayments.getQuery())
+		),
+		hasScheduledPayments: new Brackets(
+			qb => qb.where('m.id IN ' + hasScheduledPayments.getQuery())
+		),
+		noFailedPayments: new Brackets(
+			qb => qb.where('m.id NOT IN ' + hasFailedPayments.getQuery())
+		),
+		hasFailedPayments: new Brackets(
+			qb => qb.where('m.id IN ' + hasFailedPayments.getQuery())
+		)
+	} as const;
 }
 
 async function main() {
 	const filters = await getFilters();
 
-	await logMemberVaryContributions('Active, no scheduled payments', {
-		...filters.isActive,
-		...filters.noScheduledPayments
-	});
+	await logMemberVaryContributions('Active, no scheduled payments', [
+		filters.isActive, filters.noScheduledPayments
+	]);
 
-	await logMemberVaryContributions('Active, has scheduled payments', {
-		...filters.isActive,
-		...filters.hasScheduledPayments
-	});
+	await logMemberVaryContributions('Active, has scheduled payments', [
+		filters.isActive, filters.hasScheduledPayments
+	]);
 
-	await logMemberVaryContributions('Inactive due to failed payment', {
-		...filters.hasSubscription,
-		...filters.isInactive,
-		...filters.hasFailedPayments
-	});
+	await logMemberVaryContributions('Inactive due to failed payment', [
+		filters.hasSubscription, filters.isInactive, filters.hasFailedPayments
+	]);
 
-	await logMemberVaryContributions('Inactive due to failed payment, has scheduled payments', {
-		...filters.hasSubscription,
-		...filters.isInactive,
-		...filters.hasFailedPayments,
-		...filters.hasScheduledPayments
-	});
-	await logMemberVaryContributions('Cancelled active member', {
+	await logMemberVaryContributions('Inactive due to failed payment, has scheduled payments', [
+		filters.hasSubscription, filters.isInactive, filters.hasFailedPayments, filters.hasScheduledPayments
+	]);
+	await logMemberVaryContributions('Cancelled active member', [
+		filters.isActive, filters.hasCancelled
+	]);
 
-		...filters.isActive,
-		...filters.hasCancelled
-	});
+	await logMemberVaryContributions('Cancelled inactive member', [
+		filters.isInactive, filters.hasCancelled
+	]);
 
-	await logMemberVaryContributions('Cancelled inactive member', {
-		...filters.isInactive,
-		...filters.hasCancelled
-	});
+	await logMember('Active, gift membership', [
+		filters.isActive, filters.isGift
+	]);
 
-	await logMember('Active, gift membership', {
-		...filters.isActive,
-		...filters.isGift
-	});
+	await logMember('Inactive, gift membership', [
+		filters.isInactive, filters.isGift
+	]);
 
-	await logMember('Inactive, gift membership', {
-		...filters.isInactive,
-		...filters.isGift
-	});
+	await logMember('Active, paying fee', [
+		filters.isActive, filters.isPayingFee
+	]);
 
-	await logMember('Active, paying fee', {
-		...filters.isActive,
-		...filters.isPayingFee
-	});
-
-	await logMember('Super admin account', {
-		$and: [
-			filters.isActive,
-			filters.isSuperAdmin
-		]
-	});
+	await logMember('Super admin account', [
+		filters.isSuperAdmin
+	]);
 }
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {

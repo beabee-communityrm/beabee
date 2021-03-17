@@ -1,26 +1,27 @@
 import express from 'express';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
+import { isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import GCPaymentService from '@core/services/GCPaymentService';
+import MembersService from '@core/services/MembersService';
 
 import GCPaymentData from '@models/GCPaymentData';
-import { Member } from '@models/members';
+import Member from '@models/Member';
 
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use(auth.isSuperAdmin);
+app.use(isSuperAdmin);
 
 app.use((req, res, next) => {
 	if (res.locals.paymentData) {
 		next();
 	} else {
 		req.flash('error', 'gocardless-no-data');
-		res.redirect('/members/' + (req.model as Member).uuid);
+		res.redirect('/members/' + (req.model as Member).id);
 	}
 });
 
@@ -48,10 +49,10 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		break;
 
 	case 'force-update':
-		await member.update({ $set: {
+		await MembersService.updateMember(member, {
 			contributionMonthlyAmount: Number(req.body.amount),
 			contributionPeriod: req.body.period
-		} });
+		});
 		await getRepository(GCPaymentData).update(member.id, {
 			customerId: req.body.customerId,
 			mandateId: req.body.mandateId,

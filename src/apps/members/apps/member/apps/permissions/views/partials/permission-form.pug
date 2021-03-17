@@ -5,26 +5,23 @@ form( method="post" )
 			label( for="permission" ) Permission:
 			select( name="permission" )#permission.form-control
 				option( disabled selected ) –
-				each permission, p in permissions
+				each permission in ['access', 'member', 'admin', 'superadmin']
 					option(
-						selected=( current != undefined && permission.slug == current.permission.slug ),
-						value=permission.slug
-					) #{ permission.name }
+						selected=( current != undefined && permission == current.permission.slug ),
+						value=permission
+					)= permission
 	.form-group
 		label Start
 		br
-		if current != undefined && current.date_added
-			- date = current.date_added
-		else
-			- date = moment()
-		input( type="time", name="start_time", value=moment( date ).format( 'HH:mm' ), style="display: inline; width: auto;" ).form-control
+		- date = current ? current.dateAdded : moment();
+		input( type="time", name="startTime", value=moment( date ).format( 'HH:mm' ), style="display: inline; width: auto;" ).form-control
 		| &nbsp;
-		input( type="date", name="start_date", value=moment( date ).format( 'YYYY-MM-DD' ), style="display: inline; width: auto;" ).form-control
+		input( type="date", name="startDate", value=moment( date ).format( 'YYYY-MM-DD' ), style="display: inline; width: auto;" ).form-control
 	.form-group
 		label Expires
 		br
-		input( type="time", name="expiry_time", value=( current && current.date_expires ? moment( current.date_expires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" ).form-control
+		input( type="time", name="expiryTime", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" ).form-control
 		| &nbsp;
-		input( type="date", name="expiry_date", value=( current && current.date_expires ? moment( current.date_expires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" ).form-control
+		input( type="date", name="expiryDate", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" ).form-control
 	.form-group
 		button.btn.btn-primary #{ action }

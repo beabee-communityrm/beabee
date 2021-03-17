@@ -3,9 +3,11 @@ import { totp } from 'notp';
 import base32 from 'thirty-two';
 import querystring from 'querystring';
 
-import auth from '@core/authentication';
+import { isLoggedIn } from '@core/middleware';
 import { hasUser, wrapAsync } from '@core/utils';
+import { generateOTPSecret, hashPassword } from '@core/utils/auth';
 
+import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
@@ -14,20 +16,24 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.get( '/', auth.isLoggedIn, function( req, res ) {
+app.use(isLoggedIn);
+
+app.get( '/', function( req, res ) {
 	res.render( 'index', { user: req.user } );
 } );
 
-app.get( '/setup', auth.isLoggedIn, wrapAsync( hasUser(async function( req, res ) {
+app.get( '/setup', wrapAsync( hasUser(async function( req, res ) {
 	if ( req.user.otp.activated ) {
 		req.flash( 'danger', '2fa-already-enabled' );
 		res.redirect( '/profile/2fa' );
 		return;
 	}
 
-	const secret = await auth.generateOTPSecretPromise();
+	const secret = await generateOTPSecret();
 
-	await req.user.update( { $set: { 'otp.key': secret } } );
+	await MembersService.updateMember(req.user, {
+		otp: {key: secret, activated: false}
+	});
 
 	const otpoptions = querystring.stringify( {
 		issuer: ( ( config.dev ) ? ' [DEV] ' : '' ) + OptionsService.getText( 'organisation' ),
@@ -43,7 +49,7 @@ app.get( '/setup', auth.isLoggedIn, wrapAsync( hasUser(async function( req, res 
 	} );
 } ) ) );
 
-app.post( '/setup', auth.isLoggedIn, wrapAsync( hasUser( async function( req, res ) {
+app.post( '/setup', wrapAsync( hasUser( async function( req, res ) {
 	if ( req.user.otp.activated ) {
 		req.flash( 'danger', '2fa-already-enabled' );
 		res.redirect( '/profile/2fa' );
@@ -53,7 +59,9 @@ app.post( '/setup', auth.isLoggedIn, wrapAsync( hasUser( async function( req, re
 	if ( test && Math.abs( test.delta ) < 2 ) {
 		req.session.method = 'totp';
 
-		await req.user.update({$set: {'otp.activated': true}});
+		await MembersService.updateMember(req.user, {
+			otp: {key: req.user.otp.key, activated: true}
+		});
 
 		req.flash( 'success', '2fa-enabled' );
 		res.redirect( '/profile/2fa' );
@@ -63,7 +71,7 @@ app.post( '/setup', auth.isLoggedIn, wrapAsync( hasUser( async function( req, re
 	}
 } ) ) );
 
-app.get( '/disable', auth.isLoggedIn, hasUser(function( req, res ) {
+app.get( '/disable', hasUser(function( req, res ) {
 	if ( req.user.otp.activated ) {
 		res.render( 'disable' );
 	} else {
@@ -72,14 +80,11 @@ app.get( '/disable', auth.isLoggedIn, hasUser(function( req, res ) {
 	}
 } ) );
 
-app.post( '/disable', auth.isLoggedIn, wrapAsync( hasUser(async function( req, res ) {
+app.post( '/disable', wrapAsync( hasUser(async function( req, res ) {
 	const test = totp.verify( req.body.code, base32.decode( req.user.otp.key || '' ) );
-	const hash = await auth.hashPasswordPromise( req.body.password, req.user.password.salt, req.user.password.iterations );
+	const hash = await hashPassword( req.body.password, req.user.password.salt, req.user.password.iterations );
 	if ( test && Math.abs( test.delta ) < 2 && hash === req.user.password.hash ) {
-		await req.user.update({$set: {
-			'otp.activated': false,
-			'otp.key': ''
-		}});
+		await MembersService.updateMember(req.user, {otp: {key: undefined, activated: false}});
 		req.flash( 'success', '2fa-disabled' );
 		res.redirect( '/profile/2fa' );
 	} else {

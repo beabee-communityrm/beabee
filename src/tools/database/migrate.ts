@@ -22,8 +22,14 @@ import PollResponse from '@models/PollResponse';
 import Project from '@models/Project';
 import ProjectMember from '@models/ProjectMember';
 import ProjectEngagement from '@models/ProjectEngagement';
+import Member, { Password } from '@models/Member';
+import MemberPermission, { PermissionType } from '@models/MemberPermission';
+import MemberProfile from '@models/MemberProfile';
 
-type Mapping<T> = {[K in Exclude<WritableKeysOf<T>,'id'>]: (subdoc: Document, doc: Document) => T[K]};
+type MappingFn<T, K extends keyof T> = (subdoc: Document, doc: Document) => T[K];
+type Mapping<T> = {
+	[K in WritableKeysOf<T>]: 'id' extends K ? MappingFn<T, K>|undefined : MappingFn<T, K>
+}
 
 interface Migration<T> {
 	model: EntityTarget<T>,
@@ -58,6 +64,13 @@ function ident<T extends readonly string[]>(fields: T): {[key in T[number]]: any
 }
 
 const newItemMap: Map<string, ObjectLiteral> = new Map();
+
+const permissionToName: {[key: string]: PermissionType} = {
+	'5b30d2d9ae965b19f2503dfc': 'access',
+	'5b30d2d9ae965b19f2503dfb': 'superadmin',
+	'5b30d2d9ae965b19f2503dfa': 'admin',
+	'5b30d2d9ae965b19f2503df9': 'member'
+};
 
 const migrations: Migration<any>[] = [
 	/*createMigration(PageSettings, 'pagesettings', {
@@ -181,7 +194,7 @@ const migrations: Migration<any>[] = [
 		project: (subDoc, doc) => newItemMap.get(doc.project.toString()) as Project,
 		toMemberId: (subDoc, doc) => doc.member.toString(),
 	}, doc => doc.engagement || [])*/
-	createMigration(PollResponse, 'members', {
+	/*createMigration(PollResponse, 'members', {
 		poll: () => ({slug: 'join-survey'} as Poll),
 		memberId: objectId('_id'),
 		guestName: () => undefined,
@@ -211,7 +224,51 @@ const migrations: Migration<any>[] = [
 		isPartial: () => false,
 		createdAt: doc => doc.gocardless.cancelled_at,
 		updatedAt: doc => doc.gocardless.cancelled_at
-	}, doc => doc.cancellation && doc.gocardless?.cancelled_at ? [doc] : [])
+	}, doc => doc.cancellation && doc.gocardless?.cancelled_at ? [doc] : [])*/
+	createMigration(Member, 'members', {
+		...ident([
+			'email', 'firstname', 'lastname', 'joined', 'contributionMonthlyAmount', 'contributionType',
+			'nextContributionMonthlyAmount', 'contributionPeriod', 'referralCode', 'pollsCode'
+		] as const),
+		id: doc => doc.uuid,
+		lastSeen: copy('last_seen'),
+		password: doc => ({
+			hash: doc.password.hash || '',
+			salt: doc.password.salt || '',
+			tries: doc.password.tries || 0,
+			iterations: doc.password.iterations || 0
+		}),
+		otp: doc => doc.otp && doc.otp.activated ? {
+			key: doc.otp.key,
+			activated: true
+		} : {
+			activated: false
+		},
+		permissions: () => [],
+		profile: () => undefined,
+		loginOverride: () => undefined
+	}),
+	createMigration(MemberProfile, 'members', {
+		...ident(['bio', 'description', 'notes'] as const),
+		telephone: doc => doc.contact?.telephone || '',
+		twitter: doc => doc.contact?.twitter || '',
+		preferredContact: doc => doc.contact?.preferred || '',
+		member: doc => ({id: doc.uuid}) as Member,
+		tags: doc => doc.tags ? doc.tags.map((t: {name: string}) => t.name) : [],
+		deliveryOptIn: doc => doc.delivery_optin || false,
+		deliveryAddress: doc => doc.delivery_optin ? ({
+			line1: doc.delivery_address.line1,
+			line2: doc.delivery_address.line2,
+			city: doc.delivery_address.city,
+			postcode: doc.delivery_address.postcode,
+		}) : undefined
+	}),
+	createMigration(MemberPermission, 'members', {
+		member: (subdoc, doc) => ({id: doc.uuid}) as Member,
+		permission: subdoc => permissionToName[subdoc.permission.toString()],
+		dateAdded: subdoc => subdoc.date_added,
+		dateExpires: subdoc => subdoc.date_expires
+	}, doc => doc.permissions || [])
 ];
 
 const doMigration = (migration: Migration<any>) => async (manager: EntityManager) => {
@@ -228,9 +285,11 @@ const doMigration = (migration: Migration<any>) => async (manager: EntityManager
 			for (const subdoc of migration.docExpand(doc)) {
 				const item: Document = {};
 				for (const key in migration.itemMap) {
-					item[key] = migration.itemMap[key](subdoc, doc);
+					item[key] = migration.itemMap[key]!(subdoc, doc);
 				}
-				items.push({oldId: subdoc._id.toString(), item});
+				if (subdoc._id) {
+					items.push({oldId: subdoc._id.toString(), item});
+				}
 			}
 
 			if (items.length >= 1000) {

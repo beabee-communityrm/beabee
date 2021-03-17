@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import type Member from './Member';
 
 export interface Address {
   line1: string
@@ -61,4 +62,7 @@ export default class GiftFlow {
 
   @Column({default: false})
   processed!: boolean
+
+  @ManyToOne('Member')
+  giftee?: Member
 }

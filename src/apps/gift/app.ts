@@ -1,9 +1,9 @@
 import express from 'express';
 import moment from 'moment';
+import { getRepository } from 'typeorm';
 
 import config from '@config';
 
-import { Members } from '@core/database';
 import { hasNewModel, hasSchema } from '@core/middleware';
 import { loginAndRedirect, wrapAsync } from '@core/utils';
 
@@ -11,6 +11,7 @@ import GiftService from '@core/services/GiftService';
 import OptionsService from '@core/services/OptionsService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
+import Member from '@models/Member';
 
 import { createGiftSchema, updateGiftAddressSchema } from './schema.json';
 
@@ -76,10 +77,10 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	let error;
 	const giftForm = schemaToGiftForm(req.body);
 
-	if (moment(giftForm.startDate).isBefore('day')) {
+	if (moment(giftForm.startDate).isBefore(undefined, 'day')) {
 		error = 'flash-gifts-date-in-the-past' as const;
 	} else {
-		const member = await Members.findOne({email: giftForm.email});
+		const member = await getRepository(Member).findOne({email: giftForm.email});
 		if (member) {
 			error = 'flash-gifts-email-duplicate' as const;
 		}
@@ -93,7 +94,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	}
 } ) );
 
-app.get( '/:setupCode', hasNewModel(GiftFlow, 'setupCode'), wrapAsync( async ( req, res, next ) => {
+app.get( '/:setupCode', hasNewModel(GiftFlow, 'setupCode', {relations: ['giftee']}), wrapAsync( async ( req, res, next ) => {
 	const giftFlow = req.model as GiftFlow;
 
 	if (giftFlow.completed) {
@@ -101,14 +102,13 @@ app.get( '/:setupCode', hasNewModel(GiftFlow, 'setupCode'), wrapAsync( async ( r
 			await GiftService.processGiftFlow(giftFlow, true);
 		}
 
-		const member = await Members.findOne({giftCode: req.params.setupCode});
-		if (member) {
+		if (giftFlow.giftee) {
 			// Effectively expire this link once the member is set up
-			if (member.setupComplete) {
+			if (giftFlow.giftee.setupComplete) {
 				req.flash('warning', 'gifts-already-activated');
 				res.redirect('/login');
 			} else {
-				loginAndRedirect(req, res, member, '/profile/complete');
+				loginAndRedirect(req, res, giftFlow.giftee, '/profile/complete');
 			}
 		} else {
 			next('route');

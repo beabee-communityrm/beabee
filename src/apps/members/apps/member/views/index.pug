@@ -18,16 +18,11 @@ block contents
 					include partials/profile.pug
 			if access( 'superadmin' )
 				.row
-					.col-md-12
-						include partials/permissions.pug
-				.row
 					.col-md-6
 						include partials/system.pug
 					.col-md-6
-						include partials/security.pug
+						include partials/permissions.pug
 				.row
-					.col-md-6
-						include partials/codes.pug
 					.col-md-6
 						h4 Contribution
 						dl.dl-horizontal
@@ -43,6 +38,8 @@ block contents
 										include partials/gocardless.pug
 									when 'Manual'
 										include partials/manual.pug
+					.col-md-6
+						include partials/security.pug
 				.row
 					.col-md-12
 						include partials/payments.pug

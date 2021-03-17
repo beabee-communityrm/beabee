@@ -23,6 +23,14 @@ $('#builder').queryBuilder({
 		label: 'Email address',
 		type: 'string'
 	}, {
+		id: 'joined',
+		label: 'Joined',
+		type: 'datetime'
+	}, {
+		id: 'lastSeen',
+		label: 'Last seen',
+		type: 'datetime'
+	}, {
 		id: 'contributionType',
 		label: 'Contribution type',
 		type: 'string',
@@ -46,22 +54,35 @@ $('#builder').queryBuilder({
 		label: 'Delivery opted-in',
 		type: 'boolean',
 		input: 'radio',
-		values: {1: 'Yes', 0: 'No'}
+		values: {true: 'Yes', false: 'No'}
 	}, {
-		id: 'activeSubscription',
-		label: 'Active subscription',
-		type: 'string'
+		id: 'activeMembership',
+		label: 'Has active membership',
+		type: 'boolean',
+		input: 'radio',
+		values: {true: 'Yes', false: 'No'}
+	}, {
+		id: 'permission',
+		label: 'Permission type',
+		type: 'string',
+		input: 'select',
+		values: {
+			'access': 'Access',
+			'member': 'Member',
+			'admin': 'Admin',
+			'superadmin': 'Superadmin'
+		}
 	}, {
 		id: 'dateAdded',
-		label: 'Membership start date',
+		label: 'Permission start date',
 		type: 'datetime'
 	}, {
 		id: 'dateExpires',
-		label: 'Membership expiry date',
+		label: 'Permission expiry date',
 		type: 'datetime'
 	}, {
-		id: 'hasTag',
-		label: 'Has tag',
+		id: 'tags',
+		label: 'Tags',
 		type: 'string'
 	}]
 });

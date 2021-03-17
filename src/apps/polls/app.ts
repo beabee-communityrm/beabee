@@ -2,17 +2,17 @@ import express, { NextFunction, Request, Response } from 'express';
 import _ from 'lodash';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { Members } from '@core/database';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isLoggedIn } from '@core/middleware';
 import { isSocialScraper, wrapAsync } from '@core/utils';
+import * as auth from '@core/utils/auth';
 
 import PollsService from '@core/services/PollsService';
 
+import Member from '@models/Member';
 import Poll from '@models/Poll';
+import { PollResponseAnswers } from '@models/PollResponse';
 
 import schemas from './schemas.json';
-import { PollResponseAnswers } from '@models/PollResponse';
 
 import config from '@config';
 
@@ -46,7 +46,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.get( '/', auth.isLoggedIn, wrapAsync( async ( req, res ) => {
+app.get( '/', isLoggedIn, wrapAsync( async ( req, res ) => {
 	const polls = await PollsService.getVisiblePollsWithResponses(req.user!);
 	const [activePolls, inactivePolls] = _.partition(polls, p => p.active);
 	res.render( 'index', { activePolls, inactivePolls } );
@@ -73,7 +73,7 @@ app.get('/_oembed', wrapAsync( async (req, res, next) => {
 // TODO: move this to the main site
 app.get( '/campaign2019', wrapAsync( async ( req, res, next ) => {
 	const poll = await getRepository(Poll).findOne( { slug: 'campaign2019' } );
-	if ( auth.loggedIn( req ) === auth.NOT_LOGGED_IN ) {
+	if ( auth.loggedIn( req ) === auth.AuthenticationStatus.NOT_LOGGED_IN ) {
 		res.render( 'polls/campaign2019-landing', { poll } );
 	} else {
 		next();
@@ -104,7 +104,7 @@ app.get( '/:slug:embed(/embed)?', [
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
 	if (!poll.public && !req.user) {
-		return auth.handleNotAuthed(auth.NOT_LOGGED_IN, req, res);
+		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
 	const answers = req.query.answers as PollResponseAnswers;
@@ -124,7 +124,7 @@ app.get( '/:slug:embed(/embed)?', [
 		res.render( getView( poll ), {
 			poll, isEmbed,
 			answers: await getUserAnswers(req) || {},
-			preview: req.query.preview && auth.canAdmin( req ) === auth.LOGGED_IN
+			preview: req.query.preview && auth.canAdmin( req ) === auth.AuthenticationStatus.LOGGED_IN
 		} );
 	}
 } ) );
@@ -135,7 +135,7 @@ app.post( '/:slug', [
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
 	if (!poll.public && !req.user) {
-		return auth.handleNotAuthed(auth.NOT_LOGGED_IN, req, res);
+		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
 	let error;
@@ -157,7 +157,7 @@ app.post( '/:slug', [
 		if (!req.user) {
 			req.session.answers = req.answers;
 		}
-		res.redirect( `/polls/${poll.slug}/thanks`);
+		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
@@ -178,7 +178,7 @@ app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res 
 
 	// Prefill answers from URL
 	if (answers) {
-		const member = await Members.findOne( { pollsCode } );
+		const member = await getRepository(Member).findOne( { pollsCode } );
 		if (member) {
 			const error = await PollsService.setResponse( poll, member, answers, true );
 			if (!error) {
@@ -203,9 +203,9 @@ app.post( '/:slug/:code', [
 	const pollsCode = req.params.code.toUpperCase();
 	let error;
 
-	const member = await Members.findOne( { pollsCode } );
+	const member = await getRepository(Member).findOne( { pollsCode } );
 	if (member) {
-		res.cookie('memberId', member.uuid, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+		res.cookie('memberId', member.id, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 		error = await PollsService.setResponse( poll, member, req.answers! );
 	} else {
 		req.log.error({
@@ -220,7 +220,7 @@ app.post( '/:slug/:code', [
 		res.redirect( `/polls/${poll.slug}/${pollsCode}#vote` );
 	} else {
 		req.session.answers = req.answers;
-		res.redirect( `/polls/${poll.slug}/thanks`);
+		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 

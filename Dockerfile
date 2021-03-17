@@ -24,6 +24,7 @@ COPY crontab /etc/crontabs/root
 RUN echo -n ${REVISION} > /opt/membership-system/built/revision.txt
 
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--enable-source-maps
 
 WORKDIR /opt/membership-system
 USER node

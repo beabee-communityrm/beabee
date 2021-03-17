@@ -1,8 +1,13 @@
 import express from 'express';
 import passport from 'passport';
+import { createQueryBuilder, getRepository } from 'typeorm';
 
-import { Members, Permissions } from '@core/database';
 import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
+
+import MembersService from '@core/services/MembersService';
+
+import Member from '@models/Member';
+import MemberPermission, { PermissionType, PermissionTypes } from '@models/MemberPermission';
 
 import config from '@config';
 
@@ -20,13 +25,20 @@ app.get( '/' , function( req, res ) {
 } );
 
 if (config.dev) {
-	app.get('/as/:permission', wrapAsync( async (req, res) => {
-		const permissions = await Permissions.find();
-		const member = await Members.findOne({permissions: {
-			$elemMatch: {
-				permission: permissions.find(p => p.slug === req.params.permission)
-			}
-		}});
+	app.get('/as/:id', wrapAsync( async (req, res) => {
+		let member;
+		if (PermissionTypes.indexOf(req.params.id as PermissionType) > -1) {
+			const permission = await getRepository(MemberPermission).findOne({
+				where: {
+					permission: req.params.id as PermissionType
+				},
+				relations: ['member']
+			});
+			member = permission?.member;
+		} else {
+			member = await getRepository(Member).findOne(req.params.id);
+		}
+
 		if (member) {
 			loginAndRedirect(req, res, member);
 		} else {
@@ -37,14 +49,13 @@ if (config.dev) {
 
 app.get( '/:code', wrapAsync( async function( req, res ) {
 	const nextParam = req.query.next as string;
-	const member = await Members.findOne( {
-		'loginOverride.code': req.params.code,
-		'loginOverride.expires': {$gt: new Date()}
-	} );
+	const member = await createQueryBuilder(Member, 'm')
+		.where('m.loginOverride ->> \'code\' = :code', {code: req.params.code})
+		.andWhere('m.loginOverride ->> \'expires\' > :now', {now: new Date()})
+		.getOne();
 
 	if (member) {
-		await member.update({$unset: {loginOverride: 1}});
-
+		await MembersService.updateMember(member, {loginOverride: undefined});
 		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
 	} else {
 		req.flash('error', 'login-code-invalid');

@@ -18,6 +18,8 @@ block append js
 		script(src='/static/js/embedded-poll.js?v' + git)
 
 block body
+	- deliveryAddress = user.profile.deliveryAddress || {}
+
 	header.join-header-static
 
 	.container
@@ -50,26 +52,26 @@ block body
 						.col-md-12
 							h4 Delivery details
 
-							mixin deliveryAddress
-								+input( 'text', 'Address line 1', 'delivery_line1', { required: true, left: 4, right: 6, value: user.delivery_address.line1 } )
-								+input( 'text', 'Address line 2', 'delivery_line2', { left: 4, right: 6, value: user.delivery_address.line2 } )
-								+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6, value: user.delivery_address.city } )
-								+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6, value: user.delivery_address.postcode } )
+							mixin deliveryAddressFields
+								+input( 'text', 'Address line 1', 'delivery_line1', { required: true, left: 4, right: 6, value: deliveryAddress.line1 } )
+								+input( 'text', 'Address line 2', 'delivery_line2', { left: 4, right: 6, value: deliveryAddress.line2 } )
+								+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6, value: deliveryAddress.city } )
+								+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6, value: deliveryAddress.postcode } )
 
 							if isReferralWithGift
 								.alert.alert-warning We need your address to send you your referral gift
-								+deliveryAddress
+								+deliveryAddressFields
 
 							if isGift
 								p
 									| Your gift includes a copy of our quarterly newspaper in the post.
 									|
-									if user.delivery_address.line1
+									if deliveryAddress.line1
 										| Please check that the delivery address we have for you is
 										| correct.
 									else
 										| Please let us know your delivery address.
-								+deliveryAddress
+								+deliveryAddressFields
 
 							else if user.contributionMonthlyAmount >= 3
 								p.
@@ -109,7 +111,7 @@ block body
 
 								if !isReferralWithGift
 									.js-delivery-details
-										+deliveryAddress
+										+deliveryAddressFields
 
 					if !isGift && joinPoll
 						.row.hidden-nojs

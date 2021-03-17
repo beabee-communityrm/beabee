@@ -1,20 +1,19 @@
 import body from 'body-parser';
 import cleanDeep from 'clean-deep';
-import cookie from 'cookie-parser';
 import _pgSession from 'connect-pg-simple';
 import csrf from 'csurf';
 import express, { ErrorRequestHandler } from 'express';
 import session from 'express-session';
-import passport from 'passport';
 import { getConnection } from 'typeorm';
 import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
+
+import passport from '@core/passport';
 
 import config from '@config';
 
 const pgSession = _pgSession(session);
 
 export default (app: express.Express): void => {
-	app.use( cookie() );
 	app.use( session( {
 		name: config.session,
 		secret: config.secret,
@@ -43,9 +42,9 @@ export default (app: express.Express): void => {
 	app.use( passport.session() );
 
 	app.use( ( req, res, next ) => {
-		const uuid = req.user && req.user.uuid || req.cookies.memberId;
-		if ( uuid ) {
-			res.cookie('memberId', uuid, {
+		const memberId = req.user?.id || req.cookies.memberId;
+		if ( memberId ) {
+			res.cookie('memberId', memberId, {
 				maxAge: 365 * 24 * 60 * 60 * 1000
 			});
 		}

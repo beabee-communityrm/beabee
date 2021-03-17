@@ -8,7 +8,7 @@ block contents
 		.col-md-12
 			+page_header(exportDetails.description)
 			p.
-				#{exportType.name}, created
+				#{exportType.exportName}, created
 				#{moment(exportDetails.date).format('DD/MM/YYYY [at] HH:mm')}
 
 			p
@@ -22,12 +22,12 @@ block contents
 
 			ul
 				li
-					| New #{exportType.itemName} (#{newItems.length})
+					| New #{exportType.itemName} (#{newItemCount})
 					|
 					a(href='/tools/exports/' + exportDetails.id + '/items/new').btn.btn-xs.btn-info Show
 					|
 					|
-					if newItems.length > 0
+					if newItemCount > 0
 						form(method='POST' style='display: inline')
 							+csrf
 							button(name='action' value='add').btn.btn-xs.btn-success Add
@@ -50,7 +50,7 @@ block contents
 					.col-md-4
 						select(id='status', name='status').form-control
 							option(value='') -- All --
-							each status in exportType.statuses
+							each status in exportType.itemStatuses
 								option= status
 
 				button(name='action' value='export').btn.btn-primary Export
@@ -65,14 +65,14 @@ block contents
 					label(for='oldStatus').form-label.col-md-3 Old status
 					.col-md-4
 						select(id='oldStatus', name='oldStatus').form-control
-							each status in exportType.statuses
+							each status in exportType.itemStatuses
 								option= status
 
 				.form-group
 					label(for='newStatus').form-label.col-md-3 New status
 					.col-md-4
 						select(id='newStatus', name='newStatus').form-control
-							each status in exportType.statuses
+							each status in exportType.itemStatuses
 								option= status
 
 				p

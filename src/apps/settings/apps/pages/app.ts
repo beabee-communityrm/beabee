@@ -1,8 +1,7 @@
 import express from 'express';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
 import PageSettingsService from '@core/services/PageSettingsService';
@@ -23,7 +22,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const pages = await getRepository(PageSettings).find();

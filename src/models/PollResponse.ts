@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import Poll from './Poll';
+
+import type Member from './Member';
+import type Poll from './Poll';
 
 export type PollResponseAnswers = Record<string, unknown>
 
@@ -8,11 +10,11 @@ export default class PollResponse {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@ManyToOne(() => Poll, p => p.responses)
+	@ManyToOne('Poll', 'responses')
 	poll!: Poll
 
-	@Column({nullable: true})
-	memberId?: string
+	@ManyToOne('Member', {nullable: true})
+	member?: Member
 
 	@Column({nullable: true})
 	guestName?: string

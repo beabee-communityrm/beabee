@@ -1,11 +1,12 @@
-import { Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import type Member from './Member';
 
 export default abstract class Payment {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@Column({nullable: true})
-	memberId?: string
+	@ManyToOne('Member', {nullable: true})
+	member?: Member
 
 	@Column()
 	status!: string

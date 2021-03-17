@@ -1,21 +1,22 @@
 import express from 'express';
+import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { Members } from '@core/database';
-import { hasSchema } from '@core/middleware';
+import { hasSchema, isNotLoggedIn } from '@core/middleware';
 import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
+import { generatePassword } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 
-import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
+import Member from '@models/Member';
 
+import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
 
 const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isNotLoggedIn );
+app.use( isNotLoggedIn );
 
 app.get( '/' , function( req, res ) {
 	res.render( 'index' );
@@ -24,10 +25,7 @@ app.get( '/' , function( req, res ) {
 app.post( '/', hasSchema(getResetCodeSchema).orFlash, wrapAsync( async function( req, res ) {
 	const { body: { email } } = req;
 
-	const member = await Members.findOne( { email: cleanEmailAddress(email) } );
-	if (member) {
-		await MembersService.resetMemberPassword(member);
-	}
+	await MembersService.resetMemberPassword(cleanEmailAddress(email));
 
 	const passwordResetMessage = OptionsService.getText('flash-password-reset') || '';
 	req.flash( 'info', passwordResetMessage.replace( '%', email ) );
@@ -44,17 +42,14 @@ app.get( '/code/:password_reset_code', function( req, res ) {
 } );
 
 app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash, wrapAsync( async function( req, res ) {
-	const member = await Members.findOne( { 'password.reset_code': req.body.password_reset_code } );
+	const member = await getRepository(Member).findOne({password: {resetCode: req.body.password_reset_code }});
 	if (member) {
-		const password = await auth.generatePasswordPromise( req.body.password );
-
-		await member.update( { $set: {
-			'password.salt': password.salt,
-			'password.hash': password.hash,
-			'password.reset_code': null,
-			'password.tries': 0,
-			'password.iterations': password.iterations
-		} } );
+		await MembersService.updateMember(member, {
+			password: {
+				...await generatePassword( req.body.password ),
+				resetCode: undefined
+			}
+		});
 
 		req.flash( 'success', 'password-changed' );
 

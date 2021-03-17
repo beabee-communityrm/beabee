@@ -1,5 +1,7 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { JoinForm } from '@models/JoinFlow';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { JoinForm } from './JoinFlow';
+import type Member from './Member';
 
 @Entity()
 export default class RestartFlow {
@@ -9,8 +11,8 @@ export default class RestartFlow {
 	@CreateDateColumn()
 	date!: Date;
 
-	@Column()
-	memberId!: string;
+	@ManyToOne('Member')
+	member!: Member;
 
 	@Column()
 	customerId!: string;
@@ -18,6 +20,6 @@ export default class RestartFlow {
 	@Column()
 	mandateId!: string;
 
-	@Column(type => JoinForm)
+	@Column(() => JoinForm)
 	joinForm!: JoinForm;
 }

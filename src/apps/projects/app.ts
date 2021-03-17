@@ -3,16 +3,15 @@ import _ from 'lodash';
 import moment from 'moment';
 import { createQueryBuilder, getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { hasNewModel, hasSchema } from '@core/middleware';
+import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
+import Member from '@models/Member';
 import Project from '@models/Project';
-import { Members } from '@core/database';
-
-import { createProjectSchema } from './schemas.json';
 import ProjectMember from '@models/ProjectMember';
 import ProjectEngagement from '@models/ProjectEngagement';
+
+import { createProjectSchema } from './schemas.json';
 
 interface CreateProjectSchema {
 	title: string
@@ -64,12 +63,12 @@ function schemaToProject( data: CreateProjectSchema ): Pick<Project,'title'|'des
 	return { title, description, status, groupName };
 }
 
-function schemaToEngagement( data: CreateEngagementSchema ): Pick<ProjectEngagement,'type'|'notes'|'date'|'toMemberId'> {
+function schemaToEngagement( data: CreateEngagementSchema ): Pick<ProjectEngagement,'type'|'notes'|'date'|'toMember'> {
 	const { type, date, time, notes } = data;
 	return {
 		type, notes,
 		date: moment(`${date}T${time}`).toDate(),
-		toMemberId: data.memberId
+		toMember: {id: data.memberId} as Member
 	};
 }
 
@@ -77,7 +76,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const projects = await createQueryBuilder(Project, 'p')
@@ -96,31 +95,22 @@ app.post( '/', hasSchema(createProjectSchema).orFlash, wrapAsync( async ( req, r
 	res.redirect( '/projects/' + project.id);
 } ) );
 
-app.get( '/:id', hasNewModel(Project, 'id'), wrapAsync( async ( req, res ) => {
+app.get( '/:id', hasNewModel(Project, 'id', {relations: ['owner']}), wrapAsync( async ( req, res ) => {
 	const project = req.model as Project;
 	
-	const projectMembers = await getRepository(ProjectMember).find({project});
-	const engagements = await getRepository(ProjectEngagement).find({project});
-
-	// TODO: remove when members is in ORM
-	const members = await Members.find({_id: {$in: [
-		project.ownerId,
-		...projectMembers.map(m => m.memberId),
-		...engagements.map(m => m.byMemberId),
-		...engagements.map(m => m.toMemberId)
-	]}});
-
-	const engagementsWithMember = engagements.map(e => ({
-		...e,
-		byMember: members.find(m => m.id === e.byMemberId),
-		toMember: members.find(m => m.id === e.toMemberId)
-	}));
+	const projectMembers = await getRepository(ProjectMember).find({
+		where: {project},
+		relations: ['member', 'member.profile']
+	});
+	const engagements = await getRepository(ProjectEngagement).find({
+		where: {project},
+		relations: ['byMember', 'toMember']
+	});
 
 	const projectMembersWithEngagement = projectMembers.map(pm => {
-		const memberEngagements = engagementsWithMember.filter(e => pm.memberId === e.toMemberId);
+		const memberEngagements = engagements.filter(e => pm.member.id === e.toMember.id);
 		return {
 			...pm,
-			member: members.find(m => m.id === pm.memberId),
 			engagements: memberEngagements,
 			engagementsByDate: _.sortBy(memberEngagements, 'date'),
 			latestEngagement: memberEngagements[memberEngagements.length - 1]
@@ -128,7 +118,7 @@ app.get( '/:id', hasNewModel(Project, 'id'), wrapAsync( async ( req, res ) => {
 	});
 
 	res.render( 'project', {
-		project: {...project, owner: members.find(m => m.id === project.ownerId)},
+		project,
 		projectMembers: projectMembersWithEngagement
 	} );
 } ) );
@@ -160,7 +150,7 @@ app.post( '/:id', hasNewModel(Project, 'id'), wrapAsync( async ( req, res ) => {
 		await getRepository(ProjectEngagement).insert({
 			...schemaToEngagement(data),
 			project,
-			byMemberId: req.user?.id,
+			byMember: req.user,
 		});
 		res.redirect( req.originalUrl + '#members' );
 		break;

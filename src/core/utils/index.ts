@@ -1,7 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-
-import { Member } from '@models/members';
 import { QueryFailedError } from 'typeorm';
+
+import Member from '@models/Member';
 
 export enum ContributionPeriod {
 	Monthly = 'monthly',
@@ -11,7 +11,8 @@ export enum ContributionPeriod {
 export enum ContributionType {
 	GoCardless = 'GoCardless',
 	Manual = 'Manual',
-	Gift = 'Gift'
+	Gift = 'Gift',
+	None = 'None'
 }
 
 export interface PaymentForm {
@@ -93,7 +94,8 @@ interface PgError {
 export function isDuplicateIndex(error: Error, key: string): boolean {
 	if (error instanceof QueryFailedError) {
 		const pgError = error as unknown as PgError;
-		if (pgError.code === '23505' && pgError.detail.indexOf(`^Key (${key}).* already exists`)) {
+		const keyTest = new RegExp(`^Key \\("?${key}"?\\).* already exists`);
+		if (pgError.code === '23505' && keyTest.test(pgError.detail)) {
 			return true;
 		}
 	}

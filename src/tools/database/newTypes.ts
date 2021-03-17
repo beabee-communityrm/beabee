@@ -9,7 +9,8 @@ import Export from '@models/Export';
 import ExportItem from '@models/ExportItem';
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
-import GiftFlow, { GiftForm } from '@models/GiftFlow';
+import GiftFlow, { GiftForm, Address } from '@models/GiftFlow';
+import Member from '@models/Member';
 import Notice from '@models/Notice';
 import Option from '@models/Option';
 import PageSettings from '@models/PageSettings';
@@ -20,6 +21,8 @@ import ProjectMember from '@models/ProjectMember';
 import ProjectEngagement from '@models/ProjectEngagement';
 import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
+import MemberPermission from '@models/MemberPermission';
+import MemberProfile from '@models/MemberProfile';
 
 export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -56,7 +59,8 @@ function uniqueCode(): string {
 	return letter.padStart(2, 'A') + (no + '').padStart(3, '0');
 }
 
-const objectId = () => new mongoose.Types.ObjectId().toString();
+// Relations are loaded with loadRelationIds
+const memberId = () => uuidv4() as unknown as Member;
 
 const chance = new Chance();
 
@@ -77,11 +81,11 @@ const gcPaymentsDrier = createDrier(GCPayment, 'gcPayments', {
 	id: () => uuidv4(),
 	paymentId: randomId(12, 'PM'),
 	subscriptionId: randomId(12, 'SB'),
-	memberId: objectId
+	member: memberId
 });
 
 const gcPaymentDataDrier = createDrier(GCPaymentData, 'gcPaymentData', {
-	memberId: objectId,
+	member: memberId,
 	customerId: randomId(12, 'CU'),
 	mandateId: randomId(12, 'MD'),
 	subscriptionId: randomId(12, 'SB')
@@ -101,25 +105,56 @@ const giftFlowDrier = createDrier(GiftFlow, 'giftFlow', {
 	})
 });
 
+const memberDrier = createDrier(Member, 'members', {
+	id: () => uuidv4(),
+	email: () => chance.email({domain: 'example.com', length: 10}),
+	firstname: () => chance.first(),
+	lastname: () => chance.last(),
+	otp: () => ({activated: false}),
+	password: () => ({hash: '', salt: '', iterations: 0, tries: 0}),
+	pollsCode: uniqueCode,
+	referralCode: uniqueCode
+});
+
+const memberPermissionDrier = createDrier(MemberPermission, 'memberPermissions', {
+	member: memberId
+});
+
+const memberProfileDrier = createDrier(MemberProfile, 'memberProfiles', {
+	member: memberId,
+	description: () => chance.sentence(),
+	bio: () => chance.paragraph(),
+	notes: () => chance.sentence(),
+	telephone: () => chance.phone(),
+	twitter: () => chance.twitter(),
+	deliveryAddress: () => ({
+		line1: chance.address(),
+		line2: chance.pickone(['Cabot', 'Easton', 'Southmead', 'Hanham']),
+		city: 'Bristol',
+		postcode: 'BS1 1AA',
+	}),
+	tags: tags => tags.map(() => chance.profession())
+});
+
 const pollResponsesDrier = createDrier(PollResponse, 'pollResponses', {
 	id: () => uuidv4(),
-	memberId: objectId
+	member: memberId
 });
 
 const projectsDrier = createDrier(Project, 'projects', {
-	ownerId: objectId
+	owner: memberId
 });
 
 const projectMembersDrier = createDrier(ProjectMember, 'projectMemers', {
 	id: () => uuidv4(),
-	memberId: objectId,
+	member: memberId,
 	tag: () => chance.profession(),
 });
 
 const projectEngagmentsDrier = createDrier(ProjectEngagement, 'projectEngagements', {
 	id: () => uuidv4(),
-	byMemberId: objectId,
-	toMemberId: objectId,
+	byMember: memberId,
+	toMember: memberId,
 	notes: () => chance.sentence()
 });
 
@@ -129,11 +164,14 @@ const referralsGiftDrier = createDrier(ReferralGift, 'referralgifts', {
 
 const referralsDrier = createDrier(Referral, 'referrals', {
 	id: () => uuidv4(),
-	referrerId: objectId,
-	refereeId: objectId
+	referrer: memberId,
+	referee: memberId
 });
 
 export default [
+	memberDrier, // A lot of relations depend on members so leave it first
+	memberPermissionDrier,
+	memberProfileDrier,
 	emailDrier,
 	exportsDrier,
 	gcPaymentDataDrier,

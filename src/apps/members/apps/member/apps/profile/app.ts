@@ -1,12 +1,13 @@
 import express from 'express';
 
 import { hasSchema } from '@core/middleware';
-import { cleanEmailAddress, wrapAsync } from '@core/utils';
+import { cleanEmailAddress, isDuplicateIndex, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
+import Member from '@models/Member';
+
 import { updateProfileSchema } from './schemas.json';
-import { Member } from '@models/members';
 
 const app = express();
 
@@ -25,28 +26,30 @@ app.post( '/', [
 			delivery_line2, delivery_city, delivery_postcode
 		}
 	} = req;
+	const member = req.model as Member;
 
 	const cleanedEmail = cleanEmailAddress(email);
 
 	try {
-		await MembersService.updateMember(req.model as Member, {
+		await MembersService.updateMember(member, {
 			email: cleanedEmail,
 			firstname,
-			lastname,
-			delivery_optin,
-			delivery_address: delivery_optin ? {
+			lastname
+		});
+		await MembersService.updateMemberProfile(member, {
+			deliveryOptIn: delivery_optin,
+			deliveryAddress: delivery_optin ? {
 				line1: delivery_line1,
 				line2: delivery_line2,
 				city: delivery_city,
 				postcode: delivery_postcode
-			} : {}
+			} : undefined
 		});
-	} catch ( saveError ) {
-		// Duplicate key (on email)
-		if ( saveError.code === 11000 ) {
+	} catch (error) {
+		if (isDuplicateIndex(error, 'email')) {
 			req.flash( 'danger', 'email-duplicate' );
 		} else {
-			throw saveError;
+			throw error;
 		}
 	}
 

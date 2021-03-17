@@ -1,11 +1,12 @@
 import 'module-alias/register';
 
+import cookie from 'cookie-parser';
 import express, { ErrorRequestHandler } from 'express';
-import helmet from 'helmet';
 import flash from 'express-flash';
+import helmet from 'helmet';
+import { ConnectionOptions } from 'typeorm';
 
 import appLoader from '@core/app-loader';
-import auth from '@core/authentication';
 import * as database from '@core/database';
 import { log, installMiddleware as installLogMiddleware } from '@core/logging';
 import quickflash from '@core/quickflash';
@@ -17,7 +18,6 @@ import PageSettingsService from '@core/services/PageSettingsService';
 import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
 
 import config from '@config';
-import { ConnectionOptions } from 'typeorm';
 
 if ( !config.gocardless.sandbox && config.dev ) {
 	log.error({
@@ -43,6 +43,7 @@ installLogMiddleware( app );
 
 // Use helmet
 app.use( helmet( { contentSecurityPolicy: false } ) );
+app.use( cookie() );
 
 database.connect( config.mongo, config.db as ConnectionOptions ).then(async () => {
 	// Load some caches and make them immediately available
@@ -52,16 +53,6 @@ database.connect( config.mongo, config.db as ConnectionOptions ).then(async () =
 		res.locals.pageSettings = PageSettingsService.getPath(req.path);
 		next();
 	});
-
-	// Handle authentication
-	auth.load( app );
-
-	// Handle sessions
-	sessions( app );
-
-	// Include support for notifications
-	app.use( flash() );
-	app.use( quickflash );
 
 	// Setup tracker
 	app.use( '/membership.js', (req, res) => {
@@ -78,6 +69,13 @@ database.connect( config.mongo, config.db as ConnectionOptions ).then(async () =
 			res.status(404).send('');
 		}
 	});
+
+	// Handle sessions
+	sessions( app );
+
+	// Include support for notifications
+	app.use( flash() );
+	app.use( quickflash );
 
 	// Load apps
 	await appLoader( app );

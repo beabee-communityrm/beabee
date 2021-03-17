@@ -2,7 +2,7 @@ mixin membersTable
 	.members-table
 		each member in members
 			.members-table-row
-				a(href='/members/' + member.uuid).members-table-row-link
+				a(href='/members/' + member.id).members-table-row-link
 				if addToProject
 					label.members-table-action
 						input(type='checkbox' name='memberIds[]' value=member._id)

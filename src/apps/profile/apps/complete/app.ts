@@ -1,10 +1,11 @@
 import express from 'express';
 import { getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { hasSchema } from '@core/middleware';
+import { hasSchema, isLoggedIn } from '@core/middleware';
 import { ContributionType, hasUser, wrapAsync } from '@core/utils';
+import { generatePassword } from '@core/utils/auth';
 
+import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 import PollsService from '@core/services/PollsService';
 
@@ -29,10 +30,10 @@ app.use( function( req, res, next ) {
 	}
 } );
 
-app.use(auth.isLoggedIn);
+app.use(isLoggedIn);
 
 app.get( '/', wrapAsync( async function( req, res ) {
-	const referral = await getRepository(Referral).findOne({refereeId: req.user?.id});
+	const referral = await getRepository(Referral).findOne({referee: req.user});
 
 	res.render( 'complete', {
 		user: req.user,
@@ -51,7 +52,7 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 		user
 	} = req;
 
-	const referral = await getRepository(Referral).findOne({refereeId: user.id});
+	const referral = await getRepository(Referral).findOne({referee: user});
 
 	const joinPoll = await getJoinPoll();
 	if (joinPoll && req.body.data) {
@@ -66,17 +67,18 @@ app.post( '/', hasSchema(completeSchema).orFlash, wrapAsync( hasUser(async funct
 		req.flash( 'error', 'address-required' );
 		res.redirect( req.originalUrl );
 	} else {
-		const hashedPassword = await auth.generatePasswordPromise( password );
-		await user.update( { $set: {
-			password: hashedPassword,
-			delivery_optin,
-			delivery_address: needAddress ? {
+		await MembersService.updateMember(user, {
+			password: await generatePassword(password)
+		});
+		await MembersService.updateMemberProfile(user, {
+			deliveryOptIn: delivery_optin,
+			deliveryAddress: needAddress ? {
 				line1: delivery_line1,
 				line2: delivery_line2,
 				city: delivery_city,
 				postcode: delivery_postcode
-			} : {}
-		} } );
+			} : undefined
+		});
 
 		res.redirect( '/profile' );
 	}

@@ -1,13 +1,15 @@
-import { CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
-import Segment from './Segment';
+import { CreateDateColumn, Entity, ManyToOne } from 'typeorm';
+
+import type Member from './Member';
+import type Segment from './Segment';
 
 @Entity()
 export default class SegmentMember {
-  @ManyToOne(() => Segment, {primary: true})
+  @ManyToOne('Segment', 'members', {primary: true})
   segment!: Segment
 
-  @PrimaryColumn()
-  memberId!: string
+  @ManyToOne('Member', {primary: true})
+  member!: Member
 
   @CreateDateColumn()
   date!: Date

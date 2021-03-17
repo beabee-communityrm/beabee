@@ -1,13 +1,11 @@
-import activeMembers from './activeMembers';
-import churnRate from './churnRate';
-import edition from './edition';
-import gocardless from './gocardless';
+import ActiveMembersExport from './ActiveMembersExport';
+import EditionExport from './EditionExport';
+import GiftsExport from './GiftsExport';
+import ReferralsExport from './ReferralsExport';
 
 export default {
-	'active-members': activeMembers,
-	'churn-rate': churnRate,
-	'edition': edition,
-	//'gift': gifts,
-	'gocardless': gocardless,
-	//'referrals': referrals
-};
+	'active-members': ActiveMembersExport,
+	'edition': EditionExport,
+	'gifts': GiftsExport,
+	'referrals': ReferralsExport
+} as const;

@@ -25,6 +25,5 @@ db.connect(config.mongo, {...config.db, logging: true} as ConnectionOptions).the
 	if (!res[0].exists) {
 		await connection.query(fs.readFileSync(sessionSqlPath).toString());
 	}
-
-	await db.close();
-});
+}).catch(err => console.error(err))
+	.finally(() => db.close());

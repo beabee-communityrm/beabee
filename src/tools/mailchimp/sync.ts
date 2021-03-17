@@ -6,13 +6,14 @@ import JSONStream from 'JSONStream';
 import gunzip from 'gunzip-maybe';
 import moment from 'moment';
 import tar from 'tar-stream';
-import { ConnectionOptions } from 'typeorm';
+import { Between, ConnectionOptions, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 import mailchimp from '@core/mailchimp';
 import { cleanEmailAddress } from '@core/utils';
 
-import { Member } from '@models/members';
+import Member  from '@models/Member';
+import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
 
@@ -78,32 +79,26 @@ function memberToOperation(listId: string, member: Member): Operation {
 }
 
 async function fetchMembers(startDate: string|undefined, endDate: string|undefined): Promise<Member[]> {
-	const dateFilter = {
-		$gte: startDate ? moment(startDate).toDate() : moment().subtract({d: 1, h: 2}).toDate(),
-		$lte: moment(endDate).toDate()
-	};
+	const actualStartDate = startDate ? moment(startDate).toDate() : moment().subtract({d: 1, h: 2}).toDate();
+	const actualEndDate = moment(endDate).toDate();
 
-	console.log('Start date:', dateFilter.$gte.toISOString());
-	console.log('End date:', dateFilter.$lte.toISOString());
+	console.log('Start date:', actualStartDate.toISOString());
+	console.log('End date:', actualEndDate.toISOString());
 
 	console.log('# Fetching members');
 
-	const permission = await db.Permissions.findOne({slug: 'member'});
-	const members = await db.Members.find({
-		permissions: {$elemMatch: {
-			permission,
-			$or: [
-				{date_added: dateFilter},
-				{date_expires: dateFilter}
-			]
-		}}
+	const memberships = await getRepository(MemberPermission).find({
+		where: [
+			{permission: 'member', dateAdded: Between(actualStartDate, actualEndDate)},
+			{permission: 'member', dateExpires: Between(actualStartDate, actualEndDate)},
+		],
+		relations: ['member']
 	});
-
-	console.log(`Got ${members.length} members`);
-	members.forEach(member => {
+	console.log(`Got ${memberships.length} members`);
+	return memberships.map(({member}) => {
 		console.log(member.isActiveMember ? 'U' : 'D', member.email);
+		return member;
 	});
-	return members;
 }
 
 async function processMembers(members: Member[]) {

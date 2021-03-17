@@ -1,9 +1,10 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
+import type Member from './Member';
 
 @Entity()
 export default class GCPaymentData {
-  @PrimaryColumn()
-  memberId!: string;
+  @ManyToOne('Member', {primary: true})
+  member!: Member;
 
   @Column({ nullable: true })
   customerId?: string;

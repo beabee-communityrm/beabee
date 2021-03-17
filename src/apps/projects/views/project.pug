@@ -18,7 +18,7 @@ block contents
 				dt Created
 				dd= moment(project.date).format('DD/MM/YYYY [at] HH:mm')
 				dt Owner
-				dd: a(href='/members/' + project.owner.uuid)= project.owner.fullname
+				dd: a(href='/members/' + project.owner.id)= project.owner.fullname
 				dt Members
 				dd= projectMembers.length
 	
@@ -78,12 +78,12 @@ block contents
 											.input-group
 												span.input-group-addon
 													span.glyphicon.glyphicon-earphone
-												input(type='text' name='telephone' value=pm.member.contact.telephone readonly).form-control
+												input(type='text' name='telephone' value=pm.member.profile.telephone readonly).form-control
 											.input-group
 												span.input-group-addon
 													img(src='/static/imgs/twitter.png')
-												input(type='text' name='twitter' value=pm.member.contact.twitter readonly).form-control
-										p Preferred contact: #{pm.member.contact.preferred || '-'}
+												input(type='text' name='twitter' value=pm.member.profile.twitter readonly).form-control
+										p Preferred contact: #{pm.member.profile.preferredContact || '-'}
 								.row
 									.col-md-6
 										h5 Add engagement
@@ -123,7 +123,7 @@ block contents
 														|
 														| by
 														|
-														a(href='/members/' + e.byMember.uuid)= e.byMember.firstname
+														a(href='/members/' + e.byMember.id)= e.byMember.firstname
 														|
 														| at
 														|

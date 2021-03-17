@@ -1,11 +1,10 @@
 import express, { Request } from 'express';
 import queryString from 'query-string';
-import { getRepository } from 'typeorm';
+import { Brackets, getRepository } from 'typeorm';
 
-import auth from '@core/authentication';
-import { Members, Permissions } from '@core/database';
+import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
-import { parseRuleGroup, RuleGroup } from '@core/utils/rules';
+import buildQuery, { RuleGroup } from '@core/utils/rules';
 
 import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
@@ -17,7 +16,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 function getAvailableTags() {
 	return Promise.resolve(OptionsService.getText('available-tags').split(',').map(s => s.trim()));
@@ -42,58 +41,61 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 	}
 	if ( query.tag ) {
 		search.rules.push({
-			id: 'hasTag',
-			field: 'hasTag',
+			id: 'tags',
+			field: 'tags',
+			type: 'string',
+			operator: 'contains_jsonb',
+			value: query.tag as string
+		});
+	}
+
+	if (query.permission) {
+		search.rules.push({
+			id: 'permission',
+			field: 'permission',
 			type: 'string',
 			operator: 'equal',
-			value: query.tag as string
+			value: query.permission as string
+		});
+	}
+
+	if (!query.show_inactive) {
+		search.rules.push({
+			id: 'activeMembership',
+			field: 'activeMembership',
+			type: 'boolean',
+			operator: 'equal',
+			value: true
 		});
 	}
 
 	return search.rules.length > 0 ? search : undefined;
 }
 
-function getSearchRuleGroup(query: Request['query']): RuleGroup|undefined {
-	return query.type === 'basic' ? convertBasicSearch(query) :
+function getSearchRuleGroup(query: Request['query'], searchType?: string): RuleGroup|undefined {
+	return (searchType || query.type) === 'basic' ? convertBasicSearch(query) :
 		typeof query.rules === 'string' ?
 			JSON.parse(query.rules) as RuleGroup : undefined;
 }
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const { query } = req;
-	const permissions = await Permissions.find();
 	const availableTags = await getAvailableTags();
 
 	const segment = query.segment ? await getRepository(Segment).findOne(query.segment as string) : undefined;
-	const searchType = query.type || (segment ? 'advanced' : 'basic');
-	const searchRuleGroup = getSearchRuleGroup(query) || segment && segment.ruleGroup;
+	const searchType = query.type as string || (segment ? 'advanced' : 'basic');
+	const searchRuleGroup = getSearchRuleGroup(query, searchType) || segment && segment.ruleGroup;
 
-	const filter = searchRuleGroup ? parseRuleGroup(searchRuleGroup) : {};
+	const filter = buildQuery(searchRuleGroup);
 
-	// Hack to keep permission filter until it becomes a rule
-	if (searchType === 'basic' && (query.permission || !query.show_inactive)) {
-		const permissionSearch = {
-			...(query.permission && {
-				permission: permissions.find(p => p.slug === query.permission)
-			}),
-			...(!query.show_inactive && {
-				date_added: { $lte: new Date() },
-				$or: [
-					{ date_expires: null },
-					{ date_expires: { $gt: new Date() } }
-				]
-			})
-		};
-
-		if (!filter.$and) filter.$and = [];
-		filter.$and.push( { permissions: { $elemMatch: permissionSearch } } );
-	}
-	
 	const page = query.page ? Number( query.page ) : 1;
 	const limit = query.limit ? Number( query.limit ) : 25;
 
-	const total = await Members.count( filter );
-	const members = await Members.find( filter ).limit( limit ).skip( limit * ( page - 1 ) ).sort( [ [ 'lastname', 1 ], [ 'firstname', 1 ] ] );
+	const [members, total] = await filter
+		.orderBy({lastname: 'ASC', firstname: 'ASC'})
+		.offset(limit * (page - 1))
+		.limit(limit)
+		.getManyAndCount();
 
 	const pages = [ ...Array( Math.ceil( total / limit ) ) ].map( ( v, page ) => ( {
 		number: page + 1,
@@ -107,13 +109,13 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 		pages, page, prev, next,
 		start: (page - 1) * limit + 1,
 		end: Math.min(total, page * limit),
-		total: pages.length
+		total: pages.length,
 	};
 
 	const addToProject = query.addToProject && await getRepository(Project).findOne( query.addToProject as string );
 
 	res.render( 'index', {
-		permissions, availableTags, members, pagination, total,
+		availableTags, members, pagination, total,
 		segment,
 		searchQuery: query,
 		searchType,

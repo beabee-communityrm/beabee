@@ -98,7 +98,7 @@ mixin paramsInputs(params, namePrefix='params')
 
 mixin membersTableBasicInfo(member)
 	span.members-table-action
-		a(href='/members/' + member.uuid).btn.btn-xs.btn-default
+		a(href='/members/' + member.id).btn.btn-xs.btn-default
 			span(
 				style='color: ' + (member.isActiveMember ? 'green' : 'red')
 				title=member.isActiveMember ? 'Active' : 'Expired'
@@ -107,13 +107,13 @@ mixin membersTableBasicInfo(member)
 		div.members-table-row-info
 			span= member.fullname
 			span= member.email
-		small= member.description
+		small= member.profile.description
 	span
-		each tag in member.tags
-			if !search || tag.name !== search.tag
+		each tag in member.profile.tags
+			if !search || tag !== search.tag
 				|
 				|
-				a(href='/members/?type=basic&tag=' + encodeURIComponent(tag.name)).label.label-info.members-table-action= tag.name
+				a(href='/members/?type=basic&tag=' + encodeURIComponent(tag)).label.label-info.members-table-action= tag
 
 mixin paymentStatus(payment)
 	case payment.status

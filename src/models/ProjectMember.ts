@@ -1,17 +1,18 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import Project from './Project';
+import type Member from './Member';
+import type Project from './Project';
 
 @Entity()
-@Unique(['project', 'memberId'])
+@Unique(['project', 'member'])
 export default class ProjectMember {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@ManyToOne(() => Project, p => p.members)
+	@ManyToOne('Project', 'members')
 	project!: Project
 
-	@Column()
-	memberId!: string
+	@ManyToOne('Member')
+	member!: Member
 
 	@Column({nullable: true})
 	tag?: string

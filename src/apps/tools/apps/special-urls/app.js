@@ -4,9 +4,8 @@ const _ = require( 'lodash' );
 const moment = require( 'moment' );
 const Papa = require('papaparse');
 
-const auth = require( '@core/authentication' );
 const { SpecialUrlGroups, SpecialUrls } = require( '@core/database' );
-const { hasModel, hasSchema } = require( '@core/middleware' );
+const { hasModel, hasSchema, isAdmin } = require( '@core/middleware' );
 const { wrapAsync } = require( '@core/utils' );
 const { loadParams, parseParams } = require( '@core/utils/params' );
 
@@ -20,7 +19,7 @@ const app = express();
 
 app.set( 'views', __dirname + '/views' );
 
-app.use( auth.isAdmin );
+app.use( isAdmin );
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const specialUrlGroups = await SpecialUrlGroups.find();

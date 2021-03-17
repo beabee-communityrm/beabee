@@ -1,5 +1,7 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import ProjectMember from './ProjectMember';
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import type Member from './Member';
+import type ProjectMember from './ProjectMember';
 
 @Entity()
 export default class Project {
@@ -9,8 +11,8 @@ export default class Project {
 	@CreateDateColumn()
 	date!: Date
 
-	@Column()
-	ownerId!: string
+	@ManyToOne('Member')
+	owner!: Member
 
 	@Column()
 	title!: string
@@ -24,7 +26,7 @@ export default class Project {
 	@Column({nullable: true})
 	groupName?: string
 
-	@OneToMany(() => ProjectMember, pm => pm.project)
+	@OneToMany('ProjectMember', 'project')
 	members!: ProjectMember[]
 
 	memberCount?: number

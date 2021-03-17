@@ -2,13 +2,18 @@ import 'module-alias/register';
 
 import inquirer, { QuestionCollection } from 'inquirer';
 import moment from 'moment';
+import { ConnectionOptions, getRepository } from 'typeorm';
+
+import * as db from '@core/database';
+import { ContributionType } from '@core/utils';
+import { generatePassword, passwordRequirements } from '@core/utils/auth';
+
+import MembersService from '@core/services/MembersService';
 
 import config from '@config';
 
-import Auth from '@core/authentication';
-import * as db from '@core/database';
-import { ConnectionOptions } from 'typeorm';
-import { Member } from '@models/members';
+import MemberPermission from '@models/MemberPermission';
+import Member from '@models/Member';
 
 const questions: QuestionCollection[] = [];
 
@@ -48,7 +53,7 @@ questions.push( {
 	name: 'password',
 	message: 'Password',
 	validate: function( s ) {
-		return Auth.passwordRequirements( s );
+		return passwordRequirements( s );
 	}
 } );
 
@@ -72,66 +77,59 @@ questions.push( {
 
 
 db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
-	const member = config.permission.memberId;
-	const admin = (await db.Permissions.findOne({slug: config.permission.admin}))!._id;
-	const superadmin = (await db.Permissions.findOne({slug: config.permission.superadmin}))!._id;
-
 	const answers = await inquirer.prompt( questions );
 
-	const password = await Auth.generatePasswordPromise(answers.password);
+	const password = await generatePassword(answers.password);
 
-	const user = {
+	const member = await MembersService.createMember({
 		firstname: answers.firstname,
 		lastname: answers.lastname,
 		email: answers.email,
+		contributionType: ContributionType.None,
 		password: {
 			hash: password.hash,
 			salt: password.salt,
-			iterations: password.iterations
+			iterations: password.iterations,
+			tries: 0
 		},
-		permissions: [] as Partial<Member['permissions'][number]>[]
-	};
+	}, {
+		deliveryOptIn: false
+	});
 
 	if ( answers.membership != 'No' ) {
-		const memberPermission: Partial<Member['memberPermission']> = {
-			permission: member
-		};
+		const membership = new MemberPermission();
+		membership.permission = 'member';
+
 		const now = moment();
 		switch ( answers.membership ) {
-		case 'Yes':
-			memberPermission.date_added = now.toDate();
-			break;
 		case 'Yes (expires after 1 month)':
-			memberPermission.date_added = now.toDate();
-			memberPermission.date_expires = now.add( '1', 'months' ).toDate();
+			membership.dateExpires = now.add( '1', 'months' ).toDate();
 			break;
 		case 'Yes (expired yesterday)':
-			memberPermission.date_expires = now.subtract( '1', 'day' ).toDate();
-			memberPermission.date_added = now.subtract( '1', 'months' ).toDate();
+			membership.dateAdded = now.subtract( '1', 'months' ).toDate();
+			membership.dateExpires = now.subtract( '1', 'day' ).toDate();
 			break;
 		}
 
-		user.permissions.push(memberPermission);
+		member.permissions.push(membership);
 	}
 
 	if ( answers.permission != 'None' ) {
-		const adminPermission: Partial<Member['permissions'][number]> = {
-			date_added: moment().toDate()
-		};
+		const adminPermission = new MemberPermission();
 
 		switch ( answers.permission ) {
 		case 'Admin':
-			adminPermission.permission = admin;
+			adminPermission.permission = 'admin';
 			break;
 		case 'Super Admin':
-			adminPermission.permission = superadmin;
+			adminPermission.permission = 'superadmin';
 			break;
 		}
 
-		user.permissions!.push( adminPermission as Member['permissions'][number] );
+		member.permissions.push(adminPermission);
 	}
 
-	await new db.Members(user).save();
+	await getRepository(Member).save(member);
 
 	await db.close();
 } );

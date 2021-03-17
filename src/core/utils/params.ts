@@ -30,15 +30,11 @@ function getParamValue(param: Param, s: string): ParamValue {
 	}
 }
 
-export async function loadParams<T extends Paramable>(items: T[]): Promise<(T&{params: Param[]})[]> {
-	const itemsWithParams = [];
-	for (const item of items) {
-		itemsWithParams.push({
-			...item,
-			params: item.getParams ? await item.getParams() : []
-		});
-	}
-	return itemsWithParams;
+export async function loadParams<T extends Paramable>(item: T): Promise<(T&{params: Param[]})> {
+	return {	
+		...item,
+		params: item.getParams ? await item.getParams() : []
+	};
 }
 
 export async function parseParams(item: Paramable, data: Record<string, string>): Promise<Record<string, ParamValue>> {

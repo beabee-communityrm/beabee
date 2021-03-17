@@ -11,13 +11,6 @@
 		"maxAge": 267840000
 	},
 	"tag_salt": "",
-	"permission": {
-		"admin": "admin",
-		"superadmin": "superadmin",
-		"member": "member",
-		"access": "access",
-		"memberId": ""
-	},
 	"trackDomains": [],
 	"db": {
 		"type": "postgres",

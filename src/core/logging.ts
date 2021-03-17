@@ -73,12 +73,12 @@ function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
 		}
 		if ( req.user ) {
 			params.sensitive._user = {
-				uuid: req.user.uuid,
+				id: req.user.id,
 				firstname: req.user.firstname,
 				lastname: req.user.lastname,
 				email: req.user.email
 			};
-			params.anon_userid = crypto.createHash('sha1').update(req.user.uuid + randomKey).digest('base64');
+			params.anon_userid = crypto.createHash('sha1').update(req.user.id + randomKey).digest('base64');
 		}
 		if ( req.sessionID ) {
 			params.sensitive.sessionID = req.sessionID;

@@ -1,6 +1,8 @@
-import { Member } from '@models/members';
-import { PollResponseAnswers } from '@models/PollResponse';
 import { ParamsDictionary } from 'express-serve-static-core';
+
+import Member from '@models/Member';
+import { PermissionType } from '@models/MemberPermission';
+import { PollResponseAnswers } from '@models/PollResponse';
 
 declare global {
 	type IfEquals<X, Y, A, B> =
@@ -10,9 +12,11 @@ declare global {
 			[P in keyof T]: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P, never>
 	}[keyof T];
 
+	type WithRelationIds<E, K extends keyof E> = Omit<E, K>&{[key in K]: string}
+
 	namespace Express {
 		export interface User extends Member {
-			quickPermissions: string[]
+			quickPermissions: (PermissionType|'loggedIn')[]
 		}
 
 		export interface Request {

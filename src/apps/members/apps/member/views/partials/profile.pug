@@ -15,27 +15,27 @@ mixin editablePanel(title, id)
 				button(name='action' value='save-' + id).btn.btn-primary.btn-sm Save
 
 mixin memberTag(tag)
-	a(href='/members/?tag=' + encodeURIComponent(tag.name) data-tag=tag.name).label.label-info.member-tag.js-edit-member-tag
-		input(type='hidden' name='tags[]' value=tag.name)
-		= tag.name
+	a(href='/members/?tag=' + encodeURIComponent(tag) data-tag=tag).label.label-info.member-tag.js-edit-member-tag
+		input(type='hidden' name='tags[]' value=tag)
+		= tag
 		span.glyphicon.glyphicon-remove.hidden.js-edit-member-hidden
 
 script(type='text/template').js-edit-member-tag-template
-	+memberTag({name: 'XXX'})
+	+memberTag('XXX')
 
 +editablePanel('About', 'about')
 	.form-group
 		label(for="description").control-label Description
-		input(type='text' name='description' value=member.description readonly)#description.form-control
+		input(type='text' name='description' value=member.profile.description readonly)#description.form-control
 
 	.form-group
 		label(for='bio').control-label Bio
-		textarea(name='bio' readonly)#bio.form-control.member-about= member.bio
+		textarea(name='bio' readonly)#bio.form-control.member-about= member.profile.bio
 
 	p
 		| Tags:
 		span.js-edit-member-tags
-			each tag in member.tags
+			each tag in member.profile.tags
 				+memberTag(tag)
 	p.hidden.js-edit-member-hidden.form-inline
 		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
@@ -53,7 +53,7 @@ script(type='text/template').js-edit-member-tag-template
 					|
 					select(name='preferred' disabled)#preferred.form-control
 						each p in ['', 'None', 'Email', 'Telephone', 'Twitter']
-							option(selected=member.contact.preferred === p)= p
+							option(selected=member.profile.preferredContact === p)= p
 	.row
 		.col-md-12
 			.form-group
@@ -67,36 +67,36 @@ script(type='text/template').js-edit-member-tag-template
 				.input-group
 					span.input-group-addon
 						span.glyphicon.glyphicon-earphone
-					input(type='text' name='telephone' value=member.contact.telephone readonly).form-control
+					input(type='text' name='telephone' value=member.profile.telephone readonly).form-control
 		.col-md-6
 			.form-group
 				.input-group
 					span.input-group-addon
 						img(src='/static/imgs/twitter.png')
-					input(type='text' name='twitter' value=member.contact.twitter readonly).form-control
+					input(type='text' name='twitter' value=member.profile.twitter readonly).form-control
 
 +editablePanel('Notes', 'notes')
 	.form-group
-		textarea(name='notes' readonly).form-control.member-about= member.notes
+		textarea(name='notes' readonly).form-control.member-about= member.profile.notes
 
 if access('superadmin')
 	.panel.panel-default
 		.panel-heading
 			h3.panel-title
-				.pull-right: a(href=`/members/${member.uuid}/profile`): span.glyphicon.glyphicon-edit
+				.pull-right: a(href=`/members/${member.id}/profile`): span.glyphicon.glyphicon-edit
 				| Delivery details
 		.panel-body
 			dl.dl-horizontal
 				dt Opt in?
-				dd= member.delivery_optin ? 'Yes' : 'No'
-				if member.delivery_optin
+				dd= member.profile.deliveryOptIn ? 'Yes' : 'No'
+				if member.profile.deliveryOptIn
 					dt Address
 					dd
-						=  member.delivery_address.line1
+						=  member.profile.deliveryAddress.line1
 						br
-						if member.delivery_address.line2
-							= member.delivery_address.line2
+						if member.profile.deliveryAddress.line2
+							= member.profile.deliveryAddress.line2
 							br
-						= member.delivery_address.city
+						= member.profile.deliveryAddress.city
 						br
-						= member.delivery_address.postcode
+						= member.profile.deliveryAddress.postcode
