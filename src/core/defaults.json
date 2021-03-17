@@ -78,7 +78,6 @@
 	"flash-permission-duplicate": "User already has this permission",
 
 	"flash-gocardless-updated": "GoCardless updated",
-	"flash-gocardless-no-data": "No GoCardless data",
 
 	"flash-contribution-cancelled": "Contribution cancelled",
 	"flash-contribution-cancellation-err": "Error cancelling contribution",

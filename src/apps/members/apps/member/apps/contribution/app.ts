@@ -2,7 +2,7 @@ import express from 'express';
 import { getRepository } from 'typeorm';
 
 import { isSuperAdmin } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { ContributionType, wrapAsync } from '@core/utils';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
@@ -16,22 +16,19 @@ app.set( 'views', __dirname + '/views' );
 
 app.use(isSuperAdmin);
 
-app.use((req, res, next) => {
-	if (res.locals.paymentData) {
-		next();
-	} else {
-		req.flash('error', 'gocardless-no-data');
-		res.redirect('/members/' + (req.model as Member).id);
-	}
-});
-
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
-	res.render( 'index', {
-		member: req.model,
-		canChange: await GCPaymentService.canChangeContribution( member, true ),
-		monthsLeft: member.memberMonthsRemaining
-	} );
+	if (member.contributionType === ContributionType.GoCardless) {
+		res.render( 'gocardless', {
+			member: req.model,
+			canChange: await GCPaymentService.canChangeContribution( member, true ),
+			monthsLeft: member.memberMonthsRemaining
+		} );
+	} else if (member.contributionType === ContributionType.Manual) {
+		res.render('manual', {member: req.model});
+	} else {
+		res.render('none');
+	}
 } ) );
 
 app.post( '/', wrapAsync( async ( req, res ) => {
