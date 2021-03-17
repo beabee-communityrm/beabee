@@ -54,9 +54,9 @@ block contents
 				!= dot.template(poll.templateSchema.thanksText)({answers})
 				hr
 
-			!= poll.templateSchema.intro
-
-			hr#vote
+			if !isEmbed
+				!= poll.templateSchema.intro
+				hr#vote
 
 			if poll.active || preview
 				if poll.allowUpdate || !answers.submit
