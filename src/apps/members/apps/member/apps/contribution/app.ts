@@ -8,6 +8,7 @@ import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
 
 import GCPaymentData from '@models/GCPaymentData';
+import ManualPaymentData from '@models/ManualPaymentData';
 import Member from '@models/Member';
 
 const app = express();
@@ -58,6 +59,17 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		});
 
 		req.flash( 'success', 'gocardless-updated' );
+		break;
+	case 'update-manual-subscription':
+		await MembersService.updateMember(member, {
+			contributionMonthlyAmount: Number(req.body.amount),
+			contributionPeriod: req.body.period
+		});
+		await getRepository(ManualPaymentData).update(member.id, {
+			source: req.body.source || '',
+			reference: req.body.reference || ''
+		});
+		req.flash( 'success', 'contribution-updated' );
 		break;
 	}
 

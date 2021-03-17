@@ -10,3 +10,31 @@ block contents
 			include /apps/members/apps/member/views/partials/sidebar.pug
 		.col-md-9
 			+page_header( title )
+
+			h4 Update contribution
+
+			form( method="post").form-horizontal
+				+csrf
+				input( type='hidden' name='action' value='update-manual-subscription')
+
+				+input( 'text', 'Source', 'source', {
+					left: 3, right: 4,
+					value: paymentData.source
+				})
+
+				+input( 'text', 'Reference', 'reference', {
+					left: 3, right: 4,
+					value: paymentData.reference
+				})
+
+				+input( 'number', 'Monthly amount', 'amount', {
+					left: 3, right: 4, before: currencySymbol,
+					value: member.contributionMonthlyAmount
+				})
+				+input( 'radio', 'Period', 'period', {
+					left: 3, right: 4,
+					options: {'monthly': 'Monthly', 'annually': 'Annually'},
+					value: member.contributionPeriod
+				})
+
+				+form_button( 'Update', 'success', { left: 3 } )
