@@ -19,7 +19,7 @@ mixin copyFields
 	.form-group
 		label(for='thanksRedirect').control-label.col-md-2 Thank you redirect
 		.col-md-10
-			input(type='text' name='templateSchema[thanksRedirect]' value=poll.templateSchema.thanksRedirect required)#thanksRedirect.form-control
+			input(type='text' name='templateSchema[thanksRedirect]' value=poll.templateSchema.thanksRedirect)#thanksRedirect.form-control
 			p.help-block If you fill this in then the user won't see the thank you text above
 
 mixin candidateSchema(candidateNo, candidate)
