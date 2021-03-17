@@ -72,7 +72,7 @@ export default class PollsService {
 		}
 	}
 
-	static async setGuestResponse( poll: Poll, guestName: string, guestEmail: string, answers: PollResponseAnswers): Promise<string|undefined> {
+	static async setGuestResponse( poll: Poll, guestName: string|undefined, guestEmail: string|undefined, answers: PollResponseAnswers): Promise<string|undefined> {
 		if (!poll.active || poll.access === PollAccess.Member) {
 			return 'poll-closed';
 		}

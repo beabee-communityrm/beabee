@@ -103,21 +103,22 @@ app.get( '/:slug:embed(/embed)?', [
 	hasNewModel( Poll, 'slug' )
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
-	if (poll.access === PollAccess.Member && !req.user) {
+	const isEmbed = !!req.params.embed;
+	const user = isEmbed ? undefined : req.user;
+	if (poll.access === PollAccess.Member && !user) {
 		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
 	const answers = req.query.answers as PollResponseAnswers;
 	// Handle partial answers from URL
 	if (answers) {
-		if (req.user) {
-			await PollsService.setResponse( poll, req.user, answers, true );
+		if (user) {
+			await PollsService.setResponse( poll, user, answers, true );
 		} else {
 			req.session.answers = answers;
 		}
 		res.redirect( `/polls/${poll.slug}#vote` );
 	} else {
-		const isEmbed = !!req.params.embed;
 		if (isEmbed) {
 			res.removeHeader('X-Frame-Options');
 		}
@@ -129,21 +130,24 @@ app.get( '/:slug:embed(/embed)?', [
 	}
 } ) );
 
-app.post( '/:slug', [
+app.post( '/:slug:embed(/embed)?', [
 	hasNewModel(Poll, 'slug'),
 	hasPollAnswers
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
-	if (poll.access === PollAccess.Member && !req.user) {
+	const isEmbed = !!req.params.embed;
+	const user = isEmbed ? undefined : req.user;
+
+	if (poll.access === PollAccess.Member && !user) {
 		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
 	let error;
-	if (req.user) {
-		error = await PollsService.setResponse( poll, req.user, req.answers! );
+	if (user) {
+		error = await PollsService.setResponse( poll, user, req.answers! );
 	} else {
 		const {guestName, guestEmail} = req.body;
-		if (guestName && guestEmail) {
+		if (guestName && guestEmail || poll.access === PollAccess.Anonymous) {
 			error = await PollsService.setGuestResponse( poll, guestName, guestEmail, req.answers! );
 		} else {
 			error = 'polls-guest-fields-missing';
