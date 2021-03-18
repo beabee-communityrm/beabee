@@ -45,9 +45,6 @@ export default class Poll {
 	@Column()
 	allowUpdate!: boolean
 
-	@Column({default: false})
-	public!: boolean
-
 	@Column({default: PollAccess.Member})
 	access!: PollAccess
 
