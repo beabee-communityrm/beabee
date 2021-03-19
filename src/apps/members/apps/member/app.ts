@@ -20,7 +20,7 @@ import Member from '@models/Member';
 const app = express();
 
 async function getAvailableTags(): Promise<string[]> {
-	return OptionsService.getText('available-tags').split(',').map(s => s.trim());
+	return OptionsService.getList('available-tags');
 }
 
 app.set( 'views', __dirname + '/views' );

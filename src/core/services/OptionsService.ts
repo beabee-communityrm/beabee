@@ -62,6 +62,10 @@ export default class OptionsService {
 		}
 	}
 
+	static getList(key: OptionKey): string[] {
+		return OptionsService.getText(key).split(',').map(s => s.trim());
+	}
+
 	static getJSON(key: OptionKey): any {
 		return JSON.parse(OptionsService.getText(key));
 	}
