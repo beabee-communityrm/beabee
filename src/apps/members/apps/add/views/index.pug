@@ -24,6 +24,29 @@ block contents
 							option GoCardless
 							option Manual
 
+				.js-reveal
+					.form-group
+						.col-md-6.col-md-offset-3
+							.checkbox
+								label
+									input(type='checkbox' name='grantMembership' value='true').js-reveal-types
+									| Grant membership
+
+					.js-reveal-type(data-type='grantMembership')
+						.form-group
+							label.col-md-3.control-label Start
+							.col-md-6
+								input( type="time", name="membershipStartTime", style="display: inline; width: auto;" ).form-control
+								| &nbsp;
+								input( type="date", name="membershipStartDate", style="display: inline; width: auto;" ).form-control
+						.form-group
+							label.col-md-3.control-label Expires
+							.col-md-6
+								input( type="time", name="membershipExpiryTime", style="display: inline; width: auto;" ).form-control
+								| &nbsp;
+								input( type="date", name="membershipExpiryDate", style="display: inline; width: auto;" ).form-control
+
+
 				.js-reveal-type(data-type='GoCardless')
 					.row: .col-md-offset-3.col-md-9: h5 GoCardless details
 					+input( 'text', 'Customer ID', 'customerId', { required: true, left: 3, right: 6, placeholder: 'CU...' } )
@@ -31,8 +54,6 @@ block contents
 				
 				.js-reveal-type(data-type='Manual')
 					include /apps/members/apps/member/apps/contribution/views/partials/manual-fields
-
-
 
 				+form_button( 'Add member', 'success', {left: 3} )
 				
