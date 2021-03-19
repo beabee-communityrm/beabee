@@ -67,7 +67,7 @@ export default class PollsService {
 
 		if (poll.mcMergeField && poll.pollMergeField) {
 			await mailchimp.mainList.updateMemberFields( member, {
-				[poll.mcMergeField]: answers[poll.pollMergeField]
+				[poll.mcMergeField]: answers[poll.pollMergeField].toString()
 			} );
 		}
 	}
