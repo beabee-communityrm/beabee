@@ -71,14 +71,12 @@ export default class GiftService {
 				content: giftCard.toString('base64')
 			}];
 
-			await EmailService.sendTemplate('purchased-gift', [{
-				to: {email: fromEmail, name: fromName},
-				mergeFields: {
-					PURCHASER: fromName,
-					GIFTEE: firstname,
-					GIFTDATE: moment.utc(startDate).format('MMMM Do')
-				}
-			}], {attachments});
+			await EmailService.sendTemplateTo(
+				'purchased-gift',
+				{email: fromEmail, name: fromName},
+				{fromName, gifteeFirstName: firstname, giftStartDate: startDate},
+				{attachments}
+			);
 
 			// Immediately process gifts for today
 			if (moment.utc(startDate).isSame(now, 'day')) {
@@ -127,7 +125,7 @@ export default class GiftService {
 		const sendAt = sendImmediately ? undefined : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
 		await EmailService.sendTemplateToMember(
 			'giftee-success', member,
-			{fromName, message, giftCode: giftFlow.setupCode},
+			{fromName, message: message || '', giftCode: giftFlow.setupCode},
 			{sendAt}
 		);
 
