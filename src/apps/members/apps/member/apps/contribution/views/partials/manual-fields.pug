@@ -1,4 +1,4 @@
-h5.col-md-offset-3.col-md-9 Payment details
+.row: .col-md-offset-3.col-md-9: h5 Payment details
 
 .form-group
 	label(for='source').control-label.col-md-3 Source
@@ -13,7 +13,7 @@ h5.col-md-offset-3.col-md-9 Payment details
 	value: paymentData && paymentData.reference
 })
 
-h5.col-md-offset-3.col-md-9 Contribution details
+.row: .col-md-offset-3.col-md-9: h5 Contribution details
 
 +input( 'number', 'Monthly amount', 'amount', {
 	left: 3, right: 4, before: currencySymbol,

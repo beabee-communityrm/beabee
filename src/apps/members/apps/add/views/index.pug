@@ -25,12 +25,14 @@ block contents
 							option Manual
 
 				.js-reveal-type(data-type='GoCardless')
-					h5.col-md-offset-3.col-md-9 GoCardless details
+					.row: .col-md-offset-3.col-md-9: h5 GoCardless details
 					+input( 'text', 'Customer ID', 'customerId', { required: true, left: 3, right: 6, placeholder: 'CU...' } )
 					+input( 'text', 'Mandate ID', 'mandateId', { required: true, left: 3, right: 6, placeholder: 'MD...' } )
 				
 				.js-reveal-type(data-type='Manual')
 					include /apps/members/apps/member/apps/contribution/views/partials/manual-fields
+
+
 
 				+form_button( 'Add member', 'success', {left: 3} )
 				
