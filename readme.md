@@ -45,7 +45,7 @@ NOTE: Lower non-major versions probably work but haven't been tested
    cp config/example-config.json config/config.json
    ```
 
-1. Set up the basics
+1. Initialise the containers
    ```bash
    docker-compose up -d
    ```
@@ -54,18 +54,17 @@ NOTE: Lower non-major versions probably work but haven't been tested
 
 1. Create a new super admin
    ```bash
-   docker-compose exec app node tools/new-user
+   docker-compose exec app node built/tools/new-user
    ```
 
 ### With data export
 
 1. Import the data export
    ```
-   docker-compose exec app node tools/database/import.js <import path>
+   docker-compose exec app node built/tools/database/import.js <import path>
    ```
 
-   NOTE: `<import path>` must be inside the repo's root directory so it is
-   visible to the Docker container
+   NOTE: `<import path>` must be inside `built/` so it is visible to the Docker container
 
 ## Development
 

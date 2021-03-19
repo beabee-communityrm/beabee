@@ -6,7 +6,7 @@ import { createQueryBuilder, getRepository } from 'typeorm';
 import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import Poll, { PollTemplate } from '@models/Poll';
+import Poll, { PollAccess, PollTemplate } from '@models/Poll';
 import PollResponse from '@models/PollResponse';
 
 import { createPollSchema } from './schemas.json';
@@ -23,7 +23,7 @@ interface CreatePollSchema {
 	startsTime?: string
 	expiresDate?: string
 	expiresTime?: string
-	public?: boolean
+	access: PollAccess
 	hidden?: boolean
 }
 
@@ -38,7 +38,7 @@ function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'|'re
 	poll.pollMergeField = data.pollMergeField;
 	poll.template = data.template;
 	poll.allowUpdate = !!data.allowUpdate;
-	poll.public = !!data.public;
+	poll.access = data.access;
 	poll.hidden = !!data.hidden;
 	poll.starts = startsDate && startsTime ?
 		poll.starts = moment.utc(`${startsDate}T${startsTime}`).toDate() : undefined;

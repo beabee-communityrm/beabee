@@ -10,8 +10,7 @@ import { Express, NextFunction, Request, Response } from 'express';
 
 const randomKey = crypto.randomBytes(256);
 
-// Bunyan logging
-const bunyanConfig = {
+const mainConfig = {
 	name: 'Membership-System',
 	streams: [{
 		level: 'debug',
@@ -20,6 +19,14 @@ const bunyanConfig = {
 	serializers: {
 		error: bunyan.stdSerializers.err
 	}
+};
+
+const reqConfig = {
+	name: 'Membership-System-requests',
+	streams: [{
+		level: 'info',
+		stream: process.stdout
+	}] as Stream[]
 };
 
 const logSlack = (config as unknown as {logSlack?: Omit<BunyanSlackOptions,'customFormatter'>}).logSlack;
@@ -45,18 +52,18 @@ if (logSlack) {
 			}
 		}
 	} );
-	bunyanConfig.streams.push( {
+	mainConfig.streams.push( {
 		level: logSlack.level,
 		stream
 	} );
+	reqConfig.streams.push({
+		level: logSlack.level,
+		stream
+	});
 }
 
-const mainLogger = bunyan.createLogger( bunyanConfig );
-const reqLogger = bunyan.createLogger({
-	name: 'Membership-System-requests',
-	level: 'info',
-	stream: process.stdout
-});
+const mainLogger = bunyan.createLogger( mainConfig );
+const reqLogger = bunyan.createLogger( reqConfig );
 
 interface LogParams {
 	sensitive?: Record<string, unknown>

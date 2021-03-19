@@ -54,9 +54,9 @@ block contents
 				!= dot.template(poll.templateSchema.thanksText)({answers})
 				hr
 
-			!= poll.templateSchema.intro
-
-			hr#vote
+			if !isEmbed
+				!= poll.templateSchema.intro
+				hr#vote
 
 			if poll.active || preview
 				if poll.allowUpdate || !answers.submit
@@ -73,17 +73,20 @@ block contents
 						input(type='hidden' name='answers')
 
 						if !isLoggedIn && !code
-							.alert.alert-info
-								| Are you Cable member?
-								|
-								a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug) target="_top"): b Login here
-							.well
-								.form-group
-									label(for='#guestName').control-label Your name
-									input(type='text' name='guestName' required)#guestName.form-control
-								.form-group
-									label(for='#guestEmail').control-label Your email address
-									input(type='email' name='guestEmail' required)#guestEmail.form-control
+							if !isEmbed
+								.alert.alert-info
+									| Are you Cable member?
+									|
+									a(href='/login?next=' + encodeURIComponent('/polls/' + poll.slug) target="_top"): b Login here
+
+							if poll.access === 'guest'
+								.well
+									.form-group
+										label(for='#guestName').control-label Your name
+										input(type='text' name='guestName' required)#guestName.form-control
+									.form-group
+										label(for='#guestEmail').control-label Your email address
+										input(type='email' name='guestEmail' required)#guestEmail.form-control
 
 					#formdata
 				else

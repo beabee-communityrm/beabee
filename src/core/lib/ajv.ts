@@ -1,4 +1,4 @@
-const Ajv = require('ajv');
+import Ajv from 'ajv';
 
 const ajv = new Ajv({
 	allErrors: true,
@@ -37,4 +37,4 @@ ajv.addFormat( 'time2', function ( time ) {
 	return timeRegex.test( time );
 } );
 
-module.exports = ajv;
+export default ajv;

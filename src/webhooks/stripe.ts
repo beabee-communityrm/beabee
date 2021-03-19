@@ -7,7 +7,7 @@ import { ConnectionOptions } from 'typeorm';
 
 import * as db from '@core/database';
 import { log as mainLogger, installMiddleware } from '@core/logging';
-import stripe from '@core/stripe';
+import stripe from '@core/lib/stripe';
 import { wrapAsync } from '@core/utils';
 
 import GiftService from '@core/services/GiftService';

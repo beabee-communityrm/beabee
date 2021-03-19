@@ -79,7 +79,7 @@ export default class ReferralsService {
 		if (referrer) {
 			await EmailService.sendTemplateToMember('successful-referral', referrer, {
 				refereeName: referee.firstname,
-				isEligible: referee.contributionMonthlyAmount && referee.contributionMonthlyAmount >= 3
+				isEligible: !!referee.contributionMonthlyAmount && referee.contributionMonthlyAmount >= 3
 			});
 		}
 	}

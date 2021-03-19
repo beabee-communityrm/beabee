@@ -11,85 +11,61 @@ import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate
 import MandrillEmailProvider from './email/MandrillEmailProvider';
 import SMTPEmailProvider from './email/SMTPEmailProvider';
 
-interface TemplateFn<T extends readonly string[]> {
-	(params: {[P in T[number]]: unknown}): Record<string, unknown>
-}
-
-interface MemberTemplateFn<T extends readonly string[]> {
-	(member: Member, params: {[P in T[number]]: unknown}): Record<string, unknown>
-}
-
-function wrapper2(fn: MemberTemplateFn<readonly []>): MemberTemplateFn<readonly []> {
-	return wrapper([] as const, fn);
-}
-
-function wrapper<T extends readonly string[]>(keys: T, fn: MemberTemplateFn<T>): MemberTemplateFn<T> {
-	return fn;
-}
-
-function wrapper3<T extends readonly string[]>(keys: T, fn: TemplateFn<T>): TemplateFn<T> {
-	return fn;
-}
-
 const log = mainLogger.child({app: 'email-service'});
 
 const emailTemplates = {
-	'purchased-gift': wrapper3(
-		['fromName', 'gifteeFirstName', 'giftStartDate'] as const,
-		params => ({
-			PURCHASER: params.fromName,
-			GIFTEE: params.gifteeFirstName,
-			GIFTDATE: moment.utc(params.giftStartDate as string).format('MMMM Do')
-		})
-	),
-	'expired-special-url-resend': wrapper3(
-		['firstName', 'newUrl'] as const,
-		params => ({
-			FNAME: params.firstName,
-			URL: params.newUrl
-		})
-	)
+	'purchased-gift': (params: {fromName: string, gifteeFirstName: string, giftStartDate: Date}) => ({
+		PURCHASER: params.fromName,
+		GIFTEE: params.gifteeFirstName,
+		GIFTDATE: moment.utc(params.giftStartDate).format('MMMM Do')
+	}),
+	'expired-special-url-resend': (params: {firstName: string, newUrl: string}) => ({
+		FNAME: params.firstName,
+		URL: params.newUrl
+	})
 } as const;
 
 const memberEmailTemplates = {
-	'welcome': wrapper2(member => ({
+	'welcome': (member: Member) => ({
 		REFLINK: member.referralLink
-	})),
-	'welcome-post-gift': wrapper2(() => ({})),
-	'reset-password': wrapper2(member => ({
+	}),
+	'welcome-post-gift': () => ({}),
+	'reset-password': (member: Member) => ({
 		RPLINK: config.audience + '/password-reset/code/' + member.password.resetCode
-	})),
-	'cancelled-contribution': wrapper2(member => {
+	}),
+	'cancelled-contribution': (member: Member) => {
 		const dateExpires = member.permissions.find(p => p.permission === 'member')?.dateExpires;
 		return {
 			EXPIRES: dateExpires ? moment.utc(dateExpires).format('dddd Do MMMM') : '-',
 			MEMBERSHIPID: member.id
 		};
-	}),
-	'cancelled-contribution-no-survey': wrapper2(member => {
+	},
+	'cancelled-contribution-no-survey': (member: Member) => {
 		const dateExpires = member.permissions.find(p => p.permission === 'member')?.dateExpires;
 		return {
 			EXPIRES: dateExpires ? moment.utc(dateExpires).format('dddd Do MMMM') : '-'
 		};
+	},
+	'restart-membership': (member: Member, params: {code: string}) => ({
+		RESTARTLINK: config.audience + '/join/restart/' + params.code
 	}),
-	'restart-membership': wrapper(['code'] as const, (member, {code}) => ({
-		RESTARTLINK: config.audience + '/join/restart/' + code
-	})),
-	'successful-referral': wrapper(['refereeName', 'isEligible'] as const, (member, params) => ({
+	'successful-referral': (member: Member, params: {refereeName: string, isEligible: boolean}) => ({
 		REFLINK: member.referralLink,
 		REFEREENAME: params.refereeName,
 		ISELIGIBLE: params.isEligible
-	})),
-	'giftee-success': wrapper(['fromName', 'message', 'giftCode'] as const, (member, params) => ({
+	}),
+	'giftee-success': (member: Member, params: {fromName: string, message: string, giftCode: string}) => ({
 		PURCHASER: params.fromName,
 		MESSAGE: params.message,
 		ACTIVATELINK: config.audience + '/gift/' + params.giftCode
-	}))
+	})
 } as const;
 
+type EmailTemplates = typeof emailTemplates;
+type EmailTemplateId = keyof EmailTemplates;
 type MemberEmailTemplates = typeof memberEmailTemplates;
 type MemberEmailTemplateId = keyof MemberEmailTemplates;
-type EmailTemplateId = MemberEmailTemplateId | keyof typeof emailTemplates;
+type MemberEmailParams<T extends MemberEmailTemplateId> = Parameters<MemberEmailTemplates[T]>[1]
 
 class EmailService implements EmailProvider {
 
@@ -106,7 +82,7 @@ class EmailService implements EmailProvider {
 		await this.provider.sendEmail(from, recipients, subject, body, opts);
 	}
 
-	async sendTemplate(template: EmailTemplateId, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
+	async sendTemplate(template: EmailTemplateId|MemberEmailTemplateId, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
 		const providerTemplate = this.providerTemplateMap[template];
 		log.info({
 			action: 'send-template',
@@ -117,12 +93,26 @@ class EmailService implements EmailProvider {
 		await this.provider.sendTemplate(providerTemplate, recipients, opts);
 	}
 
-	async sendTemplateToMember<T extends MemberEmailTemplateId, P = MemberEmailTemplates[T] extends MemberTemplateFn<infer U> ? U : never>(
-		template: T, member: Member, params?: any, opts?: EmailOptions
+	async sendTemplateTo<T extends EmailTemplateId>(
+		template: T, to: EmailPerson, params: Parameters<EmailTemplates[T]>[0], opts?: EmailOptions
+	): Promise<void> {
+		const mergeFields = emailTemplates[template](params as any); // https://github.com/microsoft/TypeScript/issues/30581
+		await this.sendTemplate(template, [{to, mergeFields}], opts);
+	}
+
+	async sendTemplateToMember<T extends MemberEmailTemplateId>(
+		template: T, member: Member, params: MemberEmailParams<T>, opts?: EmailOptions
+	): Promise<void>
+	async sendTemplateToMember<T extends MemberEmailParams<T> extends undefined ? MemberEmailTemplateId : never>(
+		template: T, member: Member, params?: undefined, opts?: EmailOptions
+	): Promise<void>
+
+	async sendTemplateToMember<T extends MemberEmailTemplateId>(
+		template: T, member: Member, params: MemberEmailParams<T>, opts?: EmailOptions
 	): Promise<void> {
 		const mergeFields = {
 			FNAME: member.firstname,
-			...memberEmailTemplates[template](member, params)
+			...memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
 		};
 
 		log.info({
@@ -152,8 +142,11 @@ class EmailService implements EmailProvider {
 		return await this.provider.getTemplate(template);
 	}
 
-	get emailTemplateIds(): EmailTemplateId[] {
-		return [...Object.keys(emailTemplates), ...Object.keys(memberEmailTemplates)] as EmailTemplateId[];
+	get emailTemplateIds(): (EmailTemplateId|MemberEmailTemplateId)[] {
+		return [
+			...Object.keys(emailTemplates) as EmailTemplateId[],
+			...Object.keys(memberEmailTemplates) as MemberEmailTemplateId[]
+		];
 	}
 
 	get providerTemplateMap() {

@@ -1,9 +1,9 @@
 import { getRepository, IsNull, LessThan } from 'typeorm';
 
-import mailchimp from '@core/mailchimp';
+import mailchimp from '@core/lib/mailchimp';
 
 import Member from '@models/Member';
-import Poll from '@models/Poll';
+import Poll, { PollAccess } from '@models/Poll';
 import PollResponse, { PollResponseAnswers } from '@models/PollResponse';
 
 class PollWithResponse extends Poll {
@@ -67,13 +67,13 @@ export default class PollsService {
 
 		if (poll.mcMergeField && poll.pollMergeField) {
 			await mailchimp.mainList.updateMemberFields( member, {
-				[poll.mcMergeField]: answers[poll.pollMergeField]
+				[poll.mcMergeField]: answers[poll.pollMergeField].toString()
 			} );
 		}
 	}
 
-	static async setGuestResponse( poll: Poll, guestName: string, guestEmail: string, answers: PollResponseAnswers): Promise<string|undefined> {
-		if (!poll.active || !poll.public) {
+	static async setGuestResponse( poll: Poll, guestName: string|undefined, guestEmail: string|undefined, answers: PollResponseAnswers): Promise<string|undefined> {
+		if (!poll.active || poll.access === PollAccess.Member) {
 			return 'poll-closed';
 		}
 

@@ -9,36 +9,13 @@ import tar from 'tar-stream';
 import { Between, ConnectionOptions, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
-import mailchimp from '@core/mailchimp';
+import mailchimp, { Batch, Operation } from '@core/lib/mailchimp';
 import { cleanEmailAddress } from '@core/utils';
 
-import Member  from '@models/Member';
+import Member from '@models/Member';
 import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
-
-interface DeleteOperation {
-	method: 'DELETE'
-	path: string
-	operation_id: string
-}
-interface PatchOperation {
-	method: 'PATCH'
-	path: string
-	body: string
-	operation_id: string;
-}
-
-type Operation = DeleteOperation|PatchOperation;
-
-interface Batch {
-	id: string
-	status: string
-	finished_operations: number
-	total_operations: number
-	errored_operations: number
-	response_body_url: string
-}
 
 function emailToHash(email: string) {
 	return crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');

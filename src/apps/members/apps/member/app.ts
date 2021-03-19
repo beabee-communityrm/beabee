@@ -4,7 +4,7 @@ import { getRepository } from 'typeorm';
 
 import config from '@config';
 
-import mailchimp from '@core/mailchimp';
+import mailchimp from '@core/lib/mailchimp';
 import { isAdmin, isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 import { canSuperAdmin, generateCode } from '@core/utils/auth';

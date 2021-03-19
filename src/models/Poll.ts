@@ -4,6 +4,12 @@ import PollResponse from './PollResponse';
 
 export type PollTemplate = 'custom'|'builder'|'ballot';
 
+export enum PollAccess {
+	Guest = 'guest',
+	Anonymous = 'anonymous',
+	Member = 'member'
+}
+
 @Entity()
 export default class Poll {
 	@PrimaryColumn()
@@ -39,8 +45,8 @@ export default class Poll {
 	@Column()
 	allowUpdate!: boolean
 
-	@Column({default: false})
-	public!: boolean
+	@Column({default: PollAccess.Member})
+	access!: PollAccess
 
 	@Column({default: false})
 	hidden!: boolean
