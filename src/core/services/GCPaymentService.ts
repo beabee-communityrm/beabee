@@ -225,33 +225,26 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-	static async customerToMember(customerId: string, overrides?: Partial<Customer>): Promise<{member: PartialMember, profile: PartialMemberProfile}|null> {
-		const customer = {
-			...await gocardless.customers.get(customerId),
-			...overrides
-		};
+	static async customerToMember(customerId: string): Promise<{member: PartialMember, profile: PartialMemberProfile}> {
+		const customer = await gocardless.customers.get(customerId);
 
-		if (customer.given_name && customer.family_name) {
-			return {
-				member: {
-					firstname: customer.given_name,
-					lastname: customer.family_name,
-					email: cleanEmailAddress(customer.email || ''),
-					contributionType: ContributionType.GoCardless
-				},
-				profile: {
-					deliveryOptIn: false,
-					deliveryAddress: {
-						line1: customer.address_line1 || '', 
-						line2: customer.address_line2,
-						city: customer.city || '',
-						postcode: customer.postal_code || ''
-					}
+		return {
+			member: {
+				firstname: customer.given_name || '',
+				lastname: customer.family_name || '',
+				email: cleanEmailAddress(customer.email || ''),
+				contributionType: ContributionType.GoCardless
+			},
+			profile: {
+				deliveryOptIn: false,
+				deliveryAddress: {
+					line1: customer.address_line1 || '',
+					line2: customer.address_line2,
+					city: customer.city || '',
+					postcode: customer.postal_code || ''
 				}
-			};
-		} else {
-			return null;
-		}
+			}
+		};
 	}
 
 	static async getBankAccount(member: Member): Promise<CustomerBankAccount|null> {
