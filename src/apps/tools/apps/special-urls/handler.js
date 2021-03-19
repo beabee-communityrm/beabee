@@ -53,18 +53,11 @@ const hasValidSpecialUrl = wrapAsync(async ( req, res, next ) => {
 			expires: moment.utc().add(specialUrl.group.urlDuration, 'hours')
 		} );
 
-		const recipients = [{
-			to: {
-				email: specialUrl.email,
-				name: specialUrl.firstname + ' ' + specialUrl.lastname
-			},
-			mergeFields: {
-				FNAME: specialUrl.firstname,
-				URL: getSpecialUrlUrl( newSpecialUrl )
-			}
-		}];
-
-		await EmailService.sendTemplate('expired-special-url-resend', recipients);
+		await EmailService.sendTemplateTo(
+			'expired-special-url-resend',
+			{email: specialUrl.email, name: specialUrl.firstname + ' ' + specialUrl.lastname},
+			{firstName: specialUrl.firstname, newUrl: getSpecialUrlUrl( newSpecialUrl )}
+		);
 
 		res.render( 'resend' );
 	}
