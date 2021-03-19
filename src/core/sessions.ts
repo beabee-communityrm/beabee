@@ -7,7 +7,7 @@ import session from 'express-session';
 import { getConnection } from 'typeorm';
 import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
 
-import passport from '@core/passport';
+import passport from '@core/lib/passport';
 
 import config from '@config';
 

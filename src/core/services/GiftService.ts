@@ -3,7 +3,7 @@ import moment from 'moment';
 import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
-import stripe from '@core/stripe';
+import stripe from '@core/lib/stripe';
 import { ContributionType, isDuplicateIndex } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';

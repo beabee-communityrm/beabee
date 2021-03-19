@@ -3,7 +3,7 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 import mongoose, { Document, DocumentDefinition, FilterQuery, Model } from 'mongoose';
 import { EntityTarget, FindOneOptions, getRepository } from 'typeorm';
 
-import ajv from '@core/ajv';
+import ajv from '@core/lib/ajv';
 import { wrapAsync, isInvalidType } from '@core/utils';
 import * as auth from '@core/utils/auth';
 

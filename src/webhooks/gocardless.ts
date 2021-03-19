@@ -7,7 +7,7 @@ import { ConnectionOptions } from 'typeorm';
 
 import { installMiddleware, log } from '@core/logging';
 import * as db from '@core/database';
-import gocardless from '@core/gocardless';
+import gocardless from '@core/lib/gocardless';
 import { wrapAsync } from '@core/utils';
 
 import GCPaymentWebhookService from '@core/services/GCPaymentWebhookService';

@@ -9,7 +9,7 @@ import tar from 'tar-stream';
 import { Between, ConnectionOptions, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
-import mailchimp, { Batch, Operation } from '@core/mailchimp';
+import mailchimp, { Batch, Operation } from '@core/lib/mailchimp';
 import { cleanEmailAddress } from '@core/utils';
 
 import Member from '@models/Member';
