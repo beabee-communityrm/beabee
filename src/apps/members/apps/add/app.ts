@@ -50,6 +50,10 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 				reference: req.body.reference || ''
 			});
 			await getRepository(ManualPaymentData).save(paymentData);
+			await MembersService.updateMember(member, {
+				contributionPeriod: req.body.period,
+				contributionMonthlyAmount: req.body.amount
+			});
 		}
 	}
 
