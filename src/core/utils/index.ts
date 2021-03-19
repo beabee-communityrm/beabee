@@ -2,6 +2,7 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { QueryFailedError } from 'typeorm';
 
 import Member from '@models/Member';
+import moment from 'moment';
 
 export enum ContributionPeriod {
 	Monthly = 'monthly',
@@ -83,6 +84,12 @@ export function loginAndRedirect(req: Request, res: Response, member: Member, ur
 
 export function sleep(ms: number): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function createDateTime(date: string, time: string): Date;
+export function createDateTime(date: string|undefined, time: string|undefined): Date|undefined;
+export function createDateTime(date: string|undefined, time: string|undefined): Date|undefined {
+	return date && time ? moment.utc(date + 'T' + time).toDate() : undefined;
 }
 
 interface PgError {
