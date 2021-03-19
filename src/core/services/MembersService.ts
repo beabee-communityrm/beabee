@@ -1,8 +1,8 @@
 import { getRepository } from 'typeorm';
 
-import gocardless from '@core/gocardless';
+import gocardless from '@core/lib/gocardless';
 import { log } from '@core/logging';
-import mailchimp from '@core/mailchimp';
+import mailchimp from '@core/lib/mailchimp';
 import { isDuplicateIndex } from '@core/utils';
 import { generateCode } from '@core/utils/auth';
 

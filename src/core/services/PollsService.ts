@@ -1,6 +1,6 @@
 import { getRepository, IsNull, LessThan } from 'typeorm';
 
-import mailchimp from '@core/mailchimp';
+import mailchimp from '@core/lib/mailchimp';
 
 import Member from '@models/Member';
 import Poll, { PollAccess } from '@models/Poll';

@@ -2,7 +2,7 @@ import moment from 'moment';
 import { Customer, CustomerBankAccount, PaymentCurrency, RedirectFlow, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 import { getRepository } from 'typeorm';
 
-import gocardless from '@core/gocardless';
+import gocardless from '@core/lib/gocardless';
 import { log } from '@core/logging';
 import { cleanEmailAddress, ContributionPeriod, ContributionType, getActualAmount, PaymentForm } from  '@core/utils';
 

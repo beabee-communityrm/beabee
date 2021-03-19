@@ -2,7 +2,7 @@ import { Payment as GCApiPayment, Subscription, SubscriptionIntervalUnit } from 
 import moment, { Moment } from 'moment';
 import { getRepository } from 'typeorm';
 
-import gocardless from '@core/gocardless';
+import gocardless from '@core/lib/gocardless';
 import { log as mainLogger } from '@core/logging';
 import { ContributionPeriod } from '@core/utils';
 
