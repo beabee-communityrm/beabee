@@ -3,7 +3,7 @@ import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Up
 import type Member from './Member';
 import type Poll from './Poll';
 
-export type PollResponseAnswers = Record<string, unknown>
+export type PollResponseAnswers = Record<string, string|boolean|number>
 
 @Entity()
 export default class PollResponse {
