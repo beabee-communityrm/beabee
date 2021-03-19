@@ -28,7 +28,7 @@ import Segment from '@models/Segment';
 import SegmentMember from '@models/SegmentMember';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 
-export type DrierMap<T> = {[K in WritableKeysOf<T>]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
+export type DrierMap<T> = {[K in keyof T]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
 export interface Drier<T> {
 	model: EntityTarget<T>

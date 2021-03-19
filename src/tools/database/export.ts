@@ -11,7 +11,7 @@ import driers, { Drier, DrierMap } from './driers';
 // Anonymise properties but maintain same mapping to keep links
 const valueMap = new Map<string, unknown>();
 
-function isDrier<T>(propMap: DrierMap<T>[WritableKeysOf<T>]): propMap is Drier<T[WritableKeysOf<T>]> {
+function isDrier<T>(propMap: DrierMap<T>[keyof T]): propMap is Drier<T[keyof T]> {
 	return 'propMap' in propMap;
 }
 
@@ -24,7 +24,7 @@ function runDrier<T>(item: T, drier: Drier<T>): T {
 	const newItem = Object.assign({}, item);
 
 	for (const _prop of Object.keys(drier.propMap)) {
-		const prop = _prop as WritableKeysOf<T>;
+		const prop = _prop as keyof T;
 		const propMap = drier.propMap[prop];
 		const oldValue = item[prop];
 		if (oldValue && propMap) {
@@ -34,7 +34,7 @@ function runDrier<T>(item: T, drier: Drier<T>): T {
 				valueMap.get(valueKey) || propMap(oldValue);
 
 			valueMap.set(valueKey, newValue);
-			newItem[prop] = newValue as T[WritableKeysOf<T>];
+			newItem[prop] = newValue as T[keyof T];
 		}
 	}
 
