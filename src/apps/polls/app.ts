@@ -105,6 +105,7 @@ app.get( '/:slug:embed(/embed)?', [
 	const poll = req.model as Poll;
 	const isEmbed = !!req.params.embed;
 	const user = isEmbed ? undefined : req.user;
+
 	if (poll.access === PollAccess.Member && !user) {
 		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
@@ -123,7 +124,10 @@ app.get( '/:slug:embed(/embed)?', [
 			res.removeHeader('X-Frame-Options');
 		}
 		res.render( getView( poll ), {
-			poll, isEmbed,
+			poll,
+			isEmbed,
+			// Override isLoggedIn flag
+			...isEmbed && {isLoggedIn: false},
 			answers: await getUserAnswers(req) || {},
 			preview: req.query.preview && auth.canAdmin( req ) === auth.AuthenticationStatus.LOGGED_IN
 		} );
