@@ -9,6 +9,8 @@ block append css
 block append js
 	script(src='/static/js/lib/formio.full.min.js')
 	script.
+		var isGuest = #{isGuest};
+
 		var formEl = document.getElementById('form');
 		Formio.createForm(
 			document.getElementById('formdata'),
@@ -72,7 +74,7 @@ block contents
 						+csrf
 						input(type='hidden' name='answers')
 
-						if !isLoggedIn && !code
+						if isGuest
 							if !isEmbed
 								.alert.alert-info
 									| Are you Cable member?

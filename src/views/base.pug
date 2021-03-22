@@ -26,9 +26,8 @@ html
 				link( rel="stylesheet", href="/static/css/theme.css?v=" + git )
 				link( rel="stylesheet", href="/static/css/style.css?v=" + git )
 	body( class=( dev ? 'dev' : '' ) )
-		script
-			| document.body.className += ' has-js';
-			| window.isLoggedIn = #{isLoggedIn};
+		script.
+			document.body.className += ' has-js';
 
 		.wrapper
 			if !isEmbed
