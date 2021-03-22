@@ -9,7 +9,7 @@ block append css
 block append js
 	script(src='/static/js/lib/formio.full.min.js')
 	script.
-		var isGuest = #{isGuest};
+		window.isGuest = #{isGuest};
 
 		var formEl = document.getElementById('form');
 		Formio.createForm(
