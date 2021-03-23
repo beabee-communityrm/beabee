@@ -132,6 +132,7 @@ app.post( '/:slug', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => 
 					'FullName': response.member.fullname,
 					'EmailAddress': response.member.email,
 				},
+				'IsMember': !!response.member,
 				...convertAnswers(poll, response.answers)
 			};
 		});
