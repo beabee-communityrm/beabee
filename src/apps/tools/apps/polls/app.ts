@@ -123,13 +123,15 @@ app.post( '/:slug', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => 
 		});
 		const exportData = responses.map(response => {
 			return {
+				'Date': response.createdAt,
+				'FullName': response.guestName,
+				'EmailAddress': response.guestEmail,
 				...response.member && {
 					'FirstName': response.member.firstname,
 					'LastName': response.member.lastname,
 					'FullName': response.member.fullname,
 					'EmailAddress': response.member.email,
 				},
-				'Date': response.createdAt,
 				...convertAnswers(poll, response.answers)
 			};
 		});
@@ -146,6 +148,7 @@ interface ComponentSchema {
 	data?: {
 		values: {label: string, value: string}[]
 	}
+	components?: ComponentSchema[]
 }
 
 function convertAnswers(poll: Poll, answers: Record<string, unknown>): Record<string, unknown> {
@@ -157,6 +160,7 @@ function convertAnswers(poll: Poll, answers: Record<string, unknown>): Record<st
 	return Object.assign(
 		{},
 		...formSchema.components
+			.flatMap(component => [component, ...component.components || []])
 			.filter(component => component.input)
 			.map(component => {
 				const rawAnswer = answers[component.key];
