@@ -24,6 +24,7 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
 	getQuery(): SelectQueryBuilder<GiftFlow> { 
 		return createQueryBuilder(GiftFlow, 'g')
 			.leftJoinAndSelect('g.giftee', 'giftee')
+			.leftJoinAndSelect('giftee.permissions', 'permissions')
 			.leftJoinAndSelect('giftee.profile', 'profile')
 			.where('g.completed = TRUE');
 	}
