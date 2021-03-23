@@ -152,7 +152,9 @@ const pollsDrier = createDrier(Poll);
 
 const pollResponsesDrier = createDrier(PollResponse, {
 	id: () => uuidv4(),
-	member: memberId
+	member: memberId,
+	guestName: () => chance.name(),
+	guestEmail: () => chance.email({domain: 'example.com', length: 10})
 });
 
 const projectsDrier = createDrier(Project, {
