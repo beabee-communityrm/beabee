@@ -28,7 +28,8 @@ export default class ActiveMembersExport extends BaseExport<Member> {
 			.andWhere(new Brackets(qb => {
 				qb.where('mp.dateExpires IS NULL')
 					.orWhere('mp.dateExpires > :now', {now: new Date()});
-			}));
+			}))
+			.orderBy('m.firstname, m.lastname');
 
 		if (this.ex!.params?.hasActiveSubscription) {
 			members

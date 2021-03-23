@@ -40,7 +40,8 @@ export default class EditionExport extends BaseExport<Member> {
 			.setParameters({
 				now: new Date(),
 				amount: this.ex!.params?.monthlyAmountThreshold || 3
-			});
+			})
+			.orderBy('m.firstname, m.lastname');
 
 		if (!this.ex!.params?.includeNonOptIn) {
 			members

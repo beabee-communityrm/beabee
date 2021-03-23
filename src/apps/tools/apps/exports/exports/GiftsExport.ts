@@ -26,7 +26,8 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
 			.leftJoinAndSelect('g.giftee', 'giftee')
 			.leftJoinAndSelect('giftee.permissions', 'permissions')
 			.leftJoinAndSelect('giftee.profile', 'profile')
-			.where('g.completed = TRUE');
+			.where('g.completed = TRUE')
+			.orderBy('g.date');
 	}
 
 	async getExport(giftFlows: GiftFlow[]): Promise<ExportResult> {
@@ -49,8 +50,6 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
 				GifteeHasConverted: false,
 				...addressFields(giftForm.deliveryAddress)
 			};
-
-			console.log(date, giftForm);
 
 			return {
 				GiftPurchaseDate: date.toISOString(),

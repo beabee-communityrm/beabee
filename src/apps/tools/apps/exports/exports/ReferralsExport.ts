@@ -30,7 +30,8 @@ export default class ReferralsExport extends BaseExport<Referral> {
 			.leftJoinAndSelect('r.referrer', 'referrer')
 			.leftJoinAndSelect('r.referee', 'referee')
 			.leftJoinAndSelect('referrer.profile', 'p1')
-			.leftJoinAndSelect('referee.profile', 'p2');
+			.leftJoinAndSelect('referee.profile', 'p2')
+			.orderBy('r.date');
 	}
 
 	async getExport(referrals: Referral[]): Promise<ExportResult> {
