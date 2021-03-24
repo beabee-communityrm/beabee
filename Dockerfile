@@ -12,7 +12,7 @@ RUN npm ci --only=production
 
 FROM nginx:1.18.0-alpine as router
 
-COPY router/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx --from=builder /opt/membership-system/built/static /opt/membership-system/built/static
 
 FROM node:12.16.3-alpine as app
