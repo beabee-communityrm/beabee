@@ -37,7 +37,14 @@ NOTE: Lower non-major versions probably work but haven't been tested
 The example config file is enough to look around the system, but you'll need to create a sandbox GoCardless account to do any payment flows.
 
 ```bash
+# Copy config
 cp src/config/example-config.json src/config/config.json
+
+# Initialise database
+docker-compose up -d db new_db
+docker-compose run --rm app node built/tools/database/sync
+
+# Do the rest
 docker-compose up -d
 ```
 
