@@ -48,6 +48,8 @@ docker-compose run --rm app node built/tools/database/sync
 docker-compose up -d
 ```
 
+Go to: http://localhost:3001
+
 ### To get started
 
 #### Create a new super admin
