@@ -1,7 +1,9 @@
 version: '3.4'
 
 x-base-app: &base-app
-  build: .
+  build:
+    context: .
+    target: app
   volumes:
     - ./built:/opt/membership-system/built
   environment:
@@ -43,10 +45,11 @@ services:
     command: 'crond -f -d 0'
 
   router:
-    image: nginx:1.18.0-alpine
+    build:
+      context: .
+      target: router
     volumes:
       - ./built/static:/opt/membership-system/built/static:ro
-      - ./router:/etc/nginx/conf.d
     ports:
       - 3001:80
 
