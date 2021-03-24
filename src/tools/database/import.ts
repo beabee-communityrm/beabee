@@ -18,6 +18,7 @@ db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
 		terminal: false
 	});
 
+	// File format: first line is SQL, second is params (repeated)
 	try {
 		let query = '';
 		for await (const line of rl) {
