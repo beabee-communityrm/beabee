@@ -22,6 +22,11 @@ services:
       POSTGRES_PASSWORD: membership_system
       POSTGRES_DB: membership_system
 
+  mail:
+    image: mailhog/mailhog:latest
+    ports:
+      - 3025:8025
+
   app: *base-app
 
   gc_webhook:
