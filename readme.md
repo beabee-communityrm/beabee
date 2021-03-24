@@ -27,28 +27,19 @@ Browser testing with<br/>
 
 ## Install
 
-You must have the following installed:
+You need:
 
-- Node.js >= 12.16.1
 - Docker >= 19.03.8
 - Docker Compose >= 1.25.5
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
-1. Install dependencies
-   ```bash
-   npm install
-   ```
+The example config file is enough to look around the system, but you'll need to create a sandbox GoCardless account to do any payment flows.
 
-1. Copy and fill in the config file
-   ```bash
-   cp config/example-config.json config/config.json
-   ```
-
-1. Initialise the containers
-   ```bash
-   docker-compose up -d
-   ```
+```bash
+cp src/config/example-config.json src/config/config.json
+docker-compose up -d
+```
 
 ### To get started
 
@@ -68,7 +59,14 @@ docker-compose run --rm app node built/tools/database/import.js < <import file>
 
 ## Development
 
+You need:
+
+- Node.js >= 12.16.1
+
+Then:
+
 ```bash
+npm install
 npm start
 ```
 
