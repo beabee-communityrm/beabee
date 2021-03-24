@@ -29,7 +29,7 @@ async function main() {
 	await runExport(memberDrier, qb => qb.where('item.id IN (:...ids)', {ids: memberIds}), valueMap);
 	await runExport(memberPermissionDrier, qb => qb.where('item.memberId IN (:...ids)', {ids: memberIds}), valueMap);
 	await runExport(memberProfileDrier, qb => qb.where('item.memberId IN (:...ids)', {ids: memberIds}), valueMap);
-	await runExport(gcPaymentsDrier, qb => qb.where('item.memberId IN (:...ids)', {ids: memberIds}), valueMap);
+	await runExport(gcPaymentsDrier, qb => qb.where('item.memberId IN (:...ids)', {ids: memberIds}).orderBy('id'), valueMap);
 	await runExport(gcPaymentDataDrier, qb => qb.where('item.memberId IN (:...ids)', {ids: memberIds}), valueMap);
 }
 
