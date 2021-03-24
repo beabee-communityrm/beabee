@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { EntityTarget } from 'typeorm';
+import { createQueryBuilder, EntityTarget, getRepository, SelectQueryBuilder } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Chance } from 'chance';
 
@@ -28,7 +28,7 @@ import Segment from '@models/Segment';
 import SegmentMember from '@models/SegmentMember';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 
-export type DrierMap<T> = {[K in keyof T]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
+type DrierMap<T> = {[K in keyof T]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
 export interface Drier<T> {
 	model: EntityTarget<T>
@@ -76,14 +76,14 @@ const exportItemsDrier = createDrier(ExportItem, {
 	itemId: copy // These will be mapped to values that have already been seen
 });
 
-const gcPaymentsDrier = createDrier(GCPayment, {
+export const gcPaymentsDrier = createDrier(GCPayment, {
 	id: () => uuidv4(),
 	paymentId: randomId(12, 'PM'),
 	subscriptionId: randomId(12, 'SB'),
 	member: memberId
 });
 
-const gcPaymentDataDrier = createDrier(GCPaymentData, {
+export const gcPaymentDataDrier = createDrier(GCPaymentData, {
 	member: memberId,
 	customerId: randomId(12, 'CU'),
 	mandateId: randomId(12, 'MD'),
@@ -105,13 +105,13 @@ const giftFlowDrier = createDrier(GiftFlow, {
 	giftee: memberId
 });
 
-const manualPaymentDataDrier = createDrier(ManualPaymentData, {
+export const manualPaymentDataDrier = createDrier(ManualPaymentData, {
 	member: memberId,
 	source: () => chance.pickone(['Standing order', 'Cash in hand']),
 	reference: () => chance.word()
 });
 
-const memberDrier = createDrier(Member, {
+export const memberDrier = createDrier(Member, {
 	id: () => uuidv4(),
 	email: () => chance.email({domain: 'example.com', length: 10}),
 	firstname: () => chance.first(),
@@ -122,11 +122,11 @@ const memberDrier = createDrier(Member, {
 	referralCode: uniqueCode
 });
 
-const memberPermissionDrier = createDrier(MemberPermission, {
+export const memberPermissionDrier = createDrier(MemberPermission, {
 	member: memberId
 });
 
-const memberProfileDrier = createDrier(MemberProfile, {
+export const memberProfileDrier = createDrier(MemberProfile, {
 	member: memberId,
 	description: () => chance.sentence(),
 	bio: () => chance.paragraph(),
@@ -219,3 +219,56 @@ export default [
 	segmentOngoingEmailsDrier,
 	exportItemsDrier // Must be after all exportable items
 ] as Drier<any>[];
+
+function isDrier<T>(propMap: DrierMap<T>[keyof T]): propMap is Drier<T[keyof T]> {
+	return 'propMap' in propMap;
+}
+
+// Maps don't stringify well
+function stringify(value: any): string {
+	return JSON.stringify(value, (key: string, value: any): any => {
+		return value instanceof Map ? [...value] : value;
+	});
+}
+
+function runDrier<T>(item: T, drier: Drier<T>, valueMap: Map<string, unknown>): T {
+	const newItem = Object.assign({}, item);
+
+	for (const _prop of Object.keys(drier.propMap)) {
+		const prop = _prop as keyof T;
+		const propMap = drier.propMap[prop];
+		const oldValue = item[prop];
+		if (oldValue && propMap) {
+			const valueKey = stringify(oldValue);
+
+			const newValue = isDrier(propMap) ? runDrier(oldValue, propMap, valueMap) :
+				valueMap.get(valueKey) || propMap(oldValue);
+
+			valueMap.set(valueKey, newValue);
+			newItem[prop] = newValue as T[keyof T];
+		}
+	}
+
+	return newItem;
+}
+
+export async function runExport<T>(drier: Drier<T>, fn: (qb: SelectQueryBuilder<T>) => SelectQueryBuilder<T>, valueMap: Map<string, unknown>): Promise<void> {
+	console.error(`Anonymising ${getRepository(drier.model).metadata.tableName}`);
+
+	for (let i = 0; ; i += 1000) {
+		const items = await fn(createQueryBuilder(drier.model, 'item'))
+			.loadAllRelationIds().offset(i).limit(1000).getMany();
+
+		if (items.length === 0) {
+			break;
+		}
+
+		const newItems = items.map(item => runDrier(item, drier, valueMap));
+
+		const [query, params] = createQueryBuilder()
+			.insert().into(drier.model).values(newItems).getQueryAndParameters();
+
+		console.log(query + ';');
+		console.log(stringify(params));
+	}
+}
