@@ -50,31 +50,30 @@ NOTE: Lower non-major versions probably work but haven't been tested
    docker-compose up -d
    ```
 
-### From scratch (no data export)
+### To get started
 
-1. Create a new super admin
-   ```bash
-   docker-compose exec app node built/tools/new-user
-   ```
+#### Create a new super admin
 
-### With data export
+```bash
+docker-compose run --rm app node built/tools/new-user
+```
 
-1. Import the data export
-   ```
-   docker-compose exec app node built/tools/database/import.js <import path>
-   ```
+#### Import some data
 
-   NOTE: `<import path>` must be inside `built/` so it is visible to the Docker container
+Need some test data? Download it here: coming soon
+
+```bash
+docker-compose run --rm app node built/tools/database/import.js < <import file>
+```
 
 ## Development
 
-```
+```bash
 npm start
 ```
 
-Go to `http://localhost:3001`
-
 #### Creating apps
+
 The system is built around modular apps. If you're looking to add functionality
 to the site the best way to do this would by adding an app to the site rather
 than modifying it's base. This means you're unlikely to mess anything up.
