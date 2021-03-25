@@ -11,6 +11,7 @@ x-base-app: &base-app
     - .env
   environment:
     NODE_ENV: development
+    TYPEORM_MIGRATIONS_DIR: src/migrations/
 
 services:
   db:
