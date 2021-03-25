@@ -1,6 +1,6 @@
 import express, { Request } from 'express';
 import queryString from 'query-string';
-import { Brackets, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import { isAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
@@ -10,7 +10,6 @@ import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
 
 import Project from '@models/Project';
-import Segment from '@models/Segment';
 
 const app = express();
 
@@ -82,16 +81,16 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const { query } = req;
 	const availableTags = await getAvailableTags();
 
-	const segment = query.segment ? await getRepository(Segment).findOne(query.segment as string) : undefined;
-	const searchType = query.type as string || (segment ? 'advanced' : 'basic');
-	const searchRuleGroup = getSearchRuleGroup(query, searchType) || segment && segment.ruleGroup;
+	const segments = await SegmentService.getSegmentsWithCount();
+	const activeSegment = query.segment ? segments.find(s => s.id === query.segment) : undefined;
 
-	const filter = buildQuery(searchRuleGroup);
+	const searchType = query.type as string || (activeSegment ? 'advanced' : 'basic');
+	const searchRuleGroup = getSearchRuleGroup(query, searchType) || activeSegment && activeSegment.ruleGroup;
 
 	const page = query.page ? Number( query.page ) : 1;
 	const limit = query.limit ? Number( query.limit ) : 25;
 
-	const [members, total] = await filter
+	const [members, total] = await buildQuery(searchRuleGroup)
 		.orderBy({lastname: 'ASC', firstname: 'ASC'})
 		.offset(limit * (page - 1))
 		.limit(limit)
@@ -116,7 +115,8 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	res.render( 'index', {
 		availableTags, members, pagination, total,
-		segment,
+		segments,
+		activeSegment,
 		searchQuery: query,
 		searchType,
 		searchRuleGroup,
@@ -132,7 +132,7 @@ app.post('/', wrapAsync(async (req, res) => {
 			res.redirect('/members/?segment=' + segment.id);
 		} else if (req.body.action === 'update-segment' && req.query.segment) {
 			const segmentId = req.query.segment as string;
-			await getRepository(Segment).update(segmentId, {ruleGroup: searchRuleGroup});
+			await SegmentService.updateSegment(segmentId, {ruleGroup: searchRuleGroup});
 			res.redirect('/members/?segment=' + segmentId);
 		} else {
 			res.redirect(req.originalUrl);

@@ -17,19 +17,33 @@ block contents
 	.row
 		.col-md-12
 			.page-header
-				if segment
+				if activeSegment
 					.pull-right
-						a(href='/members/segments/' + segment.id).btn.btn-default
+						a(href='/members/segments/' + activeSegment.id).btn.btn-default
 							i.glyphicon.glyphicon-pencil
-				h3
-					| Members#{segment ? ': ' + segment.name : ''}
+					h3 Members: #{activeSegment.name}
+				else 
+					h3 Members
+
+
+	.row
+		.col-md-3
+			ul(role="navigation").nav.nav-pills.nav-stacked
+				li( class=( !activeSegment ? 'active' : '' ) ): a( href="/members" ) All members
+				each segment in segments
+					li: a( href="/members?segment=" + segment.id class=(activeSegment && segment.id === activeSegment.id ? 'active' : '')).
+						#{segment.name} (#{segment.memberCount.toLocaleString()})
+
+		.col-md-9
+			if activeSegment && activeSegment.description
+				p= activeSegment.description
 
 			include partials/search.pug
 
 			.members-table-actions
 				form(method='POST')
 					+csrf
-					if segment
+					if activeSegment
 						if searchQuery.rules
 							button(name='action' value='update-segment').btn.btn-xs.btn-warning
 								i.glyphicon.glyphicon-floppy-disk
@@ -38,8 +52,8 @@ block contents
 						button(name='action' value='save-segment').btn.btn-xs.btn-primary
 							i.glyphicon.glyphicon-floppy-disk
 							span Save segment
-				if segment
-					a(href='/members/segments/' + segment.id + '/email').btn.btn-xs.btn-default
+				if activeSegment
+					a(href='/members/segments/' + activeSegment.id + '/email').btn.btn-xs.btn-default
 						i.glyphicon.glyphicon-send
 						span New email
 				if members.length > 0

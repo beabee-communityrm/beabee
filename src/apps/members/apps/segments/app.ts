@@ -3,9 +3,9 @@ import { createQueryBuilder, getRepository } from 'typeorm';
 
 import { hasNewModel } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
-import buildQuery from '@core/utils/rules';
 
 import EmailService  from '@core/services/EmailService';
+import SegmentService from '@core/services/SegmentService';
 
 import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
@@ -15,11 +15,7 @@ const app = express();
 app.set( 'views', __dirname + '/views' );
 
 app.get('/', wrapAsync(async (req, res) => {
-	const segments = await createQueryBuilder(Segment, 's').getMany();
-	for (const segment of segments) {
-		segment.memberCount = await buildQuery(segment.ruleGroup).getCount();
-	}
-
+	const segments = SegmentService.getSegmentsWithCount();
 	res.render('index', {segments});
 }));
 

@@ -1,6 +1,8 @@
-import { RuleGroup } from '@core/utils/rules';
-import Segment from '@models/Segment';
 import { getRepository } from 'typeorm';
+
+import Segment from '@models/Segment';
+
+import buildQuery, { RuleGroup } from '@core/utils/rules';
 
 export default class SegmentService {
 	static async createSegment(name: string, ruleGroup: RuleGroup): Promise<Segment> {
@@ -8,5 +10,17 @@ export default class SegmentService {
 		segment.name = name;
 		segment.ruleGroup = ruleGroup;
 		return await getRepository(Segment).save(segment);
+	}
+
+	static async getSegmentsWithCount(): Promise<Segment[]> {
+		const segments = await getRepository(Segment).find();
+		for (const segment of segments) {
+			segment.memberCount = await buildQuery(segment.ruleGroup).getCount();
+		}
+		return segments;
+	}
+
+	static async updateSegment(segmentId: string, updates: Partial<Segment>): Promise<void> {
+		await getRepository(Segment).update(segmentId, updates);
 	}
 }

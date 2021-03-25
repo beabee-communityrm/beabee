@@ -1,11 +1,11 @@
-if !segment
+if !activeSegment
 	ul.nav.nav-pills.member-search-options
 		li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='pill' href='#basic') Basic
 		li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='pill' href='#advanced') Advanced
 
 mixin searchState
-	if segment
-		input( type='hidden' name='segment' value=segment.id )
+	if activeSegment
+		input( type='hidden' name='segment' value=activeSegment.id )
 	if addToProject
 		input( type='hidden' name='addToProject' value=addToProject.id )
 
