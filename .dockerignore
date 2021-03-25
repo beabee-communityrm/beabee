@@ -4,3 +4,4 @@ tsconfig.tsbuildinfo
 node_modules
 /src/config/config.json
 /built/
+.env

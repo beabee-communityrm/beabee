@@ -1,1 +1,0 @@
-../../../node_modules/connect-pg-simple/table.sql
