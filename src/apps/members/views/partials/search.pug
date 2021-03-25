@@ -1,4 +1,8 @@
-if !activeSegment
+if activeSegment
+	button(type='button' data-toggle='toggle' data-target='advanced').btn.btn-xs.btn-info
+		i.glyphicon.glyphicon-search
+		span Toggle query
+else
 	ul.nav.nav-pills.member-search-options
 		li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='pill' href='#basic') Basic
 		li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='pill' href='#advanced') Advanced
@@ -49,7 +53,7 @@ mixin searchState
 					i.glyphicon.glyphicon-search
 					span Search
 
-	.tab-pane#advanced(class=searchType === 'advanced' ? 'active' : '')
+	.tab-pane#advanced(class=!activeSegment && searchType === 'advanced' ? 'active' : '')
 		#builder
 		form(method='get').js-advanced-form
 			+searchState

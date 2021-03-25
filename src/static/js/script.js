@@ -1,6 +1,11 @@
 /* global $, document */
 
 (function () {
+	// Toggle
+	$(document.body).on('click', '[data-toggle=toggle]', function () {
+		$('#' + $(this).data('target')).toggle();
+	});
+
 	// Reveal with form input disabler
 	$(document.body).on('input', '.js-reveal-types', function () {
 		var $revealTypes = $(this);
