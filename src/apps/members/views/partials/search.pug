@@ -20,18 +20,6 @@ mixin searchState
 
 			.member-search-group
 				.form-group
-					label( for='permission' ).control-label Permission
-					select( name='permission' ).form-control
-						option( value='' ) Show all
-						each permission in ['access', 'member', 'admin', 'superadmin']
-							option( value=permission, selected=( searchQuery.permission == permission ? true : false ) )= permission
-				.form-group
-					.checkbox
-						label
-							input( type='checkbox' name='show_inactive', value='true', checked=searchQuery.show_inactive )#show_inactive
-							|  Show inactive members
-			.member-search-group
-				.form-group
 					label( for='firstname' ).control-label First name
 					input( type='text', name='firstname', value=searchQuery.firstname ).form-control#firstname
 				.form-group

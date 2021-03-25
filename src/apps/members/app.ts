@@ -49,26 +49,6 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 		});
 	}
 
-	if (query.permission) {
-		search.rules.push({
-			id: 'permission',
-			field: 'permission',
-			type: 'string',
-			operator: 'equal',
-			value: query.permission as string
-		});
-	}
-
-	if (!query.show_inactive) {
-		search.rules.push({
-			id: 'activeMembership',
-			field: 'activeMembership',
-			type: 'boolean',
-			operator: 'equal',
-			value: true
-		});
-	}
-
 	return search.rules.length > 0 ? search : undefined;
 }
 
