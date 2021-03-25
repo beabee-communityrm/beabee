@@ -14,6 +14,7 @@
 	"support-email-from": "UK Makerspace Membership",
 
 	"available-tags": "",
+	"available-manual-payment-sources": "",
 
 	"join-poll": "",
 	"cancellation-poll": "",
@@ -56,7 +57,8 @@
 	"flash-account-locked": "Maximum number of password attempts exceeded",
 	"flash-account-attempts": "There has been % attempt(s) to login to your account since you last logged in",
 
-	"flash-member-updated": "Member details updated",
+	"flash-member-added": "Member added",
+	"flash-member-updated": "Member updated",
 	"flash-member-permanently-deleted": "Member permanently deleted",
 	"flash-member-login-override-generated": "Login override code generated",
 	"flash-member-password-reset-generated": "Password reset code generated",
@@ -78,7 +80,6 @@
 	"flash-permission-duplicate": "User already has this permission",
 
 	"flash-gocardless-updated": "GoCardless updated",
-	"flash-gocardless-no-data": "No GoCardless data",
 
 	"flash-contribution-cancelled": "Contribution cancelled",
 	"flash-contribution-cancellation-err": "Error cancelling contribution",

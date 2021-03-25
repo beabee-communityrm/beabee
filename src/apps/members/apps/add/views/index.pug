@@ -5,31 +5,55 @@ block prepend title
 
 block contents
 	.row
-		.col-md-9
+		.col-md-12
 			+page_header( 'Add contact' )
 
+		.col-md-9
 			form(method='POST').form-horizontal.js-reveal
 				+csrf
-				+input( 'text', 'First name', 'firstname', { required: true, left: 3, right: 5 } )
-				+input( 'text', 'Last name', 'lastname', { required: true, left: 3, right: 5 } )
-				+input( 'text', 'Email address', 'email', { required: true, left: 3, right: 5 } )
+				+input( 'text', 'First name', 'firstname', { required: true, left: 3, right: 6 } )
+				+input( 'text', 'Last name', 'lastname', { required: true, left: 3, right: 6 } )
+				+input( 'text', 'Email address', 'email', { required: true, left: 3, right: 6 } )
 
 				.form-group
 					label.col-md-3.control-label Contribution type
-					.col-md-5
+					.col-md-6
 						select(name='type' required).js-reveal-types.form-control
 							option(value='' disabled selected) Select one
 							option None
 							option GoCardless
 							option Manual
 
+				.js-reveal
+					.form-group
+						.col-md-6.col-md-offset-3
+							.checkbox
+								label
+									input(type='checkbox' name='grantMembership' value='true').js-reveal-types
+									| Grant membership
+
+					.js-reveal-type(data-type='grantMembership')
+						.form-group
+							label.col-md-3.control-label Start
+							.col-md-6
+								input( type="time", name="membershipStartTime", style="display: inline; width: auto;" ).form-control
+								| &nbsp;
+								input( type="date", name="membershipStartDate", style="display: inline; width: auto;" ).form-control
+						.form-group
+							label.col-md-3.control-label Expires
+							.col-md-6
+								input( type="time", name="membershipExpiryTime", style="display: inline; width: auto;" ).form-control
+								| &nbsp;
+								input( type="date", name="membershipExpiryDate", style="display: inline; width: auto;" ).form-control
+
+
 				.js-reveal-type(data-type='GoCardless')
-					+input( 'text', 'Customer ID', 'customerId', { required: true, left: 3, right: 5 } )
-					+input( 'text', 'Mandate ID', 'mandateId', { required: true, left: 3, right: 5 } )
+					.row: .col-md-offset-3.col-md-9: h5 GoCardless details
+					+input( 'text', 'Customer ID', 'customerId', { required: true, left: 3, right: 6, placeholder: 'CU...' } )
+					+input( 'text', 'Mandate ID', 'mandateId', { required: true, left: 3, right: 6, placeholder: 'MD...' } )
 				
 				.js-reveal-type(data-type='Manual')
-					+input('text', 'Source', 'source', {left: 3, right: 5})
-					+input('text', 'Reference', 'reference', {left: 3, right: 5})
+					include /apps/members/apps/member/apps/contribution/views/partials/manual-fields
 
-				+form_button( 'Create', 'success', {left: 3} )
+				+form_button( 'Add member', 'success', {left: 3} )
 				

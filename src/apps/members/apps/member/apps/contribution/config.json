@@ -1,6 +1,6 @@
 {
-  "title": "GoCardless",
-  "path": "gocardless",
+  "title": "Contribution",
+  "path": "contribution",
   "permissions": [
     "superadmin"
   ],

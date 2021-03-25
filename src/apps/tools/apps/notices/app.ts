@@ -3,7 +3,7 @@ import moment from 'moment';
 import { getRepository } from 'typeorm';
 
 import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { createDateTime, wrapAsync } from '@core/utils';
 
 import Notice from '@models/Notice';
 
@@ -23,8 +23,7 @@ interface NoticeSchema {
 function schemaToNotice(data: NoticeSchema): Notice {
 	const notice = new Notice();
 	notice.name = data.name;
-	notice.expires = data.expiresDate && data.expiresTime ?
-		moment.utc(`${data.expiresDate}T${data.expiresTime}`).toDate() : undefined;
+	notice.expires = createDateTime(data.expiresDate, data.expiresTime);
 	notice.text = data.text;
 	notice.url = data.url;
 	notice.enabled = !!data.enabled;

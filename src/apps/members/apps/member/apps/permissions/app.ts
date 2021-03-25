@@ -3,7 +3,7 @@ import moment from 'moment';
 import { getRepository } from 'typeorm';
 
 import { hasSchema, isSuperAdmin } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { createDateTime, wrapAsync } from '@core/utils';
 
 import Member from '@models/Member';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
@@ -33,10 +33,10 @@ app.post( '/', hasSchema(createPermissionSchema).orFlash, wrapAsync( async (req,
 
 	const newPermission = new MemberPermission();
 	newPermission.permission = permission;
-	newPermission.dateAdded = moment(startDate + 'T' + startTime).toDate();
+	newPermission.dateAdded = createDateTime(startDate, startTime);
 
 	if (expiryDate && expiryTime) {
-		newPermission.dateExpires = moment(expiryDate + 'T' + expiryTime).toDate();
+		newPermission.dateExpires = createDateTime(expiryDate, expiryTime);
 		if (newPermission.dateAdded >= newPermission.dateExpires) {
 			req.flash( 'warning', 'permission-expiry-error' );
 			res.redirect( req.originalUrl );
@@ -68,8 +68,8 @@ app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( a
 	const member = req.model as Member;
 	const permission = req.params.id as PermissionType;
 
-	const dateAdded = moment(startDate + 'T' + startTime).toDate();
-	const dateExpires = expiryDate && expiryTime ? moment(expiryDate + 'T' + expiryTime).toDate() : undefined;
+	const dateAdded = createDateTime(startDate, startTime);
+	const dateExpires = createDateTime(expiryDate, expiryTime);
 
 	if ( dateExpires && dateAdded >= dateExpires ) {
 		req.flash( 'warning', 'permission-expiry-error' );

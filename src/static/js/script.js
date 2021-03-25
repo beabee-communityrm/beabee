@@ -9,8 +9,12 @@
 	// Reveal with form input disabler
 	$(document.body).on('input', '.js-reveal-types', function () {
 		var $revealTypes = $(this);
-		var $parent = $revealTypes.parents('.js-reveal');
-		var $revealType = $parent.find('.js-reveal-type');
+		var $parent = $revealTypes.parents('.js-reveal').eq(0);
+
+		var $revealType = $parent.find('.js-reveal-type').filter(function() {
+			// Filter for those that aren't part of a nested reveal
+			return $(this).parents('.js-reveal').get(0) === $parent.get(0);
+		});
 
 		if ($revealTypes.is(':radio') && !$revealTypes.prop('checked')) {
 			return;

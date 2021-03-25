@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import { createQueryBuilder, getRepository } from 'typeorm';
 
 import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { createDateTime, wrapAsync } from '@core/utils';
 
 import Poll, { PollAccess, PollTemplate } from '@models/Poll';
 import PollResponse from '@models/PollResponse';
@@ -28,8 +28,6 @@ interface CreatePollSchema {
 }
 
 function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'|'responses'> {
-	const { startsDate, startsTime, expiresDate, expiresTime } = data;
-
 	const poll = new Poll();
 	poll.title = data.title;
 	poll.slug = data.slug;
@@ -40,10 +38,8 @@ function schemaToPoll( data: CreatePollSchema ): Omit<Poll, 'templateSchema'|'re
 	poll.allowUpdate = !!data.allowUpdate;
 	poll.access = data.access;
 	poll.hidden = !!data.hidden;
-	poll.starts = startsDate && startsTime ?
-		poll.starts = moment.utc(`${startsDate}T${startsTime}`).toDate() : undefined;
-	poll.expires = expiresDate && expiresTime ?
-		moment.utc(`${expiresDate}T${expiresTime}`).toDate() : undefined;
+	poll.starts = createDateTime(data.startsDate, data.startsTime);
+	poll.expires = createDateTime(data.expiresDate, data.expiresTime);
 
 	return poll;
 }

@@ -116,7 +116,7 @@ app.get( '/complete', [
 	}
 
 	const partialMember = await GCPaymentService.customerToMember(joinFlow.customerId);
-	if (!partialMember) {
+	if (!partialMember.member.firstname) {
 		req.log.error({
 			app: 'join',
 			action: 'invalid-direct-debit',
