@@ -124,6 +124,7 @@ app.get( '/:slug:embed(/embed)?', [
 		}
 		res.render( getView( poll ), {
 			poll, isEmbed,
+			isGuest: isEmbed || !user,
 			answers: await getUserAnswers(req) || {},
 			preview: req.query.preview && auth.canAdmin( req ) === auth.AuthenticationStatus.LOGGED_IN
 		} );
@@ -193,6 +194,7 @@ app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res 
 	} else {
 		res.render( getView( poll ), {
 			poll: req.model,
+			isGuest: false,
 			answers: getSessionAnswers(req) || {},
 			code: pollsCode
 		} );

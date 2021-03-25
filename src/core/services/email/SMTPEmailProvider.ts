@@ -27,8 +27,8 @@ export default class SMTPEmailProvider implements EmailProvider {
 		}
 
 		for (const recipient of recipients) {
-			const mergedBody = Object.keys(recipient.mergeFields || {}).reduce((field, body) => {
-				return body.replace(new RegExp(`*|${field}|*`, 'g'), '' + recipient.mergeFields![field]);
+			const mergedBody = Object.keys(recipient.mergeFields || {}).reduce((body, field) => {
+				return body.replace(new RegExp(`\\*\\|${field}\\|\\*`, 'g'), '' + recipient.mergeFields![field]);
 			}, body);
 
 			await this.client.sendMail({
@@ -45,9 +45,8 @@ export default class SMTPEmailProvider implements EmailProvider {
 				}
 			});
 		}
-
-		throw new Error('Method not implemented.');
 	}
+
 	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
 		const email = await getRepository(Email).findOne(template);
 		if (email) {

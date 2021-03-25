@@ -29,7 +29,14 @@
 	},
 	"email": {
 		"provider": "smtp",
-		"settings": {}
+		"settings": {
+			"host": "mail",
+			"port": 1025,
+			"auth": {
+				"user": "test",
+				"pass": "test"
+			}
+		}
 	},
 	"gocardless": {
 		"access_token": "",

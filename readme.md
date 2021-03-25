@@ -27,54 +27,60 @@ Browser testing with<br/>
 
 ## Install
 
-You must have the following installed:
+You need:
 
-- Node.js >= 12.16.1
 - Docker >= 19.03.8
 - Docker Compose >= 1.25.5
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
-1. Install dependencies
-   ```bash
-   npm install
-   ```
+The example config file is enough to look around the system, but you'll need to create a sandbox GoCardless account to do any payment flows.
 
-1. Copy and fill in the config file
-   ```bash
-   cp config/example-config.json config/config.json
-   ```
+```bash
+# Copy config
+cp src/config/example-config.json src/config/config.json
 
-1. Initialise the containers
-   ```bash
-   docker-compose up -d
-   ```
+# Initialise database
+docker-compose up -d db new_db
+docker-compose run --rm app node built/tools/database/sync
 
-### From scratch (no data export)
+# Do the rest
+docker-compose up -d
+```
 
-1. Create a new super admin
-   ```bash
-   docker-compose exec app node built/tools/new-user
-   ```
+Go to: http://localhost:3001
 
-### With data export
+### To get started
 
-1. Import the data export
-   ```
-   docker-compose exec app node built/tools/database/import.js <import path>
-   ```
+#### Create a new super admin
 
-   NOTE: `<import path>` must be inside `built/` so it is visible to the Docker container
+```bash
+docker-compose run --rm app node built/tools/new-user
+```
+
+#### Import some data
+
+Need some test data? Download it here: coming soon
+
+```bash
+docker-compose run --rm app node built/tools/database/import.js < <import file>
+```
 
 ## Development
 
-```
+You need:
+
+- Node.js >= 12.16.1
+
+Then:
+
+```bash
+npm install
 npm start
 ```
 
-Go to `http://localhost:3001`
-
 #### Creating apps
+
 The system is built around modular apps. If you're looking to add functionality
 to the site the best way to do this would by adding an app to the site rather
 than modifying it's base. This means you're unlikely to mess anything up.
