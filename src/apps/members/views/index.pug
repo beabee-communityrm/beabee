@@ -35,9 +35,9 @@ block contents
 					.pull-right
 						a(href='/members/segments/' + activeSegment.id).btn.btn-default
 							i.glyphicon.glyphicon-pencil
-					h3 Members: #{activeSegment.name}
+					h3= activeSegment.name
 				else
-					h3 All members
+					h3 All contacts
 
 			if activeSegment && activeSegment.description
 				p= activeSegment.description

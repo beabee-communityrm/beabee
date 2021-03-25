@@ -1,5 +1,5 @@
 {
-	"title": "Members",
+	"title": "Contacts",
 	"path": "members",
 	"permissions": [
 		"superadmin", "admin"

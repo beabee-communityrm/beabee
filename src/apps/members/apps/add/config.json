@@ -1,5 +1,5 @@
 {
-  "title": "Add member",
+  "title": "Add contact",
   "path": "add",
   "permissions": [
     "superadmin"
