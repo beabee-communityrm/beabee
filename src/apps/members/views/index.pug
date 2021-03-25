@@ -18,7 +18,8 @@ block contents
 		.col-md-3
 			.page-header: h3 &nbsp;
 			ul(role="navigation").nav.nav-pills.nav-stacked
-				li(class=!activeSegment && 'active'): a( href="/members" ) All members
+				li(class=!activeSegment && 'active'): a( href="/members" ).
+					All contacts #[small (#{totalMembers.toLocaleString()})]
 				each segment in segments
 					li(
 						class=(activeSegment && segment.id === activeSegment.id && 'active')

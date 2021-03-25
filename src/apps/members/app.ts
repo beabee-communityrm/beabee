@@ -10,6 +10,7 @@ import OptionsService from '@core/services/OptionsService';
 import SegmentService from '@core/services/SegmentService';
 
 import Project from '@models/Project';
+import Member from '@models/Member';
 
 const app = express();
 
@@ -38,7 +39,7 @@ function convertBasicSearch(query: Request['query']): RuleGroup|undefined {
 			});
 		}
 	}
-	if ( query.tag ) {
+	if (query.tag) {
 		search.rules.push({
 			id: 'tags',
 			field: 'tags',
@@ -81,6 +82,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const { query } = req;
 	const availableTags = await getAvailableTags();
 
+	const totalMembers = await getRepository(Member).count();
 	const segments = await SegmentService.getSegmentsWithCount();
 	const activeSegment = query.segment ? segments.find(s => s.id === query.segment) : undefined;
 
@@ -115,11 +117,10 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 	res.render( 'index', {
 		availableTags, members, pagination, total,
+		searchQuery: query, searchType, searchRuleGroup,
+		totalMembers,
 		segments,
 		activeSegment,
-		searchQuery: query,
-		searchType,
-		searchRuleGroup,
 		addToProject
 	} );
 } ) );
