@@ -1,7 +1,7 @@
 {
   "title": "Segments",
   "path": "segments",
-  "menu": "main",
+  "hidden": true,
   "permissions": [
     "admin", "superadmin"
   ]
