@@ -57,7 +57,7 @@ $('#builder').queryBuilder({
 		values: {true: 'Yes', false: 'No'}
 	}, {
 		id: 'activeMembership',
-		label: 'Has active membership',
+		label: 'Is active member',
 		type: 'boolean',
 		input: 'radio',
 		values: {true: 'Yes', false: 'No'}
