@@ -3,7 +3,6 @@ import 'module-alias/register';
 import bodyParser from 'body-parser';
 import express from 'express';
 import Stripe from 'stripe';
-import { ConnectionOptions } from 'typeorm';
 
 import * as db from '@core/database';
 import { log as mainLogger, installMiddleware } from '@core/logging';
@@ -70,7 +69,7 @@ log.info( {
 	action: 'start'
 } );
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	app.listen( config.stripe.port, config.host, function () {
 		log.debug( {action: 'start-webserver'} );
 	} );

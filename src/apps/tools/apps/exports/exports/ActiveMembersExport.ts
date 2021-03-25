@@ -21,22 +21,31 @@ export default class ActiveMembersExport extends BaseExport<Member> {
 		}];
 	}
 
-	protected getQuery(): SelectQueryBuilder<Member> {
-		const members = createQueryBuilder(Member, 'm')
+	protected get query(): SelectQueryBuilder<Member> {
+		return createQueryBuilder(Member, 'm')
+			.orderBy({
+				firstname: 'ASC',
+				lastname: 'ASC'
+			});
+	}
+
+	protected getNewItemsQuery(): SelectQueryBuilder<Member> {
+		const query = super.getNewItemsQuery()
 			.innerJoin('m.permissions', 'mp')
-			.where('mp.permission = \'member\' AND mp.dateAdded <= :now')
+			.andWhere('mp.permission = \'member\' AND mp.dateAdded <= :now')
 			.andWhere(new Brackets(qb => {
 				qb.where('mp.dateExpires IS NULL')
-					.orWhere('mp.dateExpires > :now', {now: new Date()});
-			}));
+					.orWhere('mp.dateExpires > :now');
+			}))
+			.setParameters({now: new Date()});
 
 		if (this.ex!.params?.hasActiveSubscription) {
-			members
+			query
 				.innerJoin(GCPaymentData, 'gc', 'gc.memberId = m.memberId')
 				.andWhere('gc.subscriptionId IS NOT NULL');
 		}
 
-		return members;
+		return query;
 	}
 
 	async getExport(members: Member[]): Promise<ExportResult> {
@@ -52,7 +61,6 @@ export default class ActiveMembersExport extends BaseExport<Member> {
 				ContributionMonthlyAmount: member.contributionMonthlyAmount,
 				ContributionPeriod: member.contributionPeriod,
 				ContributionDescription: member.contributionDescription
-			}))
-			.sort((a, b) => a.EmailAddress < b.EmailAddress ? -1 : 1);
+			}));
 	}
 }

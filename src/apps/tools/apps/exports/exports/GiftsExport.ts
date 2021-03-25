@@ -21,12 +21,16 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
 	itemName = 'gifts'
 	idColumn = 'g.id'
 
-	getQuery(): SelectQueryBuilder<GiftFlow> { 
+	protected get query(): SelectQueryBuilder<GiftFlow> {
 		return createQueryBuilder(GiftFlow, 'g')
 			.leftJoinAndSelect('g.giftee', 'giftee')
 			.leftJoinAndSelect('giftee.permissions', 'permissions')
 			.leftJoinAndSelect('giftee.profile', 'profile')
-			.where('g.completed = TRUE');
+			.orderBy('g.date');
+	}
+
+	protected getNewItemsQuery(): SelectQueryBuilder<GiftFlow> {
+		return super.getNewItemsQuery().andWhere('g.completed = TRUE');
 	}
 
 	async getExport(giftFlows: GiftFlow[]): Promise<ExportResult> {
@@ -49,8 +53,6 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
 				GifteeHasConverted: false,
 				...addressFields(giftForm.deliveryAddress)
 			};
-
-			console.log(date, giftForm);
 
 			return {
 				GiftPurchaseDate: date.toISOString(),

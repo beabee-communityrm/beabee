@@ -26,12 +26,12 @@ export default abstract class BaseExport<T> {
 		return [];
 	}
 
-	protected abstract getQuery(): SelectQueryBuilder<T>
+	protected abstract get query(): SelectQueryBuilder<T>
 
 	abstract getExport(items: T[]): Promise<ExportResult>
 
 	async getItems(status?: string): Promise<T[]> {
-		return this.getQuery()
+		return this.query
 			.where(qb => {
 				const subQuery = qb.subQuery()
 					.select('ei.itemId')
@@ -47,9 +47,9 @@ export default abstract class BaseExport<T> {
 			.getMany();
 	}
 
-	private getNewItemsQuery(): SelectQueryBuilder<T> {
-		return this.getQuery()
-			.where(qb => {
+	protected getNewItemsQuery(): SelectQueryBuilder<T> {
+		return this.query
+			.andWhere(qb => {
 				const subQuery = qb.subQuery()
 					.select('ei.itemId')
 					.from(ExportItem, 'ei')

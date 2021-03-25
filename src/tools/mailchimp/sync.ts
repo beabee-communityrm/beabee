@@ -6,7 +6,7 @@ import JSONStream from 'JSONStream';
 import gunzip from 'gunzip-maybe';
 import moment from 'moment';
 import tar from 'tar-stream';
-import { Between, ConnectionOptions, getRepository } from 'typeorm';
+import { Between, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 import mailchimp, { Batch, Operation } from '@core/lib/mailchimp';
@@ -172,7 +172,7 @@ async function dispatchOperations(operations: Operation[]) {
 	}
 }
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	const isTest = process.argv[2] === '-n';
 	try {
 		const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);

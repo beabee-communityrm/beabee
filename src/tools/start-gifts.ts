@@ -1,7 +1,7 @@
 import 'module-alias/register';
 
 import moment from 'moment';
-import { Between, ConnectionOptions, getRepository } from 'typeorm';
+import { Between, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 import { log } from '@core/logging';
@@ -55,7 +55,7 @@ async function main(date: string|undefined) {
 	}
 }
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	try {
 		await main(process.argv[2]);
 	} catch (err) {

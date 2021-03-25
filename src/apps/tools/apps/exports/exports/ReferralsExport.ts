@@ -25,16 +25,16 @@ export default class ReferralsExport extends BaseExport<Referral> {
 	itemStatuses = ['added', 'seen']
 	idColumn = 'r.id';
 
-	protected getQuery(): SelectQueryBuilder<Referral> {
+	protected get query(): SelectQueryBuilder<Referral> {
 		return createQueryBuilder(Referral, 'r')
 			.leftJoinAndSelect('r.referrer', 'referrer')
 			.leftJoinAndSelect('r.referee', 'referee')
 			.leftJoinAndSelect('referrer.profile', 'p1')
-			.leftJoinAndSelect('referee.profile', 'p2');
+			.leftJoinAndSelect('referee.profile', 'p2')
+			.orderBy('r.date');
 	}
 
 	async getExport(referrals: Referral[]): Promise<ExportResult> {
-
 		const giftOptions = referrals
 			.map(referral => [
 				...Object.keys(referral.referrerGiftOptions || {}),
