@@ -15,7 +15,7 @@ const app = express();
 app.set( 'views', __dirname + '/views' );
 
 app.get('/', wrapAsync(async (req, res) => {
-	const segments = SegmentService.getSegmentsWithCount();
+	const segments = await SegmentService.getSegmentsWithCount();
 	res.render('index', {segments});
 }));
 
