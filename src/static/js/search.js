@@ -63,7 +63,7 @@ $('#builder').queryBuilder({
 		values: {true: 'Yes', false: 'No'}
 	}, {
 		id: 'permission',
-		label: 'Permission type',
+		label: 'Role',
 		type: 'string',
 		input: 'select',
 		values: {
@@ -74,11 +74,11 @@ $('#builder').queryBuilder({
 		}
 	}, {
 		id: 'dateAdded',
-		label: 'Permission start date',
+		label: 'Role start date',
 		type: 'datetime'
 	}, {
 		id: 'dateExpires',
-		label: 'Permission expiry date',
+		label: 'Role expiry date',
 		type: 'datetime'
 	}, {
 		id: 'tags',
