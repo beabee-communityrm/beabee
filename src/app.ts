@@ -4,7 +4,6 @@ import cookie from 'cookie-parser';
 import express, { ErrorRequestHandler } from 'express';
 import flash from 'express-flash';
 import helmet from 'helmet';
-import { ConnectionOptions } from 'typeorm';
 
 import appLoader from '@core/app-loader';
 import * as database from '@core/database';
@@ -45,7 +44,7 @@ installLogMiddleware( app );
 app.use( helmet( { contentSecurityPolicy: false } ) );
 app.use( cookie() );
 
-database.connect( config.mongo, config.db as ConnectionOptions ).then(async () => {
+database.connect( config.mongo ).then(async () => {
 	// Load some caches and make them immediately available
 	await PageSettingsService.reload();
 	app.use((req, res, next) => {

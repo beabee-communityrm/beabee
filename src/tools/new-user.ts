@@ -2,7 +2,7 @@ import 'module-alias/register';
 
 import inquirer, { QuestionCollection } from 'inquirer';
 import moment from 'moment';
-import { ConnectionOptions, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 import { ContributionType } from '@core/utils';
@@ -76,7 +76,7 @@ questions.push( {
 } );
 
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	const answers = await inquirer.prompt( questions );
 
 	const password = await generatePassword(answers.password);

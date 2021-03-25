@@ -12,13 +12,6 @@
 	},
 	"tag_salt": "",
 	"trackDomains": [],
-	"db": {
-		"type": "postgres",
-		"host": "new_db",
-		"username": "membership_system",
-		"password": "membership_system",
-		"database": "membership_system"
-	},
 	"mongo": "mongodb://db/membership-system",
 	"audience": "http://localhost:3001",
 	"discourse": {

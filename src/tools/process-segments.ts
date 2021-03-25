@@ -1,6 +1,6 @@
 import 'module-alias/register';
 
-import { ConnectionOptions, getRepository, In } from 'typeorm';
+import { getRepository, In } from 'typeorm';
 
 import * as db from '@core/database';
 import { log as mainLogger } from '@core/logging';
@@ -100,7 +100,7 @@ async function main(segmentId?: string) {
 }
 
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	try {
 		await main(process.argv[2]);
 	} catch (error) {

@@ -1,7 +1,7 @@
 import 'module-alias/register';
 
 import moment from 'moment';
-import { Brackets, ConnectionOptions, createQueryBuilder } from 'typeorm';
+import { Brackets, createQueryBuilder } from 'typeorm';
 
 import * as db from '@core/database';
 import { ContributionPeriod, ContributionType, getActualAmount } from '@core/utils';
@@ -142,7 +142,7 @@ async function main() {
 	]);
 }
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	console.log();
 	try {
 		await main();

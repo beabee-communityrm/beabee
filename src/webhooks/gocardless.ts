@@ -3,7 +3,6 @@ import 'module-alias/register';
 import bodyParser from 'body-parser';
 import express from 'express';
 import { Event, EventResourceType } from 'gocardless-nodejs/types/Types';
-import { ConnectionOptions } from 'typeorm';
 
 import { installMiddleware, log } from '@core/logging';
 import * as db from '@core/database';
@@ -78,7 +77,7 @@ log.info( {
 	action: 'start'
 } );
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	app.listen( config.gocardless.port, config.host, function () {
 		log.debug( {action: 'start-webserver'} );
 	} );

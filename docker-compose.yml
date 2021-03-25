@@ -6,6 +6,9 @@ x-base-app: &base-app
     target: app
   volumes:
     - ./built:/opt/membership-system/built
+    - ./src/migrations:/opt/membership-system/src/migrations
+  env_file:
+    - .env
   environment:
     NODE_ENV: development
 
@@ -27,7 +30,7 @@ services:
   mail:
     image: mailhog/mailhog:latest
     ports:
-      - 3025:8025
+      - ${MAIL_PORT}:8025
 
   app: *base-app
 
@@ -51,7 +54,7 @@ services:
     volumes:
       - ./built/static:/opt/membership-system/built/static:ro
     ports:
-      - 3001:80
+      - ${PORT}:80
 
 volumes:
   db_data:

@@ -69,6 +69,7 @@
     "watch": "gulp watch",
     "build": "rimraf built/ && gulp build && tsc",
     "checkDependencies": "npm run build && tscpaths -s src -o built -p tsconfig.json && madge --warning -c built",
+    "typeorm": "docker-compose run --rm app node --require module-alias/register node_modules/.bin/typeorm",
     "test": "ava"
   },
   "devDependencies": {

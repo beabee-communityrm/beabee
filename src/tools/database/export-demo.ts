@@ -1,6 +1,6 @@
 import 'module-alias/register';
 
-import { ConnectionOptions, createQueryBuilder, getRepository } from 'typeorm';
+import { createQueryBuilder, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 
@@ -33,7 +33,7 @@ async function main() {
 	await runExport(gcPaymentDataDrier, qb => qb.where('item.memberId IN (:...ids)', {ids: memberIds}), valueMap);
 }
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	try {
 		await main();
 	} catch (err) {

@@ -1,7 +1,7 @@
 import 'module-alias/register';
 
 import readline from 'readline';
-import { ConnectionOptions, getManager } from 'typeorm';
+import { getManager } from 'typeorm';
 
 import config from '@config';
 import * as db from '@core/database';
@@ -11,7 +11,7 @@ if (!config.dev) {
 	process.exit(1);
 }
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	const rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout,

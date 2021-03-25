@@ -1,6 +1,6 @@
 import 'module-alias/register';
 
-import { ConnectionOptions, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 
@@ -19,7 +19,7 @@ async function main() {
 	}
 }
 
-db.connect(config.mongo, config.db as ConnectionOptions).then(async () => {
+db.connect(config.mongo).then(async () => {
 	try {
 		await main();
 	} catch (err) {

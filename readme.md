@@ -30,15 +30,17 @@ Browser testing with<br/>
 You need:
 
 - Docker >= 19.03.8
-- Docker Compose >= 1.25.5
+- Docker Compose >= 1.28.0
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
-The example config file is enough to look around the system, but you'll need to create a sandbox GoCardless account to do any payment flows.
+The example config files are enough to look around the system, but you'll
+need to create a sandbox GoCardless account to do any payment flows.
 
 ```bash
-# Copy config
+# Copy config files (there are currently two as we migrate to .env)
 cp src/config/example-config.json src/config/config.json
+cp .env.example .env
 
 # Initialise database
 docker-compose up -d db new_db
