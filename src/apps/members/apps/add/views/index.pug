@@ -6,7 +6,8 @@ block prepend title
 block contents
 	.row
 		.col-md-9
-			+page_header( 'Add member' )
+			+page_header( 'Add contact' )
+
 			form(method='POST').form-horizontal.js-reveal
 				+csrf
 				+input( 'text', 'First name', 'firstname', { required: true, left: 3, right: 5 } )

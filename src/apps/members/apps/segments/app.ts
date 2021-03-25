@@ -35,7 +35,8 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 	case 'update':
 		await getRepository(Segment).update(segment.id, {
 			name: req.body.name,
-			description: req.body.description || ''
+			description: req.body.description || '',
+			order: req.body.order || 0
 		});
 		req.flash('success', 'segment-updated');
 		res.redirect(req.originalUrl);

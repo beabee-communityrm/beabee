@@ -33,7 +33,12 @@ block contents
 				.form-group
 					label(for='description').control-label.col-md-3 Description
 					.col-md-9
-						textarea(name='description')#intro.form-control= segment.description
+						textarea(name='description')#description.form-control= segment.description
+				.form-group
+					label(for='order').control-label.col-md-3 Order
+					.col-md-9
+						input(type='number' name='order' value=segment.order style='width: 100px')#order.form-control
+						p.help-block Controls the order the segments are listed
 							
 				.form-group
 					.col-md-9.col-md-offset-3

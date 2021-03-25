@@ -19,5 +19,8 @@ export default class Segment {
 	@OneToMany('SegmentMember', 'segment')
 	members!: SegmentMember[]
 
+	@Column({type: 'int', default: 0})
+	order!: number
+
 	memberCount?: number
 }

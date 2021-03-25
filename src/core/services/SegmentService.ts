@@ -13,7 +13,7 @@ export default class SegmentService {
 	}
 
 	static async getSegmentsWithCount(): Promise<Segment[]> {
-		const segments = await getRepository(Segment).find();
+		const segments = await getRepository(Segment).find({order: {order: 'ASC'}});
 		for (const segment of segments) {
 			segment.memberCount = await buildQuery(segment.ruleGroup).getCount();
 		}
