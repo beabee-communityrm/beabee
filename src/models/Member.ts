@@ -116,6 +116,11 @@ export default class Member {
 				.subtract(config.gracePeriod).diff(moment.utc(), 'months')) : 0;
 	}
 
+	get membershipExpires(): Date|undefined {
+		const membership = this.permissions.find(p => p.permission === 'member');
+		return membership?.dateExpires;
+	}
+
 	// TODO: Remove Cable specific references
 	get referralLink(): string {
 		return 'https://thebristolcable.org/refer/' + this.referralCode;
