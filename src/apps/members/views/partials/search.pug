@@ -3,9 +3,9 @@ if activeSegment
 		i.glyphicon.glyphicon-search
 		span Toggle query
 else
-	ul.nav.nav-pills.member-search-options
-		li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='pill' href='#basic') Basic
-		li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='pill' href='#advanced') Advanced
+	ul.nav.nav-tabs.member-search-options
+		li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='tab' href='#basic') Basic
+		li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='tab' href='#advanced') Advanced
 
 mixin searchState
 	if activeSegment
