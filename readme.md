@@ -44,7 +44,8 @@ cp .env.example .env
 
 # Initialise database
 docker-compose up -d db new_db
-docker-compose run --rm app node built/tools/database/sync
+docker-compose run --rm app npm run typeorm schema:sync
+docker-compose run --rm app npm run typeorm migration:run
 
 # Do the rest
 docker-compose up -d
