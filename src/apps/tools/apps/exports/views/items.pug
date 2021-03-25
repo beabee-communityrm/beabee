@@ -8,7 +8,11 @@ block contents
 		.col-md-12
 			+page_header(exportDetails.description)
 
-			p Status: #{status}
+			dl.dl-horizontal
+				dt Status
+				dd= status
+				dt Count
+				dd= data.length
 			
 			if data.length > 0
 				div(style='overflow-x: auto')

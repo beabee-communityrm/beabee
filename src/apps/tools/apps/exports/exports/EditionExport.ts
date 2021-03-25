@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Brackets, createQueryBuilder, SelectQueryBuilder } from 'typeorm';
+import { createQueryBuilder, SelectQueryBuilder } from 'typeorm';
 
 import { ContributionType } from '@core/utils';
 import { Param } from '@core/utils/params';
@@ -7,9 +7,10 @@ import { Param } from '@core/utils/params';
 import ExportItem from '@models/ExportItem';
 import Member from '@models/Member';
 
-import BaseExport, { ExportResult } from './BaseExport';
+import { ExportResult } from './BaseExport';
+import ActiveMembersExport from './ActiveMembersExport';
 
-export default class EditionExport extends BaseExport<Member> {
+export default class EditionExport extends ActiveMembersExport {
 	exportName = 'Edition export'
 	itemStatuses = ['added', 'sent']
 	itemName = 'members'
@@ -27,15 +28,17 @@ export default class EditionExport extends BaseExport<Member> {
 		}];
 	}
 
-	protected getQuery(): SelectQueryBuilder<Member> {
-		const members = createQueryBuilder(Member, 'm')
+	protected get query(): SelectQueryBuilder<Member> {
+		return createQueryBuilder(Member, 'm')
 			.innerJoinAndSelect('m.profile', 'profile')
-			.innerJoin('m.permissions', 'mp')
-			.where('mp.permission = \'member\' AND mp.dateAdded <= :now')
-			.andWhere(new Brackets(qb => {
-				qb.where('mp.dateExpires IS NULL')
-					.orWhere('mp.dateExpires > :now');
-			}))
+			.orderBy({
+				firstname: 'ASC',
+				lastname: 'ASC'
+			});
+	}
+
+	protected getNewItemsQuery(): SelectQueryBuilder<Member> {
+		const query = super.getNewItemsQuery()
 			.andWhere('m.contributionMonthlyAmount >= :amount')
 			.setParameters({
 				now: new Date(),
@@ -43,11 +46,10 @@ export default class EditionExport extends BaseExport<Member> {
 			});
 
 		if (!this.ex!.params?.includeNonOptIn) {
-			members
-				.andWhere('profile.deliveryOptIn = TRUE');
+			query.andWhere('profile.deliveryOptIn = TRUE');
 		}
 
-		return members;
+		return query;
 	}
 
 	async getExport(members: Member[]): Promise<ExportResult> {
@@ -89,7 +91,6 @@ export default class EditionExport extends BaseExport<Member> {
 					//NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
 					ContributionMonthlyAmount: member.contributionMonthlyAmount
 				};
-			})
-			.sort((a, b) => b.LastName.toLowerCase() > a.LastName.toLowerCase() ? -1 : 1);
+			});
 	}
 }

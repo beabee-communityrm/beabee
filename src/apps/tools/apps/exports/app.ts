@@ -80,8 +80,6 @@ app.get( '/', wrapAsync( async function( req, res ) {
 		exportTypesWithParams.push(exportType);
 	}
 
-	console.log(exportTypesWithParams);
-
 	res.render('index', {exportsByType, exportTypesWithParams});
 } ) );
 
