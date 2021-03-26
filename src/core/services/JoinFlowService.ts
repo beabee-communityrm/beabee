@@ -59,7 +59,7 @@ export default class JoinFlowService {
 	static async completeRestartFlow(restartFlowId: string): Promise<RestartFlow|undefined> {
 		const restartFlowRepository = getRepository(RestartFlow);
 		const restartFlow = await restartFlowRepository.findOne({
-			where: {restartFlowId},
+			where: {id: restartFlowId},
 			relations: ['member']
 		});
 		if (restartFlow) {
