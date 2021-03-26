@@ -27,6 +27,7 @@ import EmailMailing from '@models/EmailMailing';
 import Segment from '@models/Segment';
 import SegmentMember from '@models/SegmentMember';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
+import RestartFlow from '@models/RestartFlow';
 
 type DrierMap<T> = {[K in keyof T]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -184,6 +185,10 @@ const referralsGiftDrier = createDrier(ReferralGift, {
 	stock: copy // Add to map so it is serialised correctly
 });
 
+const restartFlowDrier = createDrier(RestartFlow, {
+	member: memberId
+});
+
 const segmentsDrier = createDrier(Segment);
 
 const segmentMembersDrier = createDrier(SegmentMember, {
@@ -214,6 +219,7 @@ export default [
 	projectEngagmentsDrier,
 	referralsGiftDrier, // Must be before referralsDrier
 	referralsDrier,
+	restartFlowDrier,
 	segmentsDrier,
 	segmentMembersDrier,
 	segmentOngoingEmailsDrier,
