@@ -4,11 +4,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { Chance } from 'chance';
 
 import Email from '@models/Email';
+import EmailMailing from '@models/EmailMailing';
 import Export from '@models/Export';
 import ExportItem from '@models/ExportItem';
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
 import GiftFlow, { GiftForm } from '@models/GiftFlow';
+import ManualPaymentData from '@models/ManualPaymentData';
 import Member from '@models/Member';
 import MemberPermission from '@models/MemberPermission';
 import MemberProfile from '@models/MemberProfile';
@@ -22,12 +24,10 @@ import ProjectMember from '@models/ProjectMember';
 import ProjectEngagement from '@models/ProjectEngagement';
 import Referral from '@models/Referral';
 import ReferralGift from '@models/ReferralGift';
-import ManualPaymentData from '@models/ManualPaymentData';
-import EmailMailing from '@models/EmailMailing';
+import RestartFlow from '@models/RestartFlow';
 import Segment from '@models/Segment';
 import SegmentMember from '@models/SegmentMember';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
-import RestartFlow from '@models/RestartFlow';
 
 type DrierMap<T> = {[K in keyof T]?: ((prop: T[K]) => T[K])|Drier<T[K]>};
 
@@ -186,6 +186,7 @@ const referralsGiftDrier = createDrier(ReferralGift, {
 });
 
 const restartFlowDrier = createDrier(RestartFlow, {
+	id: () => uuidv4(),
 	member: memberId
 });
 
