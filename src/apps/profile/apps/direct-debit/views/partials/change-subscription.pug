@@ -147,7 +147,7 @@ form(
 										td #{currencySymbol}#[span.js-new-amount] * #{user.memberMonthsRemaining}
 										td.text-left Partial payment for new contribution
 									tr
-										td - #{currencySymbol}#{user.contributionMonthlyAmount} * #{user.memberMonthsRemaining}
+										td - #{currencySymbol}#{user.contributionMonthlyAmount * user.memberMonthsRemaining}
 										td #{currencySymbol}#{user.contributionMonthlyAmount} * #{user.memberMonthsRemaining}
 
 										td.text-left Partial refund for old contribution
