@@ -9,7 +9,7 @@ import tar from 'tar-stream';
 import { Between, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
-import mailchimp, { Batch, Operation } from '@core/lib/mailchimp';
+import mailchimp, { Batch, memberToMCMember, Operation } from '@core/lib/mailchimp';
 import { cleanEmailAddress } from '@core/utils';
 
 import Member from '@models/Member';
@@ -35,16 +35,7 @@ function memberToOperation(listId: string, member: Member): Operation {
 		path,
 		method: 'PATCH',
 		body: JSON.stringify({
-			email_address: member.email,
-			merge_fields: {
-				FNAME: member.firstname,
-				LNAME: member.lastname,
-				REFLINK: member.referralLink,
-				POLLSCODE: member.pollsCode,
-				C_DESC: member.contributionDescription,
-				C_MNTHAMT: member.contributionMonthlyAmount,
-				C_PERIOD: member.contributionPeriod
-			},
+			...memberToMCMember(member),
 			status: 'subscribed'
 		}),
 		operation_id: `add_${listId}_${emailHash}`

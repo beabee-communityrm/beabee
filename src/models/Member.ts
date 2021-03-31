@@ -121,11 +121,6 @@ export default class Member {
 		return membership?.dateExpires;
 	}
 
-	// TODO: Remove Cable specific references
-	get referralLink(): string {
-		return 'https://thebristolcable.org/refer/' + this.referralCode;
-	}
-
 	get setupComplete(): boolean {
 		return this.password.hash !== '';
 	}

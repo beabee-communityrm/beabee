@@ -19,7 +19,7 @@ block contents
 				a(href='https://thebristolcable.org/referafriend', target='_blank').btn.btn-info Find out more
 
 			p Send the following link to your friends to refer them:
-			pre= referralLink
+			pre= Options('referral-short-url') + '/' + referralCode
 
 			h3 Your referees
 			if referrals.length > 0
