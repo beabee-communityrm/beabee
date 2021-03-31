@@ -53,7 +53,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	}
 
 	req.flash('success', 'member-added');
-	res.redirect( '/members/' + member.id );
+	res.redirect(req.body.another ? '/members/add' : '/members/' + member.id)
 } ) );
 
 export default app;

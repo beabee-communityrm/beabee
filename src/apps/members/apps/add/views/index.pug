@@ -55,5 +55,10 @@ block contents
 				.js-reveal-type(data-type='Manual')
 					include /apps/members/apps/member/apps/contribution/views/partials/manual-fields
 
-				+form_button( 'Add member', 'success', {left: 3} )
+				.form-group
+					.col-md-offset-3.col-md-9
+						button.btn.btn-success Save
+						|
+						|
+						button(name='another' value='1').btn.btn-default Save and add another contact
 				
