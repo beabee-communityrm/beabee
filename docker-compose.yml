@@ -14,11 +14,6 @@ x-base-app: &base-app
     TYPEORM_MIGRATIONS_DIR: src/migrations/
 
 services:
-  db:
-    image: mongo:3.6.18
-    volumes:
-      - db_data:/data/db
-
   new_db:
     image: postgres:10.15
     volumes:
@@ -58,5 +53,4 @@ services:
       - ${PORT}:80
 
 volumes:
-  db_data:
   new_db_data:
