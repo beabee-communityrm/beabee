@@ -46,8 +46,7 @@ app.get( '/', wrapAsync( hasUser(async function ( req, res ) {
 		user: req.user,
 		hasPendingPayment: await GCPaymentService.hasPendingPayment(req.user),
 		bankAccount: await GCPaymentService.getBankAccount(req.user),
-		canChange: await GCPaymentService.canChangeContribution(req.user, !!res.locals.gcData?.mandateId),
-		monthsLeft: req.user.memberMonthsRemaining
+		canChange: await GCPaymentService.canChangeContribution(req.user, !!res.locals.gcData?.mandateId)
 	} );
 } ) ) );
 

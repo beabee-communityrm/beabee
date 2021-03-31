@@ -13,7 +13,7 @@ block contents
 			include /apps/profile/views/partials/sidebar.pug
 		.col-md-9.col-lg-7
 			+page_header( 'Contribution details' )
-			if !user.isActiveMember
+			if !user.isActiveMember && user.membershipExpires
 				.alert.alert-danger Your membership has expired
 			else if gcData && gcData.cancelledAt
 				.alert.alert-warning You cancelled your contribution
