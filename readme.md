@@ -43,7 +43,7 @@ cp src/config/example-config.json src/config/config.json
 cp .env.example .env
 
 # Initialise database
-docker-compose up -d db new_db
+docker-compose up -d db
 docker-compose run --rm app npm run typeorm migration:run
 
 # Do the rest
