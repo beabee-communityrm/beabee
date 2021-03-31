@@ -14,10 +14,10 @@ x-base-app: &base-app
     TYPEORM_MIGRATIONS_DIR: src/migrations/
 
 services:
-  new_db:
+  db:
     image: postgres:10.15
     volumes:
-      - new_db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: membership_system
       POSTGRES_PASSWORD: membership_system
@@ -53,4 +53,4 @@ services:
       - ${PORT}:80
 
 volumes:
-  new_db_data:
+  db_data:
