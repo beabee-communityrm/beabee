@@ -39,6 +39,14 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 
 	if (req.body.type === ContributionType.GoCardless) {
 		await GCPaymentService.updatePaymentMethod(member, req.body.customerId, req.body.mandateId);
+		if (req.body.period) {
+			await GCPaymentService.updateContribution(member, {
+				amount: req.body.amount,
+				period: req.body.period,
+				payFee: req.body.payFee,
+				prorate: false
+			});
+		}
 	} else if (req.body.type === ContributionType.Manual) {
 		const paymentData = getRepository(ManualPaymentData).create({
 			member,
@@ -46,10 +54,12 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 			reference: req.body.reference || ''
 		});
 		await getRepository(ManualPaymentData).save(paymentData);
-		await MembersService.updateMember(member, {
-			contributionPeriod: req.body.period,
-			contributionMonthlyAmount: req.body.amount
-		});
+		if (req.body.period) {
+			await MembersService.updateMember(member, {
+				contributionPeriod: req.body.period,
+				contributionMonthlyAmount: req.body.amount
+			});
+		}
 	}
 
 	req.flash('success', 'member-added');

@@ -48,9 +48,30 @@ block contents
 
 
 				.js-reveal-type(data-type='GoCardless')
-					.row: .col-md-offset-3.col-md-9: h5 GoCardless details
+					.row: .col-md-offset-3.col-md-9: h5 Payment details
 					+input( 'text', 'Customer ID', 'customerId', { required: true, left: 3, right: 6, placeholder: 'CU...' } )
 					+input( 'text', 'Mandate ID', 'mandateId', { required: true, left: 3, right: 6, placeholder: 'MD...' } )
+
+					.row: .col-md-offset-3.col-md-9: h5 Contribution details
+					+input( 'number', 'Monthly amount', 'amount', {
+						left: 3, right: 4, before: currencySymbol,
+						id: 'Amount'
+					})
+					if periodReadOnly
+						.form-group
+							label.col-md-3.control-label Period
+							.col-md-4.form-control-static= member.contributionPeriod
+					else
+						+input( 'radio', 'Period', 'period', {
+							left: 3, right: 4,
+							options: {'monthly': 'Monthly', 'annually': 'Annually'},
+							id: 'Period'
+						})
+					+input( 'checkbox', 'Paying fee', 'payFee', {
+						left: 3, right: 4,
+						options: {'true': 'Yes'},
+						id: 'PayFee'
+					})
 				
 				.js-reveal-type(data-type='Manual')
 					include /apps/members/apps/member/apps/contribution/views/partials/manual-fields
