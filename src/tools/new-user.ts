@@ -10,8 +10,6 @@ import { generatePassword, passwordRequirements } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 
-import config from '@config';
-
 import MemberPermission from '@models/MemberPermission';
 import Member from '@models/Member';
 
@@ -76,7 +74,7 @@ questions.push( {
 } );
 
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	const answers = await inquirer.prompt( questions );
 
 	const password = await generatePassword(answers.password);

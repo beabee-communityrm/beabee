@@ -77,7 +77,7 @@ log.info( {
 	action: 'start'
 } );
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	app.listen( config.gocardless.port, config.host, function () {
 		log.debug( {action: 'start-webserver'} );
 	} );

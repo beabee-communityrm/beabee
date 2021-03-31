@@ -142,7 +142,7 @@ async function main() {
 	]);
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	console.log();
 	try {
 		await main();

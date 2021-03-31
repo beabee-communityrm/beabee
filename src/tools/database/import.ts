@@ -11,7 +11,7 @@ if (!config.dev) {
 	process.exit(1);
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	const rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout,
