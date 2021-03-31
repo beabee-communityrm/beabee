@@ -4,8 +4,6 @@ import { getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 
-import config from '@config';
-
 import allDriers, { runExport } from './driers';
 
 async function main() {
@@ -19,7 +17,7 @@ async function main() {
 	}
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	try {
 		await main();
 	} catch (err) {

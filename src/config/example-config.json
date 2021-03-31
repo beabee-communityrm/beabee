@@ -12,7 +12,6 @@
 	},
 	"tag_salt": "",
 	"trackDomains": [],
-	"mongo": "mongodb://db/membership-system",
 	"audience": "http://localhost:3001",
 	"discourse": {
 		"url": "https://discourse.example.org",

@@ -10,8 +10,6 @@ import GiftService from '@core/services/GiftService';
 
 import GiftFlow from '@models/GiftFlow';
 
-import config from '@config';
-
 async function main(date: string|undefined) {
 	const fromDate = moment.utc(date).startOf('day');
 	const toDate = moment.utc(date).endOf('day');
@@ -55,7 +53,7 @@ async function main(date: string|undefined) {
 	}
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	try {
 		await main(process.argv[2]);
 	} catch (err) {

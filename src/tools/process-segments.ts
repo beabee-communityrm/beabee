@@ -14,8 +14,6 @@ import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 import SegmentMember from '@models/SegmentMember';
 
-import config from '@config';
-
 const log = mainLogger.child({app: 'process-segments'});
 
 function membersToRecipients(members: Member[]): EmailRecipient[] {
@@ -100,7 +98,7 @@ async function main(segmentId?: string) {
 }
 
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	try {
 		await main(process.argv[2]);
 	} catch (error) {

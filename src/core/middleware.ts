@@ -1,6 +1,5 @@
 import { ErrorObject, FormatParams, RequiredParams, ValidateFunction } from 'ajv';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import mongoose, { Document, DocumentDefinition, FilterQuery, Model } from 'mongoose';
 import { EntityTarget, FindOneOptions, getRepository } from 'typeorm';
 
 import ajv from '@core/lib/ajv';
@@ -98,27 +97,6 @@ export function hasSchema( schema: Partial<Record<ValidationKeys, object>>): Has
 			return onRequest( validators, redirectTo( url ) );
 		},
 		orReplyWithJSON: onRequest( validators, replyWithJSON )
-	};
-}
-
-export function hasModel<T extends Document>(modelCls: Model<T>, prop: keyof DocumentDefinition<T>): RequestHandler {
-	return async ( req, res, next ) => {
-		// Avoid refetching models as they fall through handlers
-		if (!req.model || (req.model as any)[prop] != req.params[prop as string]) {
-			try {
-				req.model = await modelCls.findOne( { [prop]: req.params[prop as string] } as FilterQuery<T> );
-			} catch (err) {
-				if (!(err instanceof mongoose.Error.CastError)) {
-					throw err;
-				}
-			}
-		}
-
-		if (req.model) {
-			next();
-		} else {
-			next('route');
-		}
 	};
 }
 

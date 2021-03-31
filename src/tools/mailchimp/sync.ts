@@ -163,7 +163,7 @@ async function dispatchOperations(operations: Operation[]) {
 	}
 }
 
-db.connect(config.mongo).then(async () => {
+db.connect().then(async () => {
 	const isTest = process.argv[2] === '-n';
 	try {
 		const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);

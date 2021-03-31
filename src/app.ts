@@ -14,7 +14,7 @@ import sessions from '@core/sessions';
 import OptionsService, { OptionKey } from '@core/services/OptionsService';
 import PageSettingsService from '@core/services/PageSettingsService';
 
-import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
+//import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
 
 import config from '@config';
 
@@ -44,7 +44,7 @@ installLogMiddleware( app );
 app.use( helmet( { contentSecurityPolicy: false } ) );
 app.use( cookie() );
 
-database.connect( config.mongo ).then(async () => {
+database.connect().then(async () => {
 	// Load some caches and make them immediately available
 	await PageSettingsService.reload();
 	app.use((req, res, next) => {
@@ -81,7 +81,7 @@ database.connect( config.mongo ).then(async () => {
 	await appLoader( app );
 
 	// Hook to handle special URLs
-	app.use( '/s', specialUrlHandler );
+	//app.use( '/s', specialUrlHandler );
 
 	// Error 404
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
