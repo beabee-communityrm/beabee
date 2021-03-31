@@ -7,7 +7,7 @@ form(
 	data-active-member=user.isActiveMember
 	data-active-subscription=hasActiveSubscription
 	data-next=user.isActiveMember && moment(user.membershipExpires).format('dddd, MMMM Do YYYY')
-	data-months=monthsLeft
+	data-months=user.memberMonthsRemaining
 ).form-horizontal.js-update-form
 	+csrf
 
@@ -95,14 +95,15 @@ form(
 					input(type='hidden', name='useMandate', value='false')
 					i You'll be asked for your bank details on the next step
 
-	if monthsLeft < 1
+	if user.memberMonthsRemaining < 1
 		input(type='hidden' name='prorate' value='false')
 	else
 		.hidden.js-new-amount-more
 			p.alert.alert-info.
-				Your current contribution runs for another #{monthsLeft} months, if you
-				want to start your new contribution immediately we can take a one-off
-				payment of #{currencySymbol}#[span.js-new-amount-prorated -].
+				Your current contribution runs for another
+				#{user.memberMonthsRemaining} months, if you want to start your new
+				contribution immediately we can take a one-off payment of
+				#{currencySymbol}#[span.js-new-amount-prorated -].
 
 			.form-group(style="margin-bottom: 0")
 				.col-md-12
@@ -129,7 +130,7 @@ form(
 						.panel-body
 							p.
 								We calculated your one-off payment based on having
-								#[b #{monthsLeft} months] left in your payment cycle, with
+								#[b #{user.memberMonthsRemaining} months] left in your payment cycle, with
 								an old contribution of
 								#[b #{currencySymbol}#{user.contributionMonthlyAmount}/month] and a new
 								contribution of
@@ -143,11 +144,12 @@ form(
 								tbody
 									tr
 										td #{currencySymbol}#[span.js-new-amount-prorated-new]
-										td #{currencySymbol}#[span.js-new-amount] * #{monthsLeft}
+										td #{currencySymbol}#[span.js-new-amount] * #{user.memberMonthsRemaining}
 										td.text-left Partial payment for new contribution
 									tr
-										td - #{currencySymbol}#{user.contributionMonthlyAmount * monthsLeft}
-										td #{currencySymbol}#{user.contributionMonthlyAmount} * #{monthsLeft}
+										td - #{currencySymbol}#{user.contributionMonthlyAmount} * #{user.memberMonthsRemaining}
+										td #{currencySymbol}#{user.contributionMonthlyAmount} * #{user.memberMonthsRemaining}
+
 										td.text-left Partial refund for old contribution
 									tr
 										td

@@ -22,8 +22,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	if (member.contributionType === ContributionType.GoCardless) {
 		res.render( 'gocardless', {
 			member: req.model,
-			canChange: await GCPaymentService.canChangeContribution( member, true ),
-			monthsLeft: member.memberMonthsRemaining
+			canChange: await GCPaymentService.canChangeContribution( member, true )
 		} );
 	} else if (member.contributionType === ContributionType.Manual) {
 		res.render('manual', {member: req.model});

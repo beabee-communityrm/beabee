@@ -23,5 +23,5 @@ block contents
 						dt Contribution
 						dd= user.contributionDescription
 
-					if !user.isActiveMember
+					if user.membershipExpires && !user.isActiveMember
 						.alert.alert-danger Your membership has expired
