@@ -85,7 +85,7 @@ export default class EditionExport extends ActiveMembersExport {
 					Address2: deliveryAddress.line2,
 					City: deliveryAddress.city,
 					Postcode: deliveryAddress.postcode.trim().toUpperCase(),
-					ReferralLink: member.referralLink,
+					ReferralCode: member.referralCode,
 					IsGift: member.contributionType === ContributionType.Gift,
 					IsFirstEdition: memberExportItems.every(ei => getExportNo(ei.export) >= currentExportNo),
 					//NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,

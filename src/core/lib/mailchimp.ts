@@ -117,13 +117,13 @@ const batchInstance = createInstance('/batches');
 
 const mainListInstance = lists(config.mailchimp.mainList);
 
-function memberToMCMember(member: Member): MCMember {
+export function memberToMCMember(member: Member): MCMember {
 	return {
 		email_address: member.email,
 		merge_fields: {
 			FNAME: member.firstname,
 			LNAME: member.lastname,
-			REFLINK: member.referralLink,
+			REFCODE: member.referralCode,
 			POLLSCODE: member.pollsCode,
 			C_DESC: member.contributionDescription,
 			C_MNTHAMT: member.contributionMonthlyAmount?.toString() || '',

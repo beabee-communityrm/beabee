@@ -27,7 +27,7 @@ const emailTemplates = {
 
 const memberEmailTemplates = {
 	'welcome': (member: Member) => ({
-		REFLINK: member.referralLink
+		REFCODE: member.referralCode
 	}),
 	'welcome-post-gift': () => ({}),
 	'reset-password': (member: Member) => ({
@@ -50,7 +50,7 @@ const memberEmailTemplates = {
 		RESTARTLINK: config.audience + '/join/restart/' + params.code
 	}),
 	'successful-referral': (member: Member, params: {refereeName: string, isEligible: boolean}) => ({
-		REFLINK: member.referralLink,
+		REFCODE: member.referralCode,
 		REFEREENAME: params.refereeName,
 		ISELIGIBLE: params.isEligible
 	}),

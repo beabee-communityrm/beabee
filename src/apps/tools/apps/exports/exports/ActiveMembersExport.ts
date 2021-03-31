@@ -55,7 +55,7 @@ export default class ActiveMembersExport extends BaseExport<Member> {
 				EmailAddress: member.email,
 				FirstName: member.firstname,
 				LastName: member.lastname,
-				ReferralLink: member.referralLink,
+				ReferralCode: member.referralCode,
 				PollsCode: member.pollsCode,
 				ContributionType: member.contributionType,
 				ContributionMonthlyAmount: member.contributionMonthlyAmount,

@@ -32,7 +32,7 @@ app.use( isLoggedIn );
 
 app.get( '/', wrapAsync( hasUser( async ( req, res ) => {
 	const referrals = await ReferralsService.getMemberReferrals(req.user);
-	res.render( 'index', { referralLink: req.user.referralLink, referrals } );
+	res.render( 'index', { referralCode: req.user.referralCode, referrals } );
 } ) ) );
 
 app.get( '/:id', isOwnReferral, wrapAsync( async ( req, res ) => {
