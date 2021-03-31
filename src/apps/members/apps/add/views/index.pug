@@ -24,28 +24,12 @@ block contents
 							option GoCardless
 							option Manual
 
-				.js-reveal
-					.form-group
-						.col-md-6.col-md-offset-3
-							.checkbox
-								label
-									input(type='checkbox' name='grantMembership' value='true').js-reveal-types
-									| Grant membership
+				.row: .col-md-offset-3.col-md-9: h5 Roles
 
-					.js-reveal-type(data-type='grantMembership')
-						.form-group
-							label.col-md-3.control-label Start
-							.col-md-6
-								input( type="time", name="membershipStartTime", style="display: inline; width: auto;" ).form-control
-								| &nbsp;
-								input( type="date", name="membershipStartDate", style="display: inline; width: auto;" ).form-control
-						.form-group
-							label.col-md-3.control-label Expires
-							.col-md-6
-								input( type="time", name="membershipExpiryTime", style="display: inline; width: auto;" ).form-control
-								| &nbsp;
-								input( type="date", name="membershipExpiryDate", style="display: inline; width: auto;" ).form-control
+				ul(style='margin: 0; padding:0 ; list-style:none' data-name='permissions').js-repeater
 
+				.row: .col-md-offset-3.col-md-9
+					p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add role
 
 				.js-reveal-type(data-type='GoCardless')
 					.row: .col-md-offset-3.col-md-9: h5 Payment details
@@ -81,5 +65,32 @@ block contents
 						button.btn.btn-success Save
 						|
 						|
-						button(name='another' value='1').btn.btn-default Save and add another contact
-				
+						button(name='addAnother' value='true').btn.btn-default Save and add another contact
+
+block prepend js
+	script(type='text/template').js-repeater-template
+		li(style='padding: 15px 0 0 0').js-repeater-item.well
+			.form-group
+				label.col-md-3.control-label Role
+				.col-md-6
+					select(name='permissions[0][permission]' required).form-control
+						option( disabled selected ) –
+						option(value='member') Member
+						option(value='admin') Admin
+						option(value='superadmin') Superadmin
+			.form-group
+				label.col-md-3.control-label Start
+				.col-md-6
+					input( type="time", name="permissions[0][startTime]", value=moment().format( 'HH:mm' ), style="display: inline; width: auto;" ).form-control
+					| &nbsp;
+					input( type="date", name="permissions[0][startDate]", value=moment().format( 'YYYY-MM-DD' ), style="display: inline; width: auto;" ).form-control
+			.form-group
+				label.col-md-3.control-label Expires
+				.col-md-6
+					input( type="time", name="permissions[0][expiryTime]", style="display: inline; width: auto;" ).form-control
+					| &nbsp;
+					input( type="date", name="permissions[0][expiryDate]", style="display: inline; width: auto;" ).form-control
+			.form-group
+				.col-md-offset-3.col-md-6
+					button(type='button').btn.btn-xs.btn-danger.js-repeater-remove-item Remove
+
