@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 
 import gocardless from '@core/lib/gocardless';
@@ -7,12 +8,11 @@ import { isDuplicateIndex } from '@core/utils';
 import { canAdmin, generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
+import OptionsService from '@core/services/OptionsService';
 
 import GCPaymentData from '@models/GCPaymentData';
 import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
-import { Request, Response } from 'express';
-import OptionsService from './OptionsService';
 
 export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
 export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
