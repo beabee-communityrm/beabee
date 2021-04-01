@@ -24,7 +24,7 @@ export default (appConfigs: AppConfig[]) => (req: Request, res: Response, next: 
 		main: []
 	};
 
-	const userPermissions = req.user ? req.user.quickPermissions : ['loggedOut'];
+	const userPermissions = req.user ? ['loggedIn', ...req.user.quickPermissions] : ['loggedOut'];
 
 	for (const appConfig of appConfigs) {
 		if (appConfig.menu !== 'none' && hasPermission(userPermissions, appConfig.permissions)) {
