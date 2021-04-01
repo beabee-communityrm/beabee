@@ -18,8 +18,7 @@ and repurposed by [The Bristol Cable](https://thebristolcable.org).
 - Mandrill for transactional emails
 - Discourse with SSO for forums
 
-![Deploy live](https://github.com/thebristolcable/membership-system/workflows/Deploy%20live/badge.svg)
-[![Deployment](https://circleci.com/gh/thebristolcable/membership-system.svg?style=shield)](https://circleci.com/gh/thebristolcable/membership-system)
+![Deploy](https://github.com/thebristolcable/membership-system/workflows/Deploy/badge.svg)
 [![Known Vulnerabilities](https://snyk.io/test/github/thebristolcable/membership-system/badge.svg?targetFile=package.json)](https://snyk.io/test/github/thebristolcable/membership-system?targetFile=package.json)
 
 Browser testing with<br/>
