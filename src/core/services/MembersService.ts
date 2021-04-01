@@ -4,13 +4,15 @@ import gocardless from '@core/lib/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/lib/mailchimp';
 import { isDuplicateIndex } from '@core/utils';
-import { generateCode } from '@core/utils/auth';
+import { canAdmin, generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
 
 import GCPaymentData from '@models/GCPaymentData';
 import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
+import { Request, Response } from 'express';
+import OptionsService from './OptionsService';
 
 export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
 export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
@@ -122,6 +124,19 @@ export default class MembersService {
 			await getRepository(Member).save(member);
 			await EmailService.sendTemplateToMember('reset-password', member);
 		}
+	}
+
+	static loginAndRedirect(req: Request, res: Response, member: Member, url?: string): void {
+		req.login(member as Express.User, function (loginError) {
+			if (loginError) {
+				throw loginError;
+			} else {
+				if (!url) {
+					url =  OptionsService.getText(canAdmin(req) ? 'admin-home-url' : 'user-home-url');
+				}
+				res.redirect(url);
+			}
+		});
 	}
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {

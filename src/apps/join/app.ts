@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 
 import { hasSchema, isNotLoggedIn } from '@core/middleware' ;
-import { ContributionPeriod, isDuplicateIndex, loginAndRedirect, wrapAsync } from '@core/utils' ;
+import { ContributionPeriod, isDuplicateIndex, wrapAsync } from '@core/utils' ;
 
 import config from '@config';
 
@@ -96,7 +96,7 @@ async function handleJoin(req: Request, res: Response, member: Member, {customer
 		await ReferralsService.createReferral(referrer, member, joinForm);
 	}
 
-	loginAndRedirect(req, res, member, '/profile/complete');
+	MembersService.loginAndRedirect(req, res, member, '/profile/complete');
 }
 
 app.get( '/complete', [
