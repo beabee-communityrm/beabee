@@ -1,16 +1,13 @@
 import { ParamsDictionary } from 'express-serve-static-core';
 
 import Member from '@models/Member';
-import { PermissionType } from '@models/MemberPermission';
 import { PollResponseAnswers } from '@models/PollResponse';
 
 declare global {
 	type WithRelationIds<E, K extends keyof E> = Omit<E, K>&{[key in K]: string}
 
 	namespace Express {
-		export interface User extends Member {
-			quickPermissions: (PermissionType|'loggedIn')[]
-		}
+		export interface User extends Member {}
 
 		export interface Request {
 			flash(level: 'info'|'success'|'warning'|'error'|'danger', message: string): void
