@@ -15,7 +15,7 @@ jobs:
     steps:
       - id: setvars
         run: |
-          if [[ "${{ github.ref }}" == "refs/head/master" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "::set-output name=stage::live"
             echo "::set-output name=tag::latest"
           else
