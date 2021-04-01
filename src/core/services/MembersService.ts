@@ -5,7 +5,7 @@ import gocardless from '@core/lib/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/lib/mailchimp';
 import { isDuplicateIndex } from '@core/utils';
-import { canAdmin, generateCode } from '@core/utils/auth';
+import { AuthenticationStatus, canAdmin, generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
 import OptionsService from '@core/services/OptionsService';
@@ -132,7 +132,7 @@ export default class MembersService {
 				throw loginError;
 			} else {
 				if (!url) {
-					url =  OptionsService.getText(canAdmin(req) ? 'admin-home-url' : 'user-home-url');
+					url =  OptionsService.getText(canAdmin(req) === AuthenticationStatus.LOGGED_IN ? 'admin-home-url' : 'user-home-url');
 				}
 				res.redirect(url);
 			}
