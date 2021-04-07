@@ -67,7 +67,6 @@ $('#builder').queryBuilder({
 		type: 'string',
 		input: 'select',
 		values: {
-			'access': 'Access',
 			'member': 'Member',
 			'admin': 'Admin',
 			'superadmin': 'Superadmin'
