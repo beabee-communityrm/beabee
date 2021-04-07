@@ -51,12 +51,12 @@ jobs:
           target: app
           build-args: |
             REVISION=${{ steps.short-sha.outputs.sha }}
-          tags: beabee/beabee:${{ needs.init.outputs.tag }}
+          tags: ${{ secrets.DOCKER_ORGANISATION }}/beabee:${{ needs.init.outputs.tag }}
       - uses: docker/build-push-action@v2
         with:
           push: true
           target: router
-          tags: beabee/router:${{ needs.init.outputs.tag }}
+          tags: ${{ secrets.DOCKER_ORGANISATION }}/router:${{ needs.init.outputs.tag }}
 
   deploy:
     runs-on: ubuntu-latest
