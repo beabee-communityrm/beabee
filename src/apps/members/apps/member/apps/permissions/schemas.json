@@ -6,7 +6,7 @@
       "properties": {
         "permission": {
           "type": "string",
-          "enum": ["access", "member", "admin", "superadmin"]
+          "enum": ["member", "admin", "superadmin"]
         },
         "startTime": {
           "type": "string",

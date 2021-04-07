@@ -59,9 +59,9 @@
 	"flash-account-locked": "Maximum number of password attempts exceeded",
 	"flash-account-attempts": "There has been % attempt(s) to login to your account since you last logged in",
 
-	"flash-member-added": "Member added",
-	"flash-member-updated": "Member updated",
-	"flash-member-permanently-deleted": "Member permanently deleted",
+	"flash-member-added": "Contact added",
+	"flash-member-updated": "Contact updated",
+	"flash-member-permanently-deleted": "Contact permanently deleted",
 	"flash-member-login-override-generated": "Login override code generated",
 	"flash-member-password-reset-generated": "Password reset code generated",
 	"flash-member-add-invalid-direct-debit": "Invalid direct debit, you must specify the first and last name",
