@@ -19,7 +19,7 @@ and repurposed by [The Bristol Cable](https://thebristolcable.org).
 - Discourse with SSO for forums
 
 ![Deploy](https://github.com/beabee-communityrm/beabee/workflows/Deploy/badge.svg)
-[![Known Vulnerabilities](https://snyk.io/test/github/thebristolcable/membership-system/badge.svg?targetFile=package.json)](https://snyk.io/test/github/thebristolcable/membership-system?targetFile=package.json)
+![Known Vulnerabilities](https://snyk.io/test/github/beabee-communityrm/beabee/badge.svg?targetFile=package.json)
 
 Browser testing with<br/>
 <a href="https://www.browserstack.com/"><img src="https://user-images.githubusercontent.com/2084823/46341120-52388b00-c62f-11e8-8f41-270915ccc03b.png" width="150" /></a>
