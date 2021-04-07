@@ -5,7 +5,7 @@ form( method="post" )
 			label( for="permission" ) Role:
 			select( name="permission" )#permission.form-control
 				option( disabled selected ) –
-				each permission in ['access', 'member', 'admin', 'superadmin']
+				each permission in ['member', 'admin', 'superadmin']
 					option(
 						selected=( current != undefined && permission == current.permission.slug ),
 						value=permission
