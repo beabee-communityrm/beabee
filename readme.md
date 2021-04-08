@@ -30,6 +30,7 @@ You need:
 
 - Docker >= 19.03.8
 - Docker Compose >= 1.28.0
+- Node.js >= 12.16.1
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
@@ -40,6 +41,9 @@ need to create a sandbox GoCardless account to do any payment flows.
 # Copy config files (there are currently two as we migrate to .env)
 cp src/config/example-config.json src/config/config.json
 cp .env.example .env
+
+npm install
+npm run build
 
 # Initialise database
 docker-compose up -d db
@@ -69,16 +73,11 @@ docker-compose run --rm app node built/tools/database/import.js < <import file>
 
 ## Development
 
-You need:
-
-- Node.js >= 12.16.1
-
-Then:
-
 ```bash
-npm install
 npm start
 ```
+
+This runs everything with watchers for file changes to the app/css/assets.
 
 #### Creating apps
 
