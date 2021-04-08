@@ -23,26 +23,6 @@ mixin memberTag(tag)
 script(type='text/template').js-edit-member-tag-template
 	+memberTag('XXX')
 
-+editablePanel('About', 'about')
-	.form-group
-		label(for="description").control-label Description
-		input(type='text' name='description' value=member.profile.description readonly)#description.form-control
-
-	.form-group
-		label(for='bio').control-label Bio
-		textarea(name='bio' readonly)#bio.form-control.member-about= member.profile.bio
-
-	p
-		| Tags:
-		span.js-edit-member-tags
-			each tag in member.profile.tags
-				+memberTag(tag)
-	p.hidden.js-edit-member-hidden.form-inline
-		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
-			option(value='' selected disabled) Add tag
-			each tag in availableTags
-				option= tag
-
 +editablePanel('Contact details', 'contact')
 	.row
 		.col-md-12
@@ -75,17 +55,10 @@ script(type='text/template').js-edit-member-tag-template
 						img(src='/static/imgs/twitter.png')
 					input(type='text' name='twitter' value=member.profile.twitter readonly).form-control
 
-+editablePanel('Notes', 'notes')
-	.form-group
-		textarea(name='notes' readonly).form-control.member-about= member.profile.notes
-
 if access('superadmin')
-	.panel.panel-default
-		.panel-heading
-			h3.panel-title
-				.pull-right: a(href=`/members/${member.id}/profile`): span.glyphicon.glyphicon-edit
-				| Delivery details
-		.panel-body
+	.row
+		.col-md-6
+			h4 Delivery details
 			dl.dl-horizontal
 				dt Opt in?
 				dd= member.profile.deliveryOptIn ? 'Yes' : 'No'
@@ -100,3 +73,32 @@ if access('superadmin')
 						= member.profile.deliveryAddress.city
 						br
 						= member.profile.deliveryAddress.postcode
+
+		.col-md-6
+			h4 Roles
+			if member.permissions.length > 0
+				.list-group
+					each permission in member.permissions
+						include /views/partials/permission.pug
+			else
+				p Contact has no roles
+
++editablePanel('About', 'about')
+	.form-group
+		label(for="description").control-label Description
+		input(type='text' name='description' value=member.profile.description readonly)#description.form-control
+
+	.form-group
+		label(for='bio').control-label Notes
+		textarea(name='bio' readonly)#bio.form-control.member-about= member.profile.bio
+
+	p
+		| Tags:
+		span.js-edit-member-tags
+			each tag in member.profile.tags
+				+memberTag(tag)
+	p.hidden.js-edit-member-hidden.form-inline
+		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
+			option(value='' selected disabled) Add tag
+			each tag in availableTags
+				option= tag
