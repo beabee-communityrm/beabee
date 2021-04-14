@@ -12,9 +12,8 @@ block contents
 		.col-md-3
 			include partials/sidebar.pug
 		.col-md-9
-			.row
-				.col-md-12
-					+page_header(member.fullname)
+			+page_header(member.fullname)
+
 			.row
 				.col-md-6
 					include partials/overview.pug
