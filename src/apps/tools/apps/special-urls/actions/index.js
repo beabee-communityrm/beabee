@@ -15,15 +15,7 @@ module.exports = [
 				req.login( member, () => {
 					// Force session to be temporary
 					req.session.cookie.expires = false;
-
-					// TODO: Copied from core/authentication, check why is this needed
-					req.user.quickPermissions = [
-						'loggedIn',
-						...member.permissions.filter(p => p.isActive).map(p => p.permission)
-					];
-
 					resolve();
-
 				} );
 			} );
 

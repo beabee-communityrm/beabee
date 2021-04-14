@@ -2,7 +2,7 @@ import express from 'express';
 import { getRepository } from 'typeorm';
 
 import { hasSchema, isNotLoggedIn } from '@core/middleware';
-import { cleanEmailAddress, loginAndRedirect, wrapAsync } from '@core/utils';
+import { cleanEmailAddress, wrapAsync } from '@core/utils';
 import { generatePassword } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
@@ -53,7 +53,7 @@ app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash,
 
 		req.flash( 'success', 'password-changed' );
 
-		loginAndRedirect( req, res, member );
+		MembersService.loginAndRedirect( req, res, member );
 	} else {
 		req.flash('warning', 'password-reset-code-err');
 		res.redirect( app.mountpath as string );

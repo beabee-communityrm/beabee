@@ -91,12 +91,7 @@ passport.deserializeUser( async function( data, done ) {
 					await MembersService.updateMember(member, {lastSeen: now});
 				}
 
-				const user = member as Express.User;
-				user.quickPermissions = [
-					'loggedIn',
-					...member.permissions.filter(p => p.isActive).map(p => p.permission)
-				];
-				return done( null, user );
+				return done( null, member );
 			}
 		}
 		done( null, false );

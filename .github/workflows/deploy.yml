@@ -5,6 +5,11 @@ on:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      stage:
+        description: 'Stage'
+        required: true
+        default: 'dev'
 
 jobs:
   init:
@@ -15,12 +20,12 @@ jobs:
     steps:
       - id: setvars
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "::set-output name=stage::live"
-            echo "::set-output name=tag::latest"
-          else
+          if [[ "${{ github.event.inputs.stage }}" == "dev" || "${{ github.ref }}" != "refs/heads/master" ]]; then
             echo "::set-output name=stage::dev"
             echo "::set-output name=tag::dev"
+          else
+            echo "::set-output name=stage::live"
+            echo "::set-output name=tag::latest"
           fi
 
   test:

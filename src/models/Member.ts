@@ -5,6 +5,7 @@ import { ContributionPeriod, ContributionType, getActualAmount } from '@core/uti
 import config from '@config';
 
 import type MemberPermission from './MemberPermission';
+import type { PermissionType } from './MemberPermission';
 import type MemberProfile from './MemberProfile';
 
 interface LoginOverride {
@@ -89,6 +90,10 @@ export default class Member {
 
 	@OneToOne('MemberProfile', 'member')
 	profile?: MemberProfile
+
+	get quickPermissions(): PermissionType[] {
+		return this.permissions.filter(p => p.isActive).map(p => p.permission);
+	}
 
 	get fullname(): string {
 		return this.firstname + ' ' + this.lastname;
