@@ -50,7 +50,7 @@ async function processSegment(segment: Segment) {
 	});
 
 	await getRepository(SegmentMember).delete({
-		segment, member: In(oldSegmentMembers.map(sm => ({id: sm.member}) as Member))
+		segment, member: In(oldSegmentMembers.map(sm => sm.member as unknown as Member)) // Types seem strange here
 	});
 	await getRepository(SegmentMember).insert(newMembers.map(member => ({
 		segment, member
