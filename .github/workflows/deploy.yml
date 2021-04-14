@@ -6,10 +6,10 @@ on:
       - master
   workflow_dispatch:
     inputs:
-    stage:
-      description: 'Stage'
-      required: true
-      default: 'dev'
+      stage:
+        description: 'Stage'
+        required: true
+        default: 'dev'
 
 jobs:
   init:
