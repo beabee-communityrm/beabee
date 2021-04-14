@@ -24,7 +24,7 @@ block contents
 						dt Last seen
 						dd #{ member.lastSeen ? moment( member.lastSeen ).format( 'HH:mm:ss DD/MM/YYYY' ) : '–' }
 						dt Referral code
-						dd: a( href="https://thebristolcable.org/refer/" + member.referralCode ) #{ member.referralCode }
+						dd: a( href=Options('referral-short-url') + '/' + member.referralCode ) #{ member.referralCode }
 						dt Polls code
 						dd= member.pollsCode
 				.col-md-6
