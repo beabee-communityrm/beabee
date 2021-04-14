@@ -2,7 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import { createQueryBuilder, getRepository } from 'typeorm';
 
-import { isValidNextUrl, getNextParam, loginAndRedirect, wrapAsync } from '@core/utils';
+import { isValidNextUrl, getNextParam, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
@@ -40,7 +40,7 @@ if (config.dev) {
 		}
 
 		if (member) {
-			loginAndRedirect(req, res, member);
+			MembersService.loginAndRedirect(req, res, member);
 		} else {
 			res.redirect('/login');
 		}
@@ -56,7 +56,7 @@ app.get( '/:code', wrapAsync( async function( req, res ) {
 
 	if (member) {
 		await MembersService.updateMember(member, {loginOverride: undefined});
-		loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
+		MembersService.loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');
 	} else {
 		req.flash('error', 'login-code-invalid');
 		res.redirect( '/login' );

@@ -1,8 +1,6 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { QueryFailedError } from 'typeorm';
-
-import Member from '@models/Member';
 import moment from 'moment';
+import { QueryFailedError } from 'typeorm';
 
 export enum ContributionPeriod {
 	Monthly = 'monthly',
@@ -70,16 +68,6 @@ export function getNextParam(url: string): string {
 
 export function cleanEmailAddress(email: string): string {
 	return email.trim().toLowerCase();
-}
-
-export function loginAndRedirect(req: Request, res: Response, member: Member, url = '/'): void {
-	req.login(member as Express.User, function (loginError) {
-		if (loginError) {
-			throw loginError;
-		} else {
-			res.redirect(url);
-		}
-	});
 }
 
 export function sleep(ms: number): Promise<void> {

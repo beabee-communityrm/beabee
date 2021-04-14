@@ -1,12 +1,14 @@
+import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 
 import gocardless from '@core/lib/gocardless';
 import { log } from '@core/logging';
 import mailchimp from '@core/lib/mailchimp';
 import { isDuplicateIndex } from '@core/utils';
-import { generateCode } from '@core/utils/auth';
+import { AuthenticationStatus, canAdmin, generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
+import OptionsService from '@core/services/OptionsService';
 
 import GCPaymentData from '@models/GCPaymentData';
 import Member from '@models/Member';
@@ -122,6 +124,19 @@ export default class MembersService {
 			await getRepository(Member).save(member);
 			await EmailService.sendTemplateToMember('reset-password', member);
 		}
+	}
+
+	static loginAndRedirect(req: Request, res: Response, member: Member, url?: string): void {
+		req.login(member as Express.User, function (loginError) {
+			if (loginError) {
+				throw loginError;
+			} else {
+				if (!url) {
+					url =  OptionsService.getText(canAdmin(req) === AuthenticationStatus.LOGGED_IN ? 'admin-home-url' : 'user-home-url');
+				}
+				res.redirect(url);
+			}
+		});
 	}
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
