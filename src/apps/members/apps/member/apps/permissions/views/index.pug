@@ -9,16 +9,16 @@ block contents
 		.col-md-3
 			include /apps/members/apps/member/views/partials/sidebar.pug
 		.col-md-9
-			.col-md-8
-				+page_header( "Roles" )
-				.list-group
-					if member.permissions.length > 0
-						each permission, p in member.permissions
-							include /views/partials/permission.pug
-					else
-						p This member has no permissions.
-			.col-md-4
-				+page_header( "Grant" )
-				- action = 'Grant'
-				include partials/permission-form.pug
-			
+			+page_header( member.fullname )
+			.row
+				.col-md-8
+					.list-group
+						if member.permissions.length > 0
+							each permission, p in member.permissions
+								include /views/partials/permission.pug
+						else
+							p This member has no permissions.
+					h4 Grant
+					- action = 'Grant'
+					include partials/permission-form.pug
+						
