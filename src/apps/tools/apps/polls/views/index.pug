@@ -1,12 +1,12 @@
 extends /views/base.pug
 
 block prepend title
-	- title = 'Polls'
+	- title = 'Callouts'
 
 block contents
 	.row
 		.col-md-12
-			+page_header('Polls')
+			+page_header('Callouts')
 
 			table.table.table-striped
 				thead
@@ -27,5 +27,5 @@ block contents
 
 	.row
 		.col-md-8
-			h4 Start a new poll
+			h4 Start a new callout
 			include partials/poll-form

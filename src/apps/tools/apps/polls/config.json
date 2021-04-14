@@ -1,5 +1,5 @@
 {
-	"title": "Polls",
+	"title": "Callouts",
 	"path": "polls",
 	"permissions": [
 		"superadmin", "admin"

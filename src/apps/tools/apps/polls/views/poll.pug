@@ -1,7 +1,7 @@
 extends /views/base.pug
 
 block prepend title
-	- title = 'Poll'
+	- title = 'Callout'
 
 mixin copyFields
 	.form-group
@@ -64,7 +64,7 @@ block append js
 block contents
 	.row
 		.col-md-12
-			+page_header('Poll: ' + poll.title)
+			+page_header('Callout: ' + poll.title)
 
 			dl.dl-horizontal
 				dt Status
@@ -98,7 +98,7 @@ block contents
 
 	.row
 		.col-md-8
-			h4 Update poll
+			h4 Update callout
 			include partials/poll-form
 
 	.row
@@ -154,14 +154,14 @@ block contents
 			else
 				.row
 					.col-md-8
-						.alert.alert-warning This poll's form cannot be edited
+						.alert.alert-warning This callout's form cannot be edited
 
 			hr
 
 	.row
 		.col-md-8
 
-			h4 Delete poll
+			h4 Delete callout
 
 			form(method='POST')
 				+csrf
