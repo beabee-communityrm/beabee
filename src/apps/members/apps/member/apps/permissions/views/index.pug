@@ -11,14 +11,17 @@ block contents
 		.col-md-9
 			+page_header( member.fullname )
 			.row
-				.col-md-8
+				.col-md-7
 					.list-group
 						if member.permissions.length > 0
 							each permission, p in member.permissions
 								include /views/partials/permission.pug
 						else
 							p This member has no permissions.
-					h4 Grant
-					- action = 'Grant'
-					include partials/permission-form.pug
-						
+			if access('superadmin')
+				hr
+				.row
+					.col-md-5
+						h4 Grant
+						- action = 'Grant'
+						include partials/permission-form.pug
