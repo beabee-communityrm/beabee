@@ -1,17 +1,17 @@
 mixin editablePanel(title, id)
-	form(method='POST' id=id).member-edit-form.js-edit-member
-		+csrf
-		h4
-			= title
-			|
-			|
-			a.btn.btn-default.btn-sm.js-edit-member-toggle: span.glyphicon.glyphicon-pencil
-		block
-		p.hidden.js-edit-member-hidden
-			button(name='action' value='save-' + id).btn.btn-success.btn-sm Save
-			|
-			|
-			button(type='button').btn.btn-default.btn-sm.js-edit-member-toggle Cancel
+	form(method='POST' id=id).panel.panel-default.js-edit-member
+		.panel-heading
+			h4.panel-title
+				.pull-right: a.btn.btn-default.btn-xs.js-edit-member-toggle: span.glyphicon.glyphicon-pencil
+				= title
+		.panel-body
+			+csrf
+			block
+			p.hidden.js-edit-member-hidden
+				button(name='action' value='save-' + id).btn.btn-success.btn-sm Save
+				|
+				|
+				button(type='button').btn.btn-default.btn-sm.js-edit-member-toggle Cancel
 
 mixin memberTag(tag)
 	a(href='/members/?tag=' + encodeURIComponent(tag) data-tag=tag).label.label-info.member-tag.js-edit-member-tag
@@ -55,12 +55,7 @@ script(type='text/template').js-edit-member-tag-template
 							input(type='text' name='twitter' value=member.profile.twitter readonly).form-control
 
 	.col-md-6
-		h4
-			| Roles
-			if access('superadmin')
-				|
-				|
-				a(href='/members/' + member.id + '/permissions').btn.btn-default.btn-sm: span.glyphicon.glyphicon-pencil
+		h4 Roles
 		if member.permissions.length > 0
 			.list-group
 				each permission in member.permissions
@@ -71,10 +66,7 @@ script(type='text/template').js-edit-member-tag-template
 .row
 	if access('superadmin')
 		.col-md-6
-			h4
-				| Delivery details
-				|
-				a(href='/members/' + member.id + '/profile').btn.btn-default.btn-sm: span.glyphicon.glyphicon-pencil
+			h4 Delivery details
 			dl.dl-horizontal
 				dt Opt in?
 				dd= member.profile.deliveryOptIn ? 'Yes' : 'No'

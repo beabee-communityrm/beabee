@@ -1,9 +1,4 @@
-h4
-	| Contribution
-	if access('superadmin')
-		|
-		|
-		a(href='/members/' + member.id + '/contribution').btn.btn-default.btn-sm: span.glyphicon.glyphicon-pencil
+h4 Contribution
 dl.dl-horizontal
 	dt Type
 	dd= member.contributionType || '–'
