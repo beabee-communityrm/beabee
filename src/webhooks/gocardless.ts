@@ -1,33 +1,20 @@
-import 'module-alias/register';
-
 import bodyParser from 'body-parser';
 import express from 'express';
 import { Event, EventResourceType } from 'gocardless-nodejs/types/Types';
 
-import { installMiddleware, log } from '@core/logging';
-import * as db from '@core/database';
+import { log as mainLogger } from '@core/logging';
 import gocardless from '@core/lib/gocardless';
 import { wrapAsync } from '@core/utils';
 
 import GCPaymentWebhookService from '@core/services/GCPaymentWebhookService';
-import OptionsService from '@core/services/OptionsService';
 
-import config from '@config';
+const log = mainLogger.child({app: 'webhook-gocardless'});
 
 const app = express();
+
 const textBodyParser = bodyParser.text( {
 	type: 'application/json',
 	limit: '1mb'
-} );
-
-// Add logging capabilities
-installMiddleware( app );
-
-app.get( '/ping', function( req, res ) {
-	log.info( {
-		action: 'ping'
-	} );
-	res.sendStatus( 200 );
 } );
 
 app.post( '/', textBodyParser, wrapAsync(async (req, res) => {
@@ -40,6 +27,8 @@ app.post( '/', textBodyParser, wrapAsync(async (req, res) => {
 			action: 'got-events',
 		}, `Got ${events.length} events`);
 
+		res.sendStatus( 200 );
+
 		try {
 			for ( const event of events ) {
 				log.info({
@@ -49,13 +38,11 @@ app.post( '/', textBodyParser, wrapAsync(async (req, res) => {
 				await handleEventResource( event );
 			}
 
-			res.sendStatus( 200 );
 		} catch ( error ) {
 			log.error( {
 				action: 'got-events-error',
 				error
 			} );
-			res.status( 500 ).send( error );
 		}
 	} else {
 		log.error( {
@@ -64,28 +51,6 @@ app.post( '/', textBodyParser, wrapAsync(async (req, res) => {
 		res.sendStatus( 498 );
 	}
 } ) );
-
-const internalApp = express();
-
-internalApp.post('/reload', wrapAsync(async (req, res) => {
-	await OptionsService.reload();
-	res.sendStatus(200);
-}));
-
-// Start server
-log.info( {
-	action: 'start'
-} );
-
-db.connect().then(async () => {
-	app.listen( config.gocardless.port, config.host, function () {
-		log.debug( {action: 'start-webserver'} );
-	} );
-
-	internalApp.listen(config.gocardless.internalPort, config.host, () => {
-		log.debug( {action: 'internal-webserver-started'} );
-	});
-});
 
 async function handleEventResource( event: Event ) {
 	switch( event.resource_type ) {
@@ -169,3 +134,5 @@ async function handleRefundResourceEvent( event: Event ) {
 	const refund = await gocardless.refunds.get( event.links.refund );
 	await GCPaymentWebhookService.updatePayment(refund.links.payment);
 }
+
+export default app;
