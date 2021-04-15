@@ -129,11 +129,9 @@ export default {
 	subscriptions: createMethods<Subscription>('subscriptions', STANDARD_METHODS, ['cancel']),
 	webhooks: {
 		validate(req: Request): boolean {
-			const rehashed_webhook_signature =
-				crypto.createHmac( 'sha256', config.gocardless.secret ).update( req.body ).digest( 'hex' );
-
-			return req.headers['content-type'] === 'application/json' &&
-				req.headers['webhook-signature'] === rehashed_webhook_signature;
+			return req.body &&
+				req.headers['content-type'] === 'application/json' &&
+				req.headers['webhook-signature'] === crypto.createHmac('sha256', config.gocardless.secret).update(req.body).digest('hex');
 		}
 	}
 };
