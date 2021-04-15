@@ -7,7 +7,7 @@ import { log as mainLogger } from '@core/logging';
 import buildQuery from '@core/utils/rules';
 
 import EmailService from '@core/services/EmailService';
-import { EmailRecipient } from '@core/services/email';
+import { EmailRecipient } from '@core/providers/email';
 
 import Member from '@models/Member';
 import Segment from '@models/Segment';

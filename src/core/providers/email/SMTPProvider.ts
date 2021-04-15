@@ -13,7 +13,7 @@ import config from '@config';
 
 const log = mainLogger.child({app: 'smtp-email-provider'});
 
-export default class SMTPEmailProvider implements EmailProvider {
+export default class SMTPProvider implements EmailProvider {
 	private readonly client: Mail;
 
 	constructor() {

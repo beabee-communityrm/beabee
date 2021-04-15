@@ -29,7 +29,7 @@ interface MandrillMessage {
 	attachments?: {type: string, name: string, content: string}[]
 }
 
-export default class MandrillEmailProvider implements EmailProvider {
+export default class MandrillProvider implements EmailProvider {
 	private readonly client: any
 
 	constructor() {

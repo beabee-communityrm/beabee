@@ -7,9 +7,9 @@ import Member from '@models/Member';
 
 import config from '@config';
 
-import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from './email';
-import MandrillEmailProvider from './email/MandrillEmailProvider';
-import SMTPEmailProvider from './email/SMTPEmailProvider';
+import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '@core/providers/email';
+import MandrillProvider from '@core/providers/email/MandrillProvider';
+import SMTPProvider from '@core/providers/email/SMTPProvider';
 
 const log = mainLogger.child({app: 'email-service'});
 
@@ -70,7 +70,7 @@ type MemberEmailParams<T extends MemberEmailTemplateId> = Parameters<MemberEmail
 class EmailService implements EmailProvider {
 
 	private readonly provider: EmailProvider = config.email.provider === 'mandrill' ?
-		new MandrillEmailProvider() : new SMTPEmailProvider()
+		new MandrillProvider() : new SMTPProvider()
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
 		log.info({
