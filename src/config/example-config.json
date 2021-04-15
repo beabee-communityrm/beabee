@@ -30,18 +30,21 @@
 			}
 		}
 	},
+	"newsletter": {
+		"provider": "mailchimp",
+		"settings": {
+			"api_key": "",
+			"datacenter": "",
+			"mainList": "",
+			"mainListGroups": []
+		}
+	},
 	"gocardless": {
 		"access_token": "",
 		"secret": "",
 		"sandbox": true,
 		"port": 3002,
 		"internalPort": 3092
-	},
-	"mailchimp": {
-		"api_key": "",
-		"datacenter": "",
-		"mainList": "",
-		"mainListGroups": []
 	},
 	"stripe": {
 		"public_key": "",
