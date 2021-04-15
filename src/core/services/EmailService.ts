@@ -84,13 +84,19 @@ class EmailService implements EmailProvider {
 
 	async sendTemplate(template: EmailTemplateId|MemberEmailTemplateId, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
 		const providerTemplate = this.providerTemplateMap[template];
-		log.info({
-			action: 'send-template',
-			data: {
-				template, providerTemplate, recipients
-			}
-		});
-		await this.provider.sendTemplate(providerTemplate, recipients, opts);
+		if (providerTemplate) {
+			log.info({
+				action: 'send-template',
+				data: {
+					template, providerTemplate, recipients
+				}
+			});
+			await this.provider.sendTemplate(providerTemplate, recipients, opts);
+		} else {
+			log.error({
+				action: 'send-template',
+			}, `Tried to send ${template} that has no provider template set`);
+		}
 	}
 
 	async sendTemplateTo<T extends EmailTemplateId>(
@@ -149,7 +155,7 @@ class EmailService implements EmailProvider {
 		];
 	}
 
-	get providerTemplateMap() {
+	get providerTemplateMap(): Partial<Record<EmailTemplateId|MemberEmailTemplateId, string>> {
 		return OptionsService.getJSON('email-templates');
 	}
 }
