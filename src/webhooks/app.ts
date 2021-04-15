@@ -21,8 +21,8 @@ app.get( '/ping', function( req, res ) {
 	res.sendStatus( 200 );
 } );
 
-app.all('/gc', gocardlessApp);
-app.all('/stripe', stripeApp);
+app.use('/gc', gocardlessApp);
+app.use('/stripe', stripeApp);
 
 const internalApp = express();
 
