@@ -70,7 +70,8 @@ type MemberEmailParams<T extends MemberEmailTemplateId> = Parameters<MemberEmail
 class EmailService implements EmailProvider {
 
 	private readonly provider: EmailProvider = config.email.provider === 'mandrill' ?
-		new MandrillProvider() : new SMTPProvider()
+		new MandrillProvider(config.email.settings) :
+		new SMTPProvider(config.email.settings)
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
 		log.info({

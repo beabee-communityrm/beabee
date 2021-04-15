@@ -9,15 +9,13 @@ import Email from '@models/Email';
 
 import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '.';
 
-import config from '@config';
-
 const log = mainLogger.child({app: 'smtp-email-provider'});
 
 export default class SMTPProvider implements EmailProvider {
 	private readonly client: Mail;
 
-	constructor() {
-		this.client = nodemailer.createTransport(config.email.settings as unknown as SMTPTransport);
+	constructor(settings: unknown) {
+		this.client = nodemailer.createTransport(settings as unknown as SMTPTransport);
 	}
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {

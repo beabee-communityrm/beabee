@@ -1,32 +1,32 @@
-interface EmailTemplate {
+export interface EmailTemplate {
 	id: string
 	name: string
 }
 
-type EmailMergeFields = Record<string, unknown>;
+export type EmailMergeFields = Record<string, unknown>;
 
-interface EmailPerson {
+export interface EmailPerson {
 	email: string
 	name: string
 }
 
-interface EmailRecipient {
+export interface EmailRecipient {
 	to: EmailPerson,
 	mergeFields?: EmailMergeFields
 }
 
-interface EmailAttachment {
+export interface EmailAttachment {
 	type: string
 	name: string
 	content: string
 }
 
-interface EmailOptions {
+export interface EmailOptions {
 	attachments?: EmailAttachment[],
 	sendAt?: string
 }
 
-interface EmailProvider {
+export interface EmailProvider {
 	sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void>
 	sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void>
 	getTemplates(): Promise<EmailTemplate[]>
