@@ -27,6 +27,8 @@ app.post( '/', textBodyParser, wrapAsync(async (req, res) => {
 			action: 'got-events',
 		}, `Got ${events.length} events`);
 
+		res.sendStatus( 200 );
+
 		try {
 			for ( const event of events ) {
 				log.info({
@@ -36,13 +38,11 @@ app.post( '/', textBodyParser, wrapAsync(async (req, res) => {
 				await handleEventResource( event );
 			}
 
-			res.sendStatus( 200 );
 		} catch ( error ) {
 			log.error( {
 				action: 'got-events-error',
 				error
 			} );
-			res.status( 500 ).send( error );
 		}
 	} else {
 		log.error( {
