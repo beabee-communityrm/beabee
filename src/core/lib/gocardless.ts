@@ -9,6 +9,11 @@ import { log } from '@core/logging';
 import config from '@config';
 import { DeepPartial } from 'typeorm';
 
+interface GCError {
+	reason: string
+	message: string
+}
+
 const gocardless = axios.create({
 	baseURL: `https://${config.gocardless.sandbox ? 'api-sandbox' : 'api'}.gocardless.com`,
 	headers: {
@@ -39,12 +44,16 @@ gocardless.interceptors.request.use(config => {
 gocardless.interceptors.response.use(response => {
 	return response;
 }, error => {
-	log.debug({
-		app: 'gocardless',
-		status: error.response.status,
-		data: error.response.data
-	});
-	return Promise.reject(error);
+	// Ignore cancellation_failed errors as it just means the thing was already cancelled
+	if (!error.response || error.response.status !== 422 ||
+			!error.response.data.error?.errors?.some((e: GCError) => e.reason === 'cancellation_failed')) {
+		log.debug({
+			app: 'gocardless',
+			status: error.response.status,
+			data: error.response.data
+		});
+		return Promise.reject(error);
+	}
 });
 
 const STANDARD_METHODS = ['create', 'get', 'update', 'list', 'all'];

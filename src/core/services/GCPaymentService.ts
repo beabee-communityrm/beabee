@@ -54,7 +54,7 @@ abstract class UpdateContributionPaymentService {
 			startNow = await this.prorateSubscription(user as PayingMember, gcData, paymentForm);
 		} else {
 			if (gcData.subscriptionId) {
-				await GCPaymentService.cancelContribution(user);
+				await GCPaymentService.cancelContribution(user, true);
 				gcData.subscriptionId = undefined;
 			}
 
@@ -293,7 +293,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			!(await this.hasPendingPayment(user));
 	}
 
-	static async cancelContribution(member: Member, alreadyCancelled=false): Promise<void> {
+	static async cancelContribution(member: Member, keepMandate=false): Promise<void> {
 		log.info( {
 			app: 'direct-debit',
 			action: 'cancel-subscription',
@@ -307,10 +307,14 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 			// Do this before cancellation to avoid webhook race conditions
 			await getRepository(GCPaymentData).update(gcData.member.id, {
 				subscriptionId: undefined,
+				...!keepMandate && {mandateId: undefined},
 				cancelledAt: new Date()
 			});
 
-			if (gcData.subscriptionId && !alreadyCancelled) {
+			if (gcData.mandateId && !keepMandate) {
+				await gocardless.mandates.cancel(gcData.mandateId);
+			}
+			if (gcData.subscriptionId) {
 				await gocardless.subscriptions.cancel(gcData.subscriptionId);
 			}
 
