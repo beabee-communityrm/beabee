@@ -65,10 +65,11 @@ block contents
 				h4 Cancel contribution
 
 				form(method='post')
+					+csrf
 					.checkbox
 						label
 							input(type='checkbox' required)
-							| This action is irrevisble, confirm to proceed
+							| This action is irreversible, confirm to proceed
 					button(name='action' value='cancel-contribution').btn.btn-danger Cancel
 
 			hr
