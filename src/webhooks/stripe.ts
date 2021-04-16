@@ -1,16 +1,12 @@
-import 'module-alias/register';
-
 import bodyParser from 'body-parser';
 import express from 'express';
 import Stripe from 'stripe';
 
-import * as db from '@core/database';
-import { log as mainLogger, installMiddleware } from '@core/logging';
+import { log as mainLogger } from '@core/logging';
 import stripe from '@core/lib/stripe';
 import { wrapAsync } from '@core/utils';
 
 import GiftService from '@core/services/GiftService';
-import OptionsService from '@core/services/OptionsService';
 
 import config from '@config';
 
@@ -18,16 +14,7 @@ const log = mainLogger.child({app: 'webhook-stripe'});
 
 const app = express();
 
-installMiddleware(app);
 app.use(bodyParser.raw({type: 'application/json'}));
-
-app.get( '/ping', (req, res) => {
-	req.log.info( {
-		app: 'webhook-stripe',
-		action: 'ping'
-	} );
-	res.sendStatus( 200 );
-} );
 
 app.post( '/', wrapAsync(async (req, res) => {
 	const sig = req.headers['stripe-signature'] as string;
@@ -57,28 +44,8 @@ app.post( '/', wrapAsync(async (req, res) => {
 	res.sendStatus(200);
 }));
 
-const internalApp = express();
-
-internalApp.post('/reload', wrapAsync(async (req, res) => {
-	await OptionsService.reload();
-	res.sendStatus(200);
-}));
-
-// Start server
-log.info( {
-	action: 'start'
-} );
-
-db.connect().then(async () => {
-	app.listen( config.stripe.port, config.host, function () {
-		log.debug( {action: 'start-webserver'} );
-	} );
-
-	internalApp.listen(config.stripe.internalPort, config.host, () => {
-		log.debug( {action: 'internal-webserver-started'} );
-	});
-});
-
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session ) {
 	await GiftService.completeGiftFlow(session.id);
 }
+
+export default app;

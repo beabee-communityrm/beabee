@@ -103,7 +103,7 @@ database.connect().then(async () => {
 	} as ErrorRequestHandler );
 
 	// Start server
-	const server = app.listen( config.port ,config.host, function () {
+	const server = app.listen( 3000, '0.0.0.0', function () {
 		log.debug( {
 			app: 'main',
 			action: 'start-webserver',
@@ -130,13 +130,6 @@ database.connect().then(async () => {
 			process.exit(1);
 		}, 20000).unref();
 
-		server.close(() => {
-			log.debug( {
-				app: 'main',
-				action: 'stop-webserver',
-				message: 'Server successfully shutdown'
-			} );
-			process.exit();
-		});
+		server.close(() => process.exit());
 	});
 });
