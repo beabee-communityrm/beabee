@@ -4,6 +4,7 @@ import { getRepository } from 'typeorm';
 import { isSuperAdmin } from '@core/middleware';
 import { ContributionType, wrapAsync } from '@core/utils';
 
+import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
 
@@ -45,6 +46,10 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		req.flash( 'success', 'contribution-updated' );
 		break;
 
+	case 'cancel-subscription':
+		await GCPaymentService.cancelContribution(member);
+		await EmailService.sendTemplateToMember('cancelled-contribution', member);
+
 	case 'force-update':
 		await MembersService.updateMember(member, {
 			contributionMonthlyAmount: Number(req.body.amount),
@@ -59,6 +64,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 
 		req.flash( 'success', 'gocardless-updated' );
 		break;
+
 	case 'update-manual-subscription':
 		await MembersService.updateMember(member, {
 			contributionMonthlyAmount: Number(req.body.amount),

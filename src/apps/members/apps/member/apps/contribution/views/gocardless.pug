@@ -59,6 +59,20 @@ block contents
 
 					+form_button( paymentData.subscriptionId ? 'Update' : 'Start', 'success', { left: 3 } )
 
+			if paymentData.subscriptionId
+				hr
+
+				h4 Cancel contribution
+
+				form(method='post')
+					.checkbox
+						label
+							input(type='checkbox' required)
+							| This action is irrevisble, confirm to proceed
+					button(name='action' value='cancel-contribution').btn.btn-danger Cancel
+
+			hr
+
 			h4 Manual update
 			.alert.alert-danger.
 				If done incorrectly this could result in payments being taken but not
