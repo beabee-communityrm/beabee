@@ -49,6 +49,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	case 'cancel-subscription':
 		await GCPaymentService.cancelContribution(member);
 		await EmailService.sendTemplateToMember('cancelled-contribution', member);
+		break;
 
 	case 'force-update':
 		await MembersService.updateMember(member, {
