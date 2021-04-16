@@ -45,6 +45,7 @@ gocardless.interceptors.response.use(response => {
 	return response;
 }, error => {
 	// Ignore cancellation_failed errors as it just means the thing was already cancelled
+	console.log(error.response.data);
 	if (!error.response || error.response.status !== 422 ||
 			!error.response.data.error?.errors?.some((e: GCError) => e.reason === 'cancellation_failed')) {
 		log.debug({
