@@ -38,6 +38,7 @@ services:
     <<: *base-app
     user: root
     command: 'crond -f -d 0'
+    init: true
 
   router:
     build:
