@@ -45,7 +45,9 @@ gocardless.interceptors.response.use(response => {
 	return response;
 }, async error => {
 	// Ignore cancellation_failed errors as it just means the thing was already cancelled
-	if (!isCancellationFailed(error)) {
+	if (isCancellationFailed(error)) {
+		return {data: {}}; // This will never be used but is a bit hacky
+	} else {
 		log.debug({
 			app: 'gocardless',
 			status: error.response.status,
