@@ -48,6 +48,41 @@ interface MCMember {
 	merge_fields: MergeFields
 }
 
+function createInstance(config: MailchimpConfig) {
+	const instance = axios.create({
+		baseURL: `https://${config.datacenter}.api.mailchimp.com/3.0/`,
+		auth: {
+			username: 'user',
+			password: config.api_key
+		},
+	});
+
+	instance.interceptors.request.use(config => {
+		log.debug({
+			url: config.url,
+			method: config.method,
+			sensitive: {
+				params: config.params,
+				data: config.data
+			}
+		});
+
+		return config;
+	});
+
+	instance.interceptors.response.use(response => {
+		return response;
+	}, error => {
+		log.error({
+			status: error.response.status,
+			data: error.response.data
+		}, 'MailChimp API returned with status ' + error.response.status);
+		return Promise.reject(error);
+	});
+
+	return instance;
+}
+
 function mcMemberUrl(listId: string, email: string) {
 	const emailHash = crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
 	return `lists/${listId}/members/${emailHash}`;
@@ -77,39 +112,8 @@ function validateStatus(statusCode: number, operationId: string) {
 export default class MailchimpProvider implements NewsletterProvider {
 	private readonly instance;
 
-	constructor(_config: any) {
-		const config = _config as MailchimpConfig;
-
-		this.instance = axios.create({
-			baseURL: `https://${config.datacenter}.api.mailchimp.com/3.0/`,
-			auth: {
-				username: 'user',
-				password: config.api_key
-			},
-		});
-
-		this.instance.interceptors.request.use(config => {
-			log.debug({
-				url: config.url,
-				method: config.method,
-				sensitive: {
-					params: config.params,
-					data: config.data
-				}
-			});
-
-			return config;
-		});
-
-		this.instance.interceptors.response.use(response => {
-			return response;
-		}, error => {
-			log.error({
-				status: error.response.status,
-				data: error.response.data
-			}, 'MailChimp API returned with status ' + error.response.status);
-			return Promise.reject(error);
-		});
+	constructor(config: MailchimpConfig) {
+		this.instance = createInstance(config);
 	}
 
 	async updateMember(listId: string, member: Member, oldEmail = member.email): Promise<void> {
