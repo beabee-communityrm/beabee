@@ -39,7 +39,11 @@ block contents
 					.col-md-9
 						input(type='number' name='order' value=segment.order style='width: 100px')#order.form-control
 						p.help-block Controls the order the segments are listed
-							
+				.form-group
+					label(for='newsletterListId').control-label.col-md-3 Newsletter list
+					.col-md-9
+						input(type='text' name='newsletterListId' value=segment.newsletterListId)#newsletterListId.form-control
+						p.help-block Sync this segment with a newsletter list
 				.form-group
 					.col-md-9.col-md-offset-3
 						button(name='action' value='update').btn.btn-success Update

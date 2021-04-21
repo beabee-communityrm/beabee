@@ -127,8 +127,6 @@ app.post( '/:id', hasNewModel(Project, 'id'), wrapAsync( async ( req, res ) => {
 	const data = req.body as UpdateAction;
 	const project = req.model as Project;
 
-	console.log('here');
-
 	switch ( data.action ) {
 	case 'update':
 		await getRepository(Project).update(project.id, schemaToProject(data));

@@ -15,7 +15,6 @@ app.set( 'views', __dirname + '/views' );
 app.use(isSuperAdmin);
 
 app.get('/', wrapAsync(async (req, res) => {
-	console.log(EmailService.providerTemplateMap);
 	res.render('index', {
 		emailProvider: config.email.provider,
 		emailTemplates: EmailService.emailTemplateIds,
