@@ -131,7 +131,7 @@
     ],
     "delay": "500",
     "signal": "SIGTERM",
-    "exec": "docker-compose restart app && docker-compose logs -f --tail=0 app"
+    "exec": "docker-compose restart app webhook_app && docker-compose logs -f --tail=0 app"
   },
   "_moduleAliases": {
     "@core": "./built/core",

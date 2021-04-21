@@ -94,11 +94,9 @@ export default class OptionsService {
 		}
 	}
 
-	// TODO: generalise this
 	private static async notify() {
 		try {
-			await axios.post(`http://gc_webhook:${config.gocardless.internalPort}/reload`);
-			await axios.post(`http://stripe_webhook:${config.stripe.internalPort}/reload`);
+			await axios.post('http://webhook_app:4000/reload');
 		} catch (error) {
 			log.error({action: 'notify-failed', error}, 'Failed to notify apps of options change');
 		}

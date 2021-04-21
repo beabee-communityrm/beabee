@@ -1,6 +1,4 @@
 {
-	"port": 3001,
-	"host": "0.0.0.0",
 	"secret": "abc123",
 	"session": "session",
 	"cookie": {
@@ -42,16 +40,12 @@
 	"gocardless": {
 		"access_token": "",
 		"secret": "",
-		"sandbox": true,
-		"port": 3002,
-		"internalPort": 3092
+		"sandbox": true
 	},
 	"stripe": {
 		"public_key": "",
 		"secret_key": "",
-		"webhook_secret": "",
-		"port": 3003,
-		"internalPort": 3093
+		"webhook_secret": ""
 	},
 	"currencyCode": "GBP",
 	"currencySymbol": "£",

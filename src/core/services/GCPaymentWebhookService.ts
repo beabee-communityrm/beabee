@@ -130,7 +130,7 @@ export default class GCPaymentWebhookService {
 			relations: ['member']
 		});
 		if (gcData) {
-			await GCPaymentService.cancelContribution(gcData.member, true);
+			await GCPaymentService.cancelContribution(gcData.member);
 			await EmailService.sendTemplateToMember('cancelled-contribution', gcData.member);
 		} else {
 			log.info({

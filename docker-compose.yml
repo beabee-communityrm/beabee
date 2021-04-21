@@ -30,18 +30,15 @@ services:
 
   app: *base-app
 
-  gc_webhook:
+  webhook_app:
     <<: *base-app
-    command: 'node built/webhooks/gocardless'
-
-  stripe_webhook:
-    <<: *base-app
-    command: 'node built/webhooks/stripe'
+    command: 'node built/webhooks/app'
 
   cron:
     <<: *base-app
     user: root
     command: 'crond -f -d 0'
+    init: true
 
   router:
     build:

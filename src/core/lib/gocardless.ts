@@ -36,15 +36,25 @@ gocardless.interceptors.request.use(config => {
 	return config;
 });
 
+function isCancellationFailed(error: any) {
+	return error.response && error.response.status === 422 &&
+		error.response.data.error?.errors?.some((e: any) => e.reason === 'cancellation_failed');
+}
+
 gocardless.interceptors.response.use(response => {
 	return response;
-}, error => {
-	log.debug({
-		app: 'gocardless',
-		status: error.response.status,
-		data: error.response.data
-	});
-	return Promise.reject(error);
+}, async error => {
+	// Ignore cancellation_failed errors as it just means the thing was already cancelled
+	if (isCancellationFailed(error)) {
+		return {data: {}}; // This will never be used but is a bit hacky
+	} else {
+		log.debug({
+			app: 'gocardless',
+			status: error.response.status,
+			data: error.response.data
+		});
+		throw error;
+	}
 });
 
 const STANDARD_METHODS = ['create', 'get', 'update', 'list', 'all'];
@@ -129,11 +139,9 @@ export default {
 	subscriptions: createMethods<Subscription>('subscriptions', STANDARD_METHODS, ['cancel']),
 	webhooks: {
 		validate(req: Request): boolean {
-			const rehashed_webhook_signature =
-				crypto.createHmac( 'sha256', config.gocardless.secret ).update( req.body ).digest( 'hex' );
-
-			return req.headers['content-type'] === 'application/json' &&
-				req.headers['webhook-signature'] === rehashed_webhook_signature;
+			return req.body &&
+				req.headers['content-type'] === 'application/json' &&
+				req.headers['webhook-signature'] === crypto.createHmac('sha256', config.gocardless.secret).update(req.body).digest('hex');
 		}
 	}
 };
