@@ -32,9 +32,7 @@
 		"provider": "mailchimp",
 		"settings": {
 			"api_key": "",
-			"datacenter": "",
-			"mainList": "",
-			"mainListGroups": []
+			"datacenter": ""
 		}
 	},
 	"gocardless": {
