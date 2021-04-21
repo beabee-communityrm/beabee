@@ -63,7 +63,8 @@ export default class OptionsService {
 	}
 
 	static getList(key: OptionKey): string[] {
-		return OptionsService.getText(key).split(',').map(s => s.trim());
+		const text = OptionsService.getText(key);
+		return text === ''? [] : text.split(',').map(s => s.trim());
 	}
 
 	static getJSON(key: OptionKey): any {

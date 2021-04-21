@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { EmailTemplate } from '@core/services/email';
+import { EmailTemplate } from '@core/providers/email';
 
 import Segment from './Segment';
 

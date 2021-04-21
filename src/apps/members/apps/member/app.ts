@@ -4,14 +4,13 @@ import { getRepository } from 'typeorm';
 
 import config from '@config';
 
-import mailchimp from '@core/lib/mailchimp';
 import { isAdmin, isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 import { canSuperAdmin, generateCode } from '@core/utils/auth';
 
+import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
-import GCPaymentService from '@core/services/GCPaymentService';
 import PaymentService from '@core/services/PaymentService';
 import ReferralsService from '@core/services/ReferralsService';
 
@@ -115,8 +114,6 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		await GCPaymentService.permanentlyDeleteMember(member);
 
 		await MembersService.permanentlyDeleteMember(member);
-
-		await mailchimp.mainList.permanentlyDeleteMember(member);
 
 		req.flash('success', 'member-permanently-deleted');
 		res.redirect('/members');

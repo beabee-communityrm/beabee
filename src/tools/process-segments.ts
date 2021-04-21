@@ -7,12 +7,13 @@ import { log as mainLogger } from '@core/logging';
 import buildQuery from '@core/utils/rules';
 
 import EmailService from '@core/services/EmailService';
-import { EmailRecipient } from '@core/services/email';
+import { EmailRecipient } from '@core/providers/email';
 
 import Member from '@models/Member';
 import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 import SegmentMember from '@models/SegmentMember';
+import NewsletterService from '@core/services/NewsletterService';
 
 const log = mainLogger.child({app: 'process-segments'});
 
@@ -59,7 +60,7 @@ async function processSegment(segment: Segment) {
 	const outgoingEmails = await getRepository(SegmentOngoingEmail).find({where: {segment}});
 
 	// Only fetch old members if we need to
-	const oldMembers = outgoingEmails.some(oe => oe.trigger === 'onLeave') ?
+	const oldMembers = segment.newsletterListId || outgoingEmails.some(oe => oe.trigger === 'onLeave') ?
 		await getRepository(Member).findByIds(oldSegmentMembers.map(sm => sm.member)) : [];
 
 	for (const outgoingEmail of outgoingEmails) {
@@ -71,6 +72,11 @@ async function processSegment(segment: Segment) {
 				membersToRecipients(emailMembers)
 			);
 		}
+	}
+
+	if (segment.newsletterListId) {
+		await NewsletterService.list(segment.newsletterListId).upsertMembers(newMembers);
+		await NewsletterService.list(segment.newsletterListId).archiveMembers(oldMembers);
 	}
 }
 

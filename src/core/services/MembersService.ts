@@ -3,11 +3,11 @@ import { getRepository } from 'typeorm';
 
 import gocardless from '@core/lib/gocardless';
 import { log } from '@core/logging';
-import mailchimp from '@core/lib/mailchimp';
 import { isDuplicateIndex } from '@core/utils';
 import { AuthenticationStatus, canAdmin, generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
+import NewsletterService from '@core/services/NewsletterService';
 import OptionsService from '@core/services/OptionsService';
 
 import GCPaymentData from '@models/GCPaymentData';
@@ -56,12 +56,12 @@ export default class MembersService {
 
 	static async addMemberToMailingLists(member: Member): Promise<void> {
 		try {
-			await mailchimp.mainList.addMember(member);
+			await NewsletterService.mainList.upsertMembers([member]);
 		} catch (err) {
 			log.error({
 				app: 'join-utils',
 				error: err,
-			}, 'Adding member to MailChimp failed, probably a bad email address: ' + member.id);
+			}, 'Failed to add member to newsletter, probably a bad email address: ' + member.id);
 		}
 	}
 
@@ -96,7 +96,7 @@ export default class MembersService {
 	static async syncMemberDetails(member: Member, oldEmail: string): Promise<void> {
 		if ( member.isActiveMember ) {
 			try {
-				await mailchimp.mainList.updateMemberDetails( member, oldEmail );
+				await NewsletterService.mainList.updateMember(member, oldEmail);
 			} catch (err) {
 				if (err.response && err.response.status === 404) {
 					await MembersService.addMemberToMailingLists(member);
@@ -141,5 +141,6 @@ export default class MembersService {
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
 		await getRepository(Member).delete(member.id);
+		await NewsletterService.mainList.deleteMembers([member]);
 	}
 }
