@@ -75,8 +75,8 @@ async function processSegment(segment: Segment) {
 	}
 
 	if (segment.newsletterListId) {
-		await NewsletterService.upsertMembers(segment.newsletterListId, newMembers);
-		await NewsletterService.archiveMembers(segment.newsletterListId, oldMembers);
+		await NewsletterService.list(segment.newsletterListId).upsertMembers(newMembers);
+		await NewsletterService.list(segment.newsletterListId).archiveMembers(oldMembers);
 	}
 }
 
