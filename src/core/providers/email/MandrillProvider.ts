@@ -5,8 +5,6 @@ import { log as mainLogger } from '@core/logging';
 
 import Email from '@models/Email';
 
-import config from '@config';
-
 import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '.';
 
 const log = mainLogger.child({app: 'mandrill-email-provider'});
@@ -29,11 +27,11 @@ interface MandrillMessage {
 	attachments?: {type: string, name: string, content: string}[]
 }
 
-export default class MandrillEmailProvider implements EmailProvider {
+export default class MandrillProvider implements EmailProvider {
 	private readonly client: any
 
-	constructor() {
-		this.client = new mandrill.Mandrill((config.email.settings as unknown as MandrillConfig).api_key);
+	constructor(settings: any) {
+		this.client = new mandrill.Mandrill((settings as MandrillConfig).api_key);
 	}
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
