@@ -115,22 +115,24 @@ export default class MailchimpProvider implements NewsletterProvider {
 	constructor(config: MailchimpConfig) {
 		this.instance = createInstance(config);
 	}
-
 	async updateMember(listId: string, member: Member, oldEmail = member.email): Promise<void> {
 		await this.instance.patch(mcMemberUrl(listId, oldEmail), memberToMCMember(member));
 	}
 
-	async upsertMembers(listId: string, members: Member[]): Promise<void> {
+	async updateMemberFields(listId: string, member: Member, fields: Record<string, string>): Promise<void> {
+		await this.instance.patch(mcMemberUrl(listId, member.email), {
+			merge_fields: fields
+		});
+	}
+
+	async upsertMembers(listId: string, members: Member[], groups: string[] = []): Promise<void> {
 		const operations: PutOperation[] = members.map(member => ({
 			path: mcMemberUrl(listId, member.email),
 			method: 'PUT',
 			body: JSON.stringify({
 				...memberToMCMember(member),
-				status_if_new: 'subscribed'
-				/*interests: Object.assign(
-					{},
-					..config.mailchimp.mainListGroups.map(group => ({[group]: true}))
-				),*/
+				status_if_new: 'subscribed',
+				interets: Object.assign({}, groups.map(group => ({[group]: true})))
 			}),
 			operation_id: `add_${listId}_${member.id}`
 		}));

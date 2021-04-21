@@ -1,5 +1,7 @@
 import { getRepository, IsNull, LessThan } from 'typeorm';
 
+import NewsletterService from '@core/services/NewsletterService';
+
 import Member from '@models/Member';
 import Poll, { PollAccess } from '@models/Poll';
 import PollResponse, { PollResponseAnswers } from '@models/PollResponse';
@@ -63,12 +65,11 @@ export default class PollsService {
 
 		await getRepository(PollResponse).save(pollResponse);
 
-		// TODO: sync poll answers
-		/*if (poll.mcMergeField && poll.pollMergeField) {
-			await mailchimp.mainList.updateMemberFields( member, {
+		if (poll.mcMergeField && poll.pollMergeField) {
+			await NewsletterService.mainList.updateMemberFields(member, {
 				[poll.mcMergeField]: answers[poll.pollMergeField].toString()
-			} );
-		}*/
+			});
+		}
 	}
 
 	static async setGuestResponse( poll: Poll, guestName: string|undefined, guestEmail: string|undefined, answers: PollResponseAnswers): Promise<string|undefined> {
