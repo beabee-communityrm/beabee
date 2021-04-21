@@ -132,7 +132,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 			body: JSON.stringify({
 				...memberToMCMember(member),
 				status_if_new: 'subscribed',
-				interets: Object.assign({}, groups.map(group => ({[group]: true})))
+				interests: Object.assign({}, ...groups.map(group => ({[group]: true})))
 			}),
 			operation_id: `add_${listId}_${member.id}`
 		}));
