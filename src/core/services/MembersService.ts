@@ -56,7 +56,7 @@ export default class MembersService {
 
 	static async addMemberToMailingLists(member: Member): Promise<void> {
 		try {
-			await NewsletterService.upsertMembers('asda', [member]);
+			await NewsletterService.upsertMembers(undefined, [member]);
 		} catch (err) {
 			log.error({
 				app: 'join-utils',
@@ -96,7 +96,7 @@ export default class MembersService {
 	static async syncMemberDetails(member: Member, oldEmail: string): Promise<void> {
 		if ( member.isActiveMember ) {
 			try {
-				await NewsletterService.updateMember('asda', member, oldEmail);
+				await NewsletterService.updateMember(undefined, member, oldEmail);
 			} catch (err) {
 				if (err.response && err.response.status === 404) {
 					await MembersService.addMemberToMailingLists(member);
@@ -141,6 +141,6 @@ export default class MembersService {
 
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
 		await getRepository(Member).delete(member.id);
-		await NewsletterService.deleteMembers('adsa', [member]); // TODO: listId
+		await NewsletterService.deleteMembers(undefined, [member]);
 	}
 }

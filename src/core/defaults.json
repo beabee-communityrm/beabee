@@ -36,6 +36,8 @@
 
 	"email-templates": "{}",
 
+	"newsletter-main-list": "",
+
 	"tracking-code": "",
 
 	"flash-logged-in": "Login successful",
