@@ -68,6 +68,10 @@ app.post('/', wrapAsync(async (req, res) => {
 		break;
 
 	case 'profile':
+		// Make MailChimp resend the webhook if we don't find a member
+		// it's probably because the upemail and profile webhooks
+		// arrived out of order
+		// TODO: add checks for repeated failure
 		if (!await handleUpdateProfile(body.data)) {
 			return res.sendStatus(404);
 		}
@@ -86,11 +90,19 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 		}
 	});
 
-	await getRepository(Member).update({email: data.old_email}, {email: data.new_email});
+	const member = await getRepository(Member).findOne({email: data.old_email});
+	if (member) {
+		MembersService.updateMember(member, {email: data.new_email});
+	} else {
+		log.error({
+			action: 'update-email-not-found',
+			data
+		}, 'Old email not found in Mailchimp update email hook');
+	}
 }
 
 async function handleSubscribe(data: MCProfileData) {
-	const member = await MembersService.createMember({
+	await MembersService.createMember({
 		email: data.email,
 		firstname: data.merges.FNAME,
 		lastname: data.merges.LNAME,
