@@ -23,7 +23,7 @@ export default class Segment {
 	order!: number
 
 	@Column({nullable: true})
-	newsletterListId?: string
+	newsletterTag?: string
 
 	memberCount?: number
 }

@@ -60,7 +60,7 @@ async function processSegment(segment: Segment) {
 	const outgoingEmails = await getRepository(SegmentOngoingEmail).find({where: {segment}});
 
 	// Only fetch old members if we need to
-	const oldMembers = segment.newsletterListId || outgoingEmails.some(oe => oe.trigger === 'onLeave') ?
+	const oldMembers = segment.newsletterTag || outgoingEmails.some(oe => oe.trigger === 'onLeave') ?
 		await getRepository(Member).findByIds(oldSegmentMembers.map(sm => sm.member)) : [];
 
 	for (const outgoingEmail of outgoingEmails) {
@@ -74,7 +74,7 @@ async function processSegment(segment: Segment) {
 		}
 	}
 
-	if (segment.newsletterListId) {
+	if (segment.newsletterTag) {
 		// TODO: remove/add tag
 		//await NewsletterService.upsertMembers(newMembers);
 		//await NewsletterService.archiveMembers(oldMembers);
