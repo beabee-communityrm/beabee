@@ -129,7 +129,7 @@ export default class GiftService {
 			{sendAt}
 		);
 
-		await MembersService.addMemberToMailingLists(member);
+		await MembersService.optMemberIntoNewsletter(member);
 	}
 
 	static async updateGiftFlowAddress(giftFlow: GiftFlow, giftAddress: Address, deliveryAddress: Address): Promise<void> {
