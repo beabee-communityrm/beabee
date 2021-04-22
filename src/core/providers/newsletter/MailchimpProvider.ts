@@ -188,7 +188,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 			return batch;
 		} else {
 			await new Promise(resolve => setTimeout(resolve, 5000));
-			return await this.waitForBatch(await this.instance.get('/batches/' + batch.id));
+			return await this.waitForBatch((await this.instance.get('/batches/' + batch.id)).data);
 		}
 	}
 
@@ -229,6 +229,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 								isValidBatch = false;
 								log.error({
 									action: 'check-batch-errors',
+									data
 								}, `Unexpected error for ${data.operation_id}, got ${data.status_code}`);
 							}
 						});
@@ -253,8 +254,8 @@ export default class MailchimpProvider implements NewsletterProvider {
 	private async dispatchOperations(operations: Operation[]): Promise<void> {
 		if (operations.length > 20) {
 			const batch = await this.createBatch(operations);
-			await this.waitForBatch(batch);
-			await this.checkBatchErrors(batch);
+			const finishedBatch = await this.waitForBatch(batch);
+			await this.checkBatchErrors(finishedBatch);
 		} else {
 			for (const operation of operations) {
 				try {
