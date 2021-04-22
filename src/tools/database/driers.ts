@@ -98,10 +98,10 @@ const giftFlowDrier = createDrier(GiftFlow, {
 	giftForm: createDrier(GiftForm, {
 		firstname: () => chance.first(),
 		lastname: () => chance.last(),
-		email: () => chance.email({domain: 'example.com', length: 10}),
+		email: () => chance.email({domain: 'fake.beabee.io', length: 10}),
 		message: () => chance.sentence(),
 		fromName: () => chance.name(),
-		fromEmail: () => chance.email({domain: 'example.com', length: 10}),
+		fromEmail: () => chance.email({domain: 'fake.beabee.io', length: 10}),
 	}),
 	giftee: memberId
 });
@@ -114,7 +114,7 @@ export const manualPaymentDataDrier = createDrier(ManualPaymentData, {
 
 export const memberDrier = createDrier(Member, {
 	id: () => uuidv4(),
-	email: () => chance.email({domain: 'example.com', length: 10}),
+	email: () => chance.email({domain: 'fake.beabee.io', length: 10}),
 	firstname: () => chance.first(),
 	lastname: () => chance.last(),
 	otp: () => ({activated: false}),
