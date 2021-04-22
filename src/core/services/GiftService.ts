@@ -154,7 +154,7 @@ export default class GiftService {
 		try {
 			const giftFlow = new GiftFlow();
 			giftFlow.sessionId = 'UNKNOWN';
-			giftFlow.setupCode = MembersService.generateMemberCode(giftForm);
+			giftFlow.setupCode = MembersService.generateMemberCode(giftForm)!;
 			giftFlow.giftForm = giftForm;
 			await getRepository(GiftFlow).insert(giftFlow);
 			return giftFlow;

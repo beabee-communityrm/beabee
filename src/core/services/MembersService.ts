@@ -18,9 +18,11 @@ export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contribu
 export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
 
 export default class MembersService {
-	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
-		const no = ('000' + Math.floor(Math.random() * 1000)).slice(-3);
-		return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
+	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string|undefined {
+		if (member.firstname && member.lastname) {
+			const no = ('000' + Math.floor(Math.random() * 1000)).slice(-3);
+			return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
+		}
 	}
 
 	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile): Promise<Member> {
