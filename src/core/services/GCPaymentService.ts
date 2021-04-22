@@ -219,7 +219,7 @@ abstract class UpdateContributionPaymentService {
 		await getRepository(GCPaymentData).update(gcData.member.id, gcData);
 
 		if (wasInactive) {
-			await MembersService.addMemberToMailingLists(member);
+			await MembersService.optMemberIntoNewsletter(member);
 		}
 	}
 }

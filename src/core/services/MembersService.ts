@@ -54,7 +54,7 @@ export default class MembersService {
 		}
 	}
 
-	static async addMemberToMailingLists(member: Member): Promise<void> {
+	static async optMemberIntoNewsletter(member: Member): Promise<void> {
 		try {
 			await NewsletterService.upsertMembers([member], true, OptionsService.getList('newsletter-default-groups'));
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
@@ -96,15 +96,7 @@ export default class MembersService {
 
 	static async syncMemberDetails(member: Member, oldEmail: string): Promise<void> {
 		if ( member.isActiveMember ) {
-			try {
-				await NewsletterService.updateMember(member, oldEmail);
-			} catch (err) {
-				if (err.response && err.response.status === 404) {
-					await MembersService.addMemberToMailingLists(member);
-				} else {
-					throw err;
-				}
-			}
+			await NewsletterService.updateMember(member, oldEmail);
 		}
 
 		// TODO: Unhook this from MembersService
