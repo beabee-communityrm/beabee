@@ -101,8 +101,8 @@ function memberToMCMember(member: Member): MCMember {
 		merge_fields: {
 			FNAME: member.firstname,
 			LNAME: member.lastname,
-			REFCODE: member.referralCode,
-			POLLSCODE: member.pollsCode,
+			REFCODE: member.referralCode || '',
+			POLLSCODE: member.pollsCode || '',
 			C_DESC: member.contributionDescription,
 			C_MNTHAMT: member.contributionMonthlyAmount?.toString() || '',
 			C_PERIOD: member.contributionPeriod || ''

@@ -79,11 +79,11 @@ export default class Member {
 	@Column({type: 'real', nullable: true})
 	nextContributionMonthlyAmount?: number
 
-	@Column({unique: true})
-	referralCode!: string
+	@Column({unique: true, nullable: true})
+	referralCode?: string
 
-	@Column({unique: true})
-	pollsCode!: string
+	@Column({unique: true, nullable: true})
+	pollsCode?: string
 
 	@OneToMany('MemberPermission', 'member', {eager: true, cascade: true})
 	permissions!: MemberPermission[]
