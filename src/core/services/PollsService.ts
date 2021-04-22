@@ -1,6 +1,6 @@
 import { getRepository, IsNull, LessThan } from 'typeorm';
 
-import mailchimp from '@core/lib/mailchimp';
+import NewsletterService from '@core/services/NewsletterService';
 
 import Member from '@models/Member';
 import Poll, { PollAccess } from '@models/Poll';
@@ -66,9 +66,9 @@ export default class PollsService {
 		await getRepository(PollResponse).save(pollResponse);
 
 		if (poll.mcMergeField && poll.pollMergeField) {
-			await mailchimp.mainList.updateMemberFields( member, {
+			await NewsletterService.updateMemberFields(member, {
 				[poll.mcMergeField]: answers[poll.pollMergeField].toString()
-			} );
+			});
 		}
 	}
 

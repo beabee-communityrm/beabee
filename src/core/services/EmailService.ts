@@ -7,9 +7,9 @@ import Member from '@models/Member';
 
 import config from '@config';
 
-import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from './email';
-import MandrillEmailProvider from './email/MandrillEmailProvider';
-import SMTPEmailProvider from './email/SMTPEmailProvider';
+import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '@core/providers/email';
+import MandrillProvider from '@core/providers/email/MandrillProvider';
+import SMTPProvider from '@core/providers/email/SMTPProvider';
 
 const log = mainLogger.child({app: 'email-service'});
 
@@ -70,7 +70,8 @@ type MemberEmailParams<T extends MemberEmailTemplateId> = Parameters<MemberEmail
 class EmailService implements EmailProvider {
 
 	private readonly provider: EmailProvider = config.email.provider === 'mandrill' ?
-		new MandrillEmailProvider() : new SMTPEmailProvider()
+		new MandrillProvider(config.email.settings) :
+		new SMTPProvider(config.email.settings)
 
 	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
 		log.info({
@@ -84,13 +85,19 @@ class EmailService implements EmailProvider {
 
 	async sendTemplate(template: EmailTemplateId|MemberEmailTemplateId, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
 		const providerTemplate = this.providerTemplateMap[template];
-		log.info({
-			action: 'send-template',
-			data: {
-				template, providerTemplate, recipients
-			}
-		});
-		await this.provider.sendTemplate(providerTemplate, recipients, opts);
+		if (providerTemplate) {
+			log.info({
+				action: 'send-template',
+				data: {
+					template, providerTemplate, recipients
+				}
+			});
+			await this.provider.sendTemplate(providerTemplate, recipients, opts);
+		} else {
+			log.error({
+				action: 'send-template',
+			}, `Tried to send ${template} that has no provider template set`);
+		}
 	}
 
 	async sendTemplateTo<T extends EmailTemplateId>(
@@ -149,7 +156,7 @@ class EmailService implements EmailProvider {
 		];
 	}
 
-	get providerTemplateMap() {
+	get providerTemplateMap(): Partial<Record<EmailTemplateId|MemberEmailTemplateId, string>> {
 		return OptionsService.getJSON('email-templates');
 	}
 }
