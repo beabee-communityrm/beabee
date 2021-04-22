@@ -1,10 +1,8 @@
 import { log as mainLogger } from '@core/logging';
 
-import { NewsletterProvider } from '@core/providers/newsletter';
+import { NewsletterMember, NewsletterProvider } from '@core/providers/newsletter';
 import MailchimpProvider from '@core/providers/newsletter/MailchimpProvider';
 import NoneProvider from '@core/providers/newsletter/NoneProvider';
-
-import OptionsService from '@core/services/OptionsService';
 
 import Member from '@models/Member';
 
@@ -25,6 +23,10 @@ class NewsletterService implements NewsletterProvider {
 	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
 		log.info({action: 'remove-tag-from-members', data: {tag}});
 		await this.provider.removeTagFromMembers(members, tag);
+	}
+
+	async getMembers(): Promise<NewsletterMember[]> {
+		return await this.provider.getMembers();
 	}
 
 	async updateMember(member: Member, oldEmail = member.email): Promise<void> {

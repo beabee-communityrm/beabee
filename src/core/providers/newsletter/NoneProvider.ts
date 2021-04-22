@@ -1,11 +1,14 @@
 import Member from '@models/Member';
 
-import { NewsletterProvider } from '.';
+import { NewsletterMember, NewsletterProvider } from '.';
 
 export default class NoneProvider implements NewsletterProvider {
 	async addTagToMembers(members: Member[], tag: string): Promise<void> {
 	}
 	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
+	}
+	async getMembers(): Promise<NewsletterMember[]> {
+		return [];
 	}
 	async updateMember(member: Member, oldEmail?: string): Promise<void> {
 	}

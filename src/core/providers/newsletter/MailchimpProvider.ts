@@ -9,7 +9,7 @@ import { cleanEmailAddress } from '@core/utils';
 
 import Member from '@models/Member';
 
-import { NewsletterProvider } from '.';
+import { NewsletterMember, NewsletterProvider } from '.';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
@@ -29,7 +29,7 @@ interface Batch {
 }
 
 interface OperationNoBody {
-	method: 'DELETE'|'POST'
+	method: 'GET'|'DELETE'|'POST'
 	path: string
 	operation_id: string
 }
@@ -43,7 +43,17 @@ interface OperationWithBody {
 
 type Operation = OperationNoBody|OperationWithBody;
 
-type MergeFields = {[key: string]: string}
+interface OperationResponse {
+	status_code: number
+	response: string
+	operation_id: string
+}
+
+type MergeFields = {
+	FNAME: string
+	LNAME: string
+	[key: string]: string
+}
 
 interface MCMember {
 	email_address: string
@@ -101,7 +111,7 @@ function memberToMCMember(member: Member): MCMember {
 }
 
 // Ignore 404/405s from delete operations
-function validateStatus(statusCode: number, operationId: string) {
+function validateOperationStatus(statusCode: number, operationId: string) {
 	return statusCode < 400 ||
 		operationId.startsWith('delete') && (statusCode === 404 || statusCode === 405);
 }
@@ -117,7 +127,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 
 	async addTagToMembers(members: Member[], tag: string): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email) + '/tags',
+			path: this.memberUrl(member.email) + '/tags',
 			method: 'POST',
 			body: JSON.stringify({
 				tags: [{name: tag, status: 'active'}]
@@ -129,7 +139,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 
 	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email) + '/tags',
+			path: this.memberUrl(member.email) + '/tags',
 			method: 'POST',
 			body: JSON.stringify({
 				tags: [{name: tag, status: 'inactive'}]
@@ -139,19 +149,36 @@ export default class MailchimpProvider implements NewsletterProvider {
 		await this.dispatchOperations(operations);
 	}
 
+	async getMembers(): Promise<NewsletterMember[]> {
+		const operation: Operation = {
+			path: `lists/${this.listId}/members`,
+			method: 'GET',
+			operation_id: 'get'
+		};
+
+		const batch = await this.createBatch([operation]);
+		const finishedBatch = await this.waitForBatch(batch);
+		const members = await this.getBatchResponses(finishedBatch);
+		return (members as MCMember[]).map(member => ({
+			email: member.email_address,
+			firstname: member.merge_fields.FNAME,
+			lastname: member.merge_fields.LNAME
+		}));
+	}
+
 	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
-		await this.instance.patch(this.mcMemberUrl(oldEmail), memberToMCMember(member));
+		await this.instance.patch(this.memberUrl(oldEmail), memberToMCMember(member));
 	}
 
 	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {
-		await this.instance.patch(this.mcMemberUrl(member.email), {
+		await this.instance.patch(this.memberUrl(member.email), {
 			merge_fields: fields
 		});
 	}
 
 	async upsertMembers(members: Member[], optIn: boolean, groups: string[] = []): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email),
+			path: this.memberUrl(member.email),
 			method: 'PUT',
 			body: JSON.stringify({
 				...memberToMCMember(member),
@@ -166,7 +193,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 
 	async archiveMembers(members: Member[]): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email),
+			path: this.memberUrl(member.email),
 			method: 'DELETE',
 			operation_id: `delete_${member.id}`
 		}));
@@ -175,14 +202,14 @@ export default class MailchimpProvider implements NewsletterProvider {
 
 	async deleteMembers(members: Member[]): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email) + '/actions/permanently-delete',
+			path: this.memberUrl(member.email) + '/actions/permanently-delete',
 			method: 'POST',
 			operation_id: `delete-permanently_${member.id}`
 		}));
 		await this.dispatchOperations(operations);
 	}
 
-	private mcMemberUrl(email: string) {
+	private memberUrl(email: string) {
 		const emailHash = crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
 		return `lists/${this.listId}/members/${emailHash}`;
 	}
@@ -217,70 +244,69 @@ export default class MailchimpProvider implements NewsletterProvider {
 		}
 	}
 
-	private async checkBatchErrors(batch: Batch): Promise<boolean> {
+	private async getBatchResponses(batch: Batch): Promise<any[]> {
 		log.info({
-			action: 'check-batch-errors',
+			action: 'get-batch-responses',
 			data: {
 				batchId: batch.id,
+				finishedOperations: batch.finished_operations,
+				totalOperations: batch.total_operations,
 				erroredOperations: batch.errored_operations
 			}
 		});
 
 
-		if (batch.errored_operations > 0) {
-			let isValidBatch = true;
+		const batchResponses: any[] = [];
 
-			const response = await axios({
-				method: 'GET',
-				url: batch.response_body_url,
-				responseType: 'stream'
-			});
+		const response = await axios({
+			method: 'GET',
+			url: batch.response_body_url,
+			responseType: 'stream'
+		});
 
-			const extract = tar.extract();
+		const extract = tar.extract();
 
-			extract.on('entry', (header, stream, next) => {
-				stream.on('end', next);
+		extract.on('entry', (header, stream, next) => {
+			stream.on('end', next);
 
-				if (header.type === 'file') {
-					log.info({
-						action: 'checking-batch-error-file',
-						data: {
-							name: header.name
+			if (header.type === 'file') {
+				log.info({
+					action: 'checking-batch-error-file',
+					data: {
+						name: header.name
+					}
+				});
+				stream.pipe(JSONStream.parse('*'))
+					.on('data', (data: OperationResponse) => {
+						if (validateOperationStatus(data.status_code, data.operation_id)) {
+							log.error({
+								action: 'check-batch-errors',
+								data
+							}, `Unexpected error for ${data.operation_id}, got ${data.status_code}`);
+						} else {
+							batchResponses.push(JSON.parse(data.response));
 						}
 					});
-					stream.pipe(JSONStream.parse('*'))
-						.on('data', (data: any) => {
-							if (!validateStatus(data.status_code, data.operation_id)) {
-								isValidBatch = false;
-								log.error({
-									action: 'check-batch-errors',
-									data
-								}, `Unexpected error for ${data.operation_id}, got ${data.status_code}`);
-							}
-						});
-				} else {
-					stream.resume();
-				}
+			} else {
+				stream.resume();
+			}
 
-			});
+		});
 
-			return await new Promise((resolve, reject) => {
-				response.data
-					.pipe(gunzip())
-					.pipe(extract)
-					.on('error', reject)
-					.on('finish', () => resolve(isValidBatch));
-			});
-		} else {
-			return true;
-		}
+		return await new Promise((resolve, reject) => {
+			response.data
+				.pipe(gunzip())
+				.pipe(extract)
+				.on('error', reject)
+				.on('finish', () => resolve(batchResponses));
+		});
 	}
 
 	private async dispatchOperations(operations: Operation[]): Promise<void> {
 		if (operations.length > 20) {
 			const batch = await this.createBatch(operations);
 			const finishedBatch = await this.waitForBatch(batch);
-			await this.checkBatchErrors(finishedBatch);
+			await this.getBatchResponses(finishedBatch); // Just check for errors
 		} else {
 			for (const operation of operations) {
 				try {
@@ -288,7 +314,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 						method: operation.method,
 						url: operation.path,
 						...operation.method === 'PUT' && {data: JSON.parse(operation.body)},
-						validateStatus: (status: number) => validateStatus(status, operation.operation_id)
+						validateStatus: (status: number) => validateOperationStatus(status, operation.operation_id)
 					});
 				} catch (err) {
 					console.log(err);
