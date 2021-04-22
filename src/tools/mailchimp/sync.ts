@@ -5,9 +5,11 @@ import { Between, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 
+import NewsletterService from '@core/services/NewsletterService';
+import OptionsService from '@core/services/OptionsService';
+
 import Member from '@models/Member';
 import MemberPermission from '@models/MemberPermission';
-import NewsletterService from '@core/services/NewsletterService';
 
 async function fetchMembers(startDate: string|undefined, endDate: string|undefined): Promise<Member[]> {
 	const actualStartDate = startDate ? moment(startDate).toDate() : moment().subtract({d: 1, h: 2}).toDate();
@@ -39,7 +41,7 @@ async function processMembers(members: Member[]) {
 	console.log(`Updating ${membersToUpsert.length}, archiving ${membersToArchive.length}`);
 
 	await NewsletterService.upsertMembers(membersToUpsert);
-	await NewsletterService.archiveMembers(membersToArchive);
+	await NewsletterService.removeTagFromMembers(membersToArchive, OptionsService.getText('newsletter-active-members-tag'));
 }
 
 db.connect().then(async () => {

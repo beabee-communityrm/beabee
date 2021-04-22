@@ -36,6 +36,7 @@
 
 	"email-templates": "{}",
 
+	"newsletter-active-member-tag": "Active member",
 	"newsletter-default-groups": "",
 
 	"tracking-code": "",

@@ -17,22 +17,36 @@ class NewsletterService {
 		new MailchimpProvider(config.newsletter.settings as any) :
 		new NoneProvider();
 
+	async addTagToMembers(members: Member[], tag: string): Promise<void> {
+		log.info({action: 'add-tag-to-members', data: {tag}});
+		await this.provider.addTagToMembers(members, tag);
+	}
+
+	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
+		log.info({action: 'remove-tag-from-members', data: {tag}});
+		await this.provider.removeTagFromMembers(members, tag);
+	}
+
 	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
 		log.info({action: 'update-member', data: {memberId: member.id}});
 		await this.provider.updateMember(member, oldEmail);
 	}
+
 	async updateMemberFields(member: Member, fields: Record<string, string>) {
 		log.info({action: 'update-member-fields', data: {memberId: member.id, fields}});
 		await this.provider.updateMemberFields(member, fields);
 	}
+
 	async upsertMembers(members: Member[]): Promise<void> {
 		log.info({action: 'upsert-members'});
 		await this.provider.upsertMembers(members, OptionsService.getList('newsletter-default-groups'));
 	}
+
 	async archiveMembers(members: Member[]): Promise<void> {
 		log.info({action: 'archive-members'});
 		await this.provider.archiveMembers(members);
 	}
+
 	async deleteMembers(members: Member[]): Promise<void> {
 		log.info({action: 'delete-members'});
 		await this.provider.deleteMembers(members);

@@ -114,6 +114,14 @@ export default class MailchimpProvider implements NewsletterProvider {
 		this.listId = config.list_id;
 	}
 
+	async addTagToMembers(members: Member[], tag: string): Promise<void> {
+
+	}
+
+	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
+
+	}
+
 	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
 		await this.instance.patch(this.mcMemberUrl(oldEmail), memberToMCMember(member));
 	}
