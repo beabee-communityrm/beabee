@@ -37,7 +37,7 @@ class NewsletterService implements NewsletterProvider {
 		await this.provider.updateMemberFields(member, fields);
 	}
 
-	async upsertMembers(members: Member[], optIn: boolean, groups: string[]): Promise<void> {
+	async upsertMembers(members: Member[], optIn: boolean, groups: string[] = []): Promise<void> {
 		log.info({action: 'upsert-members'});
 		await this.provider.upsertMembers(members, optIn, groups);
 	}

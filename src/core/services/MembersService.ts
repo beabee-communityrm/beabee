@@ -45,6 +45,8 @@ export default class MembersService {
 			});
 			await getRepository(MemberProfile).save(profile);
 
+			await NewsletterService.upsertMembers([member], false);
+
 			return member;
 		} catch (error) {
 			if (isDuplicateIndex(error, 'referralCode') || isDuplicateIndex(error, 'pollsCode')) {
