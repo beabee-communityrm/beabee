@@ -4,3 +4,35 @@ block contents
 	.row
 		.col-md-12
 			+page_header('Newsletter settings')
+
+			h4 Merge fields
+			p.
+				Which fields should be merged to your newsletter list. Anything that
+				you want to merge in a newsletter or segment on needs to be synced
+
+			p Coming soon
+
+			hr
+
+			h4 Resync
+			p.
+				Resync your contacts with your newsletter provider. This is useful to
+				initially your data from Mailchimp, or to fix things when e.g. tags
+				have gone wrong.
+
+			p.
+				This will import any new contacts from your newsletter list
+				and vice versa
+
+			ul
+				li Import new contacts from the newsletter list
+				li Export any contacts
+				li Overwrite merge tags on the newsletter
+
+			form(method='post')
+				+csrf
+				.checkbox
+					label
+						input(type='checkbox' required)
+						| I understand the risks
+				button(name='action' value='resync')
