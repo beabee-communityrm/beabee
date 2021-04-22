@@ -66,7 +66,7 @@ export default class PollsService {
 		await getRepository(PollResponse).save(pollResponse);
 
 		if (poll.mcMergeField && poll.pollMergeField) {
-			await NewsletterService.mainList.updateMemberFields(member, {
+			await NewsletterService.updateMemberFields(member, {
 				[poll.mcMergeField]: answers[poll.pollMergeField].toString()
 			});
 		}
