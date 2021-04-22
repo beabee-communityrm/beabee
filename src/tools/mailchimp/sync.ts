@@ -21,10 +21,7 @@ async function fetchMembers(startDate: string|undefined, endDate: string|undefin
 	console.log('# Fetching members');
 
 	const memberships = await getRepository(MemberPermission).find({
-		where: [
-			{permission: 'member', dateAdded: Between(actualStartDate, actualEndDate)},
-			{permission: 'member', dateExpires: Between(actualStartDate, actualEndDate)},
-		],
+		where: {permission: 'member', dateExpires: Between(actualStartDate, actualEndDate)},
 		relations: ['member']
 	});
 	console.log(`Got ${memberships.length} members`);
@@ -35,13 +32,9 @@ async function fetchMembers(startDate: string|undefined, endDate: string|undefin
 }
 
 async function processMembers(members: Member[]) {
-	const membersToUpsert = members.filter(m => m.isActiveMember);
 	const membersToArchive = members.filter(m => !m.isActiveMember);
-
-	console.log(`Updating ${membersToUpsert.length}, archiving ${membersToArchive.length}`);
-
-	await NewsletterService.upsertMembers(membersToUpsert);
-	await NewsletterService.removeTagFromMembers(membersToArchive, OptionsService.getText('newsletter-active-members-tag'));
+	console.log(`Archiving ${membersToArchive.length}`);
+	await NewsletterService.removeTagFromMembers(membersToArchive, OptionsService.getText('newsletter-active-member-tag'));
 }
 
 db.connect().then(async () => {

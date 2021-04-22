@@ -12,7 +12,7 @@ import config from '@config';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
-class NewsletterService {
+class NewsletterService implements NewsletterProvider {
 	private readonly provider: NewsletterProvider = config.newsletter.provider === 'mailchimp' ?
 		new MailchimpProvider(config.newsletter.settings as any) :
 		new NoneProvider();
@@ -37,9 +37,9 @@ class NewsletterService {
 		await this.provider.updateMemberFields(member, fields);
 	}
 
-	async upsertMembers(members: Member[]): Promise<void> {
+	async upsertMembers(members: Member[], optIn: boolean, groups: string[]): Promise<void> {
 		log.info({action: 'upsert-members'});
-		await this.provider.upsertMembers(members, OptionsService.getList('newsletter-default-groups'));
+		await this.provider.upsertMembers(members, optIn, groups);
 	}
 
 	async archiveMembers(members: Member[]): Promise<void> {

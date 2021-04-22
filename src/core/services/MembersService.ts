@@ -56,7 +56,7 @@ export default class MembersService {
 
 	static async addMemberToMailingLists(member: Member): Promise<void> {
 		try {
-			await NewsletterService.upsertMembers([member]);
+			await NewsletterService.upsertMembers([member], true, OptionsService.getList('newsletter-default-groups'));
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		} catch (err) {
 			log.error({

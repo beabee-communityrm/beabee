@@ -149,13 +149,13 @@ export default class MailchimpProvider implements NewsletterProvider {
 		});
 	}
 
-	async upsertMembers(members: Member[], groups: string[] = []): Promise<void> {
+	async upsertMembers(members: Member[], optIn: boolean, groups: string[] = []): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
 			path: this.mcMemberUrl(member.email),
 			method: 'PUT',
 			body: JSON.stringify({
 				...memberToMCMember(member),
-				status_if_new: 'subscribed',
+				status_if_new: optIn ? 'subscribed' : 'unsubscribed',
 				interests: Object.assign({}, ...groups.map(group => ({[group]: true})))
 			}),
 			operation_id: `add_${member.id}`

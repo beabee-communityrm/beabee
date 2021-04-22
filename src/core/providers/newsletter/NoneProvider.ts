@@ -11,7 +11,7 @@ export default class NoneProvider implements NewsletterProvider {
 	}
 	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {
 	}
-	async upsertMembers(members: Member[], groups?: string[]): Promise<void> {
+	async upsertMembers(members: Member[], optIn: boolean, groups?: string[]): Promise<void> {
 	}
 	async archiveMembers(members: Member[]): Promise<void> {
 	}
