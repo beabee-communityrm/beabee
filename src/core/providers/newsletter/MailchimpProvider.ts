@@ -28,19 +28,20 @@ interface Batch {
 	response_body_url: string
 }
 
-interface DeleteOperation {
+interface OperationNoBody {
 	method: 'DELETE'|'POST'
 	path: string
 	operation_id: string
 }
-interface PutOperation {
-	method: 'PUT'
+
+interface OperationWithBody {
+	method: 'PUT'|'POST'
 	path: string
 	body: string
 	operation_id: string;
 }
 
-type Operation = DeleteOperation|PutOperation;
+type Operation = OperationNoBody|OperationWithBody;
 
 type MergeFields = {[key: string]: string}
 
@@ -115,11 +116,27 @@ export default class MailchimpProvider implements NewsletterProvider {
 	}
 
 	async addTagToMembers(members: Member[], tag: string): Promise<void> {
-
+		const operations: Operation[] = members.map(member => ({
+			path: this.mcMemberUrl(member.email) + '/tags',
+			method: 'POST',
+			body: JSON.stringify({
+				tags: [{name: tag, status: 'active'}]
+			}),
+			operation_id: `tag_${member.id}`
+		}));
+		await this.dispatchOperations(operations);
 	}
 
 	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
-
+		const operations: Operation[] = members.map(member => ({
+			path: this.mcMemberUrl(member.email) + '/tags',
+			method: 'POST',
+			body: JSON.stringify({
+				tags: [{name: tag, status: 'inactive'}]
+			}),
+			operation_id: `tag_${member.id}`
+		}));
+		await this.dispatchOperations(operations);
 	}
 
 	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
@@ -133,7 +150,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 	}
 
 	async upsertMembers(members: Member[], groups: string[] = []): Promise<void> {
-		const operations: PutOperation[] = members.map(member => ({
+		const operations: Operation[] = members.map(member => ({
 			path: this.mcMemberUrl(member.email),
 			method: 'PUT',
 			body: JSON.stringify({
@@ -148,7 +165,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 	}
 
 	async archiveMembers(members: Member[]): Promise<void> {
-		const operations: DeleteOperation[] = members.map(member => ({
+		const operations: Operation[] = members.map(member => ({
 			path: this.mcMemberUrl(member.email),
 			method: 'DELETE',
 			operation_id: `delete_${member.id}`
@@ -157,7 +174,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 	}
 
 	async deleteMembers(members: Member[]): Promise<void> {
-		const operations: DeleteOperation[] = members.map(member => ({
+		const operations: Operation[] = members.map(member => ({
 			path: this.mcMemberUrl(member.email) + '/actions/permanently-delete',
 			method: 'POST',
 			operation_id: `delete-permanently_${member.id}`
