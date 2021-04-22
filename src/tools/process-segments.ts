@@ -75,8 +75,9 @@ async function processSegment(segment: Segment) {
 	}
 
 	if (segment.newsletterListId) {
-		await NewsletterService.list(segment.newsletterListId).upsertMembers(newMembers);
-		await NewsletterService.list(segment.newsletterListId).archiveMembers(oldMembers);
+		// TODO: remove/add tag
+		//await NewsletterService.upsertMembers(newMembers);
+		//await NewsletterService.archiveMembers(oldMembers);
 	}
 }
 

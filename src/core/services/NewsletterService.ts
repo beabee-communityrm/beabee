@@ -14,50 +14,28 @@ const log = mainLogger.child({app: 'newsletter-service'});
 
 class NewsletterService {
 	private readonly provider: NewsletterProvider = config.newsletter.provider === 'mailchimp' ?
-		new MailchimpProvider(config.newsletter.settings) : new NoneProvider();
-
-	get mainList() {
-		return new MainNewsletterList(this.provider);
-	}
-
-	list(listId: string) {
-		return new NewsletterList(listId, this.provider);
-	}
-}
-
-class NewsletterList {
-	constructor(readonly listId: string, readonly provider: NewsletterProvider) {}
+		new MailchimpProvider(config.newsletter.settings as any) :
+		new NoneProvider();
 
 	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
 		log.info({action: 'update-member', data: {memberId: member.id}});
-		await this.provider.updateMember(this.listId, member, oldEmail);
+		await this.provider.updateMember(member, oldEmail);
 	}
 	async updateMemberFields(member: Member, fields: Record<string, string>) {
 		log.info({action: 'update-member-fields', data: {memberId: member.id, fields}});
-		await this.provider.updateMemberFields(this.listId, member, fields);
+		await this.provider.updateMemberFields(member, fields);
 	}
 	async upsertMembers(members: Member[]): Promise<void> {
 		log.info({action: 'upsert-members'});
-		await this.provider.upsertMembers(this.listId, members);
+		await this.provider.upsertMembers(members, OptionsService.getList('newsletter-default-groups'));
 	}
 	async archiveMembers(members: Member[]): Promise<void> {
 		log.info({action: 'archive-members'});
-		await this.provider.archiveMembers(this.listId, members);
+		await this.provider.archiveMembers(members);
 	}
 	async deleteMembers(members: Member[]): Promise<void> {
 		log.info({action: 'delete-members'});
-		await this.provider.deleteMembers(this.listId, members);
-	}
-}
-
-class MainNewsletterList extends NewsletterList {
-	constructor(readonly provider: NewsletterProvider) {
-		super(OptionsService.getText('newsletter-main-list'), provider);
-	}
-
-	async upsertMembers(members: Member[]): Promise<void> {
-		log.info({action: 'upsert-members-main'});
-		await this.provider.upsertMembers(this.listId, members, OptionsService.getList('newsletter-main-list-groups'));
+		await this.provider.deleteMembers(members);
 	}
 }
 

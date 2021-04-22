@@ -16,6 +16,7 @@ const log = mainLogger.child({app: 'newsletter-service'});
 interface MailchimpConfig {
 	api_key: string
 	datacenter: string
+	list_id: string
 }
 
 interface Batch {
@@ -83,11 +84,6 @@ function createInstance(config: MailchimpConfig) {
 	return instance;
 }
 
-function mcMemberUrl(listId: string, email: string) {
-	const emailHash = crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
-	return `lists/${listId}/members/${emailHash}`;
-}
-
 function memberToMCMember(member: Member): MCMember {
 	return {
 		email_address: member.email,
@@ -111,51 +107,59 @@ function validateStatus(statusCode: number, operationId: string) {
 
 export default class MailchimpProvider implements NewsletterProvider {
 	private readonly instance;
+	private readonly listId;
 
 	constructor(config: MailchimpConfig) {
 		this.instance = createInstance(config);
-	}
-	async updateMember(listId: string, member: Member, oldEmail = member.email): Promise<void> {
-		await this.instance.patch(mcMemberUrl(listId, oldEmail), memberToMCMember(member));
+		this.listId = config.list_id;
 	}
 
-	async updateMemberFields(listId: string, member: Member, fields: Record<string, string>): Promise<void> {
-		await this.instance.patch(mcMemberUrl(listId, member.email), {
+	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
+		await this.instance.patch(this.mcMemberUrl(oldEmail), memberToMCMember(member));
+	}
+
+	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {
+		await this.instance.patch(this.mcMemberUrl(member.email), {
 			merge_fields: fields
 		});
 	}
 
-	async upsertMembers(listId: string, members: Member[], groups: string[] = []): Promise<void> {
+	async upsertMembers(members: Member[], groups: string[] = []): Promise<void> {
 		const operations: PutOperation[] = members.map(member => ({
-			path: mcMemberUrl(listId, member.email),
+			path: this.mcMemberUrl(member.email),
 			method: 'PUT',
 			body: JSON.stringify({
 				...memberToMCMember(member),
 				status_if_new: 'subscribed',
 				interests: Object.assign({}, ...groups.map(group => ({[group]: true})))
 			}),
-			operation_id: `add_${listId}_${member.id}`
+			operation_id: `add_${member.id}`
 		}));
 
 		await this.dispatchOperations(operations);
 	}
 
-	async archiveMembers(listId: string, members: Member[]): Promise<void> {
+	async archiveMembers(members: Member[]): Promise<void> {
 		const operations: DeleteOperation[] = members.map(member => ({
-			path: mcMemberUrl(listId, member.email),
+			path: this.mcMemberUrl(member.email),
 			method: 'DELETE',
-			operation_id: `delete_${listId}_${member.id}`
+			operation_id: `delete_${member.id}`
 		}));
 		await this.dispatchOperations(operations);
 	}
 
-	async deleteMembers(listId: string, members: Member[]): Promise<void> {
+	async deleteMembers(members: Member[]): Promise<void> {
 		const operations: DeleteOperation[] = members.map(member => ({
-			path: mcMemberUrl(listId, member.email) + '/actions/permanently-delete',
+			path: this.mcMemberUrl(member.email) + '/actions/permanently-delete',
 			method: 'POST',
-			operation_id: `delete-permanently_${listId}_${member.id}`
+			operation_id: `delete-permanently_${member.id}`
 		}));
 		await this.dispatchOperations(operations);
+	}
+
+	private mcMemberUrl(email: string) {
+		const emailHash = crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
+		return `lists/${this.listId}/members/${emailHash}`;
 	}
 
 	private async createBatch(operations: Operation[]): Promise<Batch> {
@@ -184,7 +188,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 			return batch;
 		} else {
 			await new Promise(resolve => setTimeout(resolve, 5000));
-			return await this.waitForBatch(await this.instance.get('/batches/' + batch.id));
+			return await this.waitForBatch((await this.instance.get('/batches/' + batch.id)).data);
 		}
 	}
 
@@ -225,6 +229,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 								isValidBatch = false;
 								log.error({
 									action: 'check-batch-errors',
+									data
 								}, `Unexpected error for ${data.operation_id}, got ${data.status_code}`);
 							}
 						});
@@ -249,8 +254,8 @@ export default class MailchimpProvider implements NewsletterProvider {
 	private async dispatchOperations(operations: Operation[]): Promise<void> {
 		if (operations.length > 20) {
 			const batch = await this.createBatch(operations);
-			await this.waitForBatch(batch);
-			await this.checkBatchErrors(batch);
+			const finishedBatch = await this.waitForBatch(batch);
+			await this.checkBatchErrors(finishedBatch);
 		} else {
 			for (const operation of operations) {
 				try {
