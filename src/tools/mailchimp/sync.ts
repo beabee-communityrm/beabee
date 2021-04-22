@@ -38,8 +38,8 @@ async function processMembers(members: Member[]) {
 
 	console.log(`Updating ${membersToUpsert.length}, archiving ${membersToArchive.length}`);
 
-	await NewsletterService.mainList.upsertMembers(membersToUpsert);
-	await NewsletterService.mainList.archiveMembers(membersToArchive);
+	await NewsletterService.upsertMembers(membersToUpsert);
+	await NewsletterService.archiveMembers(membersToArchive);
 }
 
 db.connect().then(async () => {

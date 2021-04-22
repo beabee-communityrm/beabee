@@ -36,8 +36,7 @@
 
 	"email-templates": "{}",
 
-	"newsletter-main-list": "",
-	"newsletter-main-list-groups": "",
+	"newsletter-default-groups": "",
 
 	"tracking-code": "",
 
