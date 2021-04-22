@@ -37,7 +37,7 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 			name: req.body.name,
 			description: req.body.description || '',
 			order: req.body.order || 0,
-			newsletterListId: req.body.newsletterListId
+			newsletterTag: req.body.newsletterTag
 		});
 		req.flash('success', 'segment-updated');
 		res.redirect(req.originalUrl);

@@ -40,10 +40,10 @@ block contents
 						input(type='number' name='order' value=segment.order style='width: 100px')#order.form-control
 						p.help-block Controls the order the segments are listed
 				.form-group
-					label(for='newsletterListId').control-label.col-md-3 Newsletter list
+					label(for='newsletterTag').control-label.col-md-3 Newsletter tag
 					.col-md-9
-						input(type='text' name='newsletterListId' value=segment.newsletterListId)#newsletterListId.form-control
-						p.help-block Sync this segment with a newsletter list
+						input(type='text' name='newsletterTag' value=segment.newsletterTag)#newsletterTag.form-control
+						p.help-block Tag contacts in this segment in the newsletter
 				.form-group
 					.col-md-9.col-md-offset-3
 						button(name='action' value='update').btn.btn-success Update
