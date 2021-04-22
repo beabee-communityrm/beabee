@@ -5,6 +5,8 @@ block contents
 		.col-md-12
 			+page_header('Newsletter settings')
 
+	.row
+		.col-md-8
 			h4 Merge fields
 			p.
 				Which fields should be merged to your newsletter list. Anything that
@@ -21,13 +23,12 @@ block contents
 				have gone wrong.
 
 			p.
-				This will import any new contacts from your newsletter list
-				and vice versa
+				This will perform the following #[b irrevisble] actions:
 
 			ul
 				li Import new contacts from the newsletter list
-				li Export any contacts
-				li Overwrite merge tags on the newsletter
+				li Export any missing contacts to the newsletter list
+				li Overwrite tags and merge fields on the newsletter list
 
 			form(method='post')
 				+csrf
@@ -35,4 +36,4 @@ block contents
 					label
 						input(type='checkbox' required)
 						| I understand the risks
-				button(name='action' value='resync')
+				button(name='action' value='resync').btn.btn-danger Resync
