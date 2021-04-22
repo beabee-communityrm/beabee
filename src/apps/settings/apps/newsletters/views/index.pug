@@ -36,10 +36,13 @@ block contents
 				li Export any missing contacts to the newsletter list
 				li Overwrite tags and merge fields on the newsletter list
 
-			form(method='post')
-				+csrf
-				.checkbox
-					label
-						input(type='checkbox' required)
-						| I understand the risks
-				button(name='action' value='resync').btn.btn-danger Resync
+			if Options('newsletter-resync-status')
+				.alert.alert-warning In progress: #{Options('newsletter-resync-status')}
+			else
+				form(method='post')
+					+csrf
+					.checkbox
+						label
+							input(type='checkbox' required)
+							| I understand the risks
+					button(name='action' value='resync').btn.btn-danger Resync
