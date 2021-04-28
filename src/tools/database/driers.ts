@@ -149,9 +149,9 @@ const optionsDrier = createDrier(Option);
 
 const pageSettingsDrier = createDrier(PageSettings);
 
-const pollsDrier = createDrier(Poll);
+export const pollsDrier = createDrier(Poll);
 
-const pollResponsesDrier = createDrier(PollResponse, {
+export const pollResponsesDrier = createDrier(PollResponse, {
 	id: () => uuidv4(),
 	member: memberId,
 	guestName: () => chance.name(),
