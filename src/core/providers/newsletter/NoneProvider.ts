@@ -1,23 +1,25 @@
-import Member from '@models/Member';
-
 import { NewsletterMember, NewsletterProvider } from '.';
 
 export default class NoneProvider implements NewsletterProvider {
-	async addTagToMembers(members: Member[], tag: string): Promise<void> {
+	addTagToMembers(emails: string[], tag: string): Promise<void> {
+		throw new Error('Method not implemented.');
 	}
-	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
+	removeTagFromMembers(emails: string[], tag: string): Promise<void> {
+		throw new Error('Method not implemented.');
 	}
-	async getMembers(): Promise<NewsletterMember[]> {
-		return [];
+	getMembers(): Promise<NewsletterMember[]> {
+		throw new Error('Method not implemented.');
 	}
-	async updateMember(member: Member, oldEmail?: string): Promise<void> {
+	updateMember(member: NewsletterMember, oldEmail?: string): Promise<void> {
+		throw new Error('Method not implemented.');
 	}
-	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {
+	upsertMembers(members: NewsletterMember[]): Promise<void> {
+		throw new Error('Method not implemented.');
 	}
-	async upsertMembers(members: Member[], optIn: boolean, groups?: string[]): Promise<void> {
+	archiveMembers(emails: string[]): Promise<void> {
+		throw new Error('Method not implemented.');
 	}
-	async archiveMembers(members: Member[]): Promise<void> {
-	}
-	async deleteMembers(members: Member[]): Promise<void> {
+	deleteMembers(emails: string[]): Promise<void> {
+		throw new Error('Method not implemented.');
 	}
 }

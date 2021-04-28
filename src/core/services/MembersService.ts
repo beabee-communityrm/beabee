@@ -47,7 +47,7 @@ export default class MembersService {
 			});
 			await getRepository(MemberProfile).save(profile);
 
-			await NewsletterService.upsertMembers([member], false);
+			await NewsletterService.upsertMembers([member]);
 
 			return member;
 		} catch (error) {
@@ -60,7 +60,7 @@ export default class MembersService {
 
 	static async optMemberIntoNewsletter(member: Member): Promise<void> {
 		try {
-			await NewsletterService.upsertMembers([member], true, OptionsService.getList('newsletter-default-groups'));
+			await NewsletterService.updateMemberStatus(member, 'subscribed', OptionsService.getList('newsletter-default-groups'));
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		} catch (err) {
 			log.error({

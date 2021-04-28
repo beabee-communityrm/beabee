@@ -7,9 +7,7 @@ import tar from 'tar-stream';
 import { log as mainLogger } from '@core/logging';
 import { cleanEmailAddress } from '@core/utils';
 
-import Member from '@models/Member';
-
-import { NewsletterMember, NewsletterProvider } from '.';
+import { NewsletterMember, NewsletterProvider, PartialNewsletterMember } from '.';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
@@ -49,15 +47,12 @@ interface OperationResponse {
 	operation_id: string
 }
 
-type MergeFields = {
-	FNAME: string
-	LNAME: string
-	[key: string]: string
-}
-
 interface MCMember {
-	email_address: string
-	merge_fields: MergeFields
+	email_address: string,
+	status: 'subscribed'|'unsubscribed'|'pending'|'cleaned',
+	interests: {[interest: string]: boolean }
+	merge_fields: Record<string, string>,
+	tags: {id: number, name: string}[]
 }
 
 function createInstance(config: MailchimpConfig) {
@@ -95,17 +90,19 @@ function createInstance(config: MailchimpConfig) {
 	return instance;
 }
 
-function memberToMCMember(member: Member): MCMember {
+function memberToMCMember(member: PartialNewsletterMember, upsert=false): Partial<MCMember> {
 	return {
 		email_address: member.email,
+		...(member.status || upsert) && {
+			[upsert ? 'status_if_new' : 'status']: member.status || 'unsubscribed'
+		},
 		merge_fields: {
-			FNAME: member.firstname,
-			LNAME: member.lastname,
-			REFCODE: member.referralCode || '',
-			POLLSCODE: member.pollsCode || '',
-			C_DESC: member.contributionDescription,
-			C_MNTHAMT: member.contributionMonthlyAmount?.toString() || '',
-			C_PERIOD: member.contributionPeriod || ''
+			...member.firstname && {FNAME: member.firstname},
+			...member.lastname && {LNAME: member.lastname},
+			...member.fields
+		},
+		...member.groups && {
+			interests: Object.assign({}, ...member.groups.map(group => ({[group]: true})))
 		}
 	};
 }
@@ -125,26 +122,26 @@ export default class MailchimpProvider implements NewsletterProvider {
 		this.listId = config.list_id;
 	}
 
-	async addTagToMembers(members: Member[], tag: string): Promise<void> {
-		const operations: Operation[] = members.map(member => ({
-			path: this.memberUrl(member.email) + '/tags',
+	async addTagToMembers(emails: string[], tag: string): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email) + '/tags',
 			method: 'POST',
 			body: JSON.stringify({
 				tags: [{name: tag, status: 'active'}]
 			}),
-			operation_id: `tag_${member.id}`
+			operation_id: `add_tag_${email}`
 		}));
 		await this.dispatchOperations(operations);
 	}
 
-	async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
-		const operations: Operation[] = members.map(member => ({
-			path: this.memberUrl(member.email) + '/tags',
+	async removeTagFromMembers(emails: string[], tag: string): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email) + '/tags',
 			method: 'POST',
 			body: JSON.stringify({
 				tags: [{name: tag, status: 'inactive'}]
 			}),
-			operation_id: `tag_${member.id}`
+			operation_id: `remove_tag_${email}`
 		}));
 		await this.dispatchOperations(operations);
 	}
@@ -159,57 +156,55 @@ export default class MailchimpProvider implements NewsletterProvider {
 		const batch = await this.createBatch([operation]);
 		const finishedBatch = await this.waitForBatch(batch);
 		const members = await this.getBatchResponses(finishedBatch);
-		return (members as MCMember[]).map(member => ({
-			email: member.email_address,
-			firstname: member.merge_fields.FNAME,
-			lastname: member.merge_fields.LNAME
-		}));
-	}
 
-	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
-		await this.instance.patch(this.memberUrl(oldEmail), memberToMCMember(member));
-	}
-
-	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {
-		await this.instance.patch(this.memberUrl(member.email), {
-			merge_fields: fields
+		return (members as MCMember[]).map(member => {
+			const {FNAME, LNAME, ...fields} = member.merge_fields;
+			return {
+				email: member.email_address,
+				firstname: FNAME || '',
+				lastname: LNAME || '',
+				status: member.status === 'subscribed' ? 'subscribed' : 'unsubscribed',
+				groups: Object.entries(member.interests).filter(([group, isOptedIn]) => isOptedIn).map(([group]) => group),
+				tags: member.tags.map(tag => tag.name),
+				fields
+			};
 		});
 	}
 
-	async upsertMembers(members: Member[], optIn: boolean, groups: string[] = []): Promise<void> {
+	async updateMember(member: PartialNewsletterMember, oldEmail = member.email): Promise<void> {
+		await this.instance.patch(this.emailUrl(oldEmail), memberToMCMember(member));
+	}
+
+	async upsertMembers(members: PartialNewsletterMember[]): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
-			path: this.memberUrl(member.email),
+			path: this.emailUrl(member.email),
 			method: 'PUT',
-			body: JSON.stringify({
-				...memberToMCMember(member),
-				status_if_new: optIn ? 'subscribed' : 'unsubscribed',
-				interests: Object.assign({}, ...groups.map(group => ({[group]: true})))
-			}),
-			operation_id: `add_${member.id}`
+			body: JSON.stringify(memberToMCMember(member, true)),
+			operation_id: `add_${member.email}`
 		}));
 
 		await this.dispatchOperations(operations);
 	}
 
-	async archiveMembers(members: Member[]): Promise<void> {
-		const operations: Operation[] = members.map(member => ({
-			path: this.memberUrl(member.email),
+	async archiveMembers(emails: string[]): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email),
 			method: 'DELETE',
-			operation_id: `delete_${member.id}`
+			operation_id: `delete_${email}`
 		}));
 		await this.dispatchOperations(operations);
 	}
 
-	async deleteMembers(members: Member[]): Promise<void> {
-		const operations: Operation[] = members.map(member => ({
-			path: this.memberUrl(member.email) + '/actions/permanently-delete',
+	async deleteMembers(emails: string[]): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email) + '/actions/permanently-delete',
 			method: 'POST',
-			operation_id: `delete-permanently_${member.id}`
+			operation_id: `delete-permanently_${email}`
 		}));
 		await this.dispatchOperations(operations);
 	}
 
-	private memberUrl(email: string) {
+	private emailUrl(email: string) {
 		const emailHash = crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
 		return `lists/${this.listId}/members/${emailHash}`;
 	}
