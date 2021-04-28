@@ -4,3 +4,45 @@ block contents
 	.row
 		.col-md-12
 			+page_header('Newsletter settings')
+
+	.row
+		dl.dl-horizontal
+			dt Provider
+			dd= provider
+			dt Default groups
+			dd= Options('newsletter-default-groups') || '-'
+
+		.col-md-8
+			h4 Merge fields
+			p.
+				Which fields should be merged to your newsletter list. Anything that
+				you want to merge in a newsletter or segment on needs to be synced
+
+			p Coming soon
+
+			hr
+
+			h4 Resync
+			p.
+				Resync your contacts with your newsletter provider. This is useful to
+				initially your data from newsletter list, or to fix things when e.g.
+				tags have gone wrong.
+
+			p.
+				This will perform the following #[b irrevisble] actions:
+
+			ul
+				li Import new contacts from the newsletter list
+				li Upload any missing contacts to the newsletter list
+				li Overwrite tags and merge fields on the newsletter list
+
+			if Options('newsletter-resync-status')
+				.alert.alert-warning In progress: #{Options('newsletter-resync-status')}
+			else
+				form(method='post')
+					+csrf
+					.checkbox
+						label
+							input(type='checkbox' required)
+							| I understand the risks
+					button(name='action' value='resync').btn.btn-danger Resync

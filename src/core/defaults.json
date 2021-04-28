@@ -36,7 +36,9 @@
 
 	"email-templates": "{}",
 
+	"newsletter-active-member-tag": "Active member",
 	"newsletter-default-groups": "",
+	"newsletter-resync-status": "",
 
 	"tracking-code": "",
 
@@ -71,8 +73,10 @@
 	"flash-account-updated": "Your account details have been updated",
 	"flash-delivery-updated": "Your delivery details have been updated",
 
-	"flash-emails-sent": "Transactional email sent",
+	"flash-emails-sent": "Email sent",
 	"flash-emails-templates-updated": "Email templates updated",
+
+	"flash-newsletter-resync-started": "The resyncing process has started",
 
 	"flash-permission-404": "Permission not found",
 	"flash-permission-created": "Permission created",

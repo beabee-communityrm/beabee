@@ -18,9 +18,11 @@ export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contribu
 export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
 
 export default class MembersService {
-	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string {
-		const no = ('000' + Math.floor(Math.random() * 1000)).slice(-3);
-		return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
+	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string|undefined {
+		if (member.firstname && member.lastname) {
+			const no = ('000' + Math.floor(Math.random() * 1000)).slice(-3);
+			return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
+		}
 	}
 
 	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile): Promise<Member> {
@@ -45,6 +47,8 @@ export default class MembersService {
 			});
 			await getRepository(MemberProfile).save(profile);
 
+			await NewsletterService.upsertMembers([member]);
+
 			return member;
 		} catch (error) {
 			if (isDuplicateIndex(error, 'referralCode') || isDuplicateIndex(error, 'pollsCode')) {
@@ -54,9 +58,11 @@ export default class MembersService {
 		}
 	}
 
-	static async addMemberToMailingLists(member: Member): Promise<void> {
+	static async optMemberIntoNewsletter(member: Member): Promise<void> {
 		try {
 			await NewsletterService.upsertMembers([member]);
+			await NewsletterService.updateMemberStatus(member, 'subscribed', OptionsService.getList('newsletter-default-groups'));
+			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		} catch (err) {
 			log.error({
 				app: 'join-utils',
@@ -95,15 +101,7 @@ export default class MembersService {
 
 	static async syncMemberDetails(member: Member, oldEmail: string): Promise<void> {
 		if ( member.isActiveMember ) {
-			try {
-				await NewsletterService.updateMember(member, oldEmail);
-			} catch (err) {
-				if (err.response && err.response.status === 404) {
-					await MembersService.addMemberToMailingLists(member);
-				} else {
-					throw err;
-				}
-			}
+			await NewsletterService.updateMember(member, oldEmail);
 		}
 
 		// TODO: Unhook this from MembersService

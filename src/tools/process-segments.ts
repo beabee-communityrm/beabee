@@ -75,9 +75,8 @@ async function processSegment(segment: Segment) {
 	}
 
 	if (segment.newsletterTag) {
-		// TODO: remove/add tag
-		//await NewsletterService.upsertMembers(newMembers);
-		//await NewsletterService.archiveMembers(oldMembers);
+		await NewsletterService.addTagToMembers(newMembers, segment.newsletterTag);
+		await NewsletterService.removeTagFromMembers(oldMembers, segment.newsletterTag);
 	}
 }
 

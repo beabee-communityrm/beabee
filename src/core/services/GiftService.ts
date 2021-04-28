@@ -129,7 +129,7 @@ export default class GiftService {
 			{sendAt}
 		);
 
-		await MembersService.addMemberToMailingLists(member);
+		await MembersService.optMemberIntoNewsletter(member);
 	}
 
 	static async updateGiftFlowAddress(giftFlow: GiftFlow, giftAddress: Address, deliveryAddress: Address): Promise<void> {
@@ -154,7 +154,7 @@ export default class GiftService {
 		try {
 			const giftFlow = new GiftFlow();
 			giftFlow.sessionId = 'UNKNOWN';
-			giftFlow.setupCode = MembersService.generateMemberCode(giftForm);
+			giftFlow.setupCode = MembersService.generateMemberCode(giftForm)!;
 			giftFlow.giftForm = giftForm;
 			await getRepository(GiftFlow).insert(giftFlow);
 			return giftFlow;
