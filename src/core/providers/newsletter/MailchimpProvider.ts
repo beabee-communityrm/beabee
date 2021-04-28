@@ -30,6 +30,7 @@ interface OperationNoBody {
 	method: 'GET'|'DELETE'|'POST'
 	path: string
 	operation_id: string
+	body?: undefined
 }
 
 interface OperationWithBody {
@@ -96,10 +97,12 @@ function memberToMCMember(member: PartialNewsletterMember, upsert=false): Partia
 		...(member.status || upsert) && {
 			[upsert ? 'status_if_new' : 'status']: member.status || 'unsubscribed'
 		},
-		merge_fields: {
-			...member.firstname && {FNAME: member.firstname},
-			...member.lastname && {LNAME: member.lastname},
-			...member.fields
+		...(member.firstname || member.lastname || member.fields) && {
+			merge_fields: {
+				...member.firstname && {FNAME: member.firstname},
+				...member.lastname && {LNAME: member.lastname},
+				...member.fields
+			}
 		},
 		...member.groups && {
 			interests: Object.assign({}, ...member.groups.map(group => ({[group]: true})))
@@ -308,7 +311,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 					await this.instance({
 						method: operation.method,
 						url: operation.path,
-						...operation.method === 'PUT' && {data: JSON.parse(operation.body)},
+						...operation.body && {data: JSON.parse(operation.body)},
 						validateStatus: (status: number) => validateOperationStatus(status, operation.operation_id)
 					});
 				} catch (err) {
