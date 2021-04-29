@@ -2,12 +2,15 @@ import 'module-alias/register';
 
 import inquirer, { QuestionCollection } from 'inquirer';
 import moment from 'moment';
+import { getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 import { ContributionType } from '@core/utils';
 import { generatePassword, passwordRequirements } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
+
+import MemberPermission from '@models/MemberPermission';
 
 const questions: QuestionCollection[] = [];
 
@@ -75,20 +78,7 @@ db.connect().then(async () => {
 
 	const password = await generatePassword(answers.password);
 
-	const member = await MembersService.createMember({
-		firstname: answers.firstname,
-		lastname: answers.lastname,
-		email: answers.email,
-		contributionType: ContributionType.None,
-		password: {
-			hash: password.hash,
-			salt: password.salt,
-			iterations: password.iterations,
-			tries: 0
-		},
-	}, {
-		deliveryOptIn: false
-	});
+	const permissions = [];
 
 	if ( answers.membership != 'No' ) {
 		const now = moment();
@@ -103,17 +93,35 @@ db.connect().then(async () => {
 			break;
 		}
 
-		await MembersService.updateMemberPermission(member, 'member', {
+		const membership = getRepository(MemberPermission).create({
+			permission: 'member',
 			dateAdded, dateExpires
 		});
+		permissions.push(membership);
 	}
 
 	if ( answers.permission != 'None' ) {
-		await MembersService.updateMemberPermission(
-			member,
-			answers.permission === 'Admin' ? 'admin' : 'superadmin'
-		);
+		const admin = getRepository(MemberPermission).create({
+			permission: answers.permission === 'Admin' ? 'admin' : 'superadmin'
+		});
+		permissions.push(admin);
 	}
+
+	await MembersService.createMember({
+		firstname: answers.firstname,
+		lastname: answers.lastname,
+		email: answers.email,
+		contributionType: ContributionType.None,
+		permissions,
+		password: {
+			hash: password.hash,
+			salt: password.salt,
+			iterations: password.iterations,
+			tries: 0
+		},
+	}, {
+		deliveryOptIn: false
+	});
 
 	await db.close();
 } );
