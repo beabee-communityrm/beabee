@@ -11,7 +11,6 @@ import { generatePassword, passwordRequirements } from '@core/utils/auth';
 import MembersService from '@core/services/MembersService';
 
 import MemberPermission from '@models/MemberPermission';
-import Member from '@models/Member';
 
 const questions: QuestionCollection[] = [];
 
@@ -79,11 +78,41 @@ db.connect().then(async () => {
 
 	const password = await generatePassword(answers.password);
 
-	const member = await MembersService.createMember({
+	const permissions = [];
+
+	if ( answers.membership != 'No' ) {
+		const now = moment();
+		let dateAdded, dateExpires;
+		switch ( answers.membership ) {
+		case 'Yes (expires after 1 month)':
+			dateExpires = now.add( '1', 'months' ).toDate();
+			break;
+		case 'Yes (expired yesterday)':
+			dateAdded = now.subtract( '1', 'months' ).toDate();
+			dateExpires = now.subtract( '1', 'day' ).toDate();
+			break;
+		}
+
+		const membership = getRepository(MemberPermission).create({
+			permission: 'member',
+			dateAdded, dateExpires
+		});
+		permissions.push(membership);
+	}
+
+	if ( answers.permission != 'None' ) {
+		const admin = getRepository(MemberPermission).create({
+			permission: answers.permission === 'Admin' ? 'admin' : 'superadmin'
+		});
+		permissions.push(admin);
+	}
+
+	await MembersService.createMember({
 		firstname: answers.firstname,
 		lastname: answers.lastname,
 		email: answers.email,
 		contributionType: ContributionType.None,
+		permissions,
 		password: {
 			hash: password.hash,
 			salt: password.salt,
@@ -93,41 +122,6 @@ db.connect().then(async () => {
 	}, {
 		deliveryOptIn: false
 	});
-
-	if ( answers.membership != 'No' ) {
-		const membership = new MemberPermission();
-		membership.permission = 'member';
-
-		const now = moment();
-		switch ( answers.membership ) {
-		case 'Yes (expires after 1 month)':
-			membership.dateExpires = now.add( '1', 'months' ).toDate();
-			break;
-		case 'Yes (expired yesterday)':
-			membership.dateAdded = now.subtract( '1', 'months' ).toDate();
-			membership.dateExpires = now.subtract( '1', 'day' ).toDate();
-			break;
-		}
-
-		member.permissions.push(membership);
-	}
-
-	if ( answers.permission != 'None' ) {
-		const adminPermission = new MemberPermission();
-
-		switch ( answers.permission ) {
-		case 'Admin':
-			adminPermission.permission = 'admin';
-			break;
-		case 'Super Admin':
-			adminPermission.permission = 'superadmin';
-			break;
-		}
-
-		member.permissions.push(adminPermission);
-	}
-
-	await getRepository(Member).save(member);
 
 	await db.close();
 } );

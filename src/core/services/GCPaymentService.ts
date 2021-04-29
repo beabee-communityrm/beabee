@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Customer, CustomerBankAccount, PaymentCurrency, RedirectFlow, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
+import { CustomerBankAccount, PaymentCurrency, RedirectFlow, SubscriptionIntervalUnit } from 'gocardless-nodejs/types/Types';
 import { getRepository } from 'typeorm';
 
 import gocardless from '@core/lib/gocardless';
@@ -190,37 +190,21 @@ abstract class UpdateContributionPaymentService {
 				nextChargeDate
 			}
 		} );
-
-		const wasInactive = !member.isActiveMember;
 		
-		let membership = member.permissions.find(p => p.permission === 'member');
-		if (!membership) {
-			membership = getRepository(MemberPermission).create({
-				member,
-				permission: 'member',
-				dateExpires: nextChargeDate.toDate()
-			});
-			member.permissions.push(membership);
-		} else if (membership.dateExpires && nextChargeDate.isAfter(membership.dateExpires)) {
-			membership.dateExpires = nextChargeDate.toDate();
-		}
+		await MembersService.updateMember(member, {
+			contributionType: ContributionType.GoCardless,
+			...startNow ? {
+				contributionMonthlyAmount: paymentForm.amount,
+				nextContributionMonthlyAmount: undefined
+			} : {
+				nextContributionMonthlyAmount: paymentForm.amount
+			}
+		});
 
-		if (startNow) {
-			member.contributionMonthlyAmount = paymentForm.amount;
-			member.nextContributionMonthlyAmount = undefined;
-		} else {
-			member.nextContributionMonthlyAmount = paymentForm.amount;
-		}
-
-		member.contributionType = ContributionType.GoCardless;
-		await getRepository(Member).save(member);
+		await MembersService.extendMemberPermission(member, 'member', nextChargeDate.toDate());
 
 		gcData.cancelledAt = undefined;
 		await getRepository(GCPaymentData).update(gcData.member.id, gcData);
-
-		if (wasInactive) {
-			await MembersService.optMemberIntoNewsletter(member);
-		}
 	}
 }
 

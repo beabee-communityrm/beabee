@@ -1,5 +1,4 @@
 import express from 'express';
-import { getRepository } from 'typeorm';
 
 import { hasSchema, isNotLoggedIn } from '@core/middleware';
 import { cleanEmailAddress, wrapAsync } from '@core/utils';
@@ -7,8 +6,6 @@ import { generatePassword } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
-
-import Member from '@models/Member';
 
 import { getResetCodeSchema, resetPasswordSchema } from './schemas.json';
 
@@ -42,7 +39,9 @@ app.get( '/code/:password_reset_code', function( req, res ) {
 } );
 
 app.post( '/code/:password_reset_code?', hasSchema(resetPasswordSchema).orFlash, wrapAsync( async function( req, res ) {
-	const member = await getRepository(Member).findOne({password: {resetCode: req.body.password_reset_code }});
+	const member = await MembersService.findOne({
+		password: {resetCode: req.body.password_reset_code }
+	});
 	if (member) {
 		await MembersService.updateMember(member, {
 			password: {

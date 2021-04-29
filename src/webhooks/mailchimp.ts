@@ -1,14 +1,12 @@
 import bodyParser from 'body-parser';
 import express from 'express';
-import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
-import { ContributionType, wrapAsync } from '@core/utils';
+import { ContributionType, isDuplicateIndex, wrapAsync } from '@core/utils';
 
-import Member from '@models/Member';
+import MembersService from '@core/services/MembersService';
 
 import config from '@config';
-import MembersService from '@core/services/MembersService';
 
 const log = mainLogger.child({app: 'webhook-mailchimp'});
 
@@ -51,6 +49,7 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+// Mailchimp pings this endpoint when you first add the webhook
 app.get('/', (req, res) => {
 	res.sendStatus(200);
 });
@@ -90,9 +89,9 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 		}
 	});
 
-	const member = await getRepository(Member).findOne({email: data.old_email});
+	const member = await MembersService.findOne({email: data.old_email});
 	if (member) {
-		MembersService.updateMember(member, {email: data.new_email});
+		await MembersService.updateMember(member, {email: data.new_email});
 	} else {
 		log.error({
 			action: 'update-email-not-found',
@@ -102,22 +101,29 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 }
 
 async function handleSubscribe(data: MCProfileData) {
-	await MembersService.createMember({
-		email: data.email,
-		firstname: data.merges.FNAME,
-		lastname: data.merges.LNAME,
-		contributionType: ContributionType.None
-	}, {
-		deliveryOptIn: false
-	});
+	try {
+		await MembersService.createMember({
+			email: data.email,
+			firstname: data.merges.FNAME,
+			lastname: data.merges.LNAME,
+			contributionType: ContributionType.None
+		}, {
+			deliveryOptIn: false
+		});
+	} catch (error) {
+		if (!isDuplicateIndex(error, 'email')) {
+			throw error;
+		}
+	}
 }
 
+// TODO: this should guard against updating other merge fields by overwriting the changes
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 	log.info({
 		action: 'update-profile',
 		data: {email: data.email}
 	});
-	const member = await getRepository(Member).findOne({email: data.email});
+	const member = await MembersService.findOne({email: data.email});
 	if (member) {
 		await MembersService.updateMember(member, {
 			email: data.email,

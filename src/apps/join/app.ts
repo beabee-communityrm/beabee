@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
 
 import { hasSchema, isNotLoggedIn } from '@core/middleware' ;
 import { ContributionPeriod, isDuplicateIndex, wrapAsync } from '@core/utils' ;
@@ -36,7 +35,7 @@ app.get( '/' , function( req, res ) {
 } );
 
 app.get( '/referral/:code', wrapAsync( async function( req, res ) {
-	const referrer = await getRepository(Member).findOne( { referralCode: req.params.code.toUpperCase() } );
+	const referrer = await MembersService.findOne( { referralCode: req.params.code.toUpperCase() } );
 	if ( referrer ) {
 		const gifts = await ReferralsService.getGifts();
 		res.render( 'index', { user: req.user, referrer, gifts } );
@@ -92,7 +91,7 @@ async function handleJoin(req: Request, res: Response, member: Member, {customer
 	await GCPaymentService.updateContribution(member, joinForm);
 
 	if (joinForm.referralCode) {
-		const referrer = await getRepository(Member).findOne({referralCode: joinForm.referralCode});
+		const referrer = await MembersService.findOne({referralCode: joinForm.referralCode});
 		await ReferralsService.createReferral(referrer, member, joinForm);
 	}
 
@@ -131,7 +130,7 @@ app.get( '/complete', [
 		await EmailService.sendTemplateToMember('welcome', newMember);
 	} catch (error) {
 		if (isDuplicateIndex(error, 'email')) {
-			const oldMember = await getRepository(Member).findOne({email: partialMember.member.email});
+			const oldMember = await MembersService.findOne({email: partialMember.member.email});
 			if (oldMember) {
 				if (oldMember.isActiveMember) {
 					res.redirect( app.mountpath + '/duplicate-email' );

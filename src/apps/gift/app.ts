@@ -1,6 +1,5 @@
 import express from 'express';
 import moment from 'moment';
-import { getRepository } from 'typeorm';
 
 import config from '@config';
 
@@ -12,7 +11,6 @@ import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
-import Member from '@models/Member';
 
 import { createGiftSchema, updateGiftAddressSchema } from './schema.json';
 
@@ -81,7 +79,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	if (moment(giftForm.startDate).isBefore(undefined, 'day')) {
 		error = 'flash-gifts-date-in-the-past' as const;
 	} else {
-		const member = await getRepository(Member).findOne({email: giftForm.email});
+		const member = await MembersService.findOne({email: giftForm.email});
 		if (member) {
 			error = 'flash-gifts-email-duplicate' as const;
 		}

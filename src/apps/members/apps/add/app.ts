@@ -2,7 +2,7 @@ import express from 'express';
 import { getRepository } from 'typeorm';
 
 import { hasSchema, isSuperAdmin } from '@core/middleware';
-import { ContributionPeriod, ContributionType, createDateTime, isDuplicateIndex, PaymentForm, wrapAsync } from '@core/utils';
+import { ContributionPeriod, ContributionType, createDateTime, isDuplicateIndex, wrapAsync } from '@core/utils';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';

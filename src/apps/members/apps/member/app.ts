@@ -1,6 +1,5 @@
 import express from 'express';
 import moment from 'moment';
-import { getRepository } from 'typeorm';
 
 import config from '@config';
 
@@ -28,7 +27,7 @@ app.use( isAdmin );
 
 app.use(wrapAsync(async (req, res, next) => {
 	// Bit of a hack to get parent app params
-	const member = await getRepository(Member).findOne({
+	const member = await MembersService.findOne({
 		where: {id: req.allParams.uuid},
 		relations: ['profile']
 	});

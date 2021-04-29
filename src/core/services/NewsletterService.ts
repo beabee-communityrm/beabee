@@ -10,6 +10,13 @@ import config from '@config';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
+function shouldUpdate(updates: Partial<Member>): boolean {
+	return !!(
+		updates.email || updates.firstname || updates.lastname || updates.referralCode ||
+		updates.pollsCode || updates.contributionPeriod || updates.contributionMonthlyAmount
+	);
+}
+
 function memberToNlMember(member: Member): PartialNewsletterMember {
 	return {
 		email: member.email,
@@ -44,9 +51,12 @@ class NewsletterService {
 		return await this.provider.getMembers();
 	}
 
-	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
-		log.info({action: 'update-member', data: {memberId: member.id}});
-		await this.provider.updateMember(memberToNlMember(member), oldEmail);
+	async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+		const willUpdate = shouldUpdate(updates);
+		log.info({action: 'update-member', data: {memberId: member.id, willUpdate}});
+		if (willUpdate) {
+			await this.provider.updateMember(memberToNlMember(member), updates.email && member.email);
+		}
 	}
 
 	async updateMemberStatus(member: Member, status?: NewsletterStatus, groups?: string[]): Promise<void> {
@@ -60,6 +70,7 @@ class NewsletterService {
 	}
 
 	async upsertMembers(members: Member[]): Promise<void> {
+		log.info({action: 'upsert-members'});
 		await this.provider.upsertMembers(members.map(memberToNlMember));
 	}
 

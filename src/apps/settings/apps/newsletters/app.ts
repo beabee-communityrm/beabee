@@ -5,7 +5,6 @@ import { createQueryBuilder } from 'typeorm';
 import { isSuperAdmin } from '@core/middleware';
 import { wrapAsync } from '@core/utils';
 
-import MembersService from '@core/services/MembersService';
 import NewsletterService from '@core/services/NewsletterService';
 import OptionsService from '@core/services/OptionsService';
 
