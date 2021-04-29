@@ -127,7 +127,7 @@ export default class MembersService {
 			Object.assign(existingPermission, updates);
 			await getRepository(MemberPermission).update({member, permission}, updates);
 		} else {
-			const newPermission = getRepository(MemberPermission).create({permission, ...updates});
+			const newPermission = getRepository(MemberPermission).create({member, permission, ...updates});
 			member.permissions.push(newPermission);
 			await getRepository(MemberPermission).insert(newPermission);
 		}
