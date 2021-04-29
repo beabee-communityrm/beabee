@@ -52,6 +52,7 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+// Mailchimp pings this endpoint when you first add the webhook
 app.get('/', (req, res) => {
 	res.sendStatus(200);
 });
