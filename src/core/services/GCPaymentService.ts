@@ -191,18 +191,6 @@ abstract class UpdateContributionPaymentService {
 			}
 		} );
 		
-		let membership = member.permissions.find(p => p.permission === 'member');
-		if (!membership) {
-			membership = getRepository(MemberPermission).create({
-				member,
-				permission: 'member',
-				dateExpires: nextChargeDate.toDate()
-			});
-			member.permissions.push(membership);
-		} else if (membership.dateExpires && nextChargeDate.isAfter(membership.dateExpires)) {
-			membership.dateExpires = nextChargeDate.toDate();
-		}
-
 		await MembersService.updateMember(member, {
 			contributionType: ContributionType.GoCardless,
 			...startNow ? {
@@ -213,6 +201,7 @@ abstract class UpdateContributionPaymentService {
 			}
 		});
 
+		const membership = member.permissions.find(p => p.permission === 'member');
 		if (!membership || membership.dateExpires && nextChargeDate.isAfter(membership.dateExpires)) {
 			await MembersService.updateMemberPermission(member, 'member', {
 				dateExpires:nextChargeDate.toDate()
