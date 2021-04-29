@@ -214,10 +214,6 @@ app.post( '/:slug/:code', [
 		res.cookie('memberId', member.id, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 		error = await PollsService.setResponse( poll, member, req.answers! );
 	} else {
-		req.log.error({
-			app: 'polls',
-			action: 'vote'
-		}, `Member not found with polls code "${pollsCode}"`);
 		error = 'polls-unknown-user';
 	}
 

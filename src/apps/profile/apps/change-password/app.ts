@@ -25,11 +25,6 @@ app.post( '/', hasSchema( changePasswordSchema ).orFlash, wrapAsync( hasUser( as
 		const hash = await hashPassword( body.current, user.password.salt, user.password.iterations );
 
 		if ( hash != user.password.hash ) {
-			req.log.debug( {
-				app: 'profile',
-				action: 'change-password',
-				error: 'Current password does not match users password',
-			} );
 			req.flash( 'danger', 'password-invalid' );
 			res.redirect('/profile/change-password');
 			return;
@@ -39,11 +34,6 @@ app.post( '/', hasSchema( changePasswordSchema ).orFlash, wrapAsync( hasUser( as
 	await MembersService.updateMember(user, {
 		password: await generatePassword(body.new)
 	});
-
-	req.log.info( {
-		app: 'profile',
-		action: 'change-password'
-	} );
 
 	req.flash( 'success', 'password-changed' );
 	res.redirect('/profile/change-password');
