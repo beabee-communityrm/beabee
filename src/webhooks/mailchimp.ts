@@ -94,7 +94,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
 	const member = await getRepository(Member).findOne({email: data.old_email});
 	if (member) {
-		MembersService.updateMember(member, {email: data.new_email});
+		await MembersService.updateMember(member, {email: data.new_email});
 	} else {
 		log.error({
 			action: 'update-email-not-found',
