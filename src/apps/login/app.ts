@@ -36,7 +36,7 @@ if (config.dev) {
 			});
 			member = permission?.member;
 		} else {
-			member = await getRepository(Member).findOne(req.params.id);
+			member = await MembersService.findOne(req.params.id);
 		}
 
 		if (member) {
@@ -49,11 +49,7 @@ if (config.dev) {
 
 app.get( '/:code', wrapAsync( async function( req, res ) {
 	const nextParam = req.query.next as string;
-	const member = await createQueryBuilder(Member, 'm')
-		.where('m.loginOverride ->> \'code\' = :code', {code: req.params.code})
-		.andWhere('m.loginOverride ->> \'expires\' > :now', {now: new Date()})
-		.getOne();
-
+	const member = await MembersService.findByLoginOverride(req.params.code);
 	if (member) {
 		await MembersService.updateMember(member, {loginOverride: undefined});
 		MembersService.loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');

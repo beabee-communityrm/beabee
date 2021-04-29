@@ -6,9 +6,9 @@ import { hasNewModel, hasSchema, isLoggedIn } from '@core/middleware';
 import { isSocialScraper, wrapAsync } from '@core/utils';
 import * as auth from '@core/utils/auth';
 
+import MembersService from '@core/services/MembersService';
 import PollsService from '@core/services/PollsService';
 
-import Member from '@models/Member';
 import Poll, { PollAccess } from '@models/Poll';
 import { PollResponseAnswers } from '@models/PollResponse';
 
@@ -183,7 +183,7 @@ app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res 
 
 	// Prefill answers from URL
 	if (answers) {
-		const member = await getRepository(Member).findOne( { pollsCode } );
+		const member = await MembersService.findOne( { pollsCode } );
 		if (member) {
 			const error = await PollsService.setResponse( poll, member, answers, true );
 			if (!error) {
@@ -209,7 +209,7 @@ app.post( '/:slug/:code', [
 	const pollsCode = req.params.code.toUpperCase();
 	let error;
 
-	const member = await getRepository(Member).findOne( { pollsCode } );
+	const member = await MembersService.findOne( { pollsCode } );
 	if (member) {
 		res.cookie('memberId', member.id, { maxAge: 30 * 24 * 60 * 60 * 1000 });
 		error = await PollsService.setResponse( poll, member, req.answers! );

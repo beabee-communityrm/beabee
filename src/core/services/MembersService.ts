@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
+import { createQueryBuilder, FindConditions, FindManyOptions, FindOneOptions, getRepository } from 'typeorm';
 
 import gocardless from '@core/lib/gocardless';
 import { log } from '@core/logging';
@@ -26,18 +26,35 @@ export default class MembersService {
 		}
 	}
 
+	static async find(options?: FindManyOptions<Member>): Promise<Member[]> {
+		return await getRepository(Member).find(options);
+	}
+
+	static async findByIds(ids: string[], options?: FindOneOptions<Member>): Promise<Member[]> {
+		return await getRepository(Member).findByIds(ids, options);
+	}
+
+	static async findOne(id?: string, options?: FindOneOptions<Member>): Promise<Member|undefined>
+	static async findOne(options?: FindOneOptions<Member>): Promise<Member|undefined>
+	static async findOne(conditions: FindConditions<Member>, options?: FindOneOptions<Member>): Promise<Member|undefined>
+	static async findOne(arg1?: string|FindConditions<Member>|FindOneOptions<Member>, arg2?: FindOneOptions<Member>): Promise<Member|undefined> {
+		return await getRepository(Member).findOne(arg1 as any, arg2);
+	}
+
+	static async findByLoginOverride(code: string): Promise<Member|undefined> {
+		return await createQueryBuilder(Member, 'm')
+			.where('m.loginOverride ->> \'code\' = :code', {code: code})
+			.andWhere('m.loginOverride ->> \'expires\' > :now', {now: new Date()})
+			.getOne();
+	}
+
 	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile): Promise<Member> {
 		try {
 			const member = getRepository(Member).create({
 				referralCode: this.generateMemberCode(partialMember),
 				pollsCode: this.generateMemberCode(partialMember),
 				permissions: [],
-				password: {
-					hash: '',
-					salt: '',
-					iterations: 0,
-					tries: 0
-				},
+				password: {hash: '', salt: '', iterations: 0, tries: 0},
 				...partialMember,
 			});
 			await getRepository(Member).save(member);
@@ -56,19 +73,6 @@ export default class MembersService {
 				return await MembersService.createMember(partialMember, partialProfile);
 			}
 			throw error;
-		}
-	}
-
-	static async optMemberIntoNewsletter(member: Member): Promise<void> {
-		try {
-			await NewsletterService.upsertMembers([member]);
-			await NewsletterService.updateMemberStatus(member, 'subscribed', OptionsService.getList('newsletter-default-groups'));
-			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
-		} catch (err) {
-			log.error({
-				app: 'join-utils',
-				error: err,
-			}, 'Failed to add member to newsletter, probably a bad email address: ' + member.id);
 		}
 	}
 
@@ -149,5 +153,18 @@ export default class MembersService {
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
 		await getRepository(Member).delete(member.id);
 		await NewsletterService.deleteMembers([member]);
+	}
+
+	private static async optMemberIntoNewsletter(member: Member): Promise<void> {
+		try {
+			await NewsletterService.upsertMembers([member]);
+			await NewsletterService.updateMemberStatus(member, 'subscribed', OptionsService.getList('newsletter-default-groups'));
+			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+		} catch (err) {
+			log.error({
+				app: 'join-utils',
+				error: err,
+			}, 'Failed to add member to newsletter, probably a bad email address: ' + member.id);
+		}
 	}
 }

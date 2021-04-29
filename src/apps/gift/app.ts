@@ -81,7 +81,7 @@ app.post( '/', hasSchema( createGiftSchema ).orReplyWithJSON, wrapAsync( async (
 	if (moment(giftForm.startDate).isBefore(undefined, 'day')) {
 		error = 'flash-gifts-date-in-the-past' as const;
 	} else {
-		const member = await getRepository(Member).findOne({email: giftForm.email});
+		const member = await MembersService.findOne({email: giftForm.email});
 		if (member) {
 			error = 'flash-gifts-email-duplicate' as const;
 		}

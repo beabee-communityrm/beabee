@@ -2,7 +2,6 @@ import passport from 'passport';
 import passportLocal from 'passport-local';
 import passportTotp from 'passport-totp';
 import base32 from 'thirty-two';
-import { getRepository } from 'typeorm';
 
 import config from '@config';
 
@@ -20,7 +19,7 @@ passport.use( new passportLocal.Strategy( {
 }, async function( email, password, done ) {
 	if ( email ) email = cleanEmailAddress(email);
 
-	const user = await getRepository(Member).findOne( { email } );
+	const user = await MembersService.findOne( { email } );
 	if (user) {
 		const tries = user.password.tries || 0;
 		// Has account exceeded it's password tries?
@@ -83,7 +82,7 @@ passport.serializeUser( function( data, done ) {
 passport.deserializeUser( async function( data, done ) {
 	try {
 		if (typeof data === 'string') {
-			const member = await getRepository(Member).findOne( data );
+			const member = await MembersService.findOne( data );
 			if ( member ) {
 				// Debounce last seen updates, we don't need to know to the second
 				const now = new Date();

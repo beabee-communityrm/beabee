@@ -1,13 +1,10 @@
 import bodyParser from 'body-parser';
 import express from 'express';
-import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
 import { ContributionType, isDuplicateIndex, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
-
-import Member from '@models/Member';
 
 import config from '@config';
 
@@ -92,7 +89,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 		}
 	});
 
-	const member = await getRepository(Member).findOne({email: data.old_email});
+	const member = await MembersService.findOne({email: data.old_email});
 	if (member) {
 		await MembersService.updateMember(member, {email: data.new_email});
 	} else {
@@ -126,7 +123,7 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 		action: 'update-profile',
 		data: {email: data.email}
 	});
-	const member = await getRepository(Member).findOne({email: data.email});
+	const member = await MembersService.findOne({email: data.email});
 	if (member) {
 		await MembersService.updateMember(member, {
 			email: data.email,
