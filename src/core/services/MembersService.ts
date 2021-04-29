@@ -112,7 +112,10 @@ export default class MembersService {
 		}
 	}
 
-	static async updateMemberPermission(member: Member, permission: PermissionType, updates?: Partial<Omit<MemberPermission, 'member'|'permission'>>): Promise<void> {
+	static async updateMemberPermission(
+		member: Member, permission: PermissionType,
+		updates?: Partial<Omit<MemberPermission, 'member'|'permission'>>
+	): Promise<void> {
 		const wasActive = member.isActiveMember;
 
 		log.info({
@@ -135,6 +138,22 @@ export default class MembersService {
 		await getRepository(Member).save(member);
 		if (!wasActive && member.isActiveMember) {
 			await MembersService.optMemberIntoNewsletter(member);
+		}
+	}
+
+	static async extendMemberPermission(member: Member, permission: PermissionType, dateExpires: Date): Promise<void> {
+		const p = member.permissions.find(p => p.permission === permission);
+		log.info({
+			action: 'extend-member-permission',
+			data: {
+				memberId: member.id,
+				permission,
+				prevDate: p?.dateExpires,
+				newDate: dateExpires
+			}
+		});
+		if (!p || p.dateExpires && dateExpires > p.dateExpires) {
+			await MembersService.updateMemberPermission(member, permission, {dateExpires});
 		}
 	}
 

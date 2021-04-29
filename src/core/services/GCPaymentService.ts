@@ -201,12 +201,7 @@ abstract class UpdateContributionPaymentService {
 			}
 		});
 
-		const membership = member.permissions.find(p => p.permission === 'member');
-		if (!membership || membership.dateExpires && nextChargeDate.isAfter(membership.dateExpires)) {
-			await MembersService.updateMemberPermission(member, 'member', {
-				dateExpires:nextChargeDate.toDate()
-			});
-		}
+		await MembersService.extendMemberPermission(member, 'member', nextChargeDate.toDate());
 
 		gcData.cancelledAt = undefined;
 		await getRepository(GCPaymentData).update(gcData.member.id, gcData);

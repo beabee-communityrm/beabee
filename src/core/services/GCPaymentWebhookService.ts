@@ -8,7 +8,7 @@ import { ContributionPeriod } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';
-import MembersService from './MembersService';
+import MembersService from '@core/services/MembersService';
 
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
@@ -72,24 +72,6 @@ export default class GCPaymentWebhookService {
 			return;
 		}
 
-		const membership = payment.member.permissions.find(p => p.permission === 'member');
-		if (!membership) {
-			log.error({
-				action: 'membership-not-found'
-			}, 'Member has no membership permission');
-			return;
-		}
-
-		const nextExpiryDate = await GCPaymentWebhookService.calcPaymentExpiryDate(payment);
-
-		log.info({
-			action: 'extend-membership',
-			data: {
-				prevDate: membership.dateExpires,
-				newDate: nextExpiryDate
-			}
-		});
-
 		if (payment.member.nextContributionMonthlyAmount) {
 			const newAmount = GCPaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
 			if (newAmount === payment.member.nextContributionMonthlyAmount) {
@@ -100,11 +82,8 @@ export default class GCPaymentWebhookService {
 			}
 		}
 
-		if (nextExpiryDate.isAfter(membership.dateExpires)) {
-			await MembersService.updateMemberPermission(payment.member, 'member', {
-				dateExpires: nextExpiryDate.toDate()
-			});
-		}
+		const nextExpiryDate = await GCPaymentWebhookService.calcPaymentExpiryDate(payment);
+		await MembersService.extendMemberPermission(payment.member, 'member', nextExpiryDate.toDate());
 	}
 
 	static async updatePaymentStatus(gcPaymentId: string, status: string): Promise<void> {
