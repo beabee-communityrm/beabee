@@ -82,19 +82,16 @@ app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( a
 		return;
 	}
 
-	await getRepository(MemberPermission).update(
-		{member, permission},
-		{dateAdded, dateExpires}
-	);
+	await MembersService.updateMemberPermission(member, permission, {
+		dateAdded, dateExpires
+	});
 
 	req.flash( 'success', 'permission-updated' );
 	res.redirect( req.baseUrl );
 } ) );
 
 app.post( '/:id/revoke', wrapAsync( async ( req, res ) => {
-	const member = req.model as Member;
-	const permission = req.params.id as PermissionType;
-	await getRepository(MemberPermission).delete({member, permission});
+	await MembersService.revokeMemberPermission(req.model as Member, req.params.id as PermissionType);
 
 	req.flash( 'success', 'permission-removed' );
 	res.redirect( req.baseUrl );

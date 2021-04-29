@@ -72,6 +72,9 @@ export default class MembersService {
 			await getRepository(MemberProfile).save(profile);
 
 			await NewsletterService.upsertMembers([member]);
+			if (member.isActiveMember) {
+				await MembersService.optMemberIntoNewsletter(member);
+			}
 
 			return member;
 		} catch (error) {
@@ -125,14 +128,30 @@ export default class MembersService {
 		const existingPermission = member.permissions.find(p => p.permission === permission);
 		if (existingPermission && updates) {
 			Object.assign(existingPermission, updates);
-			await getRepository(MemberPermission).update({member, permission}, updates);
 		} else {
 			const newPermission = getRepository(MemberPermission).create({member, permission, ...updates});
 			member.permissions.push(newPermission);
-			await getRepository(MemberPermission).insert(newPermission);
 		}
+		await getRepository(Member).save(member);
 		if (!wasActive && member.isActiveMember) {
-			MembersService.optMemberIntoNewsletter(member);
+			await MembersService.optMemberIntoNewsletter(member);
+		}
+	}
+
+	static async revokeMemberPermission(member: Member, permission: PermissionType): Promise<void> {
+		const wasActive = member.isActiveMember;
+		log.info({
+			action: 'revoke-member-permission',
+			data: {
+				memberId: member.id,
+				permission,
+				wasActive
+			}
+		});
+		member.permissions = member.permissions.filter(p => p.permission !== permission);
+		await getRepository(MemberPermission).delete({member, permission});
+		if (wasActive && !member.isActiveMember) {
+			await MembersService.removeMemberFromNewsletter(member);
 		}
 	}
 
@@ -173,9 +192,13 @@ export default class MembersService {
 		await NewsletterService.deleteMembers([member]);
 	}
 
+	static async removeMemberFromNewsletter(member: Member): Promise<void> {
+		await NewsletterService.updateMemberStatus(member, 'unsubscribed');
+		await NewsletterService.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+	}
+
 	private static async optMemberIntoNewsletter(member: Member): Promise<void> {
 		try {
-			await NewsletterService.upsertMembers([member]);
 			await NewsletterService.updateMemberStatus(member, 'subscribed', OptionsService.getList('newsletter-default-groups'));
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		} catch (err) {
