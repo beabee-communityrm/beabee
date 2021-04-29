@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { createQueryBuilder, FindConditions, FindManyOptions, FindOneOptions, getRepository } from 'typeorm';
 
 import gocardless from '@core/lib/gocardless';
-import { log } from '@core/logging';
+import { log as mainLogger } from '@core/logging';
 import { isDuplicateIndex } from '@core/utils';
 import { AuthenticationStatus, canAdmin, generateCode } from '@core/utils/auth';
 
@@ -17,6 +17,8 @@ import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
 export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
+
+const log = mainLogger.child({app: 'members-service'});
 
 export default class MembersService {
 	static generateMemberCode(member: Pick<Member,'firstname'|'lastname'>): string|undefined {
@@ -49,6 +51,10 @@ export default class MembersService {
 	}
 
 	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile): Promise<Member> {
+		log.info({
+			action: 'create-member'
+		});
+
 		try {
 			const member = getRepository(Member).create({
 				referralCode: this.generateMemberCode(partialMember),
@@ -78,7 +84,6 @@ export default class MembersService {
 
 	static async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
 		log.info( {
-			app: 'members-service',
 			action: 'update-member',
 			sensitive: {
 				memberId: member.id,
@@ -105,7 +110,17 @@ export default class MembersService {
 	}
 
 	static async updateMemberPermission(member: Member, permission: PermissionType, updates?: Partial<Omit<MemberPermission, 'member'|'permission'>>): Promise<void> {
-		const wasInactive = member.isActiveMember;
+		const wasActive = member.isActiveMember;
+
+		log.info({
+			action: 'update-member-permission',
+			data: {
+				memberId: member.id,
+				permission,
+				updates,
+				wasActive
+			}
+		});
 
 		const existingPermission = member.permissions.find(p => p.permission === permission);
 		if (existingPermission && updates) {
@@ -116,12 +131,18 @@ export default class MembersService {
 			member.permissions.push(newPermission);
 			await getRepository(MemberPermission).insert(newPermission);
 		}
-		if (!wasInactive && member.isActiveMember) {
+		if (!wasActive && member.isActiveMember) {
 			MembersService.optMemberIntoNewsletter(member);
 		}
 	}
 
 	static async updateMemberProfile(member: Member, updates: Partial<MemberProfile>): Promise<void> {
+		log.info({
+			action: 'update-member-profile',
+			data: {
+				memberId: member.id
+			}
+		});
 		await getRepository(MemberProfile).update(member.id, updates);
 	}
 
@@ -159,7 +180,6 @@ export default class MembersService {
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		} catch (err) {
 			log.error({
-				app: 'join-utils',
 				error: err,
 			}, 'Failed to add member to newsletter, probably a bad email address: ' + member.id);
 		}

@@ -52,8 +52,9 @@ class NewsletterService {
 	}
 
 	async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
-		log.info({action: 'update-member', data: {memberId: member.id}});
-		if (shouldUpdate(updates)) {
+		const willUpdate = shouldUpdate(updates);
+		log.info({action: 'update-member', data: {memberId: member.id, willUpdate}});
+		if (willUpdate) {
 			await this.provider.updateMember(memberToNlMember(member), updates.email && member.email);
 		}
 	}
