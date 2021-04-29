@@ -54,7 +54,7 @@ class NewsletterService {
 	async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
 		log.info({action: 'update-member', data: {memberId: member.id}});
 		if (shouldUpdate(updates)) {
-			await this.provider.updateMember(member, updates.email && member.email);
+			await this.provider.updateMember(memberToNlMember(member), updates.email && member.email);
 		}
 	}
 
