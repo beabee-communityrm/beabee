@@ -1,5 +1,5 @@
 import express from 'express';
-import { createQueryBuilder, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import { hasNewModel } from '@core/middleware';
 import { wrapAsync } from '@core/utils';

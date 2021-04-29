@@ -1,6 +1,5 @@
 import express from 'express';
 import moment from 'moment';
-import { getRepository } from 'typeorm';
 
 import config from '@config';
 
@@ -12,7 +11,6 @@ import MembersService from '@core/services/MembersService';
 import OptionsService from '@core/services/OptionsService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
-import Member from '@models/Member';
 
 import { createGiftSchema, updateGiftAddressSchema } from './schema.json';
 

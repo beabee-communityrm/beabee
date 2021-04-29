@@ -1,12 +1,11 @@
 import express from 'express';
 import passport from 'passport';
-import { createQueryBuilder, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import { isValidNextUrl, getNextParam, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
-import Member from '@models/Member';
 import MemberPermission, { PermissionType, PermissionTypes } from '@models/MemberPermission';
 
 import config from '@config';
