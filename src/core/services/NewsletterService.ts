@@ -70,6 +70,7 @@ class NewsletterService {
 	}
 
 	async upsertMembers(members: Member[]): Promise<void> {
+		log.info({action: 'upsert-members'});
 		await this.provider.upsertMembers(members.map(memberToNlMember));
 	}
 
