@@ -104,9 +104,9 @@ export default class MembersService {
 			const gcData = await getRepository(GCPaymentData).findOne({member});
 			if ( gcData && gcData.customerId) {
 				await gocardless.customers.update( gcData.customerId, {
-					email: updates.email,
-					given_name: updates.firstname,
-					family_name: updates.lastname
+					...updates.email && {email: updates.email},
+					...updates.firstname && {given_name: updates.firstname},
+					...updates.lastname && {family_name: updates.lastname}
 				} );
 			}
 		}
