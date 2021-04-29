@@ -86,13 +86,13 @@ export default class MembersService {
 			}
 		} );
 
+		member = Object.assign(member, 	updates);
+		await getRepository(Member).update(member.id, updates);
+
 		await NewsletterService.updateMember(member, updates);
 
 		// TODO: This should be in GCPaymentService
-		const needsGcSync = updates.email && updates.email !== member.email ||
-			updates.firstname && updates.firstname !== member.firstname ||
-			updates.lastname && updates.lastname !== member.lastname;
-		if (needsGcSync) {
+		if (updates.email || updates.firstname || updates.lastname) {
 			const gcData = await getRepository(GCPaymentData).findOne({member});
 			if ( gcData && gcData.customerId) {
 				await gocardless.customers.update( gcData.customerId, {
@@ -102,9 +102,6 @@ export default class MembersService {
 				} );
 			}
 		}
-
-		member = Object.assign(member, 	updates);
-		await getRepository(Member).update(member.id, updates);
 	}
 
 	static async updateMemberPermission(member: Member, permission: PermissionType, updates?: Partial<Omit<MemberPermission, 'member'|'permission'>>): Promise<void> {
