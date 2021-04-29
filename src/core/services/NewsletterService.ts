@@ -7,6 +7,7 @@ import NoneProvider from '@core/providers/newsletter/NoneProvider';
 import Member from '@models/Member';
 
 import config from '@config';
+import _ from 'lodash';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
@@ -44,9 +45,13 @@ class NewsletterService {
 		return await this.provider.getMembers();
 	}
 
-	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
+	async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
 		log.info({action: 'update-member', data: {memberId: member.id}});
-		await this.provider.updateMember(memberToNlMember(member), oldEmail);
+		const oldMember = memberToNlMember(member);
+		const newMember = memberToNlMember(Object.assign({}, member, updates));
+		if (!_.isEqual(oldMember, newMember)) {
+			await this.provider.updateMember(newMember, updates.email && member.email);
+		}
 	}
 
 	async updateMemberStatus(member: Member, status?: NewsletterStatus, groups?: string[]): Promise<void> {

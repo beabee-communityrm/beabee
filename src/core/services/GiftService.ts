@@ -105,20 +105,16 @@ export default class GiftService {
 
 		const member = await MembersService.createMember({
 			firstname, lastname, email,
-			contributionType: ContributionType.Gift
+			contributionType: ContributionType.Gift,
+			contributionMonthlyAmount: GiftService.giftMonthlyAmount
 		}, {
 			deliveryOptIn: !!deliveryAddress?.line1,
 			deliveryAddress: deliveryAddress
 		});
 
-		member.contributionMonthlyAmount = GiftService.giftMonthlyAmount;
-
-		const membership = new MemberPermission();
-		membership.permission = 'member';
-		membership.dateExpires = now.clone().add(months, 'months').toDate();
-		member.permissions.push(membership);
-
-		await getRepository(Member).save(member);
+		await MembersService.updateMemberPermission(member, 'member', {
+			dateExpires: now.clone().add(months, 'months').toDate()
+		});
 
 		await getRepository(GiftFlow).update(giftFlow.id, {giftee: member});
 
@@ -128,8 +124,6 @@ export default class GiftService {
 			{fromName, message: message || '', giftCode: giftFlow.setupCode},
 			{sendAt}
 		);
-
-		await MembersService.optMemberIntoNewsletter(member);
 	}
 
 	static async updateGiftFlowAddress(giftFlow: GiftFlow, giftAddress: Address, deliveryAddress: Address): Promise<void> {

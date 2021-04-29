@@ -8,10 +8,10 @@ import { ContributionPeriod } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';
+import MembersService from './MembersService';
 
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
-import Member from '@models/Member';
 
 import config from '@config';
 
@@ -93,18 +93,18 @@ export default class GCPaymentWebhookService {
 		if (payment.member.nextContributionMonthlyAmount) {
 			const newAmount = GCPaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
 			if (newAmount === payment.member.nextContributionMonthlyAmount) {
-				payment.member.contributionMonthlyAmount = newAmount;
-				payment.member.nextContributionMonthlyAmount = undefined;
-				// TODO: Fix save not saving undefined as NULL
-				await getRepository(Member).update(payment.member.id, {nextContributionMonthlyAmount: undefined});
+				await MembersService.updateMember(payment.member, {
+					contributionMonthlyAmount: newAmount,
+					nextContributionMonthlyAmount: undefined
+				});
 			}
 		}
 
 		if (nextExpiryDate.isAfter(membership.dateExpires)) {
-			membership.dateExpires = nextExpiryDate.toDate();
+			await MembersService.updateMemberPermission(payment.member, 'member', {
+				dateExpires: nextExpiryDate.toDate()
+			});
 		}
-
-		await getRepository(Member).save(payment.member);
 	}
 
 	static async updatePaymentStatus(gcPaymentId: string, status: string): Promise<void> {

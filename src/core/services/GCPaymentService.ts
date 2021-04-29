@@ -190,8 +190,6 @@ abstract class UpdateContributionPaymentService {
 				nextChargeDate
 			}
 		} );
-
-		const wasInactive = !member.isActiveMember;
 		
 		let membership = member.permissions.find(p => p.permission === 'member');
 		if (!membership) {
@@ -205,22 +203,24 @@ abstract class UpdateContributionPaymentService {
 			membership.dateExpires = nextChargeDate.toDate();
 		}
 
-		if (startNow) {
-			member.contributionMonthlyAmount = paymentForm.amount;
-			member.nextContributionMonthlyAmount = undefined;
-		} else {
-			member.nextContributionMonthlyAmount = paymentForm.amount;
-		}
+		await MembersService.updateMember(member, {
+			contributionType: ContributionType.GoCardless,
+			...startNow ? {
+				contributionMonthlyAmount: paymentForm.amount,
+				nextContributionMonthlyAmount: undefined
+			} : {
+				nextContributionMonthlyAmount: paymentForm.amount
+			}
+		});
 
-		member.contributionType = ContributionType.GoCardless;
-		await getRepository(Member).save(member);
+		if (!membership || membership.dateExpires && nextChargeDate.isAfter(membership.dateExpires)) {
+			await MembersService.updateMemberPermission(member, 'member', {
+				dateExpires:nextChargeDate.toDate()
+			});
+		}
 
 		gcData.cancelledAt = undefined;
 		await getRepository(GCPaymentData).update(gcData.member.id, gcData);
-
-		if (wasInactive) {
-			await MembersService.optMemberIntoNewsletter(member);
-		}
 	}
 }
 

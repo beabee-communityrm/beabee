@@ -95,39 +95,29 @@ db.connect().then(async () => {
 	});
 
 	if ( answers.membership != 'No' ) {
-		const membership = new MemberPermission();
-		membership.permission = 'member';
-
 		const now = moment();
+		let dateAdded, dateExpires;
 		switch ( answers.membership ) {
 		case 'Yes (expires after 1 month)':
-			membership.dateExpires = now.add( '1', 'months' ).toDate();
+			dateExpires = now.add( '1', 'months' ).toDate();
 			break;
 		case 'Yes (expired yesterday)':
-			membership.dateAdded = now.subtract( '1', 'months' ).toDate();
-			membership.dateExpires = now.subtract( '1', 'day' ).toDate();
+			dateAdded = now.subtract( '1', 'months' ).toDate();
+			dateExpires = now.subtract( '1', 'day' ).toDate();
 			break;
 		}
 
-		member.permissions.push(membership);
+		await MembersService.updateMemberPermission(member, 'member', {
+			dateAdded, dateExpires
+		});
 	}
 
 	if ( answers.permission != 'None' ) {
-		const adminPermission = new MemberPermission();
-
-		switch ( answers.permission ) {
-		case 'Admin':
-			adminPermission.permission = 'admin';
-			break;
-		case 'Super Admin':
-			adminPermission.permission = 'superadmin';
-			break;
-		}
-
-		member.permissions.push(adminPermission);
+		await MembersService.updateMemberPermission(
+			member,
+			answers.permission === 'Admin' ? 'admin' : 'superadmin'
+		);
 	}
-
-	await getRepository(Member).save(member);
 
 	await db.close();
 } );
