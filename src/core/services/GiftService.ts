@@ -10,6 +10,7 @@ import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
+import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
 
@@ -101,17 +102,19 @@ export default class GiftService {
 
 		await getRepository(GiftFlow).update(giftFlow.id, {processed: true});
 
+		const permission = getRepository(MemberPermission).create({
+			permission: 'member',
+			dateExpires: now.clone().add(months, 'months').toDate()
+		});
+
 		const member = await MembersService.createMember({
 			firstname, lastname, email,
 			contributionType: ContributionType.Gift,
-			contributionMonthlyAmount: GiftService.giftMonthlyAmount
+			contributionMonthlyAmount: GiftService.giftMonthlyAmount,
+			permissions: [permission]
 		}, {
 			deliveryOptIn: !!deliveryAddress?.line1,
 			deliveryAddress: deliveryAddress
-		});
-
-		await MembersService.updateMemberPermission(member, 'member', {
-			dateExpires: now.clone().add(months, 'months').toDate()
 		});
 
 		giftFlow.giftee = member;
