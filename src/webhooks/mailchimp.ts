@@ -3,12 +3,13 @@ import express from 'express';
 import { getRepository } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
-import { ContributionType, wrapAsync } from '@core/utils';
+import { ContributionType, isDuplicateIndex, wrapAsync } from '@core/utils';
+
+import MembersService from '@core/services/MembersService';
 
 import Member from '@models/Member';
 
 import config from '@config';
-import MembersService from '@core/services/MembersService';
 
 const log = mainLogger.child({app: 'webhook-mailchimp'});
 
@@ -102,14 +103,20 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 }
 
 async function handleSubscribe(data: MCProfileData) {
-	await MembersService.createMember({
-		email: data.email,
-		firstname: data.merges.FNAME,
-		lastname: data.merges.LNAME,
-		contributionType: ContributionType.None
-	}, {
-		deliveryOptIn: false
-	});
+	try {
+		await MembersService.createMember({
+			email: data.email,
+			firstname: data.merges.FNAME,
+			lastname: data.merges.LNAME,
+			contributionType: ContributionType.None
+		}, {
+			deliveryOptIn: false
+		});
+	} catch (error) {
+		if (!isDuplicateIndex(error, 'email')) {
+			throw error;
+		}
+	}
 }
 
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
