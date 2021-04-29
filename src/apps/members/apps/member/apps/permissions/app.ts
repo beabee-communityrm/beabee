@@ -68,7 +68,7 @@ app.get( '/:id/modify', wrapAsync( async ( req, res ) =>{
 	}
 } ) );
 
-app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( async ( req, res, next ) => {
+app.post( '/:id/modify', hasSchema(updatePermissionSchema).orFlash, wrapAsync( async ( req, res ) => {
 	const { body: { startDate, startTime, expiryDate, expiryTime } } = req;
 	const member = req.model as Member;
 	const permission = req.params.id as PermissionType;

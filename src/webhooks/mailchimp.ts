@@ -120,6 +120,7 @@ async function handleSubscribe(data: MCProfileData) {
 	}
 }
 
+// TODO: this should guard against updating other merge fields by overwriting the changes
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 	log.info({
 		action: 'update-profile',

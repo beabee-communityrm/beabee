@@ -10,8 +10,6 @@ import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
-import Member from '@models/Member';
-import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
 
