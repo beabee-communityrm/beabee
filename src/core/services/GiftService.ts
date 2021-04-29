@@ -114,7 +114,8 @@ export default class GiftService {
 			dateExpires: now.clone().add(months, 'months').toDate()
 		});
 
-		await getRepository(GiftFlow).update(giftFlow.id, {giftee: member});
+		giftFlow.giftee = member;
+		await getRepository(GiftFlow).save(giftFlow);
 
 		const sendAt = sendImmediately ? undefined : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
 		await EmailService.sendTemplateToMember(
