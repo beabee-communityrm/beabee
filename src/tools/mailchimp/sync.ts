@@ -35,6 +35,7 @@ async function processMembers(members: Member[]) {
 	const membersToArchive = members.filter(m => !m.isActiveMember);
 	console.log(`Archiving ${membersToArchive.length}`);
 	await NewsletterService.removeTagFromMembers(membersToArchive, OptionsService.getText('newsletter-active-member-tag'));
+	await NewsletterService.archiveMembers(membersToArchive);
 }
 
 db.connect().then(async () => {
