@@ -109,7 +109,12 @@ async function handleSubscribe(data: MCProfileData) {
 			contributionType: ContributionType.None
 		}, undefined, {noSync: true});
 	} catch (error) {
-		if (!isDuplicateIndex(error, 'email')) {
+		if (isDuplicateIndex(error, 'email')) {
+			log.info({
+				action: 'duplicate-email',
+				data: {email: data.email}
+			});
+		} else {
 			throw error;
 		}
 	}
