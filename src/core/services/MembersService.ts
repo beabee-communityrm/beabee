@@ -16,7 +16,7 @@ import MemberProfile from '@models/MemberProfile';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
-export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
+export type PartialMemberProfile = Partial<MemberProfile>
 
 const log = mainLogger.child({app: 'members-service'});
 
@@ -50,7 +50,7 @@ export default class MembersService {
 			.getOne();
 	}
 
-	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile): Promise<Member> {
+	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile = {}): Promise<Member> {
 		log.info({
 			action: 'create-member'
 		});

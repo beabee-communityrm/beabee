@@ -26,7 +26,7 @@ export default class MemberProfile {
 	@Column({default: ''})
 	preferredContact!: string
 
-	@Column()
+	@Column({default: false})
 	deliveryOptIn!: boolean
 
 	@Column({type: 'jsonb', nullable: true})

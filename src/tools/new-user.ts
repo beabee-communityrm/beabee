@@ -119,8 +119,6 @@ db.connect().then(async () => {
 			iterations: password.iterations,
 			tries: 0
 		},
-	}, {
-		deliveryOptIn: false
 	});
 
 	await db.close();
