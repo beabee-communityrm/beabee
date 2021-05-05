@@ -53,9 +53,8 @@ app.post('/', wrapAsync(async (req, res) => {
 					firstname: missingNewsletterMember.firstname,
 					lastname: missingNewsletterMember.lastname,
 					contributionType: ContributionType.None
-				});
+				}, undefined, {noSync: true});
 			}
-			//await MembersService.createMember({}, {})
 
 			await setResyncStatus('Successfully synced');
 		} catch (error) {
