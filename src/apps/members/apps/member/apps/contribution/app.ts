@@ -28,7 +28,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	} else if (member.contributionType === ContributionType.Manual) {
 		res.render('manual', {member: req.model});
 	} else {
-		res.render('none');
+		res.render('none', {member: req.model});
 	}
 } ) );
 
