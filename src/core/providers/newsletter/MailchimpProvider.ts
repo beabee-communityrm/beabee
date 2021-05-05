@@ -75,7 +75,8 @@ function createInstance(config: MailchimpConfig) {
 			method: config.method,
 			sensitive: {
 				params: config.params,
-				data: config.data
+				// Don't print all the batch operations
+				...(config.url !== '/batches/' || config.method !== 'post') && {data: config.data}
 			}
 		});
 
