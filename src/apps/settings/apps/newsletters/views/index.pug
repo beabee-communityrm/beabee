@@ -37,8 +37,9 @@ block contents
 				li Overwrite tags and merge fields on the newsletter list
 
 			if Options('newsletter-resync-status')
-				.alert.alert-warning In progress: #{Options('newsletter-resync-status')}
-			else
+				.alert.alert-warning #{Options('newsletter-resync-status')}
+
+			if Options('newsletter-resync-status').indexOf('In progress:') === -1
 				form(method='post')
 					+csrf
 					.checkbox

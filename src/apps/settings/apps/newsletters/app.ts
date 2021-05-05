@@ -2,8 +2,9 @@ import express from 'express';
 import moment from 'moment';
 import { createQueryBuilder } from 'typeorm';
 
+import { log as mainLogger } from '@core/logging';
 import { isSuperAdmin } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { ContributionType, wrapAsync } from '@core/utils';
 
 import NewsletterService from '@core/services/NewsletterService';
 import OptionsService from '@core/services/OptionsService';
@@ -11,6 +12,9 @@ import OptionsService from '@core/services/OptionsService';
 import Member from '@models/Member';
 
 import config from '@config';
+import MembersService from '@core/services/MembersService';
+
+const log = mainLogger.child({app: 'newsletter-settings'});
 
 const app = express();
 
@@ -23,12 +27,12 @@ app.get('/', (req, res) => {
 });
 
 async function setResyncStatus(message: string) {
-	await OptionsService.set('newsletter-resync-status', `[${moment.utc().format('HH:mm')}] ${message}`);
+	await OptionsService.set('newsletter-resync-status', `[${moment.utc().format('HH:mm DD/MM')}] ${message}`);
 }
 
 app.post('/', wrapAsync(async (req, res) => {
 	if (req.body.action === 'resync') {
-		await setResyncStatus('Uploading contacts to newsletter list');
+		await setResyncStatus('In progress: Uploading contacts to newsletter list');
 
 		req.flash('success', 'newsletter-resync-started');
 		res.redirect(req.originalUrl);
@@ -37,16 +41,29 @@ app.post('/', wrapAsync(async (req, res) => {
 			const members = await createQueryBuilder(Member).limit(100).getMany();
 			await NewsletterService.upsertMembers(members);
 
-			await setResyncStatus('Importing contacts from newsletter list');
+			await setResyncStatus('In progress: Importing contacts from newsletter list');
 
 			const newsletterMembers = await NewsletterService.getNewsletterMembers();
 			const missingNewsletterMembers = newsletterMembers.filter(nm => members.every(m => nm.email !== m.email));
+			console.log(missingNewsletterMembers.map(nm => nm.email));
 
+			for (const missingNewsletterMember of missingNewsletterMembers) {
+				await MembersService.createMember({
+					email: missingNewsletterMember.email,
+					firstname: missingNewsletterMember.firstname,
+					lastname: missingNewsletterMember.lastname,
+					contributionType: ContributionType.None
+				});
+			}
 			//await MembersService.createMember({}, {})
 
-			await OptionsService.reset('newsletter-resync-status');
-		} catch (err) {
-			await setResyncStatus('An error occurred');
+			await setResyncStatus('Successfully synced');
+		} catch (error) {
+			log.error({
+				action: 'newsletter-sync-error',
+				error
+			}, 'Newsletter sync failed');
+			await setResyncStatus('Error: ' + error.message);
 		}
 	}
 }));
