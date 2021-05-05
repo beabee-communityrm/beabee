@@ -113,14 +113,7 @@ db.connect().then(async () => {
 		email: answers.email,
 		contributionType: ContributionType.None,
 		permissions,
-		password: {
-			hash: password.hash,
-			salt: password.salt,
-			iterations: password.iterations,
-			tries: 0
-		},
-	}, {
-		deliveryOptIn: false
+		password
 	});
 
 	await db.close();

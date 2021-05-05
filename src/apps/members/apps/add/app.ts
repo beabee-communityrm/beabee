@@ -76,8 +76,6 @@ app.post( '/', hasSchema(addContactSchema).orFlash, wrapAsync( async ( req, res 
 			email: data.email,
 			contributionType: data.type,
 			permissions
-		}, {
-			deliveryOptIn: false
 		});
 
 	} catch (error) {

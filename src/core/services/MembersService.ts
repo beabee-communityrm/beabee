@@ -16,7 +16,11 @@ import MemberProfile from '@models/MemberProfile';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
 
 export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
-export type PartialMemberProfile = Pick<MemberProfile,'deliveryOptIn'>&Partial<MemberProfile>
+export type PartialMemberProfile = Partial<MemberProfile>
+
+interface CreateMemberOpts {
+	noSync?: boolean
+}
 
 const log = mainLogger.child({app: 'members-service'});
 
@@ -50,7 +54,11 @@ export default class MembersService {
 			.getOne();
 	}
 
-	static async createMember(partialMember: PartialMember, partialProfile: PartialMemberProfile): Promise<Member> {
+	static async createMember(
+		partialMember: PartialMember,
+		partialProfile: PartialMemberProfile = {},
+		opts: CreateMemberOpts = {}
+	): Promise<Member> {
 		log.info({
 			action: 'create-member'
 		});
@@ -71,15 +79,17 @@ export default class MembersService {
 			});
 			await getRepository(MemberProfile).save(profile);
 
-			await NewsletterService.upsertMembers([member]);
-			if (member.isActiveMember) {
-				await MembersService.optMemberIntoNewsletter(member);
+			if (!opts.noSync) {
+				await NewsletterService.upsertMembers([member]);
+				if (member.isActiveMember) {
+					await MembersService.optMemberIntoNewsletter(member);
+				}
 			}
 
 			return member;
 		} catch (error) {
 			if (isDuplicateIndex(error, 'referralCode') || isDuplicateIndex(error, 'pollsCode')) {
-				return await MembersService.createMember(partialMember, partialProfile);
+				return await MembersService.createMember(partialMember, partialProfile, opts);
 			}
 			throw error;
 		}

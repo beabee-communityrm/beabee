@@ -107,11 +107,14 @@ async function handleSubscribe(data: MCProfileData) {
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME,
 			contributionType: ContributionType.None
-		}, {
-			deliveryOptIn: false
-		});
+		}, undefined, {noSync: true});
 	} catch (error) {
-		if (!isDuplicateIndex(error, 'email')) {
+		if (isDuplicateIndex(error, 'email')) {
+			log.info({
+				action: 'contact-already-exists',
+				data: {email: data.email}
+			});
+		} else {
 			throw error;
 		}
 	}

@@ -56,6 +56,10 @@ interface MCMember {
 	tags: {id: number, name: string}[]
 }
 
+interface GetMembersResponse {
+	members: MCMember[]
+}
+
 function createInstance(config: MailchimpConfig) {
 	const instance = axios.create({
 		baseURL: `https://${config.datacenter}.api.mailchimp.com/3.0/`,
@@ -71,7 +75,8 @@ function createInstance(config: MailchimpConfig) {
 			method: config.method,
 			sensitive: {
 				params: config.params,
-				data: config.data
+				// Don't print all the batch operations
+				...(config.url !== '/batches/' || config.method !== 'post') && {data: config.data}
 			}
 		});
 
@@ -158,9 +163,9 @@ export default class MailchimpProvider implements NewsletterProvider {
 
 		const batch = await this.createBatch([operation]);
 		const finishedBatch = await this.waitForBatch(batch);
-		const members = await this.getBatchResponses(finishedBatch);
+		const responses = await this.getBatchResponses(finishedBatch) as GetMembersResponse[];
 
-		return (members as MCMember[]).map(member => {
+		return responses.flatMap(r => r.members).map(member => {
 			const {FNAME, LNAME, ...fields} = member.merge_fields;
 			return {
 				email: member.email_address,
@@ -277,12 +282,12 @@ export default class MailchimpProvider implements NewsletterProvider {
 				stream.pipe(JSONStream.parse('*'))
 					.on('data', (data: OperationResponse) => {
 						if (validateOperationStatus(data.status_code, data.operation_id)) {
+							batchResponses.push(JSON.parse(data.response));
+						} else {
 							log.error({
 								action: 'check-batch-errors',
 								data
 							}, `Unexpected error for ${data.operation_id}, got ${data.status_code}`);
-						} else {
-							batchResponses.push(JSON.parse(data.response));
 						}
 					});
 			} else {
