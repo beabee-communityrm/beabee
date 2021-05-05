@@ -32,31 +32,40 @@ async function setResyncStatus(message: string) {
 
 app.post('/', wrapAsync(async (req, res) => {
 	if (req.body.action === 'resync') {
-		await setResyncStatus('In progress: Uploading contacts to newsletter list');
+
+		await setResyncStatus('In progress: Fetching newsletter list');
 
 		req.flash('success', 'newsletter-resync-started');
 		res.redirect(req.originalUrl);
 
 		try {
-			const members = await createQueryBuilder(Member).limit(100).getMany();
+			const newsletterMembers = await NewsletterService.getNewsletterMembers();
+
+			await setResyncStatus('In progress: Uploading contacts to newsletter list');
+
+			// Resync all as it also updates their metadata
+			const members = await MembersService.find();
 			await NewsletterService.upsertMembers(members);
 
 			await setResyncStatus('In progress: Importing contacts from newsletter list');
 
-			const newsletterMembers = await NewsletterService.getNewsletterMembers();
-			const missingNewsletterMembers = newsletterMembers.filter(nm => members.every(m => nm.email !== m.email));
-			console.log(missingNewsletterMembers.map(nm => nm.email));
+			const onlyNewsletterMembers = newsletterMembers.filter(nm => members.every(m => nm.email !== m.email));
 
-			for (const missingNewsletterMember of missingNewsletterMembers) {
+			for (const nlMember of onlyNewsletterMembers) {
 				await MembersService.createMember({
-					email: missingNewsletterMember.email,
-					firstname: missingNewsletterMember.firstname,
-					lastname: missingNewsletterMember.lastname,
+					email: nlMember.email,
+					firstname: nlMember.firstname,
+					lastname: nlMember.lastname,
 					contributionType: ContributionType.None
 				}, undefined, {noSync: true});
 			}
 
-			await setResyncStatus('Successfully synced');
+			const onlyMembersCount = members.reduce(
+				(count, m) => count + (newsletterMembers.every(nm => nm.email != m.email) ? 1 : 0),
+				0
+			);
+
+			await setResyncStatus(`Successfully synced all contacts, ${onlyNewsletterMembers.length} imported and ${onlyMembersCount} newly uploaded`);
 		} catch (error) {
 			log.error({
 				action: 'newsletter-sync-error',
