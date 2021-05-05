@@ -107,7 +107,7 @@ async function handleSubscribe(data: MCProfileData) {
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME,
 			contributionType: ContributionType.None
-		});
+		}, undefined, {noSync: true});
 	} catch (error) {
 		if (!isDuplicateIndex(error, 'email')) {
 			throw error;
