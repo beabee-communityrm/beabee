@@ -111,7 +111,7 @@ async function handleSubscribe(data: MCProfileData) {
 	} catch (error) {
 		if (isDuplicateIndex(error, 'email')) {
 			log.info({
-				action: 'duplicate-email',
+				action: 'contact-already-exists',
 				data: {email: data.email}
 			});
 		} else {
