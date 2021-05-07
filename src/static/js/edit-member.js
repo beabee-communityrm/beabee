@@ -17,7 +17,6 @@
 				$form.html(oldState);
 			}
 
-			$form.toggleClass('is-editing', isEditing)
 			$form.find('input[name], textarea[name]').prop('readonly', !isEditing);
 			$form.find('select[name]').prop('disabled', !isEditing);
 			$form.find('.js-edit-member-hidden').toggleClass('hidden', !isEditing);
