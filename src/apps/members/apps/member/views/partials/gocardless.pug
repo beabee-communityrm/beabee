@@ -6,12 +6,13 @@ mixin gcLink(id, type)
 
 dt Paying fee?
 dd= paymentData.payFee ? 'Yes' : 'No'
-dt Customer ID
-dd: +gcLink(paymentData.customerId, 'customers')
-dt Mandate ID
-dd: +gcLink(paymentData.mandateId, 'mandates')
-dt Subscription ID
-dd: +gcLink(paymentData.subscriptionId, 'subscriptions')
+if access('superadmin')
+	dt Customer ID
+	dd: +gcLink(paymentData.customerId, 'customers')
+	dt Mandate ID
+	dd: +gcLink(paymentData.mandateId, 'mandates')
+	dt Subscription ID
+	dd: +gcLink(paymentData.subscriptionId, 'subscriptions')
 if paymentData.cancelledAt
 	dt Cancelled
 	dd= moment(paymentData.cancelledAt).format('HH:mm:ss DD/MM/YYYY')

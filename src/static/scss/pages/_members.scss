@@ -21,12 +21,6 @@
 	}
 }
 
-.member-about {
-	max-width: 100%;
-	min-width: 100%;
-	min-height: 200px;
-}
-
 .member-tag {
 	margin-left: 1rem;
 	.glyphicon.glyphicon-remove {
@@ -37,4 +31,12 @@
 
 .member-add-tag {
 	width: 30%;
+}
+
+.member-edit-form {
+	margin-bottom: 1rem;
+	&.is-editing {
+		background-color: #f0f0f0;
+		box-shadow: 0 0 0 10px #f0f0f0;
+	}
 }
