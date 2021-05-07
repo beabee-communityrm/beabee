@@ -28,20 +28,35 @@ block contents
 				initially import your newsletter list, or to fix things when e.g. tags
 				have gone wrong.
 
-			p.
-				This will perform the following #[b irrevisble] actions:
-
-			ul
-				li Import new contacts from the newsletter list
-				li Upload any missing contacts to the newsletter list
-				li Overwrite merge fields on the newsletter list
-
 			if Options('newsletter-resync-status')
 				.alert.alert-info #{Options('newsletter-resync-status')}
 
 			if Options('newsletter-resync-status').indexOf('In progress:') === -1
 				form(method='post')
 					+csrf
+					p.
+						Sometimes the subscription status can differ between the system and
+						the newsletter provider. Who should we believe if it does?
+					p
+						span.radio-inline
+							label
+								input(type='radio' name='statusSource' value='ours' required checked)
+								| System
+						span.radio-inline
+							label
+								input(type='radio' name='statusSource' value='theirs' required)
+								| Provider
+								
+					p.
+						This will perform the following #[b irrevisble] actions:
+
+					ul
+						li Import new contacts from the newsletter list
+						li Upload any missing contacts to the newsletter list
+						li Update existing contacts' subscription status
+						li Remove unsubscribed contacts from the newsletter list
+						li Overwrite merge fields on the newsletter list
+
 					.checkbox
 						label
 							input(type='checkbox' required)

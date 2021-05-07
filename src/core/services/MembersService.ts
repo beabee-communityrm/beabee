@@ -73,15 +73,17 @@ export default class MembersService {
 			});
 			await getRepository(Member).save(member);
 
-			const profile = getRepository(MemberProfile).create({
+			member.profile = getRepository(MemberProfile).create({
 				...partialProfile,
 				member
 			});
-			await getRepository(MemberProfile).save(profile);
+			await getRepository(MemberProfile).save(member.profile);
 
 			if (!opts?.noSync) {
-				await NewsletterService.upsertMembers([member]);
-				await NewsletterService.updateMemberStatus(member);
+				await NewsletterService.insertMembers([member]);
+				if (member.isActiveMember) {
+					await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+				}
 			}
 
 			return member;
@@ -102,11 +104,13 @@ export default class MembersService {
 			}
 		} );
 
-		member = Object.assign(member, 	updates);
+		const oldEmail = updates.email && member.email;
+
+		Object.assign(member, updates);
 		await getRepository(Member).update(member.id, updates);
 
 		if(!opts?.noSync) {
-			await NewsletterService.updateMember(member, updates);
+			await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
 		}
 
 		// TODO: This should be in GCPaymentService
@@ -144,7 +148,11 @@ export default class MembersService {
 		}
 		await getRepository(Member).save(member);
 
-		await NewsletterService.updateMemberStatus(member);
+		if (member.isActiveMember) {
+			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+		} else {
+			await NewsletterService.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+		}
 	}
 
 	static async extendMemberPermission(member: Member, permission: PermissionType, dateExpires: Date): Promise<void> {
@@ -174,7 +182,9 @@ export default class MembersService {
 		member.permissions = member.permissions.filter(p => p.permission !== permission);
 		await getRepository(MemberPermission).delete({member, permission});
 
-		await NewsletterService.updateMemberStatus(member);
+		if (!member.isActiveMember) {
+			await NewsletterService.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+		}
 	}
 
 	static async updateMemberProfile(member: Member, updates: Partial<MemberProfile>, opts?: CreateMemberOpts): Promise<void> {
@@ -187,7 +197,7 @@ export default class MembersService {
 		await getRepository(MemberProfile).update(member.id, updates);
 
 		if (!opts?.noSync) {
-			await NewsletterService.updateMemberStatus(member);
+			await NewsletterService.updateMemberStatuses([member]);
 		}
 	}
 
