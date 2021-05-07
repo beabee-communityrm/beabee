@@ -14,6 +14,7 @@ import GCPaymentData from '@models/GCPaymentData';
 import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
+import { NewsletterStatus } from '@core/providers/newsletter';
 
 export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
 export type PartialMemberProfile = Partial<MemberProfile>
@@ -222,13 +223,13 @@ export default class MembersService {
 	}
 
 	static async removeMemberFromNewsletter(member: Member): Promise<void> {
-		await NewsletterService.updateMemberStatus(member, 'unsubscribed');
+		await NewsletterService.updateMemberStatus(member, NewsletterStatus.Unsubscribed);
 		await NewsletterService.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 	}
 
 	private static async optMemberIntoNewsletter(member: Member): Promise<void> {
 		try {
-			await NewsletterService.updateMemberStatus(member, 'subscribed', OptionsService.getList('newsletter-default-groups'));
+			await NewsletterService.updateMemberStatus(member, NewsletterStatus.Subscribed, OptionsService.getList('newsletter-default-groups'));
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		} catch (err) {
 			log.error({

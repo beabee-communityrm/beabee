@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { NewsletterStatus } from '@core/providers/newsletter';
 import type { Address } from './GiftFlow';
 import type Member from './Member';
 
@@ -34,4 +35,10 @@ export default class MemberProfile {
 
 	@Column({type: 'jsonb', default: '[]'})
 	tags!: string[]
+
+	@Column({default: NewsletterStatus.Unsubscribed})
+	newsletterStatus!: NewsletterStatus
+
+	@Column({type: 'jsonb', default: '[]'})
+	newsletterGroups!: string[]
 }
