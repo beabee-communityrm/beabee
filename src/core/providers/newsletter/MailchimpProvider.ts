@@ -34,7 +34,7 @@ interface OperationNoBody {
 }
 
 interface OperationWithBody {
-	method: 'PUT'|'POST'|'PATCH'
+	method: 'POST'|'PATCH'
 	path: string
 	body: string
 	operation_id: string;

@@ -98,6 +98,8 @@ async function handleResync(statusSource: 'ours'|'theirs') {
 			}, {noSync: true});
 		}
 
+		// TODO: Check tags
+
 		await setResyncStatus(`Successfully synced all contacts, ${newsletterMembersToImport.length} imported and ${newMembersToUpload.length} newly uploaded`);
 	} catch (error) {
 		log.error({
