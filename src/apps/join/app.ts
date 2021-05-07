@@ -8,8 +8,11 @@ import config from '@config';
 import EmailService from '@core/services/EmailService';
 import JoinFlowService, { CompletedJoinFlow }  from '@core/services/JoinFlowService';
 import MembersService  from '@core/services/MembersService';
+import OptionsService from '@core/services/OptionsService';
 import GCPaymentService from '@core/services/GCPaymentService';
 import ReferralsService from '@core/services/ReferralsService';
+
+import { NewsletterStatus } from '@core/providers/newsletter';
 
 import { JoinForm } from '@models/JoinFlow';
 import Member from '@models/Member';
@@ -125,7 +128,11 @@ app.get( '/complete', [
 	}
 
 	try {
-		const newMember = await MembersService.createMember(partialMember.member, partialMember.profile);
+		const newMember = await MembersService.createMember(partialMember.member, {
+			...partialMember.profile,
+			newsletterStatus: NewsletterStatus.Subscribed,
+			newsletterGroups: OptionsService.getList('newsletter-default-groups')
+		});
 		await handleJoin(req, res, newMember, joinFlow);
 		await EmailService.sendTemplateToMember('welcome', newMember);
 	} catch (error) {

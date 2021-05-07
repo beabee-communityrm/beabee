@@ -14,7 +14,6 @@ import GCPaymentData from '@models/GCPaymentData';
 import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
 import MemberPermission, { PermissionType } from '@models/MemberPermission';
-import { NewsletterStatus } from '@core/providers/newsletter';
 
 export type PartialMember = Pick<Member,'email'|'firstname'|'lastname'|'contributionType'>&Partial<Member>
 export type PartialMemberProfile = Partial<MemberProfile>

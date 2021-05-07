@@ -8,6 +8,9 @@ import { ContributionType, isDuplicateIndex } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
+import OptionsService from '@core/services/OptionsService';
+
+import { NewsletterStatus } from '@core/providers/newsletter';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
 import MemberPermission from '@models/MemberPermission';
@@ -114,7 +117,9 @@ export default class GiftService {
 			permissions: [permission]
 		}, {
 			deliveryOptIn: !!deliveryAddress?.line1,
-			deliveryAddress: deliveryAddress
+			deliveryAddress: deliveryAddress,
+			newsletterStatus: NewsletterStatus.Subscribed,
+			newsletterGroups: OptionsService.getList('newsletter-default-groups')
 		});
 
 		giftFlow.giftee = member;
