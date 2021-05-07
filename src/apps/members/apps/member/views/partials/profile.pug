@@ -23,7 +23,7 @@ script(type='text/template').js-edit-member-tag-template
 	+memberTag('XXX')
 
 .row
-	.col-md-6
+	.col-md-12
 		+editablePanel('Contact details', 'contact')
 			.row
 				.col-md-12
@@ -54,6 +54,7 @@ script(type='text/template').js-edit-member-tag-template
 								img(src='/static/imgs/twitter.png')
 							input(type='text' name='twitter' value=member.profile.twitter readonly).form-control
 
+.row
 	.col-md-6
 		h4 Roles
 		if member.permissions.length > 0
@@ -63,7 +64,6 @@ script(type='text/template').js-edit-member-tag-template
 		else
 			p Contact has no roles
 
-.row
 	if access('superadmin')
 		.col-md-6
 			h4 Delivery details
@@ -81,8 +81,8 @@ script(type='text/template').js-edit-member-tag-template
 						= member.profile.deliveryAddress.city
 						br
 						= member.profile.deliveryAddress.postcode
-
-	.col-md-6
+.row
+	.col-md-12
 		+editablePanel('About', 'about')
 			.form-group
 				label(for="description").control-label Description
