@@ -81,6 +81,14 @@ script(type='text/template').js-edit-member-tag-template
 						= member.profile.deliveryAddress.city
 						br
 						= member.profile.deliveryAddress.postcode
+
+	.col-md-6
+		h4 Newsletter status
+		dl.dl-horizontal
+			dt Status
+			dd= member.profile.newsletterStatus
+			dt Groups
+			dd= member.profile.newsletterGroups.join(', ') || '–'
 .row
 	.col-md-12
 		+editablePanel('About', 'about')
