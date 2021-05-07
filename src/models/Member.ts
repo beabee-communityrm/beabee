@@ -89,7 +89,7 @@ export default class Member {
 	permissions!: MemberPermission[]
 
 	@OneToOne('MemberProfile', 'member')
-	profile?: MemberProfile
+	profile!: MemberProfile
 
 	get quickPermissions(): PermissionType[] {
 		return this.permissions.filter(p => p.isActive).map(p => p.permission);
