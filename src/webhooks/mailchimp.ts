@@ -97,7 +97,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
 	const member = await MembersService.findOne({email: data.old_email});
 	if (member) {
-		await MembersService.updateMember(member, {email: data.new_email});
+		await MembersService.updateMember(member, {email: data.new_email}, {noSync: true});
 	} else {
 		log.error({
 			action: 'update-email-not-found',
@@ -111,7 +111,7 @@ async function handleSubscribe(data: MCProfileData) {
 	if (member) {
 		await MembersService.updateMemberProfile(member, {
 			newsletterStatus: NewsletterStatus.Subscribed
-		});
+		}, {noSync: true});
 	} else {
 		await MembersService.createMember({
 			email: data.email,
@@ -130,7 +130,7 @@ async function handleUnsubscribe(data: MCProfileData) {
 	if (member) {
 		await MembersService.updateMemberProfile(member, {
 			newsletterStatus: NewsletterStatus.Unsubscribed
-		});
+		}, {noSync: true});
 	}
 }
 
@@ -146,7 +146,7 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 			email: data.email,
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME
-		});
+		}, {noSync: true});
 		// TODO: update groups?
 		return true;
 	} else {

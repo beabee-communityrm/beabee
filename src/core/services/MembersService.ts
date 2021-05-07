@@ -58,7 +58,7 @@ export default class MembersService {
 	static async createMember(
 		partialMember: PartialMember,
 		partialProfile: PartialMemberProfile = {},
-		opts: CreateMemberOpts = {}
+		opts?: CreateMemberOpts
 	): Promise<Member> {
 		log.info({
 			action: 'create-member'
@@ -80,11 +80,9 @@ export default class MembersService {
 			});
 			await getRepository(MemberProfile).save(profile);
 
-			if (!opts.noSync) {
+			if (!opts?.noSync) {
 				await NewsletterService.upsertMembers([member]);
-				if (member.isActiveMember) {
-					await MembersService.optMemberIntoNewsletter(member);
-				}
+				await NewsletterService.updateMemberStatus(member);
 			}
 
 			return member;
@@ -96,7 +94,7 @@ export default class MembersService {
 		}
 	}
 
-	static async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+	static async updateMember(member: Member, updates: Partial<Member>, opts?: CreateMemberOpts): Promise<void> {
 		log.info( {
 			action: 'update-member',
 			sensitive: {
@@ -108,7 +106,9 @@ export default class MembersService {
 		member = Object.assign(member, 	updates);
 		await getRepository(Member).update(member.id, updates);
 
-		await NewsletterService.updateMember(member, updates);
+		if(!opts?.noSync) {
+			await NewsletterService.updateMember(member, updates);
+		}
 
 		// TODO: This should be in GCPaymentService
 		if (updates.email || updates.firstname || updates.lastname) {
@@ -127,15 +127,12 @@ export default class MembersService {
 		member: Member, permission: PermissionType,
 		updates?: Partial<Omit<MemberPermission, 'member'|'permission'>>
 	): Promise<void> {
-		const wasActive = member.isActiveMember;
-
 		log.info({
 			action: 'update-member-permission',
 			data: {
 				memberId: member.id,
 				permission,
-				updates,
-				wasActive
+				updates
 			}
 		});
 
@@ -147,9 +144,8 @@ export default class MembersService {
 			member.permissions.push(newPermission);
 		}
 		await getRepository(Member).save(member);
-		if (!wasActive && member.isActiveMember) {
-			await MembersService.optMemberIntoNewsletter(member);
-		}
+
+		await NewsletterService.updateMemberStatus(member);
 	}
 
 	static async extendMemberPermission(member: Member, permission: PermissionType, dateExpires: Date): Promise<void> {
@@ -169,23 +165,20 @@ export default class MembersService {
 	}
 
 	static async revokeMemberPermission(member: Member, permission: PermissionType): Promise<void> {
-		const wasActive = member.isActiveMember;
 		log.info({
 			action: 'revoke-member-permission',
 			data: {
 				memberId: member.id,
-				permission,
-				wasActive
+				permission
 			}
 		});
 		member.permissions = member.permissions.filter(p => p.permission !== permission);
 		await getRepository(MemberPermission).delete({member, permission});
-		if (wasActive && !member.isActiveMember) {
-			await MembersService.removeMemberFromNewsletter(member);
-		}
+
+		await NewsletterService.updateMemberStatus(member);
 	}
 
-	static async updateMemberProfile(member: Member, updates: Partial<MemberProfile>): Promise<void> {
+	static async updateMemberProfile(member: Member, updates: Partial<MemberProfile>, opts?: CreateMemberOpts): Promise<void> {
 		log.info({
 			action: 'update-member-profile',
 			data: {
@@ -193,6 +186,10 @@ export default class MembersService {
 			}
 		});
 		await getRepository(MemberProfile).update(member.id, updates);
+
+		if (!opts?.noSync) {
+			await NewsletterService.updateMemberStatus(member);
+		}
 	}
 
 	static async resetMemberPassword(email: string): Promise<void> {
@@ -220,21 +217,5 @@ export default class MembersService {
 	static async permanentlyDeleteMember(member: Member): Promise<void> {
 		await getRepository(Member).delete(member.id);
 		await NewsletterService.deleteMembers([member]);
-	}
-
-	static async removeMemberFromNewsletter(member: Member): Promise<void> {
-		await NewsletterService.updateMemberStatus(member, NewsletterStatus.Unsubscribed);
-		await NewsletterService.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
-	}
-
-	private static async optMemberIntoNewsletter(member: Member): Promise<void> {
-		try {
-			await NewsletterService.updateMemberStatus(member, NewsletterStatus.Subscribed, OptionsService.getList('newsletter-default-groups'));
-			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
-		} catch (err) {
-			log.error({
-				error: err,
-			}, 'Failed to add member to newsletter, probably a bad email address: ' + member.id);
-		}
 	}
 }

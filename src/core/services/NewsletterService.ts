@@ -1,12 +1,16 @@
 import { log as mainLogger } from '@core/logging';
+import { getRepository } from 'typeorm';
 
 import { NewsletterMember, NewsletterProvider, NewsletterStatus, PartialNewsletterMember } from '@core/providers/newsletter';
 import MailchimpProvider from '@core/providers/newsletter/MailchimpProvider';
 import NoneProvider from '@core/providers/newsletter/NoneProvider';
 
 import Member from '@models/Member';
+import MemberProfile from '@models/MemberProfile';
 
 import config from '@config';
+import OptionsService from './OptionsService';
+import { loggedIn } from '@core/utils/auth';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
@@ -59,9 +63,23 @@ class NewsletterService {
 		}
 	}
 
-	async updateMemberStatus(member: Member, status?: NewsletterStatus, groups?: string[]): Promise<void> {
-		log.info({action: 'update-member-status', data: {memberId: member.id, status}});
-		await this.provider.updateMember({email: member.email, status, groups});
+	async updateMemberStatus(member: Member): Promise<void> {
+		log.info({action: 'update-member-status', data: {memberId: member.id}});
+		
+		if (member.isActiveMember) {
+			await this.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+		} else {
+			await this.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
+		}
+
+		const profile = await getRepository(MemberProfile).findOne({member});
+		if (profile) {
+			await this.provider.updateMember({
+				email: member.email,
+				status: profile.newsletterStatus,
+				groups: profile.newsletterGroups
+			});
+		}
 	}
 
 	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {
