@@ -81,9 +81,6 @@ export default class MembersService {
 
 			if (!opts?.noSync) {
 				await NewsletterService.insertMembers([member]);
-				if (member.isActiveMember) {
-					await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
-				}
 			}
 
 			return member;

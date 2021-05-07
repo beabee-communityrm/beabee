@@ -90,6 +90,8 @@ class NewsletterService {
 			groups: member.profile.newsletterGroups
 		})));
 
+		const activeMemberEmails = members.filter(m => m.isActiveMember).map(m => m.email);
+		await this.provider.addTagToMembers(activeMemberEmails, OptionsService.getText('newsletter-active-member-tag'));
 	}
 
 	async archiveMembers(members: Member[]): Promise<void> {
