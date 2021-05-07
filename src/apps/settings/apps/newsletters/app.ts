@@ -1,6 +1,5 @@
 import express from 'express';
 import moment from 'moment';
-import { createQueryBuilder } from 'typeorm';
 
 import { log as mainLogger } from '@core/logging';
 import { isSuperAdmin } from '@core/middleware';
@@ -9,10 +8,9 @@ import { ContributionType, wrapAsync } from '@core/utils';
 import NewsletterService from '@core/services/NewsletterService';
 import OptionsService from '@core/services/OptionsService';
 
-import Member from '@models/Member';
-
 import config from '@config';
 import MembersService from '@core/services/MembersService';
+import { NewsletterStatus } from '@core/providers/newsletter';
 
 const log = mainLogger.child({app: 'newsletter-settings'});
 
@@ -33,25 +31,37 @@ async function setResyncStatus(message: string) {
 app.post('/', wrapAsync(async (req, res) => {
 	if (req.body.action === 'resync') {
 
-		await setResyncStatus('In progress: Fetching newsletter list');
+		await setResyncStatus('In progress: Fetching contact lists');
 
 		req.flash('success', 'newsletter-resync-started');
 		res.redirect(req.originalUrl);
 
 		try {
+			const members = await MembersService.find({relations: ['profile']});
 			const newsletterMembers = await NewsletterService.getNewsletterMembers();
 
-			await setResyncStatus('In progress: Uploading contacts to newsletter list');
+			const newMembersToUpload = [], existingMembers = [], existingMembersToArchive = [];
+			for (const member of members) {
+				if (newsletterMembers.find(nm => nm.email === member.email)) {
+					existingMembers.push(member);
+					if (member.profile?.newsletterStatus === NewsletterStatus.Unsubscribed) {
+						existingMembersToArchive.push(member);
+					}
+				} else if (member.profile?.newsletterStatus !== NewsletterStatus.Unsubscribed) {
+					newMembersToUpload.push(member);
+				}
+			}
+			const newsletterMembersToImport = newsletterMembers.filter(nm => members.every(m => m.email !== nm.email));
 
-			// Resync all as it also updates their metadata
-			const members = await MembersService.find();
-			await NewsletterService.upsertMembers(members);
+			await setResyncStatus('In progress: Uploading contacts to newsletter list');
+			await NewsletterService.upsertMembers([...newMembersToUpload, ...existingMembers]);
+
+			await setResyncStatus('In progress: Removing unsubscribed contacts from newsletter list');
+			await NewsletterService.archiveMembers(existingMembersToArchive);
 
 			await setResyncStatus('In progress: Importing contacts from newsletter list');
 
-			const onlyNewsletterMembers = newsletterMembers.filter(nm => members.every(m => nm.email !== m.email));
-
-			for (const nlMember of onlyNewsletterMembers) {
+			for (const nlMember of newsletterMembersToImport) {
 				await MembersService.createMember({
 					email: nlMember.email,
 					firstname: nlMember.firstname,
@@ -63,12 +73,7 @@ app.post('/', wrapAsync(async (req, res) => {
 				}, {noSync: true});
 			}
 
-			const onlyMembersCount = members.reduce(
-				(count, m) => count + (newsletterMembers.every(nm => nm.email != m.email) ? 1 : 0),
-				0
-			);
-
-			await setResyncStatus(`Successfully synced all contacts, ${onlyNewsletterMembers.length} imported and ${onlyMembersCount} newly uploaded`);
+			await setResyncStatus(`Successfully synced all contacts, ${newsletterMembersToImport.length} imported and ${newMembersToUpload.length} newly uploaded`);
 		} catch (error) {
 			log.error({
 				action: 'newsletter-sync-error',

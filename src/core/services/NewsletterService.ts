@@ -1,5 +1,8 @@
-import { log as mainLogger } from '@core/logging';
 import { getRepository } from 'typeorm';
+
+import { log as mainLogger } from '@core/logging';
+
+import OptionsService from '@core/services/OptionsService';
 
 import { NewsletterMember, NewsletterProvider, NewsletterStatus, PartialNewsletterMember } from '@core/providers/newsletter';
 import MailchimpProvider from '@core/providers/newsletter/MailchimpProvider';
@@ -9,8 +12,6 @@ import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
 
 import config from '@config';
-import OptionsService from './OptionsService';
-import { loggedIn } from '@core/utils/auth';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
@@ -76,9 +77,12 @@ class NewsletterService {
 		if (profile) {
 			await this.provider.updateMember({
 				email: member.email,
-				status: profile.newsletterStatus,
-				groups: profile.newsletterGroups
+				groups: profile.newsletterGroups, // TODO: does this update groups?
+				...profile.newsletterStatus !== NewsletterStatus.Unsubscribed && {status: profile.newsletterStatus}
 			});
+			if (profile.newsletterStatus === NewsletterStatus.Unsubscribed) {
+				await this.provider.archiveMembers([member.email]);
+			}
 		}
 	}
 
