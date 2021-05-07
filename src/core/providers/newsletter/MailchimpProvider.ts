@@ -7,7 +7,7 @@ import tar from 'tar-stream';
 import { log as mainLogger } from '@core/logging';
 import { cleanEmailAddress } from '@core/utils';
 
-import { NewsletterMember, NewsletterProvider, PartialNewsletterMember } from '.';
+import { NewsletterMember, NewsletterProvider, NewsletterStatus, PartialNewsletterMember } from '.';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
@@ -171,7 +171,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 				email: member.email_address,
 				firstname: FNAME || '',
 				lastname: LNAME || '',
-				status: member.status === 'subscribed' ? 'subscribed' : 'unsubscribed',
+				status: member.status === 'subscribed' ? NewsletterStatus.Subscribed: NewsletterStatus.Unsubscribed,
 				groups: Object.entries(member.interests).filter(([group, isOptedIn]) => isOptedIn).map(([group]) => group),
 				tags: member.tags.map(tag => tag.name),
 				fields

@@ -1,4 +1,7 @@
-export type NewsletterStatus = 'subscribed'|'unsubscribed';
+export enum NewsletterStatus {
+	Subscribed = 'subscribed',
+	Unsubscribed = 'unsubscribed'
+}
 
 export interface NewsletterMember {
 	email: string

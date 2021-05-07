@@ -42,19 +42,10 @@ app.use(wrapAsync(async (req, res, next) => {
 
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
-	const payments = await GCPaymentService.getPayments(member);
-
-	const successfulPayments = payments
-		.filter(p => p.isSuccessful)
-		.map(p => p.amount - p.amountRefunded)
-		.filter(amount => !isNaN(amount));
-
-	const total = successfulPayments.reduce((a, b) => a + b, 0);
-
 	const availableTags = await getAvailableTags();
 
 	res.render( 'index', {
-		member, payments, total, availableTags,
+		member, availableTags,
 		password_tries: config['password-tries'],
 	} );
 } ) );
@@ -79,6 +70,9 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 		break;
 	}
 	case 'save-contact':
+		await MembersService.updateMember(member, {
+			email: req.body.email
+		});
 		await MembersService.updateMemberProfile(member, {
 			telephone: req.body.telephone || '',
 			twitter: req.body.twitter || '',
