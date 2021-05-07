@@ -57,7 +57,10 @@ app.post('/', wrapAsync(async (req, res) => {
 					firstname: nlMember.firstname,
 					lastname: nlMember.lastname,
 					contributionType: ContributionType.None
-				}, undefined, {noSync: true});
+				}, {
+					newsletterStatus: nlMember.status,
+					newsletterGroups: nlMember.groups
+				}, {noSync: true});
 			}
 
 			const onlyMembersCount = members.reduce(
