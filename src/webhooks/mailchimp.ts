@@ -137,7 +137,6 @@ async function handleUnsubscribe(data: MCProfileData) {
 	}
 }
 
-// TODO: this should guard against updating other merge fields by overwriting the changes
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 	log.info({
 		action: 'update-profile',
@@ -145,11 +144,12 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 	});
 	const member = await MembersService.findOne({email: data.email});
 	if (member) {
+		// Sync to overwrite any other changes
 		await MembersService.updateMember(member, {
 			email: data.email,
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME
-		}, {noSync: true});
+		});
 		// TODO: update groups?
 		return true;
 	} else {
