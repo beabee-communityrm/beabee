@@ -5,6 +5,7 @@ import { log as mainLogger } from '@core/logging';
 import { ContributionType, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
+import NewsletterService from '@core/services/NewsletterService';
 
 import { NewsletterStatus } from '@core/providers/newsletter';
 
@@ -113,7 +114,7 @@ async function handleSubscribe(data: MCProfileData) {
 			newsletterStatus: NewsletterStatus.Subscribed
 		}, {noSync: true});
 	} else {
-		await MembersService.createMember({
+		const member = await MembersService.createMember({
 			email: data.email,
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME,
@@ -122,6 +123,8 @@ async function handleSubscribe(data: MCProfileData) {
 			newsletterStatus: NewsletterStatus.Subscribed,
 			// TODO: newsletterGroups: data.
 		}, {noSync: true});
+		// Sync merge fields etc.
+		await NewsletterService.updateMembers([member]);
 	}
 }
 
