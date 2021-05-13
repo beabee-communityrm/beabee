@@ -2,9 +2,12 @@ import bodyParser from 'body-parser';
 import express from 'express';
 
 import { log as mainLogger } from '@core/logging';
-import { ContributionType, isDuplicateIndex, wrapAsync } from '@core/utils';
+import { ContributionType, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
+import NewsletterService from '@core/services/NewsletterService';
+
+import { NewsletterStatus } from '@core/providers/newsletter';
 
 import config from '@config';
 
@@ -66,6 +69,10 @@ app.post('/', wrapAsync(async (req, res) => {
 		await handleSubscribe(body.data);
 		break;
 
+	case 'unsubscribe':
+		await handleUnsubscribe(body.data);
+		break;
+
 	case 'profile':
 		// Make MailChimp resend the webhook if we don't find a member
 		// it's probably because the upemail and profile webhooks
@@ -91,7 +98,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
 	const member = await MembersService.findOne({email: data.old_email});
 	if (member) {
-		await MembersService.updateMember(member, {email: data.new_email});
+		await MembersService.updateMember(member, {email: data.new_email}, {noSync: true});
 	} else {
 		log.error({
 			action: 'update-email-not-found',
@@ -101,26 +108,35 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 }
 
 async function handleSubscribe(data: MCProfileData) {
-	try {
-		await MembersService.createMember({
+	const member = await MembersService.findOne({email: data.email});
+	if (member) {
+		await MembersService.updateMemberProfile(member, {
+			newsletterStatus: NewsletterStatus.Subscribed
+		}, {noSync: true});
+	} else {
+		const member = await MembersService.createMember({
 			email: data.email,
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME,
 			contributionType: ContributionType.None
-		}, undefined, {noSync: true});
-	} catch (error) {
-		if (isDuplicateIndex(error, 'email')) {
-			log.info({
-				action: 'contact-already-exists',
-				data: {email: data.email}
-			});
-		} else {
-			throw error;
-		}
+		}, {
+			newsletterStatus: NewsletterStatus.Subscribed,
+			// TODO: newsletterGroups: data.
+		}, {noSync: true});
+		// Sync merge fields etc.
+		await NewsletterService.updateMembers([member]);
 	}
 }
 
-// TODO: this should guard against updating other merge fields by overwriting the changes
+async function handleUnsubscribe(data: MCProfileData) {
+	const member = await MembersService.findOne({email: data.email});
+	if (member) {
+		await MembersService.updateMemberProfile(member, {
+			newsletterStatus: NewsletterStatus.Unsubscribed
+		}, {noSync: true});
+	}
+}
+
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 	log.info({
 		action: 'update-profile',
@@ -128,11 +144,13 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 	});
 	const member = await MembersService.findOne({email: data.email});
 	if (member) {
+		// Sync to overwrite any other changes
 		await MembersService.updateMember(member, {
 			email: data.email,
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME
 		});
+		// TODO: update groups?
 		return true;
 	} else {
 		log.info({

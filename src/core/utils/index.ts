@@ -85,7 +85,6 @@ interface PgError {
 	detail: string
 }
 
-// TODO: this method binds us to Postgres
 export function isDuplicateIndex(error: Error, key: string): boolean {
 	if (error instanceof QueryFailedError) {
 		const pgError = error as unknown as PgError;

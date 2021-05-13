@@ -15,7 +15,8 @@ app.set( 'views', __dirname + '/views' );
 app.use( isLoggedIn );
 
 app.use(wrapAsync(async (req, res, next) => {
-	req.user!.profile = await getRepository(MemberProfile).findOne(req.user!.id);
+	const profile = await getRepository(MemberProfile).findOne(req.user!.id);
+	req.user!.profile = profile!;
 	next();
 }));
 

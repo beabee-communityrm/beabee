@@ -67,6 +67,8 @@ app.post( '/', hasSchema(addContactSchema).orFlash, wrapAsync( async ( req, res 
 		dateAdded: createDateTime(p.startDate, p.startTime),
 		dateExpires: createDateTime(p.expiryDate, p.expiryTime),
 	})) || [];
+	
+	// TODO: option for newsletter subscribe
 
 	let member;
 	try {

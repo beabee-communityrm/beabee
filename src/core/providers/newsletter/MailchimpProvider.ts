@@ -34,7 +34,7 @@ interface OperationNoBody {
 }
 
 interface OperationWithBody {
-	method: 'PUT'|'POST'
+	method: 'POST'|'PATCH'
 	path: string
 	body: string
 	operation_id: string;
@@ -96,12 +96,10 @@ function createInstance(config: MailchimpConfig) {
 	return instance;
 }
 
-function memberToMCMember(member: PartialNewsletterMember, upsert=false): Partial<MCMember> {
+function memberToMCMember(member: PartialNewsletterMember): Partial<MCMember> {
 	return {
 		email_address: member.email,
-		...(member.status || upsert) && {
-			[upsert ? 'status_if_new' : 'status']: member.status || 'unsubscribed'
-		},
+		...member.status && {status: member.status},
 		...(member.firstname || member.lastname || member.fields) && {
 			merge_fields: {
 				...member.firstname && {FNAME: member.firstname},
@@ -112,6 +110,19 @@ function memberToMCMember(member: PartialNewsletterMember, upsert=false): Partia
 		...member.groups && {
 			interests: Object.assign({}, ...member.groups.map(group => ({[group]: true})))
 		}
+	};
+}
+
+function mcMemberToMember(member: MCMember): NewsletterMember {
+	const {FNAME, LNAME, ...fields} = member.merge_fields;
+	return {
+		email: member.email_address,
+		firstname: FNAME || '',
+		lastname: LNAME || '',
+		status: member.status === 'subscribed' ? NewsletterStatus.Subscribed: NewsletterStatus.Unsubscribed,
+		groups: Object.entries(member.interests).filter(([group, isOptedIn]) => isOptedIn).map(([group]) => group),
+		tags: member.tags.map(tag => tag.name),
+		fields
 	};
 }
 
@@ -165,30 +176,30 @@ export default class MailchimpProvider implements NewsletterProvider {
 		const finishedBatch = await this.waitForBatch(batch);
 		const responses = await this.getBatchResponses(finishedBatch) as GetMembersResponse[];
 
-		return responses.flatMap(r => r.members).map(member => {
-			const {FNAME, LNAME, ...fields} = member.merge_fields;
-			return {
-				email: member.email_address,
-				firstname: FNAME || '',
-				lastname: LNAME || '',
-				status: member.status === 'subscribed' ? NewsletterStatus.Subscribed: NewsletterStatus.Unsubscribed,
-				groups: Object.entries(member.interests).filter(([group, isOptedIn]) => isOptedIn).map(([group]) => group),
-				tags: member.tags.map(tag => tag.name),
-				fields
-			};
-		});
+		return responses.flatMap(r => r.members).map(mcMemberToMember);
+	}
+
+	async insertMembers(members: PartialNewsletterMember[]): Promise<void> {
+		const operations: Operation[] = members.map(member => ({
+			path: `lists/${this.listId}/members`,
+			method: 'POST',
+			body: JSON.stringify(memberToMCMember(member)),
+			operation_id: `add_${member.email}`
+		}));
+
+		await this.dispatchOperations(operations);
 	}
 
 	async updateMember(member: PartialNewsletterMember, oldEmail = member.email): Promise<void> {
 		await this.instance.patch(this.emailUrl(oldEmail), memberToMCMember(member));
 	}
 
-	async upsertMembers(members: PartialNewsletterMember[]): Promise<void> {
+	async updateMembers(members: PartialNewsletterMember[]): Promise<void> {
 		const operations: Operation[] = members.map(member => ({
 			path: this.emailUrl(member.email),
-			method: 'PUT',
-			body: JSON.stringify(memberToMCMember(member, true)),
-			operation_id: `add_${member.email}`
+			method: 'PATCH',
+			body: JSON.stringify(memberToMCMember(member)),
+			operation_id: `update_${member.email}`
 		}));
 
 		await this.dispatchOperations(operations);
