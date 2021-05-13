@@ -88,11 +88,14 @@ database.connect().then(async () => {
 	//app.use( '/s', specialUrlHandler );
 
 	// Error 404
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	app.use( function ( req, res, next ) {
+	api.use((req, res) => {
+		res.sendStatus(404);
+	});
+
+	app.use((req, res) => {
 		res.status( 404 );
 		res.render( '404' );
-	} );
+	});
 
 	// Error 500
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
