@@ -41,9 +41,12 @@ async function loadAppConfig(uid: string, path: string, overrides: AppConfigOver
 	const subApps = fs.existsSync(path + '/apps') ?
 		await loadAppConfigs(path + '/apps', overrides.subApps) : [];
 
+	const apiPath = path + '/api.js';
+
 	return {
 		uid,
 		appPath: path + '/app.js',
+		apiPath: fs.existsSync(apiPath) && apiPath,
 		priority: 100,
 		menu: 'none',
 		permissions: [],
@@ -58,7 +61,7 @@ async function requireApp(appPath: string): Promise<express.Express> {
 	return app.default || app;
 }
 
-async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
+async function routeApps(parentApp: express.Express, parentApi: express.Express|undefined, appConfigs: AppConfig[]) {
 	for (const appConfig of appConfigs) {
 		log.debug( {
 			app: 'app-loader',
@@ -88,17 +91,23 @@ async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
 			next();
 		}, app);
 
+		let api;
+		if (appConfig.apiPath && parentApi) {
+			api = await requireApp(appConfig.apiPath);
+			parentApi.use('/' + appConfig.path, api);
+		}
+
 		if (appConfig.subApps.length > 0) {
-			await routeApps(app, appConfig.subApps);
+			await routeApps(app, api, appConfig.subApps);
 		}
 	}
 }
 
-export default async function(app: express.Express): Promise<void> {
+export default async function(app: express.Express, api: express.Express): Promise<void> {
 	const appConfigs = await loadAppConfigs(
 		__dirname + '/../apps',
 		(config as any).appOverrides
 	);
 	app.use(templateLocals(appConfigs));
-	await routeApps(app, appConfigs);
+	await routeApps(app, api, appConfigs);
 }

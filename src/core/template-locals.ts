@@ -8,6 +8,7 @@ export interface AppConfig {
 	disabled: boolean
 	priority: number
 	appPath: string
+	apiPath?: string
 	hidden?: boolean
 	subApps: AppConfig[]
 	menu: 'none'|'main'

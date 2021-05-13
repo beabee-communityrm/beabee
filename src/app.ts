@@ -33,6 +33,8 @@ log.info( {
 
 const app = express();
 
+const api = express();
+
 app.set( 'views', __dirname + '/views' );
 app.set( 'view engine', 'pug' );
 app.set( 'view cache', false );
@@ -77,8 +79,10 @@ database.connect().then(async () => {
 	app.use( flash() );
 	app.use( quickflash );
 
+	app.use('/api', api);
+
 	// Load apps
-	await appLoader( app );
+	await appLoader( app, api );
 
 	// Hook to handle special URLs
 	//app.use( '/s', specialUrlHandler );
