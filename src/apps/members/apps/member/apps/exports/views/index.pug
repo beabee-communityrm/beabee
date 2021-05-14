@@ -11,7 +11,7 @@ block contents
 		.col-md-9
 			+page_header( title )
 
-			table.table
+			table.table.table-condensed
 				thead
 					tr
 						th Export name
@@ -29,7 +29,7 @@ block contents
 							td
 								form(method="post").form-inline
 									+csrf
-									input(type="hidden" name="exportId" value=item.export.id)
+									input(type="hidden" name="exportItemId" value=item.id)
 									.form-group
 										select(name="status").form-control
 											for status in item.type.itemStatuses
