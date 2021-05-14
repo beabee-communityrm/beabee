@@ -17,37 +17,22 @@ block contents
 						th Export name
 						th Status
 				tbody
-					for e in member.exports
+					for item in exportItems
 						tr
 							td
-								a(href="/tools/exports/" + e.export_id._id)
-									= exportTypes[e.export_id.type].name
-									|
-									| /
-									|
-									= e.export_id.description
+								= item.type.exportName
+								|
+								| /
+								|
+								a(href="/tools/exports/" + item.export.id)
+									= item.export.description
 							td
 								form(method="post").form-inline
 									+csrf
-									input(type="hidden" name="action" value="update")
-									input(type="hidden" name="export_id" value=e.export_id._id)
+									input(type="hidden" name="exportId" value=item.export.id)
 									.form-group
 										select(name="status").form-control
-											for status in exportTypes[e.export_id.type].statuses
-												option(selected=status === e.status)= status
+											for status in item.type.itemStatuses
+												option(selected=status === item.status)= status
 									| &nbsp;&nbsp;
-									button.btn.btn-sm.btn-warning Update
-
-			h4 Add to export
-			form(method="post").form-horizontal
-				+csrf
-				input(type="hidden" name="action" value="add")
-				.form-group
-					label(for="export").col-md-3.control-label Export name
-					.col-md-4
-						select(id="export" name="export_id" required).form-control
-							option(value='' selected disabled)
-							for exportDetails in exports
-								option(value=exportDetails._id)= exportDetails.description
-				.col-md-offset-3.col-md-4
-					button.btn.btn-success Add
+									button(name='action' value='update').btn.btn-sm.btn-warning Update
