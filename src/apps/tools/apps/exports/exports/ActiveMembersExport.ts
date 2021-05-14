@@ -9,7 +9,7 @@ import BaseExport, { ExportResult } from './BaseExport';
 
 export default class ActiveMembersExport extends BaseExport<Member> {
 	exportName = 'Active members export'
-	itemStatuses = ['added', 'seeen']
+	itemStatuses = ['added', 'seen']
 	itemName = 'active members'
 	idColumn = 'm.id'
 
