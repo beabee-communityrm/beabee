@@ -9,6 +9,7 @@ import SegmentService from '@core/services/SegmentService';
 
 import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
+import SegmentMember from '@models/SegmentMember';
 
 const app = express();
 
@@ -61,7 +62,10 @@ app.post('/:id', hasNewModel(Segment, 'id'), wrapAsync(async (req, res) => {
 		res.redirect('/members/segments/' + segment.id + '#ongoingemails');
 		break;
 	case 'delete':
+		await getRepository(SegmentMember).delete({segment});
+		await getRepository(SegmentOngoingEmail).delete({segment});
 		await getRepository(Segment).delete(segment.id);
+
 		req.flash('success', 'segment-deleted');
 		res.redirect('/members/segments');
 		break;
