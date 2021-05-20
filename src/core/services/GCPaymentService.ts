@@ -209,17 +209,17 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-	static async customerToMember(customerId: string): Promise<{member: PartialMember, profile: PartialMemberProfile}> {
+	static async customerToMember(customerId: string): Promise<{partialMember: PartialMember, partialProfile: PartialMemberProfile}> {
 		const customer = await gocardless.customers.get(customerId);
 
 		return {
-			member: {
+			partialMember: {
 				firstname: customer.given_name || '',
 				lastname: customer.family_name || '',
 				email: cleanEmailAddress(customer.email || ''),
 				contributionType: ContributionType.GoCardless
 			},
-			profile: {
+			partialProfile: {
 				deliveryOptIn: false,
 				deliveryAddress: {
 					line1: customer.address_line1 || '',
