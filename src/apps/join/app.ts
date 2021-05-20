@@ -50,6 +50,8 @@ app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 
 function schemaToJoinForm(data: JoinSchema): JoinForm {
 	return {
+		email: '',
+		password: {hash: '', iterations: 0, salt: '', tries: 0},
 		amount: data.amount === 'other' ? parseInt(data.amountOther || '') : parseInt(data.amount),
 		period: data.period,
 		referralCode: data.referralCode,

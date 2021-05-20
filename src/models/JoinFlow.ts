@@ -1,7 +1,15 @@
-import { ContributionPeriod, ReferralGiftForm, PaymentForm } from '@core/utils';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+import { ContributionPeriod, ReferralGiftForm, PaymentForm } from '@core/utils';
+import { Password } from './Password';
+
 export class JoinForm implements PaymentForm, Partial<ReferralGiftForm> {
+    @Column()
+    email!: string
+
+    @Column(() => Password)
+    password!: Password
+
     @Column()
     amount!: number;
 
