@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { JoinForm } from './JoinFlow';
+import JoinForm from './JoinForm';
 import type Member from './Member';
 
 @Entity()

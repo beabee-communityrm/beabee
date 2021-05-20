@@ -1,6 +1,6 @@
 import { Column } from 'typeorm';
 
-export class Password {
+export default class Password {
 	@Column()
 	hash!: string;
 

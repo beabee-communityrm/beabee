@@ -14,7 +14,7 @@ import ReferralsService from '@core/services/ReferralsService';
 
 import { NewsletterStatus } from '@core/providers/newsletter';
 
-import { JoinForm } from '@models/JoinFlow';
+import JoinForm from '@models/JoinForm';
 import Member from '@models/Member';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';

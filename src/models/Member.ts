@@ -7,7 +7,7 @@ import config from '@config';
 import type MemberPermission from './MemberPermission';
 import type { PermissionType } from './MemberPermission';
 import type MemberProfile from './MemberProfile';
-import { Password } from './Password';
+import Password from './Password';
 
 interface LoginOverride {
 	code: string
