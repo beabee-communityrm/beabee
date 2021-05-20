@@ -5,7 +5,7 @@ import base32 from 'thirty-two';
 import { getNextParam } from '@core/utils';
 
 import { PermissionType } from '@models/MemberPermission';
-import { Password } from '@models/Member';
+import { Password } from '@models/Password';
 
 import config from '@config';
 
