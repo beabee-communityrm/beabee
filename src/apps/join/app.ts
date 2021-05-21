@@ -119,7 +119,7 @@ app.get( '/complete', [
 		return res.redirect( app.mountpath + '/complete/failed');
 	}
 
-	const {partialMember, partialProfile} = await GCPaymentService.customerToMember(joinFlow.customerId);
+	const {partialMember, partialProfile} = await GCPaymentService.customerToMember(joinFlow);
 
 	if (!partialMember.firstname) {
 		req.log.error({

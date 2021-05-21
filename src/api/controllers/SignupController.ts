@@ -81,7 +81,7 @@ export class SignupController {
 			throw new NotFoundError();
 		}
 
-		const {partialMember, partialProfile} = await GCPaymentService.customerToMember(joinFlow.customerId);
+		const {partialMember, partialProfile} = await GCPaymentService.customerToMember(joinFlow);
 
 		try {
 			const newMember = await MembersService.createMember(partialMember, partialProfile);
