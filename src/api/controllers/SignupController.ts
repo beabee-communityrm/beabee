@@ -63,6 +63,10 @@ export class SignupController {
 			...data,
 			password: await generatePassword(data.password),
 			prorate: false
+		}, {
+			prefilled_customer: {
+				email: data.email
+			}
 		});
 		return {
 			redirectUrl
