@@ -48,17 +48,28 @@ class SignupError extends HttpError {
 	}
 }
 
-async function handleJoin(member: Member, {customerId, mandateId, joinForm}: CompletedJoinFlow): Promise<void> {
-	await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
-	await GCPaymentService.updateContribution(member, joinForm);
+interface SignupStart {
+	redirectUrl: string
+}
+
+interface SignupSuccess {
+	jwt: string
+}
+
+async function handleJoin(member: Member, joinFlow: CompletedJoinFlow): Promise<SignupSuccess> {
+	await GCPaymentService.updatePaymentMethod(member, joinFlow.customerId, joinFlow.mandateId);
+	await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 	await EmailService.sendTemplateToMember('welcome', member);
+
+	const jwt = generateJWTToken(member);
+	return {jwt};
 }
 
 @JsonController('/signup')
 export class SignupController {
 
 	@Post('/')
-	async startSignup(@Body() data: SignupData): Promise<{redirectUrl: string}> {
+	async startSignup(@Body() data: SignupData): Promise<SignupStart> {
 		const redirectUrl = await JoinFlowService.createJoinFlow(data.completeUrl, {
 			...data,
 			password: await generatePassword(data.password),
@@ -74,8 +85,7 @@ export class SignupController {
 	}
 
 	@Post('/complete')
-	@OnUndefined(201)
-	async completeSignup(@BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
+	async completeSignup(@BodyParam('redirectFlowId') redirectFlowId: string): Promise<SignupSuccess> {
 		const joinFlow = await JoinFlowService.completeJoinFlow(redirectFlowId);
 		if (!joinFlow) {
 			throw new NotFoundError();
@@ -85,7 +95,7 @@ export class SignupController {
 
 		try {
 			const newMember = await MembersService.createMember(partialMember, partialProfile);
-			await handleJoin(newMember, joinFlow);
+			return await handleJoin(newMember, joinFlow);
 		} catch (error) {
 			if (isDuplicateIndex(error, 'email')) {
 				const oldMember = await MembersService.findOne({email: partialMember.email});
@@ -106,8 +116,7 @@ export class SignupController {
 	}
 
 	@Post('/restart')
-	@OnUndefined(201)
-	async completeRestart(@BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
+	async completeRestart(@BodyParam('redirectFlowId') redirectFlowId: string): Promise<SignupSuccess> {
 		const restartFlow = await JoinFlowService.completeRestartFlow(redirectFlowId);
 		if (!restartFlow) {
 			throw new NotFoundError();
@@ -116,7 +125,7 @@ export class SignupController {
 		if (restartFlow.member.isActiveMember) {
 			throw new SignupError('restart-failed');
 		} else {
-			await handleJoin(restartFlow.member, restartFlow);
+			return await handleJoin(restartFlow.member, restartFlow);
 		}
 	}
 }
