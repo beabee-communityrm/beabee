@@ -2,7 +2,7 @@ import { IsBoolean, IsEmail, IsEnum, IsString, Min } from 'class-validator';
 import { Body, BodyParam, HttpError, JsonController, NotFoundError, OnUndefined, Post } from 'routing-controllers';
 
 import { ContributionPeriod, isDuplicateIndex } from '@core/utils';
-import { generatePassword } from '@core/utils/auth';
+import { generateJWTToken, generatePassword } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';

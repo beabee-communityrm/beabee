@@ -1,13 +1,19 @@
 import crypto from 'crypto';
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import base32 from 'thirty-two';
 
 import { getNextParam } from '@core/utils';
 
+import Member from '@models/Member';
 import { PermissionType } from '@models/MemberPermission';
 import Password from '@models/Password';
 
 import config from '@config';
+
+export function generateJWTToken(member: Member): string {
+	return jwt.sign({memberId: member.id}, config.secret);
+}
 
 export enum AuthenticationStatus {
 	LOGGED_IN = 1,
