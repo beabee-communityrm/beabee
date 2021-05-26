@@ -1,18 +1,32 @@
 import 'module-alias/register';
 import 'reflect-metadata';
 
-import express from 'express';
-import { useExpressServer } from 'routing-controllers';
+import express, { Request } from 'express';
+import { Action, useExpressServer } from 'routing-controllers';
 
 import { SignupController } from './controllers/SignupController';
 
 import * as db from '@core/database';
 import { log } from '@core/logging';
+import { parseJWTToken } from '@core/utils/auth';
+
+import MembersService from '@core/services/MembersService';
+
+async function currentUserChecker(action: Action) {
+	const auth = (action.request as Request).headers.authorization;
+	if (auth?.startsWith('Bearer ')) {
+		const memberId = parseJWTToken(auth.slice(8));
+		const member = await MembersService.findOne(memberId);
+		return member;
+	}
+}
 
 const app = express();
 useExpressServer(app, {
 	routePrefix: '/1.0',
-	controllers: [SignupController]
+	controllers: [SignupController],
+	currentUserChecker,
+	authorizationChecker: action => !!currentUserChecker(action)
 });
 
 db.connect().then(() => {

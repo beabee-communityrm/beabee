@@ -15,6 +15,11 @@ export function generateJWTToken(member: Member): string {
 	return jwt.sign({memberId: member.id}, config.secret);
 }
 
+export function parseJWTToken(token: string): string {
+	const {memberId} = jwt.verify(token, config.secret) as {memberId: string};
+	return memberId;
+}
+
 export enum AuthenticationStatus {
 	LOGGED_IN = 1,
 	NOT_LOGGED_IN = 0,
