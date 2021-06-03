@@ -1,6 +1,7 @@
 import 'module-alias/register';
 import 'reflect-metadata';
 
+import cookie from 'cookie-parser';
 import express, { Request } from 'express';
 import { Action, useExpressServer } from 'routing-controllers';
 
@@ -8,6 +9,7 @@ import { SignupController } from './controllers/SignupController';
 
 import * as db from '@core/database';
 import { log } from '@core/logging';
+import sessions from '@core/sessions';
 import { parseJWTToken } from '@core/utils/auth';
 
 import MembersService from '@core/services/MembersService';
@@ -22,14 +24,18 @@ async function currentUserChecker(action: Action) {
 }
 
 const app = express();
-useExpressServer(app, {
-	routePrefix: '/1.0',
-	controllers: [SignupController],
-	currentUserChecker,
-	authorizationChecker: action => !!currentUserChecker(action)
-});
+app.use(cookie());
 
 db.connect().then(() => {
+	sessions(app);
+
+	useExpressServer(app, {
+		routePrefix: '/1.0',
+		controllers: [SignupController],
+		currentUserChecker,
+		authorizationChecker: action => !!currentUserChecker(action)
+	});
+
 	const server = app.listen(3000);
 
 	process.on('SIGTERM', () => {
