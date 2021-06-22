@@ -160,17 +160,17 @@ app.post( '/:slug:embed(/embed)?', [
 		if (!req.user) {
 			req.session.answers = req.answers;
 		}
-		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
+		res.redirect( `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
 app.get( '/:slug/thanks', hasNewModel(Poll, 'slug'), wrapAsync(async (req, res) => {
 	const poll = req.model as Poll;
-	const answers = await getUserAnswers(req);
-	if (answers) {
-		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, answers});
+	if (poll.templateSchema.thanksRedirect) {
+		res.redirect(poll.templateSchema.thanksRedirect as string);
 	} else {
-		res.redirect('/polls/' + poll.slug);
+		const answers = await getUserAnswers(req);
+		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, answers});
 	}
 }));
 
@@ -229,7 +229,7 @@ app.post( '/:slug/:code', [
 		res.redirect( `/polls/${poll.slug}/${pollsCode}#vote` );
 	} else {
 		req.session.answers = req.answers;
-		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
+		res.redirect(`/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
