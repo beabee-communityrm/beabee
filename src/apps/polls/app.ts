@@ -126,7 +126,13 @@ app.get( '/:slug:embed(/embed)?', [
 			poll, isEmbed,
 			isGuest: isEmbed || !user,
 			answers: await getUserAnswers(req) || {},
-			preview: req.query.preview && auth.canAdmin( req ) === auth.AuthenticationStatus.LOGGED_IN
+			preview: req.query.preview && auth.canAdmin( req ) === auth.AuthenticationStatus.LOGGED_IN,
+
+			// TODO: remove this hack
+			...poll.access === PollAccess.OnlyAnonymous && {
+				isLoggedIn: false,
+				menu: {main: []}
+			}
 		} );
 	}
 } ) );
@@ -137,23 +143,15 @@ app.post( '/:slug:embed(/embed)?', [
 ], wrapAsync( async ( req, res ) => {
 	const poll = req.model as Poll;
 	const isEmbed = !!req.params.embed;
-	const user = isEmbed ? undefined : req.user;
+	const user = isEmbed || poll.access === PollAccess.OnlyAnonymous ? undefined : req.user;
 
 	if (poll.access === PollAccess.Member && !user) {
 		return auth.handleNotAuthed(auth.AuthenticationStatus.NOT_LOGGED_IN, req, res);
 	}
 
-	let error;
-	if (user) {
-		error = await PollsService.setResponse( poll, user, req.answers! );
-	} else {
-		const {guestName, guestEmail} = req.body;
-		if (guestName && guestEmail || poll.access === PollAccess.Anonymous) {
-			error = await PollsService.setGuestResponse( poll, guestName, guestEmail, req.answers! );
-		} else {
-			error = 'polls-guest-fields-missing';
-		}
-	}
+	const error = user ?
+		await PollsService.setResponse( poll, user, req.answers! ) :
+		await PollsService.setGuestResponse( poll, req.body.guestName, req.body.guestEmail, req.answers! );
 
 	if (error) {
 		req.flash('error', error);
@@ -162,22 +160,27 @@ app.post( '/:slug:embed(/embed)?', [
 		if (!req.user) {
 			req.session.answers = req.answers;
 		}
-		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
+		res.redirect( `/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
 app.get( '/:slug/thanks', hasNewModel(Poll, 'slug'), wrapAsync(async (req, res) => {
 	const poll = req.model as Poll;
-	const answers = await getUserAnswers(req);
-	if (answers) {
-		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, answers});
+	if (poll.templateSchema.thanksRedirect) {
+		res.redirect(poll.templateSchema.thanksRedirect as string);
 	} else {
-		res.redirect('/polls/' + poll.slug);
+		const answers = await getUserAnswers(req);
+		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, answers});
 	}
 }));
 
-app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => {
+app.get( '/:slug/:code', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res, next ) => {
 	const poll = req.model as Poll;
+
+	if (poll.access === PollAccess.OnlyAnonymous) {
+		return next('route');
+	}
+
 	const answers = req.query.answers as PollResponseAnswers;
 	const pollsCode = req.params.code.toUpperCase();
 
@@ -226,7 +229,7 @@ app.post( '/:slug/:code', [
 		res.redirect( `/polls/${poll.slug}/${pollsCode}#vote` );
 	} else {
 		req.session.answers = req.answers;
-		res.redirect( (poll.templateSchema.thanksRedirect as string) || `/polls/${poll.slug}/thanks`);
+		res.redirect(`/polls/${poll.slug}/thanks`);
 	}
 } ) );
 
