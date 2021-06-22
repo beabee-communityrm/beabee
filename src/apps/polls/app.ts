@@ -158,7 +158,13 @@ app.get(
         answers: (await getUserAnswers(req)) || {},
         preview:
           req.query.preview &&
-          auth.canAdmin(req) === auth.AuthenticationStatus.LOGGED_IN
+          auth.canAdmin(req) === auth.AuthenticationStatus.LOGGED_IN,
+
+        // TODO: remove this hack
+        ...(poll.access === PollAccess.OnlyAnonymous && {
+          isLoggedIn: false,
+          menu: { main: [] }
+        })
       });
     }
   })
@@ -170,7 +176,10 @@ app.post(
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
     const isEmbed = !!req.params.embed;
-    const user = isEmbed ? undefined : req.user;
+    const user =
+      isEmbed || poll.access === PollAccess.OnlyAnonymous
+        ? undefined
+        : req.user;
 
     if (poll.access === PollAccess.Member && !user) {
       return auth.handleNotAuthed(
@@ -180,22 +189,14 @@ app.post(
       );
     }
 
-    let error;
-    if (user) {
-      error = await PollsService.setResponse(poll, user, req.answers!);
-    } else {
-      const { guestName, guestEmail } = req.body;
-      if ((guestName && guestEmail) || poll.access === PollAccess.Anonymous) {
-        error = await PollsService.setGuestResponse(
+    const error = user
+      ? await PollsService.setResponse(poll, user, req.answers!)
+      : await PollsService.setGuestResponse(
           poll,
-          guestName,
-          guestEmail,
+          req.body.guestName,
+          req.body.guestEmail,
           req.answers!
         );
-      } else {
-        error = "polls-guest-fields-missing";
-      }
-    }
 
     if (error) {
       req.flash("error", error);
@@ -232,8 +233,13 @@ app.get(
 app.get(
   "/:slug/:code",
   hasNewModel(Poll, "slug"),
-  wrapAsync(async (req, res) => {
+  wrapAsync(async (req, res, next) => {
     const poll = req.model as Poll;
+
+    if (poll.access === PollAccess.OnlyAnonymous) {
+      return next("route");
+    }
+
     const answers = req.query.answers as PollResponseAnswers;
     const pollsCode = req.params.code.toUpperCase();
 

@@ -57,7 +57,9 @@ export default class PollsService {
     answers: PollResponseAnswers,
     isPartial = false
   ): Promise<string | undefined> {
-    if (!member.membership?.isActive) {
+    if (poll.access === PollAccess.OnlyAnonymous) {
+      return "poll-only-anonymous";
+    } else if (!member.membership?.isActive) {
       return "polls-expired-user";
     } else if (!poll.active) {
       return "polls-closed";
@@ -92,7 +94,14 @@ export default class PollsService {
     guestEmail: string | undefined,
     answers: PollResponseAnswers
   ): Promise<string | undefined> {
-    if (!poll.active || poll.access === PollAccess.Member) {
+    if (poll.access === PollAccess.Guest && !(guestName && guestEmail)) {
+      return "polls-guest-fields-missing";
+    } else if (
+      poll.access === PollAccess.OnlyAnonymous &&
+      (guestName || guestEmail)
+    ) {
+      return "poll-only-anonymous";
+    } else if (!poll.active || poll.access === PollAccess.Member) {
       return "poll-closed";
     }
 
