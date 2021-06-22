@@ -205,10 +205,7 @@ app.post(
       if (!req.user) {
         req.session.answers = req.answers;
       }
-      res.redirect(
-        (poll.templateSchema.thanksRedirect as string) ||
-          `/polls/${poll.slug}/thanks`
-      );
+      res.redirect(`/polls/${poll.slug}/thanks`);
     }
   })
 );
@@ -218,14 +215,14 @@ app.get(
   hasNewModel(Poll, "slug"),
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
-    const answers = await getUserAnswers(req);
-    if (answers) {
+    if (poll.templateSchema.thanksRedirect) {
+      res.redirect(poll.templateSchema.thanksRedirect as string);
+    } else {
+      const answers = await getUserAnswers(req);
       res.render(poll.template === "custom" ? getView(poll) : "thanks", {
         poll,
         answers
       });
-    } else {
-      res.redirect("/polls/" + poll.slug);
     }
   })
 );
@@ -290,10 +287,7 @@ app.post(
       res.redirect(`/polls/${poll.slug}/${pollsCode}#vote`);
     } else {
       req.session.answers = req.answers;
-      res.redirect(
-        (poll.templateSchema.thanksRedirect as string) ||
-          `/polls/${poll.slug}/thanks`
-      );
+      res.redirect(`/polls/${poll.slug}/thanks`);
     }
   })
 );
