@@ -57,6 +57,10 @@ form(method='POST').form-horizontal
 				label
 					input(type='radio' name='access' value='anonymous' required checked=poll.access === 'anonymous')
 					| Allow anonymous
+			.radio-inline
+				label
+					input(type='radio' name='access' value='only-anonymous' required checked=poll.access === 'only-anonymous')
+					| Only anonymous
 
 	if isNew
 		.form-group

@@ -44,7 +44,9 @@ export default class PollsService {
 	}
 
 	static async setResponse( poll: Poll, member: Member, answers: PollResponseAnswers, isPartial=false ): Promise<string|undefined> {
-		if (!member.isActiveMember) {
+		if (poll.access === PollAccess.OnlyAnonymous) {
+			return 'poll-only-anonymous';
+		} else if (!member.isActiveMember) {
 			return 'polls-expired-user';
 		} else if (!poll.active) {
 			return 'polls-closed';
@@ -73,7 +75,11 @@ export default class PollsService {
 	}
 
 	static async setGuestResponse( poll: Poll, guestName: string|undefined, guestEmail: string|undefined, answers: PollResponseAnswers): Promise<string|undefined> {
-		if (!poll.active || poll.access === PollAccess.Member) {
+		if (poll.access === PollAccess.Guest && !(guestName && guestEmail)) {
+			return 'polls-guest-fields-missing';
+		} else if (poll.access === PollAccess.OnlyAnonymous && (guestName || guestEmail)) {
+			return 'poll-only-anonymous';
+		} else if (!poll.active || poll.access === PollAccess.Member) {
 			return 'poll-closed';
 		}
 

@@ -5,9 +5,10 @@ import PollResponse from './PollResponse';
 export type PollTemplate = 'custom'|'builder'|'ballot';
 
 export enum PollAccess {
+	Member = 'member',
 	Guest = 'guest',
 	Anonymous = 'anonymous',
-	Member = 'member'
+	OnlyAnonymous = 'only-anonymous'
 }
 
 @Entity()
