@@ -94,19 +94,28 @@ app.get(
 app.get(
   "/:slug/responses",
   hasNewModel(Poll, "slug"),
-  wrapAsync(async (req, res) => {
-    const responses = await getRepository(PollResponse).find({
-      where: { poll: req.model },
-      order: {
-        createdAt: "ASC"
-      },
-      relations: ["member"]
-    });
-    const responsesWithText = responses.map((response) => ({
-      ...response,
-      updatedAtText: moment.utc(response.updatedAt).format("HH:mm DD/MM/YYYY")
-    }));
-    res.render("responses", { poll: req.model, responses: responsesWithText });
+  wrapAsync(async (req, res, next) => {
+    const poll = req.model as Poll;
+    if (poll.responsePassword && req.query.password !== poll.responsePassword) {
+      req.flash("error", "polls-responses-password-protected");
+      next("route");
+    } else {
+      const responses = await getRepository(PollResponse).find({
+        where: { poll: req.model },
+        order: {
+          createdAt: "ASC"
+        },
+        relations: ["member"]
+      });
+      const responsesWithText = responses.map((response) => ({
+        ...response,
+        updatedAtText: moment.utc(response.updatedAt).format("HH:mm DD/MM/YYYY")
+      }));
+      res.render("responses", {
+        poll: req.model,
+        responses: responsesWithText
+      });
+    }
   })
 );
 
@@ -139,28 +148,36 @@ app.post(
         res.redirect("/tools/polls");
         break;
       case "export-responses": {
-        const exportName = `responses-${poll.title}_${moment().format()}.csv`;
-        const responses = await getRepository(PollResponse).find({
-          where: { poll },
-          order: { createdAt: "ASC" },
-          relations: ["member"]
-        });
-        const exportData = responses.map((response) => {
-          return {
-            Date: response.createdAt,
-            FullName: response.guestName,
-            EmailAddress: response.guestEmail,
-            ...(response.member && {
-              FirstName: response.member.firstname,
-              LastName: response.member.lastname,
-              FullName: response.member.fullname,
-              EmailAddress: response.member.email
-            }),
-            IsMember: !!response.member,
-            ...convertAnswers(poll, response.answers)
-          };
-        });
-        res.attachment(exportName).send(Papa.unparse(exportData));
+        if (
+          poll.responsePassword &&
+          req.query.password !== poll.responsePassword
+        ) {
+          req.flash("error", "polls-responses-password-protected");
+          res.redirect(req.originalUrl);
+        } else {
+          const exportName = `responses-${poll.title}_${moment().format()}.csv`;
+          const responses = await getRepository(PollResponse).find({
+            where: { poll },
+            order: { createdAt: "ASC" },
+            relations: ["member"]
+          });
+          const exportData = responses.map((response) => {
+            return {
+              Date: response.createdAt,
+              FullName: response.guestName,
+              EmailAddress: response.guestEmail,
+              ...(response.member && {
+                FirstName: response.member.firstname,
+                LastName: response.member.lastname,
+                FullName: response.member.fullname,
+                EmailAddress: response.member.email
+              }),
+              IsMember: !!response.member,
+              ...convertAnswers(poll, response.answers)
+            };
+          });
+          res.attachment(exportName).send(Papa.unparse(exportData));
+        }
         break;
       }
     }
