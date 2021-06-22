@@ -55,6 +55,9 @@ export default class Poll {
 	@OneToMany(() => PollResponse, r => r.poll)
 	responses!: PollResponse[]
 
+	@Column({nullable: true})
+	responsePassword?: string
+
 	responseCount?: number
 
 	get active(): boolean {

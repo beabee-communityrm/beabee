@@ -142,6 +142,7 @@
 	"flash-polls-expired-user": "Your membership has expired, please restart it to submit your answer",
 	"flash-polls-guest-fields-missing": "Please provide your name and email address",
 	"flash-polls-only-anonymous": "This poll only allows anonymous submissions",
+	"flash-polls-responses-password-protected": "This poll's responses are passsword protected",
 
 	"flash-project-created": "Project created",
 	"flash-project-updated": "Project updated",
