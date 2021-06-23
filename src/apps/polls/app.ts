@@ -215,10 +215,11 @@ app.get(
   hasNewModel(Poll, "slug"),
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
+    // Always fetch answers to clear session even on redirect
+    const answers = await getUserAnswers(req);
     if (poll.templateSchema.thanksRedirect) {
       res.redirect(poll.templateSchema.thanksRedirect as string);
     } else {
-      const answers = await getUserAnswers(req);
       res.render(poll.template === "custom" ? getView(poll) : "thanks", {
         poll,
         answers
