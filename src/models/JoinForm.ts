@@ -9,7 +9,7 @@ export default class JoinForm implements PaymentForm, Partial<ReferralGiftForm> 
     @Column(() => Password)
     password!: Password;
 
-    @Column()
+    @Column({type: 'real'})
     monthlyAmount!: number;
 
     @Column()
