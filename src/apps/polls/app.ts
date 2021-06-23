@@ -222,7 +222,13 @@ app.get(
     } else {
       res.render(poll.template === "custom" ? getView(poll) : "thanks", {
         poll,
-        answers
+        answers,
+
+        // TODO: remove this hack
+        ...(poll.access === PollAccess.OnlyAnonymous && {
+          isLoggedIn: false,
+          menu: { main: [] }
+        })
       });
     }
   })
