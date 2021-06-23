@@ -82,6 +82,7 @@ export class SignupController {
 	async startSignup(@Body() data: SignupData): Promise<SignupStart> {
 		const redirectUrl = await JoinFlowService.createJoinFlow(data.completeUrl, {
 			...data,
+			monthlyAmount: data.period === ContributionPeriod.Monthly ? data.amount : data.amount / 12,
 			password: await generatePassword(data.password),
 			prorate: false
 		}, {

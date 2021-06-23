@@ -94,7 +94,7 @@ app.post( '/', hasSchema(addContactSchema).orFlash, wrapAsync( async ( req, res 
 		await GCPaymentService.updatePaymentMethod(member, data.customerId, data.mandateId);
 		if (data.amount && data.period) {
 			await GCPaymentService.updateContribution(member, {
-				amount: data.amount,
+				monthlyAmount: data.amount,
 				period: data.period,
 				payFee: !!data.payFee,
 				prorate: false

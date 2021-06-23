@@ -3,14 +3,14 @@ import { ContributionPeriod, ReferralGiftForm, PaymentForm } from '@core/utils';
 import Password from './Password';
 
 export default class JoinForm implements PaymentForm, Partial<ReferralGiftForm> {
-    @Column({nullable: true})
+    @Column()
     email!: string;
 
     @Column(() => Password)
     password!: Password;
 
     @Column()
-    amount!: number;
+    monthlyAmount!: number;
 
     @Column()
     period!: ContributionPeriod;

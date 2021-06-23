@@ -48,7 +48,7 @@ app.post( '/', wrapAsync( async ( req, res ) => {
 	switch ( req.body.action ) {
 	case 'update-subscription':
 		await GCPaymentService.updateContribution(member, {
-			amount: Number(req.body.amount),
+			monthlyAmount: Number(req.body.amount),
 			period: req.body.period,
 			prorate: req.body.prorate === 'true',
 			payFee: req.body.payFee === 'true'

@@ -15,7 +15,7 @@ export enum ContributionType {
 }
 
 export interface PaymentForm {
-	amount: number;
+	monthlyAmount: number;
 	period: ContributionPeriod;
 	payFee: boolean;
 	prorate: boolean;
