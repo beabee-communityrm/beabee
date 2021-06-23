@@ -168,10 +168,19 @@ app.get( '/:slug/thanks', hasNewModel(Poll, 'slug'), wrapAsync(async (req, res) 
 	const poll = req.model as Poll;
 	// Always fetch answers to clear session even on redirect
 	const answers = await getUserAnswers(req);
+
 	if (poll.templateSchema.thanksRedirect) {
 		res.redirect(poll.templateSchema.thanksRedirect as string);
 	} else {
-		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {poll, answers});
+		res.render(poll.template === 'custom' ? getView(poll) : 'thanks', {
+			poll, answers,
+
+			// TODO: remove this hack
+			...poll.access === PollAccess.OnlyAnonymous && {
+				isLoggedIn: false,
+				menu: {main: []}
+			}
+		});
 	}
 }));
 
