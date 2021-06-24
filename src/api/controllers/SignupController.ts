@@ -37,13 +37,13 @@ type SignupErrorCode = 'duplicate-email'|'restart-membership'|'restart-failed';
 
 class SignupError extends HttpError {
 	constructor(readonly code: SignupErrorCode) {
-		super(401);
+		super(400);
 		Object.setPrototypeOf(this, SignupError.prototype);
 	}
 
 	toJSON() {
 		return {
-			status: 401,
+			status: 400,
 			code: this.code
 		};
 	}
