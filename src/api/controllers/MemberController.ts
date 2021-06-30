@@ -4,7 +4,7 @@ import { CurrentUser, Get, JsonController } from 'routing-controllers';
 @JsonController('/member')
 export class MemberController {
 	@Get('/me')
-	me(@CurrentUser() member: Member): Member {
+	me(@CurrentUser({required: true}) member: Member): Member {
 		return member;
 	}
 }

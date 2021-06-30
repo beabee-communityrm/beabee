@@ -1,9 +1,9 @@
 import { IsBoolean, IsEmail, IsEnum, IsString, Min } from 'class-validator';
 import { Request } from 'express';
-import { Body, BodyParam, HttpError, JsonController, NotFoundError, Post, Req } from 'routing-controllers';
+import { Body, BodyParam, HttpError, JsonController, NotFoundError, OnUndefined, Post, Req } from 'routing-controllers';
 
 import { ContributionPeriod, isDuplicateIndex } from '@core/utils';
-import { generateJWTToken, generatePassword } from '@core/utils/auth';
+import { generatePassword } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';
@@ -53,26 +53,18 @@ interface SignupStart {
 	redirectUrl: string
 }
 
-interface SignupSuccess {
-	jwt: string
-}
-
-async function handleJoin(req: Request, member: Member, joinFlow: CompletedJoinFlow): Promise<SignupSuccess> {
+async function handleJoin(req: Request, member: Member, joinFlow: CompletedJoinFlow): Promise<void> {
 	await GCPaymentService.updatePaymentMethod(member, joinFlow.customerId, joinFlow.mandateId);
 	await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 	await EmailService.sendTemplateToMember('welcome', member);
 
-	const jwt = generateJWTToken(member);
-	
-	// For now also send a normal login cookie
+	// For now use existing session infrastructure with a cookie
 	await new Promise<void>((resolve, reject) => {
 		req.login(member, (error) => {
 			if (error) reject(error);
 			else resolve();
 		});
 	});
-
-	return {jwt};
 }
 
 @JsonController('/signup')
@@ -95,8 +87,9 @@ export class SignupController {
 		};
 	}
 
+	@OnUndefined(201)
 	@Post('/complete')
-	async completeSignup(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<SignupSuccess> {
+	async completeSignup(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
 		const joinFlow = await JoinFlowService.completeJoinFlow(redirectFlowId);
 		if (!joinFlow) {
 			throw new NotFoundError();
@@ -106,7 +99,7 @@ export class SignupController {
 
 		try {
 			const newMember = await MembersService.createMember(partialMember, partialProfile);
-			return await handleJoin(req, newMember, joinFlow);
+			await handleJoin(req, newMember, joinFlow);
 		} catch (error) {
 			if (isDuplicateIndex(error, 'email')) {
 				const oldMember = await MembersService.findOne({email: partialMember.email});
@@ -126,8 +119,9 @@ export class SignupController {
 		}
 	}
 
+	@OnUndefined(201)
 	@Post('/restart')
-	async completeRestart(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<SignupSuccess> {
+	async completeRestart(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
 		const restartFlow = await JoinFlowService.completeRestartFlow(redirectFlowId);
 		if (!restartFlow) {
 			throw new NotFoundError();
@@ -136,7 +130,7 @@ export class SignupController {
 		if (restartFlow.member.isActiveMember) {
 			throw new SignupError('restart-failed');
 		} else {
-			return await handleJoin(req, restartFlow.member, restartFlow);
+			await handleJoin(req, restartFlow.member, restartFlow);
 		}
 	}
 }
