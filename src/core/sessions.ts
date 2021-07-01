@@ -26,15 +26,4 @@ export default (app: express.Express): void => {
 	// Passport
 	app.use( passport.initialize() );
 	app.use( passport.session() );
-
-	app.use( ( req, res, next ) => {
-		const memberId = req.user?.id || req.cookies.memberId;
-		if ( memberId ) {
-			res.cookie('memberId', memberId, {
-				maxAge: 365 * 24 * 60 * 60 * 1000
-			});
-		}
-
-		next();
-	} );
 };

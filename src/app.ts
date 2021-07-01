@@ -87,6 +87,17 @@ database.connect().then(async () => {
 	// Handle sessions
 	sessions( app );
 
+	app.use( ( req, res, next ) => {
+		const memberId = req.user?.id || req.cookies.memberId;
+		if ( memberId ) {
+			res.cookie('memberId', memberId, {
+				maxAge: 365 * 24 * 60 * 60 * 1000
+			});
+		}
+
+		next();
+	} );
+
 	// CSRF
 	app.use( csrf() );
 
