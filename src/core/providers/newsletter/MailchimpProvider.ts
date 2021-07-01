@@ -51,7 +51,7 @@ interface OperationResponse {
 interface MCMember {
 	email_address: string,
 	status: 'subscribed'|'unsubscribed'|'pending'|'cleaned',
-	interests: {[interest: string]: boolean }
+	interests?: {[interest: string]: boolean }
 	merge_fields: Record<string, string>,
 	tags: {id: number, name: string}[]
 }
@@ -120,7 +120,9 @@ function mcMemberToMember(member: MCMember): NewsletterMember {
 		firstname: FNAME || '',
 		lastname: LNAME || '',
 		status: member.status === 'subscribed' ? NewsletterStatus.Subscribed: NewsletterStatus.Unsubscribed,
-		groups: Object.entries(member.interests).filter(([group, isOptedIn]) => isOptedIn).map(([group]) => group),
+		groups: member.interests ?
+			Object.entries(member.interests).filter(([group, isOptedIn]) => isOptedIn).map(([group]) => group) :
+			[],
 		tags: member.tags.map(tag => tag.name),
 		fields
 	};
