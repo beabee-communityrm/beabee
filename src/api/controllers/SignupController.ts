@@ -87,7 +87,7 @@ export class SignupController {
 		};
 	}
 
-	@OnUndefined(201)
+	@OnUndefined(204)
 	@Post('/complete')
 	async completeSignup(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
 		const joinFlow = await JoinFlowService.completeJoinFlow(redirectFlowId);
@@ -119,7 +119,7 @@ export class SignupController {
 		}
 	}
 
-	@OnUndefined(201)
+	@OnUndefined(204)
 	@Post('/restart')
 	async completeRestart(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
 		const restartFlow = await JoinFlowService.completeRestartFlow(redirectFlowId);
