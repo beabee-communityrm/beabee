@@ -54,7 +54,7 @@ function schemaToPaymentForm(data: UpdateSubscriptionSchema): {useMandate: boole
 	return {
 		useMandate: !!data.useMandate,
 		paymentForm: {
-			amount: data.amount,
+			monthlyAmount: data.amount,
 			period: data.period,
 			payFee: !!data.payFee,
 			prorate: data.prorate
@@ -85,7 +85,12 @@ app.post( '/', [
 			await handleChangeContribution(req, paymentForm);
 		} else {
 			const completeUrl = config.audience + '/profile/direct-debit/complete';
-			redirectUrl = await JoinFlowService.createJoinFlow( completeUrl, paymentForm, {
+			redirectUrl = await JoinFlowService.createJoinFlow( completeUrl, {
+				...paymentForm,
+				// TODO: we don't need to store these here, they won't be used
+				email: req.user.email,
+				password: req.user.password
+			}, {
 				prefilled_customer: {
 					email: req.user.email,
 					given_name: req.user.firstname,

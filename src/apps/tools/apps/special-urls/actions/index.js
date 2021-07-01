@@ -50,7 +50,7 @@ module.exports = [
 
 			if ( await GCPaymentService.canChangeContribution( req.user, true ) ) {
 				await GCPaymentService.updateContribution(req.user, {
-					amount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount,
+					monthlyAmount: isAbsolute ? amount : req.user.contributionMonthlyAmount + amount,
 					period: req.user.contributionPeriod,
 					payFee: false,
 					prorate: false
@@ -73,7 +73,7 @@ module.exports = [
 
 			if ( await GCPaymentService.canChangeContribution( req.user, true ) ) {
 				await GCPaymentService.updateContribution(req.user, {
-					amount: req.user.contributionMonthlyAmount,
+					monthlyAmount: req.user.contributionMonthlyAmount,
 					period: req.user.contributionPeriod,
 					payFee: true,
 					prorate: false

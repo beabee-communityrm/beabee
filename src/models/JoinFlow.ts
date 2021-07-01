@@ -1,28 +1,6 @@
-import { ContributionPeriod, ReferralGiftForm, PaymentForm } from '@core/utils';
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export class JoinForm implements PaymentForm, Partial<ReferralGiftForm> {
-    @Column()
-    amount!: number;
-
-    @Column()
-    period!: ContributionPeriod;
-
-    @Column()
-    payFee!: boolean;
-
-    @Column({default: false})
-    prorate!: boolean;
-
-    @Column({nullable: true})
-    referralCode?: string;
-
-    @Column({nullable: true})
-    referralGift?: string;
-
-    @Column({type: 'jsonb', nullable: true})
-    referralGiftOptions?:  Record<string, string>;
-}
+import JoinForm from './JoinForm';
 
 @Entity()
 export default class JoinFlow {

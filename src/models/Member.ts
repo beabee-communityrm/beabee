@@ -7,27 +7,11 @@ import config from '@config';
 import type MemberPermission from './MemberPermission';
 import type { PermissionType } from './MemberPermission';
 import type MemberProfile from './MemberProfile';
+import Password from './Password';
 
 interface LoginOverride {
 	code: string
 	expires: Date
-}
-
-export class Password {
-	@Column()
-	hash!: string
-
-	@Column()
-	salt!: string
-
-	@Column({default: 1000})
-	iterations!: number
-
-	@Column({default: 0})
-	tries!: number
-
-	@Column({nullable: true})
-	resetCode?: string
 }
 
 class OneTimePassword {

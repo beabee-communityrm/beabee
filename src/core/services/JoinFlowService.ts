@@ -4,7 +4,8 @@ import { generateCode } from '@core/utils/auth';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 
-import JoinFlow, { JoinForm } from '@models/JoinFlow';
+import JoinFlow from '@models/JoinFlow';
+import JoinForm from '@models/JoinForm';
 import Member from '@models/Member';
 import RestartFlow from '@models/RestartFlow';
 

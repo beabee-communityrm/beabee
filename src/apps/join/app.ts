@@ -14,7 +14,7 @@ import ReferralsService from '@core/services/ReferralsService';
 
 import { NewsletterStatus } from '@core/providers/newsletter';
 
-import { JoinForm } from '@models/JoinFlow';
+import JoinForm from '@models/JoinForm';
 import Member from '@models/Member';
 
 import { joinSchema, referralSchema, completeSchema } from './schemas.json';
@@ -50,7 +50,9 @@ app.get( '/referral/:code', wrapAsync( async function( req, res ) {
 
 function schemaToJoinForm(data: JoinSchema): JoinForm {
 	return {
-		amount: data.amount === 'other' ? parseInt(data.amountOther || '') : parseInt(data.amount),
+		email: '',
+		password: {hash: '', iterations: 0, salt: '', tries: 0},
+		monthlyAmount: data.amount === 'other' ? parseInt(data.amountOther || '') : parseInt(data.amount),
 		period: data.period,
 		referralCode: data.referralCode,
 		referralGift: data.referralGift,
@@ -79,7 +81,7 @@ app.post( '/referral/:code', [
 ], wrapAsync( async function ( req, res ) {
 	const joinForm = schemaToJoinForm(req.body);
 
-	if (await ReferralsService.isGiftAvailable(joinForm, joinForm.amount)) {
+	if (await ReferralsService.isGiftAvailable(joinForm, joinForm.monthlyAmount)) {
 		const completeUrl = config.audience + app.mountpath + '/complete';
 		const redirectUrl = await JoinFlowService.createJoinFlow(completeUrl, joinForm);
 		res.redirect(redirectUrl);
@@ -117,8 +119,9 @@ app.get( '/complete', [
 		return res.redirect( app.mountpath + '/complete/failed');
 	}
 
-	const partialMember = await GCPaymentService.customerToMember(joinFlow.customerId);
-	if (!partialMember.member.firstname) {
+	const {partialMember, partialProfile} = await GCPaymentService.customerToMember(joinFlow);
+
+	if (!partialMember.firstname) {
 		req.log.error({
 			app: 'join',
 			action: 'invalid-direct-debit',
@@ -128,8 +131,8 @@ app.get( '/complete', [
 	}
 
 	try {
-		const newMember = await MembersService.createMember(partialMember.member, {
-			...partialMember.profile,
+		const newMember = await MembersService.createMember(partialMember, {
+			...partialProfile,
 			newsletterStatus: NewsletterStatus.Subscribed,
 			newsletterGroups: OptionsService.getList('newsletter-default-groups')
 		});
@@ -137,7 +140,7 @@ app.get( '/complete', [
 		await EmailService.sendTemplateToMember('welcome', newMember);
 	} catch (error) {
 		if (isDuplicateIndex(error, 'email')) {
-			const oldMember = await MembersService.findOne({email: partialMember.member.email});
+			const oldMember = await MembersService.findOne({email: partialMember.email});
 			if (oldMember) {
 				if (oldMember.isActiveMember) {
 					res.redirect( app.mountpath + '/duplicate-email' );
