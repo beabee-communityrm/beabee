@@ -35,6 +35,18 @@ db.connect().then(() => {
 		authorizationChecker: action => !!currentUserChecker(action)
 	});
 
+	app.use((req, res, next) => {
+		console.log('REQUEST:', req.url, res.statusCode);
+		next();
+	});
+
+	app.use(function (error, req, res, next) {
+		console.log('REQUEST:', req.url, res.statusCode);
+		if (!(error instanceof HttpError)) {
+			next(error);
+		}
+	} as ErrorRequestHandler);
+
 	const server = app.listen(3000);
 
 	process.on('SIGTERM', () => {
