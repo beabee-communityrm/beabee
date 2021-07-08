@@ -1,12 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import type Member from './Member';
 
-export interface Address {
-  line1: string
-  line2?: string
-  city: string
-  postcode: string
-}
+import type Address from './Address';
+import type Member from './Member';
 
 export class GiftForm {
   @Column()
