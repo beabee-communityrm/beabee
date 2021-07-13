@@ -1,0 +1,15 @@
+extends /views/base.pug
+
+block prepend title
+	- title = "Confirm email"
+
+block contents
+	+page_header( 'Confirm email address' )
+
+	.row
+		.col-md-6
+			p.
+				Almost there! We just need to confirm your email address to finish
+				setting up your membership.
+
+			p: b We've sent you an email, please click the link to proceed.
