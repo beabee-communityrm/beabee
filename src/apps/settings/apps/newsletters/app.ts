@@ -53,9 +53,12 @@ async function handleResync(statusSource: 'ours'|'theirs') {
 			const nlMember = newsletterMembers.find(nm => nm.email === member.email);
 			if (nlMember) {
 				existingMembers.push(member);
-				if (member.profile.newsletterStatus === NewsletterStatus.Unsubscribed) {
+
+				const status = statusSource === 'ours' ? member.profile.newsletterStatus : nlMember.status;
+				if (status === NewsletterStatus.Unsubscribed) {
 					existingMembersToArchive.push(member);
 				}
+
 				if (isMismatchedMember(member, nlMember)) {
 					mismatchedMembers.push([member, nlMember] as const);
 				}
