@@ -93,6 +93,8 @@ async function handleJoin(req: Request, res: Response, member: Member, {customer
 	await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
 	await GCPaymentService.updateContribution(member, joinForm);
 
+	await MembersService.updateMember(member, {activated: true});
+
 	if (joinForm.referralCode) {
 		const referrer = await MembersService.findOne({referralCode: joinForm.referralCode});
 		await ReferralsService.createReferral(referrer, member, joinForm);
@@ -139,13 +141,20 @@ app.get( '/complete', [
 		if (isDuplicateIndex(error, 'email')) {
 			const oldMember = await MembersService.findOne({email: partialMember.member.email});
 			if (oldMember) {
+				let redirectUrl = '';
 				if (oldMember.isActiveMember) {
-					res.redirect( app.mountpath + '/duplicate-email' );
+					redirectUrl = 'duplicate-email';
 				} else {
 					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-					await EmailService.sendTemplateToMember('restart-membership', oldMember, {code: restartFlow.id});
-					res.redirect( app.mountpath + '/expired-member' );
+					if (oldMember.activated) {
+						await EmailService.sendTemplateToMember('restart-membership', oldMember, {code: restartFlow.id});
+						redirectUrl = 'expired-member';
+					} else {
+						await EmailService.sendTemplateToMember('confirm-email', oldMember, {code: restartFlow.id});
+						redirectUrl = 'confirm-email';
+					}
 				}
+				res.redirect( app.mountpath + '/' + redirectUrl );
 			} else {
 				req.log.error({
 					app: 'join',
@@ -166,15 +175,15 @@ app.get('/complete/failed', (req, res) => {
 	res.render('complete-failed');
 });
 
-app.get('/restart/failed', (req, res) => {
+app.get('/confirm-email/failed', (req, res) => {
 	res.render('restart-failed');
 });
 
-app.get('/restart/:id', wrapAsync(async (req, res, next) => {
+app.get('/confirm-email/:id', wrapAsync(async (req, res, next) => {
 	const restartFlow = await JoinFlowService.completeRestartFlow(req.params.id);
 	if (restartFlow) {
 		if (restartFlow.member.isActiveMember || !await GCPaymentService.canChangeContribution(restartFlow.member, false)) {
-			res.redirect( app.mountpath + '/restart/failed' );
+			res.redirect( app.mountpath + '/confirm-email/failed' );
 		} else {
 			await handleJoin(req, res, restartFlow.member, restartFlow);
 		}
@@ -182,6 +191,10 @@ app.get('/restart/:id', wrapAsync(async (req, res, next) => {
 		next('route');
 	}
 }));
+
+app.get('/confirm-email', (req, res) => {
+	res.render('confirm-email');
+});
 
 app.get('/expired-member', (req, res) => {
 	res.render('expired-member');

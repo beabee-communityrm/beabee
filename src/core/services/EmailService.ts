@@ -46,8 +46,11 @@ const memberEmailTemplates = {
 			EXPIRES: dateExpires ? moment.utc(dateExpires).format('dddd Do MMMM') : '-'
 		};
 	},
+	'confirm-email': (member: Member, params: {code: string}) => ({
+		CONFIRMLINK: config.audience + '/join/confirm-email/' + params.code
+	}),
 	'restart-membership': (member: Member, params: {code: string}) => ({
-		RESTARTLINK: config.audience + '/join/restart/' + params.code
+		RESTARTLINK: config.audience + '/join/confirm-email/' + params.code
 	}),
 	'successful-referral': (member: Member, params: {refereeName: string, isEligible: boolean}) => ({
 		REFCODE: member.referralCode,
