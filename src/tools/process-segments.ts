@@ -14,6 +14,7 @@ import Segment from '@models/Segment';
 import SegmentOngoingEmail from '@models/SegmentOngoingEmail';
 import SegmentMember from '@models/SegmentMember';
 import NewsletterService from '@core/services/NewsletterService';
+import MembersService from '@core/services/MembersService';
 
 const log = mainLogger.child({app: 'process-segments'});
 
@@ -61,7 +62,7 @@ async function processSegment(segment: Segment) {
 
 	// Only fetch old members if we need to
 	const oldMembers = segment.newsletterTag || outgoingEmails.some(oe => oe.trigger === 'onLeave') ?
-		await getRepository(Member).findByIds(oldSegmentMembers.map(sm => sm.member)) : [];
+		await MembersService.findByIds(oldSegmentMembers.map(sm => sm.member)) : [];
 
 	for (const outgoingEmail of outgoingEmails) {
 		const emailMembers = outgoingEmail.trigger === 'onLeave' ? oldMembers :
@@ -75,9 +76,8 @@ async function processSegment(segment: Segment) {
 	}
 
 	if (segment.newsletterTag) {
-		// TODO: remove/add tag
-		//await NewsletterService.upsertMembers(newMembers);
-		//await NewsletterService.archiveMembers(oldMembers);
+		await NewsletterService.addTagToMembers(newMembers, segment.newsletterTag);
+		await NewsletterService.removeTagFromMembers(oldMembers, segment.newsletterTag);
 	}
 }
 

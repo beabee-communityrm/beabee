@@ -1,12 +1,11 @@
 import express from 'express';
 import passport from 'passport';
-import { createQueryBuilder, getRepository } from 'typeorm';
+import { getRepository } from 'typeorm';
 
 import { isValidNextUrl, getNextParam, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 
-import Member from '@models/Member';
 import MemberPermission, { PermissionType, PermissionTypes } from '@models/MemberPermission';
 
 import config from '@config';
@@ -36,7 +35,7 @@ if (config.dev) {
 			});
 			member = permission?.member;
 		} else {
-			member = await getRepository(Member).findOne(req.params.id);
+			member = await MembersService.findOne(req.params.id);
 		}
 
 		if (member) {
@@ -49,11 +48,7 @@ if (config.dev) {
 
 app.get( '/:code', wrapAsync( async function( req, res ) {
 	const nextParam = req.query.next as string;
-	const member = await createQueryBuilder(Member, 'm')
-		.where('m.loginOverride ->> \'code\' = :code', {code: req.params.code})
-		.andWhere('m.loginOverride ->> \'expires\' > :now', {now: new Date()})
-		.getOne();
-
+	const member = await MembersService.findByLoginOverride(req.params.code);
 	if (member) {
 		await MembersService.updateMember(member, {loginOverride: undefined});
 		MembersService.loginAndRedirect(req, res, member, isValidNextUrl(nextParam) ? nextParam : '/');

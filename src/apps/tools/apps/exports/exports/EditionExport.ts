@@ -74,7 +74,7 @@ export default class EditionExport extends ActiveMembersExport {
 
 		return members
 			.map(member => {
-				const deliveryAddress = member.profile?.deliveryAddress || {line1: '', line2: '', city: '', postcode: ''};
+				const deliveryAddress = member.profile.deliveryAddress || {line1: '', line2: '', city: '', postcode: ''};
 				const memberExportItems = editionExportItemsByMemberId[member.id] || [];
 
 				return {

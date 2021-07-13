@@ -8,9 +8,11 @@ import { ContributionType, isDuplicateIndex } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 import MembersService from '@core/services/MembersService';
+import OptionsService from '@core/services/OptionsService';
+
+import { NewsletterStatus } from '@core/providers/newsletter';
 
 import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
-import Member from '@models/Member';
 import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
@@ -103,24 +105,25 @@ export default class GiftService {
 
 		await getRepository(GiftFlow).update(giftFlow.id, {processed: true});
 
-		const member = await MembersService.createMember({
-			firstname, lastname, email,
-			contributionType: ContributionType.Gift
-		}, {
-			deliveryOptIn: !!deliveryAddress?.line1,
-			deliveryAddress: deliveryAddress
+		const permission = getRepository(MemberPermission).create({
+			permission: 'member',
+			dateExpires: now.clone().add(months, 'months').toDate()
 		});
 
-		member.contributionMonthlyAmount = GiftService.giftMonthlyAmount;
+		const member = await MembersService.createMember({
+			firstname, lastname, email,
+			contributionType: ContributionType.Gift,
+			contributionMonthlyAmount: GiftService.giftMonthlyAmount,
+			permissions: [permission]
+		}, {
+			deliveryOptIn: !!deliveryAddress?.line1,
+			deliveryAddress: deliveryAddress,
+			newsletterStatus: NewsletterStatus.Subscribed,
+			newsletterGroups: OptionsService.getList('newsletter-default-groups')
+		});
 
-		const membership = new MemberPermission();
-		membership.permission = 'member';
-		membership.dateExpires = now.clone().add(months, 'months').toDate();
-		member.permissions.push(membership);
-
-		await getRepository(Member).save(member);
-
-		await getRepository(GiftFlow).update(giftFlow.id, {giftee: member});
+		giftFlow.giftee = member;
+		await getRepository(GiftFlow).save(giftFlow);
 
 		const sendAt = sendImmediately ? undefined : now.clone().startOf('day').add({h: 9, m: 0, s: 0}).format();
 		await EmailService.sendTemplateToMember(
@@ -128,8 +131,6 @@ export default class GiftService {
 			{fromName, message: message || '', giftCode: giftFlow.setupCode},
 			{sendAt}
 		);
-
-		await MembersService.addMemberToMailingLists(member);
 	}
 
 	static async updateGiftFlowAddress(giftFlow: GiftFlow, giftAddress: Address, deliveryAddress: Address): Promise<void> {
@@ -154,7 +155,7 @@ export default class GiftService {
 		try {
 			const giftFlow = new GiftFlow();
 			giftFlow.sessionId = 'UNKNOWN';
-			giftFlow.setupCode = MembersService.generateMemberCode(giftForm);
+			giftFlow.setupCode = MembersService.generateMemberCode(giftForm)!;
 			giftFlow.giftForm = giftForm;
 			await getRepository(GiftFlow).insert(giftFlow);
 			return giftFlow;

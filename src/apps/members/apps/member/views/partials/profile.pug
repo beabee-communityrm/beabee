@@ -1,18 +1,17 @@
 mixin editablePanel(title, id)
 	form(method='POST' id=id).panel.panel-default.js-edit-member
-		+csrf
 		.panel-heading
-			h3.panel-title
-				.pull-right
-					a.js-edit-member-toggle: span.glyphicon.glyphicon-edit
+			h4.panel-title
+				.pull-right: a.btn.btn-default.btn-xs.js-edit-member-toggle: span.glyphicon.glyphicon-pencil
 				= title
 		.panel-body
+			+csrf
 			block
-			p.text-right.hidden.js-edit-member-hidden
+			p.hidden.js-edit-member-hidden
+				button(name='action' value='save-' + id).btn.btn-success.btn-sm Save
+				|
+				|
 				button(type='button').btn.btn-default.btn-sm.js-edit-member-toggle Cancel
-				|
-				|
-				button(name='action' value='save-' + id).btn.btn-primary.btn-sm Save
 
 mixin memberTag(tag)
 	a(href='/members/?tag=' + encodeURIComponent(tag) data-tag=tag).label.label-info.member-tag.js-edit-member-tag
@@ -23,40 +22,49 @@ mixin memberTag(tag)
 script(type='text/template').js-edit-member-tag-template
 	+memberTag('XXX')
 
-+editablePanel('Contact details', 'contact')
-	.row
-		.col-md-12
-			.form-group
-				.form-inline
-					label(for='#preferred').control-label Contact preference
-					|
-					|
-					select(name='preferred' disabled)#preferred.form-control
-						each p in ['', 'None', 'Email', 'Telephone', 'Twitter']
-							option(selected=member.profile.preferredContact === p)= p
-	.row
-		.col-md-12
-			.form-group
-				.input-group
-					span.input-group-addon
-						span.glyphicon.glyphicon-envelope
-					input(type='text' value=member.email readonly).form-control
-	.row
-		.col-md-6
-			.form-group
-				.input-group
-					span.input-group-addon
-						span.glyphicon.glyphicon-earphone
-					input(type='text' name='telephone' value=member.profile.telephone readonly).form-control
-		.col-md-6
-			.form-group
-				.input-group
-					span.input-group-addon
-						img(src='/static/imgs/twitter.png')
-					input(type='text' name='twitter' value=member.profile.twitter readonly).form-control
+.row
+	.col-md-12
+		+editablePanel('Contact details', 'contact')
+			.row
+				.col-md-12
+					.form-group
+						.form-inline
+							label(for='#preferred').control-label Contact preference
+							|
+							|
+							select(name='preferred' disabled)#preferred.form-control
+								each p in ['', 'None', 'Email', 'Telephone', 'Twitter']
+									option(selected=member.profile.preferredContact === p)= p
+				.col-md-12
+					.form-group
+						.input-group
+							span.input-group-addon
+								span.glyphicon.glyphicon-envelope
+							input(type='text' name='email' value=member.email required readonly).form-control
+				.col-md-6
+					.form-group
+						.input-group
+							span.input-group-addon
+								span.glyphicon.glyphicon-earphone
+							input(type='text' name='telephone' value=member.profile.telephone readonly).form-control
+				.col-md-6
+					.form-group
+						.input-group
+							span.input-group-addon
+								img(src='/static/imgs/twitter.png')
+							input(type='text' name='twitter' value=member.profile.twitter readonly).form-control
 
-if access('superadmin')
-	.row
+.row
+	.col-md-6
+		h4 Roles
+		if member.permissions.length > 0
+			.list-group
+				each permission in member.permissions
+					include /views/partials/permission.pug
+		else
+			p Contact has no roles
+
+	if access('superadmin')
 		.col-md-6
 			h4 Delivery details
 			dl.dl-horizontal
@@ -74,31 +82,31 @@ if access('superadmin')
 						br
 						= member.profile.deliveryAddress.postcode
 
-		.col-md-6
-			h4 Roles
-			if member.permissions.length > 0
-				.list-group
-					each permission in member.permissions
-						include /views/partials/permission.pug
-			else
-				p Contact has no roles
+	.col-md-6
+		h4 Newsletter status
+		dl.dl-horizontal
+			dt Status
+			dd= member.profile.newsletterStatus
+			dt Groups
+			dd= member.profile.newsletterGroups.join(', ') || '–'
+.row
+	.col-md-12
+		+editablePanel('About', 'about')
+			.form-group
+				label(for="description").control-label Description
+				input(type='text' name='description' value=member.profile.description readonly)#description.form-control
 
-+editablePanel('About', 'about')
-	.form-group
-		label(for="description").control-label Description
-		input(type='text' name='description' value=member.profile.description readonly)#description.form-control
+			.form-group
+				label(for='bio').control-label Notes
+				textarea(name='bio' rows='3' readonly)#bio.form-control= member.profile.bio
 
-	.form-group
-		label(for='bio').control-label Notes
-		textarea(name='bio' readonly)#bio.form-control.member-about= member.profile.bio
-
-	p
-		| Tags:
-		span.js-edit-member-tags
-			each tag in member.profile.tags
-				+memberTag(tag)
-	p.hidden.js-edit-member-hidden.form-inline
-		select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
-			option(value='' selected disabled) Add tag
-			each tag in availableTags
-				option= tag
+			p
+				| Tags:
+				span.js-edit-member-tags
+					each tag in member.profile.tags
+						+memberTag(tag)
+			p.hidden.js-edit-member-hidden.form-inline
+				select(style='width:30%').form-control.member-add-tag.js-edit-member-add-tag
+					option(value='' selected disabled) Add tag
+					each tag in availableTags
+						option= tag

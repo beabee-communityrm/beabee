@@ -8,10 +8,10 @@ import { ContributionPeriod } from '@core/utils';
 
 import EmailService from '@core/services/EmailService';
 import GCPaymentService from '@core/services/GCPaymentService';
+import MembersService from '@core/services/MembersService';
 
 import GCPayment from '@models/GCPayment';
 import GCPaymentData from '@models/GCPaymentData';
-import Member from '@models/Member';
 
 import config from '@config';
 
@@ -72,39 +72,18 @@ export default class GCPaymentWebhookService {
 			return;
 		}
 
-		const membership = payment.member.permissions.find(p => p.permission === 'member');
-		if (!membership) {
-			log.error({
-				action: 'membership-not-found'
-			}, 'Member has no membership permission');
-			return;
-		}
-
-		const nextExpiryDate = await GCPaymentWebhookService.calcPaymentExpiryDate(payment);
-
-		log.info({
-			action: 'extend-membership',
-			data: {
-				prevDate: membership.dateExpires,
-				newDate: nextExpiryDate
-			}
-		});
-
 		if (payment.member.nextContributionMonthlyAmount) {
 			const newAmount = GCPaymentWebhookService.getSubscriptionAmount(payment, !!gcData.payFee);
 			if (newAmount === payment.member.nextContributionMonthlyAmount) {
-				payment.member.contributionMonthlyAmount = newAmount;
-				payment.member.nextContributionMonthlyAmount = undefined;
-				// TODO: Fix save not saving undefined as NULL
-				await getRepository(Member).update(payment.member.id, {nextContributionMonthlyAmount: undefined});
+				await MembersService.updateMember(payment.member, {
+					contributionMonthlyAmount: newAmount,
+					nextContributionMonthlyAmount: undefined
+				});
 			}
 		}
 
-		if (nextExpiryDate.isAfter(membership.dateExpires)) {
-			membership.dateExpires = nextExpiryDate.toDate();
-		}
-
-		await getRepository(Member).save(payment.member);
+		const nextExpiryDate = await GCPaymentWebhookService.calcPaymentExpiryDate(payment);
+		await MembersService.extendMemberPermission(payment.member, 'member', nextExpiryDate.toDate());
 	}
 
 	static async updatePaymentStatus(gcPaymentId: string, status: string): Promise<void> {

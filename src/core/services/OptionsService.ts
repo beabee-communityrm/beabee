@@ -4,8 +4,6 @@ import { getRepository } from 'typeorm';
 import _defaultOptions from '@core/defaults.json';
 import { log as mainLogger } from '@core/logging';
 
-import config from '@config';
-
 import Option from '@models/Option';
 
 export type OptionKey = keyof typeof _defaultOptions;

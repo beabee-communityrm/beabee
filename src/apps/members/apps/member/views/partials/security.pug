@@ -1,0 +1,24 @@
+h4 Security
+dl.dl-horizontal
+	dt Login override
+	dd
+		if member.loginOverride && moment(member.loginOverride.expires).isAfter()
+			a(href='/login/' + member.loginOverride.code)= member.loginOverride.code
+		else
+			form(method='POST')
+				+csrf
+				input(type='hidden' name='action' value='login-override')
+				button.btn.btn-xs.btn-default Generate link
+	dt Password reset
+	dd
+		if member.password.resetCode
+			a(href='/password-reset/code/' + member.password.resetCode)= member.password.resetCode
+		else
+			form(method='POST')
+				+csrf
+				input(type='hidden' name='action' value='password-reset')
+				button.btn.btn-xs.btn-default Generate link
+	dt Password tries
+	dd #{ member.password.tries } #{ member.password.tries >= password_tries ? ' – Locked Out' : '' }
+	dt 2FA
+	dd #{ member.otp.activated ? 'Enabled' : 'Disabled' }

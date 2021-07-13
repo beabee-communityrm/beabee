@@ -1,5 +1,4 @@
 import express from 'express';
-import moment from 'moment';
 import { getRepository } from 'typeorm';
 
 import { hasNewModel, hasSchema, isAdmin } from '@core/middleware';

@@ -5,9 +5,11 @@ import { Between, getRepository } from 'typeorm';
 
 import * as db from '@core/database';
 
+import NewsletterService from '@core/services/NewsletterService';
+import OptionsService from '@core/services/OptionsService';
+
 import Member from '@models/Member';
 import MemberPermission from '@models/MemberPermission';
-import NewsletterService from '@core/services/NewsletterService';
 
 async function fetchMembers(startDate: string|undefined, endDate: string|undefined): Promise<Member[]> {
 	const actualStartDate = startDate ? moment(startDate).toDate() : moment().subtract({d: 1, h: 2}).toDate();
@@ -19,10 +21,7 @@ async function fetchMembers(startDate: string|undefined, endDate: string|undefin
 	console.log('# Fetching members');
 
 	const memberships = await getRepository(MemberPermission).find({
-		where: [
-			{permission: 'member', dateAdded: Between(actualStartDate, actualEndDate)},
-			{permission: 'member', dateExpires: Between(actualStartDate, actualEndDate)},
-		],
+		where: {permission: 'member', dateExpires: Between(actualStartDate, actualEndDate)},
 		relations: ['member']
 	});
 	console.log(`Got ${memberships.length} members`);
@@ -33,12 +32,9 @@ async function fetchMembers(startDate: string|undefined, endDate: string|undefin
 }
 
 async function processMembers(members: Member[]) {
-	const membersToUpsert = members.filter(m => m.isActiveMember);
 	const membersToArchive = members.filter(m => !m.isActiveMember);
-
-	console.log(`Updating ${membersToUpsert.length}, archiving ${membersToArchive.length}`);
-
-	await NewsletterService.upsertMembers(membersToUpsert);
+	console.log(`Archiving ${membersToArchive.length}`);
+	await NewsletterService.removeTagFromMembers(membersToArchive, OptionsService.getText('newsletter-active-member-tag'));
 	await NewsletterService.archiveMembers(membersToArchive);
 }
 

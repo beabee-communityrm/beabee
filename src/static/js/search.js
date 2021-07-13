@@ -56,6 +56,14 @@ $('#builder').queryBuilder({
 		input: 'radio',
 		values: {true: 'Yes', false: 'No'}
 	}, {
+		id: 'newsletterStatus',
+		label: 'Newsletter status',
+		input: 'select',
+		values: {
+			'subscribed': 'Subscribed',
+			'unsubscribed': 'Unsubscribed'
+		}
+	}, {
 		id: 'activeMembership',
 		label: 'Is active member',
 		type: 'boolean',

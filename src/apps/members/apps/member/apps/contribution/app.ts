@@ -21,14 +21,24 @@ app.use(isSuperAdmin);
 app.get( '/', wrapAsync( async ( req, res ) => {
 	const member = req.model as Member;
 	if (member.contributionType === ContributionType.GoCardless) {
+		const payments = await GCPaymentService.getPayments(member);
+
+		const successfulPayments = payments
+			.filter(p => p.isSuccessful)
+			.map(p => p.amount - p.amountRefunded)
+			.filter(amount => !isNaN(amount));
+
+		const total = successfulPayments.reduce((a, b) => a + b, 0);
+
 		res.render( 'gocardless', {
 			member: req.model,
-			canChange: await GCPaymentService.canChangeContribution( member, true )
+			canChange: await GCPaymentService.canChangeContribution( member, true ),
+			payments, total
 		} );
 	} else if (member.contributionType === ContributionType.Manual) {
 		res.render('manual', {member: req.model});
 	} else {
-		res.render('none');
+		res.render('none', {member: req.model});
 	}
 } ) );
 
