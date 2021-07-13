@@ -146,13 +146,8 @@ app.get( '/complete', [
 					redirectUrl = 'duplicate-email';
 				} else {
 					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-					if (oldMember.activated) {
-						await EmailService.sendTemplateToMember('restart-membership', oldMember, {code: restartFlow.id});
-						redirectUrl = 'expired-member';
-					} else {
-						await EmailService.sendTemplateToMember('confirm-email', oldMember, {code: restartFlow.id});
-						redirectUrl = 'confirm-email';
-					}
+					await EmailService.sendTemplateToMember('confirm-email', oldMember, {code: restartFlow.id});
+					redirectUrl = oldMember.activated ? 'expired-member' : 'confirm-email';
 				}
 				res.redirect( app.mountpath + '/' + redirectUrl );
 			} else {
