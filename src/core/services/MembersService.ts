@@ -193,7 +193,10 @@ export default class MembersService {
 		});
 		await getRepository(MemberProfile).update(member.id, updates);
 
-		if (!opts?.noSync) {
+		if (!opts?.noSync && (updates.newsletterStatus || updates.newsletterGroups)) {
+			if (!member.profile) {
+				member.profile = await getRepository(MemberProfile).findOneOrFail({member});
+			}
 			await NewsletterService.updateMemberStatuses([member]);
 		}
 	}
