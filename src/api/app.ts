@@ -25,6 +25,11 @@ app.use(cookie());
 db.connect().then(() => {
 	sessions(app);
 
+	app.use((req, res, next) => {
+		console.log('REQUEST START:', req.method, req.url);
+		next();
+	});
+
 	useExpressServer(app, {
 		routePrefix: '/1.0',
 		controllers: [
@@ -36,12 +41,12 @@ db.connect().then(() => {
 	});
 
 	app.use((req, res, next) => {
-		console.log('REQUEST:', req.url, res.statusCode);
+		console.log('REQUEST END:', req.method, req.url, res.statusCode);
 		next();
 	});
 
 	app.use(function (error, req, res, next) {
-		console.log('REQUEST:', req.url, res.statusCode);
+		console.log('REQUEST END:', req.method, req.url, res.statusCode);
 		if (!(error instanceof HttpError)) {
 			next(error);
 		}

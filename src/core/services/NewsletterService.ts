@@ -72,9 +72,6 @@ class NewsletterService {
 			status: member.profile.newsletterStatus,
 			groups: member.profile.newsletterGroups
 		})));
-		/*await this.provider.archiveMembers(
-			members.filter(m => m.profile.newsletterStatus === NewsletterStatus.Unsubscribed).map(m => m.email)
-		);*/
 	}
 
 	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {

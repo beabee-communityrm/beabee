@@ -12,7 +12,8 @@ import OptionsService from '@core/services/OptionsService';
 
 import { NewsletterStatus } from '@core/providers/newsletter';
 
-import GiftFlow, { Address, GiftForm } from '@models/GiftFlow';
+import Address from '@models/Address';
+import GiftFlow, { GiftForm } from '@models/GiftFlow';
 import MemberPermission from '@models/MemberPermission';
 
 import config from '@config';
