@@ -1,17 +1,78 @@
-import { CurrentUser, Get, JsonController } from 'routing-controllers';
+import { IsBoolean, IsEmail, IsEnum, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { Body, CurrentUser, Get, JsonController, Put } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 
+import MembersService from '@core/services/MembersService';
+
+import { NewsletterStatus } from '@core/providers/newsletter';
+
+import Address from '@models/Address';
 import Member from '@models/Member';
 import MemberProfile from '@models/MemberProfile';
+
+class MemberProfileData {
+	@IsBoolean()
+	deliveryOptIn!: boolean
+
+	@IsOptional()
+	@IsObject()
+	deliveryAddress?: Address
+
+	@IsEnum(NewsletterStatus)
+	newsletterStatus!: NewsletterStatus
+}
+
+class MemberData {
+	@IsEmail()
+	email!: string
+
+	@IsString()
+	firstname!: string
+
+	@IsString()
+	lastname!: string
+
+	@ValidateNested()
+	profile!: MemberProfileData
+}
+
+async function memberToApiMember(member: Member): Promise<MemberData> {
+	const profile = await getRepository(MemberProfile).findOneOrFail({member});
+
+	return {
+		email: member.email,
+		firstname: member.firstname,
+		lastname: member.lastname,
+		profile: {
+			deliveryOptIn: !!profile.deliveryOptIn,
+			deliveryAddress: profile.deliveryAddress,
+			newsletterStatus: profile.newsletterStatus
+		}
+	};
+}
 
 @JsonController('/member')
 export class MemberController {
 	@Get('/me')
-	async getMe(@CurrentUser({required: true}) member: Member): Promise<Member> {
-		const profile = await getRepository(MemberProfile).findOne({member});
-		if (profile) {
-			member.profile = profile;
+	async getMe(@CurrentUser({required: true}) member: Member): Promise<MemberData> {
+		return await memberToApiMember(member);
+	}
+
+	@Put('/me')
+	async updateMe(
+		@CurrentUser({required: true}) member: Member,
+		@Body() data: Partial<MemberData>
+	): Promise<MemberData> {
+		if (data.email || data.firstname || data.lastname) {
+			await MembersService.updateMember(member, {
+				email: data.email,
+				firstname: data.firstname,
+				lastname: data.lastname
+			});
 		}
-		return member;
+		if (data.profile) {
+			await MembersService.updateMemberProfile(member, data.profile);
+		}
+		return await memberToApiMember(member);
 	}
 }
