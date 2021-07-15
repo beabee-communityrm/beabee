@@ -33,7 +33,7 @@ class SignupData {
 	completeUrl!: string
 }
 
-type SignupErrorCode = 'duplicate-email'|'restart-membership'|'restart-failed';
+type SignupErrorCode = 'duplicate-email'|'confirm-email'|'restart-membership'|'confirm-email-failed';
 
 class SignupError extends HttpError {
 	constructor(readonly code: SignupErrorCode) {
@@ -57,6 +57,8 @@ async function handleJoin(req: Request, member: Member, joinFlow: CompletedJoinF
 	await GCPaymentService.updatePaymentMethod(member, joinFlow.customerId, joinFlow.mandateId);
 	await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 	await EmailService.sendTemplateToMember('welcome', member);
+
+	await MembersService.updateMember(member, {activated: true});
 
 	// For now use existing session infrastructure with a cookie
 	await new Promise<void>((resolve, reject) => {
@@ -110,8 +112,8 @@ export class SignupController {
 					throw new SignupError('duplicate-email');
 				} else {
 					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-					await EmailService.sendTemplateToMember('restart-membership', oldMember, {code: restartFlow.id});
-					throw new SignupError('restart-membership');
+					await EmailService.sendTemplateToMember('join-confirm-email', oldMember, {code: restartFlow.id});
+					throw new SignupError(oldMember.activated ? 'restart-membership' : 'confirm-email');
 				}
 			} else {
 				throw error;
@@ -120,15 +122,15 @@ export class SignupController {
 	}
 
 	@OnUndefined(204)
-	@Post('/restart')
-	async completeRestart(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
-		const restartFlow = await JoinFlowService.completeRestartFlow(redirectFlowId);
+	@Post('/confirm-email')
+	async confirmEmail(@Req() req: Request, @BodyParam('restartFlowId') restartFlowId: string): Promise<void> {
+		const restartFlow = await JoinFlowService.completeRestartFlow(restartFlowId);
 		if (!restartFlow) {
 			throw new NotFoundError();
 		}
 
 		if (restartFlow.member.isActiveMember) {
-			throw new SignupError('restart-failed');
+			throw new SignupError('confirm-email-failed');
 		} else {
 			await handleJoin(req, restartFlow.member, restartFlow);
 		}
