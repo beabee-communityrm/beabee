@@ -82,6 +82,10 @@ export default class Member {
 		return this.permissions.filter(p => p.isActive).map(p => p.permission);
 	}
 
+	hasPermission(permission: PermissionType): boolean {
+		return this.quickPermissions.indexOf('superadmin') > -1 || this.quickPermissions.indexOf(permission) > -1;
+	}
+
 	get fullname(): string {
 		return this.firstname + ' ' + this.lastname;
 	}

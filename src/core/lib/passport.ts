@@ -27,6 +27,11 @@ passport.use( new passportLocal.Strategy( {
 			return done( null, false, { message: 'account-locked' } );
 		}
 
+		// TODO: Temporary block on non-admins logging in
+		if (OptionsService.getBool('disable-user-login')  && !user.hasPermission('admin')) {
+			return done( null, false, { message: 'login-failed' } );
+
+		}
 		if ( !user.password.salt ) {
 			return done( null, false, { message: 'login-failed' } );
 		}
