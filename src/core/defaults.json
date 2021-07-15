@@ -8,7 +8,7 @@
 	"home-link-url": "http://example.com/about",
 	"home-redirect-url": "",
 
-	"disable-user-login": "",
+	"user-redirect-url": "",
 
 	"user-home-url": "/profile",
 	"admin-home-url": "/members",
