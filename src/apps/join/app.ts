@@ -146,7 +146,7 @@ app.get( '/complete', [
 					res.redirect( app.mountpath + '/duplicate-email' );
 				} else {
 					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-					await EmailService.sendTemplateToMember('restart-membership', oldMember, {code: restartFlow.id});
+					await EmailService.sendTemplateToMember('join-confirm-email', oldMember, {code: restartFlow.id});
 					res.redirect( app.mountpath + '/expired-member' );
 				}
 			} else {

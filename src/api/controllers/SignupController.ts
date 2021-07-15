@@ -33,7 +33,7 @@ class SignupData {
 	completeUrl!: string
 }
 
-type SignupErrorCode = 'duplicate-email'|'confirm-email'|'restart-membership'|'restart-failed';
+type SignupErrorCode = 'duplicate-email'|'confirm-email'|'restart-membership'|'confirm-email-failed';
 
 class SignupError extends HttpError {
 	constructor(readonly code: SignupErrorCode) {
@@ -122,15 +122,15 @@ export class SignupController {
 	}
 
 	@OnUndefined(204)
-	@Post('/restart')
-	async completeRestart(@Req() req: Request, @BodyParam('redirectFlowId') redirectFlowId: string): Promise<void> {
-		const restartFlow = await JoinFlowService.completeRestartFlow(redirectFlowId);
+	@Post('/confirm-email')
+	async confirmEmail(@Req() req: Request, @BodyParam('restartFlowId') restartFlowId: string): Promise<void> {
+		const restartFlow = await JoinFlowService.completeRestartFlow(restartFlowId);
 		if (!restartFlow) {
 			throw new NotFoundError();
 		}
 
 		if (restartFlow.member.isActiveMember) {
-			throw new SignupError('restart-failed');
+			throw new SignupError('confirm-email-failed');
 		} else {
 			await handleJoin(req, restartFlow.member, restartFlow);
 		}
