@@ -33,7 +33,7 @@ class SignupData {
 	completeUrl!: string
 }
 
-type SignupErrorCode = 'duplicate-email'|'restart-membership'|'restart-failed';
+type SignupErrorCode = 'duplicate-email'|'confirm-email'|'restart-membership'|'restart-failed';
 
 class SignupError extends HttpError {
 	constructor(readonly code: SignupErrorCode) {
@@ -57,6 +57,8 @@ async function handleJoin(req: Request, member: Member, joinFlow: CompletedJoinF
 	await GCPaymentService.updatePaymentMethod(member, joinFlow.customerId, joinFlow.mandateId);
 	await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 	await EmailService.sendTemplateToMember('welcome', member);
+
+	await MembersService.updateMember(member, {activated: true});
 
 	// For now use existing session infrastructure with a cookie
 	await new Promise<void>((resolve, reject) => {
@@ -110,8 +112,8 @@ export class SignupController {
 					throw new SignupError('duplicate-email');
 				} else {
 					const restartFlow = await JoinFlowService.createRestartFlow(oldMember, joinFlow);
-					await EmailService.sendTemplateToMember('restart-membership', oldMember, {code: restartFlow.id});
-					throw new SignupError('restart-membership');
+					await EmailService.sendTemplateToMember('join-confirm-email', oldMember, {code: restartFlow.id});
+					throw new SignupError(oldMember.activated ? 'restart-membership' : 'confirm-email');
 				}
 			} else {
 				throw error;
