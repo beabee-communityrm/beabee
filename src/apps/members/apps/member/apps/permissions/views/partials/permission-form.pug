@@ -25,8 +25,8 @@ form( method="post" )
 				input(type='checkbox' name='neverExpires' checked=current && !current.dateExpires).js-reveal-types
 				| Never expires
 		.js-reveal-type(data-type='neverExpires' data-inverse)
-			input( type="time", name="expiryTime", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" ).form-control
+			input( type="time", name="expiryTime", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" required).form-control
 			| &nbsp;
-			input( type="date", name="expiryDate", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" ).form-control
+			input( type="date", name="expiryDate", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" required).form-control
 	.form-group
 		button.btn.btn-primary #{ action }
