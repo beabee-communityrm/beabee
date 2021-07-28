@@ -7,7 +7,7 @@ import { createDateTime, wrapAsync } from '@core/utils';
 import MembersService from '@core/services/MembersService';
 
 import Member from '@models/Member';
-import MemberPermission, { PermissionType } from '@models/MemberPermission';
+import { PermissionType } from '@models/MemberPermission';
 
 import { createPermissionSchema, updatePermissionSchema } from './schemas.json';
 
