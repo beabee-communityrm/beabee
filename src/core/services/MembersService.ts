@@ -139,6 +139,10 @@ export default class MembersService {
 		const existingPermission = member.permissions.find(p => p.permission === permission);
 		if (existingPermission && updates) {
 			Object.assign(existingPermission, updates);
+			// TODO: temporary hack to force save undefined dateExpires
+			if (Object.keys(updates).indexOf('dateExpires') > -1 && !updates.dateExpires) {
+				existingPermission.dateExpires = null as any;
+			}
 		} else {
 			const newPermission = getRepository(MemberPermission).create({member, permission, ...updates});
 			member.permissions.push(newPermission);
