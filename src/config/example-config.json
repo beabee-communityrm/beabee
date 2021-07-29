@@ -29,11 +29,7 @@
 		}
 	},
 	"newsletter": {
-		"provider": "mailchimp",
-		"settings": {
-			"api_key": "",
-			"datacenter": ""
-		}
+		"provider": "none"
 	},
 	"gocardless": {
 		"access_token": "",
