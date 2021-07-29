@@ -29,7 +29,8 @@
 		}
 	},
 	"newsletter": {
-		"provider": "none"
+		"provider": "none",
+		"settings": {}
 	},
 	"gocardless": {
 		"access_token": "",
