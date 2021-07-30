@@ -68,14 +68,16 @@ async function handleResync(statusSource: 'ours'|'theirs') {
 		}
 		const newsletterMembersToImport = newsletterMembers.filter(nm => members.every(m => m.email !== nm.email));
 
-		await setResyncStatus('In progress: Uploading contacts to newsletter list');
+		await setResyncStatus(`In progress: Uploading ${newMembersToUpload.length} new contacts to the newsletter list`);
 		await NewsletterService.insertMembers(newMembersToUpload);
+
+		await setResyncStatus(`In progress: Updating ${existingMembers.length} existing contacts in newsletter list`);
 		await NewsletterService.updateMembers(existingMembers);
 
-		await setResyncStatus('In progress: Removing unsubscribed contacts from newsletter list');
+		await setResyncStatus(`In progress: Archiving ${existingMembersToArchive.length} contacts from newsletter list`);
 		await NewsletterService.archiveMembers(existingMembersToArchive);
 
-		await setResyncStatus('In progress: Fixing mismatched subscription statuses');
+		await setResyncStatus(`In progress: Fixing ${mismatchedMembers.length} mismatched contacts`);
 		
 		if (statusSource === 'theirs') {
 			for (const [member, nlMember] of mismatchedMembers) {
@@ -88,7 +90,7 @@ async function handleResync(statusSource: 'ours'|'theirs') {
 			await NewsletterService.updateMemberStatuses(mismatchedMembers.map(([m]) => m));
 		}
 
-		await setResyncStatus('In progress: Importing contacts from newsletter list');
+		await setResyncStatus(`In progress: Importing ${newsletterMembersToImport.length} contacts from newsletter list`);
 
 		for (const nlMember of newsletterMembersToImport) {
 			await MembersService.createMember({
