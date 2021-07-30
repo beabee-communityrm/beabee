@@ -60,6 +60,11 @@ app.get('/', (req, res) => {
 app.post('/', wrapAsync(async (req, res) => {
 	const body = req.body as MCWebhook;
 
+	log.info({
+		action: 'got-webhook',
+		data: {type: body.type}
+	});
+
 	switch (body.type) {
 	case 'upemail':
 		await handleUpdateEmail(body.data);
@@ -108,6 +113,11 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 }
 
 async function handleSubscribe(data: MCProfileData) {
+	log.info({
+		action: 'subscribe',
+		data: {email: data.email}
+	});
+
 	const member = await MembersService.findOne({email: data.email});
 	if (member) {
 		await MembersService.updateMemberProfile(member, {
@@ -129,6 +139,11 @@ async function handleSubscribe(data: MCProfileData) {
 }
 
 async function handleUnsubscribe(data: MCProfileData) {
+	log.info({
+		action: 'unsubscribe',
+		data: {email: data.email}
+	});
+
 	const member = await MembersService.findOne({email: data.email});
 	if (member) {
 		await MembersService.updateMemberProfile(member, {
@@ -142,9 +157,10 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 		action: 'update-profile',
 		data: {email: data.email}
 	});
+
 	const member = await MembersService.findOne({email: data.email});
 	if (member) {
-		// Sync to overwrite any other changes
+		// noSync = false to overwrite any other changes (most merge fields shouldn't be changed)
 		await MembersService.updateMember(member, {
 			email: data.email,
 			firstname: data.merges.FNAME,
