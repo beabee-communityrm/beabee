@@ -2,7 +2,7 @@ import express from 'express';
 import { getRepository } from 'typeorm';
 
 import { hasSchema, isSuperAdmin } from '@core/middleware';
-import { ContributionPeriod, ContributionType, createDateTime, isDuplicateIndex, PaymentForm, wrapAsync } from '@core/utils';
+import { ContributionPeriod, ContributionType, createDateTime, isDuplicateIndex, wrapAsync } from '@core/utils';
 
 import GCPaymentService from '@core/services/GCPaymentService';
 import MembersService from '@core/services/MembersService';
@@ -67,6 +67,8 @@ app.post( '/', hasSchema(addContactSchema).orFlash, wrapAsync( async ( req, res 
 		dateAdded: createDateTime(p.startDate, p.startTime),
 		dateExpires: createDateTime(p.expiryDate, p.expiryTime),
 	})) || [];
+	
+	// TODO: option for newsletter subscribe
 
 	let member;
 	try {
@@ -76,8 +78,6 @@ app.post( '/', hasSchema(addContactSchema).orFlash, wrapAsync( async ( req, res 
 			email: data.email,
 			contributionType: data.type,
 			permissions
-		}, {
-			deliveryOptIn: false
 		});
 
 	} catch (error) {

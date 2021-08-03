@@ -31,11 +31,6 @@ app.post( '/', hasSchema(updateSchema).orFlash, wrapAsync( hasUser(async functio
 		} : undefined
 	});
 
-	req.log.info( {
-		app: 'profile',
-		action: 'update',
-	} );
-
 	req.flash( 'success', 'delivery-updated' );
 	res.redirect('/profile/delivery');
 } ) ) );

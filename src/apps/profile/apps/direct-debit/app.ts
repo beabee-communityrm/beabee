@@ -81,14 +81,6 @@ app.post( '/', [
 	let redirectUrl = '/profile/direct-debit';
 
 	if ( await GCPaymentService.canChangeContribution( req.user, useMandate ) ) {
-		req.log.info( {
-			app: 'direct-debit',
-			action: 'update-subscription',
-			data: {
-				useMandate,
-				paymentForm
-			}
-		} );
 		if ( useMandate ) {
 			await handleChangeContribution(req, paymentForm);
 		} else {

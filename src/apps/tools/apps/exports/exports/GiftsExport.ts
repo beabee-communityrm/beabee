@@ -43,7 +43,7 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
 					giftee.permissions.find(p => p.permission === 'member')?.dateExpires?.toISOString(),
 				GifteeHasActivated: !giftee.password.hash,
 				GifteeHasConverted: giftee.contributionType !== ContributionType.Gift,
-				...addressFields(giftee.profile?.deliveryAddress)
+				...addressFields(giftee.profile.deliveryAddress)
 			} : {
 				GifteeName: giftForm.firstname + ' ' + giftForm.lastname,
 				GifteeFirstName: giftForm.firstname,

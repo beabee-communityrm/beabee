@@ -7,9 +7,7 @@ import tar from 'tar-stream';
 import { log as mainLogger } from '@core/logging';
 import { cleanEmailAddress } from '@core/utils';
 
-import Member from '@models/Member';
-
-import { NewsletterProvider } from '.';
+import { NewsletterMember, NewsletterProvider, NewsletterStatus, PartialNewsletterMember } from '.';
 
 const log = mainLogger.child({app: 'newsletter-service'});
 
@@ -28,25 +26,38 @@ interface Batch {
 	response_body_url: string
 }
 
-interface DeleteOperation {
-	method: 'DELETE'|'POST'
+interface OperationNoBody {
+	method: 'GET'|'DELETE'|'POST'
 	path: string
 	operation_id: string
+	body?: undefined
 }
-interface PutOperation {
-	method: 'PUT'
+
+interface OperationWithBody {
+	method: 'POST'|'PATCH'
 	path: string
 	body: string
 	operation_id: string;
 }
 
-type Operation = DeleteOperation|PutOperation;
+type Operation = OperationNoBody|OperationWithBody;
 
-type MergeFields = {[key: string]: string}
+interface OperationResponse {
+	status_code: number
+	response: string
+	operation_id: string
+}
 
 interface MCMember {
-	email_address: string
-	merge_fields: MergeFields
+	email_address: string,
+	status: 'subscribed'|'unsubscribed'|'pending'|'cleaned',
+	interests?: {[interest: string]: boolean }
+	merge_fields: Record<string, string>,
+	tags: {id: number, name: string}[]
+}
+
+interface GetMembersResponse {
+	members: MCMember[]
 }
 
 function createInstance(config: MailchimpConfig) {
@@ -64,7 +75,8 @@ function createInstance(config: MailchimpConfig) {
 			method: config.method,
 			sensitive: {
 				params: config.params,
-				data: config.data
+				// Don't print all the batch operations
+				...(config.url !== '/batches/' || config.method !== 'post') && {data: config.data}
 			}
 		});
 
@@ -84,23 +96,40 @@ function createInstance(config: MailchimpConfig) {
 	return instance;
 }
 
-function memberToMCMember(member: Member): MCMember {
+function memberToMCMember(member: PartialNewsletterMember): Partial<MCMember> {
 	return {
 		email_address: member.email,
-		merge_fields: {
-			FNAME: member.firstname,
-			LNAME: member.lastname,
-			REFCODE: member.referralCode,
-			POLLSCODE: member.pollsCode,
-			C_DESC: member.contributionDescription,
-			C_MNTHAMT: member.contributionMonthlyAmount?.toString() || '',
-			C_PERIOD: member.contributionPeriod || ''
+		...member.status && {status: member.status},
+		...(member.firstname || member.lastname || member.fields) && {
+			merge_fields: {
+				...member.firstname && {FNAME: member.firstname},
+				...member.lastname && {LNAME: member.lastname},
+				...member.fields
+			}
+		},
+		...member.groups && {
+			interests: Object.assign({}, ...member.groups.map(group => ({[group]: true})))
 		}
 	};
 }
 
+function mcMemberToMember(member: MCMember): NewsletterMember {
+	const {FNAME, LNAME, ...fields} = member.merge_fields;
+	return {
+		email: member.email_address,
+		firstname: FNAME || '',
+		lastname: LNAME || '',
+		status: member.status === 'subscribed' ? NewsletterStatus.Subscribed: NewsletterStatus.Unsubscribed,
+		groups: member.interests ?
+			Object.entries(member.interests).filter(([group, isOptedIn]) => isOptedIn).map(([group]) => group) :
+			[],
+		tags: member.tags.map(tag => tag.name),
+		fields
+	};
+}
+
 // Ignore 404/405s from delete operations
-function validateStatus(statusCode: number, operationId: string) {
+function validateOperationStatus(statusCode: number, operationId: string) {
 	return statusCode < 400 ||
 		operationId.startsWith('delete') && (statusCode === 404 || statusCode === 405);
 }
@@ -114,50 +143,89 @@ export default class MailchimpProvider implements NewsletterProvider {
 		this.listId = config.list_id;
 	}
 
-	async updateMember(member: Member, oldEmail = member.email): Promise<void> {
-		await this.instance.patch(this.mcMemberUrl(oldEmail), memberToMCMember(member));
-	}
-
-	async updateMemberFields(member: Member, fields: Record<string, string>): Promise<void> {
-		await this.instance.patch(this.mcMemberUrl(member.email), {
-			merge_fields: fields
-		});
-	}
-
-	async upsertMembers(members: Member[], groups: string[] = []): Promise<void> {
-		const operations: PutOperation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email),
-			method: 'PUT',
-			body: JSON.stringify({
-				...memberToMCMember(member),
-				status_if_new: 'subscribed',
-				interests: Object.assign({}, ...groups.map(group => ({[group]: true})))
-			}),
-			operation_id: `add_${member.id}`
-		}));
-
-		await this.dispatchOperations(operations);
-	}
-
-	async archiveMembers(members: Member[]): Promise<void> {
-		const operations: DeleteOperation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email),
-			method: 'DELETE',
-			operation_id: `delete_${member.id}`
-		}));
-		await this.dispatchOperations(operations);
-	}
-
-	async deleteMembers(members: Member[]): Promise<void> {
-		const operations: DeleteOperation[] = members.map(member => ({
-			path: this.mcMemberUrl(member.email) + '/actions/permanently-delete',
+	async addTagToMembers(emails: string[], tag: string): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email) + '/tags',
 			method: 'POST',
-			operation_id: `delete-permanently_${member.id}`
+			body: JSON.stringify({
+				tags: [{name: tag, status: 'active'}]
+			}),
+			operation_id: `add_tag_${email}`
 		}));
 		await this.dispatchOperations(operations);
 	}
 
-	private mcMemberUrl(email: string) {
+	async removeTagFromMembers(emails: string[], tag: string): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email) + '/tags',
+			method: 'POST',
+			body: JSON.stringify({
+				tags: [{name: tag, status: 'inactive'}]
+			}),
+			operation_id: `remove_tag_${email}`
+		}));
+		await this.dispatchOperations(operations);
+	}
+
+	async getMembers(): Promise<NewsletterMember[]> {
+		const operation: Operation = {
+			path: `lists/${this.listId}/members`,
+			method: 'GET',
+			operation_id: 'get'
+		};
+
+		const batch = await this.createBatch([operation]);
+		const finishedBatch = await this.waitForBatch(batch);
+		const responses = await this.getBatchResponses(finishedBatch) as GetMembersResponse[];
+
+		return responses.flatMap(r => r.members).map(mcMemberToMember);
+	}
+
+	async insertMembers(members: PartialNewsletterMember[]): Promise<void> {
+		const operations: Operation[] = members.map(member => ({
+			path: `lists/${this.listId}/members`,
+			method: 'POST',
+			body: JSON.stringify(memberToMCMember(member)),
+			operation_id: `add_${member.email}`
+		}));
+
+		await this.dispatchOperations(operations);
+	}
+
+	async updateMember(member: PartialNewsletterMember, oldEmail = member.email): Promise<void> {
+		await this.instance.patch(this.emailUrl(oldEmail), memberToMCMember(member));
+	}
+
+	async updateMembers(members: PartialNewsletterMember[]): Promise<void> {
+		const operations: Operation[] = members.map(member => ({
+			path: this.emailUrl(member.email),
+			method: 'PATCH',
+			body: JSON.stringify(memberToMCMember(member)),
+			operation_id: `update_${member.email}`
+		}));
+
+		await this.dispatchOperations(operations);
+	}
+
+	async archiveMembers(emails: string[]): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email),
+			method: 'DELETE',
+			operation_id: `delete_${email}`
+		}));
+		await this.dispatchOperations(operations);
+	}
+
+	async deleteMembers(emails: string[]): Promise<void> {
+		const operations: Operation[] = emails.map(email => ({
+			path: this.emailUrl(email) + '/actions/permanently-delete',
+			method: 'POST',
+			operation_id: `delete-permanently_${email}`
+		}));
+		await this.dispatchOperations(operations);
+	}
+
+	private emailUrl(email: string) {
 		const emailHash = crypto.createHash('md5').update(cleanEmailAddress(email)).digest('hex');
 		return `lists/${this.listId}/members/${emailHash}`;
 	}
@@ -192,78 +260,77 @@ export default class MailchimpProvider implements NewsletterProvider {
 		}
 	}
 
-	private async checkBatchErrors(batch: Batch): Promise<boolean> {
+	private async getBatchResponses(batch: Batch): Promise<any[]> {
 		log.info({
-			action: 'check-batch-errors',
+			action: 'get-batch-responses',
 			data: {
 				batchId: batch.id,
+				finishedOperations: batch.finished_operations,
+				totalOperations: batch.total_operations,
 				erroredOperations: batch.errored_operations
 			}
 		});
 
 
-		if (batch.errored_operations > 0) {
-			let isValidBatch = true;
+		const batchResponses: any[] = [];
 
-			const response = await axios({
-				method: 'GET',
-				url: batch.response_body_url,
-				responseType: 'stream'
-			});
+		const response = await axios({
+			method: 'GET',
+			url: batch.response_body_url,
+			responseType: 'stream'
+		});
 
-			const extract = tar.extract();
+		const extract = tar.extract();
 
-			extract.on('entry', (header, stream, next) => {
-				stream.on('end', next);
+		extract.on('entry', (header, stream, next) => {
+			stream.on('end', next);
 
-				if (header.type === 'file') {
-					log.info({
-						action: 'checking-batch-error-file',
-						data: {
-							name: header.name
+			if (header.type === 'file') {
+				log.info({
+					action: 'checking-batch-error-file',
+					data: {
+						name: header.name
+					}
+				});
+				stream.pipe(JSONStream.parse('*'))
+					.on('data', (data: OperationResponse) => {
+						if (validateOperationStatus(data.status_code, data.operation_id)) {
+							batchResponses.push(JSON.parse(data.response));
+						} else {
+							log.error({
+								action: 'check-batch-errors',
+								data
+							}, `Unexpected error for ${data.operation_id}, got ${data.status_code}`);
 						}
 					});
-					stream.pipe(JSONStream.parse('*'))
-						.on('data', (data: any) => {
-							if (!validateStatus(data.status_code, data.operation_id)) {
-								isValidBatch = false;
-								log.error({
-									action: 'check-batch-errors',
-									data
-								}, `Unexpected error for ${data.operation_id}, got ${data.status_code}`);
-							}
-						});
-				} else {
-					stream.resume();
-				}
+			} else {
+				stream.resume();
+			}
 
-			});
+		});
 
-			return await new Promise((resolve, reject) => {
-				response.data
-					.pipe(gunzip())
-					.pipe(extract)
-					.on('error', reject)
-					.on('finish', () => resolve(isValidBatch));
-			});
-		} else {
-			return true;
-		}
+		return await new Promise((resolve, reject) => {
+			response.data
+				.pipe(gunzip())
+				.pipe(extract)
+				.on('error', reject)
+				.on('finish', () => resolve(batchResponses));
+		});
 	}
 
 	private async dispatchOperations(operations: Operation[]): Promise<void> {
 		if (operations.length > 20) {
 			const batch = await this.createBatch(operations);
 			const finishedBatch = await this.waitForBatch(batch);
-			await this.checkBatchErrors(finishedBatch);
+			await this.getBatchResponses(finishedBatch); // Just check for errors
 		} else {
 			for (const operation of operations) {
 				try {
 					await this.instance({
 						method: operation.method,
 						url: operation.path,
-						...operation.method === 'PUT' && {data: JSON.parse(operation.body)},
-						validateStatus: (status: number) => validateStatus(status, operation.operation_id)
+						...operation.body && {data: JSON.parse(operation.body)},
+						validateStatus: (status: number) => validateOperationStatus(status, operation.operation_id)
 					});
 				} catch (err) {
 					console.log(err);

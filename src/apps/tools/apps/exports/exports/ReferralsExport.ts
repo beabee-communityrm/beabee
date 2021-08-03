@@ -10,7 +10,7 @@ function memberDetails(member?: Member) {
 		member.email,
 		member.firstname,
 		member.lastname,
-		...member.profile?.deliveryOptIn && member.profile.deliveryAddress ? [
+		...member.profile.deliveryOptIn && member.profile.deliveryAddress ? [
 			member.profile.deliveryAddress.line1,
 			member.profile.deliveryAddress.line2,
 			member.profile.deliveryAddress.city,

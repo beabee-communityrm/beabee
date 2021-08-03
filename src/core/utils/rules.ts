@@ -43,7 +43,8 @@ const memberFields = [
 
 const profileFields = [
 	'deliveryOptIn',
-	'tags'
+	'tags',
+	'newsletterStatus'
 ] as const;
 
 const permissionFields = [

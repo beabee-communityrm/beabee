@@ -9,6 +9,7 @@ import { wrapAsync } from '@core/utils';
 import OptionsService from '@core/services/OptionsService';
 
 import gocardlessApp from './gocardless';
+import mailchimpApp from './mailchimp';
 import stripeApp from './stripe';
 
 const app = express();
@@ -22,6 +23,7 @@ app.get( '/ping', function( req, res ) {
 } );
 
 app.use('/gc', gocardlessApp);
+app.use('/mailchimp', mailchimpApp);
 app.use('/stripe', stripeApp);
 
 const internalApp = express();

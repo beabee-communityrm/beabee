@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-
 import {MigrationInterface, QueryRunner} from 'typeorm';
 
 export class AddDefaultSegments1616694307645 implements MigrationInterface {

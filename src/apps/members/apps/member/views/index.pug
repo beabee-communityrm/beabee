@@ -12,67 +12,17 @@ block contents
 		.col-md-3
 			include partials/sidebar.pug
 		.col-md-9
-			.row
-				.col-md-12
-					+page_header(member.fullname)
+			+page_header(member.fullname)
+
 			.row
 				.col-md-6
-					h4 Overview
-					dl.dl-horizontal
-						dt Joined
-						dd #{ moment( member.joined ).format( 'HH:mm:ss DD/MM/YYYY' ) }
-						dt Last seen
-						dd #{ member.lastSeen ? moment( member.lastSeen ).format( 'HH:mm:ss DD/MM/YYYY' ) : '–' }
-						dt Referral code
-						dd: a( href=Options('referral-short-url') + '/' + member.referralCode ) #{ member.referralCode }
-						dt Polls code
-						dd= member.pollsCode
+					include partials/overview.pug
 				.col-md-6
-					h4 Contribution
-					dl.dl-horizontal
-						dt Type
-						dd= member.contributionType || '–'
-						if member.contributionType
-							dt Amount
-							dd= member.contributionMonthlyAmount ? currencySymbol + member.contributionMonthlyAmount : '–'
-							dt Period
-							dd= member.contributionPeriod || '–'
-							case member.contributionType
-								when 'GoCardless'
-									include partials/gocardless.pug
-								when 'Manual'
-									include partials/manual.pug
-			.row
-				.col-md-12
-					include partials/profile.pug
+					include partials/contribution.pug
+
+			include partials/profile.pug
 
 			if access( 'superadmin' )
 				.row
 					.col-md-6
-						h4 Security
-						dl.dl-horizontal
-							dt Login override
-							dd
-								if member.loginOverride && moment(member.loginOverride.expires).isAfter()
-									a(href='/login/' + member.loginOverride.code)= member.loginOverride.code
-								else
-									form(method='POST')
-										+csrf
-										input(type='hidden' name='action' value='login-override')
-										button.btn.btn-xs.btn-default Generate link
-							dt Password reset
-							dd
-								if member.password.resetCode
-									a(href='/password-reset/code/' + member.password.resetCode)= member.password.resetCode
-								else
-									form(method='POST')
-										+csrf
-										input(type='hidden' name='action' value='password-reset')
-										button.btn.btn-xs.btn-default Generate link
-							dt Password tries
-							dd #{ member.password.tries } #{ member.password.tries >= password_tries ? ' – Locked Out' : '' }
-							dt 2FA
-							dd #{ member.otp.activated ? 'Enabled' : 'Disabled' }
-				.row
-					.col-md-12
-						include partials/payments.pug
+						include partials/security.pug

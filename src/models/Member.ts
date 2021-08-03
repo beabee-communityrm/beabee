@@ -61,6 +61,9 @@ export default class Member {
 	@CreateDateColumn()
 	joined!: Date
 
+	@Column({default: false})
+	activated!: boolean
+
 	@Column({nullable: true})
 	lastSeen?: Date
 
@@ -79,17 +82,17 @@ export default class Member {
 	@Column({type: 'real', nullable: true})
 	nextContributionMonthlyAmount?: number
 
-	@Column({unique: true})
-	referralCode!: string
+	@Column({unique: true, nullable: true})
+	referralCode?: string
 
-	@Column({unique: true})
-	pollsCode!: string
+	@Column({unique: true, nullable: true})
+	pollsCode?: string
 
 	@OneToMany('MemberPermission', 'member', {eager: true, cascade: true})
 	permissions!: MemberPermission[]
 
 	@OneToOne('MemberProfile', 'member')
-	profile?: MemberProfile
+	profile!: MemberProfile
 
 	get quickPermissions(): PermissionType[] {
 		return this.permissions.filter(p => p.isActive).map(p => p.permission);

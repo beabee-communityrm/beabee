@@ -1,0 +1,14 @@
+h4 Contribution
+dl.dl-horizontal
+	dt Type
+	dd= member.contributionType || '–'
+	if member.contributionType
+		dt Amount
+		dd= member.contributionMonthlyAmount ? currencySymbol + member.contributionMonthlyAmount : '–'
+		dt Period
+		dd= member.contributionPeriod || '–'
+		case member.contributionType
+			when 'GoCardless'
+				include gocardless.pug
+			when 'Manual'
+				include manual.pug
