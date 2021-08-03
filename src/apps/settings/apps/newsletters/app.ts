@@ -41,7 +41,7 @@ function isMismatchedMember(member: Member, nlMember: NewsletterMember) {
 		groupsList(member.profile.newsletterGroups) !== groupsList(nlMember.groups);
 }
 
-async function handleResync(statusSource: 'ours'|'theirs') {
+async function handleResync(statusSource: 'ours'|'theirs', dryRun: boolean) {
 	try {
 		await setResyncStatus('In progress: Fetching contact lists');
 
@@ -67,6 +67,11 @@ async function handleResync(statusSource: 'ours'|'theirs') {
 			}
 		}
 		const newsletterMembersToImport = newsletterMembers.filter(nm => members.every(m => m.email !== nm.email));
+
+		if (dryRun) {
+			await setResyncStatus(`DRY RUN: Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed and ${newMembersToUpload.length} newly uploaded`);
+			return;
+		}
 
 		await setResyncStatus(`In progress: Uploading ${newMembersToUpload.length} new contacts to the newsletter list`);
 		await NewsletterService.insertMembers(newMembersToUpload);
@@ -122,7 +127,7 @@ app.post('/', wrapAsync(async (req, res) => {
 		req.flash('success', 'newsletter-resync-started');
 		res.redirect(req.originalUrl);
 
-		handleResync(req.body.statusSource);
+		handleResync(req.body.statusSource, req.body.dryRun === 'true');
 	}
 }));
 
