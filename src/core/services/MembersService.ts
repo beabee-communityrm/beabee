@@ -3,7 +3,7 @@ import { createQueryBuilder, FindConditions, FindManyOptions, FindOneOptions, ge
 
 import gocardless from '@core/lib/gocardless';
 import { log as mainLogger } from '@core/logging';
-import { isDuplicateIndex } from '@core/utils';
+import { cleanEmailAddress, isDuplicateIndex } from '@core/utils';
 import { AuthenticationStatus, canAdmin, generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
@@ -70,6 +70,7 @@ export default class MembersService {
 				permissions: [],
 				password: {hash: '', salt: '', iterations: 0, tries: 0},
 				...partialMember,
+				email: cleanEmailAddress(partialMember.email)
 			});
 			await getRepository(Member).save(member);
 
