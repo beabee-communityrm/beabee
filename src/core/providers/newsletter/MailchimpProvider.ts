@@ -116,7 +116,7 @@ function memberToMCMember(member: PartialNewsletterMember): Partial<MCMember> {
 function mcMemberToMember(member: MCMember): NewsletterMember {
 	const {FNAME, LNAME, ...fields} = member.merge_fields;
 	return {
-		email: member.email_address,
+		email: cleanEmailAddress(member.email_address),
 		firstname: FNAME || '',
 		lastname: LNAME || '',
 		status: member.status === 'subscribed' ? NewsletterStatus.Subscribed: NewsletterStatus.Unsubscribed,
