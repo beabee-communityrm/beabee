@@ -137,6 +137,8 @@ export default class MembersService {
 			}
 		});
 
+		const wasActive = member.isActiveMember;
+
 		const existingPermission = member.permissions.find(p => p.permission === permission);
 		if (existingPermission && updates) {
 			Object.assign(existingPermission, updates);
@@ -146,9 +148,9 @@ export default class MembersService {
 		}
 		await getRepository(Member).save(member);
 
-		if (member.isActiveMember) {
+		if (!wasActive && member.isActiveMember) {
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
-		} else {
+		} else if (wasActive && !member.isActiveMember) {
 			await NewsletterService.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		}
 	}
