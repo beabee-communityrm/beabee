@@ -2,7 +2,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 
 import { log as mainLogger } from '@core/logging';
-import { ContributionType, wrapAsync } from '@core/utils';
+import { cleanEmailAddress, ContributionType, wrapAsync } from '@core/utils';
 
 import MembersService from '@core/services/MembersService';
 import NewsletterService from '@core/services/NewsletterService';
@@ -60,6 +60,11 @@ app.get('/', (req, res) => {
 app.post('/', wrapAsync(async (req, res) => {
 	const body = req.body as MCWebhook;
 
+	log.info({
+		action: 'got-webhook',
+		data: {type: body.type}
+	});
+
 	switch (body.type) {
 	case 'upemail':
 		await handleUpdateEmail(body.data);
@@ -88,17 +93,17 @@ app.post('/', wrapAsync(async (req, res) => {
 }));
 
 async function handleUpdateEmail(data: MCUpdateEmailData) {
+	const oldEmail = cleanEmailAddress(data.old_email);
+	const newEmail = cleanEmailAddress(data.new_email);
+
 	log.info({
 		action: 'update-email',
-		data: {
-			oldEmail: data.old_email,
-			newEmail: data.new_email
-		}
+		data: {oldEmail, newEmail}
 	});
 
-	const member = await MembersService.findOne({email: data.old_email});
+	const member = await MembersService.findOne({email: oldEmail});
 	if (member) {
-		await MembersService.updateMember(member, {email: data.new_email}, {noSync: true});
+		await MembersService.updateMember(member, {email: newEmail}, {noSync: true});
 	} else {
 		log.error({
 			action: 'update-email-not-found',
@@ -108,14 +113,21 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 }
 
 async function handleSubscribe(data: MCProfileData) {
-	const member = await MembersService.findOne({email: data.email});
+	const email = cleanEmailAddress(data.email);
+
+	log.info({
+		action: 'subscribe',
+		data: {email}
+	});
+
+	const member = await MembersService.findOne({email});
 	if (member) {
 		await MembersService.updateMemberProfile(member, {
 			newsletterStatus: NewsletterStatus.Subscribed
 		}, {noSync: true});
 	} else {
 		const member = await MembersService.createMember({
-			email: data.email,
+			email,
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME,
 			contributionType: ContributionType.None
@@ -129,7 +141,14 @@ async function handleSubscribe(data: MCProfileData) {
 }
 
 async function handleUnsubscribe(data: MCProfileData) {
-	const member = await MembersService.findOne({email: data.email});
+	const email = cleanEmailAddress(data.email);
+
+	log.info({
+		action: 'unsubscribe',
+		data: {email}
+	});
+
+	const member = await MembersService.findOne({email});
 	if (member) {
 		await MembersService.updateMemberProfile(member, {
 			newsletterStatus: NewsletterStatus.Unsubscribed
@@ -138,15 +157,18 @@ async function handleUnsubscribe(data: MCProfileData) {
 }
 
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
+	const email = cleanEmailAddress(data.email);
+
 	log.info({
 		action: 'update-profile',
-		data: {email: data.email}
+		data: {email}
 	});
-	const member = await MembersService.findOne({email: data.email});
+
+	const member = await MembersService.findOne({email});
 	if (member) {
-		// Sync to overwrite any other changes
+		// noSync = false to overwrite any other changes (most merge fields shouldn't be changed)
 		await MembersService.updateMember(member, {
-			email: data.email,
+			email,
 			firstname: data.merges.FNAME,
 			lastname: data.merges.LNAME
 		});

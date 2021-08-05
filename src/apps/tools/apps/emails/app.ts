@@ -66,6 +66,7 @@ app.post('/:id', hasNewModel(Email, 'id'), wrapAsync(async (req, res) => {
 		res.redirect(req.originalUrl);
 		break;
 	case 'delete':
+		await getRepository(EmailMailing).delete({email});
 		await getRepository(Email).delete(email.id);
 		req.flash('success', 'transactional-email-deleted');
 		res.redirect('/tools/emails');

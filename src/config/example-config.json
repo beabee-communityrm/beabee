@@ -29,11 +29,8 @@
 		}
 	},
 	"newsletter": {
-		"provider": "mailchimp",
-		"settings": {
-			"api_key": "",
-			"datacenter": ""
-		}
+		"provider": "none",
+		"settings": {}
 	},
 	"gocardless": {
 		"access_token": "",

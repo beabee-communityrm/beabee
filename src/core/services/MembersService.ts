@@ -3,7 +3,7 @@ import { createQueryBuilder, FindConditions, FindManyOptions, FindOneOptions, ge
 
 import gocardless from '@core/lib/gocardless';
 import { log as mainLogger } from '@core/logging';
-import { isDuplicateIndex } from '@core/utils';
+import { cleanEmailAddress, isDuplicateIndex } from '@core/utils';
 import { AuthenticationStatus, canAdmin, generateCode } from '@core/utils/auth';
 
 import EmailService from '@core/services/EmailService';
@@ -70,6 +70,7 @@ export default class MembersService {
 				permissions: [],
 				password: {hash: '', salt: '', iterations: 0, tries: 0},
 				...partialMember,
+				email: cleanEmailAddress(partialMember.email)
 			});
 			await getRepository(Member).save(member);
 
@@ -136,18 +137,24 @@ export default class MembersService {
 			}
 		});
 
+		const wasActive = member.isActiveMember;
+
 		const existingPermission = member.permissions.find(p => p.permission === permission);
 		if (existingPermission && updates) {
 			Object.assign(existingPermission, updates);
+			// TODO: temporary hack to force save undefined dateExpires
+			if (Object.keys(updates).indexOf('dateExpires') > -1 && !updates.dateExpires) {
+				existingPermission.dateExpires = null as any;
+			}
 		} else {
 			const newPermission = getRepository(MemberPermission).create({member, permission, ...updates});
 			member.permissions.push(newPermission);
 		}
 		await getRepository(Member).save(member);
 
-		if (member.isActiveMember) {
+		if (!wasActive && member.isActiveMember) {
 			await NewsletterService.addTagToMembers([member], OptionsService.getText('newsletter-active-member-tag'));
-		} else {
+		} else if (wasActive && !member.isActiveMember) {
 			await NewsletterService.removeTagFromMembers([member], OptionsService.getText('newsletter-active-member-tag'));
 		}
 	}
