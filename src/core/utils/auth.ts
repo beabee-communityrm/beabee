@@ -89,20 +89,14 @@ export function loggedIn( req: Request ): AuthenticationStatus {
 	}
 }
 
-// Checks if the user has an active specified permission
-function checkPermission( req: Request, permission: PermissionType ): boolean {
-	return req.user ? req.user.quickPermissions.indexOf( permission ) !== -1 : false;
-}
-
 // Checks if the user has an active admin or superadmin privilage
 export function canAdmin( req: Request ): AuthenticationStatus {
 	// Check user is logged in
 	const status = loggedIn( req );
 	if ( status != AuthenticationStatus.LOGGED_IN ) {
 		return status;
-	} else {
-		if ( checkPermission( req, 'superadmin' ) ) return AuthenticationStatus.LOGGED_IN;
-		if ( checkPermission( req, 'admin' ) ) return AuthenticationStatus.LOGGED_IN;
+	} else if ( req.user?.hasPermission('admin')) {
+		return AuthenticationStatus.LOGGED_IN;
 	}
 	return AuthenticationStatus.NOT_ADMIN;
 }
@@ -113,8 +107,8 @@ export function canSuperAdmin( req: Request ): AuthenticationStatus {
 	const status = loggedIn( req );
 	if ( status != AuthenticationStatus.LOGGED_IN ) {
 		return status;
-	} else {
-		if ( checkPermission( req, 'superadmin' ) ) return AuthenticationStatus.LOGGED_IN;
+	} else if ( req.user?.hasPermission('superadmin') ) {
+		return AuthenticationStatus.LOGGED_IN;
 	}
 	return AuthenticationStatus.NOT_ADMIN;
 }
