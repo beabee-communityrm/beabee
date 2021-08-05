@@ -70,7 +70,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 	const searchRuleGroup = getSearchRuleGroup(query, searchType) || activeSegment && activeSegment.ruleGroup;
 
 	const page = query.page ? Number( query.page ) : 1;
-	const limit = query.limit ? Number( query.limit ) : 25;
+	const limit = query.limit ? Number( query.limit ) : 50;
 
 	const [members, total] = await buildQuery(searchRuleGroup)
 		.orderBy({lastname: 'ASC', firstname: 'ASC'})
