@@ -1,32 +1,34 @@
-import { Column } from 'typeorm';
-import { ContributionPeriod, ReferralGiftForm, PaymentForm } from '@core/utils';
-import Password from './Password';
+import { Column } from "typeorm";
+import { ContributionPeriod, ReferralGiftForm, PaymentForm } from "@core/utils";
+import Password from "./Password";
 
-export default class JoinForm implements PaymentForm, Partial<ReferralGiftForm> {
-    @Column()
-    email!: string;
+export default class JoinForm
+  implements PaymentForm, Partial<ReferralGiftForm>
+{
+  @Column()
+  email!: string;
 
-    @Column(() => Password)
-    password!: Password;
+  @Column(() => Password)
+  password!: Password;
 
-    @Column({type: 'real'})
-    monthlyAmount!: number;
+  @Column({ type: "real" })
+  monthlyAmount!: number;
 
-    @Column()
-    period!: ContributionPeriod;
+  @Column()
+  period!: ContributionPeriod;
 
-    @Column()
-    payFee!: boolean;
+  @Column()
+  payFee!: boolean;
 
-    @Column({ default: false })
-    prorate!: boolean;
+  @Column({ default: false })
+  prorate!: boolean;
 
-    @Column({ nullable: true })
-    referralCode?: string;
+  @Column({ nullable: true })
+  referralCode?: string;
 
-    @Column({ nullable: true })
-    referralGift?: string;
+  @Column({ nullable: true })
+  referralGift?: string;
 
-    @Column({ type: 'jsonb', nullable: true })
-    referralGiftOptions?: Record<string, string>;
+  @Column({ type: "jsonb", nullable: true })
+  referralGiftOptions?: Record<string, string>;
 }

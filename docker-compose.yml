@@ -1,4 +1,4 @@
-version: '3.4'
+version: "3.4"
 
 x-base-app: &base-app
   build:
@@ -36,12 +36,12 @@ services:
 
   webhook_app:
     <<: *base-app
-    command: 'node built/webhooks/app'
+    command: "node built/webhooks/app"
 
   cron:
     <<: *base-app
     user: root
-    command: 'crond -f -d 0'
+    command: "crond -f -d 0"
     init: true
 
   router:

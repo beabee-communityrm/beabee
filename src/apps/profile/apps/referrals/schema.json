@@ -1,18 +1,18 @@
 {
-	"chooseGiftSchema": {
-		"body": {
-			"type": "object",
-			"properties": {
-				"referralGift": {
-					"type": "string"
-				},
-				"referralGiftOptions": {
-					"type": "object",
-					"additionalProperties": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
+  "chooseGiftSchema": {
+    "body": {
+      "type": "object",
+      "properties": {
+        "referralGift": {
+          "type": "string"
+        },
+        "referralGiftOptions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }

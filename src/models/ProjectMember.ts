@@ -1,19 +1,25 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import type Member from './Member';
-import type Project from './Project';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique
+} from "typeorm";
+import type Member from "./Member";
+import type Project from "./Project";
 
 @Entity()
-@Unique(['project', 'member'])
+@Unique(["project", "member"])
 export default class ProjectMember {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@ManyToOne('Project', 'members')
-	project!: Project
+  @ManyToOne("Project", "members")
+  project!: Project;
 
-	@ManyToOne('Member')
-	member!: Member
+  @ManyToOne("Member")
+  member!: Member;
 
-	@Column({nullable: true})
-	tag?: string
+  @Column({ nullable: true })
+  tag?: string;
 }

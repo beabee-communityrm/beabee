@@ -1,9 +1,7 @@
 {
-	"title": "Contacts",
-	"path": "members",
-	"permissions": [
-		"superadmin", "admin"
-	],
-	"menu": "main",
-	"priority": 3
+  "title": "Contacts",
+  "path": "members",
+  "permissions": ["superadmin", "admin"],
+  "menu": "main",
+  "priority": 3
 }

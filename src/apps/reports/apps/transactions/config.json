@@ -1,7 +1,5 @@
 {
-	"title": "Transactions",
-	"path": "transactions",
-	"permissions": [
-		"superadmin"
-	]
+  "title": "Transactions",
+  "path": "transactions",
+  "permissions": ["superadmin"]
 }

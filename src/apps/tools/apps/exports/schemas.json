@@ -1,74 +1,74 @@
 {
-	"createSchema": {
-		"body": {
-			"type": "object",
-			"required": ["description", "type"],
-			"properties": {
-				"description": {
-					"type": "string"
-				},
-				"type": {
-					"type": "string"
-				},
-				"params": {
-					"type": "object",
-					"additionalProperties": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	},
-	"updateSchema": {
-		"body": {
-			"type": "object",
-			"required": ["action"],
-			"properties": {
-				"action": {
-					"type": "string",
-					"enum": ["add", "update", "export", "delete"]
-				}
-			},
-			"oneOf": [
-				{
-					"properties": {
-						"action": {
-							"const": "add"
-						}
-					}
-				},
-				{
-					"required": ["oldStatus", "newStatus"],
-					"properties": {
-						"action": {
-							"const": "update"
-						},
-						"oldStatus": {
-							"type": "string"
-						},
-						"newStatus": {
-							"type": "string"
-						}
-					}
-				},
-				{
-					"properties": {
-						"action": {
-							"const": "export"
-						},
-						"status": {
-							"type": "string"
-						}
-					}
-				},
-				{
-					"properties": {
-						"action": {
-							"const": "delete"
-						}
-					}
-				}
-			]
-		}
-	}
+  "createSchema": {
+    "body": {
+      "type": "object",
+      "required": ["description", "type"],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "updateSchema": {
+    "body": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["add", "update", "export", "delete"]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "action": {
+              "const": "add"
+            }
+          }
+        },
+        {
+          "required": ["oldStatus", "newStatus"],
+          "properties": {
+            "action": {
+              "const": "update"
+            },
+            "oldStatus": {
+              "type": "string"
+            },
+            "newStatus": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "properties": {
+            "action": {
+              "const": "export"
+            },
+            "status": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "properties": {
+            "action": {
+              "const": "delete"
+            }
+          }
+        }
+      ]
+    }
+  }
 }

@@ -1,34 +1,40 @@
-import { Column, CreateDateColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import type Member from './Member';
+import {
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from "typeorm";
+import type Member from "./Member";
 
 export default abstract class Payment {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@ManyToOne('Member', {nullable: true})
-	member?: Member
+  @ManyToOne("Member", { nullable: true })
+  member?: Member;
 
-	@Column()
-	status!: string
+  @Column()
+  status!: string;
 
-	@Column()
-	description!: string
+  @Column()
+  description!: string;
 
-	@Column({type: 'real'})
-	amount!: number
+  @Column({ type: "real" })
+  amount!: number;
 
-	@Column({type: 'real', nullable: true})
-	amountRefunded!: number
+  @Column({ type: "real", nullable: true })
+  amountRefunded!: number;
 
-	@Column({type: 'date'})
-	chargeDate!: Date
+  @Column({ type: "date" })
+  chargeDate!: Date;
 
-	@CreateDateColumn()
-	createdAt!: Date
+  @CreateDateColumn()
+  createdAt!: Date;
 
-	@UpdateDateColumn()
-	updatedAt!: Date
+  @UpdateDateColumn()
+  updatedAt!: Date;
 
-	abstract get isPending(): boolean
-	abstract get isSuccessful(): boolean
+  abstract get isPending(): boolean;
+  abstract get isSuccessful(): boolean;
 }

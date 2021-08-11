@@ -1,21 +1,26 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn
+} from "typeorm";
 
-import JoinForm from './JoinForm';
+import JoinForm from "./JoinForm";
 
 @Entity()
 export default class JoinFlow {
-    @PrimaryGeneratedColumn('uuid')
-    id!: string;
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-    @CreateDateColumn()
-    date!: Date;
+  @CreateDateColumn()
+  date!: Date;
 
-    @Column()
-    redirectFlowId!: string;
+  @Column()
+  redirectFlowId!: string;
 
-    @Column()
-    sessionToken!: string;
+  @Column()
+  sessionToken!: string;
 
-    @Column(() => JoinForm)
-    joinForm!: JoinForm;
+  @Column(() => JoinForm)
+  joinForm!: JoinForm;
 }

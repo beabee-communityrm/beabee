@@ -1,18 +1,24 @@
-import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import Export from './Export';
+import {
+  Column,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn
+} from "typeorm";
+import Export from "./Export";
 
 @Entity()
-@Index(['export', 'itemId'], {unique: true})
+@Index(["export", "itemId"], { unique: true })
 export default class ExportItem {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
   @ManyToOne(() => Export)
-  export!: Export
+  export!: Export;
 
   @Column()
-  itemId!: string
+  itemId!: string;
 
   @Column()
-  status!: string
+  status!: string;
 }

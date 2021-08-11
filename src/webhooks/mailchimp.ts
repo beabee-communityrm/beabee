@@ -1,185 +1,209 @@
-import bodyParser from 'body-parser';
-import express from 'express';
+import bodyParser from "body-parser";
+import express from "express";
 
-import { log as mainLogger } from '@core/logging';
-import { cleanEmailAddress, ContributionType, wrapAsync } from '@core/utils';
+import { log as mainLogger } from "@core/logging";
+import { cleanEmailAddress, ContributionType, wrapAsync } from "@core/utils";
 
-import MembersService from '@core/services/MembersService';
-import NewsletterService from '@core/services/NewsletterService';
+import MembersService from "@core/services/MembersService";
+import NewsletterService from "@core/services/NewsletterService";
 
-import { NewsletterStatus } from '@core/providers/newsletter';
+import { NewsletterStatus } from "@core/providers/newsletter";
 
-import config from '@config';
+import config from "@config";
 
-const log = mainLogger.child({app: 'webhook-mailchimp'});
+const log = mainLogger.child({ app: "webhook-mailchimp" });
 
 const app = express();
 
 interface MCProfileData {
-	email: string
-	merges: {
-		FNAME: string
-		LNAME: string
-		[key: string]: string
-	}
+  email: string;
+  merges: {
+    FNAME: string;
+    LNAME: string;
+    [key: string]: string;
+  };
 }
 
 interface MCUpdateEmailData {
-	new_email: string
-	old_email: string
+  new_email: string;
+  old_email: string;
 }
 
 interface MCProfileWebhook {
-	type: 'subscribe'|'unsubscribe'|'profile'
-	data: MCProfileData
+  type: "subscribe" | "unsubscribe" | "profile";
+  data: MCProfileData;
 }
 
 interface MCUpdateEmailWebhook {
-	type: 'upemail'
-	data: MCUpdateEmailData
+  type: "upemail";
+  data: MCUpdateEmailData;
 }
 
-type MCWebhook = MCProfileWebhook|MCUpdateEmailWebhook;
+type MCWebhook = MCProfileWebhook | MCUpdateEmailWebhook;
 
 app.use((req, res, next) => {
-	if (req.query['secret'] === (config.newsletter.settings as any).webhook_secret) {
-		next();
-	} else {
-		res.sendStatus(404);
-	}
+  if (
+    req.query["secret"] === (config.newsletter.settings as any).webhook_secret
+  ) {
+    next();
+  } else {
+    res.sendStatus(404);
+  }
 });
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Mailchimp pings this endpoint when you first add the webhook
-app.get('/', (req, res) => {
-	res.sendStatus(200);
+app.get("/", (req, res) => {
+  res.sendStatus(200);
 });
 
-app.post('/', wrapAsync(async (req, res) => {
-	const body = req.body as MCWebhook;
+app.post(
+  "/",
+  wrapAsync(async (req, res) => {
+    const body = req.body as MCWebhook;
 
-	log.info({
-		action: 'got-webhook',
-		data: {type: body.type}
-	});
+    log.info({
+      action: "got-webhook",
+      data: { type: body.type }
+    });
 
-	switch (body.type) {
-	case 'upemail':
-		await handleUpdateEmail(body.data);
-		break;
+    switch (body.type) {
+      case "upemail":
+        await handleUpdateEmail(body.data);
+        break;
 
-	case 'subscribe':
-		await handleSubscribe(body.data);
-		break;
+      case "subscribe":
+        await handleSubscribe(body.data);
+        break;
 
-	case 'unsubscribe':
-		await handleUnsubscribe(body.data);
-		break;
+      case "unsubscribe":
+        await handleUnsubscribe(body.data);
+        break;
 
-	case 'profile':
-		// Make MailChimp resend the webhook if we don't find a member
-		// it's probably because the upemail and profile webhooks
-		// arrived out of order
-		// TODO: add checks for repeated failure
-		if (!await handleUpdateProfile(body.data)) {
-			return res.sendStatus(404);
-		}
-		break;
-	}
+      case "profile":
+        // Make MailChimp resend the webhook if we don't find a member
+        // it's probably because the upemail and profile webhooks
+        // arrived out of order
+        // TODO: add checks for repeated failure
+        if (!(await handleUpdateProfile(body.data))) {
+          return res.sendStatus(404);
+        }
+        break;
+    }
 
-	res.sendStatus(200);
-}));
+    res.sendStatus(200);
+  })
+);
 
 async function handleUpdateEmail(data: MCUpdateEmailData) {
-	const oldEmail = cleanEmailAddress(data.old_email);
-	const newEmail = cleanEmailAddress(data.new_email);
+  const oldEmail = cleanEmailAddress(data.old_email);
+  const newEmail = cleanEmailAddress(data.new_email);
 
-	log.info({
-		action: 'update-email',
-		data: {oldEmail, newEmail}
-	});
+  log.info({
+    action: "update-email",
+    data: { oldEmail, newEmail }
+  });
 
-	const member = await MembersService.findOne({email: oldEmail});
-	if (member) {
-		await MembersService.updateMember(member, {email: newEmail}, {noSync: true});
-	} else {
-		log.error({
-			action: 'update-email-not-found',
-			data
-		}, 'Old email not found in Mailchimp update email hook');
-	}
+  const member = await MembersService.findOne({ email: oldEmail });
+  if (member) {
+    await MembersService.updateMember(
+      member,
+      { email: newEmail },
+      { noSync: true }
+    );
+  } else {
+    log.error(
+      {
+        action: "update-email-not-found",
+        data
+      },
+      "Old email not found in Mailchimp update email hook"
+    );
+  }
 }
 
 async function handleSubscribe(data: MCProfileData) {
-	const email = cleanEmailAddress(data.email);
+  const email = cleanEmailAddress(data.email);
 
-	log.info({
-		action: 'subscribe',
-		data: {email}
-	});
+  log.info({
+    action: "subscribe",
+    data: { email }
+  });
 
-	const member = await MembersService.findOne({email});
-	if (member) {
-		await MembersService.updateMemberProfile(member, {
-			newsletterStatus: NewsletterStatus.Subscribed
-		}, {noSync: true});
-	} else {
-		const member = await MembersService.createMember({
-			email,
-			firstname: data.merges.FNAME,
-			lastname: data.merges.LNAME,
-			contributionType: ContributionType.None
-		}, {
-			newsletterStatus: NewsletterStatus.Subscribed,
-			// TODO: newsletterGroups: data.
-		}, {noSync: true});
-		// Sync merge fields etc.
-		await NewsletterService.updateMembers([member]);
-	}
+  const member = await MembersService.findOne({ email });
+  if (member) {
+    await MembersService.updateMemberProfile(
+      member,
+      {
+        newsletterStatus: NewsletterStatus.Subscribed
+      },
+      { noSync: true }
+    );
+  } else {
+    const member = await MembersService.createMember(
+      {
+        email,
+        firstname: data.merges.FNAME,
+        lastname: data.merges.LNAME,
+        contributionType: ContributionType.None
+      },
+      {
+        newsletterStatus: NewsletterStatus.Subscribed
+        // TODO: newsletterGroups: data.
+      },
+      { noSync: true }
+    );
+    // Sync merge fields etc.
+    await NewsletterService.updateMembers([member]);
+  }
 }
 
 async function handleUnsubscribe(data: MCProfileData) {
-	const email = cleanEmailAddress(data.email);
+  const email = cleanEmailAddress(data.email);
 
-	log.info({
-		action: 'unsubscribe',
-		data: {email}
-	});
+  log.info({
+    action: "unsubscribe",
+    data: { email }
+  });
 
-	const member = await MembersService.findOne({email});
-	if (member) {
-		await MembersService.updateMemberProfile(member, {
-			newsletterStatus: NewsletterStatus.Unsubscribed
-		}, {noSync: true});
-	}
+  const member = await MembersService.findOne({ email });
+  if (member) {
+    await MembersService.updateMemberProfile(
+      member,
+      {
+        newsletterStatus: NewsletterStatus.Unsubscribed
+      },
+      { noSync: true }
+    );
+  }
 }
 
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
-	const email = cleanEmailAddress(data.email);
+  const email = cleanEmailAddress(data.email);
 
-	log.info({
-		action: 'update-profile',
-		data: {email}
-	});
+  log.info({
+    action: "update-profile",
+    data: { email }
+  });
 
-	const member = await MembersService.findOne({email});
-	if (member) {
-		// noSync = false to overwrite any other changes (most merge fields shouldn't be changed)
-		await MembersService.updateMember(member, {
-			email,
-			firstname: data.merges.FNAME,
-			lastname: data.merges.LNAME
-		});
-		// TODO: update groups?
-		return true;
-	} else {
-		log.info({
-			action: 'update-profile-not-found'
-		});
-		return false;
-	}
+  const member = await MembersService.findOne({ email });
+  if (member) {
+    // noSync = false to overwrite any other changes (most merge fields shouldn't be changed)
+    await MembersService.updateMember(member, {
+      email,
+      firstname: data.merges.FNAME,
+      lastname: data.merges.LNAME
+    });
+    // TODO: update groups?
+    return true;
+  } else {
+    log.info({
+      action: "update-profile-not-found"
+    });
+    return false;
+  }
 }
 
 export default app;

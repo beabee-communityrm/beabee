@@ -1,54 +1,54 @@
 {
-	"createPollSchema": {
-		"body": {
-			"type": "object",
-			"required": ["title", "slug", "closed", "template"],
-			"properties": {
-				"title": {
-					"type": "string"
-				},
-				"slug": {
-					"type": "string"
-				},
-				"template": {
-					"type": "string",
-					"enum": ["custom", "builder", "ballot"]
-				},
-				"closed": {
-					"type": "boolean"
-				},
-				"public": {
-					"type": "boolean"
-				},
-				"hidden": {
-					"type": "boolean"
-				},
-				"mcMergeField": {
-					"type": "string"
-				},
-				"pollMergeField": {
-					"type": "string"
-				},
-				"allowUpdate": {
-					"type": "boolean"
-				},
-				"startsDate": {
-					"type": "string",
-					"format": "date"
-				},
-				"startsTime": {
-					"type": "string",
-					"format": "time2"
-				},
-				"expiresDate": {
-					"type": "string",
-					"format": "date"
-				},
-				"expiresTime": {
-					"type": "string",
-					"format": "time2"
-				}
-			}
-		}
-	}
+  "createPollSchema": {
+    "body": {
+      "type": "object",
+      "required": ["title", "slug", "closed", "template"],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "template": {
+          "type": "string",
+          "enum": ["custom", "builder", "ballot"]
+        },
+        "closed": {
+          "type": "boolean"
+        },
+        "public": {
+          "type": "boolean"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "mcMergeField": {
+          "type": "string"
+        },
+        "pollMergeField": {
+          "type": "string"
+        },
+        "allowUpdate": {
+          "type": "boolean"
+        },
+        "startsDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "startsTime": {
+          "type": "string",
+          "format": "time2"
+        },
+        "expiresDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "expiresTime": {
+          "type": "string",
+          "format": "time2"
+        }
+      }
+    }
+  }
 }
