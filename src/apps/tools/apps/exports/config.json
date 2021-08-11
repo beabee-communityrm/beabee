@@ -1,9 +1,7 @@
 {
-	"title": "Exports",
-	"path": "exports",
-	"permissions": [
-		"superadmin", "admin"
-	],
-	"menu": "main",
-	"priority": 3
+  "title": "Exports",
+  "path": "exports",
+  "permissions": ["superadmin", "admin"],
+  "menu": "main",
+  "priority": 3
 }

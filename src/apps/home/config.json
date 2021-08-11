@@ -1,8 +1,6 @@
 {
-	"title": "",
-	"path": "",
-	"permissions": [
-		"loggedOut"
-	],
-	"menu": "none"
+  "title": "",
+  "path": "",
+  "permissions": ["loggedOut"],
+  "menu": "none"
 }

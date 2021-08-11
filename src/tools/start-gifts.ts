@@ -1,63 +1,63 @@
-import 'module-alias/register';
+import "module-alias/register";
 
-import moment from 'moment';
-import { Between, getRepository } from 'typeorm';
+import moment from "moment";
+import { Between, getRepository } from "typeorm";
 
-import * as db from '@core/database';
-import { log } from '@core/logging';
+import * as db from "@core/database";
+import { log } from "@core/logging";
 
-import GiftService from '@core/services/GiftService';
+import GiftService from "@core/services/GiftService";
 
-import GiftFlow from '@models/GiftFlow';
+import GiftFlow from "@models/GiftFlow";
 
-async function main(date: string|undefined) {
-	const fromDate = moment.utc(date).startOf('day');
-	const toDate = moment.utc(date).endOf('day');
+async function main(date: string | undefined) {
+  const fromDate = moment.utc(date).startOf("day");
+  const toDate = moment.utc(date).endOf("day");
 
-	log.info({
-		app: 'start-gifts',
-		action: 'begin',
-		message: `Processing gifts between ${fromDate.format()} and ${toDate.format()}`
-	});
+  log.info({
+    app: "start-gifts",
+    action: "begin",
+    message: `Processing gifts between ${fromDate.format()} and ${toDate.format()}`
+  });
 
-	const giftFlows = await getRepository(GiftFlow).find({
-		where: {
-			giftForm: {startDate: Between(fromDate.toDate(), toDate.toDate())},
-			completed: true,
-			processed: false
-		}
-	});
+  const giftFlows = await getRepository(GiftFlow).find({
+    where: {
+      giftForm: { startDate: Between(fromDate.toDate(), toDate.toDate()) },
+      completed: true,
+      processed: false
+    }
+  });
 
-	log.info({
-		app: 'start-gifts',
-		action: 'got-gifts',
-		message: `Got ${giftFlows.length} gifts`
-	});
+  log.info({
+    app: "start-gifts",
+    action: "got-gifts",
+    message: `Got ${giftFlows.length} gifts`
+  });
 
-	for (const giftFlow of giftFlows) {
-		log.info( {
-			app: 'start-gifts',
-			action: 'process-gift',
-			giftFlowId: giftFlow.id
-		} );
+  for (const giftFlow of giftFlows) {
+    log.info({
+      app: "start-gifts",
+      action: "process-gift",
+      giftFlowId: giftFlow.id
+    });
 
-		try {
-			await GiftService.processGiftFlow(giftFlow);
-		} catch (error) {
-			log.error( {
-				app: 'start-gifts',
-				action: 'process-gift-error',
-				error
-			} );
-		}
-	}
+    try {
+      await GiftService.processGiftFlow(giftFlow);
+    } catch (error) {
+      log.error({
+        app: "start-gifts",
+        action: "process-gift-error",
+        error
+      });
+    }
+  }
 }
 
 db.connect().then(async () => {
-	try {
-		await main(process.argv[2]);
-	} catch (err) {
-		console.error(err);
-	}
-	await db.close();
+  try {
+    await main(process.argv[2]);
+  } catch (err) {
+    console.error(err);
+  }
+  await db.close();
 });

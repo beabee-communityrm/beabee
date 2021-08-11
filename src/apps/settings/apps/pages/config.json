@@ -1,9 +1,7 @@
 {
-	"title": "Pages",
-	"path": "pages",
-	"permissions": [
-		"superadmin", "admin"
-	],
-	"menu": "main",
-	"priority": 3
+  "title": "Pages",
+  "path": "pages",
+  "permissions": ["superadmin", "admin"],
+  "menu": "main",
+  "priority": 3
 }

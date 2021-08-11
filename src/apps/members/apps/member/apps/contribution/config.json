@@ -1,8 +1,6 @@
 {
   "title": "Contribution",
   "path": "contribution",
-  "permissions": [
-    "superadmin"
-  ],
+  "permissions": ["superadmin"],
   "hidden": true
 }

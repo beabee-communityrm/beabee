@@ -1,87 +1,95 @@
 {
-	"createGiftSchema": {
-		"body": {
-			"type": "object",
-			"required": ["firstname", "lastname", "email", "startDate", "fromName", "fromEmail", "months"],
-			"properties": {
-				"firstname": {
-					"type": "string"
-				},
-				"lastname": {
-					"type": "string"
-				},
-				"email": {
-					"type": "string",
-					"format": "email"
-				},
-				"startDate": {
-					"type": "string",
-					"format": "date"
-				},
-				"message": {
-					"type": "string"
-				},
-				"fromName": {
-					"type": "string"
-				},
-				"fromEmail": {
-					"type": "string",
-					"format": "email"
-				},
-				"months": {
-					"type": "number",
-					"enum": [12]
-				}
-			}
-		}
-	},
-	"updateGiftAddressSchema": {
-		"body": {
-			"type": "object",
-			"required": ["giftAddress"],
-			"properties": {
-				"giftAddress": {
-					"type": "object",
-					"required": ["line1", "city", "postcode"],
-					"properties": {
-						"line1": {
-							"type": "string"
-						},
-						"line2": {
-							"type": "string"
-						},
-						"city": {
-							"type": "string"
-						},
-						"postcode": {
-							"type": "string",
-							"format": "postcode"
-						}
-					}
-				},
-				"sameAddress": {
-					"type": "boolean"
-				},
-				"deliveryAddress": {
-					"type": "object",
-					"required": ["line1", "city", "postcode"],
-					"properties": {
-						"line1": {
-							"type": "string"
-						},
-						"line2": {
-							"type": "string"
-						},
-						"city": {
-							"type": "string"
-						},
-						"postcode": {
-							"type": "string",
-							"format": "postcode"
-						}
-					}
-				}
-			}
-		}
-	}
+  "createGiftSchema": {
+    "body": {
+      "type": "object",
+      "required": [
+        "firstname",
+        "lastname",
+        "email",
+        "startDate",
+        "fromName",
+        "fromEmail",
+        "months"
+      ],
+      "properties": {
+        "firstname": {
+          "type": "string"
+        },
+        "lastname": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "message": {
+          "type": "string"
+        },
+        "fromName": {
+          "type": "string"
+        },
+        "fromEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "months": {
+          "type": "number",
+          "enum": [12]
+        }
+      }
+    }
+  },
+  "updateGiftAddressSchema": {
+    "body": {
+      "type": "object",
+      "required": ["giftAddress"],
+      "properties": {
+        "giftAddress": {
+          "type": "object",
+          "required": ["line1", "city", "postcode"],
+          "properties": {
+            "line1": {
+              "type": "string"
+            },
+            "line2": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "postcode": {
+              "type": "string",
+              "format": "postcode"
+            }
+          }
+        },
+        "sameAddress": {
+          "type": "boolean"
+        },
+        "deliveryAddress": {
+          "type": "object",
+          "required": ["line1", "city", "postcode"],
+          "properties": {
+            "line1": {
+              "type": "string"
+            },
+            "line2": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "postcode": {
+              "type": "string",
+              "format": "postcode"
+            }
+          }
+        }
+      }
+    }
+  }
 }

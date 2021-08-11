@@ -3,4 +3,4 @@ export default interface Address {
   line2?: string;
   city: string;
   postcode: string;
-};
+}
