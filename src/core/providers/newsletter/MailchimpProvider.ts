@@ -14,13 +14,9 @@ import {
   PartialNewsletterMember
 } from ".";
 
-const log = mainLogger.child({ app: "newsletter-service" });
+import { MailchimpNewsletterConfig } from "@config";
 
-interface MailchimpConfig {
-  apiKey: string;
-  datacenter: string;
-  listId: string;
-}
+const log = mainLogger.child({ app: "newsletter-service" });
 
 interface Batch {
   id: string;
@@ -65,12 +61,12 @@ interface GetMembersResponse {
   members: MCMember[];
 }
 
-function createInstance(config: MailchimpConfig) {
+function createInstance(settings: MailchimpNewsletterConfig["settings"]) {
   const instance = axios.create({
-    baseURL: `https://${config.datacenter}.api.mailchimp.com/3.0/`,
+    baseURL: `https://${settings.datacenter}.api.mailchimp.com/3.0/`,
     auth: {
       username: "user",
-      password: config.apiKey
+      password: settings.apiKey
     }
   });
 
@@ -162,9 +158,9 @@ export default class MailchimpProvider implements NewsletterProvider {
   private readonly instance;
   private readonly listId;
 
-  constructor(config: MailchimpConfig) {
-    this.instance = createInstance(config);
-    this.listId = config.listId;
+  constructor(settings: MailchimpNewsletterConfig["settings"]) {
+    this.instance = createInstance(settings);
+    this.listId = settings.listId;
   }
 
   async addTagToMembers(emails: string[], tag: string): Promise<void> {

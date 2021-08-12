@@ -1,6 +1,5 @@
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
-import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
@@ -14,16 +13,15 @@ import {
   EmailRecipient,
   EmailTemplate
 } from ".";
+import { SMTPEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "smtp-email-provider" });
 
 export default class SMTPProvider implements EmailProvider {
   private readonly client: Mail;
 
-  constructor(settings: unknown) {
-    this.client = nodemailer.createTransport(
-      settings as unknown as SMTPTransport
-    );
+  constructor(settings: SMTPEmailConfig["settings"]) {
+    this.client = nodemailer.createTransport(settings);
   }
 
   async sendEmail(
