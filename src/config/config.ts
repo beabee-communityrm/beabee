@@ -58,10 +58,10 @@ export default {
   newsletter: {
     provider: "mailchimp",
     settings: {
-      api_key: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY", ""),
+      apiKey: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY", ""),
       datacenter: env.s("BEABEE_NEWSLETTER_SETTINGS_DATACENTER", ""),
-      list_id: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID", ""),
-      webhook_secret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", "")
+      listId: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID", ""),
+      webhookSecret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", "")
     }
   },
   gocardless: {
