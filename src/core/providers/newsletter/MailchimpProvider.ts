@@ -17,9 +17,9 @@ import {
 const log = mainLogger.child({ app: "newsletter-service" });
 
 interface MailchimpConfig {
-  api_key: string;
+  apiKey: string;
   datacenter: string;
-  list_id: string;
+  listId: string;
 }
 
 interface Batch {
@@ -70,7 +70,7 @@ function createInstance(config: MailchimpConfig) {
     baseURL: `https://${config.datacenter}.api.mailchimp.com/3.0/`,
     auth: {
       username: "user",
-      password: config.api_key
+      password: config.apiKey
     }
   });
 
@@ -164,7 +164,7 @@ export default class MailchimpProvider implements NewsletterProvider {
 
   constructor(config: MailchimpConfig) {
     this.instance = createInstance(config);
-    this.listId = config.list_id;
+    this.listId = config.listId;
   }
 
   async addTagToMembers(emails: string[], tag: string): Promise<void> {
