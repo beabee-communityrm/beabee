@@ -34,12 +34,10 @@ You need:
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
-The example config files are enough to look around the system, but you'll
-need to create a sandbox GoCardless account to do any payment flows.
+The example env var file is enough to look around the system, but you'll need to
+create a sandbox GoCardless account to do any payment flows.
 
 ```bash
-# Copy config files (there are currently two as we migrate to .env)
-cp src/config/example-config.json src/config/config.json
 cp .env.example .env
 
 npm install

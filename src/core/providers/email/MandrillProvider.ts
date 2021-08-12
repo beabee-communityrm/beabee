@@ -12,12 +12,9 @@ import {
   EmailRecipient,
   EmailTemplate
 } from ".";
+import { MandrillEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "mandrill-email-provider" });
-
-interface MandrillConfig {
-  api_key: string;
-}
 
 interface MandrillTemplate {
   slug: string;
@@ -36,8 +33,8 @@ interface MandrillMessage {
 export default class MandrillProvider implements EmailProvider {
   private readonly client: any;
 
-  constructor(settings: any) {
-    this.client = new mandrill.Mandrill((settings as MandrillConfig).api_key);
+  constructor(settings: MandrillEmailConfig["settings"]) {
+    this.client = new mandrill.Mandrill(settings.apiKey);
   }
 
   async sendEmail(

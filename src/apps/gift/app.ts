@@ -77,7 +77,7 @@ function schemaToAddresses(data: UpdateGiftAddressSchema): {
 app.set("views", __dirname + "/views");
 
 app.get("/", (req, res) => {
-  res.render("index", { stripePublicKey: config.stripe.public_key });
+  res.render("index", { stripePublicKey: config.stripe.publicKey });
 });
 
 app.post(

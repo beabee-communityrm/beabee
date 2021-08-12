@@ -22,7 +22,7 @@
       "*": ["./node_modules/*"],
       "@core/*": ["./src/core/*"],
       "@apps/*": ["./src/apps/*"],
-      "@config": ["./src/config/config.json"],
+      "@config": ["./src/config/config"],
       "@models/*": ["./src/models/*"]
     },
     "resolveJsonModule": true,
