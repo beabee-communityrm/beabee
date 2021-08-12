@@ -27,9 +27,6 @@ export function b(name: string, def?: boolean): boolean {
   return value === "true";
 }
 
-const a = ["a", "b"] as const;
-type A = typeof a[number];
-
 export function e<T extends readonly string[]>(
   name: string,
   options: T,
