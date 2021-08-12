@@ -5,7 +5,6 @@ RUN apk add --no-cache python make g++ git
 COPY . /opt/membership-system
 
 WORKDIR /opt/membership-system
-RUN cp ./src/config/example-config.json ./src/config/config.json
 RUN npm ci
 RUN NODE_ENV=production npm run build
 RUN npm ci --only=production
