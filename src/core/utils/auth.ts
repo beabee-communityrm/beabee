@@ -77,11 +77,11 @@ export function hashPassword(
 // Utility function generates a salt and hash from a plain text password
 export async function generatePassword(password: string): Promise<Password> {
   const salt = await generateSalt();
-  const hash = await hashPassword(password, salt, config.iterations);
+  const hash = await hashPassword(password, salt, config.passwordIterations);
   return {
     salt,
     hash,
-    iterations: config.iterations,
+    iterations: config.passwordIterations,
     tries: 0
   };
 }

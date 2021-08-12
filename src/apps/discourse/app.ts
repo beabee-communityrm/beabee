@@ -9,7 +9,7 @@ import { hasUser, wrapAsync } from "@core/utils";
 
 import ProjectMember from "@models/ProjectMember";
 
-const sso = new DiscourseSSO(config.discourse.sso_secret);
+const sso = new DiscourseSSO(config.discourse.ssoSecret);
 
 const app = express();
 
