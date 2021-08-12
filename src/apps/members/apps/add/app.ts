@@ -12,6 +12,9 @@ import {
 
 import GCPaymentService from "@core/services/GCPaymentService";
 import MembersService from "@core/services/MembersService";
+import OptionsService from "@core/services/OptionsService";
+
+import { NewsletterStatus } from "@core/providers/newsletter";
 
 import ManualPaymentData from "@models/ManualPaymentData";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
@@ -29,6 +32,7 @@ interface BaseAddContactSchema {
     expiryDate?: string;
     expiryTime?: string;
   }[];
+  addToNewsletter?: boolean;
   addAnother?: boolean;
 }
 
@@ -83,17 +87,25 @@ app.post(
         })
       ) || [];
 
-    // TODO: option for newsletter subscribe
-
     let member;
     try {
-      member = await MembersService.createMember({
-        firstname: data.firstname,
-        lastname: data.lastname,
-        email: data.email,
-        contributionType: data.type,
-        permissions
-      });
+      member = await MembersService.createMember(
+        {
+          firstname: data.firstname,
+          lastname: data.lastname,
+          email: data.email,
+          contributionType: data.type,
+          permissions
+        },
+        data.addToNewsletter
+          ? {
+              newsletterStatus: NewsletterStatus.Subscribed,
+              newsletterGroups: OptionsService.getList(
+                "newsletter-default-groups"
+              )
+            }
+          : undefined
+      );
     } catch (error) {
       if (isDuplicateIndex(error, "email")) {
         req.flash("danger", "email-duplicate");

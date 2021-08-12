@@ -15,6 +15,12 @@ block contents
 				+input( 'text', 'Last name', 'lastname', { required: true, left: 3, right: 6 } )
 				+input( 'text', 'Email address', 'email', { required: true, left: 3, right: 6 } )
 
+				+input( 'checkbox', 'Add to newsletter list', 'addToNewsletter', {
+					left: 3, right: 4,
+					options: {'true': 'Yes'},
+					value: true
+				})
+
 				.form-group
 					label.col-md-3.control-label Contribution type
 					.col-md-6
