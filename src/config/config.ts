@@ -113,7 +113,7 @@ export default {
   },
   logSlack: env.s("BEABEE_LOGSLACK_LEVEL", "") && {
     level: env.s("BEABEE_LOGSLACK_LEVEL"),
-    webhookUrl: env.s("BEABEE_LOGSKAC_WEBHOOKURL"),
+    webhookUrl: env.s("BEABEE_LOGSLACK_WEBHOOKURL"),
     channel: env.s("BEABEE_LOGSLACK_CHANNEL"),
     username: env.s("BEABEE_LOGSLACK_USERNAME")
   },
