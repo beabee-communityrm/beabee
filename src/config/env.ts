@@ -26,3 +26,16 @@ export function b(name: string, def?: boolean): boolean {
   assert(value === "true" || value === "false");
   return value === "true";
 }
+
+const a = ["a", "b"] as const;
+type A = typeof a[number];
+
+export function e<T extends readonly string[]>(
+  name: string,
+  options: T,
+  def?: typeof options[number]
+): typeof options[number] {
+  const value = s(name, def);
+  assert(options.indexOf(value) !== -1);
+  return value;
+}

@@ -1,6 +1,6 @@
 import * as env from "./env";
 
-interface SMTPEmail {
+export interface SMTPEmailConfig {
   provider: "smtp";
   settings: {
     host: string;
@@ -12,14 +12,42 @@ interface SMTPEmail {
   };
 }
 
-interface MandrillEmail {
+export interface MandrillEmailConfig {
   provider: "mandrill";
   settings: {
     apiKey: string;
   };
 }
 
-type Email = SMTPEmail | MandrillEmail;
+type EmailConfig = SMTPEmailConfig | MandrillEmailConfig;
+
+const emailProvider = env.e("BEABEE_EMAIL_PROVIDER", [
+  "mandrill",
+  "smtp"
+] as const);
+
+export interface MailchimpNewsletterConfig {
+  provider: "mailchimp";
+  settings: {
+    apiKey: string;
+    datacenter: string;
+    listId: string;
+    webhookSecret: string;
+  };
+}
+
+interface NoneNewsletterConfig {
+  provider: "none";
+  settings: null;
+}
+
+type NewsletterConfig = MailchimpNewsletterConfig | NoneNewsletterConfig;
+
+const newsletterProvider = env.e(
+  "BEABEE_NEWSLETTER_PROVIDER",
+  ["mailchimp", "none"] as const,
+  "none"
+);
 
 export default {
   audience: env.s("BEABEE_AUDIENCE"),
@@ -39,31 +67,33 @@ export default {
     ssoSecret: env.s("BEABEE_DISCOURSE_SSOSECRET", "")
   },
   email: {
-    provider: "smtp",
-    settings: {
-      host: "mail",
-      port: 1025,
-      auth: {
-        user: "dev",
-        pass: "dev"
-      }
-    }
-  } as Email,
-  _email: {
-    provider: "mandrill",
-    settings: {
-      apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY", "")
-    }
-  } as Email,
+    provider: emailProvider,
+    settings:
+      emailProvider === "smtp"
+        ? {
+            host: env.s("BEABEE_EMAIL_SETTINGS_HOST"),
+            port: env.s("BEABEE_EMAIL_SETTINGS_PORT"),
+            auth: {
+              user: env.s("BEABEE_EMAIL_SETTINGS_AUTH_USER"),
+              pass: env.s("BEABEE_EMAIL_SETTINGS_AUTH_PASS")
+            }
+          }
+        : {
+            apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY")
+          }
+  } as EmailConfig,
   newsletter: {
-    provider: "mailchimp",
-    settings: {
-      apiKey: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY", ""),
-      datacenter: env.s("BEABEE_NEWSLETTER_SETTINGS_DATACENTER", ""),
-      listId: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID", ""),
-      webhookSecret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", "")
-    }
-  },
+    provider: newsletterProvider,
+    settings:
+      newsletterProvider === "mailchimp"
+        ? {
+            apiKey: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY", ""),
+            datacenter: env.s("BEABEE_NEWSLETTER_SETTINGS_DATACENTER", ""),
+            listId: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID", ""),
+            webhookSecret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", "")
+          }
+        : null
+  } as NewsletterConfig,
   gocardless: {
     accessToken: env.s("BEABEE_GOCARDLESS_ACCESSTOKEN", ""),
     secret: env.s("BEABEE_GOCARDLESS_SECRET", ""),
