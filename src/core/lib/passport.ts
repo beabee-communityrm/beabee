@@ -26,7 +26,7 @@ passport.use(
       if (user) {
         const tries = user.password.tries || 0;
         // Has account exceeded it's password tries?
-        if (tries >= config["password-tries"]) {
+        if (tries >= config.passwordTries) {
           return done(null, false, { message: "account-locked" });
         }
 
@@ -59,7 +59,7 @@ passport.use(
             });
           }
 
-          if (user.password.iterations < config.iterations) {
+          if (user.password.iterations < config.passwordIterations) {
             await MembersService.updateMember(user, {
               password: await generatePassword(password)
             });

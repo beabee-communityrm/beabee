@@ -25,7 +25,7 @@ app.post(
       const evt = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        config.stripe.webhook_secret
+        config.stripe.webhookSecret
       );
 
       log.info(

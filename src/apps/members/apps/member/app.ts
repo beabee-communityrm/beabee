@@ -51,7 +51,7 @@ app.get(
     res.render("index", {
       member,
       availableTags,
-      password_tries: config["password-tries"]
+      password_tries: config.passwordTries
     });
   })
 );
