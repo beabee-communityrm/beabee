@@ -36,7 +36,6 @@ jobs:
         with:
           node-version: 12.16.3
       - run: npm ci
-      - run: cp src/config/example-config.json src/config/config.json
       - run: npm run checkDependencies
 
   push:
