@@ -3,7 +3,7 @@ import { Stream } from "bunyan";
 
 import bunyan, { LogLevelString } from "bunyan";
 import bunyanMiddleware from "bunyan-middleware";
-import BunyanSlack, { BunyanSlackOptions } from "bunyan-slack";
+import BunyanSlack from "bunyan-slack";
 
 import crypto from "crypto";
 import { Express, NextFunction, Request, Response } from "express";
@@ -33,15 +33,12 @@ const reqConfig = {
   ] as Stream[]
 };
 
-const logSlack = (
-  config as unknown as {
-    logSlack?: Omit<BunyanSlackOptions, "customFormatter">;
-  }
-).logSlack;
-
-if (logSlack) {
+if (config.logSlack) {
   const stream = new BunyanSlack({
-    ...logSlack,
+    level: config.logSlack.level as LogLevelString,
+    webhook_url: config.logSlack.webhookUrl,
+    channel: config.logSlack.channel,
+    username: config.logSlack.username,
     customFormatter(record, levelName) {
       const msgPrefix =
         (config.dev ? "[DEV] " : "") + `[${levelName.toUpperCase()}] `;
@@ -64,11 +61,11 @@ if (logSlack) {
     }
   });
   mainConfig.streams.push({
-    level: logSlack.level,
+    level: config.logSlack.level as LogLevelString,
     stream
   });
   reqConfig.streams.push({
-    level: logSlack.level,
+    level: config.logSlack.level as LogLevelString,
     stream
   });
 }
