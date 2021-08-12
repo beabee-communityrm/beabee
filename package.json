@@ -36,6 +36,7 @@
     "express": "^4.17.1",
     "express-flash": "0.0.2",
     "express-session": "^1.17.1",
+    "express-winston": "^4.1.0",
     "flat": "^5.0.2",
     "gocardless-nodejs": "^1.4.1",
     "gunzip-maybe": "^1.4.2",
@@ -63,7 +64,8 @@
     "tar-stream": "^2.1.4",
     "thirty-two": "github:chrisumbel/thirty-two#704e9e014ff36e9f40bdf60818be647266ebc413",
     "typeorm": "^0.2.29",
-    "uuid": "^8.3.1"
+    "uuid": "^8.3.1",
+    "winston": "^3.3.3"
   },
   "scripts": {
     "start": "npm run build && docker-compose restart && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
