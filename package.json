@@ -137,7 +137,7 @@
   "_moduleAliases": {
     "@core": "./built/core",
     "@apps": "./built/apps",
-    "@config": "./built/config/config.json",
+    "@config": "./built/config/config.js",
     "@models": "./built/models"
   }
 }
