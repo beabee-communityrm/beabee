@@ -43,7 +43,8 @@ type MCWebhook = MCProfileWebhook | MCUpdateEmailWebhook;
 
 app.use((req, res, next) => {
   if (
-    req.query["secret"] === (config.newsletter.settings as any).webhookSecret
+    config.newsletter.provider === "mailchimp" &&
+    req.query["secret"] === config.newsletter.settings.webhookSecret
   ) {
     next();
   } else {

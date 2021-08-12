@@ -36,3 +36,9 @@ export function e<T extends readonly string[]>(
   assert(options.indexOf(value) !== -1);
   return value;
 }
+
+export function json(name: string, def?: any): any {
+  const value = process.env[name];
+  assert(value !== undefined || def !== undefined);
+  return value === undefined ? def : JSON.parse(value);
+}

@@ -49,6 +49,26 @@ const newsletterProvider = env.e(
   "none"
 );
 
+export interface AppConfig {
+  uid: string;
+  title: string;
+  path: string;
+  disabled: boolean;
+  priority: number;
+  appPath: string;
+  hidden?: boolean;
+  subApps: AppConfig[];
+  menu: "none" | "main";
+  permissions: string[];
+}
+
+export type AppConfigOverrides = Record<string, AppConfigOverride>;
+
+export interface AppConfigOverride {
+  config?: Partial<AppConfig>;
+  subApps?: AppConfigOverrides;
+}
+
 export default {
   audience: env.s("BEABEE_AUDIENCE"),
   dev: env.b("BEABEE_DEV"),
@@ -117,5 +137,5 @@ export default {
     channel: env.s("BEABEE_LOGSLACK_CHANNEL"),
     username: env.s("BEABEE_LOGSLACK_USERNAME")
   },
-  appOverrides: {}
+  appOverrides: env.json("BEABEE_APPOVERRIDES", {}) as AppConfigOverrides
 };
