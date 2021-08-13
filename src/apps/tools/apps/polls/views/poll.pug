@@ -161,6 +161,25 @@ block contents
 	.row
 		.col-md-8
 
+			h4 Replicate callout
+
+			form(method='POST').form-horizontal
+				+csrf
+				.form-group
+					label(for='title').control-label.col-md-3 New title
+					.col-md-9
+						input(type='text' name='title' required)#title.form-control
+				.form-group
+					label(for='slug').control-label.col-md-3 New slug
+					.col-md-9
+						input(type='text' name='slug' required)#slug.form-control
+				button(name='action' value='replicate').btn.btn-primary Replicate
+
+				hr
+
+	.row
+		.col-md-8
+
 			h4 Delete callout
 
 			form(method='POST')
