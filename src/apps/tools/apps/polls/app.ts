@@ -111,6 +111,18 @@ app.post( '/:slug', hasNewModel(Poll, 'slug'), wrapAsync( async ( req, res ) => 
 		res.redirect( req.originalUrl );
 		break;
 	}
+	case 'replicate': {
+		const newPoll = getRepository(Poll).create({
+			...poll,
+			date: undefined,
+			title: req.body.title,
+			slug: req.body.slug,
+			closed: true
+		});
+		await getRepository(Poll).save(newPoll);
+		res.redirect('/tools/polls/' + newPoll.slug);
+		break;
+	}
 	case 'delete':
 		await getRepository(Poll).delete(poll.slug);
 		req.flash( 'success', 'polls-deleted' );
