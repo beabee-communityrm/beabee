@@ -35,6 +35,17 @@ block contents
 		.col-md-9
 			+page_header( member.fullname )
 
+			if bankAccount
+				dl.dl-horizontal
+					dt Bank
+					dd= bankAccount.bank_name
+					dt Account holder
+					dd= bankAccount.account_holder_name
+					dt Account number
+					dd
+						| •••••••
+						= bankAccount.account_number_ending
+
 			h4= paymentData.subscriptionId ? 'Update contribution' : 'Start contribution'
 			if !paymentData.mandateId
 				.alert.alert-warning User does not have an active payment method
