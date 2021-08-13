@@ -32,6 +32,7 @@ app.get( '/', wrapAsync( async ( req, res ) => {
 
 		res.render( 'gocardless', {
 			member: req.model,
+			bankAccount: await GCPaymentService.getBankAccount( member ),
 			canChange: await GCPaymentService.canChangeContribution( member, true ),
 			payments, total
 		} );
