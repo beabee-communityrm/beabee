@@ -1,10 +1,10 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
 export default class Option {
-    @PrimaryColumn()
-    key!: string;
+  @PrimaryColumn()
+  key!: string;
 
-    @Column()
-    value!: string;
+  @Column()
+  value!: string;
 }

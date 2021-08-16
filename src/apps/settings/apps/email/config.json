@@ -1,7 +1,5 @@
 {
-	"title": "Email",
-	"path": "email",
-	"permissions": [
-		"superadmin"
-	]
+  "title": "Email",
+  "path": "email",
+  "permissions": ["superadmin"]
 }

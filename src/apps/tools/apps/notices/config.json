@@ -1,9 +1,7 @@
 {
-	"title": "Notices",
-	"path": "notices",
-	"permissions": [
-		"superadmin", "admin"
-	],
-	"menu": "main",
-	"priority": 3
+  "title": "Notices",
+  "path": "notices",
+  "permissions": ["superadmin", "admin"],
+  "menu": "main",
+  "priority": 3
 }

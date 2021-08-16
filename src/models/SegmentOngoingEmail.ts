@@ -1,36 +1,42 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn
+} from "typeorm";
 
-import { EmailTemplate } from '@core/providers/email';
+import { EmailTemplate } from "@core/providers/email";
 
-import Segment from './Segment';
+import Segment from "./Segment";
 
 @Entity()
 export default class SegmentOngoingEmail {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@CreateDateColumn()
-	date!: Date
+  @CreateDateColumn()
+  date!: Date;
 
-	@ManyToOne(() => Segment)
-	segment!: Segment
+  @ManyToOne(() => Segment)
+  segment!: Segment;
 
-	@Column()
-	trigger!: string
+  @Column()
+  trigger!: string;
 
-	@Column()
-	emailTemplateId!: string
+  @Column()
+  emailTemplateId!: string;
 
-	@Column({default: false})
-	enabled!: boolean
+  @Column({ default: false })
+  enabled!: boolean;
 
-	emailTemplate?: EmailTemplate;
+  emailTemplate?: EmailTemplate;
 
-	// TODO: To match with polls, sync all these fields
-	get active(): boolean {
-		return this.enabled;
-	}
-	get closed(): boolean {
-		return !this.enabled;
-	}
+  // TODO: To match with polls, sync all these fields
+  get active(): boolean {
+    return this.enabled;
+  }
+  get closed(): boolean {
+    return !this.enabled;
+  }
 }

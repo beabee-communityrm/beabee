@@ -1,95 +1,117 @@
-import axios from 'axios';
-import express from 'express';
-import { Brackets, createQueryBuilder } from 'typeorm';
+import axios from "axios";
+import express from "express";
+import { Brackets, createQueryBuilder } from "typeorm";
 
-import { log } from '@core/logging';
-import { isAdmin } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
+import { log } from "@core/logging";
+import { isAdmin } from "@core/middleware";
+import { wrapAsync } from "@core/utils";
 
-import MemberPermission from '@models/MemberPermission';
-import MemberProfile from '@models/MemberProfile';
+import MemberPermission from "@models/MemberPermission";
+import MemberProfile from "@models/MemberProfile";
 
 const app = express();
 
-app.set( 'views', __dirname + '/views' );
+app.set("views", __dirname + "/views");
 
 app.use(isAdmin);
 
 interface PostcodeResponse {
-	status: number
-	result: {
-		query: string
-		result: {
-			postcode: string
-			latitude: number
-			longitude: number
-		}|null
-	}[]
+  status: number;
+  result: {
+    query: string;
+    result: {
+      postcode: string;
+      latitude: number;
+      longitude: number;
+    } | null;
+  }[];
 }
 
 interface PostcodeCache {
-	latitude: number,
-	longitude: number
+  latitude: number;
+  longitude: number;
 }
 
 function cleanPostcode(postcode: string): string {
-	return postcode.toLowerCase().replace(/\s/g, '').trim();
+  return postcode.toLowerCase().replace(/\s/g, "").trim();
 }
 
-const postcodeCache: {[key: string]: PostcodeCache|null} = {};
+const postcodeCache: { [key: string]: PostcodeCache | null } = {};
 
 async function getPostcodes(postcodes: string[]): Promise<PostcodeCache[]> {
-	const cleanPostcodes = postcodes.map(cleanPostcode);
+  const cleanPostcodes = postcodes.map(cleanPostcode);
 
-	const dedupedPostcodes = cleanPostcodes.filter((postcode, i) => cleanPostcodes.indexOf(postcode) === i);
-	const unknownPostcodes = dedupedPostcodes.filter(postcode => postcodeCache[postcode] === undefined);
-	log.info({
-		app: 'map',
-		action: 'get-postcodes',
-	}, `Getting ${unknownPostcodes.length} postcodes`);
+  const dedupedPostcodes = cleanPostcodes.filter(
+    (postcode, i) => cleanPostcodes.indexOf(postcode) === i
+  );
+  const unknownPostcodes = dedupedPostcodes.filter(
+    (postcode) => postcodeCache[postcode] === undefined
+  );
+  log.info(
+    {
+      app: "map",
+      action: "get-postcodes"
+    },
+    `Getting ${unknownPostcodes.length} postcodes`
+  );
 
-	for (let i = 0; i < unknownPostcodes.length; i += 100) {
-		const unknownPostcodesSlice = unknownPostcodes.slice(i, i + 100);
-		log.info({
-			app: 'map',
-			action: 'fetch-postcodes',
-			data: unknownPostcodesSlice
-		});
-		const resp = await axios.post('https://api.postcodes.io/postcodes?filter=postcode,latitude,longitude', {
-			postcodes: unknownPostcodesSlice
-		});
+  for (let i = 0; i < unknownPostcodes.length; i += 100) {
+    const unknownPostcodesSlice = unknownPostcodes.slice(i, i + 100);
+    log.info({
+      app: "map",
+      action: "fetch-postcodes",
+      data: unknownPostcodesSlice
+    });
+    const resp = await axios.post(
+      "https://api.postcodes.io/postcodes?filter=postcode,latitude,longitude",
+      {
+        postcodes: unknownPostcodesSlice
+      }
+    );
 
-		const data = resp.data as PostcodeResponse;
-		for (const result of data.result) {
-			postcodeCache[result.query] = result.result ? {
-				latitude: result.result.latitude,
-				longitude: result.result.longitude,
-			} : null;
-		}
-	}
+    const data = resp.data as PostcodeResponse;
+    for (const result of data.result) {
+      postcodeCache[result.query] = result.result
+        ? {
+            latitude: result.result.latitude,
+            longitude: result.result.longitude
+          }
+        : null;
+    }
+  }
 
-	return cleanPostcodes.map(postcode => postcodeCache[postcode]).filter((pc): pc is PostcodeCache => pc !== null);
+  return cleanPostcodes
+    .map((postcode) => postcodeCache[postcode])
+    .filter((pc): pc is PostcodeCache => pc !== null);
 }
 
-app.get('/', (req, res) => {
-	res.render('index');
+app.get("/", (req, res) => {
+  res.render("index");
 });
 
-app.get('/locations', wrapAsync(async (req, res) => {
-	const now = new Date();
-	const profiles = await createQueryBuilder(MemberProfile, 'profile')
-		.innerJoin(MemberPermission, 'mp', 'profile.memberId = mp.memberId')
-		.where('profile.deliveryOptIn = true')
-		.andWhere('mp.permission = \'member\' AND mp.dateAdded <= :now', {now})
-		.andWhere(new Brackets(qb =>
-			qb.where('mp.dateExpires >= :now', {now})
-				.orWhere('mp.dateExpires = NULL')
-		))
-		.getMany();
+app.get(
+  "/locations",
+  wrapAsync(async (req, res) => {
+    const now = new Date();
+    const profiles = await createQueryBuilder(MemberProfile, "profile")
+      .innerJoin(MemberPermission, "mp", "profile.memberId = mp.memberId")
+      .where("profile.deliveryOptIn = true")
+      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now", { now })
+      .andWhere(
+        new Brackets((qb) =>
+          qb
+            .where("mp.dateExpires >= :now", { now })
+            .orWhere("mp.dateExpires = NULL")
+        )
+      )
+      .getMany();
 
-	const memberPostcodes = profiles.map(p => p.deliveryAddress?.postcode).filter((p): p is string => !!p);
-	const postcodes = await getPostcodes(memberPostcodes);
-	res.send({postcodes});
-}));
+    const memberPostcodes = profiles
+      .map((p) => p.deliveryAddress?.postcode)
+      .filter((p): p is string => !!p);
+    const postcodes = await getPostcodes(memberPostcodes);
+    res.send({ postcodes });
+  })
+);
 
 export default app;

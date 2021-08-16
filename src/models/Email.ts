@@ -1,25 +1,30 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn
+} from "typeorm";
 
 @Entity()
 export default class Email {
-    @PrimaryGeneratedColumn('uuid')
-    id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-    @CreateDateColumn()
-    date!: Date;
+  @CreateDateColumn()
+  date!: Date;
 
-    @Column()
-    name!: string;
+  @Column()
+  name!: string;
 
-    @Column()
-    fromName!: string
+  @Column()
+  fromName!: string;
 
-    @Column()
-    fromEmail!: string
+  @Column()
+  fromEmail!: string;
 
-    @Column()
-    subject!: string
+  @Column()
+  subject!: string;
 
-    @Column({type: 'text'})
-    body!: string
+  @Column({ type: "text" })
+  body!: string;
 }

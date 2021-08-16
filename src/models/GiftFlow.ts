@@ -1,68 +1,74 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import type Member from './Member';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn
+} from "typeorm";
+import type Member from "./Member";
 
 export interface Address {
-  line1: string
-  line2?: string
-  city: string
-  postcode: string
+  line1: string;
+  line2?: string;
+  city: string;
+  postcode: string;
 }
 
 export class GiftForm {
   @Column()
-  firstname!: string
+  firstname!: string;
 
   @Column()
-  lastname!: string
+  lastname!: string;
 
   @Column()
-  email!: string
-  
-  @Column({type: 'date'})
-  startDate!: Date
+  email!: string;
 
-  @Column({nullable: true})
-  message?: string
+  @Column({ type: "date" })
+  startDate!: Date;
 
-  @Column()
-  fromName!: string
+  @Column({ nullable: true })
+  message?: string;
 
   @Column()
-  fromEmail!: string
+  fromName!: string;
 
   @Column()
-  months!: number
+  fromEmail!: string;
 
-  @Column({type: 'jsonb', nullable: true})
-  giftAddress?: Address
+  @Column()
+  months!: number;
 
-  @Column({type: 'jsonb', nullable: true})
-  deliveryAddress?: Address
+  @Column({ type: "jsonb", nullable: true })
+  giftAddress?: Address;
+
+  @Column({ type: "jsonb", nullable: true })
+  deliveryAddress?: Address;
 }
 
 @Entity()
 export default class GiftFlow {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
   @CreateDateColumn()
-  date!: Date
+  date!: Date;
 
   @Column()
-  sessionId!: string
+  sessionId!: string;
 
-  @Column({unique: true})
-  setupCode!: string
-  
+  @Column({ unique: true })
+  setupCode!: string;
+
   @Column(() => GiftForm)
-  giftForm!: GiftForm
+  giftForm!: GiftForm;
 
-  @Column({default: false})
-  completed!: boolean
+  @Column({ default: false })
+  completed!: boolean;
 
-  @Column({default: false})
-  processed!: boolean
+  @Column({ default: false })
+  processed!: boolean;
 
-  @ManyToOne('Member')
-  giftee?: Member
+  @ManyToOne("Member")
+  giftee?: Member;
 }

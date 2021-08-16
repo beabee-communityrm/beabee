@@ -1,8 +1,6 @@
 {
   "title": "Profile",
   "path": "profile",
-  "permissions": [
-    "admin", "superadmin"
-  ],
+  "permissions": ["admin", "superadmin"],
   "hidden": true
 }

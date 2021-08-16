@@ -1,19 +1,19 @@
 {
-	"createProjectSchema": {
-		"body": {
-			"type": "object",
-			"required": ["title", "description", "status"],
-			"properties": {
-				"title": {
-					"type": "string"
-				},
-				"description": {
-					"type": "string"
-				},
-				"status": {
-					"type": "string"
-				}
-			}
-		}
-	}
+  "createProjectSchema": {
+    "body": {
+      "type": "object",
+      "required": ["title", "description", "status"],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }

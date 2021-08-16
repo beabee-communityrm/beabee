@@ -1,38 +1,46 @@
-import moment from 'moment';
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import moment from "moment";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from "typeorm";
 
 @Entity()
 export default class Notice {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string;
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@CreateDateColumn()
-	createdAt!: Date;
+  @CreateDateColumn()
+  createdAt!: Date;
 
-	@UpdateDateColumn()
-	updatedAt!: Date;
+  @UpdateDateColumn()
+  updatedAt!: Date;
 
-	@Column()
-	name!: string;
+  @Column()
+  name!: string;
 
-	@Column({nullable: true})
-	expires?: Date;
+  @Column({ nullable: true })
+  expires?: Date;
 
-	@Column()
-	enabled!: boolean;
+  @Column()
+  enabled!: boolean;
 
-	@Column()
-	text!: string;
+  @Column()
+  text!: string;
 
-	@Column({nullable: true})
-	url?: string;
+  @Column({ nullable: true })
+  url?: string;
 
-	get active(): boolean {
-		return this.enabled && (!this.expires || moment.utc(this.expires).isAfter());
-	}
+  get active(): boolean {
+    return (
+      this.enabled && (!this.expires || moment.utc(this.expires).isAfter())
+    );
+  }
 
-	// TODO: To match with polls, sync all these fields
-	get closed(): boolean {
-		return !this.enabled;
-	}
+  // TODO: To match with polls, sync all these fields
+  get closed(): boolean {
+    return !this.enabled;
+  }
 }

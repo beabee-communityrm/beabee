@@ -1,64 +1,63 @@
 {
-	"secret": "abc123",
-	"session": "session",
-	"cookie": {
-		"secure": false,
-		"httpOnly": true,
-		"domain": "localhost",
-		"path": "/",
-		"maxAge": 267840000
-	},
-	"tag_salt": "",
-	"trackDomains": [],
-	"audience": "http://localhost:3001",
-	"discourse": {
-		"url": "https://discourse.example.org",
-		"sso_secret": "",
-		"api_username": "",
-		"api_key": ""
-	},
-	"email": {
-		"provider": "smtp",
-		"settings": {
-			"host": "mail",
-			"port": 1025,
-			"auth": {
-				"user": "test",
-				"pass": "test"
-			}
-		}
-	},
-	"newsletter": {
-		"provider": "mailchimp",
-		"settings": {
-			"api_key": "",
-			"datacenter": ""
-		}
-	},
-	"gocardless": {
-		"access_token": "",
-		"secret": "",
-		"sandbox": true
-	},
-	"stripe": {
-		"public_key": "",
-		"secret_key": "",
-		"webhook_secret": ""
-	},
-	"currencyCode": "GBP",
-	"currencySymbol": "£",
-	"password-tries": 3,
-	"iterations": 50000,
-	"gracePeriod": {
-		"days": 5
-	},
-	"dev": true,
-	"logSlack": {
-		"level": "error",
-		"webhook_url": "https://hooks.slack.com/services/example",
-		"channel": "#example",
-		"username": "example"
-	},
-	"appOverrides": {
-	}
+  "secret": "abc123",
+  "session": "session",
+  "cookie": {
+    "secure": false,
+    "httpOnly": true,
+    "domain": "localhost",
+    "path": "/",
+    "maxAge": 267840000
+  },
+  "tag_salt": "",
+  "trackDomains": [],
+  "audience": "http://localhost:3001",
+  "discourse": {
+    "url": "https://discourse.example.org",
+    "sso_secret": "",
+    "api_username": "",
+    "api_key": ""
+  },
+  "email": {
+    "provider": "smtp",
+    "settings": {
+      "host": "mail",
+      "port": 1025,
+      "auth": {
+        "user": "test",
+        "pass": "test"
+      }
+    }
+  },
+  "newsletter": {
+    "provider": "mailchimp",
+    "settings": {
+      "api_key": "",
+      "datacenter": ""
+    }
+  },
+  "gocardless": {
+    "access_token": "",
+    "secret": "",
+    "sandbox": true
+  },
+  "stripe": {
+    "public_key": "",
+    "secret_key": "",
+    "webhook_secret": ""
+  },
+  "currencyCode": "GBP",
+  "currencySymbol": "£",
+  "password-tries": 3,
+  "iterations": 50000,
+  "gracePeriod": {
+    "days": 5
+  },
+  "dev": true,
+  "logSlack": {
+    "level": "error",
+    "webhook_url": "https://hooks.slack.com/services/example",
+    "channel": "#example",
+    "username": "example"
+  },
+  "appOverrides": {}
 }

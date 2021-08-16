@@ -1,36 +1,43 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from "typeorm";
 
-import type Member from './Member';
-import type Poll from './Poll';
+import type Member from "./Member";
+import type Poll from "./Poll";
 
-export type PollResponseAnswers = Record<string, string|boolean|number>
+export type PollResponseAnswers = Record<string, string | boolean | number>;
 
 @Entity()
 export default class PollResponse {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@ManyToOne('Poll', 'responses')
-	poll!: Poll
+  @ManyToOne("Poll", "responses")
+  poll!: Poll;
 
-	@ManyToOne('Member', {nullable: true})
-	member?: Member
+  @ManyToOne("Member", { nullable: true })
+  member?: Member;
 
-	@Column({nullable: true})
-	guestName?: string
+  @Column({ nullable: true })
+  guestName?: string;
 
-	@Column({nullable: true})
-	guestEmail?: string
+  @Column({ nullable: true })
+  guestEmail?: string;
 
-	@Column({type: 'jsonb'})
-	answers!: PollResponseAnswers
+  @Column({ type: "jsonb" })
+  answers!: PollResponseAnswers;
 
-	@Column()
-	isPartial!: boolean
+  @Column()
+  isPartial!: boolean;
 
-	@CreateDateColumn()
-	createdAt!: Date
+  @CreateDateColumn()
+  createdAt!: Date;
 
-	@UpdateDateColumn()
-	updatedAt!: Date
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }
