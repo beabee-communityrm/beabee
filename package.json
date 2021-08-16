@@ -23,6 +23,8 @@
     "bunyan-middleware": "github:EthWorks/bunyan-middleware#d6baa3f1f6f96c438649b21a55a3b51f9ff7394e",
     "bunyan-slack": "0.0.10",
     "chance": "^1.1.7",
+    "class-transformer": "^0.4.0",
+    "class-validator": "^0.13.1",
     "clean-deep": "^3.4.0",
     "connect-busboy": "0.0.2",
     "connect-pg-simple": "^6.2.1",
@@ -40,6 +42,7 @@
     "helmet": "^4.1.1",
     "hummus": "^1.0.110",
     "inquirer": "^7.3.3",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "mandrill-api": "^1.0.45",
     "module-alias": "^2.2.2",
@@ -55,6 +58,7 @@
     "query-string": "^6.13.5",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
+    "routing-controllers": "^0.9.0",
     "stripe": "^8.108.0",
     "tar-stream": "^2.1.4",
     "thirty-two": "github:chrisumbel/thirty-two#704e9e014ff36e9f40bdf60818be647266ebc413",
@@ -83,6 +87,7 @@
     "@types/express-session": "^1.17.2",
     "@types/gunzip-maybe": "^1.4.0",
     "@types/inquirer": "^7.3.1",
+    "@types/jsonwebtoken": "^8.5.1",
     "@types/lodash": "^4.14.164",
     "@types/module-alias": "^2.0.0",
     "@types/node": "^14.14.7",
@@ -128,7 +133,7 @@
     ],
     "delay": "500",
     "signal": "SIGTERM",
-    "exec": "docker-compose restart app webhook_app router && docker-compose logs -f --tail=0 app webhook_app"
+    "exec": "docker-compose restart app api_app webhook_app router && docker-compose logs -f --tail=0 app api_app webhook_app"
   },
   "_moduleAliases": {
     "@core": "./built/core",

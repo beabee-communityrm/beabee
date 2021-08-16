@@ -7,13 +7,17 @@ const app = express();
 
 app.set("views", __dirname + "/views");
 
-app.get("/", isNotLoggedIn, function (req, res) {
+app.get("/", (req, res, next) => {
   const redirectUrl = OptionsService.getText("home-redirect-url");
   if (redirectUrl) {
     res.redirect(redirectUrl);
   } else {
-    res.render("index");
+    next();
   }
+});
+
+app.get("/", isNotLoggedIn, function (req, res) {
+  res.render("index");
 });
 
 export default app;

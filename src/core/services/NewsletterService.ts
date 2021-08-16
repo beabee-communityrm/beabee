@@ -98,9 +98,6 @@ class NewsletterService {
         groups: member.profile.newsletterGroups
       }))
     );
-    /*await this.provider.archiveMembers(
-			members.filter(m => m.profile.newsletterStatus === NewsletterStatus.Unsubscribed).map(m => m.email)
-		);*/
   }
 
   async updateMemberFields(

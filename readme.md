@@ -42,6 +42,7 @@ cp .env.example .env
 
 npm install
 npm run build
+docker-compose build
 
 # Initialise database
 docker-compose up -d db
@@ -66,7 +67,7 @@ docker-compose run --rm app node built/tools/new-user
 Need some test data? Download it here: coming soon
 
 ```bash
-docker-compose run --rm app node built/tools/database/import.js < <import file>
+docker-compose run --rm -T app node built/tools/database/import.js < <import file>
 ```
 
 ## Development

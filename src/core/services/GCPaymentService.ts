@@ -17,6 +17,7 @@ import {
   PaymentForm
 } from "@core/utils";
 
+import { CompletedJoinFlow } from "@core/services/JoinFlowService";
 import MembersService, {
   PartialMember,
   PartialMemberProfile
@@ -28,7 +29,6 @@ import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
-import MemberPermission from "@models/MemberPermission";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -215,7 +215,8 @@ abstract class UpdateContributionPaymentService {
   ): Promise<boolean> {
     const monthsLeft = member.memberMonthsRemaining;
     const prorateAmount =
-      (paymentForm.monthlyAmount - member.contributionMonthlyAmount) * monthsLeft;
+      (paymentForm.monthlyAmount - member.contributionMonthlyAmount) *
+      monthsLeft;
 
     log.info({
       app: "direct-debit",
@@ -293,19 +294,20 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-  static async customerToMember(
-    customerId: string
-  ): Promise<{ member: PartialMember; profile: PartialMemberProfile }> {
-    const customer = await gocardless.customers.get(customerId);
+  static async customerToMember(joinFlow: CompletedJoinFlow): Promise<{
+    partialMember: PartialMember;
+    partialProfile: PartialMemberProfile;
+  }> {
+    const customer = await gocardless.customers.get(joinFlow.customerId);
 
     return {
-      member: {
+      partialMember: {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
-        email: cleanEmailAddress(customer.email || ""),
+        email: joinFlow.joinForm.email,
         contributionType: ContributionType.GoCardless
       },
-      profile: {
+      partialProfile: {
         deliveryOptIn: false,
         deliveryAddress: {
           line1: customer.address_line1 || "",

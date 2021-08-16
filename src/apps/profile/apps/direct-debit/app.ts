@@ -113,7 +113,12 @@ app.post(
             config.audience + "/profile/direct-debit/complete";
           redirectUrl = await JoinFlowService.createJoinFlow(
             completeUrl,
-            paymentForm,
+            {
+              ...paymentForm,
+              // TODO: we don't need to store these here, they won't be used
+              email: req.user.email,
+              password: req.user.password
+            },
             {
               prefilled_customer: {
                 email: req.user.email,

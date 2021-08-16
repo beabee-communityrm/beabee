@@ -68,7 +68,7 @@ const memberEmailTemplates = {
         : "-"
     };
   },
-  "confirm-email": (member: Member, params: { code: string }) => ({
+  "join-confirm-email": (member: Member, params: { code: string }) => ({
     CONFIRMLINK: config.audience + "/join/confirm-email/" + params.code
   }),
   "successful-referral": (
@@ -182,6 +182,7 @@ class EmailService implements EmailProvider {
   ): Promise<void> {
     const mergeFields = {
       FNAME: member.firstname,
+      LNAME: member.lastname,
       ...memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
     };
 

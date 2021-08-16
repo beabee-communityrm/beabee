@@ -30,6 +30,10 @@ services:
 
   app: *base-app
 
+  api_app:
+    <<: *base-app
+    command: node 'built/api/app'
+
   webhook_app:
     <<: *base-app
     command: "node built/webhooks/app"
