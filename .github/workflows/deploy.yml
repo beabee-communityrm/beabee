@@ -38,6 +38,14 @@ jobs:
       - run: npm ci
       - run: npm run checkDependencies
 
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actionsx/prettier@v2
+        with:
+          args: --check .
+
   push:
     runs-on: ubuntu-latest
     needs: [init, test]
