@@ -8,7 +8,7 @@ import {
 
 export class JoinForm implements PaymentForm, Partial<ReferralGiftForm> {
   @Column()
-  amount!: number;
+  monthlyAmount!: number;
 
   @Column()
   period!: ContributionPeriod;

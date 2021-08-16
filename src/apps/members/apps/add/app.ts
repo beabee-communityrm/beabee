@@ -112,7 +112,7 @@ app.post(
       );
       if (data.amount && data.period) {
         await GCPaymentService.updateContribution(member, {
-          amount: data.amount,
+          monthlyAmount: data.amount,
           period: data.period,
           payFee: !!data.payFee,
           prorate: false

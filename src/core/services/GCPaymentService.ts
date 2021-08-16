@@ -135,7 +135,7 @@ abstract class UpdateContributionPaymentService {
 
     const subscription = await gocardless.subscriptions.create({
       amount: this.getChargeableAmount(
-        paymentForm.amount,
+        paymentForm.monthlyAmount,
         paymentForm.period,
         paymentForm.payFee
       ).toString(),
@@ -167,14 +167,14 @@ abstract class UpdateContributionPaymentService {
   ): Promise<GCPaymentData> {
     // Don't update if the amount isn't actually changing
     if (
-      paymentForm.amount === user.contributionMonthlyAmount &&
+      paymentForm.monthlyAmount === user.contributionMonthlyAmount &&
       paymentForm.payFee === gcData.payFee
     ) {
       return gcData;
     }
 
     const chargeableAmount = this.getChargeableAmount(
-      paymentForm.amount,
+      paymentForm.monthlyAmount,
       user.contributionPeriod,
       paymentForm.payFee
     );
@@ -215,7 +215,7 @@ abstract class UpdateContributionPaymentService {
   ): Promise<boolean> {
     const monthsLeft = member.memberMonthsRemaining;
     const prorateAmount =
-      (paymentForm.amount - member.contributionMonthlyAmount) * monthsLeft;
+      (paymentForm.monthlyAmount - member.contributionMonthlyAmount) * monthsLeft;
 
     log.info({
       app: "direct-debit",
@@ -273,11 +273,11 @@ abstract class UpdateContributionPaymentService {
       contributionType: ContributionType.GoCardless,
       ...(startNow
         ? {
-            contributionMonthlyAmount: paymentForm.amount,
+            contributionMonthlyAmount: paymentForm.monthlyAmount,
             nextContributionMonthlyAmount: undefined
           }
         : {
-            nextContributionMonthlyAmount: paymentForm.amount
+            nextContributionMonthlyAmount: paymentForm.monthlyAmount
           })
     });
 
@@ -487,7 +487,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     redirectFlowParams = {}
   ): Promise<RedirectFlow> {
     const actualAmount = getActualAmount(
-      paymentForm.amount,
+      paymentForm.monthlyAmount,
       paymentForm.period
     );
     return await gocardless.redirectFlows.create({

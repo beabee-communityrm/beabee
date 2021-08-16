@@ -74,7 +74,7 @@ function schemaToPaymentForm(data: UpdateSubscriptionSchema): {
   return {
     useMandate: !!data.useMandate,
     paymentForm: {
-      amount: data.amount,
+      monthlyAmount: data.amount,
       period: data.period,
       payFee: !!data.payFee,
       prorate: data.prorate

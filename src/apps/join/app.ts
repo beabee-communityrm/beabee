@@ -57,7 +57,7 @@ app.get(
 
 function schemaToJoinForm(data: JoinSchema): JoinForm {
   return {
-    amount:
+    monthlyAmount:
       data.amount === "other"
         ? parseInt(data.amountOther || "")
         : parseInt(data.amount),
@@ -96,7 +96,7 @@ app.post(
   wrapAsync(async function (req, res) {
     const joinForm = schemaToJoinForm(req.body);
 
-    if (await ReferralsService.isGiftAvailable(joinForm, joinForm.amount)) {
+    if (await ReferralsService.isGiftAvailable(joinForm, joinForm.monthlyAmount)) {
       const completeUrl = config.audience + app.mountpath + "/complete";
       const redirectUrl = await JoinFlowService.createJoinFlow(
         completeUrl,
