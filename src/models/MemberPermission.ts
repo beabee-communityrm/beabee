@@ -1,25 +1,33 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
-import type Member from './Member';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryColumn
+} from "typeorm";
+import type Member from "./Member";
 
-export const PermissionTypes = ['member', 'admin', 'superadmin'] as const;
+export const PermissionTypes = ["member", "admin", "superadmin"] as const;
 export type PermissionType = typeof PermissionTypes[number];
 
 @Entity()
 export default class MemberPermission {
-	@ManyToOne('Member', 'permissions', {primary: true})
-	member!: Member
+  @ManyToOne("Member", "permissions", { primary: true })
+  member!: Member;
 
-	@PrimaryColumn()
-	permission!: PermissionType;
+  @PrimaryColumn()
+  permission!: PermissionType;
 
-	@CreateDateColumn()
-	dateAdded!: Date
+  @CreateDateColumn()
+  dateAdded!: Date;
 
-	@Column({nullable: true})
-	dateExpires?: Date
+  @Column({ nullable: true })
+  dateExpires?: Date;
 
-	get isActive(): boolean {
-		const now = new Date();
-		return this.dateAdded <= now && (!this.dateExpires || this.dateExpires >= now);
-	}
+  get isActive(): boolean {
+    const now = new Date();
+    return (
+      this.dateAdded <= now && (!this.dateExpires || this.dateExpires >= now)
+    );
+  }
 }

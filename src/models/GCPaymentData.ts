@@ -1,9 +1,9 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
-import type Member from './Member';
+import { Column, Entity, ManyToOne } from "typeorm";
+import type Member from "./Member";
 
 @Entity()
 export default class GCPaymentData {
-  @ManyToOne('Member', {primary: true})
+  @ManyToOne("Member", { primary: true })
   member!: Member;
 
   @Column({ nullable: true })
@@ -18,6 +18,6 @@ export default class GCPaymentData {
   @Column({ nullable: true })
   cancelledAt?: Date;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   payFee?: boolean;
 }

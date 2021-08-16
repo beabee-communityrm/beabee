@@ -1,9 +1,7 @@
 {
-	"title": "Callouts",
-	"path": "polls",
-	"permissions": [
-		"member"
-	],
-	"menu": "main",
-	"priority": 4
+  "title": "Callouts",
+  "path": "polls",
+  "permissions": ["member"],
+  "menu": "main",
+  "priority": 4
 }

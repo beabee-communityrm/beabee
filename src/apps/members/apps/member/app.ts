@@ -1,136 +1,151 @@
-import express from 'express';
-import moment from 'moment';
+import express from "express";
+import moment from "moment";
 
-import config from '@config';
+import config from "@config";
 
-import { isAdmin, isSuperAdmin } from '@core/middleware';
-import { wrapAsync } from '@core/utils';
-import { canSuperAdmin, generateCode } from '@core/utils/auth';
+import { isAdmin, isSuperAdmin } from "@core/middleware";
+import { wrapAsync } from "@core/utils";
+import { canSuperAdmin, generateCode } from "@core/utils/auth";
 
-import GCPaymentService from '@core/services/GCPaymentService';
-import MembersService from '@core/services/MembersService';
-import OptionsService from '@core/services/OptionsService';
-import PaymentService from '@core/services/PaymentService';
-import ReferralsService from '@core/services/ReferralsService';
+import GCPaymentService from "@core/services/GCPaymentService";
+import MembersService from "@core/services/MembersService";
+import OptionsService from "@core/services/OptionsService";
+import PaymentService from "@core/services/PaymentService";
+import ReferralsService from "@core/services/ReferralsService";
 
-import Member from '@models/Member';
+import Member from "@models/Member";
 
 const app = express();
 
 async function getAvailableTags(): Promise<string[]> {
-	return OptionsService.getList('available-tags');
+  return OptionsService.getList("available-tags");
 }
 
-app.set( 'views', __dirname + '/views' );
+app.set("views", __dirname + "/views");
 
-app.use( isAdmin );
+app.use(isAdmin);
 
-app.use(wrapAsync(async (req, res, next) => {
-	// Bit of a hack to get parent app params
-	const member = await MembersService.findOne({
-		where: {id: req.allParams.uuid},
-		relations: ['profile']
-	});
-	if (member) {
-		req.model = member;
-		res.locals.paymentData = await PaymentService.getPaymentData(member);
-		next();
-	} else {
-		next('route');
-	}
-}));
+app.use(
+  wrapAsync(async (req, res, next) => {
+    // Bit of a hack to get parent app params
+    const member = await MembersService.findOne({
+      where: { id: req.allParams.uuid },
+      relations: ["profile"]
+    });
+    if (member) {
+      req.model = member;
+      res.locals.paymentData = await PaymentService.getPaymentData(member);
+      next();
+    } else {
+      next("route");
+    }
+  })
+);
 
-app.get( '/', wrapAsync( async ( req, res ) => {
-	const member = req.model as Member;
-	const availableTags = await getAvailableTags();
+app.get(
+  "/",
+  wrapAsync(async (req, res) => {
+    const member = req.model as Member;
+    const availableTags = await getAvailableTags();
 
-	res.render( 'index', {
-		member, availableTags,
-		password_tries: config['password-tries'],
-	} );
-} ) );
+    res.render("index", {
+      member,
+      availableTags,
+      password_tries: config["password-tries"]
+    });
+  })
+);
 
-app.post( '/', wrapAsync( async ( req, res ) => {
-	const member = req.model as Member;
-	
-	if (!req.body.action.startsWith('save-') && !canSuperAdmin(req)) {
-		req.flash('error', '403');
-		res.redirect(req.baseUrl);
-		return;
-	}
+app.post(
+  "/",
+  wrapAsync(async (req, res) => {
+    const member = req.model as Member;
 
-	switch (req.body.action) {
-	case 'save-about': {
-		await MembersService.updateMemberProfile(member, {
-			tags: req.body.tags || [],
-			description: req.body.description || '',
-			bio: req.body.bio || ''
-		});
-		req.flash('success', 'member-updated');
-		break;
-	}
-	case 'save-contact':
-		await MembersService.updateMember(member, {
-			email: req.body.email
-		});
-		await MembersService.updateMemberProfile(member, {
-			telephone: req.body.telephone || '',
-			twitter: req.body.twitter || '',
-			preferredContact: req.body.preferred || ''
-		});
-		req.flash('success', 'member-updated');
-		break;
-	case 'save-notes':
-		await MembersService.updateMemberProfile(member, {
-			notes: req.body.notes
-		});
-		req.flash('success', 'member-updated');
-		break;
-	case 'login-override':
-		await MembersService.updateMember(member, {
-			loginOverride: {code: generateCode(), expires: moment().add(24, 'hours').toDate()}
-		});
-		req.flash('success', 'member-login-override-generated');
-		break;
-	case 'password-reset':
-		await MembersService.updateMember(member, {
-			password: {...member.password, resetCode: generateCode()}
-		});
-		req.flash('success', 'member-password-reset-generated');
-		break;
-	case 'permanently-delete':
-		// TODO: anonymise other data in poll answers
-		//await PollAnswers.updateMany( { member }, { $set: { member: null } } );
-		// TODO: await RestartFlows.deleteMany( { member } );
+    if (!req.body.action.startsWith("save-") && !canSuperAdmin(req)) {
+      req.flash("error", "403");
+      res.redirect(req.baseUrl);
+      return;
+    }
 
-		await ReferralsService.permanentlyDeleteMember(member);
-		await GCPaymentService.permanentlyDeleteMember(member);
+    switch (req.body.action) {
+      case "save-about": {
+        await MembersService.updateMemberProfile(member, {
+          tags: req.body.tags || [],
+          description: req.body.description || "",
+          bio: req.body.bio || ""
+        });
+        req.flash("success", "member-updated");
+        break;
+      }
+      case "save-contact":
+        await MembersService.updateMember(member, {
+          email: req.body.email
+        });
+        await MembersService.updateMemberProfile(member, {
+          telephone: req.body.telephone || "",
+          twitter: req.body.twitter || "",
+          preferredContact: req.body.preferred || ""
+        });
+        req.flash("success", "member-updated");
+        break;
+      case "save-notes":
+        await MembersService.updateMemberProfile(member, {
+          notes: req.body.notes
+        });
+        req.flash("success", "member-updated");
+        break;
+      case "login-override":
+        await MembersService.updateMember(member, {
+          loginOverride: {
+            code: generateCode(),
+            expires: moment().add(24, "hours").toDate()
+          }
+        });
+        req.flash("success", "member-login-override-generated");
+        break;
+      case "password-reset":
+        await MembersService.updateMember(member, {
+          password: { ...member.password, resetCode: generateCode() }
+        });
+        req.flash("success", "member-password-reset-generated");
+        break;
+      case "permanently-delete":
+        // TODO: anonymise other data in poll answers
+        //await PollAnswers.updateMany( { member }, { $set: { member: null } } );
+        // TODO: await RestartFlows.deleteMany( { member } );
 
-		await MembersService.permanentlyDeleteMember(member);
+        await ReferralsService.permanentlyDeleteMember(member);
+        await GCPaymentService.permanentlyDeleteMember(member);
 
-		req.flash('success', 'member-permanently-deleted');
-		res.redirect('/members');
-		return;
-	}
+        await MembersService.permanentlyDeleteMember(member);
 
-	res.redirect(req.baseUrl);
-} ) );
+        req.flash("success", "member-permanently-deleted");
+        res.redirect("/members");
+        return;
+    }
 
-const adminApp = express.Router( { mergeParams: true } );
+    res.redirect(req.baseUrl);
+  })
+);
+
+const adminApp = express.Router({ mergeParams: true });
 app.use(adminApp);
 
 adminApp.use(isSuperAdmin);
 
-adminApp.get( '/2fa', ( req, res ) => {
-	res.render( '2fa', { member: req.model } );
-} );
+adminApp.get("/2fa", (req, res) => {
+  res.render("2fa", { member: req.model });
+});
 
-adminApp.post( '/2fa', wrapAsync( async ( req, res ) => {
-	await MembersService.updateMember(req.model as Member, {
-		otp: {key: undefined, activated: false}
-	});
-	req.flash( 'success', '2fa-disabled' );
-	res.redirect( req.baseUrl );
-} ) );
+adminApp.post(
+  "/2fa",
+  wrapAsync(async (req, res) => {
+    await MembersService.updateMember(req.model as Member, {
+      otp: { key: undefined, activated: false }
+    });
+    req.flash("success", "2fa-disabled");
+    res.redirect(req.baseUrl);
+  })
+);
 
 export default app;

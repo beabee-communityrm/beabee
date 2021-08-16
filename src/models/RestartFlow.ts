@@ -1,25 +1,31 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn
+} from "typeorm";
 
-import { JoinForm } from './JoinFlow';
-import type Member from './Member';
+import { JoinForm } from "./JoinFlow";
+import type Member from "./Member";
 
 @Entity()
 export default class RestartFlow {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string;
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@CreateDateColumn()
-	date!: Date;
+  @CreateDateColumn()
+  date!: Date;
 
-	@ManyToOne('Member')
-	member!: Member;
+  @ManyToOne("Member")
+  member!: Member;
 
-	@Column()
-	customerId!: string;
+  @Column()
+  customerId!: string;
 
-	@Column()
-	mandateId!: string;
+  @Column()
+  mandateId!: string;
 
-	@Column(() => JoinForm)
-	joinForm!: JoinForm;
+  @Column(() => JoinForm)
+  joinForm!: JoinForm;
 }

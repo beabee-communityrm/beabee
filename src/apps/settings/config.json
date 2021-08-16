@@ -1,10 +1,8 @@
 {
-	"title": "Settings",
-	"path": "settings",
-	"permissions": [
-		"superadmin", "admin"
-	],
-	"menu": "main",
-	"hidden": true,
-	"priority": 1
+  "title": "Settings",
+  "path": "settings",
+  "permissions": ["superadmin", "admin"],
+  "menu": "main",
+  "hidden": true,
+  "priority": 1
 }

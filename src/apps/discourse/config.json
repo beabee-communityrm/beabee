@@ -1,9 +1,7 @@
 {
-	"title": "Discourse",
-	"path": "discourse",
-	"permissions": [
-		"superadmin", "admin"
-	],
-	"menu": "none",
-	"priority": 3
+  "title": "Discourse",
+  "path": "discourse",
+  "permissions": ["superadmin", "admin"],
+  "menu": "none",
+  "priority": 3
 }

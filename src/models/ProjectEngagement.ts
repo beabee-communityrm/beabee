@@ -1,28 +1,34 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn
+} from "typeorm";
 
-import type Member from './Member';
-import type Project from './Project';
+import type Member from "./Member";
+import type Project from "./Project";
 
 @Entity()
 export default class ProjectEngagement {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@ManyToOne('Project')
-	project!: Project
+  @ManyToOne("Project")
+  project!: Project;
 
-	@ManyToOne('Member')
-  byMember!: Member
+  @ManyToOne("Member")
+  byMember!: Member;
 
-	@ManyToOne('Member')
-  toMember!: Member
-  
+  @ManyToOne("Member")
+  toMember!: Member;
+
   @CreateDateColumn()
-  date!: Date
+  date!: Date;
 
   @Column()
-  type!: string
+  type!: string;
 
-  @Column({nullable: true})
-  notes?: string
+  @Column({ nullable: true })
+  notes?: string;
 }

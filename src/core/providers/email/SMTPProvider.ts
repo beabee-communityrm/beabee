@@ -1,73 +1,102 @@
-import nodemailer from 'nodemailer';
-import Mail from 'nodemailer/lib/mailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { getRepository } from 'typeorm';
+import nodemailer from "nodemailer";
+import Mail from "nodemailer/lib/mailer";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
+import { getRepository } from "typeorm";
 
-import { log as mainLogger } from '@core/logging';
+import { log as mainLogger } from "@core/logging";
 
-import Email from '@models/Email';
+import Email from "@models/Email";
 
-import { EmailOptions, EmailPerson, EmailProvider, EmailRecipient, EmailTemplate } from '.';
+import {
+  EmailOptions,
+  EmailPerson,
+  EmailProvider,
+  EmailRecipient,
+  EmailTemplate
+} from ".";
 
-const log = mainLogger.child({app: 'smtp-email-provider'});
+const log = mainLogger.child({ app: "smtp-email-provider" });
 
 export default class SMTPProvider implements EmailProvider {
-	private readonly client: Mail;
+  private readonly client: Mail;
 
-	constructor(settings: unknown) {
-		this.client = nodemailer.createTransport(settings as unknown as SMTPTransport);
-	}
+  constructor(settings: unknown) {
+    this.client = nodemailer.createTransport(
+      settings as unknown as SMTPTransport
+    );
+  }
 
-	async sendEmail(from: EmailPerson, recipients: EmailRecipient[], subject: string, body: string, opts?: EmailOptions): Promise<void> {
-		if (opts?.sendAt) {
-			log.error({error: 'send-at-not-supported'}, 'SMTPEmailProvider doesn\'t support sendAt, ignoring email');
-			return;
-		}
+  async sendEmail(
+    from: EmailPerson,
+    recipients: EmailRecipient[],
+    subject: string,
+    body: string,
+    opts?: EmailOptions
+  ): Promise<void> {
+    if (opts?.sendAt) {
+      log.error(
+        { error: "send-at-not-supported" },
+        "SMTPEmailProvider doesn't support sendAt, ignoring email"
+      );
+      return;
+    }
 
-		for (const recipient of recipients) {
-			const mergedBody = Object.keys(recipient.mergeFields || {}).reduce((body, field) => {
-				return body.replace(new RegExp(`\\*\\|${field}\\|\\*`, 'g'), '' + recipient.mergeFields![field]);
-			}, body);
+    for (const recipient of recipients) {
+      const mergedBody = Object.keys(recipient.mergeFields || {}).reduce(
+        (body, field) => {
+          return body.replace(
+            new RegExp(`\\*\\|${field}\\|\\*`, "g"),
+            "" + recipient.mergeFields![field]
+          );
+        },
+        body
+      );
 
-			await this.client.sendMail({
-				from: {name: from.name, address: from.email},
-				to: {name: recipient.to.name, address: recipient.to.email},
-				subject,
-				html: mergedBody,
-				...opts?.attachments && {
-					attachments: opts.attachments.map(a => ({
-						filename: a.name,
-						contentType: a.type,
-						content: a.content
-					}))
-				}
-			});
-		}
-	}
+      await this.client.sendMail({
+        from: { name: from.name, address: from.email },
+        to: { name: recipient.to.name, address: recipient.to.email },
+        subject,
+        html: mergedBody,
+        ...(opts?.attachments && {
+          attachments: opts.attachments.map((a) => ({
+            filename: a.name,
+            contentType: a.type,
+            content: a.content
+          }))
+        })
+      });
+    }
+  }
 
-	async sendTemplate(template: string, recipients: EmailRecipient[], opts?: EmailOptions): Promise<void> {
-		const email = await getRepository(Email).findOne(template);
-		if (email) {
-			await this.sendEmail(
-				{name: email.fromName, email: email.fromEmail},
-				recipients,
-				email.subject,
-				email.body.replace(/\r\n/g, '<br/>'),
-				opts
-			);
-		}
-	}
+  async sendTemplate(
+    template: string,
+    recipients: EmailRecipient[],
+    opts?: EmailOptions
+  ): Promise<void> {
+    const email = await getRepository(Email).findOne(template);
+    if (email) {
+      await this.sendEmail(
+        { name: email.fromName, email: email.fromEmail },
+        recipients,
+        email.subject,
+        email.body.replace(/\r\n/g, "<br/>"),
+        opts
+      );
+    }
+  }
 
-	async getTemplates(): Promise<EmailTemplate[]> {
-		const emails = await getRepository(Email).find();
-		return emails.map(email => ({id: email.id, name: email.name}));
-	}
+  async getTemplates(): Promise<EmailTemplate[]> {
+    const emails = await getRepository(Email).find();
+    return emails.map((email) => ({ id: email.id, name: email.name }));
+  }
 
-	async getTemplate(template: string): Promise<EmailTemplate|undefined> {
-		const email = await getRepository(Email).findOne(template);
-		return email && {
-			id: email.id,
-			name: email.name
-		};
-	}
+  async getTemplate(template: string): Promise<EmailTemplate | undefined> {
+    const email = await getRepository(Email).findOne(template);
+    return (
+      email && {
+        id: email.id,
+        name: email.name
+      }
+    );
+  }
 }

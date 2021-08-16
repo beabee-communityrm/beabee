@@ -1,118 +1,139 @@
-import config from '@config';
-import { Stream } from 'bunyan';
+import config from "@config";
+import { Stream } from "bunyan";
 
-import bunyan, { LogLevelString } from 'bunyan';
-import bunyanMiddleware from 'bunyan-middleware';
-import BunyanSlack, { BunyanSlackOptions } from 'bunyan-slack';
+import bunyan, { LogLevelString } from "bunyan";
+import bunyanMiddleware from "bunyan-middleware";
+import BunyanSlack, { BunyanSlackOptions } from "bunyan-slack";
 
-import crypto from'crypto';
-import { Express, NextFunction, Request, Response } from 'express';
+import crypto from "crypto";
+import { Express, NextFunction, Request, Response } from "express";
 
 const randomKey = crypto.randomBytes(256);
 
 const mainConfig = {
-	name: 'Membership-System',
-	streams: [{
-		level: 'debug',
-		stream: process.stderr
-	}] as Stream[],
-	serializers: {
-		error: bunyan.stdSerializers.err
-	}
+  name: "Membership-System",
+  streams: [
+    {
+      level: "debug",
+      stream: process.stderr
+    }
+  ] as Stream[],
+  serializers: {
+    error: bunyan.stdSerializers.err
+  }
 };
 
 const reqConfig = {
-	name: 'Membership-System-requests',
-	streams: [{
-		level: 'info',
-		stream: process.stdout
-	}] as Stream[]
+  name: "Membership-System-requests",
+  streams: [
+    {
+      level: "info",
+      stream: process.stdout
+    }
+  ] as Stream[]
 };
 
-const logSlack = (config as unknown as {logSlack?: Omit<BunyanSlackOptions,'customFormatter'>}).logSlack;
+const logSlack = (
+  config as unknown as {
+    logSlack?: Omit<BunyanSlackOptions, "customFormatter">;
+  }
+).logSlack;
 
 if (logSlack) {
-	const stream = new BunyanSlack( {
-		...logSlack,
-		customFormatter(record, levelName) {
-			const msgPrefix = (config.dev ? '[DEV] ' : '') + `[${levelName.toUpperCase()}] `;
+  const stream = new BunyanSlack({
+    ...logSlack,
+    customFormatter(record, levelName) {
+      const msgPrefix =
+        (config.dev ? "[DEV] " : "") + `[${levelName.toUpperCase()}] `;
 
-			if (record.error) {
-				return {
-					text: msgPrefix + record.error.message,
-					attachments: [{
-						title: 'Stack trace',
-						text: record.error.stack
-					}]
-				};
-			} else {
-				return {
-					text: msgPrefix + record.msg
-				};
-			}
-		}
-	} );
-	mainConfig.streams.push( {
-		level: logSlack.level,
-		stream
-	} );
-	reqConfig.streams.push({
-		level: logSlack.level,
-		stream
-	});
+      if (record.error) {
+        return {
+          text: msgPrefix + record.error.message,
+          attachments: [
+            {
+              title: "Stack trace",
+              text: record.error.stack
+            }
+          ]
+        };
+      } else {
+        return {
+          text: msgPrefix + record.msg
+        };
+      }
+    }
+  });
+  mainConfig.streams.push({
+    level: logSlack.level,
+    stream
+  });
+  reqConfig.streams.push({
+    level: logSlack.level,
+    stream
+  });
 }
 
-const mainLogger = bunyan.createLogger( mainConfig );
-const reqLogger = bunyan.createLogger( reqConfig );
+const mainLogger = bunyan.createLogger(mainConfig);
+const reqLogger = bunyan.createLogger(reqConfig);
 
 interface LogParams {
-	sensitive?: Record<string, unknown>
-	[key: string]: unknown
+  sensitive?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
-	const log = req.log;
+  const log = req.log;
 
-	const logAThing = (level: LogLevelString) => (params: LogParams, msg: string) => {
-		params.ip = req.connection.remoteAddress; //TODO: this will only be correct when behind a reverse proxy, if app.set('trust proxy') is enabled!
-		if (! params.sensitive ) {
-			params.sensitive = {};
-		}
-		if ( req.user ) {
-			params.sensitive._user = {
-				id: req.user.id,
-				firstname: req.user.firstname,
-				lastname: req.user.lastname,
-				email: req.user.email
-			};
-			params.anon_userid = crypto.createHash('sha1').update(req.user.id + randomKey).digest('base64');
-		}
-		if ( req.sessionID ) {
-			params.sensitive.sessionID = req.sessionID;
-			params.anon_sessionId = crypto.createHash('sha1').update(req.sessionID + randomKey).digest('base64');
-		}
-		log[level](params, msg);
-		if (params.sensitive) {
-			delete params.sensitive;
-		}
-	};
+  const logAThing =
+    (level: LogLevelString) => (params: LogParams, msg: string) => {
+      params.ip = req.connection.remoteAddress; //TODO: this will only be correct when behind a reverse proxy, if app.set('trust proxy') is enabled!
+      if (!params.sensitive) {
+        params.sensitive = {};
+      }
+      if (req.user) {
+        params.sensitive._user = {
+          id: req.user.id,
+          firstname: req.user.firstname,
+          lastname: req.user.lastname,
+          email: req.user.email
+        };
+        params.anon_userid = crypto
+          .createHash("sha1")
+          .update(req.user.id + randomKey)
+          .digest("base64");
+      }
+      if (req.sessionID) {
+        params.sensitive.sessionID = req.sessionID;
+        params.anon_sessionId = crypto
+          .createHash("sha1")
+          .update(req.sessionID + randomKey)
+          .digest("base64");
+      }
+      log[level](params, msg);
+      if (params.sensitive) {
+        delete params.sensitive;
+      }
+    };
 
-	req.log = {
-		info: logAThing('info'),
-		debug: logAThing('debug'),
-		error: logAThing('error'),
-		fatal: logAThing('fatal')
-	} as any; // TODO: Force overwriting value, fix this!
+  req.log = {
+    info: logAThing("info"),
+    debug: logAThing("debug"),
+    error: logAThing("error"),
+    fatal: logAThing("fatal")
+  } as any; // TODO: Force overwriting value, fix this!
 
-	next();
+  next();
 }
 
 export function installMiddleware(app: Express): void {
-	app.use( bunyanMiddleware( {
-		logger: reqLogger,
-		filter: req => req.url.startsWith('/static') || req.url === '/membership.js'
-	} ) );
-	app.use( loggingMiddleware );
+  app.use(
+    bunyanMiddleware({
+      logger: reqLogger,
+      filter: (req) =>
+        req.url.startsWith("/static") || req.url === "/membership.js"
+    })
+  );
+  app.use(loggingMiddleware);
 }
 
 export const log = mainLogger;

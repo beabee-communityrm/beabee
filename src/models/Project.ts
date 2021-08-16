@@ -1,33 +1,40 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn
+} from "typeorm";
 
-import type Member from './Member';
-import type ProjectMember from './ProjectMember';
+import type Member from "./Member";
+import type ProjectMember from "./ProjectMember";
 
 @Entity()
 export default class Project {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
 
-	@CreateDateColumn()
-	date!: Date
+  @CreateDateColumn()
+  date!: Date;
 
-	@ManyToOne('Member')
-	owner!: Member
+  @ManyToOne("Member")
+  owner!: Member;
 
-	@Column()
-	title!: string
+  @Column()
+  title!: string;
 
-	@Column()
-	description!: string
+  @Column()
+  description!: string;
 
-	@Column()
-	status!: string
+  @Column()
+  status!: string;
 
-	@Column({nullable: true})
-	groupName?: string
+  @Column({ nullable: true })
+  groupName?: string;
 
-	@OneToMany('ProjectMember', 'project')
-	members!: ProjectMember[]
+  @OneToMany("ProjectMember", "project")
+  members!: ProjectMember[];
 
-	memberCount?: number
+  memberCount?: number;
 }

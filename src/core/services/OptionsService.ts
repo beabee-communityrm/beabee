@@ -1,103 +1,114 @@
-import axios from 'axios';
-import { getRepository } from 'typeorm';
+import axios from "axios";
+import { getRepository } from "typeorm";
 
-import _defaultOptions from '@core/defaults.json';
-import { log as mainLogger } from '@core/logging';
+import _defaultOptions from "@core/defaults.json";
+import { log as mainLogger } from "@core/logging";
 
-import Option from '@models/Option';
+import Option from "@models/Option";
 
 export type OptionKey = keyof typeof _defaultOptions;
-const defaultOptions: {[key in OptionKey]: string} = _defaultOptions;
+const defaultOptions: { [key in OptionKey]: string } = _defaultOptions;
 
-const log = mainLogger.child({app: 'options-service'});
+const log = mainLogger.child({ app: "options-service" });
 
 interface OptionWithDefault extends Option {
-	default: boolean;
+  default: boolean;
 }
 
 export default class OptionsService {
-	private static optionCache: Record<OptionKey, OptionWithDefault>;
+  private static optionCache: Record<OptionKey, OptionWithDefault>;
 
-	static isKey(s: string): s is OptionKey {
-		return s in defaultOptions;
-	}
+  static isKey(s: string): s is OptionKey {
+    return s in defaultOptions;
+  }
 
-	static async reload(): Promise<void> {
-		log.debug({action: 'reload'});
-		const newCache: Partial<Record<OptionKey, OptionWithDefault>> = {};
-		for (const key of Object.keys(defaultOptions)) {
-			newCache[key as OptionKey] = {
-				key,
-				value: defaultOptions[key as OptionKey],
-				default: true
-			};
-		}
-		(await getRepository(Option).find()).map(option => {
-			if (OptionsService.isKey(option.key)) {
-				newCache[option.key] = {...option, default: false};
-			}
-		});
+  static async reload(): Promise<void> {
+    log.debug({ action: "reload" });
+    const newCache: Partial<Record<OptionKey, OptionWithDefault>> = {};
+    for (const key of Object.keys(defaultOptions)) {
+      newCache[key as OptionKey] = {
+        key,
+        value: defaultOptions[key as OptionKey],
+        default: true
+      };
+    }
+    (await getRepository(Option).find()).map((option) => {
+      if (OptionsService.isKey(option.key)) {
+        newCache[option.key] = { ...option, default: false };
+      }
+    });
 
-		OptionsService.optionCache = newCache as Record<OptionKey, OptionWithDefault>;
-	}
+    OptionsService.optionCache = newCache as Record<
+      OptionKey,
+      OptionWithDefault
+    >;
+  }
 
-	static get(key: OptionKey): OptionWithDefault {
-		return OptionsService.optionCache[key];
-	}
+  static get(key: OptionKey): OptionWithDefault {
+    return OptionsService.optionCache[key];
+  }
 
-	static getText(key: OptionKey): string {
-		return OptionsService.get(key).value;
-	}
+  static getText(key: OptionKey): string {
+    return OptionsService.get(key).value;
+  }
 
-	static getInt(key: OptionKey): number {
-		return parseInt(OptionsService.getText(key));
-	}
+  static getInt(key: OptionKey): number {
+    return parseInt(OptionsService.getText(key));
+  }
 
-	static getBool(key: OptionKey): boolean {
-		switch (OptionsService.getText(key)) {
-		case 'true': return true;
-		default: return false;
-		}
-	}
+  static getBool(key: OptionKey): boolean {
+    switch (OptionsService.getText(key)) {
+      case "true":
+        return true;
+      default:
+        return false;
+    }
+  }
 
-	static getList(key: OptionKey): string[] {
-		const text = OptionsService.getText(key);
-		return text === ''? [] : text.split(',').map(s => s.trim());
-	}
+  static getList(key: OptionKey): string[] {
+    const text = OptionsService.getText(key);
+    return text === "" ? [] : text.split(",").map((s) => s.trim());
+  }
 
-	static getJSON(key: OptionKey): any {
-		return JSON.parse(OptionsService.getText(key));
-	}
+  static getJSON(key: OptionKey): any {
+    return JSON.parse(OptionsService.getText(key));
+  }
 
-	static getAll(): Record<OptionKey, OptionWithDefault> {
-		return OptionsService.optionCache;
-	}
+  static getAll(): Record<OptionKey, OptionWithDefault> {
+    return OptionsService.optionCache;
+  }
 
-	static async set(key: OptionKey, value: string|number|boolean): Promise<void> {
-		const option = OptionsService.get(key);
-		if (option) {
-			option.value = value.toString();
-			option.default = false;
-			await getRepository(Option).save(option);
-			await OptionsService.notify();
-		}
-	}
+  static async set(
+    key: OptionKey,
+    value: string | number | boolean
+  ): Promise<void> {
+    const option = OptionsService.get(key);
+    if (option) {
+      option.value = value.toString();
+      option.default = false;
+      await getRepository(Option).save(option);
+      await OptionsService.notify();
+    }
+  }
 
-	static async reset(key: OptionKey): Promise<void> {
-		const option = OptionsService.get(key);
-		if (option) {
-			option.value = defaultOptions[key];
-			option.default = true;
-			await getRepository(Option).delete(key);
-			await OptionsService.notify();
-		}
-	}
+  static async reset(key: OptionKey): Promise<void> {
+    const option = OptionsService.get(key);
+    if (option) {
+      option.value = defaultOptions[key];
+      option.default = true;
+      await getRepository(Option).delete(key);
+      await OptionsService.notify();
+    }
+  }
 
-	private static async notify() {
-		try {
-			await axios.post('http://webhook_app:4000/reload');
-		} catch (error) {
-			log.error({action: 'notify-failed', error}, 'Failed to notify apps of options change');
-		}
-	}
+  private static async notify() {
+    try {
+      await axios.post("http://webhook_app:4000/reload");
+    } catch (error) {
+      log.error(
+        { action: "notify-failed", error },
+        "Failed to notify apps of options change"
+      );
+    }
+  }
 }
