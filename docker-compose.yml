@@ -47,7 +47,7 @@ services:
     volumes:
       - ./built/static:/opt/membership-system/built/static:ro
     ports:
-      - ${PORT}:80
+      - ${MAIN_PORT}:80
 
 volumes:
   db_data:
