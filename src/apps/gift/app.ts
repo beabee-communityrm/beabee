@@ -10,7 +10,8 @@ import GiftService from "@core/services/GiftService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 
-import GiftFlow, { Address, GiftForm } from "@models/GiftFlow";
+import Address from "@models/Address";
+import GiftFlow, { GiftForm } from "@models/GiftFlow";
 
 import { createGiftSchema, updateGiftAddressSchema } from "./schema.json";
 
