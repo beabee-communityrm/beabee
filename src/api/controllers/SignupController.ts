@@ -20,6 +20,9 @@ import JoinFlowService, {
   CompletedJoinFlow
 } from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
+import OptionsService from "@core/services/OptionsService";
+
+import { NewsletterStatus } from "@core/providers/newsletter";
 
 import Member from "@models/Member";
 
@@ -133,10 +136,11 @@ export class SignupController {
       await GCPaymentService.customerToMember(joinFlow);
 
     try {
-      const newMember = await MembersService.createMember(
-        partialMember,
-        partialProfile
-      );
+      const newMember = await MembersService.createMember(partialMember, {
+        ...partialProfile,
+        newsletterStatus: NewsletterStatus.Subscribed,
+        newsletterGroups: OptionsService.getList("newsletter-default-groups")
+      });
       await handleJoin(req, newMember, joinFlow);
     } catch (error) {
       if (isDuplicateIndex(error, "email")) {
