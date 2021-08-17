@@ -18,27 +18,11 @@ import config from "@config";
 import type MemberPermission from "./MemberPermission";
 import type { PermissionType } from "./MemberPermission";
 import type MemberProfile from "./MemberProfile";
+import Password from "./Password";
 
 interface LoginOverride {
   code: string;
   expires: Date;
-}
-
-export class Password {
-  @Column()
-  hash!: string;
-
-  @Column()
-  salt!: string;
-
-  @Column({ default: 1000 })
-  iterations!: number;
-
-  @Column({ default: 0 })
-  tries!: number;
-
-  @Column({ nullable: true })
-  resetCode?: string;
 }
 
 class OneTimePassword {
@@ -107,6 +91,13 @@ export default class Member {
 
   get quickPermissions(): PermissionType[] {
     return this.permissions.filter((p) => p.isActive).map((p) => p.permission);
+  }
+
+  hasPermission(permission: PermissionType): boolean {
+    return (
+      this.quickPermissions.indexOf("superadmin") > -1 ||
+      this.quickPermissions.indexOf(permission) > -1
+    );
   }
 
   get fullname(): string {

@@ -50,7 +50,7 @@ function memberToNlMember(member: Member): PartialNewsletterMember {
 class NewsletterService {
   private readonly provider: NewsletterProvider =
     config.newsletter.provider === "mailchimp"
-      ? new MailchimpProvider(config.newsletter.settings as any)
+      ? new MailchimpProvider(config.newsletter.settings)
       : new NoneProvider();
 
   async addTagToMembers(members: Member[], tag: string): Promise<void> {
@@ -98,9 +98,6 @@ class NewsletterService {
         groups: member.profile.newsletterGroups
       }))
     );
-    /*await this.provider.archiveMembers(
-			members.filter(m => m.profile.newsletterStatus === NewsletterStatus.Unsubscribed).map(m => m.email)
-		);*/
   }
 
   async updateMemberFields(

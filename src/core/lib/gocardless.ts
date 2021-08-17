@@ -22,7 +22,7 @@ const gocardless = axios.create({
     config.gocardless.sandbox ? "api-sandbox" : "api"
   }.gocardless.com`,
   headers: {
-    Authorization: `Bearer ${config.gocardless.access_token}`,
+    Authorization: `Bearer ${config.gocardless.accessToken}`,
     "GoCardless-Version": "2015-07-06",
     Accept: "application/json",
     "Content-Type": "application/json"

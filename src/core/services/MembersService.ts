@@ -182,6 +182,13 @@ export default class MembersService {
     );
     if (existingPermission && updates) {
       Object.assign(existingPermission, updates);
+      // TODO: temporary hack to force save undefined dateExpires
+      if (
+        Object.keys(updates).indexOf("dateExpires") > -1 &&
+        !updates.dateExpires
+      ) {
+        existingPermission.dateExpires = null as any;
+      }
     } else {
       const newPermission = getRepository(MemberPermission).create({
         member,
@@ -264,7 +271,15 @@ export default class MembersService {
     });
     await getRepository(MemberProfile).update(member.id, updates);
 
-    if (!opts?.noSync) {
+    if (
+      !opts?.noSync &&
+      (updates.newsletterStatus || updates.newsletterGroups)
+    ) {
+      if (!member.profile) {
+        member.profile = await getRepository(MemberProfile).findOneOrFail({
+          member
+        });
+      }
       await NewsletterService.updateMemberStatuses([member]);
     }
   }

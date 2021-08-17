@@ -4,12 +4,10 @@ block prepend title
 	- title = app.title
 
 block append css
-	+passwordRequirementsCSS
 	if joinPoll
 		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
 
 block append js
-	+passwordRequirementsJS
 	script(src='/static/js/delivery-address.js')
 	if joinPoll
 		script.
@@ -36,17 +34,6 @@ block body
 
 				form( method="post" ).form-horizontal#pollForm
 					+csrf
-
-					.row
-						.col-md-12
-							h4 Your account
-
-							p.
-								You’ll be able to login to your online membership using your email
-								address and password.
-
-							+input( 'password', 'Password', 'password', { required: true, id: 'password', class: 'pw-req', left: 4, right: 6 } )
-							+input( 'password', 'Confirm password', 'verify', { required: true, id: 'verify', class: 'pw-mat', left: 4, right: 6 } )
 
 					.row
 						.col-md-12

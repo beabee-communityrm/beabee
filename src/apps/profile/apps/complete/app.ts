@@ -3,7 +3,6 @@ import { getRepository } from "typeorm";
 
 import { hasSchema, isLoggedIn } from "@core/middleware";
 import { ContributionType, hasUser, wrapAsync } from "@core/utils";
-import { generatePassword } from "@core/utils/auth";
 
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
@@ -21,14 +20,6 @@ async function getJoinPoll() {
 const app = express();
 
 app.set("views", __dirname + "/views");
-
-app.use(function (req, res, next) {
-  if (req.user?.setupComplete) {
-    res.redirect("/profile");
-  } else {
-    next();
-  }
-});
 
 app.use(isLoggedIn);
 
@@ -55,7 +46,6 @@ app.post(
     hasUser(async function (req, res) {
       const {
         body: {
-          password,
           delivery_optin,
           delivery_line1,
           delivery_line2,
@@ -82,9 +72,6 @@ app.post(
         req.flash("error", "address-required");
         res.redirect(req.originalUrl);
       } else {
-        await MembersService.updateMember(user, {
-          password: await generatePassword(password)
-        });
         await MembersService.updateMemberProfile(user, {
           deliveryOptIn: delivery_optin,
           deliveryAddress: needAddress

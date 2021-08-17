@@ -17,6 +17,7 @@ import {
   PaymentForm
 } from "@core/utils";
 
+import { CompletedJoinFlow } from "@core/services/JoinFlowService";
 import MembersService, {
   PartialMember,
   PartialMemberProfile
@@ -28,7 +29,6 @@ import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
-import MemberPermission from "@models/MemberPermission";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -104,9 +104,10 @@ abstract class UpdateContributionPaymentService {
     payFee: boolean
   ): number {
     const actualAmount = getActualAmount(amount, period);
-    return payFee
+    const chargeableAmount = payFee
       ? Math.floor((actualAmount / 0.99) * 100) + 20
       : actualAmount * 100;
+    return Math.round(chargeableAmount); // TODO: fix this properly
   }
 
   private static async createSubscription(
@@ -135,7 +136,7 @@ abstract class UpdateContributionPaymentService {
 
     const subscription = await gocardless.subscriptions.create({
       amount: this.getChargeableAmount(
-        paymentForm.amount,
+        paymentForm.monthlyAmount,
         paymentForm.period,
         paymentForm.payFee
       ).toString(),
@@ -167,14 +168,14 @@ abstract class UpdateContributionPaymentService {
   ): Promise<GCPaymentData> {
     // Don't update if the amount isn't actually changing
     if (
-      paymentForm.amount === user.contributionMonthlyAmount &&
+      paymentForm.monthlyAmount === user.contributionMonthlyAmount &&
       paymentForm.payFee === gcData.payFee
     ) {
       return gcData;
     }
 
     const chargeableAmount = this.getChargeableAmount(
-      paymentForm.amount,
+      paymentForm.monthlyAmount,
       user.contributionPeriod,
       paymentForm.payFee
     );
@@ -215,7 +216,8 @@ abstract class UpdateContributionPaymentService {
   ): Promise<boolean> {
     const monthsLeft = member.memberMonthsRemaining;
     const prorateAmount =
-      (paymentForm.amount - member.contributionMonthlyAmount) * monthsLeft;
+      (paymentForm.monthlyAmount - member.contributionMonthlyAmount) *
+      monthsLeft;
 
     log.info({
       app: "direct-debit",
@@ -273,11 +275,11 @@ abstract class UpdateContributionPaymentService {
       contributionType: ContributionType.GoCardless,
       ...(startNow
         ? {
-            contributionMonthlyAmount: paymentForm.amount,
+            contributionMonthlyAmount: paymentForm.monthlyAmount,
             nextContributionMonthlyAmount: undefined
           }
         : {
-            nextContributionMonthlyAmount: paymentForm.amount
+            nextContributionMonthlyAmount: paymentForm.monthlyAmount
           })
     });
 
@@ -293,19 +295,20 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-  static async customerToMember(
-    customerId: string
-  ): Promise<{ member: PartialMember; profile: PartialMemberProfile }> {
-    const customer = await gocardless.customers.get(customerId);
+  static async customerToMember(joinFlow: CompletedJoinFlow): Promise<{
+    partialMember: PartialMember;
+    partialProfile: PartialMemberProfile;
+  }> {
+    const customer = await gocardless.customers.get(joinFlow.customerId);
 
     return {
-      member: {
+      partialMember: {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
-        email: cleanEmailAddress(customer.email || ""),
+        email: joinFlow.joinForm.email,
         contributionType: ContributionType.GoCardless
       },
-      profile: {
+      partialProfile: {
         deliveryOptIn: false,
         deliveryAddress: {
           line1: customer.address_line1 || "",
@@ -487,7 +490,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     redirectFlowParams = {}
   ): Promise<RedirectFlow> {
     const actualAmount = getActualAmount(
-      paymentForm.amount,
+      paymentForm.monthlyAmount,
       paymentForm.period
     );
     return await gocardless.redirectFlows.create({

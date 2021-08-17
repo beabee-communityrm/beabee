@@ -3,17 +3,14 @@ import dot from "dot";
 import express from "express";
 import moment from "moment";
 
-import config from "@config";
+import config, {
+  AppConfig,
+  AppConfigOverride,
+  AppConfigOverrides
+} from "@config";
 
 import { log } from "@core/logging";
-import templateLocals, { AppConfig } from "@core/template-locals";
-
-type AppConfigOverrides = Record<string, AppConfigOverride>;
-
-interface AppConfigOverride {
-  config?: Partial<AppConfig>;
-  subApps?: AppConfigOverrides;
-}
+import templateLocals from "@core/template-locals";
 
 let git = "";
 try {
@@ -117,7 +114,7 @@ async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
 export default async function (app: express.Express): Promise<void> {
   const appConfigs = await loadAppConfigs(
     __dirname + "/../apps",
-    (config as any).appOverrides
+    config.appOverrides
   );
   app.use(templateLocals(appConfigs));
   await routeApps(app, appConfigs);

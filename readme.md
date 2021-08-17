@@ -34,16 +34,15 @@ You need:
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
-The example config files are enough to look around the system, but you'll
-need to create a sandbox GoCardless account to do any payment flows.
+The example env var file is enough to look around the system, but you'll need to
+create a sandbox GoCardless account to do any payment flows.
 
 ```bash
-# Copy config files (there are currently two as we migrate to .env)
-cp src/config/example-config.json src/config/config.json
 cp .env.example .env
 
 npm install
 npm run build
+docker-compose build
 
 # Initialise database
 docker-compose up -d db
@@ -68,7 +67,7 @@ docker-compose run --rm app node built/tools/new-user
 Need some test data? Download it here: coming soon
 
 ```bash
-docker-compose run --rm app node built/tools/database/import.js < <import file>
+docker-compose run --rm -T app node built/tools/database/import.js < <import file>
 ```
 
 ## Development

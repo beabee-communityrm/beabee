@@ -11,17 +11,22 @@ form( method="post" )
 						value=permission
 					)= permission
 	.form-group
-		label Start
+		label: b Start
 		br
 		- date = current ? current.dateAdded : moment();
 		input( type="time", name="startTime", value=moment( date ).format( 'HH:mm' ), style="display: inline; width: auto;" ).form-control
 		| &nbsp;
 		input( type="date", name="startDate", value=moment( date ).format( 'YYYY-MM-DD' ), style="display: inline; width: auto;" ).form-control
-	.form-group
-		label Expires
+	.form-group.js-reveal
+		label: b Expires
 		br
-		input( type="time", name="expiryTime", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" ).form-control
-		| &nbsp;
-		input( type="date", name="expiryDate", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" ).form-control
+		.checkbox
+			label
+				input(type='checkbox' name='neverExpires' checked=current && !current.dateExpires).js-reveal-types
+				| Never expires
+		.js-reveal-type(data-type='neverExpires' data-inverse)
+			input( type="time", name="expiryTime", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'HH:mm' ) : '' ), style="display: inline; width: auto;" required).form-control
+			| &nbsp;
+			input( type="date", name="expiryDate", value=( current && current.dateExpires ? moment( current.dateExpires ).format( 'YYYY-MM-DD' ) : '' ), style="display: inline; width: auto;" required).form-control
 	.form-group
 		button.btn.btn-primary #{ action }

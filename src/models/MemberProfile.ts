@@ -1,6 +1,8 @@
 import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+
 import { NewsletterStatus } from "@core/providers/newsletter";
-import type { Address } from "./GiftFlow";
+
+import type Address from "./Address";
 import type Member from "./Member";
 
 @Entity()

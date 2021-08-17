@@ -1,13 +1,24 @@
 import crypto from "crypto";
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import base32 from "thirty-two";
 
 import { getNextParam } from "@core/utils";
 
+import Member from "@models/Member";
 import { PermissionType } from "@models/MemberPermission";
-import { Password } from "@models/Member";
+import Password from "@models/Password";
 
 import config from "@config";
+
+export function generateJWTToken(member: Member): string {
+  return jwt.sign({ memberId: member.id }, config.secret);
+}
+
+export function parseJWTToken(token: string): string {
+  const { memberId } = jwt.verify(token, config.secret) as { memberId: string };
+  return memberId;
+}
 
 export enum AuthenticationStatus {
   LOGGED_IN = 1,
@@ -66,11 +77,11 @@ export function hashPassword(
 // Utility function generates a salt and hash from a plain text password
 export async function generatePassword(password: string): Promise<Password> {
   const salt = await generateSalt();
-  const hash = await hashPassword(password, salt, config.iterations);
+  const hash = await hashPassword(password, salt, config.passwordIterations);
   return {
     salt,
     hash,
-    iterations: config.iterations,
+    iterations: config.passwordIterations,
     tries: 0
   };
 }
@@ -93,23 +104,14 @@ export function loggedIn(req: Request): AuthenticationStatus {
   }
 }
 
-// Checks if the user has an active specified permission
-function checkPermission(req: Request, permission: PermissionType): boolean {
-  return req.user
-    ? req.user.quickPermissions.indexOf(permission) !== -1
-    : false;
-}
-
 // Checks if the user has an active admin or superadmin privilage
 export function canAdmin(req: Request): AuthenticationStatus {
   // Check user is logged in
   const status = loggedIn(req);
   if (status != AuthenticationStatus.LOGGED_IN) {
     return status;
-  } else {
-    if (checkPermission(req, "superadmin"))
-      return AuthenticationStatus.LOGGED_IN;
-    if (checkPermission(req, "admin")) return AuthenticationStatus.LOGGED_IN;
+  } else if (req.user?.hasPermission("admin")) {
+    return AuthenticationStatus.LOGGED_IN;
   }
   return AuthenticationStatus.NOT_ADMIN;
 }
@@ -120,9 +122,8 @@ export function canSuperAdmin(req: Request): AuthenticationStatus {
   const status = loggedIn(req);
   if (status != AuthenticationStatus.LOGGED_IN) {
     return status;
-  } else {
-    if (checkPermission(req, "superadmin"))
-      return AuthenticationStatus.LOGGED_IN;
+  } else if (req.user?.hasPermission("superadmin")) {
+    return AuthenticationStatus.LOGGED_IN;
   }
   return AuthenticationStatus.NOT_ADMIN;
 }
