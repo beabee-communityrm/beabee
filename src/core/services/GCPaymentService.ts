@@ -104,9 +104,10 @@ abstract class UpdateContributionPaymentService {
     payFee: boolean
   ): number {
     const actualAmount = getActualAmount(amount, period);
-    return payFee
+    const chargeableAmount = payFee
       ? Math.floor((actualAmount / 0.99) * 100) + 20
       : actualAmount * 100;
+    return Math.round(chargeableAmount); // TODO: fix this properly
   }
 
   private static async createSubscription(
