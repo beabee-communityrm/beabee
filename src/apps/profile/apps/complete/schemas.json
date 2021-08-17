@@ -2,17 +2,8 @@
   "completeSchema": {
     "body": {
       "type": "object",
-      "required": ["password", "verify", "delivery_optin"],
+      "required": ["delivery_optin"],
       "properties": {
-        "password": {
-          "type": "string",
-          "format": "password"
-        },
-        "verify": {
-          "const": {
-            "$data": "1/password"
-          }
-        },
         "delivery_optin": {
           "type": "boolean"
         }
