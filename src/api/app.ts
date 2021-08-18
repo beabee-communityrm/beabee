@@ -15,17 +15,24 @@ import sessions from "@core/sessions";
 
 import Member from "@models/Member";
 
+import config from "@config";
+
 async function currentUserChecker(action: Action): Promise<Member | undefined> {
   return (action.request as Request).user;
 }
 
 const app = express();
 
-const logger = winston.createLogger({
-  format: winston.format.combine(
+const logFormats = {
+  json: winston.format.json(),
+  simple: winston.format.combine(
     winston.format.colorize(),
     winston.format.simple()
-  ),
+  )
+} as const;
+
+const logger = winston.createLogger({
+  format: logFormats[config.logFormat],
   levels: winston.config.syslog.levels,
   transports: [new winston.transports.Console()]
 });
