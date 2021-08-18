@@ -32,7 +32,7 @@ const gocardless = axios.create({
 });
 
 gocardless.interceptors.request.use((config) => {
-  log.debug(`${config.method} ${config.url}`, {
+  log.info(`${config.method} ${config.url}`, {
     params: config.params,
     data: config.data
   });

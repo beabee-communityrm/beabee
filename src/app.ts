@@ -140,7 +140,7 @@ database.connect().then(async () => {
   const server = app.listen(3000);
 
   process.on("SIGTERM", () => {
-    log.debug("Waiting for server to shutdown");
+    log.info("Waiting for server to shutdown");
     database.close();
 
     setTimeout(() => {

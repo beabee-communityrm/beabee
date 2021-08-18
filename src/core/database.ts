@@ -9,7 +9,7 @@ import OptionsService from "@core/services/OptionsService";
 export async function connect(): Promise<void> {
   try {
     await createConnection();
-    log.debug("Connected to database");
+    log.info("Connected to database");
     await OptionsService.reload();
   } catch (error) {
     log.error("Error connecting to database", error);

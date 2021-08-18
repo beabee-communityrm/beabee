@@ -44,7 +44,7 @@ db.connect().then(async () => {
   const internalServer = internalApp.listen(4000);
 
   process.on("SIGTERM", () => {
-    log.debug("Waiting for server to shutdown");
+    log.info("Waiting for server to shutdown");
     db.close();
 
     setTimeout(() => {

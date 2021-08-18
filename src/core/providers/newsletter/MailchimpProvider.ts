@@ -71,7 +71,7 @@ function createInstance(settings: MailchimpNewsletterConfig["settings"]) {
   });
 
   instance.interceptors.request.use((config) => {
-    log.debug(`${config.method} ${config.url}`, {
+    log.info(`${config.method} ${config.url}`, {
       params: config.params,
       // Don't print all the batch operations
       ...((config.url !== "/batches/" || config.method !== "post") && {

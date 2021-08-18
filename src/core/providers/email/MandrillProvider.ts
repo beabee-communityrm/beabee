@@ -62,7 +62,7 @@ export default class MandrillProvider implements EmailProvider {
       );
     });
 
-    log.debug("Sent email", resp);
+    log.info("Sent email", resp);
   }
 
   async sendTemplate(
@@ -72,7 +72,7 @@ export default class MandrillProvider implements EmailProvider {
   ): Promise<void> {
     const [templateType, templateId] = template.split("_", 2);
 
-    log.debug(`Sending template ${template}`);
+    log.info(`Sending template ${template}`);
 
     if (templateType === "mandrill") {
       const resp = await new Promise((resolve, reject) => {
@@ -87,7 +87,7 @@ export default class MandrillProvider implements EmailProvider {
           reject
         );
       });
-      log.debug(`Sent template ${template}`, resp);
+      log.info(`Sent template ${template}`, resp);
     } else if (templateType === "local") {
       const email = await getRepository(Email).findOne(templateId);
       if (email) {

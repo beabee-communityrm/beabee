@@ -61,7 +61,7 @@ async function handleEventResource(event: Event) {
     case EventResourceType.Refunds:
       return await handleRefundResourceEvent(event);
     default:
-      log.debug("Unhandled event", event);
+      log.info("Unhandled event", event);
       break;
   }
 }
