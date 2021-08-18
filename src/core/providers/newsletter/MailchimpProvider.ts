@@ -87,8 +87,6 @@ function createInstance(settings: MailchimpNewsletterConfig["settings"]) {
       return response;
     },
     (error) => {
-      console.log("herererere");
-      console.log(error);
       log.error("MailChimp API returned with status " + error.response.status, {
         status: error.response.status,
         data: error.response.data
