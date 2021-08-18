@@ -17,7 +17,7 @@ import { log as mainLogger } from "@core/logging";
 import config from "@config";
 import { DeepPartial } from "typeorm";
 
-const log = mainLogger.child({ app: "gocardless" });
+const log = mainLogger.child({ app: "gocardless-api" });
 
 const gocardless = axios.create({
   baseURL: `https://${
