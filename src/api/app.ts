@@ -42,7 +42,12 @@ app.use(cookie());
 db.connect().then(() => {
   sessions(app);
 
-  app.use(expressWinston.logger({ winstonInstance: logger }));
+  app.use(
+    expressWinston.logger({
+      winstonInstance: logger,
+      msg: "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms"
+    })
+  );
 
   useExpressServer(app, {
     routePrefix: "/1.0",
