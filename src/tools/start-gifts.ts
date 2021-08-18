@@ -4,21 +4,21 @@ import moment from "moment";
 import { Between, getRepository } from "typeorm";
 
 import * as db from "@core/database";
-import { log } from "@core/logging";
+import { log as mainLogger } from "@core/logging";
 
 import GiftService from "@core/services/GiftService";
 
 import GiftFlow from "@models/GiftFlow";
 
+const log = mainLogger.child({ app: "start-gifts" });
+
 async function main(date: string | undefined) {
   const fromDate = moment.utc(date).startOf("day");
   const toDate = moment.utc(date).endOf("day");
 
-  log.info({
-    app: "start-gifts",
-    action: "begin",
-    message: `Processing gifts between ${fromDate.format()} and ${toDate.format()}`
-  });
+  log.info(
+    `Processing gifts between ${fromDate.format()} and ${toDate.format()}`
+  );
 
   const giftFlows = await getRepository(GiftFlow).find({
     where: {
@@ -28,27 +28,15 @@ async function main(date: string | undefined) {
     }
   });
 
-  log.info({
-    app: "start-gifts",
-    action: "got-gifts",
-    message: `Got ${giftFlows.length} gifts`
-  });
+  log.info(`Got ${giftFlows.length} gifts to process`);
 
   for (const giftFlow of giftFlows) {
-    log.info({
-      app: "start-gifts",
-      action: "process-gift",
-      giftFlowId: giftFlow.id
-    });
+    log.info(`Processing gift ${giftFlow.id}`);
 
     try {
       await GiftService.processGiftFlow(giftFlow);
     } catch (error) {
-      log.error({
-        app: "start-gifts",
-        action: "process-gift-error",
-        error
-      });
+      log.error(`Error prorcessing gift ${giftFlow.id}`, error);
     }
   }
 }

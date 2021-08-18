@@ -28,10 +28,7 @@ function membersToRecipients(members: Member[]): EmailRecipient[] {
 }
 
 async function processSegment(segment: Segment) {
-  log.info({
-    action: "process-segment",
-    data: { segmentName: segment.name }
-  });
+  log.info("Process segment " + segment.name);
 
   const matchedMembers = await buildQuery(segment.ruleGroup).getMany();
 
@@ -47,14 +44,9 @@ async function processSegment(segment: Segment) {
     matchedMembers.every((m) => m.id !== sm.member)
   );
 
-  log.info({
-    action: "segment-membership",
-    data: {
-      existingMembers: segmentMembers.length,
-      newMembers: newMembers.length,
-      oldMembers: oldSegmentMembers.length
-    }
-  });
+  log.info(
+    `Segment ${segment.name} has ${segmentMembers.length} existing members, ${newMembers.length} new members and ${oldSegmentMembers.length} old members`
+  );
 
   await getRepository(SegmentMember).delete({
     segment,
@@ -109,10 +101,7 @@ async function main(segmentId?: string) {
     if (segment) {
       segments = [segment];
     } else {
-      log.info({
-        action: "segment-not-found",
-        data: { segmentId }
-      });
+      log.info(`Segment ${segmentId} not found`);
       return;
     }
   } else {
@@ -128,7 +117,7 @@ db.connect().then(async () => {
   try {
     await main(process.argv[2]);
   } catch (error) {
-    log.error({ action: "main-error", error });
+    log.error("Unexpected error", error);
   }
   await db.close();
 });

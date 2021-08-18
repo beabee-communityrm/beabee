@@ -23,12 +23,7 @@ const log = mainLogger.child({ app: "payment-webhook-service" });
 
 export default class GCPaymentWebhookService {
   static async updatePayment(gcPaymentId: string): Promise<GCPayment> {
-    log.info({
-      action: "update-payment",
-      data: {
-        paymentId: gcPaymentId
-      }
-    });
+    log.info("Update payment " + gcPaymentId);
 
     const gcPayment = await gocardless.payments.get(gcPaymentId);
     let payment = await getRepository(GCPayment).findOne({
@@ -52,30 +47,20 @@ export default class GCPaymentWebhookService {
   }
 
   static async confirmPayment(payment: GCPayment): Promise<void> {
-    log.info({
-      action: "confirm-payment",
-      data: {
-        paymentId: payment.paymentId,
-        memberId: payment.member?.id,
-        subscriptionId: payment.subscriptionId
-      }
+    log.info("Confirm payment " + payment.paymentId, {
+      paymentId: payment.paymentId,
+      memberId: payment.member?.id,
+      subscriptionId: payment.subscriptionId
     });
 
     if (!payment.member || !payment.subscriptionId) {
-      log.info({
-        action: "ignore-confirm-payment"
-      });
+      log.info("Ignore confirm payment for " + payment.paymentId);
       return;
     }
 
     const gcData = await GCPaymentService.getPaymentData(payment.member);
     if (!gcData) {
-      log.error(
-        {
-          action: "payment-gc-data-not-found"
-        },
-        "Member has no GC data but confirmed payments"
-      );
+      log.error("Member has no GC data but confirmed payments");
       return;
     }
 
@@ -106,13 +91,7 @@ export default class GCPaymentWebhookService {
     gcPaymentId: string,
     status: string
   ): Promise<void> {
-    log.info({
-      action: "update-payment-status",
-      data: {
-        gcPaymentId,
-        status
-      }
-    });
+    log.info(`Update payment status ${gcPaymentId} to ${status}`);
     await getRepository(GCPayment).update(
       { paymentId: gcPaymentId },
       { status }
@@ -120,12 +99,7 @@ export default class GCPaymentWebhookService {
   }
 
   static async cancelSubscription(subscriptionId: string): Promise<void> {
-    log.info({
-      action: "cancel-subscription",
-      sensitive: {
-        subscriptionId
-      }
-    });
+    log.info("Cancel subscription " + subscriptionId);
 
     const gcData = await getRepository(GCPaymentData).findOne({
       where: { subscriptionId },
@@ -138,12 +112,7 @@ export default class GCPaymentWebhookService {
         gcData.member
       );
     } else {
-      log.info({
-        action: "unlink-subscription",
-        sensitive: {
-          subscriptionId
-        }
-      });
+      log.info("Unlink subscription " + subscriptionId);
     }
   }
 
@@ -154,24 +123,16 @@ export default class GCPaymentWebhookService {
     })) as unknown as WithRelationIds<GCPaymentData, "member">;
 
     if (gcData) {
-      log.info({
-        action: "cancel-mandate",
-        sensitive: {
-          memberId: gcData.member,
-          mandateId: gcData.mandateId
-        }
+      log.info("Cancel mandate " + mandateId, {
+        memberId: gcData.member,
+        mandateId: gcData.mandateId
       });
 
       await getRepository(GCPaymentData).update(gcData.member, {
         mandateId: undefined
       });
     } else {
-      log.info({
-        action: "unlink-mandate",
-        sensitive: {
-          mandateId
-        }
-      });
+      log.info("Unlinked mandate " + mandateId);
     }
   }
 
@@ -205,21 +166,13 @@ export default class GCPaymentWebhookService {
       relations: ["member"]
     });
     if (gcData) {
-      log.info({
-        action: "create-payment",
-        data: {
-          memberId: gcData.member.id,
-          gcPaymentId: gcApiPayment.id
-        }
+      log.info("Create payment " + gcApiPayment.id, {
+        memberId: gcData.member.id,
+        gcPaymentId: gcApiPayment.id
       });
       payment.member = gcData.member;
     } else {
-      log.info({
-        action: "create-unlinked-payment",
-        data: {
-          gcPaymentId: gcApiPayment.id
-        }
-      });
+      log.info("Create unlinked payment " + gcApiPayment.id);
     }
 
     if (gcApiPayment.links.subscription) {
@@ -248,11 +201,7 @@ export default class GCPaymentWebhookService {
       return ContributionPeriod.Monthly;
 
     log.error(
-      {
-        action: "get-subscription-period",
-        data: { interval, intervalUnit }
-      },
-      "Unrecognised subscription period"
+      `Unrecognised subscription period interval: ${interval} unit:${intervalUnit}`
     );
     return;
   }

@@ -3,7 +3,7 @@ import "module-alias/register";
 import express from "express";
 
 import * as db from "@core/database";
-import { installMiddleware, log } from "@core/logging";
+import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import { wrapAsync } from "@core/utils";
 
 import OptionsService from "@core/services/OptionsService";
@@ -14,17 +14,18 @@ import stripeApp from "./stripe";
 
 const app = express();
 
-// Add logging capabilities
-installMiddleware(app);
+app.use(requestLogger);
 
 app.get("/ping", function (req, res) {
-  log.info({ action: "ping" });
+  log.info("Got ping");
   res.sendStatus(200);
 });
 
 app.use("/gc", gocardlessApp);
 app.use("/mailchimp", mailchimpApp);
 app.use("/stripe", stripeApp);
+
+app.use(requestErrorLogger);
 
 const internalApp = express();
 
@@ -36,35 +37,18 @@ internalApp.post(
   })
 );
 
-// Start server
-log.info({
-  action: "start"
-});
-
 db.connect().then(async () => {
-  const server = app.listen(3000, "0.0.0.0", function () {
-    log.debug({ action: "start-webserver" });
-  });
+  log.info("Starting server...");
 
-  const internalServer = internalApp.listen(4000, "0.0.0.0", () => {
-    log.debug({ action: "internal-webserver-started" });
-  });
+  const server = app.listen(3000);
+  const internalServer = internalApp.listen(4000);
 
   process.on("SIGTERM", () => {
-    log.debug({
-      app: "main",
-      action: "stop-webserver",
-      message: "Waiting for server to shutdown"
-    });
-
+    log.debug("Waiting for server to shutdown");
     db.close();
 
     setTimeout(() => {
-      log.debug({
-        app: "main",
-        action: "stop-webserver",
-        message: "Server was forced to shutdown after timeout"
-      });
+      log.warn("Server was forced to shutdown after timeout");
       process.exit(1);
     }, 20000).unref();
 

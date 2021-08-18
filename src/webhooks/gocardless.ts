@@ -26,21 +26,13 @@ app.post(
     if (valid) {
       const events = JSON.parse(req.body).events as Event[];
 
-      log.info(
-        {
-          action: "got-events"
-        },
-        `Got ${events.length} events`
-      );
+      log.info(`Got ${events.length} events`);
 
       res.sendStatus(200);
 
       try {
         for (const event of events) {
           log.info(
-            {
-              action: "handle-event"
-            },
             `Got ${event.action} on ${event.resource_type}: ${JSON.stringify(
               event.links
             )}`
@@ -49,18 +41,10 @@ app.post(
           await handleEventResource(event);
         }
       } catch (error) {
-        log.error({
-          action: "got-events-error",
-          error
-        });
+        log.error("Error while processing events", error);
       }
     } else {
-      log.error(
-        {
-          action: "invalid-webhook-signature"
-        },
-        "Invalid webhook signature"
-      );
+      log.error("Invalid webhook signature");
       res.sendStatus(498);
     }
   })
@@ -77,10 +61,7 @@ async function handleEventResource(event: Event) {
     case EventResourceType.Refunds:
       return await handleRefundResourceEvent(event);
     default:
-      log.debug({
-        action: "unhandled-event",
-        event
-      });
+      log.debug("Unhandled event", event);
       break;
   }
 }
@@ -136,13 +117,8 @@ async function handleMandateResourceEvent(event: Event) {
       break;
     case "reinstated":
       log.error(
-        {
-          action: "reinstate-mandate",
-          sensitive: {
-            event: event
-          }
-        },
-        "Mandate reinstated, its like this mandate won't be linked to a member..."
+        "Mandate reinstated, its like this mandate won't be linked to a member...",
+        event
       );
       break;
     case "cancelled":

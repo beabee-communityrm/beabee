@@ -70,14 +70,7 @@ async function requireApp(appPath: string): Promise<express.Express> {
 
 async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
   for (const appConfig of appConfigs) {
-    log.debug({
-      app: "app-loader",
-      action: "load-app",
-      path:
-        parentApp.mountpath +
-        (parentApp.mountpath === "/" ? "" : "/") +
-        appConfig.path
-    });
+    log.debug(`Loading app ${appConfig.path}`);
 
     const app = await requireApp(appConfig.appPath);
 

@@ -9,7 +9,7 @@ import helmet from "helmet";
 
 import appLoader from "@core/app-loader";
 import * as database from "@core/database";
-import { log, installMiddleware as installLogMiddleware } from "@core/logging";
+import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import quickflash from "@core/quickflash";
 import sessions from "@core/sessions";
 
@@ -21,18 +21,11 @@ import PageSettingsService from "@core/services/PageSettingsService";
 import config from "@config";
 
 if (!config.gocardless.sandbox && config.dev) {
-  log.error({
-    app: "main",
-    error:
-      "Dev mode enabled but GoCardless is not in sandbox, refusing to start"
-  });
+  log.error(
+    "Dev mode enabled but GoCardless is not in sandbox, refusing to start"
+  );
   process.exit(1);
 }
-
-log.info({
-  app: "main",
-  action: "start"
-});
 
 const app = express();
 
@@ -40,8 +33,7 @@ app.set("views", __dirname + "/views");
 app.set("view engine", "pug");
 app.set("view cache", false);
 
-// Add logging capabilities
-installLogMiddleware(app);
+app.use(requestLogger);
 
 // Use helmet
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -89,7 +81,6 @@ database.connect().then(async () => {
     }
     next();
   });
-  //app.use( express.json() );
 
   // Handle sessions
   sessions(app);
@@ -136,43 +127,24 @@ database.connect().then(async () => {
     res.render("404");
   });
 
+  app.use(requestErrorLogger);
+
   // Error 500
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use(function (err, req, res, next) {
     res.status(500);
     res.render("500", { error: config.dev ? err.stack : undefined });
-
-    log.error({
-      action: "uncaught-error",
-      error: err
-    });
   } as ErrorRequestHandler);
 
   // Start server
-  const server = app.listen(3000, "0.0.0.0", function () {
-    log.debug({
-      app: "main",
-      action: "start-webserver",
-      message: "Started",
-      address: server.address()
-    });
-  });
+  const server = app.listen(3000);
 
   process.on("SIGTERM", () => {
-    log.debug({
-      app: "main",
-      action: "stop-webserver",
-      message: "Waiting for server to shutdown"
-    });
-
+    log.debug("Waiting for server to shutdown");
     database.close();
 
     setTimeout(() => {
-      log.debug({
-        app: "main",
-        action: "stop-webserver",
-        message: "Server was forced to shutdown after timeout"
-      });
+      log.warn("Server was forced to shutdown after timeout");
       process.exit(1);
     }, 20000).unref();
 

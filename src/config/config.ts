@@ -131,7 +131,7 @@ export default {
   gracePeriod: {
     days: 5
   },
-  logFormat: env.e("BEABEE_LOGFORMAT", ["json", "simple"] as const, "json")),
+  logFormat: env.e("BEABEE_LOGFORMAT", ["json", "simple"] as const, "json"),
   logSlack: env.s("BEABEE_LOGSLACK_LEVEL", "") && {
     level: env.s("BEABEE_LOGSLACK_LEVEL"),
     webhookUrl: env.s("BEABEE_LOGSLACK_WEBHOOKURL"),

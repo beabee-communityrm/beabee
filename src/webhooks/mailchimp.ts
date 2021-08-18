@@ -65,10 +65,7 @@ app.post(
   wrapAsync(async (req, res) => {
     const body = req.body as MCWebhook;
 
-    log.info({
-      action: "got-webhook",
-      data: { type: body.type }
-    });
+    log.info("Got webhook " + body.type);
 
     switch (body.type) {
       case "upemail":
@@ -102,10 +99,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
   const oldEmail = cleanEmailAddress(data.old_email);
   const newEmail = cleanEmailAddress(data.new_email);
 
-  log.info({
-    action: "update-email",
-    data: { oldEmail, newEmail }
-  });
+  log.info(`Update email from ${oldEmail} to ${newEmail}`);
 
   const member = await MembersService.findOne({ email: oldEmail });
   if (member) {
@@ -115,13 +109,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
       { noSync: true }
     );
   } else {
-    log.error(
-      {
-        action: "update-email-not-found",
-        data
-      },
-      "Old email not found in Mailchimp update email hook"
-    );
+    log.error("Old email not found in Mailchimp update email hook", data);
   }
 }
 
@@ -164,10 +152,7 @@ async function handleSubscribe(data: MCProfileData) {
 async function handleUnsubscribe(data: MCProfileData) {
   const email = cleanEmailAddress(data.email);
 
-  log.info({
-    action: "unsubscribe",
-    data: { email }
-  });
+  log.info("Unsubscribe " + email);
 
   const member = await MembersService.findOne({ email });
   if (member) {
@@ -184,10 +169,7 @@ async function handleUnsubscribe(data: MCProfileData) {
 async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
   const email = cleanEmailAddress(data.email);
 
-  log.info({
-    action: "update-profile",
-    data: { email }
-  });
+  log.info("Update profile for " + email);
 
   const member = await MembersService.findOne({ email });
   if (member) {
@@ -200,9 +182,7 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
     // TODO: update groups?
     return true;
   } else {
-    log.info({
-      action: "update-profile-not-found"
-    });
+    log.info("Member not found for " + email);
     return false;
   }
 }

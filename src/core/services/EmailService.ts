@@ -110,14 +110,7 @@ class EmailService implements EmailProvider {
     body: string,
     opts?: EmailOptions
   ): Promise<void> {
-    log.info({
-      action: "send-email",
-      data: {
-        from,
-        recipients,
-        subject
-      }
-    });
+    log.info("Sending email", { from, recipients, subject });
     await this.provider.sendEmail(from, recipients, subject, body, opts);
   }
 
@@ -128,22 +121,14 @@ class EmailService implements EmailProvider {
   ): Promise<void> {
     const providerTemplate = this.providerTemplateMap[template];
     if (providerTemplate) {
-      log.info({
-        action: "send-template",
-        data: {
-          template,
-          providerTemplate,
-          recipients
-        }
+      log.info("Sending template " + template, {
+        template,
+        providerTemplate,
+        recipients
       });
       await this.provider.sendTemplate(providerTemplate, recipients, opts);
     } else {
-      log.error(
-        {
-          action: "send-template"
-        },
-        `Tried to send ${template} that has no provider template set`
-      );
+      log.error(`Tried to send ${template} that has no provider template set`);
     }
   }
 
@@ -186,10 +171,7 @@ class EmailService implements EmailProvider {
       ...memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
     };
 
-    log.info({
-      action: "send-template-to-member",
-      data: { memberId: member.id }
-    });
+    log.info("Sending template to member " + member.id);
 
     const recipients = [
       { to: { email: member.email, name: member.fullname }, mergeFields }
@@ -202,13 +184,7 @@ class EmailService implements EmailProvider {
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    log.info({
-      action: "send-raw-template",
-      data: {
-        template,
-        recipients
-      }
-    });
+    log.info("Sending raw template " + template, { template, recipients });
     await this.provider.sendTemplate(template, recipients, opts);
   }
 

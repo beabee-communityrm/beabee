@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
 });
 
 async function setResyncStatus(message: string) {
-  log.info({ action: "resync-status", data: { message } });
+  log.info("Resync status: " + message);
   await OptionsService.set(
     "newsletter-resync-status",
     `[${moment.utc().format("HH:mm DD/MM")}] ${message}`
@@ -157,13 +157,7 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
       `Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed and ${newMembersToUpload.length} newly uploaded`
     );
   } catch (error) {
-    log.error(
-      {
-        action: "newsletter-sync-error",
-        error
-      },
-      "Newsletter sync failed"
-    );
+    log.error("Newsletter sync failed", error);
     await setResyncStatus("Error: " + error.message);
   }
 }
