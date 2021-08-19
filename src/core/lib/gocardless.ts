@@ -12,10 +12,12 @@ import {
 } from "gocardless-nodejs/types/Types";
 import { v4 as uuidv4 } from "uuid";
 
-import { log } from "@core/logging";
+import { log as mainLogger } from "@core/logging";
 
 import config from "@config";
 import { DeepPartial } from "typeorm";
+
+const log = mainLogger.child({ app: "gocardless-api" });
 
 const gocardless = axios.create({
   baseURL: `https://${
@@ -30,14 +32,9 @@ const gocardless = axios.create({
 });
 
 gocardless.interceptors.request.use((config) => {
-  log.debug({
-    app: "gocardless",
-    url: config.url,
-    method: config.method,
-    sensitive: {
-      params: config.params,
-      data: config.data
-    }
+  log.info(`${config.method} ${config.url}`, {
+    params: config.params,
+    data: config.data
   });
 
   if (config.method === "post") {
@@ -65,8 +62,7 @@ gocardless.interceptors.response.use(
     if (isCancellationFailed(error)) {
       return { data: {} }; // This will never be used but is a bit hacky
     } else {
-      log.debug({
-        app: "gocardless",
+      log.error(`GoCardless API returned ${error.response.status}`, {
         status: error.response.status,
         data: error.response.data
       });

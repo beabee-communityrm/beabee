@@ -1,39 +1,48 @@
+import expressWinston from "express-winston";
+import winston from "winston";
+
 import config from "@config";
-import { Stream } from "bunyan";
 
-import bunyan, { LogLevelString } from "bunyan";
-import bunyanMiddleware from "bunyan-middleware";
-import BunyanSlack from "bunyan-slack";
+const appFormat = winston.format((info) => {
+  const { app, ...rest } = info;
+  return app ? { ...rest, message: `[${app}] ${rest.message}` } : info;
+});
 
-import crypto from "crypto";
-import { Express, NextFunction, Request, Response } from "express";
+const logFormats = {
+  json: winston.format.json(),
+  simple: winston.format.combine(
+    winston.format.colorize(),
+    appFormat(),
+    winston.format.simple()
+  )
+} as const;
 
-const randomKey = crypto.randomBytes(256);
+const logger = winston.createLogger({
+  format: logFormats[config.logFormat],
+  levels: winston.config.syslog.levels,
+  transports: [new winston.transports.Console()]
+});
 
-const mainConfig = {
-  name: "Membership-System",
-  streams: [
-    {
-      level: "debug",
-      stream: process.stderr
+export const log = logger;
+
+export const requestLogger = expressWinston.logger({
+  winstonInstance: logger,
+  msg: "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms",
+  requestFilter: (req, propName) => {
+    if (propName === "headers") {
+      const { cookie, ...rest } = req.headers;
+      return rest;
+    } else {
+      return req[propName];
     }
-  ] as Stream[],
-  serializers: {
-    error: bunyan.stdSerializers.err
   }
-};
+});
 
-const reqConfig = {
-  name: "Membership-System-requests",
-  streams: [
-    {
-      level: "info",
-      stream: process.stdout
-    }
-  ] as Stream[]
-};
+export const requestErrorLogger = expressWinston.errorLogger({
+  winstonInstance: logger
+});
 
-if (config.logSlack) {
+/*if (config.logSlack) {
   const stream = new BunyanSlack({
     level: config.logSlack.level as LogLevelString,
     webhook_url: config.logSlack.webhookUrl,
@@ -68,69 +77,4 @@ if (config.logSlack) {
     level: config.logSlack.level as LogLevelString,
     stream
   });
-}
-
-const mainLogger = bunyan.createLogger(mainConfig);
-const reqLogger = bunyan.createLogger(reqConfig);
-
-interface LogParams {
-  sensitive?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-function loggingMiddleware(req: Request, res: Response, next: NextFunction) {
-  const log = req.log;
-
-  const logAThing =
-    (level: LogLevelString) => (params: LogParams, msg: string) => {
-      params.ip = req.connection.remoteAddress; //TODO: this will only be correct when behind a reverse proxy, if app.set('trust proxy') is enabled!
-      if (!params.sensitive) {
-        params.sensitive = {};
-      }
-      if (req.user) {
-        params.sensitive._user = {
-          id: req.user.id,
-          firstname: req.user.firstname,
-          lastname: req.user.lastname,
-          email: req.user.email
-        };
-        params.anon_userid = crypto
-          .createHash("sha1")
-          .update(req.user.id + randomKey)
-          .digest("base64");
-      }
-      if (req.sessionID) {
-        params.sensitive.sessionID = req.sessionID;
-        params.anon_sessionId = crypto
-          .createHash("sha1")
-          .update(req.sessionID + randomKey)
-          .digest("base64");
-      }
-      log[level](params, msg);
-      if (params.sensitive) {
-        delete params.sensitive;
-      }
-    };
-
-  req.log = {
-    info: logAThing("info"),
-    debug: logAThing("debug"),
-    error: logAThing("error"),
-    fatal: logAThing("fatal")
-  } as any; // TODO: Force overwriting value, fix this!
-
-  next();
-}
-
-export function installMiddleware(app: Express): void {
-  app.use(
-    bunyanMiddleware({
-      logger: reqLogger,
-      filter: (req) =>
-        req.url.startsWith("/static") || req.url === "/membership.js"
-    })
-  );
-  app.use(loggingMiddleware);
-}
-
-export const log = mainLogger;
+}*/

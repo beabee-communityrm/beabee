@@ -24,10 +24,7 @@ export default class GiftService {
   private static readonly giftMonthlyAmount = 3;
 
   static async createGiftFlow(giftForm: GiftForm): Promise<string> {
-    log.info({
-      action: "create-gift-flow",
-      data: { giftForm }
-    });
+    log.info("Create gift flow", giftForm);
 
     const giftFlow = await GiftService.createGiftFlowWithCode(giftForm);
 
@@ -59,13 +56,7 @@ export default class GiftService {
     const giftFlowRepository = getRepository(GiftFlow);
     const giftFlow = await giftFlowRepository.findOne({ where: { sessionId } });
 
-    log.info({
-      action: "complete-gift-flow",
-      data: {
-        sessionId,
-        giftFlowId: giftFlow?.id
-      }
-    });
+    log.info("Complete gift flow", { sessionId, giftFlowId: giftFlow?.id });
 
     if (giftFlow) {
       await giftFlowRepository.update(giftFlow.id, { completed: true });
@@ -100,12 +91,9 @@ export default class GiftService {
     giftFlow: GiftFlow,
     sendImmediately = false
   ): Promise<void> {
-    log.info({
-      action: "process-gift-flow",
-      data: {
-        giftFlow: { ...giftFlow, giftForm: undefined },
-        sendImmediately
-      }
+    log.info("Process gift flow " + giftFlow.id, {
+      giftFlow: { ...giftFlow, giftForm: undefined },
+      sendImmediately
     });
 
     const {
@@ -164,12 +152,7 @@ export default class GiftService {
     giftAddress: Address,
     deliveryAddress: Address
   ): Promise<void> {
-    log.info({
-      action: "update-gift-flow-address",
-      data: {
-        giftFlowId: giftFlow.id
-      }
-    });
+    log.info("Update gift flow address " + giftFlow.id);
 
     if (!giftFlow.processed && !giftFlow.giftForm.giftAddress) {
       await getRepository(GiftFlow).update(giftFlow.id, {

@@ -54,7 +54,7 @@ class NewsletterService {
       : new NoneProvider();
 
   async addTagToMembers(members: Member[], tag: string): Promise<void> {
-    log.info({ action: "add-tag-to-members", data: { tag } });
+    log.info(`Add tag ${tag} to ${members.length} members`);
     await this.provider.addTagToMembers(
       members.map((m) => m.email),
       tag
@@ -62,7 +62,7 @@ class NewsletterService {
   }
 
   async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
-    log.info({ action: "remove-tag-from-members", data: { tag } });
+    log.info(`Remove tag ${tag} from ${members.length} members`);
     await this.provider.removeTagFromMembers(
       members.map((m) => m.email),
       tag
@@ -75,12 +75,11 @@ class NewsletterService {
     oldEmail?: string
   ): Promise<void> {
     const willUpdate = shouldUpdate(updates);
-    log.info({
-      action: "update-member",
-      data: { memberId: member.id, willUpdate }
-    });
     if (willUpdate) {
+      log.info("Update member " + member.id);
       await this.provider.updateMember(memberToNlMember(member), oldEmail);
+    } else {
+      log.info("Ignoring member update for " + member.id);
     }
   }
 
@@ -89,7 +88,7 @@ class NewsletterService {
   }
 
   async updateMemberStatuses(members: Member[]): Promise<void> {
-    log.info({ action: "update-member-statuses" });
+    log.info(`Update ${members.length} member statuses`);
 
     await this.provider.updateMembers(
       members.map((member) => ({
@@ -104,15 +103,12 @@ class NewsletterService {
     member: Member,
     fields: Record<string, string>
   ): Promise<void> {
-    log.info({
-      action: "update-member-fields",
-      data: { memberId: member.id, fields }
-    });
+    log.info(`Update member fields for ${member.id}`, fields);
     await this.provider.updateMember({ email: member.email, fields });
   }
 
   async insertMembers(members: Member[]): Promise<void> {
-    log.info({ action: "insert-members" });
+    log.info(`Insert ${members.length} members`);
     await this.provider.insertMembers(
       members.map((member) => ({
         ...memberToNlMember(member),
@@ -131,12 +127,12 @@ class NewsletterService {
   }
 
   async archiveMembers(members: Member[]): Promise<void> {
-    log.info({ action: "archive-members" });
+    log.info(`Archive ${members.length} members`);
     await this.provider.archiveMembers(members.map((m) => m.email));
   }
 
   async deleteMembers(members: Member[]): Promise<void> {
-    log.info({ action: "delete-members" });
+    log.info(`Delete ${members.length} members`);
     await this.provider.deleteMembers(members.map((m) => m.email));
   }
 

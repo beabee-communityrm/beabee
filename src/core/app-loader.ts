@@ -9,7 +9,7 @@ import config, {
   AppConfigOverrides
 } from "@config";
 
-import { log } from "@core/logging";
+import { log as mainLogger } from "@core/logging";
 import templateLocals from "@core/template-locals";
 
 let git = "";
@@ -18,6 +18,8 @@ try {
 } catch (e) {
   git = "DEV";
 }
+
+const log = mainLogger.child({ app: "app-loader" });
 
 async function loadAppConfigs(
   basePath: string,
@@ -68,16 +70,13 @@ async function requireApp(appPath: string): Promise<express.Express> {
   return app.default || app;
 }
 
-async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
+async function routeApps(
+  parentApp: express.Express,
+  appConfigs: AppConfig[],
+  depth = 0
+) {
   for (const appConfig of appConfigs) {
-    log.debug({
-      app: "app-loader",
-      action: "load-app",
-      path:
-        parentApp.mountpath +
-        (parentApp.mountpath === "/" ? "" : "/") +
-        appConfig.path
-    });
+    log.info(`Loading app ${"..".repeat(depth)}${appConfig.path}`);
 
     const app = await requireApp(appConfig.appPath);
 
@@ -106,7 +105,7 @@ async function routeApps(parentApp: express.Express, appConfigs: AppConfig[]) {
     );
 
     if (appConfig.subApps.length > 0) {
-      await routeApps(app, appConfig.subApps);
+      await routeApps(app, appConfig.subApps, depth + 1);
     }
   }
 }

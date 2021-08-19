@@ -8,7 +8,7 @@ import {
 import { getRepository } from "typeorm";
 
 import gocardless from "@core/lib/gocardless";
-import { log } from "@core/logging";
+import { log as mainLogger } from "@core/logging";
 import {
   cleanEmailAddress,
   ContributionPeriod,
@@ -35,6 +35,8 @@ interface PayingMember extends Member {
   contributionPeriod: ContributionPeriod;
 }
 
+const log = mainLogger.child({ app: "gc-payment-service" });
+
 // Update contribution has been split into lots of methods as it's complicated
 // and has mutable state, nothing else should use the private methods in here
 abstract class UpdateContributionPaymentService {
@@ -42,13 +44,9 @@ abstract class UpdateContributionPaymentService {
     user: Member,
     paymentForm: PaymentForm
   ): Promise<void> {
-    log.info({
-      app: "direct-debit",
-      action: "update-contribution",
-      data: {
-        userId: user.id,
-        paymentForm
-      }
+    log.info("Update contribution for " + user.id, {
+      userId: user.id,
+      paymentForm
     });
 
     let gcData = await GCPaymentService.getPaymentData(user);
@@ -115,14 +113,9 @@ abstract class UpdateContributionPaymentService {
     paymentForm: PaymentForm,
     startDate?: string
   ): Promise<GCPaymentData> {
-    log.info({
-      app: "direct-debit",
-      action: "create-subscription",
-      data: {
-        userId: member.id,
-        paymentForm,
-        startDate
-      }
+    log.info("Create subscription for " + member.id, {
+      paymentForm,
+      startDate
     });
 
     if (startDate) {
@@ -179,14 +172,9 @@ abstract class UpdateContributionPaymentService {
       paymentForm.payFee
     );
 
-    log.info({
-      app: "direct-debit",
-      action: "update-subscription-amount",
-      data: {
-        userId: user.id,
-        chargeableAmount
-      }
-    });
+    log.info(
+      `Update subscription amount for ${user.id} to ${chargeableAmount}`
+    );
 
     try {
       await gocardless.subscriptions.update(gcData.subscriptionId!, {
@@ -218,10 +206,11 @@ abstract class UpdateContributionPaymentService {
       (paymentForm.monthlyAmount - member.contributionMonthlyAmount) *
       monthsLeft;
 
-    log.info({
-      app: "direct-debit",
-      action: "prorate-subscription",
-      data: { userId: member.id, paymentForm, monthsLeft, prorateAmount }
+    log.info("Prorate subscription for " + member.id, {
+      userId: member.id,
+      paymentForm,
+      monthsLeft,
+      prorateAmount
     });
 
     if (prorateAmount > 0 && paymentForm.prorate) {
@@ -259,15 +248,11 @@ abstract class UpdateContributionPaymentService {
       )
       .add(config.gracePeriod);
 
-    log.info({
-      app: "direct-debit",
-      action: "activate-contribution",
-      data: {
-        userId: member.id,
-        paymentForm,
-        startNow,
-        nextChargeDate
-      }
+    log.info("Activate contribution for " + member.id, {
+      userId: member.id,
+      paymentForm,
+      startNow,
+      nextChargeDate
     });
 
     await MembersService.updateMember(member, {
@@ -380,13 +365,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     member: Member,
     keepMandate = false
   ): Promise<void> {
-    log.info({
-      app: "direct-debit",
-      action: "cancel-subscription",
-      data: {
-        userId: member.id
-      }
-    });
+    log.info("Cancel subscription for " + member.id, { keepMandate });
 
     const gcData = await GCPaymentService.getPaymentData(member);
     if (gcData) {
@@ -418,15 +397,11 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     const gcData =
       (await GCPaymentService.getPaymentData(member)) || new GCPaymentData();
 
-    log.info({
-      app: "direct-debit",
-      action: "update-payment-method",
-      data: {
-        userId: member.id,
-        gcData,
-        customerId,
-        mandateId
-      }
+    log.info("Update payment method for " + member.id, {
+      userId: member.id,
+      gcData,
+      customerId,
+      mandateId
     });
 
     if (gcData.mandateId) {

@@ -28,16 +28,7 @@ app.post(
         config.stripe.webhookSecret
       );
 
-      log.info(
-        {
-          action: "got-webhook",
-          data: {
-            id: evt.id,
-            type: evt.type
-          }
-        },
-        `Got webhook ${evt.id} ${evt.type}`
-      );
+      log.info(`Got webhook ${evt.id} ${evt.type}`);
 
       if (evt.type === "checkout.session.completed") {
         await handleCheckoutSessionCompleted(
@@ -45,13 +36,7 @@ app.post(
         );
       }
     } catch (err) {
-      log.error(
-        {
-          action: "error",
-          error: err
-        },
-        `Got webhook error: ${err.message}`
-      );
+      log.error(`Got webhook error: ${err.message}`, err);
       return res.status(400).send(`Webhook error: ${err.message}`);
     }
 
