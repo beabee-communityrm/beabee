@@ -142,7 +142,7 @@ mixin itemStatus(item)
 		span.label.label-success Active
 	else if item.closed
 		span.label.label-danger Closed
-	else if item.expires
+	else if item.expires && moment().isAfter(item.expires)
 		span.label.label-warning Expired
 	else if item.starts
 		span.label.label-info Scheduled
