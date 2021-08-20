@@ -23,7 +23,7 @@ export default class OptionsService {
   }
 
   static async reload(): Promise<void> {
-    log.debug({ action: "reload" });
+    log.info("Reload cache");
     const newCache: Partial<Record<OptionKey, OptionWithDefault>> = {};
     for (const key of Object.keys(defaultOptions)) {
       newCache[key as OptionKey] = {
@@ -105,10 +105,7 @@ export default class OptionsService {
     try {
       await axios.post("http://webhook_app:4000/reload");
     } catch (error) {
-      log.error(
-        { action: "notify-failed", error },
-        "Failed to notify apps of options change"
-      );
+      log.error("Failed to notify webhook of options change", error);
     }
   }
 }

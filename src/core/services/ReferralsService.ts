@@ -42,12 +42,7 @@ export default class ReferralsService {
   }
 
   static async updateGiftStock(giftForm: ReferralGiftForm): Promise<void> {
-    log.info({
-      action: "update-gift-stock",
-      data: {
-        giftForm
-      }
-    });
+    log.info("Update gift stock", giftForm);
 
     const gift = await getRepository(ReferralGift).findOne({
       name: giftForm.referralGift
@@ -70,14 +65,11 @@ export default class ReferralsService {
     referee: Member,
     giftForm: ReferralGiftForm
   ): Promise<void> {
-    log.info({
-      action: "create-referral",
-      data: {
-        referrerId: referrer?.id,
-        refereeId: referee.id,
-        giftForm,
-        refereeAmount: referee.contributionMonthlyAmount
-      }
+    log.info("Create referral", {
+      referrerId: referrer?.id,
+      refereeId: referee.id,
+      giftForm,
+      refereeAmount: referee.contributionMonthlyAmount
     });
 
     const referral = new Referral();

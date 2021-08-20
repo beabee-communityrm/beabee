@@ -16,7 +16,7 @@ import {
 
 import { MailchimpNewsletterConfig } from "@config";
 
-const log = mainLogger.child({ app: "newsletter-service" });
+const log = mainLogger.child({ app: "mailchimp-provider" });
 
 interface Batch {
   id: string;
@@ -71,16 +71,12 @@ function createInstance(settings: MailchimpNewsletterConfig["settings"]) {
   });
 
   instance.interceptors.request.use((config) => {
-    log.debug({
-      url: config.url,
-      method: config.method,
-      sensitive: {
-        params: config.params,
-        // Don't print all the batch operations
-        ...((config.url !== "/batches/" || config.method !== "post") && {
-          data: config.data
-        })
-      }
+    log.info(`${config.method} ${config.url}`, {
+      params: config.params,
+      // Don't print all the batch operations
+      ...((config.url !== "/batches/" || config.method !== "post") && {
+        data: config.data
+      })
     });
 
     return config;
@@ -91,13 +87,10 @@ function createInstance(settings: MailchimpNewsletterConfig["settings"]) {
       return response;
     },
     (error) => {
-      log.error(
-        {
-          status: error.response.status,
-          data: error.response.data
-        },
-        "MailChimp API returned with status " + error.response.status
-      );
+      log.error("MailChimp API returned with status " + error.response.status, {
+        status: error.response.status,
+        data: error.response.data
+      });
       return Promise.reject(error);
     }
   );
@@ -262,25 +255,16 @@ export default class MailchimpProvider implements NewsletterProvider {
   }
 
   private async createBatch(operations: Operation[]): Promise<Batch> {
-    log.info({
-      action: "create-batch",
-      data: {
-        operationCount: operations.length
-      }
-    });
+    log.info(`Creating batch with ${operations.length} operations`);
     const response = await this.instance.post("/batches/", { operations });
     return response.data as Batch;
   }
 
   private async waitForBatch(batch: Batch): Promise<Batch> {
-    log.info({
-      action: "wait-for-batch",
-      data: {
-        batchId: batch.id,
-        finishedOperations: batch.finished_operations,
-        totalOperations: batch.total_operations,
-        erroredOperations: batch.errored_operations
-      }
+    log.info(`Waiting for batch ${batch.id}`, {
+      finishedOperations: batch.finished_operations,
+      totalOperations: batch.total_operations,
+      erroredOperations: batch.errored_operations
     });
 
     if (batch.status === "finished") {
@@ -296,14 +280,10 @@ export default class MailchimpProvider implements NewsletterProvider {
   }
 
   private async getBatchResponses(batch: Batch): Promise<any[]> {
-    log.info({
-      action: "get-batch-responses",
-      data: {
-        batchId: batch.id,
-        finishedOperations: batch.finished_operations,
-        totalOperations: batch.total_operations,
-        erroredOperations: batch.errored_operations
-      }
+    log.info(`Getting responses for batch ${batch.id}`, {
+      finishedOperations: batch.finished_operations,
+      totalOperations: batch.total_operations,
+      erroredOperations: batch.errored_operations
     });
 
     const batchResponses: any[] = [];
@@ -320,12 +300,7 @@ export default class MailchimpProvider implements NewsletterProvider {
       stream.on("end", next);
 
       if (header.type === "file") {
-        log.info({
-          action: "checking-batch-error-file",
-          data: {
-            name: header.name
-          }
-        });
+        log.info(`Checking batch error file: ${header.name}`);
         stream
           .pipe(JSONStream.parse("*"))
           .on("data", (data: OperationResponse) => {
@@ -333,11 +308,8 @@ export default class MailchimpProvider implements NewsletterProvider {
               batchResponses.push(JSON.parse(data.response));
             } else {
               log.error(
-                {
-                  action: "check-batch-errors",
-                  data
-                },
-                `Unexpected error for ${data.operation_id}, got ${data.status_code}`
+                `Unexpected error for ${data.operation_id}, got ${data.status_code}`,
+                data
               );
             }
           });
@@ -371,7 +343,11 @@ export default class MailchimpProvider implements NewsletterProvider {
               validateOperationStatus(status, operation.operation_id)
           });
         } catch (err) {
-          console.log(err);
+          log.error(
+            `Error in operation ${operation.operation_id}`,
+            err,
+            operation
+          );
         }
       }
     }

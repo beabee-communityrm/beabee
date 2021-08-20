@@ -48,7 +48,7 @@ jobs:
 
   push:
     runs-on: ubuntu-latest
-    needs: [init, test]
+    needs: [init, test, check]
     steps:
       - uses: benjlevesque/short-sha@v1.2
         id: short-sha

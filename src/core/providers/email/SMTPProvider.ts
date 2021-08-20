@@ -32,10 +32,7 @@ export default class SMTPProvider implements EmailProvider {
     opts?: EmailOptions
   ): Promise<void> {
     if (opts?.sendAt) {
-      log.error(
-        { error: "send-at-not-supported" },
-        "SMTPEmailProvider doesn't support sendAt, ignoring email"
-      );
+      log.error("SMTPEmailProvider doesn't support sendAt, ignoring email");
       return;
     }
 

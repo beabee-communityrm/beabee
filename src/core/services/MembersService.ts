@@ -85,9 +85,7 @@ export default class MembersService {
     partialProfile: PartialMemberProfile = {},
     opts?: CreateMemberOpts
   ): Promise<Member> {
-    log.info({
-      action: "create-member"
-    });
+    log.info("Create member", { partialMember, partialProfile });
 
     try {
       const member = getRepository(Member).create({
@@ -131,12 +129,9 @@ export default class MembersService {
     updates: Partial<Member>,
     opts?: CreateMemberOpts
   ): Promise<void> {
-    log.info({
-      action: "update-member",
-      sensitive: {
-        memberId: member.id,
-        updates
-      }
+    log.info("Update member " + member.id, {
+      memberId: member.id,
+      updates
     });
 
     const oldEmail = updates.email && member.email;
@@ -152,6 +147,7 @@ export default class MembersService {
     if (updates.email || updates.firstname || updates.lastname) {
       const gcData = await getRepository(GCPaymentData).findOne({ member });
       if (gcData && gcData.customerId) {
+        log.info("Update member in GoCardless");
         await gocardless.customers.update(gcData.customerId, {
           ...(updates.email && { email: updates.email }),
           ...(updates.firstname && { given_name: updates.firstname }),
@@ -166,14 +162,7 @@ export default class MembersService {
     permission: PermissionType,
     updates?: Partial<Omit<MemberPermission, "member" | "permission">>
   ): Promise<void> {
-    log.info({
-      action: "update-member-permission",
-      data: {
-        memberId: member.id,
-        permission,
-        updates
-      }
-    });
+    log.info(`Update permission ${permission} for ${member.id}`, updates);
 
     const wasActive = member.isActiveMember;
 
@@ -218,14 +207,11 @@ export default class MembersService {
     dateExpires: Date
   ): Promise<void> {
     const p = member.permissions.find((p) => p.permission === permission);
-    log.info({
-      action: "extend-member-permission",
-      data: {
-        memberId: member.id,
-        permission,
-        prevDate: p?.dateExpires,
-        newDate: dateExpires
-      }
+    log.info(`Extend permission ${permission} for ${member.id}`, {
+      memberId: member.id,
+      permission,
+      prevDate: p?.dateExpires,
+      newDate: dateExpires
     });
     if (!p || (p.dateExpires && dateExpires > p.dateExpires)) {
       await MembersService.updateMemberPermission(member, permission, {
@@ -238,13 +224,7 @@ export default class MembersService {
     member: Member,
     permission: PermissionType
   ): Promise<void> {
-    log.info({
-      action: "revoke-member-permission",
-      data: {
-        memberId: member.id,
-        permission
-      }
-    });
+    log.info(`Revoke permission ${permission} for ${member.id}`);
     member.permissions = member.permissions.filter(
       (p) => p.permission !== permission
     );
@@ -263,12 +243,7 @@ export default class MembersService {
     updates: Partial<MemberProfile>,
     opts?: CreateMemberOpts
   ): Promise<void> {
-    log.info({
-      action: "update-member-profile",
-      data: {
-        memberId: member.id
-      }
-    });
+    log.info("Update member profile for " + member.id);
     await getRepository(MemberProfile).update(member.id, updates);
 
     if (

@@ -47,21 +47,12 @@ async function getPostcodes(postcodes: string[]): Promise<PostcodeCache[]> {
   const unknownPostcodes = dedupedPostcodes.filter(
     (postcode) => postcodeCache[postcode] === undefined
   );
-  log.info(
-    {
-      app: "map",
-      action: "get-postcodes"
-    },
-    `Getting ${unknownPostcodes.length} postcodes`
-  );
+  log.info(`Getting ${unknownPostcodes.length} postcodes`);
 
   for (let i = 0; i < unknownPostcodes.length; i += 100) {
     const unknownPostcodesSlice = unknownPostcodes.slice(i, i + 100);
-    log.info({
-      app: "map",
-      action: "fetch-postcodes",
-      data: unknownPostcodesSlice
-    });
+    log.info("Fetching postcodes", unknownPostcodesSlice);
+
     const resp = await axios.post(
       "https://api.postcodes.io/postcodes?filter=postcode,latitude,longitude",
       {

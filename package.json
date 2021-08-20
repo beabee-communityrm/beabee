@@ -19,9 +19,6 @@
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "bootstrap-sass": "^3.4.1",
-    "bunyan": "^1.8.14",
-    "bunyan-middleware": "github:EthWorks/bunyan-middleware#d6baa3f1f6f96c438649b21a55a3b51f9ff7394e",
-    "bunyan-slack": "0.0.10",
     "chance": "^1.1.7",
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
@@ -36,6 +33,7 @@
     "express": "^4.17.1",
     "express-flash": "0.0.2",
     "express-session": "^1.17.1",
+    "express-winston": "^4.1.0",
     "flat": "^5.0.2",
     "gocardless-nodejs": "^1.4.1",
     "gunzip-maybe": "^1.4.2",
@@ -63,7 +61,8 @@
     "tar-stream": "^2.1.4",
     "thirty-two": "github:chrisumbel/thirty-two#704e9e014ff36e9f40bdf60818be647266ebc413",
     "typeorm": "^0.2.29",
-    "uuid": "^8.3.1"
+    "uuid": "^8.3.1",
+    "winston": "^3.3.3"
   },
   "scripts": {
     "start": "npm run build && docker-compose restart && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
