@@ -20,6 +20,8 @@ async function currentUserChecker(action: Action): Promise<Member | undefined> {
 
 const app = express();
 
+app.set("trust proxy", true);
+
 app.use(cookie());
 
 db.connect().then(() => {
