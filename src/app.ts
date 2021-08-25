@@ -32,6 +32,7 @@ const app = express();
 app.set("views", __dirname + "/views");
 app.set("view engine", "pug");
 app.set("view cache", false);
+app.set("trust proxy", true);
 
 app.use(requestLogger);
 
