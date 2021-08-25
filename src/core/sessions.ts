@@ -1,5 +1,5 @@
 import _pgSession from "connect-pg-simple";
-import express from "express";
+import express, { Response } from "express";
 import session from "express-session";
 import { getConnection } from "typeorm";
 import { PostgresDriver } from "typeorm/driver/postgres/PostgresDriver";
@@ -9,6 +9,15 @@ import passport from "@core/lib/passport";
 import config from "@config";
 
 const pgSession = _pgSession(session);
+
+export function setTrackingCookie(memberId: string, res: Response) {
+  res.cookie("memberId", memberId, {
+    ...config.cookie,
+    httpOnly: true,
+    maxAge: 365 * 24 * 60 * 60 * 1000,
+    sameSite: "none"
+  });
+}
 
 export default (app: express.Express): void => {
   app.use(
@@ -33,4 +42,14 @@ export default (app: express.Express): void => {
   // Passport
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Tracking cookie
+  app.use((req, res, next) => {
+    const memberId = req.user?.id || req.cookies.memberId;
+    if (memberId) {
+      setTrackingCookie(memberId, res);
+    }
+
+    next();
+  });
 };
