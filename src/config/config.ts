@@ -75,11 +75,8 @@ export default {
   secret: env.s("BEABEE_SECRET"),
   session: env.s("BEABEE_SESSION", "session"),
   cookie: {
-    secure: false,
-    httpOnly: true,
     domain: env.s("BEABEE_COOKIE_DOMAIN"),
-    path: "/",
-    maxAge: 267840000
+    secure: env.b("BEABEE_COOKIE_SECURE", true)
   },
   trackDomains: env.ss("BEABEE_TRACKDOMAINS", []),
   discourse: {

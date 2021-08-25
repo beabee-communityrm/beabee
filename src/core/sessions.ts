@@ -15,7 +15,12 @@ export default (app: express.Express): void => {
     session({
       name: config.session,
       secret: config.secret,
-      cookie: config.cookie,
+      cookie: {
+        ...config.cookie,
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 267840000
+      },
       saveUninitialized: false,
       store: new pgSession({
         pool: (getConnection().driver as PostgresDriver).master
