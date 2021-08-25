@@ -132,11 +132,5 @@ export default {
     days: 5
   },
   logFormat: env.e("BEABEE_LOGFORMAT", ["json", "simple"] as const, "json"),
-  logSlack: env.s("BEABEE_LOGSLACK_LEVEL", "") && {
-    level: env.s("BEABEE_LOGSLACK_LEVEL"),
-    webhookUrl: env.s("BEABEE_LOGSLACK_WEBHOOKURL"),
-    channel: env.s("BEABEE_LOGSLACK_CHANNEL"),
-    username: env.s("BEABEE_LOGSLACK_USERNAME")
-  },
   appOverrides: env.json("BEABEE_APPOVERRIDES", {}) as AppConfigOverrides
 };
