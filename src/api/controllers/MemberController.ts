@@ -8,7 +8,7 @@ import {
   ValidateNested,
   ValidationError
 } from "class-validator";
-import { Request } from "express";
+import { Request, Response } from "express";
 import {
   BadRequestError,
   Body,
@@ -17,6 +17,7 @@ import {
   JsonController,
   Put,
   Req,
+  Res,
   UnauthorizedError
 } from "routing-controllers";
 import { Brackets, createQueryBuilder, getRepository } from "typeorm";
@@ -119,12 +120,16 @@ export class MemberController {
   }
 
   @Get("/stats")
-  async stats(@Req() req: Request): Promise<{ total: number }> {
-    if (
-      req.headers.origin &&
-      config.trackDomains.indexOf(req.headers.origin) === -1
-    ) {
-      throw new UnauthorizedError();
+  async stats(
+    @Req() req: Request,
+    @Res() res: Response
+  ): Promise<{ total: number }> {
+    if (req.headers.origin) {
+      if (config.trackDomains.indexOf(req.headers.origin) === -1) {
+        throw new UnauthorizedError();
+      } else {
+        res.set("Access-Control-Allow-Origin", req.headers.origin);
+      }
     }
 
     const total = await createQueryBuilder(Member, "m")
