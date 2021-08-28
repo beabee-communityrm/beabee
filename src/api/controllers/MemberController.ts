@@ -8,7 +8,7 @@ import {
   ValidateNested,
   ValidationError
 } from "class-validator";
-import cors from "cors";
+import { Request } from "express";
 import {
   BadRequestError,
   Body,
@@ -16,7 +16,8 @@ import {
   Get,
   JsonController,
   Put,
-  UseBefore
+  Req,
+  UnauthorizedError
 } from "routing-controllers";
 import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 
@@ -118,12 +119,14 @@ export class MemberController {
   }
 
   @Get("/stats")
-  @UseBefore(
-    cors({
-      origin: config.trackDomains
-    })
-  )
-  async stats(): Promise<{ total: number }> {
+  async stats(@Req() req: Request): Promise<{ total: number }> {
+    if (
+      req.headers.origin &&
+      config.trackDomains.indexOf(req.headers.origin) === -1
+    ) {
+      throw new UnauthorizedError();
+    }
+
     const total = await createQueryBuilder(Member, "m")
       .innerJoin("m.permissions", "mp")
       .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
