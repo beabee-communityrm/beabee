@@ -8,15 +8,18 @@ import {
   ValidateNested,
   ValidationError
 } from "class-validator";
+import { Request } from "express";
 import {
   BadRequestError,
   Body,
   CurrentUser,
   Get,
   JsonController,
-  Put
+  Put,
+  Req,
+  UnauthorizedError
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
 
@@ -27,6 +30,8 @@ import { isDuplicateIndex } from "@core/utils";
 import Address from "@models/Address";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
+
+import config from "@config";
 
 class MemberProfileData {
   @IsBoolean()
@@ -111,5 +116,28 @@ export class MemberController {
       await MembersService.updateMemberProfile(member, data.profile);
     }
     return await memberToApiMember(member);
+  }
+
+  @Get("/stats")
+  async stats(@Req() req: Request): Promise<{ total: number }> {
+    if (
+      req.headers.origin &&
+      config.trackDomains.indexOf(req.headers.origin) === -1
+    ) {
+      throw new UnauthorizedError();
+    }
+
+    const total = await createQueryBuilder(Member, "m")
+      .innerJoin("m.permissions", "mp")
+      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where("mp.dateExpires IS NULL").orWhere("mp.dateExpires > :now");
+        })
+      )
+      .setParameters({ now: new Date() })
+      .getCount();
+
+    return { total };
   }
 }
