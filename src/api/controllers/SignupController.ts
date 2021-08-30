@@ -1,6 +1,14 @@
-import { IsBoolean, IsEmail, IsEnum, IsString, Min } from "class-validator";
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsString,
+  Min,
+  ValidationError
+} from "class-validator";
 import { Request } from "express";
 import {
+  BadRequestError,
   Body,
   BodyParam,
   HttpError,
@@ -99,6 +107,19 @@ async function handleJoin(
 export class SignupController {
   @Post("/")
   async startSignup(@Body() data: SignupData): Promise<SignupStart> {
+    if (data.period === ContributionPeriod.Annually && data.amount < 12) {
+      const duplicateEmailError: any = new BadRequestError();
+      duplicateEmailError.errors = [
+        {
+          property: "amount",
+          constraints: {
+            amount: "Minimum amount is £1/month or £12/year"
+          }
+        }
+      ] as ValidationError[];
+      throw duplicateEmailError;
+    }
+
     const redirectUrl = await JoinFlowService.createJoinFlow(
       data.completeUrl,
       {
