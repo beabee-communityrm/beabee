@@ -7,6 +7,7 @@ import { Action, HttpError, useExpressServer } from "routing-controllers";
 
 import { MemberController } from "./controllers/MemberController";
 import { SignupController } from "./controllers/SignupController";
+import { ThemeController } from "./controllers/ThemeController";
 
 import * as db from "@core/database";
 import sessions from "@core/sessions";
@@ -31,7 +32,7 @@ db.connect().then(() => {
 
   useExpressServer(app, {
     routePrefix: "/1.0",
-    controllers: [MemberController, SignupController],
+    controllers: [MemberController, SignupController, ThemeController],
     currentUserChecker,
     authorizationChecker: (action) => !!currentUserChecker(action)
   });
