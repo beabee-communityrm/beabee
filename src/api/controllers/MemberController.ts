@@ -2,6 +2,7 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsNumber,
   IsObject,
   IsOptional,
   IsString,
@@ -22,7 +23,7 @@ import { NewsletterStatus } from "@core/providers/newsletter";
 
 import MembersService from "@core/services/MembersService";
 
-import { isDuplicateIndex } from "@core/utils";
+import { ContributionPeriod, isDuplicateIndex } from "@core/utils";
 
 import Address from "@models/Address";
 import Member from "@models/Member";
@@ -52,6 +53,11 @@ class MemberData {
 
   @ValidateNested()
   profile!: MemberProfileData;
+
+  // Read only
+  joined!: Date;
+  contributionAmount?: number;
+  contributionPeriod?: ContributionPeriod;
 }
 
 async function memberToApiMember(member: Member): Promise<MemberData> {
@@ -65,7 +71,13 @@ async function memberToApiMember(member: Member): Promise<MemberData> {
       deliveryOptIn: !!profile.deliveryOptIn,
       deliveryAddress: profile.deliveryAddress,
       newsletterStatus: profile.newsletterStatus
-    }
+    },
+    joined: member.joined,
+    contributionPeriod: member.contributionPeriod,
+    contributionAmount:
+      member.contributionMonthlyAmount &&
+      member.contributionMonthlyAmount *
+        (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12)
   };
 }
 
