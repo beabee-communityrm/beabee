@@ -1,4 +1,4 @@
-FROM node:12.16.3-alpine as builder
+FROM node:14.17-alpine as builder
 
 RUN apk add --no-cache python make g++ git
 
@@ -14,7 +14,7 @@ FROM nginx:1.18.0-alpine as router
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx --from=builder /opt/membership-system/built/static /opt/membership-system/built/static
 
-FROM node:12.16.3-alpine as app
+FROM node:14.17-alpine as app
 
 ARG REVISION=DEV
 
