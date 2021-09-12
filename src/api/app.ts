@@ -5,6 +5,7 @@ import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
 import { Action, HttpError, useExpressServer } from "routing-controllers";
 
+import { CalloutController } from "./controllers/CalloutController";
 import { MemberController } from "./controllers/MemberController";
 import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
@@ -31,7 +32,12 @@ db.connect().then(() => {
 
   useExpressServer(app, {
     routePrefix: "/1.0",
-    controllers: [MemberController, NoticeController, SignupController],
+    controllers: [
+      CalloutController,
+      MemberController,
+      NoticeController,
+      SignupController
+    ],
     currentUserChecker,
     authorizationChecker: (action) => !!currentUserChecker(action)
   });
