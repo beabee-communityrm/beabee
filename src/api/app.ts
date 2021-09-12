@@ -9,8 +9,9 @@ import { MemberController } from "./controllers/MemberController";
 import { SignupController } from "./controllers/SignupController";
 
 import * as db from "@core/database";
+import { requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
-import { log, requestErrorLogger, requestLogger } from "@core/logging";
+import startServer from "@core/server";
 
 import Member from "@models/Member";
 
@@ -20,14 +21,12 @@ async function currentUserChecker(action: Action): Promise<Member | undefined> {
 
 const app = express();
 
-app.set("trust proxy", true);
+app.use(requestLogger);
 
 app.use(cookie());
 
 db.connect().then(() => {
   sessions(app);
-
-  app.use(requestLogger);
 
   useExpressServer(app, {
     routePrefix: "/1.0",
@@ -45,19 +44,5 @@ db.connect().then(() => {
 
   app.use(requestErrorLogger);
 
-  log.info("Starting server...");
-
-  const server = app.listen(3000);
-
-  process.on("SIGTERM", () => {
-    log.debug("Waiting for server to shutdown");
-    db.close();
-
-    setTimeout(() => {
-      log.warn("Server was forced to shutdown after timeout");
-      process.exit(1);
-    }, 20000).unref();
-
-    server.close(() => process.exit());
-  });
+  startServer(app);
 });
