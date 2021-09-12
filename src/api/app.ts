@@ -6,6 +6,7 @@ import express, { ErrorRequestHandler, Request } from "express";
 import { Action, HttpError, useExpressServer } from "routing-controllers";
 
 import { MemberController } from "./controllers/MemberController";
+import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
 
 import * as db from "@core/database";
@@ -30,7 +31,7 @@ db.connect().then(() => {
 
   useExpressServer(app, {
     routePrefix: "/1.0",
-    controllers: [MemberController, SignupController],
+    controllers: [MemberController, NoticeController, SignupController],
     currentUserChecker,
     authorizationChecker: (action) => !!currentUserChecker(action)
   });
