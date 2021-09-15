@@ -1,4 +1,4 @@
-FROM node:14.17-alpine as builder
+FROM node:12.22-alpine as builder
 
 RUN apk add --no-cache python make g++ git
 
