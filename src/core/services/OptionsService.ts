@@ -103,6 +103,9 @@ export default class OptionsService {
 
   private static async notify() {
     try {
+      // TODO: remove hardcoded service references
+      await axios.post("http://app:4000/reload");
+      await axios.post("http://api_app:4000/reload");
       await axios.post("http://webhook_app:4000/reload");
     } catch (error) {
       log.error("Failed to notify webhook of options change", error);
