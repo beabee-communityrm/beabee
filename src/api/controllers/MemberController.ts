@@ -41,7 +41,7 @@ class MemberProfileData {
   newsletterStatus!: NewsletterStatus;
 }
 
-class MemberData {
+class UpdateMemberData {
   @IsEmail()
   email!: string;
 
@@ -53,8 +53,9 @@ class MemberData {
 
   @ValidateNested()
   profile!: MemberProfileData;
+}
 
-  // Read only
+class MemberData extends UpdateMemberData {
   joined!: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
@@ -86,15 +87,15 @@ export class MemberController {
   @Get("/me")
   async getMe(
     @CurrentUser({ required: true }) member: Member
-  ): Promise<MemberData> {
+  ): Promise<UpdateMemberData> {
     return await memberToApiMember(member);
   }
 
   @Put("/me")
   async updateMe(
     @CurrentUser({ required: true }) member: Member,
-    @Body() data: Partial<MemberData>
-  ): Promise<MemberData> {
+    @Body() data: Partial<UpdateMemberData>
+  ): Promise<UpdateMemberData> {
     if (data.email || data.firstname || data.lastname) {
       try {
         await MembersService.updateMember(member, {
