@@ -27,7 +27,7 @@ export default (app: express.Express): void => {
       cookie: {
         ...config.cookie,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 267840000
       },
       saveUninitialized: false,
