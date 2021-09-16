@@ -2,7 +2,7 @@ import express from "express";
 import { getRepository } from "typeorm";
 
 import { isSuperAdmin } from "@core/middleware";
-import { ContributionType, wrapAsync } from "@core/utils";
+import { ContributionType, PaymentMethod, wrapAsync } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
 import GCPaymentService from "@core/services/GCPaymentService";
@@ -57,7 +57,8 @@ app.post(
           monthlyAmount: Number(req.body.amount),
           period: req.body.period,
           prorate: req.body.prorate === "true",
-          payFee: req.body.payFee === "true"
+          payFee: req.body.payFee === "true",
+          paymentMethod: PaymentMethod.DirectDebit
         });
         req.flash("success", "contribution-updated");
         break;

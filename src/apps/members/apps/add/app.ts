@@ -7,6 +7,7 @@ import {
   ContributionType,
   createDateTime,
   isDuplicateIndex,
+  PaymentMethod,
   wrapAsync
 } from "@core/utils";
 
@@ -127,7 +128,8 @@ app.post(
           monthlyAmount: data.amount,
           period: data.period,
           payFee: !!data.payFee,
-          prorate: false
+          prorate: false,
+          paymentMethod: PaymentMethod.DirectDebit
         });
       }
     } else if (data.type === ContributionType.Manual) {
