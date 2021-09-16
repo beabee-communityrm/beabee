@@ -1,9 +1,9 @@
+import { Type } from "class-transformer";
 import {
   IsBoolean,
+  IsDefined,
   IsEmail,
   IsEnum,
-  IsObject,
-  IsOptional,
   IsString,
   ValidateNested,
   ValidationError
@@ -29,46 +29,70 @@ import Address from "@models/Address";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
-class MemberProfileData {
-  @IsBoolean()
-  deliveryOptIn!: boolean;
-
-  @IsOptional()
-  @IsObject()
-  deliveryAddress?: Address;
-
-  @IsEnum(NewsletterStatus)
-  newsletterStatus!: NewsletterStatus;
-}
-
 interface MemberData {
   email: string;
   firstname: string;
   lastname: string;
-  profile: MemberProfileData;
+}
+
+interface MemberProfileData {
+  deliveryOptIn: boolean;
+  deliveryAddress?: Address;
+  newsletterStatus: NewsletterStatus;
 }
 
 interface GetMemberData extends MemberData {
   joined: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
+  profile: MemberProfileData;
 }
 
-class UpdateMemberData implements MemberData {
-  @IsEmail()
-  email!: string;
+class UpdateAddressData implements Address {
+  @IsDefined()
+  @IsString()
+  line1!: string;
 
   @IsString()
-  firstname!: string;
+  line2?: string;
 
+  @IsDefined()
   @IsString()
-  lastname!: string;
+  city!: string;
 
+  @IsDefined()
   @IsString()
-  password!: string;
+  postcode!: string;
+}
+
+class UpdateMemberProfileData implements Partial<MemberProfileData> {
+  @IsBoolean()
+  deliveryOptIn?: boolean;
 
   @ValidateNested()
-  profile!: MemberProfileData;
+  @Type(() => UpdateAddressData)
+  deliveryAddress?: UpdateAddressData;
+
+  @IsEnum(NewsletterStatus)
+  newsletterStatus?: NewsletterStatus;
+}
+
+class UpdateMemberData implements Partial<MemberData> {
+  @IsEmail()
+  email?: string;
+
+  @IsString()
+  firstname?: string;
+
+  @IsString()
+  lastname?: string;
+
+  @IsString()
+  password?: string;
+
+  @ValidateNested()
+  @Type(() => UpdateMemberProfileData)
+  profile?: UpdateMemberProfileData;
 }
 
 async function memberToApiMember(member: Member): Promise<GetMemberData> {
@@ -104,7 +128,8 @@ export class MemberController {
   @Put("/me")
   async updateMe(
     @CurrentUser({ required: true }) member: Member,
-    @Body() data: Partial<UpdateMemberData>
+    @Body({ required: true, validate: { skipMissingProperties: true } })
+    data: UpdateMemberData
   ): Promise<GetMemberData> {
     try {
       await MembersService.updateMember(member, {
