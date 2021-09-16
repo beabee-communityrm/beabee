@@ -119,7 +119,8 @@ export default {
   stripe: {
     publicKey: env.s("BEABEE_STRIPE_PUBLICKEY", ""),
     secretKey: env.s("BEABEE_STRIPE_SECRETKEY", ""),
-    webhookSecret: env.s("BEABEE_STRIPE_WEBHOOKSECRET", "")
+    webhookSecret: env.s("BEABEE_STRIPE_WEBHOOKSECRET", ""),
+    productId: env.s("BEABEE_STRIPE_PRODUCTID", "")
   },
   currencyCode: env.s("BEABEE_CURRENCYCODE"),
   currencySymbol: env.s("BEABEE_CURRENCYSYMBOL"),

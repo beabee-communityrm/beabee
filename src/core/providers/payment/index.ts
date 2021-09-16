@@ -1,5 +1,7 @@
 import { PaymentForm } from "@core/utils";
 
+import Member from "@models/Member";
+
 export interface PaymentRedirectFlowParams {
   email: string;
   firstname?: string;
@@ -18,4 +20,8 @@ export interface PaymentProvider {
     paymentForm: PaymentForm,
     params: PaymentRedirectFlowParams
   ): Promise<PaymentRedirectFlow>;
+
+  hasPendingPayment(member: Member): Promise<boolean>;
+
+  cancelContribution(member: Member): Promise<void>;
 }
