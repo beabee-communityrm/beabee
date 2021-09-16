@@ -11,7 +11,11 @@ import {
   Req
 } from "routing-controllers";
 
-import { ContributionPeriod, isDuplicateIndex } from "@core/utils";
+import {
+  ContributionPeriod,
+  isDuplicateIndex,
+  PaymentMethod
+} from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import EmailService from "@core/services/EmailService";
@@ -42,6 +46,9 @@ class SignupData {
 
   @IsString()
   completeUrl!: string;
+
+  @IsEnum(PaymentMethod)
+  paymentMethod!: PaymentMethod;
 }
 
 type SignupErrorCode =

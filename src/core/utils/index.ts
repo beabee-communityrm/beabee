@@ -19,6 +19,12 @@ export interface PaymentForm {
   period: ContributionPeriod;
   payFee: boolean;
   prorate: boolean;
+  paymentMethod: PaymentMethod;
+}
+
+export enum PaymentMethod {
+  Card = "card",
+  DirectDebit = "direct-debit"
 }
 
 export interface ReferralGiftForm {

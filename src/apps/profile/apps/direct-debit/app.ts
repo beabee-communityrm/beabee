@@ -6,6 +6,7 @@ import {
   ContributionType,
   hasUser,
   PaymentForm,
+  PaymentMethod,
   RequestWithUser,
   wrapAsync
 } from "@core/utils";
@@ -77,7 +78,8 @@ function schemaToPaymentForm(data: UpdateSubscriptionSchema): {
       monthlyAmount: data.amount,
       period: data.period,
       payFee: !!data.payFee,
-      prorate: data.prorate
+      prorate: data.prorate,
+      paymentMethod: PaymentMethod.DirectDebit
     }
   };
 }
