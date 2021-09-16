@@ -132,15 +132,17 @@ export class MemberController {
     data: UpdateMemberData
   ): Promise<GetMemberData> {
     try {
-      await MembersService.updateMember(member, {
-        ...(data.email && { email: data.email }),
-        ...(data.firstname && { firstname: data.firstname }),
-        ...(data.lastname && { lastname: data.lastname }),
-        ...(data.password && {
-          password: await generatePassword(data.password)
-        })
-      });
-    } catch (error) {
+      if (data.email || data.firstname || data.lastname || data.password) {
+        await MembersService.updateMember(member, {
+          ...(data.email && { email: data.email }),
+          ...(data.firstname && { firstname: data.firstname }),
+          ...(data.lastname && { lastname: data.lastname }),
+          ...(data.password && {
+            password: await generatePassword(data.password)
+          })
+        });
+      }
+    } catch (error: any) {
       if (isDuplicateIndex(error, "email")) {
         const duplicateEmailError: any = new BadRequestError();
         duplicateEmailError.errors = [
