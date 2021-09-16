@@ -2,7 +2,9 @@ import { getRepository } from "typeorm";
 
 import { generateCode } from "@core/utils/auth";
 
-import GCPaymentService from "@core/services/GCPaymentService";
+import GCPaymentService, {
+  RedirectFlowParams
+} from "@core/services/GCPaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
@@ -19,14 +21,14 @@ export default class JoinFlowService {
   static async createJoinFlow(
     completeUrl: string,
     joinForm: JoinForm,
-    redirectFlowParams = {}
+    params: RedirectFlowParams
   ): Promise<string> {
     const sessionToken = generateCode();
     const redirectFlow = await GCPaymentService.createRedirectFlow(
       sessionToken,
       completeUrl,
       joinForm,
-      redirectFlowParams
+      params
     );
     const joinFlow = new JoinFlow();
     joinFlow.redirectFlowId = redirectFlow.id;
@@ -35,7 +37,7 @@ export default class JoinFlowService {
 
     await getRepository(JoinFlow).save(joinFlow);
 
-    return redirectFlow.redirect_url;
+    return redirectFlow.url;
   }
 
   static async completeJoinFlow(

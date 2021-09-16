@@ -110,9 +110,7 @@ export class SignupController {
         prorate: false
       },
       {
-        prefilled_customer: {
-          email: data.email
-        }
+        email: data.email
       }
     );
     return {

@@ -30,6 +30,12 @@ import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
 
+export interface RedirectFlowParams {
+  email: string;
+  firstname?: string;
+  lastname?: string;
+}
+
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
   contributionPeriod: ContributionPeriod;
@@ -461,20 +467,30 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     sessionToken: string,
     completeUrl: string,
     paymentForm: PaymentForm,
-    redirectFlowParams = {}
-  ): Promise<RedirectFlow> {
+    params: RedirectFlowParams
+  ): Promise<{ id: string; url: string }> {
     const actualAmount = getActualAmount(
       paymentForm.monthlyAmount,
       paymentForm.period
     );
-    return await gocardless.redirectFlows.create({
+
+    const redirectFlow = await gocardless.redirectFlows.create({
       description: `Membership: ${config.currencySymbol}${actualAmount}/${
         paymentForm.period
       }${paymentForm.payFee ? " (+ fee)" : ""}`,
       session_token: sessionToken,
       success_redirect_url: completeUrl,
-      ...redirectFlowParams
+      prefilled_customer: {
+        email: params.email,
+        ...(params.firstname && { given_name: params.firstname }),
+        ...(params.lastname && { family_name: params.lastname })
+      }
     });
+
+    return {
+      id: redirectFlow.id,
+      url: redirectFlow.redirect_url
+    };
   }
 
   static async completeRedirectFlow(

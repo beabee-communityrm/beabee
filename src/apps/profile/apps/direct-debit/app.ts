@@ -119,13 +119,7 @@ app.post(
               email: req.user.email,
               password: req.user.password
             },
-            {
-              prefilled_customer: {
-                email: req.user.email,
-                given_name: req.user.firstname,
-                family_name: req.user.lastname
-              }
-            }
+            req.user
           );
         }
       } else {
