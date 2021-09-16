@@ -39,7 +39,10 @@ db.connect().then(() => {
       SignupController
     ],
     currentUserChecker,
-    authorizationChecker: (action) => !!currentUserChecker(action)
+    authorizationChecker: (action) => !!currentUserChecker(action),
+    validation: {
+      forbidUnknownValues: true
+    }
   });
 
   // TODO: Why do we need this?
