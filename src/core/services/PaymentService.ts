@@ -1,6 +1,11 @@
 import { getRepository } from "typeorm";
 
-import { ContributionType } from "@core/utils";
+import { ContributionType, PaymentForm } from "@core/utils";
+
+import {
+  PaymentRedirectFlow,
+  PaymentRedirectFlowParams
+} from "@core/providers/payment";
 
 import GCPaymentData from "@models/GCPaymentData";
 import ManualPaymentData from "@models/ManualPaymentData";
@@ -8,8 +13,8 @@ import Member from "@models/Member";
 
 import GCPaymentService from "./GCPaymentService";
 
-export default class PaymentService {
-  static async getPaymentData(
+class PaymentService {
+  async getPaymentData(
     member: Member
   ): Promise<GCPaymentData | ManualPaymentData | undefined> {
     switch (member.contributionType) {
@@ -19,4 +24,28 @@ export default class PaymentService {
         return await getRepository(ManualPaymentData).findOne(member.id);
     }
   }
+
+  async updatePaymentMethod() {}
+
+  async updateContribution() {}
+
+  async hasPendingPayments(member: Member): Promise<boolean> {
+    return false;
+  }
+
+  private getProvider(member: Member) {}
+
+  async createRedirectFlow(
+    sessionToken: string,
+    completeUrl: string,
+    paymentForm: PaymentForm,
+    params: PaymentRedirectFlowParams
+  ): Promise<PaymentRedirectFlow> {
+    return {
+      id: "",
+      url: ""
+    };
+  }
 }
+
+export default new PaymentService();

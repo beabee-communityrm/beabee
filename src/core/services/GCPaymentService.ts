@@ -10,12 +10,17 @@ import { getRepository } from "typeorm";
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
-  cleanEmailAddress,
   ContributionPeriod,
   ContributionType,
   getActualAmount,
   PaymentForm
 } from "@core/utils";
+
+import {
+  PaymentProvider,
+  PaymentRedirectFlow,
+  PaymentRedirectFlowParams
+} from "@core/providers/payment";
 
 import { CompletedJoinFlow } from "@core/services/JoinFlowService";
 import MembersService, {
@@ -29,12 +34,6 @@ import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
-
-export interface RedirectFlowParams {
-  email: string;
-  firstname?: string;
-  lastname?: string;
-}
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -284,7 +283,10 @@ abstract class UpdateContributionPaymentService {
   }
 }
 
-export default class GCPaymentService extends UpdateContributionPaymentService {
+class GCPaymentService
+  extends UpdateContributionPaymentService
+  implements PaymentProvider
+{
   async customerToMember(joinFlow: CompletedJoinFlow): Promise<{
     partialMember: PartialMember;
     partialProfile: PartialMemberProfile;
@@ -460,8 +462,8 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     sessionToken: string,
     completeUrl: string,
     paymentForm: PaymentForm,
-    params: RedirectFlowParams
-  ): Promise<{ id: string; url: string }> {
+    params: PaymentRedirectFlowParams
+  ): Promise<PaymentRedirectFlow> {
     const actualAmount = getActualAmount(
       paymentForm.monthlyAmount,
       paymentForm.period
