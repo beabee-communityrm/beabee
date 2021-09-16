@@ -41,7 +41,13 @@ db.connect().then(() => {
     currentUserChecker,
     authorizationChecker: (action) => !!currentUserChecker(action),
     validation: {
-      forbidUnknownValues: true
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+      whitelist: true,
+      validationError: {
+        target: false,
+        value: false
+      }
     }
   });
 
