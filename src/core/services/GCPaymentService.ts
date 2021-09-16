@@ -45,6 +45,12 @@ const log = mainLogger.child({ app: "gc-payment-service" });
 // Update contribution has been split into lots of methods as it's complicated
 // and has mutable state, nothing else should use the private methods in here
 abstract class UpdateContributionPaymentService {
+  abstract getPaymentData(member: Member): Promise<GCPaymentData | undefined>;
+  abstract cancelContribution(
+    member: Member,
+    keepMandate: boolean
+  ): Promise<void>;
+
   async updateContribution(
     user: Member,
     paymentForm: PaymentForm
@@ -54,7 +60,7 @@ abstract class UpdateContributionPaymentService {
       paymentForm
     });
 
-    let gcData = await GCPaymentService.getPaymentData(user);
+    let gcData = await this.getPaymentData(user);
 
     if (!gcData?.mandateId) {
       throw new Error("User does not have active payment method");
@@ -91,7 +97,7 @@ abstract class UpdateContributionPaymentService {
       );
     } else {
       if (gcData.subscriptionId) {
-        await GCPaymentService.cancelContribution(user, true);
+        await this.cancelContribution(user, true);
         gcData.subscriptionId = undefined;
       }
 
@@ -368,7 +374,7 @@ class GCPaymentService
   async cancelContribution(member: Member, keepMandate = false): Promise<void> {
     log.info("Cancel subscription for " + member.id, { keepMandate });
 
-    const gcData = await GCPaymentService.getPaymentData(member);
+    const gcData = await this.getPaymentData(member);
     if (gcData) {
       // Do this before cancellation to avoid webhook race conditions
       await getRepository(GCPaymentData).update(gcData.member.id, {
@@ -395,8 +401,7 @@ class GCPaymentService
     customerId: string,
     mandateId: string
   ): Promise<void> {
-    const gcData =
-      (await GCPaymentService.getPaymentData(member)) || new GCPaymentData();
+    const gcData = (await this.getPaymentData(member)) || new GCPaymentData();
 
     log.info("Update payment method for " + member.id, {
       userId: member.id,
@@ -423,7 +428,7 @@ class GCPaymentService
   }
 
   async hasPendingPayment(member: Member): Promise<boolean> {
-    const gcData = await GCPaymentService.getPaymentData(member);
+    const gcData = await this.getPaymentData(member);
     if (gcData && gcData.subscriptionId) {
       for (const status of GCPayment.pendingStatuses) {
         const payments = await gocardless.payments.list({
@@ -448,7 +453,7 @@ class GCPaymentService
   }
 
   async permanentlyDeleteMember(member: Member): Promise<void> {
-    const gcData = await GCPaymentService.getPaymentData(member);
+    const gcData = await this.getPaymentData(member);
     await getRepository(GCPayment).delete({ member });
     if (gcData?.mandateId) {
       await gocardless.mandates.cancel(gcData.mandateId);
