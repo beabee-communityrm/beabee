@@ -17,7 +17,7 @@ import startServer from "@core/server";
 
 import Member from "@models/Member";
 
-async function currentUserChecker(action: Action): Promise<Member | undefined> {
+function currentUserChecker(action: Action): Member | undefined {
   return (action.request as Request).user;
 }
 

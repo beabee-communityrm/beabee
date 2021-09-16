@@ -1,6 +1,11 @@
 import { IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 import moment from "moment";
-import { Get, JsonController, QueryParams } from "routing-controllers";
+import {
+  Authorized,
+  Get,
+  JsonController,
+  QueryParams
+} from "routing-controllers";
 import { Brackets, createQueryBuilder } from "typeorm";
 
 import Poll from "@models/Poll";
@@ -26,6 +31,7 @@ class GetCalloutsQuery {
 }
 
 @JsonController("/callout")
+@Authorized()
 export class CalloutController {
   @Get("/")
   async getCallouts(@QueryParams() query: GetCalloutsQuery): Promise<Poll[]> {

@@ -1,9 +1,14 @@
+import { IsEnum, IsOptional } from "class-validator";
 import moment from "moment";
-import { Get, JsonController, QueryParams } from "routing-controllers";
+import {
+  Authorized,
+  Get,
+  JsonController,
+  QueryParams
+} from "routing-controllers";
 import { Brackets, createQueryBuilder } from "typeorm";
 
 import Notice from "@models/Notice";
-import { IsEnum, IsOptional } from "class-validator";
 
 enum Status {
   Open = "open",
@@ -17,6 +22,7 @@ class GetNoticesQuery {
 }
 
 @JsonController("/notice")
+@Authorized()
 export class NoticeController {
   @Get("/")
   async getNotices(@QueryParams() query: GetNoticesQuery): Promise<Notice[]> {
