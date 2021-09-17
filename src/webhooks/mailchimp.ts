@@ -131,7 +131,7 @@ async function handleSubscribe(data: MCProfileData) {
       { noSync: true }
     );
   } else {
-    const member = await MembersService.createMember(
+    await MembersService.createMember(
       {
         email,
         firstname: data.merges.FNAME,
@@ -142,10 +142,9 @@ async function handleSubscribe(data: MCProfileData) {
         newsletterStatus: NewsletterStatus.Subscribed
         // TODO: newsletterGroups: data.
       },
-      { noSync: true }
+      // New member, sync merge fields etc.
+      { noSync: false }
     );
-    // Sync merge fields etc.
-    await NewsletterService.updateMembers([member]);
   }
 }
 
