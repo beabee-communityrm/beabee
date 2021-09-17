@@ -200,10 +200,7 @@ export default class MailchimpProvider implements NewsletterProvider {
     member: PartialNewsletterMember,
     oldEmail = member.email
   ): Promise<void> {
-    await this.instance.patch(
-      this.emailUrl(oldEmail),
-      memberToMCMember(member)
-    );
+    await this.instance.put(this.emailUrl(oldEmail), memberToMCMember(member));
   }
 
   async upsertMembers(members: PartialNewsletterMember[]): Promise<void> {
