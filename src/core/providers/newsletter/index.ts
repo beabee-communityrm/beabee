@@ -21,6 +21,7 @@ export type PartialNewsletterMember = Partial<
 export interface NewsletterProvider {
   addTagToMembers(emails: string[], tag: string): Promise<void>;
   removeTagFromMembers(emails: string[], tag: string): Promise<void>;
+  getMember(email: string): Promise<NewsletterMember | undefined>;
   getMembers(): Promise<NewsletterMember[]>;
   updateMember(
     member: PartialNewsletterMember,
