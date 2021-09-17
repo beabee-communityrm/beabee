@@ -126,8 +126,7 @@ export default class MembersService {
 
   static async updateMember(
     member: Member,
-    updates: Partial<Member>,
-    opts: CreateMemberOpts = { sync: true }
+    updates: Partial<Member>
   ): Promise<void> {
     log.info("Update member " + member.id, {
       memberId: member.id,
@@ -139,9 +138,7 @@ export default class MembersService {
     Object.assign(member, updates);
     await getRepository(Member).update(member.id, updates);
 
-    if (opts?.sync) {
-      await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
-    }
+    await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
 
     // TODO: This should be in GCPaymentService
     if (updates.email || updates.firstname || updates.lastname) {
