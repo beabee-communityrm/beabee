@@ -107,7 +107,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
       member,
       { email: newEmail },
       // No need to sync back address change
-      { noSync: true }
+      { sync: false }
     );
   } else {
     log.error("Old email not found in Mailchimp update email hook", data);
@@ -130,7 +130,7 @@ async function handleSubscribe(data: MCProfileData) {
         newsletterStatus: NewsletterStatus.Subscribed
       },
       // No need to sync status change
-      { noSync: true }
+      { sync: false }
     );
   } else {
     await MembersService.createMember(
@@ -145,7 +145,7 @@ async function handleSubscribe(data: MCProfileData) {
         // TODO: newsletterGroups: data.
       },
       // New member, sync merge fields etc.
-      { noSync: false }
+      { sync: true }
     );
   }
 }
@@ -163,7 +163,7 @@ async function handleUnsubscribe(data: MCProfileData) {
         newsletterStatus: NewsletterStatus.Unsubscribed
       },
       // No need to sync status change
-      { noSync: true }
+      { sync: false }
     );
   }
 }
@@ -183,7 +183,7 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
         lastname: data.merges.LNAME
       },
       // Sync back to overwrite any other changes (most merge fields shouldn't be changed)
-      { noSync: false }
+      { sync: true }
     );
     // TODO: update groups?
     return true;
