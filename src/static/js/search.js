@@ -35,7 +35,7 @@ $('#builder').queryBuilder({
 		label: 'Contribution type',
 		type: 'string',
 		input: 'select',
-		values: ['Gift', 'GoCardless', 'Manual']
+		values: ['Gift', 'GoCardless', 'Manual', 'None']
 	}, {
 		id: 'contributionMonthlyAmount',
 		label: 'Contribution amount (monthly)',

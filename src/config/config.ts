@@ -75,11 +75,8 @@ export default {
   secret: env.s("BEABEE_SECRET"),
   session: env.s("BEABEE_SESSION", "session"),
   cookie: {
-    secure: false,
-    httpOnly: true,
     domain: env.s("BEABEE_COOKIE_DOMAIN"),
-    path: "/",
-    maxAge: 267840000
+    secure: env.b("BEABEE_COOKIE_SECURE", true)
   },
   trackDomains: env.ss("BEABEE_TRACKDOMAINS", []),
   discourse: {
@@ -132,11 +129,5 @@ export default {
     days: 5
   },
   logFormat: env.e("BEABEE_LOGFORMAT", ["json", "simple"] as const, "json"),
-  logSlack: env.s("BEABEE_LOGSLACK_LEVEL", "") && {
-    level: env.s("BEABEE_LOGSLACK_LEVEL"),
-    webhookUrl: env.s("BEABEE_LOGSLACK_WEBHOOKURL"),
-    channel: env.s("BEABEE_LOGSLACK_CHANNEL"),
-    username: env.s("BEABEE_LOGSLACK_USERNAME")
-  },
   appOverrides: env.json("BEABEE_APPOVERRIDES", {}) as AppConfigOverrides
 };

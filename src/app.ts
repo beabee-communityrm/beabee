@@ -19,6 +19,7 @@ import PageSettingsService from "@core/services/PageSettingsService";
 //import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
 
 import config from "@config";
+import startServer from "@core/server";
 
 if (!config.gocardless.sandbox && config.dev) {
   log.error(
@@ -85,17 +86,6 @@ database.connect().then(async () => {
   // Handle sessions
   sessions(app);
 
-  app.use((req, res, next) => {
-    const memberId = req.user?.id || req.cookies.memberId;
-    if (memberId) {
-      res.cookie("memberId", memberId, {
-        maxAge: 365 * 24 * 60 * 60 * 1000
-      });
-    }
-
-    next();
-  });
-
   // CSRF
   app.use(csrf());
 
@@ -136,18 +126,5 @@ database.connect().then(async () => {
     res.render("500", { error: config.dev ? err.stack : undefined });
   } as ErrorRequestHandler);
 
-  // Start server
-  const server = app.listen(3000);
-
-  process.on("SIGTERM", () => {
-    log.info("Waiting for server to shutdown");
-    database.close();
-
-    setTimeout(() => {
-      log.warn("Server was forced to shutdown after timeout");
-      process.exit(1);
-    }, 20000).unref();
-
-    server.close(() => process.exit());
-  });
+  startServer(app);
 });
