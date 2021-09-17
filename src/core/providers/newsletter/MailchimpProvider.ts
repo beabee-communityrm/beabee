@@ -196,17 +196,6 @@ export default class MailchimpProvider implements NewsletterProvider {
     return responses.flatMap((r) => r.members).map(mcMemberToMember);
   }
 
-  async insertMembers(members: PartialNewsletterMember[]): Promise<void> {
-    const operations: Operation[] = members.map((member) => ({
-      path: `lists/${this.listId}/members`,
-      method: "POST",
-      body: JSON.stringify(memberToMCMember(member)),
-      operation_id: `add_${member.email}`
-    }));
-
-    await this.dispatchOperations(operations);
-  }
-
   async updateMember(
     member: PartialNewsletterMember,
     oldEmail = member.email
@@ -217,7 +206,7 @@ export default class MailchimpProvider implements NewsletterProvider {
     );
   }
 
-  async updateMembers(members: PartialNewsletterMember[]): Promise<void> {
+  async upsertMembers(members: PartialNewsletterMember[]): Promise<void> {
     const operations: Operation[] = members.map((member) => {
       const mcMember = memberToMCMember(member);
       return {
