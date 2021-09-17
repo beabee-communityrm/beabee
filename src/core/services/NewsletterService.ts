@@ -82,7 +82,7 @@ class NewsletterService {
   }
 
   async upsertMembers(members: Member[]): Promise<void> {
-    await this.provider.updateMembers(members.map(memberToNlMember));
+    await this.provider.upsertMembers(members.map(memberToNlMember));
   }
 
   async updateMemberFields(
