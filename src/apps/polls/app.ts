@@ -3,6 +3,7 @@ import _ from "lodash";
 import { getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isLoggedIn } from "@core/middleware";
+import { setTrackingCookie } from "@core/sessions";
 import { isSocialScraper, wrapAsync } from "@core/utils";
 import * as auth from "@core/utils/auth";
 
@@ -283,7 +284,7 @@ app.post(
 
     const member = await MembersService.findOne({ pollsCode });
     if (member) {
-      res.cookie("memberId", member.id, { maxAge: 30 * 24 * 60 * 60 * 1000 });
+      setTrackingCookie(member.id, res);
       error = await PollsService.setResponse(poll, member, req.answers!);
     } else {
       error = "polls-unknown-user";
