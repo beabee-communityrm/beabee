@@ -163,7 +163,6 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
     await MembersService.updateMember(
       member,
       {
-        email,
         firstname: data.merges.FNAME,
         lastname: data.merges.LNAME
       },
