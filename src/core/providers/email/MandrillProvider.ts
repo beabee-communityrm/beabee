@@ -62,7 +62,7 @@ export default class MandrillProvider implements EmailProvider {
       );
     });
 
-    log.info("Sent email", resp);
+    log.info("Sent email", { resp });
   }
 
   async sendTemplate(
@@ -87,7 +87,7 @@ export default class MandrillProvider implements EmailProvider {
           reject
         );
       });
-      log.info(`Sent template ${template}`, resp);
+      log.info(`Sent template ${template}`, { resp });
     } else if (templateType === "local") {
       const email = await getRepository(Email).findOne(templateId);
       if (email) {
