@@ -106,6 +106,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
     await MembersService.updateMember(
       member,
       { email: newEmail },
+      // No need to sync back address change
       { noSync: true }
     );
   } else {
@@ -128,6 +129,7 @@ async function handleSubscribe(data: MCProfileData) {
       {
         newsletterStatus: NewsletterStatus.Subscribed
       },
+      // No need to sync status change
       { noSync: true }
     );
   } else {
@@ -160,6 +162,7 @@ async function handleUnsubscribe(data: MCProfileData) {
       {
         newsletterStatus: NewsletterStatus.Unsubscribed
       },
+      // No need to sync status change
       { noSync: true }
     );
   }
@@ -172,12 +175,16 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 
   const member = await MembersService.findOne({ email });
   if (member) {
-    // noSync = false to overwrite any other changes (most merge fields shouldn't be changed)
-    await MembersService.updateMember(member, {
-      email,
-      firstname: data.merges.FNAME,
-      lastname: data.merges.LNAME
-    });
+    await MembersService.updateMember(
+      member,
+      {
+        email,
+        firstname: data.merges.FNAME,
+        lastname: data.merges.LNAME
+      },
+      // Sync back to overwrite any other changes (most merge fields shouldn't be changed)
+      { noSync: false }
+    );
     // TODO: update groups?
     return true;
   } else {
