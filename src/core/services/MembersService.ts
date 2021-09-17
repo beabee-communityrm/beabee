@@ -105,7 +105,7 @@ export default class MembersService {
       await getRepository(MemberProfile).save(member.profile);
 
       if (!opts?.noSync) {
-        await NewsletterService.insertMembers([member]);
+        await NewsletterService.upsertMembers([member]);
       }
 
       return member;
@@ -255,7 +255,7 @@ export default class MembersService {
           member
         });
       }
-      await NewsletterService.updateMemberStatuses([member]);
+      await NewsletterService.upsertMembers([member]);
     }
   }
 
