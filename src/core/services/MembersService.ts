@@ -29,7 +29,7 @@ export type PartialMember = Pick<
 export type PartialMemberProfile = Partial<MemberProfile>;
 
 interface CreateMemberOpts {
-  noSync?: boolean;
+  sync?: boolean;
 }
 
 const log = mainLogger.child({ app: "members-service" });
@@ -83,7 +83,7 @@ export default class MembersService {
   static async createMember(
     partialMember: PartialMember,
     partialProfile: PartialMemberProfile = {},
-    opts?: CreateMemberOpts
+    opts: CreateMemberOpts = { sync: true }
   ): Promise<Member> {
     log.info("Create member", { partialMember, partialProfile });
 
@@ -104,7 +104,7 @@ export default class MembersService {
       });
       await getRepository(MemberProfile).save(member.profile);
 
-      if (!opts?.noSync) {
+      if (opts?.sync) {
         await NewsletterService.upsertMembers([member]);
       }
 
@@ -127,7 +127,7 @@ export default class MembersService {
   static async updateMember(
     member: Member,
     updates: Partial<Member>,
-    opts?: CreateMemberOpts
+    opts: CreateMemberOpts = { sync: true }
   ): Promise<void> {
     log.info("Update member " + member.id, {
       memberId: member.id,
@@ -139,7 +139,7 @@ export default class MembersService {
     Object.assign(member, updates);
     await getRepository(Member).update(member.id, updates);
 
-    if (!opts?.noSync) {
+    if (opts?.sync) {
       await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
     }
 
@@ -241,15 +241,12 @@ export default class MembersService {
   static async updateMemberProfile(
     member: Member,
     updates: Partial<MemberProfile>,
-    opts?: CreateMemberOpts
+    opts: CreateMemberOpts = { sync: true }
   ): Promise<void> {
     log.info("Update member profile for " + member.id);
     await getRepository(MemberProfile).update(member.id, updates);
 
-    if (
-      !opts?.noSync &&
-      (updates.newsletterStatus || updates.newsletterGroups)
-    ) {
+    if (opts?.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       if (!member.profile) {
         member.profile = await getRepository(MemberProfile).findOneOrFail({
           member

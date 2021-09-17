@@ -117,7 +117,7 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
             newsletterStatus: nlMember.status,
             newsletterGroups: nlMember.groups
           },
-          { noSync: true }
+          { sync: false }
         );
       }
     }
@@ -148,7 +148,7 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
           newsletterStatus: nlMember.status,
           newsletterGroups: nlMember.groups
         },
-        { noSync: true }
+        { sync: false }
       );
     }
 
