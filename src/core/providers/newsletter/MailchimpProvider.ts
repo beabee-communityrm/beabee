@@ -35,7 +35,7 @@ interface OperationNoBody {
 }
 
 interface OperationWithBody {
-  method: "POST" | "PATCH";
+  method: "POST" | "PATCH" | "PUT";
   path: string;
   body: string;
   operation_id: string;
@@ -218,12 +218,15 @@ export default class MailchimpProvider implements NewsletterProvider {
   }
 
   async updateMembers(members: PartialNewsletterMember[]): Promise<void> {
-    const operations: Operation[] = members.map((member) => ({
-      path: this.emailUrl(member.email),
-      method: "PATCH",
-      body: JSON.stringify(memberToMCMember(member)),
-      operation_id: `update_${member.email}`
-    }));
+    const operations: Operation[] = members.map((member) => {
+      const mcMember = memberToMCMember(member);
+      return {
+        path: this.emailUrl(member.email),
+        method: "PUT",
+        body: JSON.stringify({ ...mcMember, status_if_new: mcMember.status }),
+        operation_id: `update_${member.email}`
+      };
+    });
 
     await this.dispatchOperations(operations);
   }
