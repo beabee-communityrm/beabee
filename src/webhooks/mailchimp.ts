@@ -133,9 +133,7 @@ async function handleSubscribe(data: MCProfileData) {
       {
         newsletterStatus: NewsletterStatus.Subscribed
         // TODO: newsletterGroups: data.
-      },
-      // New member, sync merge fields etc.
-      { sync: true }
+      }
     );
   }
 }
@@ -160,15 +158,10 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 
   const member = await MembersService.findOne({ email });
   if (member) {
-    await MembersService.updateMember(
-      member,
-      {
-        firstname: data.merges.FNAME,
-        lastname: data.merges.LNAME
-      },
-      // Sync back to overwrite any other changes (most merge fields shouldn't be changed)
-      { sync: true }
-    );
+    await MembersService.updateMember(member, {
+      firstname: data.merges.FNAME,
+      lastname: data.merges.LNAME
+    });
     // TODO: update groups?
     return true;
   } else {
