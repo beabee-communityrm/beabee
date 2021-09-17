@@ -103,12 +103,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
   const member = await MembersService.findOne({ email: oldEmail });
   if (member) {
-    await MembersService.updateMember(
-      member,
-      { email: newEmail },
-      // No need to sync back address change
-      { sync: false }
-    );
+    await MembersService.updateMember(member, { email: newEmail });
   } else {
     log.error("Old email not found in Mailchimp update email hook", data);
   }
@@ -124,14 +119,9 @@ async function handleSubscribe(data: MCProfileData) {
 
   const member = await MembersService.findOne({ email });
   if (member) {
-    await MembersService.updateMemberProfile(
-      member,
-      {
-        newsletterStatus: NewsletterStatus.Subscribed
-      },
-      // No need to sync status change
-      { sync: false }
-    );
+    await MembersService.updateMemberProfile(member, {
+      newsletterStatus: NewsletterStatus.Subscribed
+    });
   } else {
     await MembersService.createMember(
       {
@@ -157,14 +147,9 @@ async function handleUnsubscribe(data: MCProfileData) {
 
   const member = await MembersService.findOne({ email });
   if (member) {
-    await MembersService.updateMemberProfile(
-      member,
-      {
-        newsletterStatus: NewsletterStatus.Unsubscribed
-      },
-      // No need to sync status change
-      { sync: false }
-    );
+    await MembersService.updateMemberProfile(member, {
+      newsletterStatus: NewsletterStatus.Unsubscribed
+    });
   }
 }
 
