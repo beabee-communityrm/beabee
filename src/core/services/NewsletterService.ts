@@ -104,6 +104,12 @@ class NewsletterService {
     await this.provider.deleteMembers(members.map((m) => m.email));
   }
 
+  async getNewsletterMember(
+    email: string
+  ): Promise<NewsletterMember | undefined> {
+    return await this.provider.getMember(email);
+  }
+
   async getNewsletterMembers(): Promise<NewsletterMember[]> {
     return await this.provider.getMembers();
   }

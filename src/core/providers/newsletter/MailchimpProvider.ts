@@ -180,6 +180,13 @@ export default class MailchimpProvider implements NewsletterProvider {
     await this.dispatchOperations(operations);
   }
 
+  async getMember(email: string): Promise<NewsletterMember | undefined> {
+    try {
+      const resp = await this.instance.get(this.emailUrl(email));
+      return mcMemberToMember(resp.data);
+    } catch (err) {}
+  }
+
   async getMembers(): Promise<NewsletterMember[]> {
     const operation: Operation = {
       path: `lists/${this.listId}/members`,
