@@ -103,11 +103,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
   const member = await MembersService.findOne({ email: oldEmail });
   if (member) {
-    await MembersService.updateMember(
-      member,
-      { email: newEmail },
-      { noSync: true }
-    );
+    await MembersService.updateMember(member, { email: newEmail });
   } else {
     log.error("Old email not found in Mailchimp update email hook", data);
   }
@@ -123,15 +119,11 @@ async function handleSubscribe(data: MCProfileData) {
 
   const member = await MembersService.findOne({ email });
   if (member) {
-    await MembersService.updateMemberProfile(
-      member,
-      {
-        newsletterStatus: NewsletterStatus.Subscribed
-      },
-      { noSync: true }
-    );
+    await MembersService.updateMemberProfile(member, {
+      newsletterStatus: NewsletterStatus.Subscribed
+    });
   } else {
-    const member = await MembersService.createMember(
+    await MembersService.createMember(
       {
         email,
         firstname: data.merges.FNAME,
@@ -141,11 +133,8 @@ async function handleSubscribe(data: MCProfileData) {
       {
         newsletterStatus: NewsletterStatus.Subscribed
         // TODO: newsletterGroups: data.
-      },
-      { noSync: true }
+      }
     );
-    // Sync merge fields etc.
-    await NewsletterService.updateMembers([member]);
   }
 }
 
@@ -156,13 +145,9 @@ async function handleUnsubscribe(data: MCProfileData) {
 
   const member = await MembersService.findOne({ email });
   if (member) {
-    await MembersService.updateMemberProfile(
-      member,
-      {
-        newsletterStatus: NewsletterStatus.Unsubscribed
-      },
-      { noSync: true }
-    );
+    await MembersService.updateMemberProfile(member, {
+      newsletterStatus: NewsletterStatus.Unsubscribed
+    });
   }
 }
 
@@ -173,9 +158,7 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 
   const member = await MembersService.findOne({ email });
   if (member) {
-    // noSync = false to overwrite any other changes (most merge fields shouldn't be changed)
     await MembersService.updateMember(member, {
-      email,
       firstname: data.merges.FNAME,
       lastname: data.merges.LNAME
     });

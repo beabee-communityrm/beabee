@@ -6,12 +6,11 @@ export default class NoneProvider implements NewsletterProvider {
   async getMembers(): Promise<NewsletterMember[]> {
     return [];
   }
-  async insertMembers(members: NewsletterMember[]): Promise<void> {}
   async updateMember(
     member: NewsletterMember,
     oldEmail?: string
   ): Promise<void> {}
-  async updateMembers(members: NewsletterMember[]): Promise<void> {}
+  async upsertMembers(members: NewsletterMember[]): Promise<void> {}
   async archiveMembers(emails: string[]): Promise<void> {}
   async deleteMembers(emails: string[]): Promise<void> {}
 }
