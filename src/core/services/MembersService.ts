@@ -243,6 +243,10 @@ export default class MembersService {
     log.info("Update member profile for " + member.id);
     await getRepository(MemberProfile).update(member.id, updates);
 
+    if (member.profile) {
+      Object.assign(member.profile, updates);
+    }
+
     if (opts?.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       if (!member.profile) {
         member.profile = await getRepository(MemberProfile).findOneOrFail({
