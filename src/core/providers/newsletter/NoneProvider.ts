@@ -3,6 +3,9 @@ import { NewsletterMember, NewsletterProvider } from ".";
 export default class NoneProvider implements NewsletterProvider {
   async addTagToMembers(emails: string[], tag: string): Promise<void> {}
   async removeTagFromMembers(emails: string[], tag: string): Promise<void> {}
+  async getMember(email: string): Promise<NewsletterMember | undefined> {
+    return;
+  }
   async getMembers(): Promise<NewsletterMember[]> {
     return [];
   }

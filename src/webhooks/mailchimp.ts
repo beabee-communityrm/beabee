@@ -123,6 +123,7 @@ async function handleSubscribe(data: MCProfileData) {
       newsletterStatus: NewsletterStatus.Subscribed
     });
   } else {
+    const nlMember = await NewsletterService.getNewsletterMember(email);
     await MembersService.createMember(
       {
         email,
@@ -131,8 +132,8 @@ async function handleSubscribe(data: MCProfileData) {
         contributionType: ContributionType.None
       },
       {
-        newsletterStatus: NewsletterStatus.Subscribed
-        // TODO: newsletterGroups: data.
+        newsletterStatus: NewsletterStatus.Subscribed,
+        newsletterGroups: nlMember?.groups
       }
     );
   }
@@ -158,11 +159,14 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 
   const member = await MembersService.findOne({ email });
   if (member) {
+    const nlMember = await NewsletterService.getNewsletterMember(email);
     await MembersService.updateMember(member, {
       firstname: data.merges.FNAME,
       lastname: data.merges.LNAME
     });
-    // TODO: update groups?
+    await MembersService.updateMemberProfile(member, {
+      newsletterGroups: nlMember?.groups
+    });
     return true;
   } else {
     log.info("Member not found for " + email);
