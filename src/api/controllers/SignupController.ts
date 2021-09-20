@@ -90,9 +90,14 @@ async function handleJoin(
     joinFlow.mandateId
   );
   await GCPaymentService.updateContribution(member, joinFlow.joinForm);
-  await EmailService.sendTemplateToMember("welcome", member);
 
   await MembersService.updateMember(member, { activated: true });
+  await MembersService.updateMemberProfile(member, {
+    newsletterStatus: NewsletterStatus.Subscribed,
+    newsletterGroups: OptionsService.getList("newsletter-default-groups")
+  });
+
+  await EmailService.sendTemplateToMember("welcome", member);
 
   // For now use existing session infrastructure with a cookie
   await new Promise<void>((resolve, reject) => {
@@ -157,11 +162,10 @@ export class SignupController {
       await GCPaymentService.customerToMember(joinFlow);
 
     try {
-      const newMember = await MembersService.createMember(partialMember, {
-        ...partialProfile,
-        newsletterStatus: NewsletterStatus.Subscribed,
-        newsletterGroups: OptionsService.getList("newsletter-default-groups")
-      });
+      const newMember = await MembersService.createMember(
+        partialMember,
+        partialProfile
+      );
       await handleJoin(req, newMember, joinFlow);
     } catch (error) {
       if (isDuplicateIndex(error, "email")) {
