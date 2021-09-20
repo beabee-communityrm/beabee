@@ -214,7 +214,7 @@ app.get(
     res.render("report", {
       emailsToImport: data.importEmails,
       newMembersToUpload,
-      misMatchedMembers: data.mismatched.map((m) => ({
+      mismatchedMembers: data.mismatched.map((m) => ({
         member: mismatchedMembers.find((m2) => m.id === m2.id),
         status: m.status,
         groups: m.groups

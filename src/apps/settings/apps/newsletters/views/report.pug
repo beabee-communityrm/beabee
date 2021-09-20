@@ -7,46 +7,45 @@ block contents
 			+page_header('Newsletter sync report')
 
 	.row
-    .col-md-12 
-
-      h4 New members to upload
-      table.table.table-striped
-        thead
-          tr
-            th Member
-            th Email
-        tbody
-          each member in newMembersToUpload
-            tr
-              td: a(href='/members/' + member.id)= member.fullname
-              td= member.email
-    
-      h4 Emails to import
-      table.table.table-striped
-        thead
-          tr
-            th Email
-        tbody
-          each email in emailsToImport
-            tr
-              td= email
-      
-      h4 Mismatched members
-      table.table.table-striped
-        thead
-          tr
-            th Member
-            th Status
-            th Groups
-        tbody
-          each m in mismatchedMembers
-            tr
-              td: a(href='/members/' + m.member.id)= m.member.fullname
-              td
-                = m.member.profile.newsletterStatus
-                | ->
-                = m.status
-              td
-                = m.member.profile.newsletterGroups
-                | ->
-                = m.groups
+		.col-md-12 
+			h4 New members to upload
+			table.table.table-striped
+				thead
+					tr
+						th Member
+						th Email
+				tbody
+					each member in newMembersToUpload
+						tr
+							td: a(href='/members/' + member.id)= member.fullname
+							td= member.email
+		
+			h4 Emails to import
+			table.table.table-striped
+				thead
+					tr
+						th Email
+				tbody
+					each email in emailsToImport
+						tr
+							td= email
+			
+			h4 Mismatched members
+			table.table.table-striped
+				thead
+					tr
+						th Member
+						th Status
+						th Groups
+				tbody
+					each m in mismatchedMembers
+						tr
+							td: a(href='/members/' + m.member.id)= m.member.fullname
+							td
+								= m.member.profile.newsletterStatus
+								| ->
+								= m.status
+							td
+								= m.member.profile.newsletterGroups
+								| ->
+								= m.groups
