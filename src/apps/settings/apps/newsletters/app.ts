@@ -49,6 +49,16 @@ function isMismatchedMember(member: Member, nlMember: NewsletterMember) {
   );
 }
 
+interface ReportData {
+  uploadIds: string[];
+  importEmails: string[];
+  mismatched: {
+    id: string;
+    status: string;
+    groups: string[];
+  }[];
+}
+
 async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
   try {
     await setResyncStatus("In progress: Fetching contact lists");
@@ -86,6 +96,21 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
     }
     const newsletterMembersToImport = newsletterMembers.filter((nm) =>
       members.every((m) => m.email !== nm.email)
+    );
+
+    await OptionsService.set(
+      "newsletter-resync-data",
+      JSON.stringify({
+        uploadIds: newMembersToUpload.map((m) => m.id),
+        importEmails: newsletterMembersToImport.map(
+          (nlMember) => nlMember.email
+        ),
+        mismatched: mismatchedMembers.map(([m, nlm]) => ({
+          id: m.id,
+          status: nlm.status,
+          groups: nlm.groups
+        }))
+      } as ReportData)
     );
 
     if (dryRun) {
@@ -173,6 +198,28 @@ app.post(
 
       handleResync(req.body.statusSource, req.body.dryRun === "true");
     }
+  })
+);
+
+app.get(
+  "/report",
+  wrapAsync(async (req, res) => {
+    const data = OptionsService.getJSON("newsletter-resync-data") as ReportData;
+    const newMembersToUpload = await MembersService.findByIds(data.uploadIds);
+    const mismatchedMembers = await MembersService.findByIds(
+      data.mismatched.map((m) => m.id),
+      { relations: ["profile"] }
+    );
+
+    res.render("report", {
+      emailsToImport: data.importEmails,
+      newMembersToUpload,
+      misMatchedMembers: data.mismatched.map((m) => ({
+        member: mismatchedMembers.find((m2) => m.id === m2.id),
+        status: m.status,
+        groups: m.groups
+      }))
+    });
   })
 );
 
