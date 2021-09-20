@@ -85,6 +85,7 @@ export default class GCPaymentWebhookService {
       "member",
       nextExpiryDate.toDate()
     );
+    // TODO: resubscribe to newsletter
   }
 
   static async updatePaymentStatus(
