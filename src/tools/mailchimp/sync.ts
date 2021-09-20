@@ -5,6 +5,9 @@ import { Between, getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
+import { NewsletterStatus } from "@core/providers/newsletter";
+
+import MembersService from "@core/services/MembersService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
@@ -30,7 +33,7 @@ async function fetchMembers(
       permission: "member",
       dateExpires: Between(actualStartDate, actualEndDate)
     },
-    relations: ["member"]
+    relations: ["member", "member.profile"]
   });
   console.log(`Got ${memberships.length} members`);
   return memberships.map(({ member }) => {
@@ -42,10 +45,24 @@ async function fetchMembers(
 async function processMembers(members: Member[]) {
   const membersToArchive = members.filter((m) => !m.isActiveMember);
   console.log(`Archiving ${membersToArchive.length}`);
+  for (const member of membersToArchive) {
+    await MembersService.updateMemberProfile(
+      member,
+      {
+        newsletterStatus: NewsletterStatus.Unsubscribed
+      },
+      {
+        // Sync in one go below with upsertMembers
+        sync: false
+      }
+    );
+  }
+
   await NewsletterService.removeTagFromMembers(
     membersToArchive,
     OptionsService.getText("newsletter-active-member-tag")
   );
+  await NewsletterService.upsertMembers(membersToArchive);
   await NewsletterService.archiveMembers(membersToArchive);
 }
 
