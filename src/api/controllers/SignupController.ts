@@ -81,10 +81,6 @@ async function handleJoin(
   await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 
   await MembersService.updateMember(member, { activated: true });
-  await MembersService.updateMemberProfile(member, {
-    newsletterStatus: NewsletterStatus.Subscribed,
-    newsletterGroups: OptionsService.getList("newsletter-default-groups")
-  });
 
   await EmailService.sendTemplateToMember("welcome", member);
 
