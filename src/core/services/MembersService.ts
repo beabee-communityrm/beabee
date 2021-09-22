@@ -29,7 +29,7 @@ export type PartialMember = Pick<
 export type PartialMemberProfile = Partial<MemberProfile>;
 
 interface CreateMemberOpts {
-  noSync?: boolean;
+  sync?: boolean;
 }
 
 const log = mainLogger.child({ app: "members-service" });
@@ -83,7 +83,7 @@ export default class MembersService {
   static async createMember(
     partialMember: PartialMember,
     partialProfile: PartialMemberProfile = {},
-    opts?: CreateMemberOpts
+    opts: CreateMemberOpts = { sync: true }
   ): Promise<Member> {
     log.info("Create member", { partialMember, partialProfile });
 
@@ -104,8 +104,8 @@ export default class MembersService {
       });
       await getRepository(MemberProfile).save(member.profile);
 
-      if (!opts?.noSync) {
-        await NewsletterService.insertMembers([member]);
+      if (opts?.sync) {
+        await NewsletterService.upsertMembers([member]);
       }
 
       return member;
@@ -126,8 +126,7 @@ export default class MembersService {
 
   static async updateMember(
     member: Member,
-    updates: Partial<Member>,
-    opts?: CreateMemberOpts
+    updates: Partial<Member>
   ): Promise<void> {
     log.info("Update member " + member.id, {
       memberId: member.id,
@@ -139,9 +138,7 @@ export default class MembersService {
     Object.assign(member, updates);
     await getRepository(Member).update(member.id, updates);
 
-    if (!opts?.noSync) {
-      await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
-    }
+    await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
 
     // TODO: This should be in GCPaymentService
     if (updates.email || updates.firstname || updates.lastname) {
@@ -241,21 +238,22 @@ export default class MembersService {
   static async updateMemberProfile(
     member: Member,
     updates: Partial<MemberProfile>,
-    opts?: CreateMemberOpts
+    opts: CreateMemberOpts = { sync: true }
   ): Promise<void> {
     log.info("Update member profile for " + member.id);
     await getRepository(MemberProfile).update(member.id, updates);
 
-    if (
-      !opts?.noSync &&
-      (updates.newsletterStatus || updates.newsletterGroups)
-    ) {
+    if (member.profile) {
+      Object.assign(member.profile, updates);
+    }
+
+    if (opts?.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       if (!member.profile) {
         member.profile = await getRepository(MemberProfile).findOneOrFail({
           member
         });
       }
-      await NewsletterService.updateMemberStatuses([member]);
+      await NewsletterService.upsertMembers([member]);
     }
   }
 

@@ -21,13 +21,13 @@ export type PartialNewsletterMember = Partial<
 export interface NewsletterProvider {
   addTagToMembers(emails: string[], tag: string): Promise<void>;
   removeTagFromMembers(emails: string[], tag: string): Promise<void>;
+  getMember(email: string): Promise<NewsletterMember | undefined>;
   getMembers(): Promise<NewsletterMember[]>;
-  insertMembers(members: PartialNewsletterMember[]): Promise<void>;
   updateMember(
     member: PartialNewsletterMember,
     oldEmail?: string
   ): Promise<void>;
-  updateMembers(members: PartialNewsletterMember[]): Promise<void>;
+  upsertMembers(members: PartialNewsletterMember[]): Promise<void>;
   archiveMembers(emails: string[]): Promise<void>;
   deleteMembers(emails: string[]): Promise<void>;
 }

@@ -1,20 +1,14 @@
-import { getRepository } from "typeorm";
-
 import { log as mainLogger } from "@core/logging";
-
-import OptionsService from "@core/services/OptionsService";
 
 import {
   NewsletterMember,
   NewsletterProvider,
-  NewsletterStatus,
   PartialNewsletterMember
 } from "@core/providers/newsletter";
 import MailchimpProvider from "@core/providers/newsletter/MailchimpProvider";
 import NoneProvider from "@core/providers/newsletter/NoneProvider";
 
 import Member from "@models/Member";
-import MemberProfile from "@models/MemberProfile";
 
 import config from "@config";
 
@@ -43,7 +37,11 @@ function memberToNlMember(member: Member): PartialNewsletterMember {
       C_DESC: member.contributionDescription,
       C_MNTHAMT: member.contributionMonthlyAmount?.toString() || "",
       C_PERIOD: member.contributionPeriod || ""
-    }
+    },
+    ...(member.profile && {
+      status: member.profile.newsletterStatus,
+      groups: member.profile.newsletterGroups
+    })
   };
 }
 
@@ -83,20 +81,9 @@ class NewsletterService {
     }
   }
 
-  async updateMembers(members: Member[]): Promise<void> {
-    await this.provider.updateMembers(members.map(memberToNlMember));
-  }
-
-  async updateMemberStatuses(members: Member[]): Promise<void> {
-    log.info(`Update ${members.length} member statuses`);
-
-    await this.provider.updateMembers(
-      members.map((member) => ({
-        email: member.email,
-        status: member.profile.newsletterStatus,
-        groups: member.profile.newsletterGroups
-      }))
-    );
+  async upsertMembers(members: Member[]): Promise<void> {
+    log.info(`Upsert ${members.length} members`);
+    await this.provider.upsertMembers(members.map(memberToNlMember));
   }
 
   async updateMemberFields(
@@ -107,25 +94,6 @@ class NewsletterService {
     await this.provider.updateMember({ email: member.email, fields });
   }
 
-  async insertMembers(members: Member[]): Promise<void> {
-    log.info(`Insert ${members.length} members`);
-    await this.provider.insertMembers(
-      members.map((member) => ({
-        ...memberToNlMember(member),
-        status: member.profile.newsletterStatus,
-        groups: member.profile.newsletterGroups
-      }))
-    );
-
-    const activeMemberEmails = members
-      .filter((m) => m.isActiveMember)
-      .map((m) => m.email);
-    await this.provider.addTagToMembers(
-      activeMemberEmails,
-      OptionsService.getText("newsletter-active-member-tag")
-    );
-  }
-
   async archiveMembers(members: Member[]): Promise<void> {
     log.info(`Archive ${members.length} members`);
     await this.provider.archiveMembers(members.map((m) => m.email));
@@ -134,6 +102,12 @@ class NewsletterService {
   async deleteMembers(members: Member[]): Promise<void> {
     log.info(`Delete ${members.length} members`);
     await this.provider.deleteMembers(members.map((m) => m.email));
+  }
+
+  async getNewsletterMember(
+    email: string
+  ): Promise<NewsletterMember | undefined> {
+    return await this.provider.getMember(email);
   }
 
   async getNewsletterMembers(): Promise<NewsletterMember[]> {
