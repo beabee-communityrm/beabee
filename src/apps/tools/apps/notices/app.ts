@@ -15,6 +15,7 @@ interface NoticeSchema {
   expiresDate?: string;
   expiresTime?: string;
   text: string;
+  buttonText: string;
   url?: string;
   enabled?: boolean;
 }
@@ -24,6 +25,7 @@ function schemaToNotice(data: NoticeSchema): Notice {
   notice.name = data.name;
   notice.expires = createDateTime(data.expiresDate, data.expiresTime);
   notice.text = data.text;
+  notice.buttonText = data.buttonText;
   notice.url = data.url;
   notice.enabled = !!data.enabled;
 

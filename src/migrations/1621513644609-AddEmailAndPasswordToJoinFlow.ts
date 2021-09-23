@@ -1,24 +1,16 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
+import { addThenSetNotNull } from "@core/utils/db";
+
 export class AddEmailAndPasswordToJoinFlow1621513644609
   implements MigrationInterface
 {
   name = "AddEmailAndPasswordToJoinFlow1621513644609";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    async function addThenSetNotNull(table: string, column: string) {
-      await queryRunner.query(
-        `ALTER TABLE "${table}" ADD "${column}" character varying`
-      );
-      await queryRunner.query(`UPDATE "${table}" SET "${column}"=''`);
-      await queryRunner.query(
-        `ALTER TABLE "${table}" ALTER COLUMN "${column}" SET NOT NULL`
-      );
-    }
-
-    await addThenSetNotNull("join_flow", "joinFormEmail");
-    await addThenSetNotNull("join_flow", "joinFormPasswordHash");
-    await addThenSetNotNull("join_flow", "joinFormPasswordSalt");
+    await addThenSetNotNull(queryRunner, "join_flow", "joinFormEmail");
+    await addThenSetNotNull(queryRunner, "join_flow", "joinFormPasswordHash");
+    await addThenSetNotNull(queryRunner, "join_flow", "joinFormPasswordSalt");
     await queryRunner.query(
       `ALTER TABLE "join_flow" ADD "joinFormPasswordIterations" integer NOT NULL DEFAULT '1000'`
     );
@@ -29,9 +21,17 @@ export class AddEmailAndPasswordToJoinFlow1621513644609
       `ALTER TABLE "join_flow" ADD "joinFormPasswordResetcode" character varying`
     );
 
-    await addThenSetNotNull("restart_flow", "joinFormEmail");
-    await addThenSetNotNull("restart_flow", "joinFormPasswordHash");
-    await addThenSetNotNull("restart_flow", "joinFormPasswordSalt");
+    await addThenSetNotNull(queryRunner, "restart_flow", "joinFormEmail");
+    await addThenSetNotNull(
+      queryRunner,
+      "restart_flow",
+      "joinFormPasswordHash"
+    );
+    await addThenSetNotNull(
+      queryRunner,
+      "restart_flow",
+      "joinFormPasswordSalt"
+    );
     await queryRunner.query(
       `ALTER TABLE "restart_flow" ADD "joinFormPasswordIterations" integer NOT NULL DEFAULT '1000'`
     );
