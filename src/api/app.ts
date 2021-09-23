@@ -5,7 +5,9 @@ import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
 import { Action, HttpError, useExpressServer } from "routing-controllers";
 
+import { CalloutController } from "./controllers/CalloutController";
 import { MemberController } from "./controllers/MemberController";
+import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
 
 import * as db from "@core/database";
@@ -15,7 +17,7 @@ import startServer from "@core/server";
 
 import Member from "@models/Member";
 
-async function currentUserChecker(action: Action): Promise<Member | undefined> {
+function currentUserChecker(action: Action): Member | undefined {
   return (action.request as Request).user;
 }
 
@@ -30,9 +32,23 @@ db.connect().then(() => {
 
   useExpressServer(app, {
     routePrefix: "/1.0",
-    controllers: [MemberController, SignupController],
+    controllers: [
+      CalloutController,
+      MemberController,
+      NoticeController,
+      SignupController
+    ],
     currentUserChecker,
-    authorizationChecker: (action) => !!currentUserChecker(action)
+    authorizationChecker: (action) => !!currentUserChecker(action),
+    validation: {
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+      whitelist: true,
+      validationError: {
+        target: false,
+        value: false
+      }
+    }
   });
 
   // TODO: Why do we need this?

@@ -96,7 +96,9 @@ async function handleJoin(
 @JsonController("/signup")
 export class SignupController {
   @Post("/")
-  async startSignup(@Body() data: SignupData): Promise<SignupStart> {
+  async startSignup(
+    @Body({ required: true }) data: SignupData
+  ): Promise<SignupStart> {
     const redirectUrl = await JoinFlowService.createJoinFlow(
       data.completeUrl,
       {
@@ -123,7 +125,7 @@ export class SignupController {
   @Post("/complete")
   async completeSignup(
     @Req() req: Request,
-    @BodyParam("redirectFlowId") redirectFlowId: string
+    @BodyParam("redirectFlowId", { required: true }) redirectFlowId: string
   ): Promise<void> {
     const joinFlow = await JoinFlowService.completeJoinFlow(redirectFlowId);
     if (!joinFlow) {
@@ -175,7 +177,7 @@ export class SignupController {
   @Post("/confirm-email")
   async confirmEmail(
     @Req() req: Request,
-    @BodyParam("restartFlowId") restartFlowId: string
+    @BodyParam("restartFlowId", { required: true }) restartFlowId: string
   ): Promise<void> {
     const restartFlow = await JoinFlowService.completeRestartFlow(
       restartFlowId
