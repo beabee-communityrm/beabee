@@ -7,9 +7,12 @@ import { wrapAsync } from "@core/utils";
 import EmailService from "@core/services/EmailService";
 import SegmentService from "@core/services/SegmentService";
 
+import Email from "@models/Email";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import SegmentMember from "@models/SegmentMember";
+
+import { EmailSchema, schemaToEmail } from "@apps/tools/apps/emails/app";
 
 const app = express();
 
@@ -98,7 +101,7 @@ app.get(
   })
 );
 
-interface CreateBaseEmail {
+interface CreateBaseEmail extends EmailSchema {
   email: string;
 }
 
@@ -109,7 +112,7 @@ interface CreateOneOffEmail extends CreateBaseEmail {
 interface CreateOngoingEmail extends CreateBaseEmail {
   type: "ongoing";
   trigger: "onJoin" | "onLeave";
-  enabled?: "true";
+  sendNow?: boolean;
 }
 
 type CreateEmail = CreateOneOffEmail | CreateOngoingEmail;
@@ -121,15 +124,24 @@ app.post(
     const segment = req.model as Segment;
     const data = req.body as CreateEmail;
 
+    const email =
+      data.email === "__new__"
+        ? await getRepository(Email).save(schemaToEmail(data))
+        : await getRepository(Email).findOne(data.email);
+
     if (data.type === "one-off") {
       throw new Error("Not implemented");
     } else {
       await getRepository(SegmentOngoingEmail).save({
         segment,
         trigger: data.trigger,
-        emailTemplateId: data.email,
-        enabled: !!data.enabled
+        email,
+        enabled: true
       });
+
+      if (data.sendNow) {
+        // TODO: send now!
+      }
 
       res.redirect("/members/segments/" + segment.id + "#ongoingemails");
     }
