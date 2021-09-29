@@ -162,12 +162,7 @@ app.post(
       )
     }));
 
-    await EmailService.sendEmail(
-      { email: email.fromEmail, name: email.fromName },
-      recipients,
-      email.subject,
-      email.body.replace(/\r\n/g, "<br/>")
-    );
+    await EmailService.sendEmail(email, recipients);
 
     await getRepository(EmailMailing).update(mailing.id, {
       sentDate: new Date(),

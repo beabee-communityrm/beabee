@@ -6,13 +6,7 @@ import { log as mainLogger } from "@core/logging";
 
 import Email from "@models/Email";
 
-import {
-  EmailOptions,
-  EmailPerson,
-  EmailProvider,
-  EmailRecipient,
-  EmailTemplate
-} from ".";
+import { EmailOptions, EmailProvider, EmailRecipient, EmailTemplate } from ".";
 import { SMTPEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "smtp-email-provider" });
@@ -25,10 +19,8 @@ export default class SMTPProvider implements EmailProvider {
   }
 
   async sendEmail(
-    from: EmailPerson,
+    email: Email,
     recipients: EmailRecipient[],
-    subject: string,
-    body: string,
     opts?: EmailOptions
   ): Promise<void> {
     if (opts?.sendAt) {
@@ -44,13 +36,13 @@ export default class SMTPProvider implements EmailProvider {
             "" + recipient.mergeFields![field]
           );
         },
-        body
+        email.body
       );
 
       await this.client.sendMail({
-        from: { name: from.name, address: from.email },
+        from: { name: email.fromName, address: email.fromEmail },
         to: { name: recipient.to.name, address: recipient.to.email },
-        subject,
+        subject: email.subject,
         html: mergedBody,
         ...(opts?.attachments && {
           attachments: opts.attachments.map((a) => ({
@@ -70,13 +62,7 @@ export default class SMTPProvider implements EmailProvider {
   ): Promise<void> {
     const email = await getRepository(Email).findOne(template);
     if (email) {
-      await this.sendEmail(
-        { name: email.fromName, email: email.fromEmail },
-        recipients,
-        email.subject,
-        email.body.replace(/\r\n/g, "<br/>"),
-        opts
-      );
+      await this.sendEmail(email, recipients, opts);
     }
   }
 
