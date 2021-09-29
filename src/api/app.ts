@@ -11,7 +11,7 @@ import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
 
 import * as db from "@core/database";
-import { requestErrorLogger, requestLogger } from "@core/logging";
+import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
@@ -48,13 +48,16 @@ db.connect().then(() => {
         target: false,
         value: false
       }
-    }
+    },
+    defaultErrorHandler: false
   });
 
-  // TODO: Why do we need this?
   app.use(function (error, req, res, next) {
-    if (!(error instanceof HttpError)) {
-      next(error);
+    if (error instanceof HttpError) {
+      res.status(error.httpCode).send(error);
+    } else {
+      log.error("Unhandled error: ", error);
+      res.status(500).send({ error: "Internal server error" });
     }
   } as ErrorRequestHandler);
 
