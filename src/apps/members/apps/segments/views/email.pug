@@ -10,7 +10,8 @@ block contents
 
 	.row
 		.col-md-8
-			h4 New email
+			h4 Send an email
+
 			form(method='POST').form-horizontal
 				+csrf
 				.js-reveal
@@ -25,33 +26,48 @@ block contents
 								input(type='radio' name='type' value='ongoing' required).js-reveal-types
 								| Ongoing
 
-					.form-group.hidden.js-reveal-type(data-type='ongoing')
-						label.control-label.col-md-3 Send when
-						.col-md-9
-							.radio
-								label
-									input(type='radio' name='trigger' value='onJoin' required)
-									| User joins segment
-							.radio
-								label
-									input(type='radio' name='trigger' value='onLeave' required)
-									| User leaves segment
-							p.help-block Ongoing emails are triggered once per day
+					.hidden.js-reveal-type(data-type='ongoing')
+						.js-reveal
+							.form-group
+								label.control-label.col-md-3 Send when
+								.col-md-9
+									.radio
+										label
+											input(type='radio' name='trigger' value='onJoin' required).js-reveal-types
+											| Contact joins segment
+									.radio
+										label
+											input(type='radio' name='trigger' value='onLeave' required).js-reveal-types
+											| Contact leaves segment
+									p.help-block Ongoing emails are triggered once per day
+						
+							.hidden.js-reveal-type(data-type='onJoin')
+								if segment.memberCount > 0
+									.form-group
+										.col-md-offset-3.col-md-9
+											p.
+												There are currently #{segment.memberCount} contacts in this
+												segment, do you want to send them the email now?
+											.checkbox
+												label
+													input(type='checkbox' name='sendNow' value='true')
+													| Yes, send now
 
-					.form-group
-						label(for='email').control-label.col-md-3 Email
-						.col-md-9
-							select(name='email' required).form-control#email
-								option(value='' selected disabled) Select one
-								each emailTemplate in emailTemplates
-									option(value=emailTemplate.id)= emailTemplate.name
+					.row: .col-md-offset-3.col-md-9: h5 Email
 
-					.form-group.hidden.js-reveal-type(data-type='ongoing')
-						.col-md-offset-3.col-md-9
-							.checkbox
-								label
-									input(type='checkbox' name='enabled' value='true')
-									| Enable now
+					.js-reveal
+						.form-group
+							label(for='email').control-label.col-md-3 Template
+							.col-md-9
+								select(name='email' required).form-control.js-reveal-types#email
+									option(value='' selected disabled) Select one
+									option(value='__new__') -- New email --
+										each email in emails
+											option(value=email.id)= email.name
+
+						.js-reveal-type(data-type='__new__')
+							- hideButton = true
+							include /apps/tools/apps/emails/views/partials/email-form
 
 					.form-group
 						.col-md-offset-3.col-md-9

@@ -89,6 +89,8 @@ app.get(
   "/:id/email",
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
+    const segment = req.model as Segment;
+    segment.memberCount = await SegmentService.getSegmentMemberCount(segment);
     res.render("email", {
       segment,
       emails: await getRepository(Email).find()

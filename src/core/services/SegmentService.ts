@@ -4,31 +4,34 @@ import Segment from "@models/Segment";
 
 import buildQuery, { RuleGroup } from "@core/utils/rules";
 
-export default class SegmentService {
-  static async createSegment(
-    name: string,
-    ruleGroup: RuleGroup
-  ): Promise<Segment> {
+class SegmentService {
+  async createSegment(name: string, ruleGroup: RuleGroup): Promise<Segment> {
     const segment = new Segment();
     segment.name = name;
     segment.ruleGroup = ruleGroup;
     return await getRepository(Segment).save(segment);
   }
 
-  static async getSegmentsWithCount(): Promise<Segment[]> {
+  async getSegmentsWithCount(): Promise<Segment[]> {
     const segments = await getRepository(Segment).find({
       order: { order: "ASC" }
     });
     for (const segment of segments) {
-      segment.memberCount = await buildQuery(segment.ruleGroup).getCount();
+      segment.memberCount = await this.getSegmentMemberCount(segment);
     }
     return segments;
   }
 
-  static async updateSegment(
+  async getSegmentMemberCount(segment: Segment): Promise<number> {
+    return await buildQuery(segment.ruleGroup).getCount();
+  }
+
+  async updateSegment(
     segmentId: string,
     updates: Partial<Segment>
   ): Promise<void> {
     await getRepository(Segment).update(segmentId, updates);
   }
 }
+
+export default new SegmentService();

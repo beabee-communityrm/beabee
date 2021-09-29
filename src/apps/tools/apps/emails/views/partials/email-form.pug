@@ -24,6 +24,7 @@ form(method='POST').form-horizontal
 		.col-md-9
 			textarea(name='body' required rows="10")#body.form-control= email.body
 
-	.form-group
-		.col-md-offset-3.col-md-9
-			button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'
+	if !hideButton
+		.form-group
+			.col-md-offset-3.col-md-9
+				button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'
