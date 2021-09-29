@@ -29,13 +29,9 @@ app.get(
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
     const ongoingEmails = await getRepository(SegmentOngoingEmail).find({
-      where: { segment }
+      where: { segment },
+      relations: ["email"]
     });
-    for (const ongoingEmail of ongoingEmails) {
-      ongoingEmail.emailTemplate = await EmailService.getTemplate(
-        ongoingEmail.emailTemplateId
-      );
-    }
     res.render("segment", { segment, ongoingEmails });
   })
 );
@@ -94,8 +90,8 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     res.render("email", {
-      segment: req.model,
-      emailTemplates: await EmailService.getTemplates()
+      segment,
+      emails: await getRepository(Email).find()
     });
   })
 );

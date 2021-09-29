@@ -14,7 +14,7 @@ import EmailMailing, { EmailMailingRecipient } from "@models/EmailMailing";
 
 const app = express();
 
-interface EmailSchema {
+export interface EmailSchema {
   name: string;
   fromName: string;
   fromEmail: string;
@@ -22,7 +22,7 @@ interface EmailSchema {
   body: string;
 }
 
-function schemaToEmail(data: EmailSchema): Email {
+export function schemaToEmail(data: EmailSchema): Email {
   const email = new Email();
   email.name = data.name;
   email.fromName = data.fromName;
