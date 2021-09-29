@@ -38,7 +38,9 @@ export interface MailchimpNewsletterConfig {
 
 interface NoneNewsletterConfig {
   provider: "none";
-  settings: null;
+  settings: {
+    webhookSecret: string;
+  };
 }
 
 type NewsletterConfig = MailchimpNewsletterConfig | NoneNewsletterConfig;
@@ -101,15 +103,16 @@ export default {
   } as EmailConfig,
   newsletter: {
     provider: newsletterProvider,
-    settings:
-      newsletterProvider === "mailchimp"
+    settings: {
+      webhookSecret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", ""),
+      ...(newsletterProvider === "mailchimp"
         ? {
-            apiKey: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY", ""),
-            datacenter: env.s("BEABEE_NEWSLETTER_SETTINGS_DATACENTER", ""),
-            listId: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID", ""),
-            webhookSecret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", "")
+            apiKey: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY"),
+            datacenter: env.s("BEABEE_NEWSLETTER_SETTINGS_DATACENTER"),
+            listId: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID")
           }
-        : null
+        : null)
+    }
   } as NewsletterConfig,
   gocardless: {
     accessToken: env.s("BEABEE_GOCARDLESS_ACCESSTOKEN", ""),
