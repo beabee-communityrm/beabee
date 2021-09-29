@@ -17,6 +17,8 @@
   "support-email": "membership@example.com",
   "support-email-from": "UK Makerspace Membership",
 
+  "contribution-min-monthly-amount": "1",
+
   "available-tags": "",
   "available-manual-payment-sources": "",
 
