@@ -3,11 +3,12 @@ import { getRepository } from "typeorm";
 
 import { hasNewModel } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
+import buildQuery from "@core/utils/rules";
 
-import EmailService from "@core/services/EmailService";
 import SegmentService from "@core/services/SegmentService";
 
 import Email from "@models/Email";
+import EmailMailing from "@models/EmailMailing";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import SegmentMember from "@models/SegmentMember";
@@ -129,9 +130,22 @@ app.post(
         ? await getRepository(Email).save(schemaToEmail(data))
         : await getRepository(Email).findOne(data.email);
 
-    if (data.type === "one-off") {
-      throw new Error("Not implemented");
-    } else {
+    if (email && (data.type === "one-off" || data.sendNow)) {
+      const members = await buildQuery(segment.ruleGroup).getMany();
+      const mailing = await getRepository(EmailMailing).save({
+        email,
+        emailField: "Email",
+        nameField: "Name",
+        recipients: members.map((member) => ({
+          Email: member.email,
+          Name: member.fullname,
+          FirstName: member.firstname
+        }))
+      });
+      res.redirect(`/tools/emails/${email.id}/${mailing.id}`);
+    }
+
+    if (data.type === "ongoing") {
       await getRepository(SegmentOngoingEmail).save({
         segment,
         trigger: data.trigger,
@@ -139,11 +153,9 @@ app.post(
         enabled: true
       });
 
-      if (data.sendNow) {
-        // TODO: send now!
+      if (!data.sendNow) {
+        res.redirect(`/members/segments/${segment.id}#ongoingemails`);
       }
-
-      res.redirect("/members/segments/" + segment.id + "#ongoingemails");
     }
   })
 );
