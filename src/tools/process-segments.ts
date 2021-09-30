@@ -60,7 +60,8 @@ async function processSegment(segment: Segment) {
   );
 
   const outgoingEmails = await getRepository(SegmentOngoingEmail).find({
-    where: { segment }
+    where: { segment },
+    relations: ["email"]
   });
 
   // Only fetch old members if we need to
@@ -78,8 +79,8 @@ async function processSegment(segment: Segment) {
         ? newMembers
         : [];
     if (emailMembers.length > 0) {
-      await EmailService.sendRawTemplate(
-        outgoingEmail.emailTemplateId,
+      await EmailService.sendEmail(
+        outgoingEmail.email,
         membersToRecipients(emailMembers)
       );
     }

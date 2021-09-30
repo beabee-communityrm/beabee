@@ -14,7 +14,7 @@ import EmailMailing, { EmailMailingRecipient } from "@models/EmailMailing";
 
 const app = express();
 
-interface EmailSchema {
+export interface EmailSchema {
   name: string;
   fromName: string;
   fromEmail: string;
@@ -22,7 +22,7 @@ interface EmailSchema {
   body: string;
 }
 
-function schemaToEmail(data: EmailSchema): Email {
+export function schemaToEmail(data: EmailSchema): Email {
   const email = new Email();
   email.name = data.name;
   email.fromName = data.fromName;
@@ -128,7 +128,8 @@ app.get(
       email,
       mailing,
       mergeFields,
-      headers: Object.keys(mailing.recipients[0])
+      headers: Object.keys(mailing.recipients[0]),
+      onlyPreview: req.query.preview !== undefined
     });
   })
 );
@@ -162,12 +163,7 @@ app.post(
       )
     }));
 
-    await EmailService.sendEmail(
-      { email: email.fromEmail, name: email.fromName },
-      recipients,
-      email.subject,
-      email.body.replace(/\r\n/g, "<br/>")
-    );
+    await EmailService.sendEmail(email, recipients);
 
     await getRepository(EmailMailing).update(mailing.id, {
       sentDate: new Date(),
@@ -175,6 +171,8 @@ app.post(
       nameField,
       mergeFields
     });
+
+    req.flash("success", "transactional-email-sending");
 
     res.redirect(req.originalUrl);
   })

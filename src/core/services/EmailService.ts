@@ -16,6 +16,7 @@ import {
 } from "@core/providers/email";
 import MandrillProvider from "@core/providers/email/MandrillProvider";
 import SMTPProvider from "@core/providers/email/SMTPProvider";
+import Email from "@models/Email";
 
 const log = mainLogger.child({ app: "email-service" });
 
@@ -104,14 +105,12 @@ class EmailService implements EmailProvider {
       : new SMTPProvider(config.email.settings);
 
   async sendEmail(
-    from: EmailPerson,
+    email: Email,
     recipients: EmailRecipient[],
-    subject: string,
-    body: string,
     opts?: EmailOptions
   ): Promise<void> {
-    log.info("Sending email", { from, recipients, subject });
-    await this.provider.sendEmail(from, recipients, subject, body, opts);
+    log.info("Sending email", { email: email.id, recipients });
+    this.provider.sendEmail(email, recipients, opts);
   }
 
   async sendTemplate(
@@ -177,15 +176,6 @@ class EmailService implements EmailProvider {
       { to: { email: member.email, name: member.fullname }, mergeFields }
     ];
     await this.sendTemplate(template, recipients, opts);
-  }
-
-  async sendRawTemplate(
-    template: string,
-    recipients: EmailRecipient[],
-    opts?: EmailOptions
-  ): Promise<void> {
-    log.info("Sending raw template " + template, { template, recipients });
-    await this.provider.sendTemplate(template, recipients, opts);
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {

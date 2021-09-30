@@ -1,29 +1,13 @@
-- isNew = email === undefined
-- email = email || {}
-
 form(method='POST').form-horizontal
 	+csrf
+
 	.form-group
 		label(for='name').control-label.col-md-3 Name
 		.col-md-6
-			input(type='text', name='name' required value=email.name)#name.form-control
-	.form-group
-		label(for='fromEmail').control-label.col-md-3 From email
-		.col-md-6
-			input(type='text' name='fromEmail' required value=email.fromEmail || Options('support-email'))#fromEmail.form-control
-	.form-group
-		label(for='fromName').control-label.col-md-3 From name
-		.col-md-6
-			input(type='text' name='fromName' required value=email.fromName || Options('support-email-from'))#fromName.form-control
-	.form-group
-		label(for='subject').control-label.col-md-3 Subject
-		.col-md-6
-			input(type='text' name='subject' required value=email.subject)#subject.form-control
-	.form-group
-		label(for='body').control-label.col-md-3 Body
-		.col-md-9
-			textarea(name='body' required rows="10")#body.form-control= email.body
+			input(type='text', name='name' required value=email && email.name)#name.form-control
+
+	include ./email-fields
 
 	.form-group
 		.col-md-offset-3.col-md-9
-			button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'
+			button(name='action' value='update').btn.btn-success= email === undefined ? 'Create' : 'Update'

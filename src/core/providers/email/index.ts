@@ -1,3 +1,5 @@
+import Email from "@models/Email";
+
 export interface EmailTemplate {
   id: string;
   name: string;
@@ -28,10 +30,8 @@ export interface EmailOptions {
 
 export interface EmailProvider {
   sendEmail(
-    from: EmailPerson,
+    email: Email,
     recipients: EmailRecipient[],
-    subject: string,
-    body: string,
     opts?: EmailOptions
   ): Promise<void>;
   sendTemplate(

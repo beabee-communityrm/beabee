@@ -5,13 +5,7 @@ import { log as mainLogger } from "@core/logging";
 
 import Email from "@models/Email";
 
-import {
-  EmailOptions,
-  EmailPerson,
-  EmailProvider,
-  EmailRecipient,
-  EmailTemplate
-} from ".";
+import { EmailOptions, EmailProvider, EmailRecipient, EmailTemplate } from ".";
 import { MandrillEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "mandrill-email-provider" });
@@ -38,10 +32,8 @@ export default class MandrillProvider implements EmailProvider {
   }
 
   async sendEmail(
-    from: EmailPerson,
+    email: Email,
     recipients: EmailRecipient[],
-    subject: string,
-    body: string,
     opts?: EmailOptions
   ): Promise<void> {
     const resp = await new Promise((resolve, reject) => {
@@ -49,10 +41,10 @@ export default class MandrillProvider implements EmailProvider {
         {
           message: {
             ...this.createMessageData(recipients, opts),
-            from_name: from.name,
-            from_email: from.email,
-            subject,
-            html: body,
+            from_name: email.fromName,
+            from_email: email.fromEmail,
+            subject: email.subject,
+            html: email.body,
             auto_text: true
           },
           ...(opts?.sendAt && { send_at: opts.sendAt })
@@ -91,13 +83,7 @@ export default class MandrillProvider implements EmailProvider {
     } else if (templateType === "local") {
       const email = await getRepository(Email).findOne(templateId);
       if (email) {
-        this.sendEmail(
-          { email: email.fromEmail, name: email.fromName },
-          recipients,
-          email.subject,
-          email.body.replace(/\r\n/g, "<br/>"),
-          opts
-        );
+        this.sendEmail(email, recipients, opts);
       }
     }
   }
