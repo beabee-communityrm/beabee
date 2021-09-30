@@ -130,12 +130,23 @@ app.post(
         ? await getRepository(Email).save(
             schemaToEmail({
               ...data,
-              name: "Email to " + segment.name
+              name: "Email to segment " + segment.name
             })
           )
-        : await getRepository(Email).findOne(data.email);
+        : await getRepository(Email).findOneOrFail(data.email);
 
-    if (email && (data.type === "one-off" || data.sendNow)) {
+    if (data.type === "ongoing") {
+      await getRepository(SegmentOngoingEmail).save({
+        segment,
+        trigger: data.trigger,
+        email,
+        enabled: true
+      });
+
+      req.flash("success", "segment-created-ongoing-email");
+    }
+
+    if (data.type === "one-off" || data.sendNow) {
       const members = await buildQuery(segment.ruleGroup).getMany();
       const mailing = await getRepository(EmailMailing).save({
         email,
@@ -152,20 +163,12 @@ app.post(
           FirstName: member.firstname
         }))
       });
+
+      req.flash("warning", "segment-preview-email");
+
       res.redirect(`/tools/emails/${email.id}/mailings/${mailing.id}?preview`);
-    }
-
-    if (data.type === "ongoing") {
-      await getRepository(SegmentOngoingEmail).save({
-        segment,
-        trigger: data.trigger,
-        email,
-        enabled: true
-      });
-
-      if (!data.sendNow) {
-        res.redirect(`/members/segments/${segment.id}#ongoingemails`);
-      }
+    } else {
+      res.redirect(`/members/segments/${segment.id}#ongoingemails`);
     }
   })
 );

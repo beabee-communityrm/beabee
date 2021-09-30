@@ -98,7 +98,7 @@ block contents
 						input(type='checkbox' required)
 						| Ready to send?
 
-				button.btn.btn-danger Send
+				button.btn.btn-danger= mailing.sentDate ? 'Resend' : 'Send'
 
 block append js
 	script.

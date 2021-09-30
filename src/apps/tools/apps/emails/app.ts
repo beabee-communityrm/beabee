@@ -172,6 +172,8 @@ app.post(
       mergeFields
     });
 
+    req.flash("success", "transactional-email-sending");
+
     res.redirect(req.originalUrl);
   })
 );
