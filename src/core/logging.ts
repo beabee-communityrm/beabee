@@ -26,7 +26,7 @@ const logger = winston.createLogger({
 export const log = logger;
 
 export const requestLogger = expressWinston.logger({
-  winstonInstance: logger,
+  winstonInstance: logger.child({ app: "request" }),
   msg: "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms",
   requestFilter: (req, propName) => {
     if (propName === "headers") {
@@ -39,5 +39,5 @@ export const requestLogger = expressWinston.logger({
 });
 
 export const requestErrorLogger = expressWinston.errorLogger({
-  winstonInstance: logger
+  winstonInstance: logger.child({ app: "request-error" })
 });

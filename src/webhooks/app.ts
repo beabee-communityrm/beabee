@@ -3,7 +3,7 @@ import "module-alias/register";
 import express from "express";
 
 import * as db from "@core/database";
-import { log, requestErrorLogger, requestLogger } from "@core/logging";
+import { requestErrorLogger, requestLogger } from "@core/logging";
 import startServer from "@core/server";
 
 import gocardlessApp from "./gocardless";
@@ -15,7 +15,6 @@ const app = express();
 app.use(requestLogger);
 
 app.get("/ping", function (req, res) {
-  log.info("Got ping");
   res.sendStatus(200);
 });
 
