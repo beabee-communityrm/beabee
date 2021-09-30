@@ -136,13 +136,18 @@ app.post(
         email,
         emailField: "Email",
         nameField: "Name",
+        mergeFields: {
+          EMAIL: "Email",
+          NAME: "Name",
+          FNAME: "FirstName"
+        },
         recipients: members.map((member) => ({
           Email: member.email,
           Name: member.fullname,
           FirstName: member.firstname
         }))
       });
-      res.redirect(`/tools/emails/${email.id}/${mailing.id}`);
+      res.redirect(`/tools/emails/${email.id}/mailings/${mailing.id}?preview`);
     }
 
     if (data.type === "ongoing") {

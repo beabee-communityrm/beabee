@@ -128,7 +128,8 @@ app.get(
       email,
       mailing,
       mergeFields,
-      headers: Object.keys(mailing.recipients[0])
+      headers: Object.keys(mailing.recipients[0]),
+      onlyPreview: req.query.preview !== undefined
     });
   })
 );
