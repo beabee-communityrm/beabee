@@ -9,7 +9,7 @@ import config from "@config";
 
 @JsonController("/content")
 export class ContentController {
-  @Get("/:id")
+  @Get("/:id(*)")
   async getId(@Param("id") id: string): Promise<object | undefined> {
     const content = await getRepository(Content).findOne(id);
     if (content && id === "join") {
