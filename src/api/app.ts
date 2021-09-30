@@ -6,6 +6,7 @@ import express, { ErrorRequestHandler, Request } from "express";
 import { Action, HttpError, useExpressServer } from "routing-controllers";
 
 import { CalloutController } from "./controllers/CalloutController";
+import { ContentController } from "./controllers/ContentController";
 import { MemberController } from "./controllers/MemberController";
 import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
@@ -34,6 +35,7 @@ db.connect().then(() => {
     routePrefix: "/1.0",
     controllers: [
       CalloutController,
+      ContentController,
       MemberController,
       NoticeController,
       SignupController
