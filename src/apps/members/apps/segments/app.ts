@@ -102,7 +102,7 @@ app.get(
   })
 );
 
-interface CreateBaseEmail extends EmailSchema {
+interface CreateBaseEmail extends Omit<EmailSchema, "name"> {
   email: string;
 }
 
@@ -127,7 +127,12 @@ app.post(
 
     const email =
       data.email === "__new__"
-        ? await getRepository(Email).save(schemaToEmail(data))
+        ? await getRepository(Email).save(
+            schemaToEmail({
+              ...data,
+              name: "Email to " + segment.name
+            })
+          )
         : await getRepository(Email).findOne(data.email);
 
     if (email && (data.type === "one-off" || data.sendNow)) {
