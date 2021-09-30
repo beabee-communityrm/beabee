@@ -2,9 +2,11 @@ import "reflect-metadata";
 
 import { createConnection, getConnection } from "typeorm";
 
-import { log } from "@core/logging";
+import { log as mainLogger } from "@core/logging";
 
 import OptionsService from "@core/services/OptionsService";
+
+const log = mainLogger.child({ app: "database" });
 
 export async function connect(): Promise<void> {
   try {
