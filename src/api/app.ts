@@ -3,7 +3,13 @@ import "reflect-metadata";
 
 import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
-import { Action, HttpError, useExpressServer } from "routing-controllers";
+import {
+  Action,
+  HttpError,
+  InternalServerError,
+  NotFoundError,
+  useExpressServer
+} from "routing-controllers";
 
 import { CalloutController } from "./controllers/CalloutController";
 import { MemberController } from "./controllers/MemberController";
@@ -52,12 +58,18 @@ db.connect().then(() => {
     defaultErrorHandler: false
   });
 
+  app.use((req, res) => {
+    if (!res.headersSent) {
+      throw new NotFoundError();
+    }
+  });
+
   app.use(function (error, req, res, next) {
     if (error instanceof HttpError) {
       res.status(error.httpCode).send(error);
     } else {
       log.error("Unhandled error: ", error);
-      res.status(500).send({ error: "Internal server error" });
+      res.status(500).send(new InternalServerError("Unhandled error"));
     }
   } as ErrorRequestHandler);
 
