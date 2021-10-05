@@ -37,7 +37,7 @@ function schemaToPoll(
   poll.mcMergeField = data.mcMergeField;
   poll.pollMergeField = data.pollMergeField;
   poll.template = data.template;
-  poll.allowUpdate = !!data.allowUpdate;
+  poll.allowUpdate = data.allowUpdate !== undefined && data.allowUpdate;
   poll.access = data.access;
   poll.hidden = !!data.hidden;
   poll.starts = createDateTime(data.startsDate, data.startsTime);
