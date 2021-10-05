@@ -63,16 +63,17 @@ export default class PollsService {
       return "polls-closed";
     }
 
-    if (!poll.allowUpdate) {
-      const pollAnswer = await PollsService.getResponse(poll, member);
-      if (pollAnswer && !pollAnswer.isPartial) {
+    let pollResponse = await PollsService.getResponse(poll, member);
+    if (pollResponse) {
+      if (!poll.allowUpdate && !pollResponse.isPartial) {
         return "polls-cant-update";
       }
+    } else {
+      pollResponse = new PollResponse();
+      pollResponse.poll = poll;
+      pollResponse.member = member;
     }
 
-    const pollResponse = new PollResponse();
-    pollResponse.poll = poll;
-    pollResponse.member = member;
     pollResponse.answers = answers;
     pollResponse.isPartial = isPartial;
 
