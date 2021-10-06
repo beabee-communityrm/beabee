@@ -38,7 +38,7 @@ export default class SMTPProvider implements EmailProvider {
             "" + recipient.mergeFields![field]
           );
         },
-        email.body
+        email.body.replace(/\r\n/g, "<br>")
       );
 
       await this.client.sendMail({
