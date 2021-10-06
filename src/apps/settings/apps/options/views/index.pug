@@ -5,6 +5,8 @@ block prepend title
 	- heading = title
 
 block contents
+	- hiddenOptions = ["email-templates", "newsletter-resync-status", "newsletter-resync-data"];
+
 	.alert.alert-danger.
 		Changing these options can break things, proceed with caution
 
@@ -17,13 +19,14 @@ block contents
 					th
 			tbody
 				each option in options
-					tr
-						td #{ option.key }
-						td #{ option.value }
-						td(style='white-space: nowrap')
-							a( href="/settings/options/" + option.key + "/edit" ).btn.btn-default.btn-xs
-								span.glyphicon.glyphicon-pencil
-							if ! option.default
-								| 
-								a( href="/settings/options/" + option.key + "/reset" ).btn.btn-default.btn-xs
-									span.glyphicon.glyphicon-remove
+					if showHidden || !option.key.startsWith('flash-') && hiddenOptions.indexOf(option.key) === -1
+						tr
+							td= option.key
+							td(style='overflow-wrap: anywhere')= option.value
+							td(style='white-space: nowrap')
+								a( href="/settings/options/" + option.key + "/edit" ).btn.btn-default.btn-xs
+									span.glyphicon.glyphicon-pencil
+								if !option.default
+									|
+									a( href="/settings/options/" + option.key + "/reset" ).btn.btn-default.btn-xs
+										span.glyphicon.glyphicon-remove
