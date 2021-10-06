@@ -28,6 +28,8 @@ export default class SMTPProvider implements EmailProvider {
       return;
     }
 
+    log.info("Sending email " + email.id);
+
     for (const recipient of recipients) {
       const mergedBody = Object.keys(recipient.mergeFields || {}).reduce(
         (body, field) => {
@@ -60,6 +62,7 @@ export default class SMTPProvider implements EmailProvider {
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
+    log.info("Sending template " + template);
     const email = await getRepository(Email).findOne(template);
     if (email) {
       await this.sendEmail(email, recipients, opts);
