@@ -51,7 +51,11 @@ function isMismatchedMember(member: Member, nlMember: NewsletterMember) {
 
 interface ReportData {
   uploadIds: string[];
-  imports: NewsletterMember[];
+  imports: {
+    email: string;
+    status: string;
+    groups: string[];
+  }[];
   mismatched: {
     id: string;
     status: string;
@@ -109,7 +113,11 @@ async function handleResync(
       "newsletter-resync-data",
       JSON.stringify({
         uploadIds: newMembersToUpload.map((m) => m.id),
-        imports: newsletterMembersToImport,
+        imports: newsletterMembersToImport.map((m) => ({
+          email: m.email,
+          status: m.status,
+          groups: m.groups
+        })),
         mismatched: mismatchedMembers.map(([m, nlm]) => ({
           id: m.id,
           status: nlm.status,
