@@ -59,7 +59,11 @@ interface ReportData {
   }[];
 }
 
-async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
+async function handleResync(
+  statusSource: "ours" | "theirs",
+  dryRun: boolean,
+  removeUnsubscribed: boolean
+) {
   try {
     await setResyncStatus("In progress: Fetching contact lists");
 
@@ -81,7 +85,7 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
           statusSource === "ours"
             ? member.profile.newsletterStatus
             : nlMember.status;
-        if (status === NewsletterStatus.Unsubscribed) {
+        if (status === NewsletterStatus.Unsubscribed && removeUnsubscribed) {
           existingMembersToArchive.push(member);
         }
 
@@ -115,7 +119,7 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
 
     if (dryRun) {
       await setResyncStatus(
-        `DRY RUN: Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed and ${newMembersToUpload.length} newly uploaded`
+        `DRY RUN: Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed, ${existingMembersToArchive.length} archived and ${newMembersToUpload.length} newly uploaded`
       );
       return;
     }
@@ -180,7 +184,7 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
     // TODO: Check tags
 
     await setResyncStatus(
-      `Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed and ${newMembersToUpload.length} newly uploaded`
+      `Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed, ${existingMembersToArchive.length} archived and ${newMembersToUpload.length} newly uploaded`
     );
   } catch (error) {
     log.error("Newsletter sync failed", error);
@@ -196,7 +200,11 @@ app.post(
       req.flash("success", "newsletter-resync-started");
       res.redirect(req.originalUrl);
 
-      handleResync(req.body.statusSource, req.body.dryRun === "true");
+      handleResync(
+        req.body.statusSource,
+        req.body.dryRun === "true",
+        req.body.removeUnsubscribed === "true"
+      );
     }
   })
 );
