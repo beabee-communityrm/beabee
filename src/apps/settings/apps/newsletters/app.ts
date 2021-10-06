@@ -89,7 +89,7 @@ async function handleResync(statusSource: "ours" | "theirs", dryRun: boolean) {
           mismatchedMembers.push([member, nlMember] as const);
         }
       } else if (
-        member.profile.newsletterStatus !== NewsletterStatus.Unsubscribed
+        member.profile.newsletterStatus === NewsletterStatus.Subscribed
       ) {
         newMembersToUpload.push(member);
       }

@@ -49,9 +49,11 @@ interface OperationResponse {
   operation_id: string;
 }
 
+type MCStatus = "subscribed" | "unsubscribed" | "pending" | "cleaned";
+
 interface MCMember {
   email_address: string;
-  status: "subscribed" | "unsubscribed" | "pending" | "cleaned";
+  status: MCStatus;
   interests?: { [interest: string]: boolean };
   merge_fields: Record<string, string>;
   tags: { id: number; name: string }[];
@@ -98,6 +100,19 @@ function createInstance(settings: MailchimpNewsletterConfig["settings"]) {
   return instance;
 }
 
+function mcStatusToStatus(mcStatus: MCStatus): NewsletterStatus {
+  switch (mcStatus) {
+    case "cleaned":
+      return NewsletterStatus.Cleaned;
+    case "pending":
+      return NewsletterStatus.Pending;
+    case "subscribed":
+      return NewsletterStatus.Subscribed;
+    case "unsubscribed":
+      return NewsletterStatus.Unsubscribed;
+  }
+}
+
 function memberToMCMember(member: PartialNewsletterMember): Partial<MCMember> {
   return {
     email_address: member.email,
@@ -124,10 +139,7 @@ function mcMemberToMember(member: MCMember): NewsletterMember {
     email: cleanEmailAddress(member.email_address),
     firstname: FNAME || "",
     lastname: LNAME || "",
-    status:
-      member.status === "subscribed"
-        ? NewsletterStatus.Subscribed
-        : NewsletterStatus.Unsubscribed,
+    status: mcStatusToStatus(member.status),
     groups: member.interests
       ? Object.entries(member.interests)
           .filter(([group, isOptedIn]) => isOptedIn)

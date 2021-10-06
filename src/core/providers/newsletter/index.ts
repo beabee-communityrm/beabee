@@ -1,6 +1,8 @@
 export enum NewsletterStatus {
   Subscribed = "subscribed",
-  Unsubscribed = "unsubscribed"
+  Unsubscribed = "unsubscribed",
+  Pending = "pending",
+  Cleaned = "cleaned"
 }
 
 export interface NewsletterMember {
