@@ -46,7 +46,15 @@ block contents
 							label
 								input(type='radio' name='statusSource' value='theirs' required)
 								| Provider
-								
+
+					p.
+						The syncing process can remove unsubscribed contacts from the
+						newsletter provider. Would you like it to do so?
+					.checkbox
+						label
+							input(type='checkbox' name='archiveUnsubscribed' value='true')
+							| Yes, remove unsubscribed contacts
+
 					p.
 						This will perform the following #[b irrevisble] actions:
 
@@ -54,7 +62,7 @@ block contents
 						li Import new contacts from the newsletter list
 						li Upload any missing contacts to the newsletter list
 						li Update existing contacts' subscription status
-						li Remove unsubscribed contacts from the newsletter list
+						li Optionally remove unsubscribed contacts from the newsletter list
 						li Overwrite merge fields on the newsletter list
 
 					.checkbox

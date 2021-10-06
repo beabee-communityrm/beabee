@@ -20,15 +20,17 @@ block contents
 							td: a(href='/members/' + member.id)= member.fullname
 							td= member.email
 		
-			h4 Emails to import
+			h4 Contacts to import
 			table.table.table-striped
 				thead
 					tr
 						th Email
+						th Status
 				tbody
-					each email in emailsToImport
+					each contact in contactsToImport
 						tr
-							td= email
+							td= contact.email
+							td= contact.status
 			
 			h4 Mismatched members
 			table.table.table-striped
