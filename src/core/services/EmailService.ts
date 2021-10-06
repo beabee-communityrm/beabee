@@ -110,7 +110,7 @@ class EmailService implements EmailProvider {
     opts?: EmailOptions
   ): Promise<void> {
     log.info("Sending email", { email: email.id, recipients });
-    this.provider.sendEmail(email, recipients, opts);
+    await this.provider.sendEmail(email, recipients, opts);
   }
 
   async sendTemplate(
