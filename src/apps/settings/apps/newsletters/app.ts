@@ -98,9 +98,12 @@ async function handleResync(
         newMembersToUpload.push(member);
       }
     }
+
     const newsletterMembersToImport = newsletterMembers.filter((nm) =>
       members.every((m) => m.email !== nm.email)
     );
+
+    const membersInNewsletter = [...existingMembers, ...newMembersToUpload];
 
     await OptionsService.set(
       "newsletter-resync-data",
@@ -128,10 +131,6 @@ async function handleResync(
       `In progress: Uploading ${newMembersToUpload.length} new contacts to the newsletter list`
     );
     await NewsletterService.upsertMembers(newMembersToUpload);
-    await NewsletterService.addTagToMembers(
-      newMembersToUpload.filter((m) => m.isActiveMember),
-      OptionsService.getText("newsletter-active-member-tag")
-    );
 
     // Must fix status before mass update to avoid overwriting in the wrong direction
     if (statusSource === "theirs") {
@@ -155,6 +154,22 @@ async function handleResync(
       `In progress: Updating ${existingMembers.length} contacts in newsletter list`
     );
     await NewsletterService.upsertMembers(existingMembers);
+
+    // Sync tags before archiving
+    await setResyncStatus(
+      `In progress: Updating active member tag for ${membersInNewsletter.length} contacts in newsletter list`
+    );
+
+    await NewsletterService.addTagToMembers(
+      membersInNewsletter.filter((m) => m.isActiveMember),
+      OptionsService.getText("newsletter-active-member-tag")
+    );
+    await NewsletterService.removeTagFromMembers(
+      membersInNewsletter.filter((m) => !m.isActiveMember),
+      OptionsService.getText("newsletter-active-member-tag")
+    );
+
+    // TODO: Check other tags
 
     await setResyncStatus(
       `In progress: Archiving ${existingMembersToArchive.length} contacts from newsletter list`
@@ -180,8 +195,6 @@ async function handleResync(
         { sync: false }
       );
     }
-
-    // TODO: Check tags
 
     await setResyncStatus(
       `Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed, ${existingMembersToArchive.length} archived and ${newMembersToUpload.length} newly uploaded`
