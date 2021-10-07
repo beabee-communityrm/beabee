@@ -40,5 +40,4 @@ export interface EmailProvider {
     opts?: EmailOptions
   ): Promise<void>;
   getTemplates(): Promise<EmailTemplate[]>;
-  getTemplate(templateId: string): Promise<EmailTemplate | undefined>;
 }

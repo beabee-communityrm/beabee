@@ -182,10 +182,6 @@ class EmailService implements EmailProvider {
     return await this.provider.getTemplates();
   }
 
-  async getTemplate(template: string): Promise<EmailTemplate | undefined> {
-    return await this.provider.getTemplate(template);
-  }
-
   get emailTemplateIds(): (EmailTemplateId | MemberEmailTemplateId)[] {
     return [
       ...(Object.keys(emailTemplates) as EmailTemplateId[]),
