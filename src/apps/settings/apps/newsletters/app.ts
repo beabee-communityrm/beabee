@@ -239,7 +239,7 @@ app.get(
     );
 
     res.render("report", {
-      contactsToImports: data.imports,
+      contactsToImport: data.imports,
       newMembersToUpload,
       mismatchedMembers: data.mismatched.map((m) => ({
         member: mismatchedMembers.find((m2) => m.id === m2.id),
