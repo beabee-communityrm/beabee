@@ -57,7 +57,9 @@ interface MCMember {
   interests?: { [interest: string]: boolean };
   merge_fields: Record<string, string>;
   tags: { id: number; name: string }[];
-  timestamp_opt: string;
+  timestamp_opt?: string;
+  timestamp_signup?: string;
+  last_changed: string;
 }
 
 interface GetMembersResponse {
@@ -140,7 +142,9 @@ function mcMemberToMember(member: MCMember): NewsletterMember {
     email: cleanEmailAddress(member.email_address),
     firstname: FNAME || "",
     lastname: LNAME || "",
-    joined: new Date(member.timestamp_opt),
+    joined: new Date(
+      member.timestamp_opt || member.timestamp_signup || member.last_changed
+    ),
     status: mcStatusToStatus(member.status),
     groups: member.interests
       ? Object.entries(member.interests)
