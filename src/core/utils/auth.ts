@@ -1,8 +1,6 @@
 import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import base32 from "thirty-two";
-
 import { getNextParam } from "@core/utils";
 
 import Member from "@models/Member";
@@ -33,8 +31,8 @@ export enum AuthenticationStatus {
 export function generateOTPSecret(): Promise<string> {
   return new Promise((resolve) => {
     crypto.randomBytes(16, function (ex, raw) {
-      const secret = base32.encode(raw);
-      resolve(secret.toString().replace(/=/g, ""));
+      const secret = Buffer.from(raw);
+      resolve(secret.toString("base64").replace(/=/g, ""));
     });
   });
 }

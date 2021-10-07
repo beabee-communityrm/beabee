@@ -1,7 +1,6 @@
 import passport from "passport";
 import passportLocal from "passport-local";
 import passportTotp from "passport-totp";
-import base32 from "thirty-two";
 
 import config from "@config";
 
@@ -91,7 +90,7 @@ passport.use(
     function (_user, done) {
       const user = _user as Member;
       if (user.otp.key) {
-        return done(null, base32.decode(user.otp.key).toString(), 30);
+        return done(null, Buffer.from(user.otp.key, "base64").toString(), 30);
       }
       return done(null, false);
     }
