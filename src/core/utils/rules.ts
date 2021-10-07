@@ -138,65 +138,28 @@ class QueryBuilder {
       const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
 
       if (rule.field === "activeMembership") {
+        const table = "mp" + suffix;
+        this.params["now" + suffix] = parseValue("$now");
+
+        const subQb = createQueryBuilder()
+          .subQuery()
+          .select(`${table}.memberId`)
+          .from(MemberPermission, table)
+          .where(
+            `${table}.permission = 'member' AND ${table}.dateAdded <= :now${suffix}`
+          )
+          .andWhere(
+            new Brackets((qb) => {
+              qb.where(`${table}.dateExpires IS NULL`).orWhere(
+                `${table}.dateExpires > :now${suffix}`
+              );
+            })
+          );
+
         if (rule.value === true) {
-          this.parseRuleGroup({
-            condition: "AND",
-            rules: [
-              {
-                id: "permission",
-                field: "permission",
-                type: "string",
-                operator: "equal",
-                value: "member"
-              },
-              {
-                id: "dateAdded",
-                field: "dateAdded",
-                type: "string",
-                operator: "less",
-                value: "$now"
-              },
-              {
-                condition: "OR",
-                rules: [
-                  {
-                    id: "dateExpires",
-                    field: "dateExpires",
-                    type: "string",
-                    operator: "is_null",
-                    value: ""
-                  },
-                  {
-                    id: "dateExpires",
-                    field: "dateExpires",
-                    type: "string",
-                    operator: "greater",
-                    value: "$now"
-                  }
-                ]
-              }
-            ]
-          })(qb);
+          qb.where("id IN " + subQb.getQuery());
         } else {
-          this.parseRuleGroup({
-            condition: "OR",
-            rules: [
-              {
-                id: "dateAdded",
-                field: "dateAdded",
-                type: "string",
-                operator: "greater",
-                value: "$now"
-              },
-              {
-                id: "dateExpires",
-                field: "dateExpires",
-                type: "string",
-                operator: "less",
-                value: "$now"
-              }
-            ]
-          })(qb);
+          qb.where("id NOT IN " + subQb.getQuery());
         }
       } else if (memberFields.indexOf(rule.field as any) > -1) {
         qb.where(`m.${rule.field} ${namedWhere}`);
