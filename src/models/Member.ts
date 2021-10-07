@@ -101,7 +101,9 @@ export default class Member {
   }
 
   get fullname(): string {
-    return this.firstname + " " + this.lastname;
+    return this.firstname || this.lastname
+      ? this.firstname + " " + this.lastname
+      : "";
   }
 
   get contributionDescription(): string {
