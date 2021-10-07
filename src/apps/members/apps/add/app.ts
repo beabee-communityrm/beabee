@@ -22,9 +22,9 @@ import MemberPermission, { PermissionType } from "@models/MemberPermission";
 import { addContactSchema } from "./schemas.json";
 
 interface BaseAddContactSchema {
-  firstname: string;
-  lastname: string;
   email: string;
+  firstname?: string;
+  lastname?: string;
   permissions?: {
     permission: PermissionType;
     startDate?: string;
@@ -91,8 +91,8 @@ app.post(
     try {
       member = await MembersService.createMember(
         {
-          firstname: data.firstname,
-          lastname: data.lastname,
+          firstname: data.firstname || "",
+          lastname: data.lastname || "",
           email: data.email,
           contributionType: data.type,
           permissions
