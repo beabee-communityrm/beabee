@@ -18,9 +18,9 @@ const app = express();
 interface MCProfileData {
   email: string;
   merges: {
-    FNAME: string;
-    LNAME: string;
-    [key: string]: string;
+    FNAME?: string;
+    LNAME?: string;
+    [key: string]: string | undefined;
   };
 }
 
@@ -131,8 +131,8 @@ async function handleSubscribe(data: MCProfileData) {
     await MembersService.createMember(
       {
         email,
-        firstname: data.merges.FNAME,
-        lastname: data.merges.LNAME,
+        firstname: data.merges.FNAME || "",
+        lastname: data.merges.LNAME || "",
         contributionType: ContributionType.None
       },
       {
