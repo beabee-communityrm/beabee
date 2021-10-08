@@ -44,7 +44,8 @@ block contents
 						!= poll.templateSchema.ballotInfo
 
 						.alert.alert-warning
-							| Candidates are listed randomly
+							| The #{poll.templateSchema.candidates.length} candidates are listed
+							| randomly
 							if poll.templateSchema.minVotes
 								| , you must select at least #{poll.templateSchema.minVotes}
 							if poll.templateSchema.maxVotes
@@ -52,7 +53,7 @@ block contents
 									|
 									| and
 								else
-									| , you must select
+									| , you can select
 								|
 								| at most #{poll.templateSchema.maxVotes}
 							| .
