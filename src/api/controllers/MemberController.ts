@@ -29,6 +29,8 @@ import Address from "@models/Address";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
+import config from "@config";
+
 interface MemberData {
   email: string;
   firstname: string;
@@ -45,6 +47,7 @@ interface GetMemberData extends MemberData {
   joined: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
+  contributionCurrencyCode?: string;
   profile: MemberProfileData;
 }
 
@@ -109,10 +112,12 @@ async function memberToApiMember(member: Member): Promise<GetMemberData> {
     },
     joined: member.joined,
     contributionPeriod: member.contributionPeriod,
-    contributionAmount:
-      member.contributionMonthlyAmount &&
-      member.contributionMonthlyAmount *
-        (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12)
+    ...(member.contributionMonthlyAmount !== undefined && {
+      contributionAmount:
+        member.contributionMonthlyAmount *
+        (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12),
+      contributionCurrencyCode: config.currencyCode
+    })
   };
 }
 

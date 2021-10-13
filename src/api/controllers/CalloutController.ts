@@ -30,11 +30,33 @@ class GetCalloutsQuery {
   title?: string;
 }
 
+interface GetCalloutData {
+  slug: string;
+  title: string;
+  excerpt: string;
+  image?: string;
+  starts?: Date;
+  expires?: Date;
+}
+
+function pollToApiCallout(poll: Poll): GetCalloutData {
+  return {
+    slug: poll.slug,
+    title: poll.title,
+    excerpt: poll.excerpt,
+    image: poll.image,
+    starts: poll.starts,
+    expires: poll.expires
+  };
+}
+
 @JsonController("/callout")
 @Authorized()
 export class CalloutController {
   @Get("/")
-  async getCallouts(@QueryParams() query: GetCalloutsQuery): Promise<Poll[]> {
+  async getCallouts(
+    @QueryParams() query: GetCalloutsQuery
+  ): Promise<GetCalloutData[]> {
     const qb = createQueryBuilder(Poll, "poll").where("poll.hidden = FALSE");
 
     if (query.status === Status.Open) {
@@ -71,6 +93,9 @@ export class CalloutController {
       });
     }
 
-    return await qb.setParameters({ now: moment.utc().toDate() }).getMany();
+    const polls = await qb
+      .setParameters({ now: moment.utc().toDate() })
+      .getMany();
+    return polls.map(pollToApiCallout);
   }
 }
