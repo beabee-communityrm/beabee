@@ -24,7 +24,7 @@ export default class SendGridProvider implements EmailProvider {
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    await sgMail.sendMultiple({
+    const resp = await sgMail.sendMultiple({
       from: {
         email: email.fromEmail,
         name: email.fromName
@@ -51,6 +51,8 @@ export default class SendGridProvider implements EmailProvider {
         }
       }
     });
+
+    log.info("Sent email", { resp });
   }
   async sendTemplate(
     template: string,
