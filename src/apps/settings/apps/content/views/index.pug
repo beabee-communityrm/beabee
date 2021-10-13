@@ -1,0 +1,146 @@
+extends /views/base.pug
+
+block prepend title
+  - title = app.title
+
+mixin periodSchema(i, period)
+  li.js-repeater-item
+    .form-group
+      label.control-label.col-md-3 Period
+      .col-md-9
+        select(name="data[periods][" + i + "][name]" required).form-control
+          option(value='' selected disabled)
+          option(value='monthly' selected=period.name === 'monthly') Monthly
+          option(value='annually' selected=period.name === 'annually') Annually
+    .form-group
+      label.control-label.col-md-3 Preset amounts
+      .col-md-9
+        input(type='text' name="data[periods][" + i + "][presetAmounts]" value=period.presetAmounts.join(', ') required).form-control
+
+
+block prepend js
+  script(type='text/template').js-repeater-template
+    +periodSchema(0, {presetAmounts: []})
+
+block contents
+  .row
+    .col-md-12
+      +page_header('Content')
+
+  .row
+    .col-md-8
+      h4 Join page
+
+      form(method='POST').form-horizontal
+        +csrf
+
+        .form-group
+          label.control-label.col-md-3 Title
+          .col-md-9
+            input(type='text' name="data[title]" value=join.title required).form-control
+        .form-group
+          label.control-label.col-md-3 Subtitle
+          .col-md-9
+            input(type='text' name="data[subtitle]" value=join.subtitle required).form-control
+        
+        ul(data-name="data[periods]").repeater.js-repeater
+          if join.periods
+            each period, i in join.periods
+              +periodSchema(i, period)
+          
+        .row: .col-md-offset-3.col-md-9: p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add period
+
+        .form-group
+          label.control-label.col-md-3 Initial amount
+          .col-md-9
+            input(type='number' name="data[initialAmount]" value=join.initialAmount required).form-control
+        .form-group
+          label.control-label.col-md-3 Initial period
+          .col-md-9
+            select(name="data[initialPeriod]" required).form-control
+              option(value='' selected disabled)
+              option(value='monthly' selected=join.initialPeriod === 'monthly') Monthly
+              option(value='annually' selected=join.initialPeriod === 'annually') Annually
+
+        .form-group
+          .col-md-offset-3.col-md-9
+            .checkbox
+              label
+                input(type='checkbox' name="data[showAbsorbFee]" value="true")
+                | Show absorb fee option
+
+
+        .row: .col-md-offset-3.col-md-9: p: button(name='id' value='join').btn.btn-primary Save
+
+      hr
+
+      h4 Join page - setup
+
+      form(method='POST').form-horizontal
+        +csrf
+
+        .form-group
+          label.control-label.col-md-3 Welcome
+          .col-md-9
+            input(type='text' name="data[welcome]" value=joinSetup.welcome required).form-control
+
+        .js-reveal
+          .form-group
+            .col-md-offset-3.col-md-9
+              .checkbox
+                label
+                  input(type='checkbox' name="data[showMailOptIn]" value="true").js-reveal-types
+                  | Show mail opt-in
+          .js-reveal-type(data-type="data[showMailOptIn]").hidden
+            .form-group
+              label.control-label.col-md-3 Mail title
+              .col-md-9
+                input(type='text' name="data[mailTitle]" value=joinSetup.mailTitle required).form-control
+            .form-group
+              label.control-label.col-md-3 Mail text
+              .col-md-9
+                input(type='text' name="data[mailText]" value=joinSetup.mailText required).form-control
+            .form-group
+              label.control-label.col-md-3 Mail opt-in
+              .col-md-9
+                input(type='text' name="data[mailOptIn]" value=joinSetup.mailOptIn required).form-control
+
+        .js-reveal
+          .form-group
+            .col-md-offset-3.col-md-9
+              .checkbox
+                label
+                  input(type='checkbox' name="data[showNewsletterOptIn]" value="true").js-reveal-types
+                  | Show newsletter opt-in
+          .js-reveal-type(data-type="data[showNewsletterOptIn]")
+            .form-group
+              label.control-label.col-md-3 Newsletter title
+              .col-md-9
+                input(type='text' name="data[newsletterTitle]" value=joinSetup.newsletterTitle required).form-control
+            .form-group
+              label.control-label.col-md-3 Newsletter text
+              .col-md-9
+                input(type='text' name="data[newsletterText]" value=joinSetup.newsletterText required).form-control
+            .form-group
+              label.control-label.col-md-3 Newsletter opt-in
+              .col-md-9
+                input(type='text' name="data[newsletterOptIn]" value=joinSetup.newsletterOptIn required).form-control
+
+        .row: .col-md-offset-3.col-md-9: p: button(name='id' value='join/setup').btn.btn-primary Save
+
+      hr
+
+      h4 Profile page
+      form(method='POST').form-horizontal
+        +csrf
+
+        .form-group
+          label.control-label.col-md-3 Welcome text
+          .col-md-9
+            input(type='text' name="data[welcomeMessage]" value=profile.welcomeMessage required).form-control
+        .form-group
+          label.control-label.col-md-3 Footer text
+          .col-md-9
+            input(type='text' name="data[footerMessage]" value=profile.footerMessage required).form-control
+
+        .row: .col-md-offset-3.col-md-9: p: button(name='id' value='profile').btn.btn-primary Save
