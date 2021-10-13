@@ -14,6 +14,7 @@
   },
   "homepage": "https://github.com/thebristolcable/membership-system#readme",
   "dependencies": {
+    "@sendgrid/mail": "^7.4.7",
     "ajv": "^6.12.5",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
