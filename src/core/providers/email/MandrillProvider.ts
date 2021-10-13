@@ -47,7 +47,7 @@ export default class MandrillProvider implements EmailProvider {
             html: email.body.replace(/\r\n/g, "<br>"),
             auto_text: true
           },
-          ...(opts?.sendAt && { send_at: opts.sendAt })
+          ...(opts?.sendAt && { send_at: opts.sendAt.toISOString() })
         },
         resolve,
         reject
