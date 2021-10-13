@@ -138,7 +138,7 @@ export default class GiftService {
 
     const sendAt = sendImmediately
       ? undefined
-      : now.clone().startOf("day").add({ h: 9, m: 0, s: 0 }).format();
+      : now.clone().startOf("day").add({ h: 9 }).toDate();
     await EmailService.sendTemplateToMember(
       "giftee-success",
       member,

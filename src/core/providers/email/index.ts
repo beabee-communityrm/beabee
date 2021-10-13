@@ -5,7 +5,7 @@ export interface EmailTemplate {
   name: string;
 }
 
-export type EmailMergeFields = Record<string, unknown>;
+export type EmailMergeFields = Record<string, string>;
 
 export interface EmailPerson {
   email: string;
@@ -25,7 +25,7 @@ export interface EmailAttachment {
 
 export interface EmailOptions {
   attachments?: EmailAttachment[];
-  sendAt?: string;
+  sendAt?: Date;
 }
 
 export interface EmailProvider {
