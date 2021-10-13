@@ -1,3 +1,4 @@
+import { addThenSetNotNull } from "@core/utils/db";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddExcerptAndImageToPoll1634125137636
@@ -6,9 +7,7 @@ export class AddExcerptAndImageToPoll1634125137636
   name = "AddExcerptAndImageToPoll1634125137636";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "poll" ADD "excerpt" character varying NOT NULL`
-    );
+    await addThenSetNotNull(queryRunner, "poll", "excerpt");
     await queryRunner.query(`ALTER TABLE "poll" ADD "image" character varying`);
   }
 
