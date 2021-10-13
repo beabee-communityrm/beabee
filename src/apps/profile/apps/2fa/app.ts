@@ -1,6 +1,5 @@
 import express from "express";
 import { totp } from "notp";
-import base32 from "thirty-two";
 import querystring from "querystring";
 
 import { isLoggedIn } from "@core/middleware";
@@ -77,7 +76,7 @@ app.post(
       }
       const test = totp.verify(
         req.body.code,
-        base32.decode(req.user.otp.key || "")
+        Buffer.from(req.user.otp.key || "", "base64")
       );
       if (test && Math.abs(test.delta) < 2) {
         req.session.method = "totp";
@@ -114,7 +113,7 @@ app.post(
     hasUser(async function (req, res) {
       const test = totp.verify(
         req.body.code,
-        base32.decode(req.user.otp.key || "")
+        Buffer.from(req.user.otp.key || "", "base64")
       );
       const hash = await hashPassword(
         req.body.password,
