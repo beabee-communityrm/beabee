@@ -15,7 +15,9 @@ import {
   EmailTemplate
 } from "@core/providers/email";
 import MandrillProvider from "@core/providers/email/MandrillProvider";
+import SendGridProvider from "@core/providers/email/SendGridProvider";
 import SMTPProvider from "@core/providers/email/SMTPProvider";
+
 import Email from "@models/Email";
 
 const log = mainLogger.child({ app: "email-service" });
@@ -102,6 +104,8 @@ class EmailService implements EmailProvider {
   private readonly provider: EmailProvider =
     config.email.provider === "mandrill"
       ? new MandrillProvider(config.email.settings)
+      : config.email.provider === "sendgrid"
+      ? new SendGridProvider(config.email.settings)
       : new SMTPProvider(config.email.settings);
 
   async sendEmail(
