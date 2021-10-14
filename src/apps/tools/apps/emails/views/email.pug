@@ -18,21 +18,39 @@ block contents
 			hr
 			h4 Mailings
 
-			each mailing in mailings
-				p: a(href='/tools/emails/' + email.id + '/mailings/' + mailing.id)
-					= mailing.recipients.length
-					|
-					| recipients, created
-					|
-					= moment(mailing.createdDate).format('MMMM Do YYYY')
-					if mailing.sentDate
-						| , last sent
-						|
-						= moment(mailing.sentDate).format('MMMM Do YYYY')
-					else
-						| .
+			p.
+				You can see all the times you have sent this email here.
 
-			h5 Create new mailing
+			table.table
+				thead
+					tr
+						th Recipients
+						th Created
+						th Last sent
+				tbody
+					if mailings.length
+						each mailing in mailings
+							tr
+								td: a(href='/tools/emails/' + email.id + '/mailings/' + mailing.id)
+									= mailing.recipients.length
+									|
+									| recipients
+								td= moment(mailing.createdDate).format('DD/MM/YYYY')
+								td
+									if mailing.lastSent
+										= moment(mailing.sentDate).format('DD/MM/YYYY')
+									else
+										| &mdash;
+					else
+						tr
+							td(colspan=3) No mailings yet
+
+			h5 Start new mailing
+
+			p.
+				To start a new mailing upload a CSV file with a list of people to
+				email. You need to include at least a name and email address field.
+				You'll be asked to match the columns to the merge tags in the next step.
 
 			form(action='/tools/emails/' + email.id + '/mailings?_csrf=' + csrf method='POST' enctype='multipart/form-data').form-horizontal
 				.form-group
@@ -42,12 +60,16 @@ block contents
 
 				.form-group
 					.col-md-offset-3.col-md-6
-						button.btn.btn-primary Create
+						button.btn.btn-primary Preview
 
 	.row
 		.col-md-8
 			hr
 			h4 Delete email
+
+			p.
+				This will delete the email and all associated mailings
+
 			form(method='POST')
 				+csrf
 				p

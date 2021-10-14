@@ -10,4 +10,4 @@ form(method='POST').form-horizontal
 
 	.form-group
 		.col-md-offset-3.col-md-9
-			button(name='action' value='update').btn.btn-success= email === undefined ? 'Create' : 'Update'
+			button(name='action' value='update').btn.btn-success= !(email && email.fromName) ? 'Create' : 'Update'
