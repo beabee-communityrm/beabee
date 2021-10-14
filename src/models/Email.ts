@@ -2,8 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn
 } from "typeorm";
+import type EmailMailing from "./EmailMailing";
 
 @Entity()
 export default class Email {
@@ -27,4 +29,9 @@ export default class Email {
 
   @Column({ type: "text" })
   body!: string;
+
+  @OneToMany("EmailMailing", "email")
+  mailings!: EmailMailing[];
+
+  mailingCount?: number;
 }

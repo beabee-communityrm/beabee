@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from "typeorm";
-import Email from "@models/Email";
+import type Email from "@models/Email";
 
 export type EmailMailingRecipient = Record<string, string>;
 
@@ -14,7 +14,7 @@ export default class EmailMailing {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne(() => Email)
+  @ManyToOne("Email", "mailings")
   email!: Email;
 
   @CreateDateColumn()

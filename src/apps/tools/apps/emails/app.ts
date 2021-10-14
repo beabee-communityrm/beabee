@@ -2,7 +2,7 @@ import busboy from "connect-busboy";
 import express from "express";
 import _ from "lodash";
 import Papa from "papaparse";
-import { getRepository } from "typeorm";
+import { createQueryBuilder, getRepository } from "typeorm";
 
 import { hasNewModel, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
@@ -50,7 +50,11 @@ app.use(isAdmin);
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const emails = await getRepository(Email).find();
+    const emails = await createQueryBuilder(Email, "e")
+      .loadRelationCountAndMap("e.mailingCount", "e.mailings")
+      .orderBy({ name: "ASC" })
+      .getMany();
+
     const segmentEmails = (await getRepository(SegmentOngoingEmail).find({
       loadRelationIds: true
     })) as unknown as WithRelationIds<SegmentOngoingEmail, "email">[];

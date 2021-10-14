@@ -30,7 +30,7 @@ block contents
 
 			hr
 
-			h4 Automated mailings
+			h4 Ongoing mailings
 
 			if segmentEmails.length > 0
 				h5 Segments
@@ -42,7 +42,7 @@ block contents
 						br
 
 			h5 System events
-			p You can set the email to automatically trigger on certain events here.
+			p You can set the email to automatically send on certain events here.
 
 			form(method='POST').form-horizontal
 				+csrf
@@ -64,7 +64,7 @@ block contents
 
 			hr
 
-			h4 Manual mailings
+			h4 One-off mailings
 
 			p.
 				You can see all the times you have manually sent the email here.
