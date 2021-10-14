@@ -6,8 +6,6 @@ import GCPaymentService from "@core/services/GCPaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
-import Member from "@models/Member";
-import RestartFlow from "@models/RestartFlow";
 
 export interface CompletedJoinFlow {
   customerId: string;
@@ -62,35 +60,6 @@ export default class JoinFlowService {
         mandateId: redirectFlow.links.mandate,
         joinForm: joinFlow.joinForm
       };
-    }
-  }
-
-  static async createRestartFlow(
-    member: Member,
-    completedJoinFlow: CompletedJoinFlow
-  ): Promise<RestartFlow> {
-    const restartFlow = new RestartFlow();
-    restartFlow.member = member;
-    restartFlow.customerId = completedJoinFlow.customerId;
-    restartFlow.mandateId = completedJoinFlow.mandateId;
-    restartFlow.joinForm = completedJoinFlow.joinForm;
-
-    await getRepository(RestartFlow).save(restartFlow);
-
-    return restartFlow;
-  }
-
-  static async completeRestartFlow(
-    restartFlowId: string
-  ): Promise<RestartFlow | undefined> {
-    const restartFlowRepository = getRepository(RestartFlow);
-    const restartFlow = await restartFlowRepository.findOne({
-      where: { id: restartFlowId },
-      relations: ["member"]
-    });
-    if (restartFlow) {
-      await restartFlowRepository.delete(restartFlow.id);
-      return restartFlow;
     }
   }
 }
