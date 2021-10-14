@@ -38,18 +38,24 @@ export default class JoinFlowService {
     return redirectFlow.redirect_url;
   }
 
+  static async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedJoinFlow>;
   static async completeJoinFlow(
     redirectFlowId: string
+  ): Promise<CompletedJoinFlow | undefined>;
+  static async completeJoinFlow(
+    arg1: string | JoinFlow
   ): Promise<CompletedJoinFlow | undefined> {
-    const joinFlowRepository = getRepository(JoinFlow);
-    const joinFlow = await joinFlowRepository.findOne({ redirectFlowId });
+    const joinFlow =
+      typeof arg1 === "string"
+        ? await getRepository(JoinFlow).findOne({ redirectFlowId: arg1 })
+        : arg1;
 
     if (joinFlow) {
       const redirectFlow = await GCPaymentService.completeRedirectFlow(
         joinFlow.redirectFlowId,
         joinFlow.sessionToken
       );
-      await joinFlowRepository.delete(joinFlow.id);
+      await getRepository(JoinFlow).delete(joinFlow.id);
 
       return {
         customerId: redirectFlow.links.customer,
