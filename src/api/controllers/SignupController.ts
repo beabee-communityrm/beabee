@@ -186,8 +186,6 @@ export class SignupController {
       completedJoinFlow.joinForm
     );
 
-    await MembersService.updateMember(member, { activated: true });
-
     await EmailService.sendTemplateToMember("welcome", member);
 
     // For now use existing session infrastructure with a cookie
