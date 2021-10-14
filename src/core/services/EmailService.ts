@@ -169,6 +169,8 @@ class EmailService implements EmailProvider {
     opts?: EmailOptions
   ): Promise<void> {
     const mergeFields = {
+      EMAIL: member.email,
+      NAME: member.fullname,
       FNAME: member.firstname,
       LNAME: member.lastname,
       ...memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581

@@ -155,12 +155,14 @@ app.post(
         mergeFields: {
           EMAIL: "Email",
           NAME: "Name",
-          FNAME: "FirstName"
+          FNAME: "FirstName",
+          LNAME: "LastName"
         },
         recipients: members.map((member) => ({
           Email: member.email,
           Name: member.fullname,
-          FirstName: member.firstname
+          FirstName: member.firstname,
+          LastName: member.lastname
         }))
       });
 
