@@ -11,6 +11,7 @@ import EmailService from "@core/services/EmailService";
 
 import Email from "@models/Email";
 import EmailMailing, { EmailMailingRecipient } from "@models/EmailMailing";
+import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
 const app = express();
 
@@ -41,7 +42,18 @@ app.get(
   "/",
   wrapAsync(async (req, res) => {
     const emails = await getRepository(Email).find();
-    res.render("index", { emails });
+    const segmentEmails = (await getRepository(SegmentOngoingEmail).find({
+      loadRelationIds: true
+    })) as unknown as WithRelationIds<SegmentOngoingEmail, "email">[];
+    const systemEmails = Object.values(EmailService.providerTemplateMap);
+
+    const emailsWithFlags = emails.map((email) => ({
+      ...email,
+      isSystem: systemEmails.indexOf(email.id) > -1,
+      isSegment: segmentEmails.findIndex((se) => se.email === email.id) > -1
+    }));
+
+    res.render("index", { emails: emailsWithFlags, systemEmails });
   })
 );
 

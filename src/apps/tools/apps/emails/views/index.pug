@@ -16,7 +16,16 @@ block contents
 				tbody
 					each email in emails
 						tr
-							td(width='100%'): a(href='/tools/emails/' + email.id)= email.name
+							td(width='100%')
+								a(href='/tools/emails/' + email.id)= email.name
+								if email.isSystem
+									|
+									|
+									span.label.label-info System
+								if email.isSegment
+									|
+									|
+									span.label.label-primary Ongoing
 							td= moment(email.date).format('DD/MM/YYYY')
 	.row
 		.col-md-8
