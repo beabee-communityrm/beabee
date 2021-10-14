@@ -89,7 +89,7 @@ block contents
             .col-md-offset-3.col-md-9
               .checkbox
                 label
-                  input(type='checkbox' name="data[showMailOptIn]" value="true").js-reveal-types
+                  input(type='checkbox' name="data[showMailOptIn]" value="true" checked=joinSetup.showMailOptIn).js-reveal-types
                   | Show mail opt-in
           .js-reveal-type(data-type="data[showMailOptIn]").hidden
             .form-group
@@ -110,7 +110,7 @@ block contents
             .col-md-offset-3.col-md-9
               .checkbox
                 label
-                  input(type='checkbox' name="data[showNewsletterOptIn]" value="true").js-reveal-types
+                  input(type='checkbox' name="data[showNewsletterOptIn]" value="true" checked=joinSetup.showNewsletterOptIn).js-reveal-types
                   | Show newsletter opt-in
           .js-reveal-type(data-type="data[showNewsletterOptIn]")
             .form-group
