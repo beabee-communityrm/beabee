@@ -1,13 +1,16 @@
+- isNew = email === undefined
+- email = email || {}
+
 form(method='POST').form-horizontal
 	+csrf
 
 	.form-group
 		label(for='name').control-label.col-md-3 Name
 		.col-md-6
-			input(type='text', name='name' required value=email && email.name)#name.form-control
+			input(type='text', name='name' required value=email.name)#name.form-control
 
 	include ./email-fields
 
 	.form-group
 		.col-md-offset-3.col-md-9
-			button(name='action' value='update').btn.btn-success= !(email && email.fromName) ? 'Create' : 'Update'
+			button(name='action' value='update').btn.btn-success= isNew ? 'Create' : 'Update'

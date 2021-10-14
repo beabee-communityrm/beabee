@@ -1,7 +1,21 @@
 extends /views/base.pug
 
+
 block prepend title
 	- title = 'Email'
+
+block prepend js
+	script(type='text/template').js-repeater-template
+		li.js-repeater-item
+			.form-group
+				.col-md-6
+					select(name='systemEmails[0]').form-control
+						option(value='' selected disabled)
+						each name, id in assignableSystemEmails
+							option(value=id)= name
+				.col-md-3
+					button(type='button').btn.btn-danger.js-repeater-remove-item
+							i.glyphicon.glyphicon-trash
 
 block contents
 	.row
@@ -11,15 +25,49 @@ block contents
 	.row
 		.col-md-8
 			h4 Update email
+
 			include partials/email-form
 
-	.row
-		.col-md-8
 			hr
-			h4 Mailings
+
+			h4 Automated mailings
+
+			if segmentEmails.length > 0
+				h5 Segments
+				p
+					| This email is automatically sent by an ongoing trigger in the following segments:
+					br
+					each segmentEmail, i in segmentEmails
+						a(href='/members/segments/' + segmentEmail.segment.id)= segmentEmail.segment.name
+						br
+
+			h5 System events
+			p You can set the email to automatically trigger on certain events here.
+
+			form(method='POST').form-horizontal
+				+csrf
+				ul(data-name="systemEmails").no-list.js-repeater
+					each systemEmail, i in systemEmails
+						li.js-repeater-item
+							.form-group
+								.col-md-6
+									select(name='systemEmails[' + i + ']').form-control
+										option(value='' selected disabled)
+										each name, id in assignableSystemEmails
+											option(value=id selected=systemEmail === id)= name
+								.col-md-3
+									button(type='button').btn.btn-danger.js-repeater-remove-item
+										i.glyphicon.glyphicon-trash
+				
+				p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add event
+				p: button(name='action' value='update-system-emails').btn.btn-success Save
+
+			hr
+
+			h4 Manual mailings
 
 			p.
-				You can see all the times you have sent this email here.
+				You can see all the times you have manually sent the email here.
 
 			table.table
 				thead
@@ -70,10 +118,15 @@ block contents
 			p.
 				This will delete the email and all associated mailings
 
-			form(method='POST')
-				+csrf
-				p
-					label.checkbox-inline
-						input(type='checkbox' required)
-						| This change is irreversible, confirm to proceed
-				button(name='action' value='delete').btn.btn-danger.outline Delete
+			if systemEmails.length > 0 || segmentEmails.length > 0
+				.alert.alert-warning.
+					This email has system or segment triggers, you must remove or reassign
+					them before you can delete the email
+			else
+				form(method='POST')
+					+csrf
+					p
+						label.checkbox-inline
+							input(type='checkbox' required)
+							| This change is irreversible, confirm to proceed
+					button(name='action' value='delete').btn.btn-danger.outline Delete
