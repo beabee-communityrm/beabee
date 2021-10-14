@@ -98,39 +98,15 @@ export default class MandrillProvider implements EmailProvider {
     const emails = await getRepository(Email).find();
 
     return [
-      ...emails.map((email) =>
-        this.createEmailTemplate("local", email.id, email.name)
-      ),
-      ...templates.map((template) =>
-        this.createEmailTemplate("mandrill", template.slug, template.name)
-      )
+      ...emails.map((email) => ({
+        id: email.id,
+        name: "Local: " + email.name
+      })),
+      ...templates.map((template) => ({
+        id: "mandrill_" + template.slug,
+        name: "Mandrill: " + template.name
+      }))
     ];
-  }
-
-  async getTemplate(template: string): Promise<EmailTemplate | undefined> {
-    const [templateType, templateId] = template.split("_", 2);
-    if (templateType === "mandrill") {
-      const template: MandrillTemplate = await new Promise(
-        (resolve, reject) => {
-          this.client.templates.info({ name: templateId }, resolve, reject);
-        }
-      );
-      return this.createEmailTemplate("mandrill", template.slug, template.name);
-    } else if (templateType === "local") {
-      const email = await getRepository(Email).findOne(templateId);
-      return email && this.createEmailTemplate("local", email.id, email.name);
-    }
-  }
-
-  private createEmailTemplate(
-    prefix: "mandrill" | "local",
-    id: string,
-    name: string
-  ) {
-    return {
-      id: prefix + "_" + id,
-      name: (prefix === "mandrill" ? "Mandrill: " : "Local: ") + name
-    };
   }
 
   private createMessageData(

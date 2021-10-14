@@ -8,9 +8,11 @@ import { hasNewModel, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
+import OptionsService from "@core/services/OptionsService";
 
 import Email from "@models/Email";
 import EmailMailing, { EmailMailingRecipient } from "@models/EmailMailing";
+import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
 const app = express();
 
@@ -33,6 +35,14 @@ export function schemaToEmail(data: EmailSchema): Email {
   return email;
 }
 
+const assignableSystemEmails = {
+  welcome: "Welcome",
+  "reset-password": "Reset password",
+  "cancelled-contribution": "Cancelled contribution",
+  "cancelled-contribution-no-survey": "Cancelled contribution - no survey",
+  "join-confirm-email": "Confirm email"
+};
+
 app.set("views", __dirname + "/views");
 
 app.use(isAdmin);
@@ -41,7 +51,18 @@ app.get(
   "/",
   wrapAsync(async (req, res) => {
     const emails = await getRepository(Email).find();
-    res.render("index", { emails });
+    const segmentEmails = (await getRepository(SegmentOngoingEmail).find({
+      loadRelationIds: true
+    })) as unknown as WithRelationIds<SegmentOngoingEmail, "email">[];
+    const systemEmails = Object.values(EmailService.providerTemplateMap);
+
+    const emailsWithFlags = emails.map((email) => ({
+      ...email,
+      isSystem: systemEmails.indexOf(email.id) > -1,
+      isSegment: segmentEmails.findIndex((se) => se.email === email.id) > -1
+    }));
+
+    res.render("index", { emails: emailsWithFlags });
   })
 );
 
@@ -57,11 +78,27 @@ app.get(
   "/:id",
   hasNewModel(Email, "id"),
   wrapAsync(async (req, res) => {
-    const mailings = await getRepository(EmailMailing).find({
-      email: req.model as Email
-    });
+    const email = req.model as Email;
 
-    res.render("email", { email: req.model, mailings });
+    const mailings = await getRepository(EmailMailing).find({
+      where: { email },
+      order: { createdDate: "ASC" }
+    });
+    const segmentEmails = await getRepository(SegmentOngoingEmail).find({
+      where: { email },
+      relations: ["segment"]
+    });
+    const systemEmails = Object.entries(EmailService.providerTemplateMap)
+      .filter(([systemId, emailId]) => emailId === email.id)
+      .map(([systemId]) => systemId);
+
+    res.render("email", {
+      email,
+      mailings,
+      segmentEmails,
+      systemEmails,
+      assignableSystemEmails
+    });
   })
 );
 
@@ -77,6 +114,24 @@ app.post(
         req.flash("success", "transactional-email-updated");
         res.redirect(req.originalUrl);
         break;
+      case "update-system-emails": {
+        const newEmailTemplates = Object.assign(
+          {},
+          EmailService.providerTemplateMap,
+          // Unassigned all triggers assigned to this email
+          ...Object.entries(EmailService.providerTemplateMap)
+            .filter(([systemEmail, emailId]) => emailId === email.id)
+            .map(([systemEmail]) => ({ [systemEmail]: undefined })),
+          // (Re)assign the new trigger
+          ...((req.body.systemEmails || []) as string[]).map((systemEmail) => ({
+            [systemEmail]: email.id
+          }))
+        );
+        OptionsService.setJSON("email-templates", newEmailTemplates);
+        req.flash("success", "transactional-email-updated");
+        res.redirect(req.originalUrl);
+        break;
+      }
       case "delete":
         await getRepository(EmailMailing).delete({ email });
         await getRepository(Email).delete(email.id);
