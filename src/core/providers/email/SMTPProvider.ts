@@ -43,7 +43,9 @@ export default class SMTPProvider implements EmailProvider {
 
       await this.client.sendMail({
         from: { name: email.fromName, address: email.fromEmail },
-        to: { name: recipient.to.name, address: recipient.to.email },
+        to: recipient.to.name
+          ? { name: recipient.to.name, address: recipient.to.email }
+          : recipient.to.email,
         subject: email.subject,
         html: mergedBody,
         ...(opts?.attachments && {
