@@ -140,6 +140,7 @@ export class SignupController {
       "confirm-email",
       { email: joinFlow.joinForm.email },
       {
+        firstName: "", // We don't know this yet
         confirmLink: data.confirmUrl + "/" + joinFlow.id
       }
     );
