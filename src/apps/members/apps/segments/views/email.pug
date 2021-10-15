@@ -10,54 +10,66 @@ block contents
 
 	.row
 		.col-md-8
-			h4 New email
+			h4 Send an email
+
 			form(method='POST').form-horizontal
 				+csrf
 				.js-reveal
 					.form-group
-						if true
-							input(type='hidden' name='type' value='ongoing').js-reveal-types
-						else
-							label.control-label.col-md-3 Type
+						label.control-label.col-md-3 Type
+						.col-md-9
+							label.radio-inline
+								input(type='radio' name='type' value='one-off' required checked).js-reveal-types
+								| One-off
+							|
+							label.radio-inline
+								input(type='radio' name='type' value='ongoing' required).js-reveal-types
+								| Ongoing
+
+					.hidden.js-reveal-type(data-type='ongoing')
+						.js-reveal
+							.form-group
+								label.control-label.col-md-3 Send when
+								.col-md-9
+									.radio
+										label
+											input(type='radio' name='trigger' value='onJoin' required).js-reveal-types
+											| Contact joins segment
+									.radio
+										label
+											input(type='radio' name='trigger' value='onLeave' required).js-reveal-types
+											| Contact leaves segment
+									p.help-block Ongoing emails are triggered once per day
+						
+							.hidden.js-reveal-type(data-type='onJoin')
+								if segment.memberCount > 0
+									.form-group
+										.col-md-offset-3.col-md-9
+											p.
+												There are currently #{segment.memberCount} contacts in this
+												segment, do you want to send them the email now?
+											.checkbox
+												label
+													input(type='checkbox' name='sendNow' value='true')
+													| Yes, send now
+
+					.row: .col-md-offset-3.col-md-9: h5 Email
+
+					.js-reveal
+						.form-group
+							label(for='email').control-label.col-md-3 Template
 							.col-md-9
-								label.radio-inline
-									input(type='radio' name='type' value='one-off' required checked).js-reveal-types
-									| One-off
-								|
-								label.radio-inline
-									input(type='radio' name='type' value='ongoing' required).js-reveal-types
-									| Ongoing
+								select(name='email' required).form-control.js-reveal-types#email
+									option(value='' selected disabled) Select one
+									option(value='__new__') -- New email --
+										each email in emails
+											option(value=email.id)= email.name
 
-					.form-group.hidden.js-reveal-type(data-type='ongoing')
-						label.control-label.col-md-3 Send when
-						.col-md-9
-							.radio
-								label
-									input(type='radio' name='trigger' value='onJoin' required)
-									| User joins segment
-							.radio
-								label
-									input(type='radio' name='trigger' value='onLeave' required)
-									| User leaves segment
-							p.help-block Ongoing emails are triggered once per day
-
-					.form-group
-						label(for='email').control-label.col-md-3 Email
-						.col-md-9
-							select(name='email' required).form-control#email
-								option(value='' selected disabled) Select one
-								each emailTemplate in emailTemplates
-									option(value=emailTemplate.id)= emailTemplate.name
-
-					.form-group.hidden.js-reveal-type(data-type='ongoing')
-						.col-md-offset-3.col-md-9
-							.checkbox
-								label
-									input(type='checkbox' name='enabled' value='true')
-									| Enable now
+						.js-reveal-type(data-type='__new__')
+							include /apps/tools/apps/emails/views/partials/email-fields
 
 					.form-group
 						.col-md-offset-3.col-md-9
 							button.btn.btn-success
 								span.js-reveal-type(data-type='one-off') Preview
-								span.hidden.js-reveal-type(data-type='ongoing') Save
+								span.hidden.js-reveal-type(data-type='ongoing') Create

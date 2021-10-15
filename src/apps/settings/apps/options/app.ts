@@ -13,7 +13,7 @@ app.use(isSuperAdmin);
 
 app.get("/", function (req, res) {
   const options = OptionsService.getAll();
-  res.render("index", { options });
+  res.render("index", { options, showHidden: req.query.hidden !== undefined });
 });
 
 app.get("/:key/edit", function (req, res) {

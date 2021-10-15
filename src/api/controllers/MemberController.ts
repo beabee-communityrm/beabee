@@ -1,9 +1,9 @@
+import { Type } from "class-transformer";
 import {
   IsBoolean,
+  IsDefined,
   IsEmail,
   IsEnum,
-  IsObject,
-  IsOptional,
   IsString,
   ValidateNested,
   ValidationError
@@ -26,7 +26,8 @@ import { NewsletterStatus } from "@core/providers/newsletter";
 
 import MembersService from "@core/services/MembersService";
 
-import { isDuplicateIndex } from "@core/utils";
+import { ContributionPeriod, isDuplicateIndex } from "@core/utils";
+import { generatePassword } from "@core/utils/auth";
 
 import Address from "@models/Address";
 import Member from "@models/Member";
@@ -34,33 +35,74 @@ import MemberProfile from "@models/MemberProfile";
 
 import config from "@config";
 
-class MemberProfileData {
-  @IsBoolean()
-  deliveryOptIn!: boolean;
-
-  @IsOptional()
-  @IsObject()
-  deliveryAddress?: Address;
-
-  @IsEnum(NewsletterStatus)
-  newsletterStatus!: NewsletterStatus;
+interface MemberData {
+  email: string;
+  firstname: string;
+  lastname: string;
 }
 
-class MemberData {
-  @IsEmail()
-  email!: string;
+interface MemberProfileData {
+  deliveryOptIn: boolean;
+  deliveryAddress?: Address;
+  newsletterStatus: NewsletterStatus;
+}
+
+interface GetMemberData extends MemberData {
+  joined: Date;
+  contributionAmount?: number;
+  contributionPeriod?: ContributionPeriod;
+  contributionCurrencyCode?: string;
+  profile: MemberProfileData;
+}
+
+class UpdateAddressData implements Address {
+  @IsDefined()
+  @IsString()
+  line1!: string;
 
   @IsString()
-  firstname!: string;
+  line2?: string;
 
+  @IsDefined()
   @IsString()
-  lastname!: string;
+  city!: string;
+
+  @IsDefined()
+  @IsString()
+  postcode!: string;
+}
+
+class UpdateMemberProfileData implements Partial<MemberProfileData> {
+  @IsBoolean()
+  deliveryOptIn?: boolean;
 
   @ValidateNested()
-  profile!: MemberProfileData;
+  @Type(() => UpdateAddressData)
+  deliveryAddress?: UpdateAddressData;
+
+  @IsEnum(NewsletterStatus)
+  newsletterStatus?: NewsletterStatus;
 }
 
-async function memberToApiMember(member: Member): Promise<MemberData> {
+class UpdateMemberData implements Partial<MemberData> {
+  @IsEmail()
+  email?: string;
+
+  @IsString()
+  firstname?: string;
+
+  @IsString()
+  lastname?: string;
+
+  @IsString()
+  password?: string;
+
+  @ValidateNested()
+  @Type(() => UpdateMemberProfileData)
+  profile?: UpdateMemberProfileData;
+}
+
+async function memberToApiMember(member: Member): Promise<GetMemberData> {
   const profile = await getRepository(MemberProfile).findOneOrFail({ member });
 
   return {
@@ -71,7 +113,15 @@ async function memberToApiMember(member: Member): Promise<MemberData> {
       deliveryOptIn: !!profile.deliveryOptIn,
       deliveryAddress: profile.deliveryAddress,
       newsletterStatus: profile.newsletterStatus
-    }
+    },
+    joined: member.joined,
+    contributionPeriod: member.contributionPeriod,
+    ...(member.contributionMonthlyAmount !== undefined && {
+      contributionAmount:
+        member.contributionMonthlyAmount *
+        (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12),
+      contributionCurrencyCode: config.currencyCode
+    })
   };
 }
 
@@ -80,42 +130,48 @@ export class MemberController {
   @Get("/me")
   async getMe(
     @CurrentUser({ required: true }) member: Member
-  ): Promise<MemberData> {
+  ): Promise<GetMemberData> {
     return await memberToApiMember(member);
   }
 
   @Put("/me")
   async updateMe(
     @CurrentUser({ required: true }) member: Member,
-    @Body() data: Partial<MemberData>
-  ): Promise<MemberData> {
-    if (data.email || data.firstname || data.lastname) {
-      try {
+    @Body({ required: true, validate: { skipMissingProperties: true } })
+    data: UpdateMemberData
+  ): Promise<GetMemberData> {
+    try {
+      if (data.email || data.firstname || data.lastname || data.password) {
         await MembersService.updateMember(member, {
-          email: data.email,
-          firstname: data.firstname,
-          lastname: data.lastname
+          ...(data.email && { email: data.email }),
+          ...(data.firstname && { firstname: data.firstname }),
+          ...(data.lastname && { lastname: data.lastname }),
+          ...(data.password && {
+            password: await generatePassword(data.password)
+          })
         });
-      } catch (error) {
-        if (isDuplicateIndex(error, "email")) {
-          const duplicateEmailError: any = new BadRequestError();
-          duplicateEmailError.errors = [
-            {
-              property: "email",
-              constraints: {
-                "duplicate-email": "Email address already in use"
-              }
+      }
+    } catch (error: any) {
+      if (isDuplicateIndex(error, "email")) {
+        const duplicateEmailError: any = new BadRequestError();
+        duplicateEmailError.errors = [
+          {
+            property: "email",
+            constraints: {
+              "duplicate-email": "Email address already in use"
             }
-          ] as ValidationError[];
-          throw duplicateEmailError;
-        } else {
-          throw error;
-        }
+          }
+        ] as ValidationError[];
+        throw duplicateEmailError;
+      } else {
+        throw error;
       }
     }
+
     if (data.profile) {
       await MembersService.updateMemberProfile(member, data.profile);
     }
+
     return await memberToApiMember(member);
   }
 

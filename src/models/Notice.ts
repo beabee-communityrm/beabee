@@ -30,6 +30,9 @@ export default class Notice {
   @Column()
   text!: string;
 
+  @Column()
+  buttonText!: string;
+
   @Column({ nullable: true })
   url?: string;
 

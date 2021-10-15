@@ -17,6 +17,8 @@
   "support-email": "membership@example.com",
   "support-email-from": "UK Makerspace Membership",
 
+  "contribution-min-monthly-amount": "1",
+
   "available-tags": "",
   "available-manual-payment-sources": "",
 
@@ -167,10 +169,13 @@
   "flash-segment-updated": "Segment updated",
   "flash-segment-deleted": "Segment deleted",
   "flash-segment-no-rule-group": "No filters found for the segment",
+  "flash-segment-created-ongoing-email": "An ongoing email has been setup for the segment",
+  "flash-segment-preview-email": "Preview the email below before sending",
 
-  "flash-transactional-email-created": "Transactional email created",
-  "flash-transactional-email-sending": "Transactional email is sending!",
-  "flash-transactional-email-deleted": "Transactional email deleted",
+  "flash-transactional-email-created": "Email created",
+  "flash-transactional-email-updated": "Email updated",
+  "flash-transactional-email-sending": "Email is sending!",
+  "flash-transactional-email-deleted": "Email and mailings deleted",
 
   "flash-referral-code-invalid": "Invalid referral code",
   "flash-referral-gift-invalid": "This gift is not available",

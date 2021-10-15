@@ -19,10 +19,19 @@ export interface MandrillEmailConfig {
   };
 }
 
-type EmailConfig = SMTPEmailConfig | MandrillEmailConfig;
+export interface SendGridEmailConfig {
+  provider: "sendgrid";
+  settings: {
+    apiKey: string;
+    testMode: boolean;
+  };
+}
+
+type EmailConfig = SMTPEmailConfig | MandrillEmailConfig | SendGridEmailConfig;
 
 const emailProvider = env.e("BEABEE_EMAIL_PROVIDER", [
   "mandrill",
+  "sendgrid",
   "smtp"
 ] as const);
 
@@ -38,7 +47,9 @@ export interface MailchimpNewsletterConfig {
 
 interface NoneNewsletterConfig {
   provider: "none";
-  settings: null;
+  settings: {
+    webhookSecret: string;
+  };
 }
 
 type NewsletterConfig = MailchimpNewsletterConfig | NoneNewsletterConfig;
@@ -95,21 +106,27 @@ export default {
               pass: env.s("BEABEE_EMAIL_SETTINGS_AUTH_PASS")
             }
           }
-        : {
+        : emailProvider === "mandrill"
+        ? {
             apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY")
+          }
+        : {
+            apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY"),
+            testMode: env.b("BEABEE_EMAIL_SETTIGS_TESTMODE", false)
           }
   } as EmailConfig,
   newsletter: {
     provider: newsletterProvider,
-    settings:
-      newsletterProvider === "mailchimp"
+    settings: {
+      webhookSecret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", ""),
+      ...(newsletterProvider === "mailchimp"
         ? {
-            apiKey: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY", ""),
-            datacenter: env.s("BEABEE_NEWSLETTER_SETTINGS_DATACENTER", ""),
-            listId: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID", ""),
-            webhookSecret: env.s("BEABEE_NEWSLETTER_SETTINGS_WEBHOOKSECRET", "")
+            apiKey: env.s("BEABEE_NEWSLETTER_SETTINGS_APIKEY"),
+            datacenter: env.s("BEABEE_NEWSLETTER_SETTINGS_DATACENTER"),
+            listId: env.s("BEABEE_NEWSLETTER_SETTINGS_LISTID")
           }
-        : null
+        : null)
+    }
   } as NewsletterConfig,
   gocardless: {
     accessToken: env.s("BEABEE_GOCARDLESS_ACCESSTOKEN", ""),
@@ -121,6 +138,7 @@ export default {
     secretKey: env.s("BEABEE_STRIPE_SECRETKEY", ""),
     webhookSecret: env.s("BEABEE_STRIPE_WEBHOOKSECRET", "")
   },
+  countryCode: env.e("BEABEE_COUNTRYCODE", ["en", "de"] as const),
   currencyCode: env.s("BEABEE_CURRENCYCODE"),
   currencySymbol: env.s("BEABEE_CURRENCYSYMBOL"),
   passwordTries: env.n("BEABEE_PASSWORDTRIES", 3),

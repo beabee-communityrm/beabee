@@ -34,6 +34,12 @@ export default class Poll {
   @Column()
   title!: string;
 
+  @Column()
+  excerpt!: string;
+
+  @Column({ nullable: true })
+  image?: string;
+
   @Column({ nullable: true })
   mcMergeField?: string;
 

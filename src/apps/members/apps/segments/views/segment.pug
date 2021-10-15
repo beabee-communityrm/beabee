@@ -70,15 +70,20 @@ block contents
 					tbody
 						each ongoingEmail in ongoingEmails
 							tr
-								td: +itemStatus(ongoingEmail)
+								td
+									if ongoingEmail.enabled
+										span.label.label-success Active
+									else
+										span.label.label-warning Paused
 								td(width='100%')
 									| Send
 									|
-									| "
-									= ongoingEmail.emailTemplate ? ongoingEmail.emailTemplate.name : 'UNKNOWN'
-									| "
+									a(href='/tools/emails/' + ongoingEmail.email.id)
+										| "
+										= ongoingEmail.email.name
+										| "
 									|
-									| to users when they
+									| to contacts when they
 									|
 									= ongoingEmail.trigger === 'onJoin' ? 'join' : 'leave'
 									|

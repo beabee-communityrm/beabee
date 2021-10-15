@@ -85,7 +85,7 @@ app.get(
     const limit = query.limit ? Number(query.limit) : 50;
 
     const [members, total] = await buildQuery(searchRuleGroup)
-      .orderBy({ lastname: "ASC", firstname: "ASC" })
+      .orderBy("NULLIF(lastname, '') ASC, NULLIF(firstname, ''), email")
       .offset(limit * (page - 1))
       .limit(limit)
       .getManyAndCount();

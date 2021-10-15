@@ -1,0 +1,48 @@
+- email = email || {}
+- systemEmails = systemEmails || []
+
+.form-group
+  label(for='fromEmail').control-label.col-md-3 From email
+  .col-md-6
+    input(type='text' name='fromEmail' required value=email.fromEmail || Options('support-email'))#fromEmail.form-control
+.form-group
+  label(for='fromName').control-label.col-md-3 From name
+  .col-md-6
+    input(type='text' name='fromName' required value=email.fromName || Options('support-email-from'))#fromName.form-control
+.form-group
+  label(for='subject').control-label.col-md-3 Subject
+  .col-md-6
+    input(type='text' name='subject' required value=email.subject)#subject.form-control
+.form-group
+  label(for='body').control-label.col-md-3 Body
+  .col-md-9
+    textarea(name='body' required rows="10")#body.form-control= email.body
+.row
+  .col-md-offset-3.col-md-9
+    p: button(type='button' data-toggle="toggle" data-target="mergeTags").btn.btn-default.btn-xs Show merge tags
+    table(style='display: none')#mergeTags.table.table-condensed
+      thead
+        tr
+          th Tag
+          th(width='100%') Description
+      tbody
+        tr
+          td *|EMAIL|*
+          td Contact email address
+        tr
+          td *|NAME|*
+          td Contact full name
+        tr
+          td *|FNAME|*
+          td Contact first name
+        tr
+          td *|LNAME|*
+          td Contact last name
+        if systemEmails.indexOf('reset-password') > -1
+          tr
+            td *|RPLINK|*
+            td Reset password link
+        if systemEmails.indexOf('join-confirm-email') > -1
+          tr
+            td *|CONFIRMLINK|*
+            td Confirm email address link

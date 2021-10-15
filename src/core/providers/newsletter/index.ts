@@ -1,21 +1,26 @@
 export enum NewsletterStatus {
   Subscribed = "subscribed",
-  Unsubscribed = "unsubscribed"
+  Unsubscribed = "unsubscribed",
+  Pending = "pending",
+  Cleaned = "cleaned"
 }
 
 export interface NewsletterMember {
   email: string;
   firstname: string;
   lastname: string;
+  joined: Date;
   status: NewsletterStatus;
   groups: string[];
   tags: string[];
   fields: Record<string, string>;
 }
 
-// Email is always required, tags can't be pushed via update/upsert at the moment
+// Email is always required
+// Tags can't be pushed via update/upsert
+// Joined can't be changed
 export type PartialNewsletterMember = Partial<
-  Omit<NewsletterMember, "tags" | "email">
+  Omit<NewsletterMember, "tags" | "email" | "joined">
 > & { email: string };
 
 export interface NewsletterProvider {

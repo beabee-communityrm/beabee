@@ -54,7 +54,8 @@ $('#builder').queryBuilder({
 		label: 'Delivery opted-in',
 		type: 'boolean',
 		input: 'radio',
-		values: {true: 'Yes', false: 'No'}
+		values: {true: 'Yes', false: 'No'},
+		operators: ['equal']
 	}, {
 		id: 'newsletterStatus',
 		label: 'Newsletter status',
@@ -68,7 +69,8 @@ $('#builder').queryBuilder({
 		label: 'Is active member',
 		type: 'boolean',
 		input: 'radio',
-		values: {true: 'Yes', false: 'No'}
+		values: {true: 'Yes', false: 'No'},
+		operators: ['equal']
 	}, {
 		id: 'permission',
 		label: 'Role',

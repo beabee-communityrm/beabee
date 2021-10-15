@@ -291,6 +291,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
         email: joinFlow.joinForm.email,
+        password: joinFlow.joinForm.password,
         contributionType: ContributionType.GoCardless
       },
       partialProfile: {

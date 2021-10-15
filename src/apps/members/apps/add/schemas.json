@@ -2,7 +2,7 @@
   "addContactSchema": {
     "body": {
       "type": "object",
-      "required": ["firstname", "lastname", "email"],
+      "required": ["email"],
       "properties": {
         "firstname": {
           "type": "string"

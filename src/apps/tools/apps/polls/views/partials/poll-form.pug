@@ -11,6 +11,15 @@ form(method='POST').form-horizontal
 		label(for='slug').control-label.col-md-3 Slug
 		.col-md-9
 			input(type='text' name='slug' value=poll.slug required readonly=!isNew)#slug.form-control
+	.form-group
+		label(for='excerpt').control-label.col-md-3 Excerpt
+		.col-md-9
+			textarea(name='excerpt' required)#excerpt.form-control= poll.excerpt
+	.form-group
+		label(for='image').control-label.col-md-3 Image
+		.col-md-9
+			input(type='text' name='image' value=poll.image required)#image.form-control
+
 	if isNew
 		.form-group
 			label(for='template').control-label.col-md-3 Template

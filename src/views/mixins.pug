@@ -105,7 +105,8 @@ mixin membersTableBasicInfo(member)
 			).glyphicon.glyphicon-user
 	span.members-table-row-main
 		div.members-table-row-info
-			span= member.fullname
+			if member.fullname
+				span(style='flex: 0 1 250px')= member.fullname
 			span= member.email
 		small= member.profile.description
 	span

@@ -15,7 +15,10 @@ import {
   EmailTemplate
 } from "@core/providers/email";
 import MandrillProvider from "@core/providers/email/MandrillProvider";
+import SendGridProvider from "@core/providers/email/SendGridProvider";
 import SMTPProvider from "@core/providers/email/SMTPProvider";
+
+import Email from "@models/Email";
 
 const log = mainLogger.child({ app: "email-service" });
 
@@ -101,17 +104,17 @@ class EmailService implements EmailProvider {
   private readonly provider: EmailProvider =
     config.email.provider === "mandrill"
       ? new MandrillProvider(config.email.settings)
+      : config.email.provider === "sendgrid"
+      ? new SendGridProvider(config.email.settings)
       : new SMTPProvider(config.email.settings);
 
   async sendEmail(
-    from: EmailPerson,
+    email: Email,
     recipients: EmailRecipient[],
-    subject: string,
-    body: string,
     opts?: EmailOptions
   ): Promise<void> {
-    log.info("Sending email", { from, recipients, subject });
-    await this.provider.sendEmail(from, recipients, subject, body, opts);
+    log.info("Sending email", { email: email.id, recipients });
+    await this.provider.sendEmail(email, recipients, opts);
   }
 
   async sendTemplate(
@@ -166,6 +169,8 @@ class EmailService implements EmailProvider {
     opts?: EmailOptions
   ): Promise<void> {
     const mergeFields = {
+      EMAIL: member.email,
+      NAME: member.fullname,
       FNAME: member.firstname,
       LNAME: member.lastname,
       ...memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
@@ -179,21 +184,8 @@ class EmailService implements EmailProvider {
     await this.sendTemplate(template, recipients, opts);
   }
 
-  async sendRawTemplate(
-    template: string,
-    recipients: EmailRecipient[],
-    opts?: EmailOptions
-  ): Promise<void> {
-    log.info("Sending raw template " + template, { template, recipients });
-    await this.provider.sendTemplate(template, recipients, opts);
-  }
-
   async getTemplates(): Promise<EmailTemplate[]> {
     return await this.provider.getTemplates();
-  }
-
-  async getTemplate(template: string): Promise<EmailTemplate | undefined> {
-    return await this.provider.getTemplate(template);
   }
 
   get emailTemplateIds(): (EmailTemplateId | MemberEmailTemplateId)[] {

@@ -91,6 +91,10 @@ export default class OptionsService {
     }
   }
 
+  static async setJSON(key: OptionKey, value: any): Promise<void> {
+    await OptionsService.set(key, JSON.stringify(value));
+  }
+
   static async reset(key: OptionKey): Promise<void> {
     const option = OptionsService.get(key);
     if (option) {

@@ -3,13 +3,17 @@ import { getRepository } from "typeorm";
 
 import { hasNewModel } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
+import buildQuery from "@core/utils/rules";
 
-import EmailService from "@core/services/EmailService";
 import SegmentService from "@core/services/SegmentService";
 
+import Email from "@models/Email";
+import EmailMailing from "@models/EmailMailing";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import SegmentMember from "@models/SegmentMember";
+
+import { EmailSchema, schemaToEmail } from "@apps/tools/apps/emails/app";
 
 const app = express();
 
@@ -29,13 +33,9 @@ app.get(
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
     const ongoingEmails = await getRepository(SegmentOngoingEmail).find({
-      where: { segment }
+      where: { segment },
+      relations: ["email"]
     });
-    for (const ongoingEmail of ongoingEmails) {
-      ongoingEmail.emailTemplate = await EmailService.getTemplate(
-        ongoingEmail.emailTemplateId
-      );
-    }
     res.render("segment", { segment, ongoingEmails });
   })
 );
@@ -93,14 +93,16 @@ app.get(
   "/:id/email",
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
+    const segment = req.model as Segment;
+    segment.memberCount = await SegmentService.getSegmentMemberCount(segment);
     res.render("email", {
-      segment: req.model,
-      emailTemplates: await EmailService.getTemplates()
+      segment,
+      emails: await getRepository(Email).find()
     });
   })
 );
 
-interface CreateBaseEmail {
+interface CreateBaseEmail extends Omit<EmailSchema, "name"> {
   email: string;
 }
 
@@ -111,7 +113,7 @@ interface CreateOneOffEmail extends CreateBaseEmail {
 interface CreateOngoingEmail extends CreateBaseEmail {
   type: "ongoing";
   trigger: "onJoin" | "onLeave";
-  enabled?: "true";
+  sendNow?: boolean;
 }
 
 type CreateEmail = CreateOneOffEmail | CreateOngoingEmail;
@@ -123,17 +125,52 @@ app.post(
     const segment = req.model as Segment;
     const data = req.body as CreateEmail;
 
-    if (data.type === "one-off") {
-      throw new Error("Not implemented");
-    } else {
+    const email =
+      data.email === "__new__"
+        ? await getRepository(Email).save(
+            schemaToEmail({
+              ...data,
+              name: "Email to segment " + segment.name
+            })
+          )
+        : await getRepository(Email).findOneOrFail(data.email);
+
+    if (data.type === "ongoing") {
       await getRepository(SegmentOngoingEmail).save({
         segment,
         trigger: data.trigger,
-        emailTemplateId: data.email,
-        enabled: !!data.enabled
+        email,
+        enabled: true
       });
 
-      res.redirect("/members/segments/" + segment.id + "#ongoingemails");
+      req.flash("success", "segment-created-ongoing-email");
+    }
+
+    if (data.type === "one-off" || data.sendNow) {
+      const members = await buildQuery(segment.ruleGroup).getMany();
+      const mailing = await getRepository(EmailMailing).save({
+        email,
+        emailField: "Email",
+        nameField: "Name",
+        mergeFields: {
+          EMAIL: "Email",
+          NAME: "Name",
+          FNAME: "FirstName",
+          LNAME: "LastName"
+        },
+        recipients: members.map((member) => ({
+          Email: member.email,
+          Name: member.fullname,
+          FirstName: member.firstname,
+          LastName: member.lastname
+        }))
+      });
+
+      req.flash("warning", "segment-preview-email");
+
+      res.redirect(`/tools/emails/${email.id}/mailings/${mailing.id}?preview`);
+    } else {
+      res.redirect(`/members/segments/${segment.id}#ongoingemails`);
     }
   })
 );

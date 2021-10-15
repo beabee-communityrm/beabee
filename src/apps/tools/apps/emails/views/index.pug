@@ -12,11 +12,24 @@ block contents
 				thead
 					tr
 						th Name
+						th Manual mailings
+						th Ongoing mailings
 						th Created
 				tbody
 					each email in emails
 						tr
-							td(width='100%'): a(href='/tools/emails/' + email.id)= email.name
+							td(width='100%')
+								a(href='/tools/emails/' + email.id)= email.name
+							td= email.mailingCount
+							td(style='white-space: nowrap')
+								if email.isSystem
+									|
+									|
+									span.label.label-info System
+								if email.isSegment
+									|
+									|
+									span.label.label-primary Segment
 							td= moment(email.date).format('DD/MM/YYYY')
 	.row
 		.col-md-8

@@ -2,13 +2,15 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsNumber,
   IsString,
-  Min,
-  ValidationError
+  Validate,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface
 } from "class-validator";
 import { Request } from "express";
 import {
-  BadRequestError,
   Body,
   BodyParam,
   HttpError,
@@ -34,15 +36,50 @@ import { NewsletterStatus } from "@core/providers/newsletter";
 
 import Member from "@models/Member";
 
+@ValidatorConstraint({ name: "minContributionAmount" })
+class MinContributionAmount implements ValidatorConstraintInterface {
+  validate(amount: unknown, args: ValidationArguments): boolean {
+    return typeof amount === "number" && amount >= this.minAmount(args);
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return `${args.property} must be at least ${this.minAmount(args)}`;
+  }
+
+  private minAmount(args: ValidationArguments) {
+    const period = (args.object as SignupData).period as unknown;
+    return (
+      OptionsService.getInt("contribution-min-monthly-amount") *
+      (period === ContributionPeriod.Annually ? 12 : 1)
+    );
+  }
+}
+
+@ValidatorConstraint({ name: "isPassword" })
+class IsPassword implements ValidatorConstraintInterface {
+  validate(password: unknown): boolean | Promise<boolean> {
+    return (
+      typeof password === "string" &&
+      password.length >= 8 &&
+      /[a-z]/.test(password) &&
+      /[A-Z]/.test(password) &&
+      /[0-9]/.test(password)
+    );
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return `${args.property} does not meet password requirements`;
+  }
+}
+
 class SignupData {
   @IsEmail()
   email!: string;
 
-  @IsString()
-  // TODO: password requirement checks?
+  @Validate(IsPassword)
   password!: string;
 
-  @Min(1)
+  @Validate(MinContributionAmount)
   amount!: number;
 
   @IsEnum(ContributionPeriod)
@@ -111,20 +148,9 @@ async function handleJoin(
 @JsonController("/signup")
 export class SignupController {
   @Post("/")
-  async startSignup(@Body() data: SignupData): Promise<SignupStart> {
-    if (data.period === ContributionPeriod.Annually && data.amount < 12) {
-      const duplicateEmailError: any = new BadRequestError();
-      duplicateEmailError.errors = [
-        {
-          property: "amount",
-          constraints: {
-            amount: "Minimum amount is £1/month or £12/year"
-          }
-        }
-      ] as ValidationError[];
-      throw duplicateEmailError;
-    }
-
+  async startSignup(
+    @Body({ required: true }) data: SignupData
+  ): Promise<SignupStart> {
     const redirectUrl = await JoinFlowService.createJoinFlow(
       data.completeUrl,
       {
@@ -151,7 +177,7 @@ export class SignupController {
   @Post("/complete")
   async completeSignup(
     @Req() req: Request,
-    @BodyParam("redirectFlowId") redirectFlowId: string
+    @BodyParam("redirectFlowId", { required: true }) redirectFlowId: string
   ): Promise<void> {
     const joinFlow = await JoinFlowService.completeJoinFlow(redirectFlowId);
     if (!joinFlow) {
@@ -203,7 +229,7 @@ export class SignupController {
   @Post("/confirm-email")
   async confirmEmail(
     @Req() req: Request,
-    @BodyParam("restartFlowId") restartFlowId: string
+    @BodyParam("restartFlowId", { required: true }) restartFlowId: string
   ): Promise<void> {
     const restartFlow = await JoinFlowService.completeRestartFlow(
       restartFlowId

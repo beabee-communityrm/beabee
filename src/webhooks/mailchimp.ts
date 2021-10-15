@@ -18,9 +18,9 @@ const app = express();
 interface MCProfileData {
   email: string;
   merges: {
-    FNAME: string;
-    LNAME: string;
-    [key: string]: string;
+    FNAME?: string;
+    LNAME?: string;
+    [key: string]: string | undefined;
   };
 }
 
@@ -41,6 +41,15 @@ interface MCUpdateEmailWebhook {
 
 type MCWebhook = MCProfileWebhook | MCUpdateEmailWebhook;
 
+// Mailchimp pings this endpoint when you first add the webhook
+// Don't check for newsletter provider here as the webhook can be set
+// before Mailchimp has been enabled
+app.get("/", (req, res) => {
+  res.sendStatus(
+    req.query.secret === config.newsletter.settings.webhookSecret ? 200 : 404
+  );
+});
+
 app.use((req, res, next) => {
   if (
     config.newsletter.provider === "mailchimp" &&
@@ -54,11 +63,6 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// Mailchimp pings this endpoint when you first add the webhook
-app.get("/", (req, res) => {
-  res.sendStatus(200);
-});
 
 app.post(
   "/",
@@ -127,8 +131,8 @@ async function handleSubscribe(data: MCProfileData) {
     await MembersService.createMember(
       {
         email,
-        firstname: data.merges.FNAME,
-        lastname: data.merges.LNAME,
+        firstname: data.merges.FNAME || "",
+        lastname: data.merges.LNAME || "",
         contributionType: ContributionType.None
       },
       {

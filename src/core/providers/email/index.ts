@@ -1,9 +1,11 @@
+import Email from "@models/Email";
+
 export interface EmailTemplate {
   id: string;
   name: string;
 }
 
-export type EmailMergeFields = Record<string, unknown>;
+export type EmailMergeFields = Record<string, string>;
 
 export interface EmailPerson {
   email: string;
@@ -23,15 +25,13 @@ export interface EmailAttachment {
 
 export interface EmailOptions {
   attachments?: EmailAttachment[];
-  sendAt?: string;
+  sendAt?: Date;
 }
 
 export interface EmailProvider {
   sendEmail(
-    from: EmailPerson,
+    email: Email,
     recipients: EmailRecipient[],
-    subject: string,
-    body: string,
     opts?: EmailOptions
   ): Promise<void>;
   sendTemplate(
@@ -40,5 +40,4 @@ export interface EmailProvider {
     opts?: EmailOptions
   ): Promise<void>;
   getTemplates(): Promise<EmailTemplate[]>;
-  getTemplate(templateId: string): Promise<EmailTemplate | undefined>;
 }

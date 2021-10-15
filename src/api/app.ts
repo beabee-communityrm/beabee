@@ -3,19 +3,28 @@ import "reflect-metadata";
 
 import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
-import { Action, HttpError, useExpressServer } from "routing-controllers";
+import {
+  Action,
+  HttpError,
+  InternalServerError,
+  NotFoundError,
+  useExpressServer
+} from "routing-controllers";
 
+import { CalloutController } from "./controllers/CalloutController";
+import { ContentController } from "./controllers/ContentController";
 import { MemberController } from "./controllers/MemberController";
+import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
 
 import * as db from "@core/database";
-import { requestErrorLogger, requestLogger } from "@core/logging";
+import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
 import Member from "@models/Member";
 
-async function currentUserChecker(action: Action): Promise<Member | undefined> {
+function currentUserChecker(action: Action): Member | undefined {
   return (action.request as Request).user;
 }
 
@@ -30,15 +39,39 @@ db.connect().then(() => {
 
   useExpressServer(app, {
     routePrefix: "/1.0",
-    controllers: [MemberController, SignupController],
+    controllers: [
+      CalloutController,
+      ContentController,
+      MemberController,
+      NoticeController,
+      SignupController
+    ],
     currentUserChecker,
-    authorizationChecker: (action) => !!currentUserChecker(action)
+    authorizationChecker: (action) => !!currentUserChecker(action),
+    validation: {
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+      whitelist: true,
+      validationError: {
+        target: false,
+        value: false
+      }
+    },
+    defaultErrorHandler: false
   });
 
-  // TODO: Why do we need this?
+  app.use((req, res) => {
+    if (!res.headersSent) {
+      throw new NotFoundError();
+    }
+  });
+
   app.use(function (error, req, res, next) {
-    if (!(error instanceof HttpError)) {
-      next(error);
+    if (error instanceof HttpError) {
+      res.status(error.httpCode).send(error);
+    } else {
+      log.error("Unhandled error: ", error);
+      res.status(500).send(new InternalServerError("Unhandled error"));
     }
   } as ErrorRequestHandler);
 

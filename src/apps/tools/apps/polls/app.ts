@@ -14,6 +14,8 @@ import { createPollSchema } from "./schemas.json";
 interface CreatePollSchema {
   title: string;
   slug: string;
+  excerpt: string;
+  image?: string;
   template: PollTemplate;
   closed?: boolean;
   mcMergeField?: string;
@@ -33,6 +35,8 @@ function schemaToPoll(
   const poll = new Poll();
   poll.title = data.title;
   poll.slug = data.slug;
+  poll.excerpt = data.excerpt;
+  poll.image = data.image || undefined;
   poll.closed = !!data.closed;
   poll.mcMergeField = data.mcMergeField;
   poll.pollMergeField = data.pollMergeField;

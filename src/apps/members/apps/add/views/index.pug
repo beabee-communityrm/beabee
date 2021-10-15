@@ -11,11 +11,11 @@ block contents
 		.col-md-9
 			form(method='POST').form-horizontal.js-reveal
 				+csrf
-				+input( 'text', 'First name', 'firstname', { required: true, left: 3, right: 6 } )
-				+input( 'text', 'Last name', 'lastname', { required: true, left: 3, right: 6 } )
+				+input( 'text', 'First name', 'firstname', { left: 3, right: 6 } )
+				+input( 'text', 'Last name', 'lastname', { left: 3, right: 6 } )
 				+input( 'text', 'Email address', 'email', { required: true, left: 3, right: 6 } )
 
-				+input( 'checkbox', 'Add to newsletter list', 'addToNewsletter', {
+				+input( 'checkbox', 'Subscribe to newsletter', 'addToNewsletter', {
 					left: 3, right: 4,
 					options: {'true': 'Yes'},
 					value: true
@@ -32,7 +32,7 @@ block contents
 
 				.row: .col-md-offset-3.col-md-9: h5 Roles
 
-				ul(style='margin: 0; padding:0 ; list-style:none' data-name='permissions').js-repeater
+				ul(data-name='permissions').no-list.js-repeater
 
 				.row: .col-md-offset-3.col-md-9
 					p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add role

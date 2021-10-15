@@ -1,11 +1,13 @@
 /* global $, mailing */
 (function () {
+	let recipientNo = 0;
+
 	function getField(field, def) {
 		var value = $(field).val();
-		return value ? mailing.recipient[value] : def;
+		return value ? mailing.recipients[recipientNo][value] : def;
 	}
 
-	$('.js-email-form').on('input change', function () {
+	function updatePreview() {
 		$('.js-email-to').val(getField('#name', 'Name') + ' <' + getField('#email', 'Email address') + '>');
 		var emailBody = mailing.emailBodyTemplate;
 		for (var mergeField of mailing.mergeFields) {
@@ -13,7 +15,14 @@
 			emailBody = emailBody.replace(mergeFieldRe, getField('#mf_' + mergeField, '*|' + mergeField + '|*'));
 		}
 		$('.js-email-body').val(emailBody);
+	}
+
+	$('.js-email-form').on('input change', updatePreview());
+	$('.js-step-recipient').click(function () {
+		recipientNo = Math.max(0, Math.min(mailing.recipients.length - 1, recipientNo + Number(this.value)));
+		$('.js-recipient-no').text(recipientNo + 1);
+		updatePreview();
 	});
 
-	$('.js-email-form').trigger('input');
+	updatePreview();
 })();
