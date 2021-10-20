@@ -21,6 +21,8 @@ import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
+import config from "@config";
+
 export type PartialMember = Pick<
   Member,
   "email" | "firstname" | "lastname" | "contributionType"
@@ -262,7 +264,10 @@ export default class MembersService {
     if (member) {
       member.password.resetCode = generateCode();
       await getRepository(Member).save(member);
-      await EmailService.sendTemplateToMember("reset-password", member);
+      await EmailService.sendTemplateToMember("reset-password", member, {
+        rpLink:
+          config.audience + "/password-reset/code/" + member.password.resetCode
+      });
     }
   }
 
