@@ -38,7 +38,10 @@ app.get(
         payments,
         total
       });
-    } else if (member.contributionType === ContributionType.Manual) {
+    } else if (
+      member.contributionType === ContributionType.Manual ||
+      member.contributionType === ContributionType.None
+    ) {
       res.render("manual", { member: req.model });
     } else {
       res.render("none", { member: req.model });
@@ -72,28 +75,27 @@ app.post(
 
       case "force-update":
         await MembersService.updateMember(member, {
-          contributionMonthlyAmount: Number(req.body.amount),
+          contributionType: req.body.type,
+          contributionMonthlyAmount: req.body.amount
+            ? Number(req.body.amount)
+            : undefined,
           contributionPeriod: req.body.period
         });
-        await getRepository(GCPaymentData).update(member.id, {
-          customerId: req.body.customerId,
-          mandateId: req.body.mandateId,
-          subscriptionId: req.body.subscriptionId,
-          payFee: req.body.payFee === "true"
-        });
-
-        req.flash("success", "gocardless-updated");
-        break;
-
-      case "update-manual-subscription":
-        await MembersService.updateMember(member, {
-          contributionMonthlyAmount: Number(req.body.amount),
-          contributionPeriod: req.body.period
-        });
-        await getRepository(ManualPaymentData).update(member.id, {
-          source: req.body.source || "",
-          reference: req.body.reference || ""
-        });
+        if (req.body.type === ContributionType.GoCardless) {
+          await getRepository(GCPaymentData).save({
+            member,
+            customerId: req.body.customerId,
+            mandateId: req.body.mandateId,
+            subscriptionId: req.body.subscriptionId,
+            payFee: req.body.payFee === "true"
+          });
+        } else if (req.body.type === ContributionType.Manual) {
+          await getRepository(ManualPaymentData).save({
+            member,
+            source: req.body.source || "",
+            reference: req.body.reference || ""
+          });
+        }
         req.flash("success", "contribution-updated");
         break;
     }

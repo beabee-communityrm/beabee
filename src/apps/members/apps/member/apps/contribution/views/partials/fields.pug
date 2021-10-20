@@ -1,0 +1,52 @@
+- paymentData = paymentData || {};
+- member = member || {}
+
+.js-reveal
+  .form-group
+    label.col-md-3.control-label Contribution type
+    .col-md-6
+      select(name='type' required).js-reveal-types.form-control
+        option(value='' disabled selected) Select one
+        each t in ['None', 'GoCardless', 'Manual']
+          option(selected=member.contributionType === t)= t
+
+
+  .js-reveal-type(data-type='Manual|GoCardless')
+    +input( 'number', 'Monthly amount', 'amount', {
+      left: 3, right: 4, before: currencySymbol,
+      value: member.contributionMonthlyAmount
+    })
+    +input( 'radio', 'Period', 'period', {
+      left: 3, right: 4,
+      options: {'monthly': 'Monthly', 'annually': 'Annually'},
+      value: member.contributionPeriod
+    })
+
+  .js-reveal-type(data-type='GoCardless')
+    +input( 'text', 'Customer ID', 'customerId', {
+      required: true, left: 3, right: 6, placeholder: 'CU...' ,
+      value: paymentData.customerId
+    } )
+    +input( 'text', 'Mandate ID', 'mandateId', {
+      required: true, left: 3, right: 6, placeholder: 'MD...',
+      value: paymentData.mandateId
+    } )
+    +input( 'checkbox', 'Paying fee', 'payFee', {
+      left: 3, right: 4,
+      options: {'true': 'Yes'},
+      value: paymentData.payFee
+    })
+
+  .js-reveal-type(data-type='Manual')
+    .form-group
+      label(for='source').control-label.col-md-3 Source
+      .col-md-6
+        select(name='source')#source.form-control
+          option
+          each source in Options.list('available-manual-payment-sources')
+            option(selected=paymentData.source === source)= source
+
+    +input( 'text', 'Reference', 'reference', {
+      left: 3, right: 6,
+      value: paymentData.reference
+    })
