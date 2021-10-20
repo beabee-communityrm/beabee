@@ -22,6 +22,7 @@
       "*": ["./node_modules/*"],
       "@core/*": ["./src/core/*"],
       "@apps/*": ["./src/apps/*"],
+      "@api/*": ["./src/api/*"],
       "@config": ["./src/config/config"],
       "@models/*": ["./src/models/*"]
     },

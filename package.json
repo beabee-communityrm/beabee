@@ -136,6 +136,7 @@
   },
   "_moduleAliases": {
     "@core": "./built/core",
+    "@api": "./built/api",
     "@apps": "./built/apps",
     "@config": "./built/config/config.js",
     "@models": "./built/models"
