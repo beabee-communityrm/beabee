@@ -19,9 +19,12 @@ import {
   Post,
   Req
 } from "routing-controllers";
+import { getRepository } from "typeorm";
 
 import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
+
+import { NewsletterStatus } from "@core/providers/newsletter";
 
 import EmailService from "@core/services/EmailService";
 import GCPaymentService from "@core/services/GCPaymentService";
@@ -29,7 +32,6 @@ import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 
-import { getRepository, Not } from "typeorm";
 import JoinFlow from "@models/JoinFlow";
 
 @ValidatorConstraint({ name: "minContributionAmount" })
@@ -172,6 +174,13 @@ export class SignupController {
     const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
     const { partialMember, partialProfile } =
       await GCPaymentService.customerToMember(completedJoinFlow);
+
+    if (OptionsService.getText("newsletter-default-status") === "subscribed") {
+      partialProfile.newsletterStatus = NewsletterStatus.Subscribed;
+      partialProfile.newsletterGroups = OptionsService.getList(
+        "newsletter-default-groups"
+      );
+    }
 
     if (member) {
       await MembersService.updateMember(member, partialMember);
