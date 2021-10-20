@@ -14,7 +14,7 @@ form(method='POST').form-horizontal
 	.form-group
 		label(for='excerpt').control-label.col-md-3 Excerpt
 		.col-md-9
-			textarea(name='excerpt' required)#excerpt.form-control= poll.excerpt
+			textarea(name='excerpt' required maxlength="130")#excerpt.form-control= poll.excerpt
 	.form-group
 		label(for='image').control-label.col-md-3 Image
 		.col-md-9

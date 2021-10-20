@@ -24,6 +24,8 @@ import {
 import { ContributionPeriod, isDuplicateIndex } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
+import { NewsletterStatus } from "@core/providers/newsletter";
+
 import EmailService from "@core/services/EmailService";
 import GCPaymentService from "@core/services/GCPaymentService";
 import JoinFlowService, {
@@ -31,8 +33,6 @@ import JoinFlowService, {
 } from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
-
-import { NewsletterStatus } from "@core/providers/newsletter";
 
 import Member from "@models/Member";
 
@@ -129,10 +129,12 @@ async function handleJoin(
   await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 
   await MembersService.updateMember(member, { activated: true });
-  await MembersService.updateMemberProfile(member, {
-    newsletterStatus: NewsletterStatus.Subscribed,
-    newsletterGroups: OptionsService.getList("newsletter-default-groups")
-  });
+  if (OptionsService.getText("newsletter-default-status") === "subscribed") {
+    await MembersService.updateMemberProfile(member, {
+      newsletterStatus: NewsletterStatus.Subscribed,
+      newsletterGroups: OptionsService.getList("newsletter-default-groups")
+    });
+  }
 
   await EmailService.sendTemplateToMember("welcome", member);
 
