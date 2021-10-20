@@ -30,45 +30,11 @@ import JoinFlowService, {
   CompletedJoinFlow
 } from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
-import OptionsService from "@core/services/OptionsService";
 
 import Member from "@models/Member";
 
-@ValidatorConstraint({ name: "minContributionAmount" })
-class MinContributionAmount implements ValidatorConstraintInterface {
-  validate(amount: unknown, args: ValidationArguments): boolean {
-    return typeof amount === "number" && amount >= this.minAmount(args);
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} must be at least ${this.minAmount(args)}`;
-  }
-
-  private minAmount(args: ValidationArguments) {
-    const period = (args.object as SignupData).period as unknown;
-    return (
-      OptionsService.getInt("contribution-min-monthly-amount") *
-      (period === ContributionPeriod.Annually ? 12 : 1)
-    );
-  }
-}
-
-@ValidatorConstraint({ name: "isPassword" })
-class IsPassword implements ValidatorConstraintInterface {
-  validate(password: unknown): boolean | Promise<boolean> {
-    return (
-      typeof password === "string" &&
-      password.length >= 8 &&
-      /[a-z]/.test(password) &&
-      /[A-Z]/.test(password) &&
-      /[0-9]/.test(password)
-    );
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} does not meet password requirements`;
-  }
-}
+import IsPassword from "@api/validators/IsPassword";
+import MinContributionAmount from "@api/validators/MinContributionAmount";
 
 class SignupData {
   @IsEmail()
