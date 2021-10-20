@@ -25,6 +25,7 @@ import MemberPermission, {
 } from "@models/MemberPermission";
 
 import IsPassword from "@api/validators/IsPassword";
+import { login } from "@api/utils";
 
 import config from "@config";
 
@@ -46,7 +47,7 @@ export class LoginController {
     // Just used for validation (email and password are in passport strategy)
     @Body({ required: true }) data: LoginData
   ): Promise<void> {
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<Member>((resolve, reject) => {
       passport.authenticate("local", (err, user, info) => {
         if (err || !user) {
           const error = new UnauthorizedError() as any;
@@ -55,11 +56,10 @@ export class LoginController {
           }
           reject(error);
         } else {
-          // For some reason we need to call this again to set the cookie
-          req.login(user, (err) => resolve());
+          resolve(user);
         }
       })(req, res);
-    });
+    }).then((user) => login(req, user)); // Why do we have to login after authenticate?
   }
 
   @OnUndefined(204)

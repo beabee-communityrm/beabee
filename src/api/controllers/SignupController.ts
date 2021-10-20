@@ -35,6 +35,7 @@ import Member from "@models/Member";
 
 import IsPassword from "@api/validators/IsPassword";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
+import { login } from "@api/utils";
 
 class SignupData {
   @IsEmail()
@@ -96,13 +97,7 @@ async function handleJoin(
 
   await EmailService.sendTemplateToMember("welcome", member);
 
-  // For now use existing session infrastructure with a cookie
-  await new Promise<void>((resolve, reject) => {
-    req.login(member, (error) => {
-      if (error) reject(error);
-      else resolve();
-    });
-  });
+  await login(req, member);
 }
 
 @JsonController("/signup")

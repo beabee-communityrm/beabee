@@ -1,4 +1,5 @@
 import { IsEmail, IsUrl, Validate } from "class-validator";
+import { Request } from "express";
 import {
   Body,
   JsonController,
@@ -6,7 +7,8 @@ import {
   OnUndefined,
   Param,
   Post,
-  Put
+  Put,
+  Req
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
@@ -18,6 +20,7 @@ import EmailService from "@core/services/EmailService";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import IsPassword from "@api/validators/IsPassword";
+import { login } from "@api/utils";
 
 class CreateResetPasswordData {
   @IsEmail()
@@ -50,7 +53,8 @@ export class ResetPasswordController {
 
   @OnUndefined(204)
   @Put("/:id")
-  async blah(
+  async complete(
+    @Req() req: Request,
     @Param("id") id: string,
     @Body({ required: true }) data: UpdateResetPasswordData
   ) {
@@ -63,6 +67,8 @@ export class ResetPasswordController {
         password: await generatePassword(data.password)
       });
       await getRepository(ResetPasswordFlow).delete(id);
+
+      await login(req, rpFlow.member);
     } else {
       throw new NotFoundError();
     }
