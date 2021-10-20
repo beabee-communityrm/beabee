@@ -170,10 +170,13 @@ export class SignupController {
     }
 
     const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    const { partialMember, partialProfile } =
+      await GCPaymentService.customerToMember(completedJoinFlow);
 
-    if (!member) {
-      const { partialMember, partialProfile } =
-        await GCPaymentService.customerToMember(completedJoinFlow);
+    if (member) {
+      await MembersService.updateMember(member, partialMember);
+      await MembersService.updateMemberProfile(member, partialProfile);
+    } else {
       member = await MembersService.createMember(partialMember, partialProfile);
     }
 
