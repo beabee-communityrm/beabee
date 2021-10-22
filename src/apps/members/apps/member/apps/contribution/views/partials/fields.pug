@@ -31,6 +31,11 @@
       required: true, left: 3, right: 6, placeholder: 'MD...',
       value: paymentData.mandateId
     } )
+    if !hideSubscriptionId
+      +input( 'text', 'Subscription ID', 'subscriptionId', {
+        required: true, left: 3, right: 6, placeholder: 'SB...',
+        value: paymentData.subscriptionId
+      } )
     +input( 'checkbox', 'Paying fee', 'payFee', {
       left: 3, right: 4,
       options: {'true': 'Yes'},
