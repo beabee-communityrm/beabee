@@ -107,7 +107,12 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
   const member = await MembersService.findOne({ email: oldEmail });
   if (member) {
-    await MembersService.updateMember(member, { email: newEmail });
+    await MembersService.updateMember(
+      member,
+      { email: newEmail },
+      // Don't try to sync to old email address
+      { sync: false }
+    );
   } else {
     log.error("Old email not found in Mailchimp update email hook", data);
   }
