@@ -4,30 +4,6 @@ block prepend title
 	- title = 'GoCardless contribution'
 	- page = 'contribution'
 
-mixin commonSubscriptionFields(idPrefix, periodReadOnly)
-	+input( 'number', 'Monthly amount', 'amount', {
-		left: 3, right: 4, before: currencySymbol,
-		value: member.contributionMonthlyAmount,
-		id: idPrefix + 'Amount'
-	})
-	if periodReadOnly
-		.form-group
-			label.col-md-3.control-label Period
-			.col-md-4.form-control-static= member.contributionPeriod
-	else
-		+input( 'radio', 'Period', 'period', {
-			left: 3, right: 4,
-			options: {'monthly': 'Monthly', 'annually': 'Annually'},
-			value: member.contributionPeriod,
-			id: idPrefix + 'Period'
-		})
-	+input( 'checkbox', 'Paying fee', 'payFee', {
-		left: 3, right: 4,
-		options: {'true': 'Yes'},
-		value: paymentData.payFee,
-		id: idPrefix + 'PayFee'
-	})
-
 block contents
 	.row
 		.col-md-3
@@ -55,7 +31,26 @@ block contents
 				form( method="post").form-horizontal
 					+csrf
 					input( type='hidden' name='action' value='update-subscription' )
-					+commonSubscriptionFields('update', !!paymentData.subscriptionId)
+
+					+input( 'number', 'Monthly amount', 'amount', {
+						left: 3, right: 4, before: currencySymbol,
+						value: member.contributionMonthlyAmount
+					})
+					if !!paymentData.subscriptionId
+						.form-group
+							label.col-md-3.control-label Period
+							.col-md-4.form-control-static= member.contributionPeriod
+					else
+						+input( 'radio', 'Period', 'period', {
+							left: 3, right: 4,
+							options: {'monthly': 'Monthly', 'annually': 'Annually'},
+							value: member.contributionPeriod
+						})
+					+input( 'checkbox', 'Paying fee', 'payFee', {
+						left: 3, right: 4,
+						options: {'true': 'Yes'},
+						value: paymentData.payFee
+					})
 
 					if member.memberMonthsRemaining > 0
 						.form-group
@@ -87,15 +82,20 @@ block contents
 
 			h4 Manual update
 			.alert.alert-danger.
-				If done incorrectly this could result in payments being taken but not
-				recorded
+				This could result in payments being taken but not recorded if done incorrectly,
+				proceed with caution
+
 			form( method="post" ).form-horizontal
 				+csrf
 				input( type='hidden' name='action' value='force-update' )
-				+input( 'text', 'Customer ID', 'customerId', { value: paymentData.customerId, left: 3, right: 4 } )
-				+input( 'text', 'Mandate ID', 'mandateId', { value: paymentData.mandateId, left: 3, right: 4 } )
-				+input( 'text', 'Subscription ID', 'subscriptionId', { value: paymentData.subscriptionId, left: 3, right: 4 } )
-				+commonSubscriptionFields('force', false)
+				include ./partials/fields.pug
+
+				.form-group: .col-md-offset-3.col-md-9
+					.checkbox
+						label
+							input(type='checkbox' required)
+							| I confirm I understand the risks in updating this data
+
 				+form_button( 'Update', 'danger', { left: 3 } )
 
 			h4 Payments
