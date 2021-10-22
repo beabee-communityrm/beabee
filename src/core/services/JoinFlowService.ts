@@ -80,7 +80,7 @@ export default class JoinFlowService {
     const restartFlowRepository = getRepository(RestartFlow);
     const restartFlow = await restartFlowRepository.findOne({
       where: { id: restartFlowId },
-      relations: ["member"]
+      relations: ["member", "member.profile"]
     });
     if (restartFlow) {
       await restartFlowRepository.delete(restartFlow.id);
