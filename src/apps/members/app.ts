@@ -22,7 +22,12 @@ function getAvailableTags() {
   return Promise.resolve(OptionsService.getList("available-tags"));
 }
 
-const sortOptions = {
+type SortOption = {
+  label: string;
+  order: readonly string[];
+};
+
+const sortOptions: Record<string, SortOption> = {
   lf: {
     label: "Last name, first name",
     order: ["lastname_n", "firstname_n", "email"]
