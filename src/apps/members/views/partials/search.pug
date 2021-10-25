@@ -7,17 +7,24 @@ else
 		li(class=searchType === 'basic' ? ' active' : ''): a(data-toggle='tab' href='#basic') Basic
 		li(class=searchType === 'advanced' ? 'active' : ''): a(data-toggle='tab' href='#advanced') Advanced
 
-mixin searchState
+mixin commonSearch
 	if activeSegment
 		input( type='hidden' name='segment' value=activeSegment.id )
 	if addToProject
 		input( type='hidden' name='addToProject' value=addToProject.id )
+	.member-search-group
+		.form-group
+			label.control-label Sort by
+			select(name='sort').form-control
+				each option, id in sortOptions
+					each order in ['ASC', 'DESC']
+						- oid = id + '_' + order
+							option(value=oid selected=searchQuery.sort === oid)= option.label + ' - ' + order
+
 
 .tab-content
 	.tab-pane#basic(class=searchType === 'basic' ? 'active' : '')
 		form( method='get' ).form-inline
-			+searchState
-
 			.member-search-group
 				.form-group
 					label( for='firstname' ).control-label First name
@@ -36,6 +43,8 @@ mixin searchState
 						each tag in availableTags
 							option( value=tag selected=searchQuery.tag === tag )= tag
 
+			+commonSearch
+
 			.member-search-group
 				button(name='type' value='basic').btn.btn-success
 					i.glyphicon.glyphicon-search
@@ -43,10 +52,9 @@ mixin searchState
 
 	.tab-pane#advanced(class=!activeSegment && searchType === 'advanced' ? 'active' : '')
 		#builder
-		form(method='get').js-advanced-form
-			+searchState
-
+		form(method='get').form-inline.js-advanced-form
 			input(type='hidden' name='rules')
+			+commonSearch
 			button(name='type' value='advanced').btn.btn-success
 				i.glyphicon.glyphicon-search
 				span Search
