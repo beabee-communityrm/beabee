@@ -30,7 +30,7 @@ block contents
 				.form-group
 					label(for='name').control-label.col-md-3 Name
 					.col-md-6
-						input(type='text' name='name' value=notice.name)#name.form-control
+						input(type='text' name='name' value=notice.name required)#name.form-control
 				.form-group
 					label(for='expires').control-label.col-md-3 Expires (UTC)
 					.col-md-3
@@ -40,11 +40,11 @@ block contents
 				.form-group
 					label(for='text').control-label.col-md-3 Text
 					.col-md-9
-						input(type='text' name='text' value=notice.text)#text.form-control
+						input(type='text' name='text' value=notice.text required)#text.form-control
 				.form-group
 					label(for='buttonText').control-label.col-md-3 Button text
 					.col-md-9
-						input(type='text' name='buttonText' value=notice.buttonText)#buttonText.form-control
+						input(type='text' name='buttonText' value=notice.buttonText required)#buttonText.form-control
 				.form-group
 					label(for='url').control-label.col-md-3 URL
 					.col-md-9

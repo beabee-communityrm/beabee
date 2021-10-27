@@ -9,7 +9,7 @@ block contents
 			+page_header( 'Add contact' )
 
 		.col-md-9
-			form(method='POST').form-horizontal.js-reveal
+			form(method='POST').form-horizontal
 				+csrf
 				+input( 'text', 'First name', 'firstname', { left: 3, right: 6 } )
 				+input( 'text', 'Last name', 'lastname', { left: 3, right: 6 } )
@@ -21,15 +21,6 @@ block contents
 					value: true
 				})
 
-				.form-group
-					label.col-md-3.control-label Contribution type
-					.col-md-6
-						select(name='type' required).js-reveal-types.form-control
-							option(value='' disabled selected) Select one
-							option None
-							option GoCardless
-							option Manual
-
 				.row: .col-md-offset-3.col-md-9: h5 Roles
 
 				ul(data-name='permissions').no-list.js-repeater
@@ -37,34 +28,10 @@ block contents
 				.row: .col-md-offset-3.col-md-9
 					p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add role
 
-				.js-reveal-type(data-type='GoCardless')
-					.row: .col-md-offset-3.col-md-9: h5 Payment details
-					+input( 'text', 'Customer ID', 'customerId', { required: true, left: 3, right: 6, placeholder: 'CU...' } )
-					+input( 'text', 'Mandate ID', 'mandateId', { required: true, left: 3, right: 6, placeholder: 'MD...' } )
+				.row: .col-md-offset-3.col-md-9: h5 Contribution
 
-					.row: .col-md-offset-3.col-md-9: h5 Contribution details
-					+input( 'number', 'Monthly amount', 'amount', {
-						left: 3, right: 4, before: currencySymbol,
-						id: 'Amount'
-					})
-					if periodReadOnly
-						.form-group
-							label.col-md-3.control-label Period
-							.col-md-4.form-control-static= member.contributionPeriod
-					else
-						+input( 'radio', 'Period', 'period', {
-							left: 3, right: 4,
-							options: {'monthly': 'Monthly', 'annually': 'Annually'},
-							id: 'Period'
-						})
-					+input( 'checkbox', 'Paying fee', 'payFee', {
-						left: 3, right: 4,
-						options: {'true': 'Yes'},
-						id: 'PayFee'
-					})
-				
-				.js-reveal-type(data-type='Manual')
-					include /apps/members/apps/member/apps/contribution/views/partials/manual-fields
+				- hideSubscriptionId = true
+				include /apps/members/apps/member/apps/contribution/views/partials/fields
 
 				.form-group
 					.col-md-offset-3.col-md-9

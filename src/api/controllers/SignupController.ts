@@ -3,10 +3,7 @@ import {
   IsEmail,
   IsEnum,
   IsString,
-  Validate,
-  ValidationArguments,
-  ValidatorConstraint,
-  ValidatorConstraintInterface
+  Validate
 } from "class-validator";
 import { Request } from "express";
 import {
@@ -34,41 +31,9 @@ import OptionsService from "@core/services/OptionsService";
 
 import JoinFlow from "@models/JoinFlow";
 
-@ValidatorConstraint({ name: "minContributionAmount" })
-class MinContributionAmount implements ValidatorConstraintInterface {
-  validate(amount: unknown, args: ValidationArguments): boolean {
-    return typeof amount === "number" && amount >= this.minAmount(args);
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} must be at least ${this.minAmount(args)}`;
-  }
-
-  private minAmount(args: ValidationArguments) {
-    const period = (args.object as SignupData).period as unknown;
-    return (
-      OptionsService.getInt("contribution-min-monthly-amount") *
-      (period === ContributionPeriod.Annually ? 12 : 1)
-    );
-  }
-}
-
-@ValidatorConstraint({ name: "isPassword" })
-class IsPassword implements ValidatorConstraintInterface {
-  validate(password: unknown): boolean | Promise<boolean> {
-    return (
-      typeof password === "string" &&
-      password.length >= 8 &&
-      /[a-z]/.test(password) &&
-      /[A-Z]/.test(password) &&
-      /[0-9]/.test(password)
-    );
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} does not meet password requirements`;
-  }
-}
+import IsPassword from "@api/validators/IsPassword";
+import MinContributionAmount from "@api/validators/MinContributionAmount";
+import { login } from "@api/utils";
 
 class SignupData {
   @IsEmail()
@@ -162,7 +127,8 @@ export class SignupController {
     // Check for an existing active member first to avoid completing the join
     // flow unnecessarily
     let member = await MembersService.findOne({
-      email: joinFlow.joinForm.email
+      where: { email: joinFlow.joinForm.email },
+      relations: ["profile"]
     });
     if (member && member.isActiveMember) {
       // TODO: set errors properly

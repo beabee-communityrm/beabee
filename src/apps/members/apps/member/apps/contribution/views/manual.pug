@@ -15,8 +15,6 @@ block contents
 
 			form( method="post").form-horizontal
 				+csrf
-				input( type='hidden' name='action' value='update-manual-subscription')
-
-				include partials/manual-fields
-
+				input( type='hidden' name='action' value='force-update')
+				include partials/fields
 				+form_button( 'Update', 'success', { left: 3 } )
