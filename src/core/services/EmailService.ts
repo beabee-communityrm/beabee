@@ -46,9 +46,8 @@ const memberEmailTemplates = {
     REFCODE: member.referralCode
   }),
   "welcome-post-gift": () => ({}),
-  "reset-password": (member: Member) => ({
-    RPLINK:
-      config.audience + "/password-reset/code/" + member.password.resetCode
+  "reset-password": (member: Member, params: { rpLink: string }) => ({
+    RPLINK: params.rpLink
   }),
   "cancelled-contribution": (member: Member) => {
     const dateExpires = member.permissions.find(
