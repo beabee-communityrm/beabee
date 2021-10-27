@@ -1,4 +1,4 @@
-import { IsEmail, IsUrl, Validate } from "class-validator";
+import { IsEmail, Validate } from "class-validator";
 import { Request } from "express";
 import {
   Body,
@@ -20,14 +20,15 @@ import EmailService from "@core/services/EmailService";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import IsPassword from "@api/validators/IsPassword";
+import IsUrl from "@api/validators/IsUrl";
+
 import { login } from "@api/utils";
 
 class CreateResetPasswordData {
   @IsEmail()
   email!: string;
 
-  // Allow localhost, this should possibly only be enabled on dev?
-  @IsUrl({ require_tld: false })
+  @IsUrl()
   resetUrl!: string;
 }
 

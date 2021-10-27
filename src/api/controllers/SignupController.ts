@@ -32,8 +32,8 @@ import OptionsService from "@core/services/OptionsService";
 import JoinFlow from "@models/JoinFlow";
 
 import IsPassword from "@api/validators/IsPassword";
+import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
-import { login } from "@api/utils";
 
 class SignupData {
   @IsEmail()
@@ -51,7 +51,7 @@ class SignupData {
   @IsBoolean()
   payFee!: boolean;
 
-  @IsString()
+  @IsUrl()
   completeUrl!: string;
 }
 
@@ -59,7 +59,7 @@ class SignupCompleteData {
   @IsString()
   redirectFlowId!: string;
 
-  @IsString()
+  @IsUrl()
   confirmUrl!: string;
 }
 
