@@ -2,12 +2,8 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
-  IsNumber,
   IsString,
-  Validate,
-  ValidationArguments,
-  ValidatorConstraint,
-  ValidatorConstraintInterface
+  Validate
 } from "class-validator";
 import { Request } from "express";
 import {
@@ -32,6 +28,7 @@ import JoinFlowService, {
   CompletedJoinFlow
 } from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
+import OptionsService from "@core/services/OptionsService";
 
 import Member from "@models/Member";
 
