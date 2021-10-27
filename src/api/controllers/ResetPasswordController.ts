@@ -26,7 +26,8 @@ class CreateResetPasswordData {
   @IsEmail()
   email!: string;
 
-  @IsUrl()
+  // Allow localhost, this should possibly only be enabled on dev?
+  @IsUrl({ require_tld: false })
   resetUrl!: string;
 }
 
