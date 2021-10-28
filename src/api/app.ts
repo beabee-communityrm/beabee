@@ -11,9 +11,9 @@ import {
   useExpressServer
 } from "routing-controllers";
 
+import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { ContentController } from "./controllers/ContentController";
-import { LoginController } from "./controllers/LoginController";
 import { MemberController } from "./controllers/MemberController";
 import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
@@ -42,9 +42,9 @@ db.connect().then(() => {
   useExpressServer(app, {
     routePrefix: "/1.0",
     controllers: [
+      AuthController,
       CalloutController,
       ContentController,
-      LoginController,
       MemberController,
       NoticeController,
       SignupController,
