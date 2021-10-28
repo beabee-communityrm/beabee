@@ -32,6 +32,10 @@ const emailTemplates = {
     GIFTEE: params.gifteeFirstName,
     GIFTDATE: moment.utc(params.giftStartDate).format("MMMM Do")
   }),
+  "confirm-email": (params: { firstName: string; confirmLink: string }) => ({
+    FNAME: params.firstName,
+    CONFIRMLINK: params.confirmLink
+  }),
   "expired-special-url-resend": (params: {
     firstName: string;
     newUrl: string;
@@ -70,9 +74,6 @@ const memberEmailTemplates = {
         : "-"
     };
   },
-  "join-confirm-email": (member: Member, params: { code: string }) => ({
-    CONFIRMLINK: config.audience + "/join/confirm-email/" + params.code
-  }),
   "successful-referral": (
     member: Member,
     params: { refereeName: string; isEligible: boolean }

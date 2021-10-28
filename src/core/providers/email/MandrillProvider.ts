@@ -16,7 +16,7 @@ interface MandrillTemplate {
 }
 
 interface MandrillMessage {
-  to: { email: string; name: string }[];
+  to: { email: string; name?: string }[];
   merge_vars: {
     rcpt: string;
     vars?: { name: string; content: unknown }[];
