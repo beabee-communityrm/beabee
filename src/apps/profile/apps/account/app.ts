@@ -30,11 +30,10 @@ app.post(
       const {
         body: { email, firstname, lastname }
       } = req;
-      const cleanedEmail = cleanEmailAddress(email);
 
       try {
         await MembersService.updateMember(req.user, {
-          email: cleanedEmail,
+          email,
           firstname,
           lastname
         });

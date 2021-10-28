@@ -135,6 +135,10 @@ export default class MembersService {
       updates
     });
 
+    if (updates.email) {
+      updates.email = cleanEmailAddress(updates.email);
+    }
+
     const oldEmail = updates.email && member.email;
 
     Object.assign(member, updates);
