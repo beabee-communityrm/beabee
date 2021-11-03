@@ -3,7 +3,7 @@ import { log as mainLogger } from "@core/logging";
 import {
   NewsletterMember,
   NewsletterProvider,
-  PartialNewsletterMember
+  UpdateNewsletterMember
 } from "@core/providers/newsletter";
 import MailchimpProvider from "@core/providers/newsletter/MailchimpProvider";
 import NoneProvider from "@core/providers/newsletter/NoneProvider";
@@ -11,6 +11,8 @@ import NoneProvider from "@core/providers/newsletter/NoneProvider";
 import Member from "@models/Member";
 
 import config from "@config";
+import { getRepository } from "typeorm";
+import MemberProfile from "@models/MemberProfile";
 
 const log = mainLogger.child({ app: "newsletter-service" });
 
@@ -26,9 +28,11 @@ function shouldUpdate(updates: Partial<Member>): boolean {
   );
 }
 
-function memberToNlMember(member: Member): PartialNewsletterMember {
+function memberToNlUpdate(member: Member): UpdateNewsletterMember {
   return {
     email: member.email,
+    status: member.profile.newsletterStatus,
+    groups: member.profile.newsletterGroups,
     firstname: member.firstname,
     lastname: member.lastname,
     fields: {
@@ -37,11 +41,7 @@ function memberToNlMember(member: Member): PartialNewsletterMember {
       C_DESC: member.contributionDescription,
       C_MNTHAMT: member.contributionMonthlyAmount?.toString() || "",
       C_PERIOD: member.contributionPeriod || ""
-    },
-    ...(member.profile && {
-      status: member.profile.newsletterStatus,
-      groups: member.profile.newsletterGroups
-    })
+    }
   };
 }
 
@@ -67,15 +67,21 @@ class NewsletterService {
     );
   }
 
-  async updateMemberIfNeeded(
+  async upsertMember(
     member: Member,
-    updates: Partial<Member>,
+    updates?: Partial<Member>,
     oldEmail?: string
   ): Promise<void> {
-    const willUpdate = shouldUpdate(updates);
+    const willUpdate = !updates || shouldUpdate(updates);
     if (willUpdate) {
-      log.info("Update member " + member.id);
-      await this.provider.updateMember(memberToNlMember(member), oldEmail);
+      log.info("Upsert member " + member.id);
+      // TODO: Fix that it relies on member.profile being loaded
+      if (!member.profile) {
+        member.profile = await getRepository(MemberProfile).findOneOrFail({
+          member
+        });
+      }
+      await this.provider.updateMember(memberToNlUpdate(member), oldEmail);
     } else {
       log.info("Ignoring member update for " + member.id);
     }
@@ -83,7 +89,7 @@ class NewsletterService {
 
   async upsertMembers(members: Member[]): Promise<void> {
     log.info(`Upsert ${members.length} members`);
-    await this.provider.upsertMembers(members.map(memberToNlMember));
+    await this.provider.upsertMembers(members.map(memberToNlUpdate));
   }
 
   async updateMemberFields(
@@ -91,7 +97,17 @@ class NewsletterService {
     fields: Record<string, string>
   ): Promise<void> {
     log.info(`Update member fields for ${member.id}`, fields);
-    await this.provider.updateMember({ email: member.email, fields });
+    // TODO: Fix that it relies on member.profile being loaded
+    if (!member.profile) {
+      member.profile = await getRepository(MemberProfile).findOneOrFail({
+        member
+      });
+    }
+    await this.provider.updateMember({
+      email: member.email,
+      status: member.profile.newsletterStatus,
+      fields
+    });
   }
 
   async archiveMembers(members: Member[]): Promise<void> {
