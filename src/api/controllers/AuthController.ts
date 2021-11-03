@@ -1,4 +1,4 @@
-import { IsEmail, isUUID, Validate } from "class-validator";
+import { IsEmail, IsString, isUUID } from "class-validator";
 import { Request, Response } from "express";
 import {
   Body,
@@ -24,7 +24,6 @@ import MemberPermission, {
   PermissionTypes
 } from "@models/MemberPermission";
 
-import IsPassword from "@api/validators/IsPassword";
 import { login } from "@api/utils";
 
 import config from "@config";
@@ -33,7 +32,9 @@ class LoginData {
   @IsEmail()
   email!: string;
 
-  @Validate(IsPassword)
+  // We deliberately don't vaidate with IsPassword here so
+  // invalid passwords return a 401
+  @IsString()
   password!: string;
 }
 
