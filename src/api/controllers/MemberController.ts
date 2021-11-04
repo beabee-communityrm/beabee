@@ -21,6 +21,7 @@ import { getRepository } from "typeorm";
 import { NewsletterStatus } from "@core/providers/newsletter";
 
 import MembersService from "@core/services/MembersService";
+import PaymentService, { PaymentSource } from "@core/services/PaymentService";
 
 import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
@@ -152,5 +153,12 @@ export class MemberController {
     }
 
     return await memberToApiMember(member);
+  }
+
+  @Get("/member/me/payment-source")
+  async getPaymentSource(
+    @CurrentUser({ required: true }) member: Member
+  ): Promise<PaymentSource | undefined> {
+    return await PaymentService.getPaymentSource(member);
   }
 }
