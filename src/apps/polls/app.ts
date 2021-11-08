@@ -130,12 +130,13 @@ app.get(
     const poll = req.model as Poll;
     const isEmbed = !!req.params.embed;
     const user = isEmbed ? undefined : req.user;
+
+    if (isEmbed) {
+      res.removeHeader("X-Frame-Options");
+    }
+
     if (poll.access === PollAccess.Member && !user) {
-      return auth.handleNotAuthed(
-        auth.AuthenticationStatus.NOT_LOGGED_IN,
-        req,
-        res
-      );
+      return res.render("login", { poll, isEmbed });
     }
 
     const answers = req.query.answers as PollResponseAnswers;
@@ -148,9 +149,6 @@ app.get(
       }
       res.redirect(`/polls/${poll.slug}#vote`);
     } else {
-      if (isEmbed) {
-        res.removeHeader("X-Frame-Options");
-      }
       res.render(getView(poll), {
         poll,
         isEmbed,
@@ -236,13 +234,18 @@ app.get(
 );
 
 app.get(
-  "/:slug/:code",
+  "/:slug/:code:embed(/embed)?",
   hasNewModel(Poll, "slug"),
   wrapAsync(async (req, res, next) => {
     const poll = req.model as Poll;
+    const isEmbed = !!req.params.embed;
 
     if (poll.access === PollAccess.OnlyAnonymous) {
       return next("route");
+    }
+
+    if (isEmbed) {
+      res.removeHeader("X-Frame-Options");
     }
 
     const answers = req.query.answers as PollResponseAnswers;
@@ -267,6 +270,7 @@ app.get(
       res.render(getView(poll), {
         poll: req.model,
         isGuest: false,
+        isEmbed,
         answers: getSessionAnswers(req) || {},
         code: pollsCode
       });
@@ -275,7 +279,7 @@ app.get(
 );
 
 app.post(
-  "/:slug/:code",
+  "/:slug/:code:embed(/embed)?",
   [hasNewModel(Poll, "slug"), hasPollAnswers],
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
