@@ -187,6 +187,10 @@ export class MemberController {
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: UpsertPaymentSourceData
   ): Promise<{ redirectUrl: string }> {
+    if (!(await GCPaymentService.canChangeContribution(member, false))) {
+      throw new CantUpdateContribution();
+    }
+
     const redirectUrl = await JoinFlowService.createJoinFlow(
       data.completeUrl,
       // TODO: this is all unnecessary, we should remove this
@@ -217,6 +221,10 @@ export class MemberController {
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: UpsertPaymentSourceCompleteData
   ): Promise<void> {
+    if (!(await GCPaymentService.canChangeContribution(member, false))) {
+      throw new CantUpdateContribution();
+    }
+
     const joinFlow = await getRepository(JoinFlow).findOne({
       redirectFlowId: data.redirectFlowId
     });
@@ -227,10 +235,6 @@ export class MemberController {
     const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
       joinFlow
     );
-    if (await GCPaymentService.canChangeContribution(member, false)) {
-      await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
-    } else {
-      throw new CantUpdateContribution();
-    }
+    await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
   }
 }
