@@ -38,9 +38,8 @@ import MemberProfile from "@models/MemberProfile";
 
 import config from "@config";
 
-import IsUrl from "@api/validators/IsUrl";
-import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import IsUrl from "@api/validators/IsUrl";
 
 interface MemberData {
   email: string;
