@@ -7,7 +7,6 @@ import {
 } from "class-validator";
 import { Request } from "express";
 import {
-  BadRequestError,
   Body,
   BodyParam,
   JsonController,
@@ -31,6 +30,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import JoinFlow from "@models/JoinFlow";
 
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import IsPassword from "@api/validators/IsPassword";
 import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
@@ -132,10 +132,7 @@ export class SignupController {
       relations: ["profile"]
     });
     if (member && member.isActiveMember) {
-      // TODO: set errors properly
-      const error = new BadRequestError() as any;
-      error.code = "duplicate-email";
-      throw error;
+      throw new DuplicateEmailError();
     }
 
     const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
