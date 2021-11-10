@@ -107,7 +107,7 @@ export default class MembersService {
       await getRepository(MemberProfile).save(member.profile);
 
       if (opts?.sync) {
-        await NewsletterService.upsertMembers([member]);
+        await NewsletterService.upsertMember(member);
       }
 
       return member;
@@ -144,7 +144,7 @@ export default class MembersService {
     Object.assign(member, updates);
     await getRepository(Member).update(member.id, updates);
 
-    await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
+    await NewsletterService.upsertMember(member, updates, oldEmail);
 
     // TODO: This should be in GCPaymentService
     if (updates.email || updates.firstname || updates.lastname) {
@@ -254,12 +254,7 @@ export default class MembersService {
     }
 
     if (opts?.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
-      if (!member.profile) {
-        member.profile = await getRepository(MemberProfile).findOneOrFail({
-          member
-        });
-      }
-      await NewsletterService.upsertMembers([member]);
+      await NewsletterService.upsertMember(member);
     }
   }
 
