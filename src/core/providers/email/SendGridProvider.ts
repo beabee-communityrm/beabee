@@ -16,6 +16,7 @@ export default class SendGridProvider implements EmailProvider {
 
   constructor(settings: SendGridEmailConfig["settings"]) {
     sgMail.setApiKey(settings.apiKey);
+    sgMail.setSubstitutionWrappers("*|", "|*");
     this.testMode = settings.testMode;
   }
 
