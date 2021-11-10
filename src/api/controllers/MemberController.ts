@@ -4,18 +4,19 @@ import {
   IsDefined,
   IsEmail,
   IsEnum,
+  IsNumber,
   IsString,
-  ValidateNested,
-  ValidationError
+  Validate,
+  ValidateNested
 } from "class-validator";
 import {
-  BadRequestError,
   Body,
   CurrentUser,
   Get,
   JsonController,
   NotFoundError,
   OnUndefined,
+  Patch,
   Post,
   Put
 } from "routing-controllers";
@@ -40,6 +41,9 @@ import config from "@config";
 
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import IsUrl from "@api/validators/IsUrl";
+import { validateOrReject } from "@api/utils";
+
+import { ContributionData } from "./SignupController";
 
 interface MemberData {
   email: string;
@@ -108,6 +112,14 @@ class UpdateMemberData implements Partial<MemberData> {
   profile?: UpdateMemberProfileData;
 }
 
+class UpdateContributionData {
+  @IsNumber()
+  amount!: number;
+
+  @IsBoolean()
+  payFee!: boolean;
+}
+
 class UpsertPaymentSourceData {
   @IsUrl()
   completeUrl!: string;
@@ -174,14 +186,41 @@ export class MemberController {
     return await memberToApiMember(member);
   }
 
-  @Get("/member/me/payment-source")
+  @Patch("/me/contribution")
+  async updateContribution(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) _data: UpdateContributionData
+  ): Promise<void> {
+    // TODO: how can we move this into validators?
+    const data = new ContributionData();
+    data.amount = _data.amount;
+    data.period = member.contributionPeriod!;
+    data.payFee = _data.payFee;
+    await validateOrReject(data);
+
+    if (!(await GCPaymentService.canChangeContribution(member, true))) {
+      throw new CantUpdateContribution();
+    }
+
+    await GCPaymentService.updateContribution(member, {
+      monthlyAmount:
+        member.contributionPeriod === ContributionPeriod.Monthly
+          ? data.amount
+          : data.amount / 12,
+      period: member.contributionPeriod!,
+      payFee: data.payFee,
+      prorate: false
+    });
+  }
+
+  @Get("/me/payment-source")
   async getPaymentSource(
     @CurrentUser({ required: true }) member: Member
   ): Promise<PaymentSource | undefined> {
     return await PaymentService.getPaymentSource(member);
   }
 
-  @Put("/member/me/payment-source")
+  @Put("/me/payment-source")
   async updatePaymentSource(
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: UpsertPaymentSourceData
@@ -215,7 +254,7 @@ export class MemberController {
   }
 
   @OnUndefined(204)
-  @Post("/member/me/payment-source/complete")
+  @Post("/me/payment-source/complete")
   async completeUpdatePaymentSource(
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: UpsertPaymentSourceCompleteData

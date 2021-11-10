@@ -34,23 +34,26 @@ import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import IsPassword from "@api/validators/IsPassword";
 import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
+import ValidPayFee from "@api/validators/ValidPayFee";
 import { login } from "@api/utils";
 
-class SignupData {
-  @IsEmail()
-  email!: string;
-
-  @Validate(IsPassword)
-  password!: string;
-
+export class ContributionData {
   @Validate(MinContributionAmount)
   amount!: number;
 
   @IsEnum(ContributionPeriod)
   period!: ContributionPeriod;
 
-  @IsBoolean()
+  @Validate(ValidPayFee)
   payFee!: boolean;
+}
+
+class SignupData extends ContributionData {
+  @IsEmail()
+  email!: string;
+
+  @Validate(IsPassword)
+  password!: string;
 
   @IsUrl()
   completeUrl!: string;
