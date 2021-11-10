@@ -55,7 +55,7 @@ abstract class UpdateContributionPaymentService {
       throw new Error("User does not have active payment method");
     }
 
-    let startNow = true;
+    let startNow;
 
     if (user.isActiveMember) {
       if (gcData.subscriptionId) {
@@ -65,11 +65,8 @@ abstract class UpdateContributionPaymentService {
           paymentForm
         );
       } else {
-        const membershipExpiryDate = user.permissions.find(
-          (p) => p.permission === "member"
-        )!.dateExpires;
         const startDate = moment
-          .utc(membershipExpiryDate)
+          .utc(user.membershipExpires)
           .subtract(config.gracePeriod);
         gcData = await this.createSubscription(
           user,
@@ -91,6 +88,7 @@ abstract class UpdateContributionPaymentService {
       }
 
       gcData = await this.createSubscription(user, gcData, paymentForm);
+      startNow = true;
     }
 
     await this.activateContribution(user, gcData, paymentForm, startNow);
@@ -406,6 +404,8 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
       mandateId
     });
 
+    const hadSubscription = !!gcData.subscriptionId;
+
     if (gcData.mandateId) {
       // Remove subscription before cancelling mandate to stop the webhook triggering a cancelled email
       await getRepository(GCPaymentData).update(gcData.member.id, {
@@ -421,6 +421,15 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     gcData.subscriptionId = undefined;
 
     await getRepository(GCPaymentData).save(gcData);
+
+    if (hadSubscription) {
+      await this.updateContribution(member, {
+        monthlyAmount: member.contributionMonthlyAmount!,
+        period: member.contributionPeriod!,
+        payFee: !!gcData.payFee,
+        prorate: false
+      });
+    }
   }
 
   static async hasPendingPayment(member: Member): Promise<boolean> {

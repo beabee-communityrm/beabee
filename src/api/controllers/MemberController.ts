@@ -182,7 +182,7 @@ export class MemberController {
   }
 
   @Put("/member/me/payment-source")
-  async setPaymentSource(
+  async updatePaymentSource(
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: UpsertPaymentSourceData
   ): Promise<{ redirectUrl: string }> {
@@ -216,7 +216,7 @@ export class MemberController {
 
   @OnUndefined(204)
   @Post("/member/me/payment-source/complete")
-  async completePaymentSource(
+  async completeUpdatePaymentSource(
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: UpsertPaymentSourceCompleteData
   ): Promise<void> {
