@@ -143,4 +143,17 @@ block contents
           .col-md-9
             input(type='text' name="data[footerMessage]" value=profile.footerMessage required).form-control
 
+        .form-group
+          label.control-label.col-md-3 Intro message
+          .col-md-9
+            textarea(name="data[introMessage]" required).form-control= profile.introMessage
+        .form-group
+          label.control-label.col-md-3 Intro message author name
+          .col-md-9
+            input(type='text' name="data[introMessageAuthorName]" value=profile.introMessageAuthorName required).form-control
+        .form-group
+          label.control-label.col-md-3 Intro message author title
+          .col-md-9
+            input(type='text' name="data[introMessageAuthorTitle]" value=p;ofile.introMessageAuthorTitle required).form-control
+
         .row: .col-md-offset-3.col-md-9: p: button(name='id' value='profile').btn.btn-primary Save
