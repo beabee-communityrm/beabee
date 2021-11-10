@@ -1,4 +1,4 @@
-import hummus from "hummus";
+import muhammara from "muhammara";
 import moment from "moment";
 import { getRepository } from "typeorm";
 
@@ -69,7 +69,7 @@ export default class GiftService {
         {
           type: "application/pdf",
           name: "Gift card.pdf",
-          content: giftCard.toString("base64")
+          content: (giftCard as any).toString("base64")
         }
       ];
 
@@ -183,17 +183,17 @@ export default class GiftService {
   }
 
   private static createGiftCard(code: string) {
-    const inStream = new hummus.PDFRStreamForFile(
+    const inStream = new muhammara.PDFRStreamForFile(
       __dirname + "/../../static/pdfs/gift.pdf"
     );
-    const outStream = new hummus.PDFWStreamForBuffer();
+    const outStream = new muhammara.PDFWStreamForBuffer();
 
-    const pdfWriter = hummus.createWriterToModify(inStream, outStream);
+    const pdfWriter = muhammara.createWriterToModify(inStream, outStream);
     const font = pdfWriter.getFontForFile(
       __dirname + "/../../static/fonts/Lato-Regular.ttf"
     );
 
-    const pageModifier = new hummus.PDFPageModifier(pdfWriter, 0, true);
+    const pageModifier = new muhammara.PDFPageModifier(pdfWriter, 0, true);
     const context = pageModifier.startContext().getContext();
 
     context.cm(-1, 0, 0, -1, 406, 570);

@@ -199,7 +199,7 @@ app.post(
       }_${new Date().toISOString()}.csv`;
       const exportData = await exportType.getExport(items as any);
 
-      res.attachment(exportName).send(Papa.unparse(exportData));
+      res.attachment(exportName).send(Papa.unparse(exportData as any)); // TODO: fix
     } else if (data.action === "delete") {
       await getRepository(ExportItem).delete({ export: exportDetails });
       await getRepository(Export).delete(exportDetails.id);
