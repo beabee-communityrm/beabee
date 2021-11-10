@@ -1,6 +1,6 @@
 FROM node:16.13-alpine as builder
 
-RUN apk add --no-cache python make g++ git
+RUN apk add --no-cache make g++ git
 
 COPY . /opt/membership-system
 
