@@ -206,7 +206,7 @@ async function handleResync(
     await setResyncStatus(
       `Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed, ${existingMembersToArchive.length} archived and ${newMembersToUpload.length} newly uploaded`
     );
-  } catch (error) {
+  } catch (error: any) {
     log.error("Newsletter sync failed", error);
     await setResyncStatus("Error: " + error.message);
   }
