@@ -22,7 +22,7 @@ import { NewsletterStatus } from "@core/providers/newsletter";
 
 import MembersService from "@core/services/MembersService";
 
-import { ContributionPeriod, isDuplicateIndex } from "@core/utils";
+import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import Address from "@models/Address";

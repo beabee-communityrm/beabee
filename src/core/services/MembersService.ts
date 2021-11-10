@@ -113,7 +113,9 @@ export default class MembersService {
 
       return member;
     } catch (error) {
-      if (
+      if (isDuplicateIndex(error, "email")) {
+        throw new DuplicateEmailError();
+      } else if (
         isDuplicateIndex(error, "referralCode") ||
         isDuplicateIndex(error, "pollsCode")
       ) {

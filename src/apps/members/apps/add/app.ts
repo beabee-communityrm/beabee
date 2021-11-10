@@ -6,7 +6,6 @@ import {
   ContributionPeriod,
   ContributionType,
   createDateTime,
-  isDuplicateIndex,
   wrapAsync
 } from "@core/utils";
 
@@ -20,6 +19,8 @@ import ManualPaymentData from "@models/ManualPaymentData";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import { addContactSchema } from "./schemas.json";
+
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 interface BaseAddContactSchema {
   email: string;
@@ -107,7 +108,7 @@ app.post(
           : undefined
       );
     } catch (error) {
-      if (isDuplicateIndex(error, "email")) {
+      if (error instanceof DuplicateEmailError) {
         req.flash("danger", "email-duplicate");
         res.redirect("/members/add");
         return;
