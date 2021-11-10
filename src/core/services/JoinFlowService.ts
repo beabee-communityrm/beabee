@@ -23,7 +23,6 @@ export default class JoinFlowService {
     const redirectFlow = await GCPaymentService.createRedirectFlow(
       sessionToken,
       completeUrl,
-      joinForm,
       redirectFlowParams
     );
     const joinFlow = new JoinFlow();

@@ -462,17 +462,9 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
   static async createRedirectFlow(
     sessionToken: string,
     completeUrl: string,
-    paymentForm: PaymentForm,
     redirectFlowParams = {}
   ): Promise<RedirectFlow> {
-    const actualAmount = getActualAmount(
-      paymentForm.monthlyAmount,
-      paymentForm.period
-    );
     return await gocardless.redirectFlows.create({
-      description: `Membership: ${config.currencySymbol}${actualAmount}/${
-        paymentForm.period
-      }${paymentForm.payFee ? " (+ fee)" : ""}`,
       session_token: sessionToken,
       success_redirect_url: completeUrl,
       ...redirectFlowParams
