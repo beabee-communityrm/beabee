@@ -22,6 +22,7 @@ import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import config from "@config";
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 export type PartialMember = Pick<
   Member,
@@ -112,7 +113,9 @@ export default class MembersService {
 
       return member;
     } catch (error) {
-      if (
+      if (isDuplicateIndex(error, "email")) {
+        throw new DuplicateEmailError();
+      } else if (
         isDuplicateIndex(error, "referralCode") ||
         isDuplicateIndex(error, "pollsCode")
       ) {
@@ -142,7 +145,11 @@ export default class MembersService {
     const oldEmail = updates.email && member.email;
 
     Object.assign(member, updates);
-    await getRepository(Member).update(member.id, updates);
+    try {
+      await getRepository(Member).update(member.id, updates);
+    } catch (err) {
+      throw isDuplicateIndex(err, "email") ? new DuplicateEmailError() : err;
+    }
 
     await NewsletterService.upsertMember(member, updates, oldEmail);
 
