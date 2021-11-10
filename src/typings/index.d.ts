@@ -4,8 +4,9 @@ import Member from "@models/Member";
 import { PollResponseAnswers } from "@models/PollResponse";
 
 declare global {
-  type WithRelationIds<E, K extends keyof E> = Omit<E, K> &
-    { [key in K]: string };
+  type WithRelationIds<E, K extends keyof E> = Omit<E, K> & {
+    [key in K]: string;
+  };
 
   namespace Express {
     export interface User extends Member {}
