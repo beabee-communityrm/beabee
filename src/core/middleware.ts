@@ -1,9 +1,4 @@
-import {
-  ErrorObject,
-  FormatParams,
-  RequiredParams,
-  ValidateFunction
-} from "ajv";
+import { ErrorObject, ValidateFunction } from "ajv";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { EntityTarget, FindOneOptions, getRepository } from "typeorm";
 
@@ -46,15 +41,11 @@ function convertErrorsToMessages(errors: ErrorObject[]): string[] {
       .map((error) => {
         switch (error.keyword) {
           case "required":
-            return `flash-validation-error${error.dataPath}.${
-              (error.params as RequiredParams).missingProperty
-            }-required`;
+            return `flash-validation-error${error.instancePath}.${error.params.missingProperty}-required`;
           case "format":
-            return `flash-validation-error.${
-              (error.params as FormatParams).format
-            }-format`;
+            return `flash-validation-error.${error.params.format}-format`;
           default:
-            return `flash-validation-error${error.dataPath}-${error.keyword}`;
+            return `flash-validation-error${error.instancePath}-${error.keyword}`;
         }
       })
       .map((key) => {
