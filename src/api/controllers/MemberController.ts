@@ -132,6 +132,54 @@ export class MemberController {
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: StartContributionData
   ): Promise<{ redirectUrl: string }> {
+    return await this.handleStartUpdatePaymentSource(member, data);
+  }
+
+  @OnUndefined(204)
+  @Post("/me/contribution/complete")
+  async completeStartContribution(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: CompleteJoinFlowData
+  ): Promise<void> {
+    const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
+    await GCPaymentService.updateContribution(member, joinFlow.joinForm);
+  }
+
+  @Get("/me/payment-source")
+  async getPaymentSource(
+    @CurrentUser({ required: true }) member: Member
+  ): Promise<PaymentSource | undefined> {
+    return await PaymentService.getPaymentSource(member);
+  }
+
+  @Put("/me/payment-source")
+  async updatePaymentSource(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: StartJoinFlowData
+  ): Promise<{ redirectUrl: string }> {
+    return await this.handleStartUpdatePaymentSource(member, {
+      ...data,
+      // TODO: not needed, should be optional
+      amount: 0,
+      period: ContributionPeriod.Annually,
+      monthlyAmount: 0,
+      payFee: false
+    });
+  }
+
+  @OnUndefined(204)
+  @Post("/me/payment-source/complete")
+  async completeUpdatePaymentSource(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: CompleteJoinFlowData
+  ): Promise<void> {
+    await this.handleCompleteUpdatePaymentSource(member, data);
+  }
+
+  private async handleStartUpdatePaymentSource(
+    member: Member,
+    data: StartContributionData
+  ) {
     if (!(await GCPaymentService.canChangeContribution(member, false))) {
       throw new CantUpdateContribution();
     }
@@ -148,72 +196,15 @@ export class MemberController {
       },
       member
     );
-
-    return { redirectUrl };
-  }
-
-  @OnUndefined(204)
-  @Post("/me/contribution/complete")
-  async completeStartContribution(
-    @CurrentUser({ required: true }) member: Member,
-    @Body({ required: true }) data: CompleteJoinFlowData
-  ): Promise<void> {
-    if (!(await GCPaymentService.canChangeContribution(member, false))) {
-      throw new CantUpdateContribution();
-    }
-
-    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
-    if (!joinFlow) {
-      throw new NotFoundError();
-    }
-
-    const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
-      joinFlow
-    );
-    await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
-    await GCPaymentService.updateContribution(member, joinFlow.joinForm);
-  }
-
-  @Get("/me/payment-source")
-  async getPaymentSource(
-    @CurrentUser({ required: true }) member: Member
-  ): Promise<PaymentSource | undefined> {
-    return await PaymentService.getPaymentSource(member);
-  }
-
-  @Put("/me/payment-source")
-  async updatePaymentSource(
-    @CurrentUser({ required: true }) member: Member,
-    @Body({ required: true }) data: StartJoinFlowData
-  ): Promise<{ redirectUrl: string }> {
-    if (!(await GCPaymentService.canChangeContribution(member, false))) {
-      throw new CantUpdateContribution();
-    }
-
-    const redirectUrl = await JoinFlowService.createJoinFlow(
-      data.completeUrl,
-      // TODO: this is all unnecessary, we should remove this
-      {
-        monthlyAmount: 0,
-        period: ContributionPeriod.Monthly,
-        password: await generatePassword(""),
-        email: "",
-        payFee: true,
-        prorate: false
-      },
-      member
-    );
     return {
       redirectUrl
     };
   }
 
-  @OnUndefined(204)
-  @Post("/me/payment-source/complete")
-  async completeUpdatePaymentSource(
-    @CurrentUser({ required: true }) member: Member,
-    @Body({ required: true }) data: CompleteJoinFlowData
-  ): Promise<void> {
+  private async handleCompleteUpdatePaymentSource(
+    member: Member,
+    data: CompleteJoinFlowData
+  ) {
     if (!(await GCPaymentService.canChangeContribution(member, false))) {
       throw new CantUpdateContribution();
     }
@@ -227,5 +218,7 @@ export class MemberController {
       joinFlow
     );
     await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
+
+    return joinFlow;
   }
 }
