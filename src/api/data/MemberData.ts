@@ -26,7 +26,6 @@ interface MemberProfileData {
 
 export interface GetMemberData extends MemberData {
   joined: Date;
-  contributionType: ContributionType;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
   profile: MemberProfileData;
