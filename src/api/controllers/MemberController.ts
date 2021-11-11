@@ -1,14 +1,4 @@
-import { Type } from "class-transformer";
-import {
-  IsBoolean,
-  IsDefined,
-  IsEmail,
-  IsEnum,
-  IsNumber,
-  IsString,
-  Validate,
-  ValidateNested
-} from "class-validator";
+import { IsBoolean, IsNumber } from "class-validator";
 import {
   Body,
   CurrentUser,
@@ -22,8 +12,6 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { NewsletterStatus } from "@core/providers/newsletter";
-
 import GCPaymentService from "@core/services/GCPaymentService";
 import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
@@ -32,85 +20,23 @@ import PaymentService, { PaymentSource } from "@core/services/PaymentService";
 import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
-import Address from "@models/Address";
-import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
 import config from "@config";
 
+import { GetMemberData, UpdateMemberData } from "@api/data/MemberData";
+import {
+  CompleteJoinFlowData,
+  StartJoinFlowData
+} from "@api/data/JoinFlowData";
+import {
+  ContributionData,
+  StartContributionData
+} from "@api/data/ContributionData";
+
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
-import IsUrl from "@api/validators/IsUrl";
 import { validateOrReject } from "@api/utils";
-
-import { ContributionData } from "./SignupController";
-
-interface MemberData {
-  email: string;
-  firstname: string;
-  lastname: string;
-}
-
-interface MemberProfileData {
-  deliveryOptIn: boolean;
-  deliveryAddress?: Address;
-  newsletterStatus: NewsletterStatus;
-}
-
-interface GetMemberData extends MemberData {
-  joined: Date;
-  contributionAmount?: number;
-  contributionPeriod?: ContributionPeriod;
-  contributionCurrencyCode?: string;
-  profile: MemberProfileData;
-}
-
-class UpdateAddressData implements Address {
-  @IsDefined()
-  @IsString()
-  line1!: string;
-
-  @IsString()
-  line2?: string;
-
-  @IsDefined()
-  @IsString()
-  city!: string;
-
-  @IsDefined()
-  @IsString()
-  postcode!: string;
-}
-
-class UpdateMemberProfileData implements Partial<MemberProfileData> {
-  @IsBoolean()
-  deliveryOptIn?: boolean;
-
-  @ValidateNested()
-  @Type(() => UpdateAddressData)
-  deliveryAddress?: UpdateAddressData;
-
-  @IsEnum(NewsletterStatus)
-  newsletterStatus?: NewsletterStatus;
-}
-
-class UpdateMemberData implements Partial<MemberData> {
-  @IsEmail()
-  email?: string;
-
-  @IsString()
-  firstname?: string;
-
-  @IsString()
-  lastname?: string;
-
-  @IsString()
-  password?: string;
-
-  @ValidateNested()
-  @Type(() => UpdateMemberProfileData)
-  profile?: UpdateMemberProfileData;
-}
 
 class UpdateContributionData {
   @IsNumber()
@@ -118,16 +44,9 @@ class UpdateContributionData {
 
   @IsBoolean()
   payFee!: boolean;
-}
 
-class UpsertPaymentSourceData {
-  @IsUrl()
-  completeUrl!: string;
-}
-
-class UpsertPaymentSourceCompleteData {
-  @IsString()
-  redirectFlowId!: string;
+  @IsBoolean()
+  prorate!: boolean;
 }
 
 async function memberToApiMember(member: Member): Promise<GetMemberData> {
@@ -223,7 +142,7 @@ export class MemberController {
   @Put("/me/payment-source")
   async updatePaymentSource(
     @CurrentUser({ required: true }) member: Member,
-    @Body({ required: true }) data: UpsertPaymentSourceData
+    @Body({ required: true }) data: StartJoinFlowData
   ): Promise<{ redirectUrl: string }> {
     if (!(await GCPaymentService.canChangeContribution(member, false))) {
       throw new CantUpdateContribution();
@@ -257,7 +176,7 @@ export class MemberController {
   @Post("/me/payment-source/complete")
   async completeUpdatePaymentSource(
     @CurrentUser({ required: true }) member: Member,
-    @Body({ required: true }) data: UpsertPaymentSourceCompleteData
+    @Body({ required: true }) data: CompleteJoinFlowData
   ): Promise<void> {
     if (!(await GCPaymentService.canChangeContribution(member, false))) {
       throw new CantUpdateContribution();

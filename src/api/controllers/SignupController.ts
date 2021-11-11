@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsEnum,
-  IsString,
-  Validate
-} from "class-validator";
+import { IsEmail, Validate } from "class-validator";
 import { Request } from "express";
 import {
   Body,
@@ -17,7 +11,6 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
@@ -30,39 +23,22 @@ import OptionsService from "@core/services/OptionsService";
 
 import JoinFlow from "@models/JoinFlow";
 
+import { CompleteJoinFlowData } from "@api/data/JoinFlowData";
+import { StartContributionData } from "@api/data/ContributionData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import IsPassword from "@api/validators/IsPassword";
 import IsUrl from "@api/validators/IsUrl";
-import MinContributionAmount from "@api/validators/MinContributionAmount";
-import ValidPayFee from "@api/validators/ValidPayFee";
 import { login } from "@api/utils";
 
-export class ContributionData {
-  @Validate(MinContributionAmount)
-  amount!: number;
-
-  @IsEnum(ContributionPeriod)
-  period!: ContributionPeriod;
-
-  @Validate(ValidPayFee)
-  payFee!: boolean;
-}
-
-class SignupData extends ContributionData {
+class SignupData extends StartContributionData {
   @IsEmail()
   email!: string;
 
   @Validate(IsPassword)
   password!: string;
-
-  @IsUrl()
-  completeUrl!: string;
 }
 
-class SignupCompleteData {
-  @IsString()
-  redirectFlowId!: string;
-
+class SignupCompleteData extends CompleteJoinFlowData {
   @IsUrl()
   confirmUrl!: string;
 }
