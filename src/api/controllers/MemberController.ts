@@ -104,6 +104,7 @@ export class MemberController {
     return await memberToApiMember(member);
   }
 
+  @OnUndefined(204)
   @Patch("/me/contribution")
   async updateContribution(
     @CurrentUser({ required: true }) member: Member,
