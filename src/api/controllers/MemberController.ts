@@ -62,13 +62,15 @@ async function memberToApiMember(member: Member): Promise<GetMemberData> {
       newsletterStatus: profile.newsletterStatus
     },
     joined: member.joined,
+    contributionType: member.contributionType,
     contributionPeriod: member.contributionPeriod,
     ...(member.contributionMonthlyAmount !== undefined && {
       contributionAmount:
         member.contributionMonthlyAmount *
         (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12),
       contributionCurrencyCode: config.currencyCode
-    })
+    }),
+    roles: member.permissions.filter((p) => p.isActive).map((p) => p.permission)
   };
 }
 
