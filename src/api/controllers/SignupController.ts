@@ -125,7 +125,7 @@ export class SignupController {
       member = await MembersService.createMember(partialMember, partialProfile);
     }
 
-    await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
+    await GCPaymentService.updatePaymentSource(member, customerId, mandateId);
     await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 
     await EmailService.sendTemplateToMember("welcome", member);

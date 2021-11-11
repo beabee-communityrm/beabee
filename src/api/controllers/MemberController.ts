@@ -11,9 +11,9 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import GCPaymentService from "@core/services/GCPaymentService";
 import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
+import PaymentService from "@core/services/PaymentService";
 
 import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
@@ -35,7 +35,6 @@ import {
 
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
-import PaymentService from "@core/services/PaymentService";
 
 async function memberToApiMember(member: Member): Promise<GetMemberData> {
   const profile = await getRepository(MemberProfile).findOneOrFail({ member });
@@ -114,11 +113,11 @@ export class MemberController {
     contributionData.payFee = data.payFee;
     await validateOrReject(contributionData);
 
-    if (!(await GCPaymentService.canChangeContribution(member, true))) {
+    if (!(await PaymentService.canChangeContribution(member, true))) {
       throw new CantUpdateContribution();
     }
 
-    await GCPaymentService.updateContribution(member, {
+    await PaymentService.updateContribution(member, {
       ...data,
       monthlyAmount: contributionData.monthlyAmount,
       period: contributionData.period
@@ -140,7 +139,7 @@ export class MemberController {
     @Body({ required: true }) data: CompleteJoinFlowData
   ): Promise<void> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
-    await GCPaymentService.updateContribution(member, joinFlow.joinForm);
+    await PaymentService.updateContribution(member, joinFlow.joinForm);
   }
 
   @Put("/me/payment-source")
@@ -171,7 +170,7 @@ export class MemberController {
     member: Member,
     data: StartContributionData
   ) {
-    if (!(await GCPaymentService.canChangeContribution(member, false))) {
+    if (!(await PaymentService.canChangeContribution(member, false))) {
       throw new CantUpdateContribution();
     }
 
@@ -196,7 +195,7 @@ export class MemberController {
     member: Member,
     data: CompleteJoinFlowData
   ) {
-    if (!(await GCPaymentService.canChangeContribution(member, false))) {
+    if (!(await PaymentService.canChangeContribution(member, false))) {
       throw new CantUpdateContribution();
     }
 
@@ -208,7 +207,7 @@ export class MemberController {
     const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
       joinFlow
     );
-    await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
+    await PaymentService.updatePaymentSource(member, customerId, mandateId);
 
     return joinFlow;
   }

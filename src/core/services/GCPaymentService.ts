@@ -406,7 +406,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     }
   }
 
-  static async updatePaymentMethod(
+  static async updatePaymentSource(
     member: Member,
     customerId: string,
     mandateId: string
@@ -414,7 +414,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     const gcData =
       (await GCPaymentService.getPaymentData(member)) || new GCPaymentData();
 
-    log.info("Update payment method for " + member.id, {
+    log.info("Update payment source for " + member.id, {
       userId: member.id,
       gcData,
       customerId,

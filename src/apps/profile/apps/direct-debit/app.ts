@@ -143,7 +143,7 @@ app.get(
         if (joinFlow) {
           const { customerId, mandateId } =
             await JoinFlowService.completeJoinFlow(joinFlow);
-          await GCPaymentService.updatePaymentMethod(
+          await GCPaymentService.updatePaymentSource(
             req.user,
             customerId,
             mandateId
