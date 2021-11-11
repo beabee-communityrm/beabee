@@ -1,4 +1,3 @@
-import { IsBoolean, IsNumber } from "class-validator";
 import {
   Body,
   CurrentUser,
@@ -15,7 +14,6 @@ import { getRepository } from "typeorm";
 import GCPaymentService from "@core/services/GCPaymentService";
 import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
-import PaymentService, { PaymentSource } from "@core/services/PaymentService";
 
 import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
@@ -29,23 +27,15 @@ import {
   StartJoinFlowData
 } from "@api/data/JoinFlowData";
 import {
-  ContributionData,
-  StartContributionData
+  GetContributionData,
+  SetContributionData,
+  StartContributionData,
+  UpdateContributionData
 } from "@api/data/ContributionData";
 
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
-
-class UpdateContributionData {
-  @IsNumber()
-  amount!: number;
-
-  @IsBoolean()
-  payFee!: boolean;
-
-  @IsBoolean()
-  prorate!: boolean;
-}
+import PaymentService from "@core/services/PaymentService";
 
 async function memberToApiMember(member: Member): Promise<GetMemberData> {
   const profile = await getRepository(MemberProfile).findOneOrFail({ member });
@@ -104,6 +94,13 @@ export class MemberController {
     return await memberToApiMember(member);
   }
 
+  @Get("/me/contribution")
+  async getContribution(
+    @CurrentUser({ required: true }) member: Member
+  ): Promise<GetContributionData | undefined> {
+    return await PaymentService.getContributionInfo(member);
+  }
+
   @OnUndefined(204)
   @Patch("/me/contribution")
   async updateContribution(
@@ -111,7 +108,7 @@ export class MemberController {
     @Body({ required: true }) data: UpdateContributionData
   ): Promise<void> {
     // TODO: can we move this into validators?
-    const contributionData = new ContributionData();
+    const contributionData = new SetContributionData();
     contributionData.amount = data.amount;
     contributionData.period = member.contributionPeriod!;
     contributionData.payFee = data.payFee;
@@ -144,13 +141,6 @@ export class MemberController {
   ): Promise<void> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
     await GCPaymentService.updateContribution(member, joinFlow.joinForm);
-  }
-
-  @Get("/me/payment-source")
-  async getPaymentSource(
-    @CurrentUser({ required: true }) member: Member
-  ): Promise<PaymentSource | undefined> {
-    return await PaymentService.getPaymentSource(member);
   }
 
   @Put("/me/payment-source")

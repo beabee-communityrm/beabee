@@ -1,6 +1,6 @@
-import { IsEnum, Validate } from "class-validator";
+import { IsBoolean, IsEnum, IsNumber, Validate } from "class-validator";
 
-import { ContributionPeriod } from "@core/utils";
+import { ContributionPeriod, ContributionType } from "@core/utils";
 
 import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
@@ -8,7 +8,7 @@ import ValidPayFee from "@api/validators/ValidPayFee";
 
 import { StartJoinFlowData } from "./JoinFlowData";
 
-export class ContributionData {
+export class SetContributionData {
   @Validate(MinContributionAmount)
   amount!: number;
 
@@ -26,9 +26,34 @@ export class ContributionData {
 }
 
 export class StartContributionData
-  extends ContributionData
+  extends SetContributionData
   implements StartJoinFlowData
 {
   @IsUrl()
   completeUrl!: string;
+}
+
+export class UpdateContributionData {
+  @IsNumber()
+  amount!: number;
+
+  @IsBoolean()
+  payFee!: boolean;
+
+  @IsBoolean()
+  prorate!: boolean;
+}
+
+// There will be more of these
+interface DirectDebitPaymentSource {
+  type: "direct-debit";
+  bankName: string;
+  accountHolderName: string;
+  accountNumberEnding: string;
+}
+
+export interface GetContributionData {
+  type: ContributionType;
+  isActive: boolean;
+  paymentSource?: DirectDebitPaymentSource;
 }

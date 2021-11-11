@@ -57,7 +57,7 @@ app.get(
       res.render("index", {
         user: req.user,
         hasPendingPayment: await GCPaymentService.hasPendingPayment(req.user),
-        bankAccount: await GCPaymentService.getBankAccount(req.user),
+        bankAccount: await GCPaymentService.getContributionInfo(req.user),
         canChange: await GCPaymentService.canChangeContribution(
           req.user,
           !!res.locals.gcData?.mandateId

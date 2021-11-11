@@ -13,7 +13,8 @@ import {
   ContributionPeriod,
   ContributionType,
   getActualAmount,
-  PaymentForm
+  PaymentForm,
+  ContributionInfo
 } from "@core/utils";
 
 import MembersService, {
@@ -308,25 +309,37 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     };
   }
 
-  static async getBankAccount(
+  static async getContributionInfo(
     member: Member
-  ): Promise<CustomerBankAccount | null> {
+  ): Promise<ContributionInfo | undefined> {
     const gcData = await this.getPaymentData(member);
-    if (gcData?.mandateId) {
-      try {
-        const mandate = await gocardless.mandates.get(gcData.mandateId);
-        return await gocardless.customerBankAccounts.get(
-          mandate.links.customer_bank_account
-        );
-      } catch (err: any) {
-        // 404s can happen on dev as we don't use real mandate IDs
-        if (config.dev && err.response && err.response.status === 404) {
-          return null;
+
+    if (gcData) {
+      let bankAccount;
+      if (gcData.mandateId) {
+        try {
+          const mandate = await gocardless.mandates.get(gcData.mandateId);
+          bankAccount = await gocardless.customerBankAccounts.get(
+            mandate.links.customer_bank_account
+          );
+        } catch (err: any) {
+          // 404s can happen on dev as we don't use real mandate IDs
+          if (!(config.dev && err.response && err.response.status === 404)) {
+            throw err;
+          }
         }
-        throw err;
       }
-    } else {
-      return null;
+
+      return {
+        type: ContributionType.GoCardless,
+        isActive: !gcData?.cancelledAt,
+        paymentSource: bankAccount && {
+          type: "direct-debit" as const,
+          bankName: bankAccount.bank_name,
+          accountHolderName: bankAccount.account_holder_name,
+          accountNumberEnding: bankAccount.account_number_ending
+        }
+      };
     }
   }
 
