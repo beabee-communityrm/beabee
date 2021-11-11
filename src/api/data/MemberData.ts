@@ -29,7 +29,6 @@ export interface GetMemberData extends MemberData {
   contributionType: ContributionType;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
-  contributionCurrencyCode?: string;
   profile: MemberProfileData;
   roles: PermissionType[];
 }

@@ -23,8 +23,6 @@ import { generatePassword } from "@core/utils/auth";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
-import config from "@config";
-
 import { GetMemberData, UpdateMemberData } from "@api/data/MemberData";
 import {
   CompleteJoinFlowData,
@@ -67,8 +65,7 @@ async function memberToApiMember(member: Member): Promise<GetMemberData> {
     ...(member.contributionMonthlyAmount !== undefined && {
       contributionAmount:
         member.contributionMonthlyAmount *
-        (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12),
-      contributionCurrencyCode: config.currencyCode
+        (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12)
     }),
     roles: member.permissions.filter((p) => p.isActive).map((p) => p.permission)
   };
