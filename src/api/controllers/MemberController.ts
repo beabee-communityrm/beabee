@@ -130,6 +130,53 @@ export class MemberController {
     });
   }
 
+  @Post("/me/contribution")
+  async startContribution(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: StartContributionData
+  ): Promise<{ redirectUrl: string }> {
+    if (!(await GCPaymentService.canChangeContribution(member, false))) {
+      throw new CantUpdateContribution();
+    }
+
+    const redirectUrl = await JoinFlowService.createJoinFlow(
+      data.completeUrl,
+      {
+        ...data,
+        monthlyAmount: data.monthlyAmount,
+        prorate: false,
+        // TODO: unnecessary, should be optional
+        password: await generatePassword(""),
+        email: ""
+      },
+      member
+    );
+
+    return { redirectUrl };
+  }
+
+  @OnUndefined(204)
+  @Post("/me/contribution/complete")
+  async completeStartContribution(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: CompleteJoinFlowData
+  ): Promise<void> {
+    if (!(await GCPaymentService.canChangeContribution(member, false))) {
+      throw new CantUpdateContribution();
+    }
+
+    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
+    if (!joinFlow) {
+      throw new NotFoundError();
+    }
+
+    const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
+      joinFlow
+    );
+    await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
+    await GCPaymentService.updateContribution(member, joinFlow.joinForm);
+  }
+
   @Get("/me/payment-source")
   async getPaymentSource(
     @CurrentUser({ required: true }) member: Member
