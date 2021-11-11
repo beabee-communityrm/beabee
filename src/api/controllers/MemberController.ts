@@ -110,27 +110,23 @@ export class MemberController {
   @Patch("/me/contribution")
   async updateContribution(
     @CurrentUser({ required: true }) member: Member,
-    @Body({ required: true }) _data: UpdateContributionData
+    @Body({ required: true }) data: UpdateContributionData
   ): Promise<void> {
-    // TODO: how can we move this into validators?
-    const data = new ContributionData();
-    data.amount = _data.amount;
-    data.period = member.contributionPeriod!;
-    data.payFee = _data.payFee;
-    await validateOrReject(data);
+    // TODO: can we move this into validators?
+    const contributionData = new ContributionData();
+    contributionData.amount = data.amount;
+    contributionData.period = member.contributionPeriod!;
+    contributionData.payFee = data.payFee;
+    await validateOrReject(contributionData);
 
     if (!(await GCPaymentService.canChangeContribution(member, true))) {
       throw new CantUpdateContribution();
     }
 
     await GCPaymentService.updateContribution(member, {
-      monthlyAmount:
-        member.contributionPeriod === ContributionPeriod.Monthly
-          ? data.amount
-          : data.amount / 12,
-      period: member.contributionPeriod!,
-      payFee: data.payFee,
-      prorate: false
+      ...data,
+      monthlyAmount: contributionData.monthlyAmount,
+      period: contributionData.period
     });
   }
 
