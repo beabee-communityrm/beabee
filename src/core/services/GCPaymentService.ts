@@ -10,14 +10,12 @@ import { getRepository } from "typeorm";
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
-  cleanEmailAddress,
   ContributionPeriod,
   ContributionType,
   getActualAmount,
   PaymentForm
 } from "@core/utils";
 
-import { CompletedJoinFlow } from "@core/services/JoinFlowService";
 import MembersService, {
   PartialMember,
   PartialMemberProfile
@@ -30,6 +28,8 @@ import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
 import JoinForm from "@models/JoinForm";
+
+import NoPaymentSource from "@api/errors/NoPaymentSource";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -53,7 +53,7 @@ abstract class UpdateContributionPaymentService {
     let gcData = await GCPaymentService.getPaymentData(user);
 
     if (!gcData?.mandateId) {
-      throw new Error("User does not have active payment method");
+      throw new NoPaymentSource();
     }
 
     let startNow;
