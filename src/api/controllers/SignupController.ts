@@ -53,18 +53,11 @@ export class SignupController {
       data.completeUrl,
       {
         ...data,
-        monthlyAmount:
-          data.period === ContributionPeriod.Monthly
-            ? data.amount
-            : data.amount / 12,
+        monthlyAmount: data.monthlyAmount,
         password: await generatePassword(data.password),
         prorate: false
       },
-      {
-        prefilled_customer: {
-          email: data.email
-        }
-      }
+      { email: data.email }
     );
     return {
       redirectUrl
@@ -76,9 +69,7 @@ export class SignupController {
   async completeSignup(
     @Body({ required: true }) data: SignupCompleteData
   ): Promise<void> {
-    const joinFlow = await getRepository(JoinFlow).findOne({
-      redirectFlowId: data.redirectFlowId
-    });
+    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
     }
@@ -114,9 +105,11 @@ export class SignupController {
       throw new DuplicateEmailError();
     }
 
-    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
+      joinFlow
+    );
     const { partialMember, partialProfile } =
-      await GCPaymentService.customerToMember(completedJoinFlow);
+      await GCPaymentService.customerToMember(customerId, joinFlow.joinForm);
 
     if (OptionsService.getText("newsletter-default-status") === "subscribed") {
       partialProfile.newsletterStatus = NewsletterStatus.Subscribed;
@@ -132,15 +125,8 @@ export class SignupController {
       member = await MembersService.createMember(partialMember, partialProfile);
     }
 
-    await GCPaymentService.updatePaymentMethod(
-      member,
-      completedJoinFlow.customerId,
-      completedJoinFlow.mandateId
-    );
-    await GCPaymentService.updateContribution(
-      member,
-      completedJoinFlow.joinForm
-    );
+    await GCPaymentService.updatePaymentMethod(member, customerId, mandateId);
+    await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 
     await EmailService.sendTemplateToMember("welcome", member);
 

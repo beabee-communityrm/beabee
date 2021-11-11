@@ -29,6 +29,7 @@ import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
+import JoinForm from "@models/JoinForm";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -278,18 +279,21 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-  static async customerToMember(joinFlow: CompletedJoinFlow): Promise<{
+  static async customerToMember(
+    customerId: string,
+    joinForm: JoinForm
+  ): Promise<{
     partialMember: PartialMember;
     partialProfile: PartialMemberProfile;
   }> {
-    const customer = await gocardless.customers.get(joinFlow.customerId);
+    const customer = await gocardless.customers.get(customerId);
 
     return {
       partialMember: {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
-        email: joinFlow.joinForm.email,
-        password: joinFlow.joinForm.password,
+        email: joinForm.email,
+        password: joinForm.password,
         contributionType: ContributionType.GoCardless
       },
       partialProfile: {

@@ -10,20 +10,25 @@ import JoinForm from "@models/JoinForm";
 export interface CompletedJoinFlow {
   customerId: string;
   mandateId: string;
-  joinForm: JoinForm;
 }
 
-export default class JoinFlowService {
-  static async createJoinFlow(
+class JoinFlowService {
+  async createJoinFlow(
     completeUrl: string,
     joinForm: JoinForm,
-    redirectFlowParams = {}
+    user: { email: string; firstname?: string; lastname?: string }
   ): Promise<string> {
     const sessionToken = generateCode();
     const redirectFlow = await GCPaymentService.createRedirectFlow(
       sessionToken,
       completeUrl,
-      redirectFlowParams
+      {
+        prefilled_customer: {
+          email: user.email,
+          ...(user.firstname && { given_name: user.firstname }),
+          ...(user.lastname && { family_name: user.lastname })
+        }
+      }
     );
     const joinFlow = new JoinFlow();
     joinFlow.redirectFlowId = redirectFlow.id;
@@ -35,30 +40,22 @@ export default class JoinFlowService {
     return redirectFlow.redirect_url;
   }
 
-  static async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedJoinFlow>;
-  static async completeJoinFlow(
-    redirectFlowId: string
-  ): Promise<CompletedJoinFlow | undefined>;
-  static async completeJoinFlow(
-    arg1: string | JoinFlow
-  ): Promise<CompletedJoinFlow | undefined> {
-    const joinFlow =
-      typeof arg1 === "string"
-        ? await getRepository(JoinFlow).findOne({ redirectFlowId: arg1 })
-        : arg1;
+  async getJoinFlow(redirectFlowId: string): Promise<JoinFlow | undefined> {
+    return await getRepository(JoinFlow).findOne({ redirectFlowId });
+  }
 
-    if (joinFlow) {
-      const redirectFlow = await GCPaymentService.completeRedirectFlow(
-        joinFlow.redirectFlowId,
-        joinFlow.sessionToken
-      );
-      await getRepository(JoinFlow).delete(joinFlow.id);
+  async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedJoinFlow> {
+    const redirectFlow = await GCPaymentService.completeRedirectFlow(
+      joinFlow.redirectFlowId,
+      joinFlow.sessionToken
+    );
+    await getRepository(JoinFlow).delete(joinFlow.id);
 
-      return {
-        customerId: redirectFlow.links.customer,
-        mandateId: redirectFlow.links.mandate,
-        joinForm: joinFlow.joinForm
-      };
-    }
+    return {
+      customerId: redirectFlow.links.customer,
+      mandateId: redirectFlow.links.mandate
+    };
   }
 }
+
+export default new JoinFlowService();

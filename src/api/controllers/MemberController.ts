@@ -161,13 +161,7 @@ export class MemberController {
         payFee: true,
         prorate: false
       },
-      {
-        prefilled_customer: {
-          email: member.email,
-          given_name: member.firstname,
-          family_name: member.lastname
-        }
-      }
+      member
     );
     return {
       redirectUrl
@@ -184,9 +178,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const joinFlow = await getRepository(JoinFlow).findOne({
-      redirectFlowId: data.redirectFlowId
-    });
+    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
     }
