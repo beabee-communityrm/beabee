@@ -1,11 +1,14 @@
 import config from "@config";
 import Ajv from "ajv";
+import addFormats from "ajv-formats";
 
 const ajv = new Ajv({
   allErrors: true,
   coerceTypes: true,
   $data: true
 });
+
+addFormats(ajv);
 
 ajv.addFormat("password", function (password) {
   if (!password) return false;

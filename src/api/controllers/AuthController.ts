@@ -1,4 +1,4 @@
-import { IsEmail, isUUID, Validate } from "class-validator";
+import { IsEmail, IsString, isUUID } from "class-validator";
 import { Request, Response } from "express";
 import {
   Body,
@@ -24,7 +24,6 @@ import MemberPermission, {
   PermissionTypes
 } from "@models/MemberPermission";
 
-import IsPassword from "@api/validators/IsPassword";
 import { login } from "@api/utils";
 
 import config from "@config";
@@ -33,14 +32,16 @@ class LoginData {
   @IsEmail()
   email!: string;
 
-  @Validate(IsPassword)
+  // We deliberately don't vaidate with IsPassword here so
+  // invalid passwords return a 401
+  @IsString()
   password!: string;
 }
 
-@JsonController("/login")
-export class LoginController {
+@JsonController("/auth")
+export class AuthController {
   @OnUndefined(204)
-  @Post("/")
+  @Post("/login")
   async login(
     @Req() req: Request,
     @Res() res: Response,
@@ -63,7 +64,7 @@ export class LoginController {
   }
 
   @OnUndefined(204)
-  @Get("/as/:id")
+  @Get("/login/as/:id")
   async loginAs(@Req() req: Request, @Param("id") id: string) {
     if (!config.dev) {
       throw new NotFoundError();
@@ -81,14 +82,15 @@ export class LoginController {
     }
 
     if (member) {
-      await new Promise<void>((resolve, reject) => {
-        req.login(member!, (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
+      await login(req, member);
     } else {
       throw new NotFoundError();
     }
+  }
+
+  @OnUndefined(204)
+  @Post("/logout")
+  logout(@Req() req: Request): void {
+    req.logout();
   }
 }

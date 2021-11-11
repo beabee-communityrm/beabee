@@ -102,7 +102,7 @@ interface PgError {
   detail: string;
 }
 
-export function isDuplicateIndex(error: Error, key: string): boolean {
+export function isDuplicateIndex(error: unknown, key: string): boolean {
   if (error instanceof QueryFailedError) {
     const pgError = error as unknown as PgError;
     const keyTest = new RegExp(`^Key \\("?${key}"?\\).* already exists`);
@@ -113,7 +113,7 @@ export function isDuplicateIndex(error: Error, key: string): boolean {
   return false;
 }
 
-export function isInvalidType(error: Error): boolean {
+export function isInvalidType(error: unknown): boolean {
   if (error instanceof QueryFailedError) {
     const pgError = error as unknown as PgError;
     return pgError.code === "22P02";

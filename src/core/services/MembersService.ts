@@ -22,6 +22,7 @@ import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import config from "@config";
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 export type PartialMember = Pick<
   Member,
@@ -107,12 +108,14 @@ export default class MembersService {
       await getRepository(MemberProfile).save(member.profile);
 
       if (opts?.sync) {
-        await NewsletterService.upsertMembers([member]);
+        await NewsletterService.upsertMember(member);
       }
 
       return member;
     } catch (error) {
-      if (
+      if (isDuplicateIndex(error, "email")) {
+        throw new DuplicateEmailError();
+      } else if (
         isDuplicateIndex(error, "referralCode") ||
         isDuplicateIndex(error, "pollsCode")
       ) {
@@ -135,12 +138,20 @@ export default class MembersService {
       updates
     });
 
+    if (updates.email) {
+      updates.email = cleanEmailAddress(updates.email);
+    }
+
     const oldEmail = updates.email && member.email;
 
     Object.assign(member, updates);
-    await getRepository(Member).update(member.id, updates);
+    try {
+      await getRepository(Member).update(member.id, updates);
+    } catch (err) {
+      throw isDuplicateIndex(err, "email") ? new DuplicateEmailError() : err;
+    }
 
-    await NewsletterService.updateMemberIfNeeded(member, updates, oldEmail);
+    await NewsletterService.upsertMember(member, updates, oldEmail);
 
     // TODO: This should be in GCPaymentService
     if (updates.email || updates.firstname || updates.lastname) {
@@ -250,12 +261,7 @@ export default class MembersService {
     }
 
     if (opts?.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
-      if (!member.profile) {
-        member.profile = await getRepository(MemberProfile).findOneOrFail({
-          member
-        });
-      }
-      await NewsletterService.upsertMembers([member]);
+      await NewsletterService.upsertMember(member);
     }
   }
 

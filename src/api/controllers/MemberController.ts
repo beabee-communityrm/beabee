@@ -22,7 +22,7 @@ import { NewsletterStatus } from "@core/providers/newsletter";
 
 import MembersService from "@core/services/MembersService";
 
-import { ContributionPeriod, isDuplicateIndex } from "@core/utils";
+import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import Address from "@models/Address";
@@ -136,32 +136,15 @@ export class MemberController {
     @Body({ required: true, validate: { skipMissingProperties: true } })
     data: UpdateMemberData
   ): Promise<GetMemberData> {
-    try {
-      if (data.email || data.firstname || data.lastname || data.password) {
-        await MembersService.updateMember(member, {
-          ...(data.email && { email: data.email }),
-          ...(data.firstname && { firstname: data.firstname }),
-          ...(data.lastname && { lastname: data.lastname }),
-          ...(data.password && {
-            password: await generatePassword(data.password)
-          })
-        });
-      }
-    } catch (error: any) {
-      if (isDuplicateIndex(error, "email")) {
-        const duplicateEmailError: any = new BadRequestError();
-        duplicateEmailError.errors = [
-          {
-            property: "email",
-            constraints: {
-              "duplicate-email": "Email address already in use"
-            }
-          }
-        ] as ValidationError[];
-        throw duplicateEmailError;
-      } else {
-        throw error;
-      }
+    if (data.email || data.firstname || data.lastname || data.password) {
+      await MembersService.updateMember(member, {
+        ...(data.email && { email: data.email }),
+        ...(data.firstname && { firstname: data.firstname }),
+        ...(data.lastname && { lastname: data.lastname }),
+        ...(data.password && {
+          password: await generatePassword(data.password)
+        })
+      });
     }
 
     if (data.profile) {
