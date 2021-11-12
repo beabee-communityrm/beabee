@@ -1,7 +1,7 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { getRepository } from "typeorm";
 
-import { hasSchema, isSuperAdmin } from "@core/middleware";
+import { hasSchema } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
@@ -19,11 +19,22 @@ interface CreatePermissionSchema {
   expiryTime?: string;
 }
 
+function hasPermission(member: Member, permission: PermissionType) {
+  return permission !== "superadmin" || member.hasPermission("superadmin");
+}
+
+function canUpdatePermission(req: Request, res: Response, next: NextFunction) {
+  if (hasPermission(req.user!, req.params.id as PermissionType)) {
+    next();
+  } else {
+    req.flash("danger", "403");
+    res.redirect(req.originalUrl);
+  }
+}
+
 const app = express();
 
 app.set("views", __dirname + "/views");
-
-app.use(isSuperAdmin);
 
 app.get(
   "/",
@@ -39,6 +50,11 @@ app.post(
     const { permission, startTime, startDate, expiryDate, expiryTime } =
       req.body as CreatePermissionSchema;
     const member = req.model as Member;
+
+    if (!hasPermission(req.user!, permission)) {
+      req.flash("danger", "403");
+      return res.redirect(req.originalUrl);
+    }
 
     const dupe = member.permissions.find((p) => p.permission === permission);
     if (dupe) {
@@ -67,6 +83,7 @@ app.post(
 
 app.get(
   "/:id/modify",
+  canUpdatePermission,
   wrapAsync(async (req, res) => {
     const member = req.model as Member;
 
@@ -84,6 +101,7 @@ app.get(
 
 app.post(
   "/:id/modify",
+  canUpdatePermission,
   hasSchema(updatePermissionSchema).orFlash,
   wrapAsync(async (req, res) => {
     const {
@@ -113,6 +131,7 @@ app.post(
 
 app.post(
   "/:id/revoke",
+  canUpdatePermission,
   wrapAsync(async (req, res) => {
     await MembersService.revokeMemberPermission(
       req.model as Member,

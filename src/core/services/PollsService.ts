@@ -81,7 +81,7 @@ export default class PollsService {
 
     if (poll.mcMergeField && poll.pollMergeField) {
       await NewsletterService.updateMemberFields(member, {
-        [poll.mcMergeField]: answers[poll.pollMergeField].toString()
+        [poll.mcMergeField]: answers[poll.pollMergeField]?.toString() || ""
       });
     }
   }

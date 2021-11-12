@@ -1,5 +1,5 @@
 {
   "title": "Content",
   "path": "content",
-  "permissions": ["superadmin"]
+  "permissions": ["admin"]
 }

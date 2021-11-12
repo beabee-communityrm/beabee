@@ -31,10 +31,6 @@ export type PartialMember = Pick<
   Partial<Member>;
 export type PartialMemberProfile = Partial<MemberProfile>;
 
-interface CreateMemberOpts {
-  sync?: boolean;
-}
-
 const log = mainLogger.child({ app: "members-service" });
 
 export default class MembersService {
@@ -86,7 +82,7 @@ export default class MembersService {
   static async createMember(
     partialMember: PartialMember,
     partialProfile: PartialMemberProfile = {},
-    opts: CreateMemberOpts = { sync: true }
+    opts = { sync: true }
   ): Promise<Member> {
     log.info("Create member", { partialMember, partialProfile });
 
@@ -107,7 +103,7 @@ export default class MembersService {
       });
       await getRepository(MemberProfile).save(member.profile);
 
-      if (opts?.sync) {
+      if (opts.sync) {
         await NewsletterService.upsertMember(member);
       }
 
@@ -131,7 +127,8 @@ export default class MembersService {
 
   static async updateMember(
     member: Member,
-    updates: Partial<Member>
+    updates: Partial<Member>,
+    opts = { sync: true }
   ): Promise<void> {
     log.info("Update member " + member.id, {
       memberId: member.id,
@@ -151,7 +148,9 @@ export default class MembersService {
       throw isDuplicateIndex(err, "email") ? new DuplicateEmailError() : err;
     }
 
-    await NewsletterService.upsertMember(member, updates, oldEmail);
+    if (opts.sync) {
+      await NewsletterService.upsertMember(member, updates, oldEmail);
+    }
 
     // TODO: This should be in GCPaymentService
     if (updates.email || updates.firstname || updates.lastname) {
@@ -251,7 +250,7 @@ export default class MembersService {
   static async updateMemberProfile(
     member: Member,
     updates: Partial<MemberProfile>,
-    opts: CreateMemberOpts = { sync: true }
+    opts = { sync: true }
   ): Promise<void> {
     log.info("Update member profile for " + member.id);
     await getRepository(MemberProfile).update(member.id, updates);
@@ -260,7 +259,7 @@ export default class MembersService {
       Object.assign(member.profile, updates);
     }
 
-    if (opts?.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
+    if (opts.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       await NewsletterService.upsertMember(member);
     }
   }
