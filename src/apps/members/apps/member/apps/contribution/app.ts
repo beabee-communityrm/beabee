@@ -1,7 +1,6 @@
 import express from "express";
 import { getRepository } from "typeorm";
 
-import { isSuperAdmin } from "@core/middleware";
 import { ContributionType, wrapAsync } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
@@ -15,8 +14,6 @@ import Member from "@models/Member";
 const app = express();
 
 app.set("views", __dirname + "/views");
-
-app.use(isSuperAdmin);
 
 app.get(
   "/",

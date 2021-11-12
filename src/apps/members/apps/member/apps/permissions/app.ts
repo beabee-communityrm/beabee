@@ -1,7 +1,7 @@
 import express from "express";
 import { getRepository } from "typeorm";
 
-import { hasSchema, isSuperAdmin } from "@core/middleware";
+import { hasSchema } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
@@ -22,8 +22,6 @@ interface CreatePermissionSchema {
 const app = express();
 
 app.set("views", __dirname + "/views");
-
-app.use(isSuperAdmin);
 
 app.get(
   "/",
