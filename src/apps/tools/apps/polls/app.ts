@@ -7,7 +7,7 @@ import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
 import Poll, { PollAccess, PollTemplate } from "@models/Poll";
-import PollResponse from "@models/PollResponse";
+import PollResponse, { PollResponseAnswers } from "@models/PollResponse";
 
 import { createPollSchema } from "./schemas.json";
 
@@ -204,9 +204,9 @@ interface ComponentSchema {
   components?: ComponentSchema[];
 }
 
-function convertAnswers(
+export function convertAnswers(
   poll: Poll,
-  answers: Record<string, unknown>
+  answers: PollResponseAnswers
 ): Record<string, unknown> {
   if (poll.template !== "builder") {
     return answers;
