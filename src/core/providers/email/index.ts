@@ -9,7 +9,7 @@ export type EmailMergeFields = Record<string, string>;
 
 export interface EmailPerson {
   email: string;
-  name: string;
+  name?: string;
 }
 
 export interface EmailRecipient {

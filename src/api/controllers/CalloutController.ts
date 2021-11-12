@@ -4,9 +4,10 @@ import {
   Authorized,
   Get,
   JsonController,
+  Param,
   QueryParams
 } from "routing-controllers";
-import { Brackets, createQueryBuilder } from "typeorm";
+import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
@@ -30,7 +31,7 @@ class GetCalloutsQuery {
   title?: string;
 }
 
-interface GetCalloutData {
+interface BasicCalloutData {
   slug: string;
   title: string;
   excerpt: string;
@@ -39,7 +40,11 @@ interface GetCalloutData {
   expires?: Date;
 }
 
-function pollToApiCallout(poll: Poll): GetCalloutData {
+interface MoreCalloutData extends BasicCalloutData {
+  templateSchema?: Record<string, unknown>;
+}
+
+function pollToBasicCallout(poll: Poll): BasicCalloutData {
   return {
     slug: poll.slug,
     title: poll.title,
@@ -56,7 +61,7 @@ export class CalloutController {
   @Get("/")
   async getCallouts(
     @QueryParams() query: GetCalloutsQuery
-  ): Promise<GetCalloutData[]> {
+  ): Promise<BasicCalloutData[]> {
     const qb = createQueryBuilder(Poll, "poll").where("poll.hidden = FALSE");
 
     if (query.status === Status.Open) {
@@ -96,6 +101,19 @@ export class CalloutController {
     const polls = await qb
       .setParameters({ now: moment.utc().toDate() })
       .getMany();
-    return polls.map(pollToApiCallout);
+    return polls.map(pollToBasicCallout);
+  }
+
+  @Get("/:id")
+  async getCallout(
+    @Param("id") id: string
+  ): Promise<MoreCalloutData | undefined> {
+    const poll = await getRepository(Poll).findOne(id);
+    if (poll) {
+      return {
+        ...pollToBasicCallout(poll),
+        templateSchema: poll.templateSchema
+      };
+    }
   }
 }
