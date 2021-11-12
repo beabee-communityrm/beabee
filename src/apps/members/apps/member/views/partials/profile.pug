@@ -64,23 +64,22 @@ script(type='text/template').js-edit-member-tag-template
 		else
 			p Contact has no roles
 
-	if access('superadmin')
-		.col-md-6
-			h4 Delivery details
-			dl.dl-horizontal
-				dt Opt in?
-				dd= member.profile.deliveryOptIn ? 'Yes' : 'No'
-				if member.profile.deliveryOptIn
-					dt Address
-					dd
-						=  member.profile.deliveryAddress.line1
+	.col-md-6
+		h4 Delivery details
+		dl.dl-horizontal
+			dt Opt in?
+			dd= member.profile.deliveryOptIn ? 'Yes' : 'No'
+			if member.profile.deliveryOptIn
+				dt Address
+				dd
+					=  member.profile.deliveryAddress.line1
+					br
+					if member.profile.deliveryAddress.line2
+						= member.profile.deliveryAddress.line2
 						br
-						if member.profile.deliveryAddress.line2
-							= member.profile.deliveryAddress.line2
-							br
-						= member.profile.deliveryAddress.city
-						br
-						= member.profile.deliveryAddress.postcode
+					= member.profile.deliveryAddress.city
+					br
+					= member.profile.deliveryAddress.postcode
 
 	.col-md-6
 		h4 Newsletter status

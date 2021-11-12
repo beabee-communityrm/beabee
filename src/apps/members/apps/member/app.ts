@@ -3,7 +3,7 @@ import moment from "moment";
 
 import config from "@config";
 
-import { isAdmin, isSuperAdmin } from "@core/middleware";
+import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 import { canSuperAdmin, generateCode } from "@core/utils/auth";
 
@@ -128,16 +128,11 @@ app.post(
   })
 );
 
-const adminApp = express.Router({ mergeParams: true });
-app.use(adminApp);
-
-adminApp.use(isSuperAdmin);
-
-adminApp.get("/2fa", (req, res) => {
+app.get("/2fa", (req, res) => {
   res.render("2fa", { member: req.model });
 });
 
-adminApp.post(
+app.post(
   "/2fa",
   wrapAsync(async (req, res) => {
     await MembersService.updateMember(req.model as Member, {
