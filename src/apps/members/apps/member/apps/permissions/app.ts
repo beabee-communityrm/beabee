@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { getRepository } from "typeorm";
 
 import { hasSchema } from "@core/middleware";
@@ -19,6 +19,14 @@ interface CreatePermissionSchema {
   expiryTime?: string;
 }
 
+function canUpdatePermission(req: Request, res: Response, next: NextFunction) {
+  if (req.user?.hasPermission(req.params.id as PermissionType)) {
+    next();
+  } else {
+    next("route");
+  }
+}
+
 const app = express();
 
 app.set("views", __dirname + "/views");
@@ -33,10 +41,14 @@ app.get(
 app.post(
   "/",
   hasSchema(createPermissionSchema).orFlash,
-  wrapAsync(async (req, res) => {
+  wrapAsync(async (req, res, next) => {
     const { permission, startTime, startDate, expiryDate, expiryTime } =
       req.body as CreatePermissionSchema;
     const member = req.model as Member;
+
+    if (!member.hasPermission(permission)) {
+      return next("route");
+    }
 
     const dupe = member.permissions.find((p) => p.permission === permission);
     if (dupe) {
@@ -65,6 +77,7 @@ app.post(
 
 app.get(
   "/:id/modify",
+  canUpdatePermission,
   wrapAsync(async (req, res) => {
     const member = req.model as Member;
 
@@ -82,6 +95,7 @@ app.get(
 
 app.post(
   "/:id/modify",
+  canUpdatePermission,
   hasSchema(updatePermissionSchema).orFlash,
   wrapAsync(async (req, res) => {
     const {
@@ -111,6 +125,7 @@ app.post(
 
 app.post(
   "/:id/revoke",
+  canUpdatePermission,
   wrapAsync(async (req, res) => {
     await MembersService.revokeMemberPermission(
       req.model as Member,
