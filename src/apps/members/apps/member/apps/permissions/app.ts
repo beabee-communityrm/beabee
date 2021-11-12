@@ -19,11 +19,16 @@ interface CreatePermissionSchema {
   expiryTime?: string;
 }
 
+function hasPermission(member: Member, permission: PermissionType) {
+  return permission !== "superadmin" || member.hasPermission("superadmin");
+}
+
 function canUpdatePermission(req: Request, res: Response, next: NextFunction) {
-  if (req.user?.hasPermission(req.params.id as PermissionType)) {
+  if (hasPermission(req.user!, req.params.id as PermissionType)) {
     next();
   } else {
-    next("route");
+    req.flash("danger", "403");
+    res.redirect(req.originalUrl);
   }
 }
 
@@ -41,13 +46,14 @@ app.get(
 app.post(
   "/",
   hasSchema(createPermissionSchema).orFlash,
-  wrapAsync(async (req, res, next) => {
+  wrapAsync(async (req, res) => {
     const { permission, startTime, startDate, expiryDate, expiryTime } =
       req.body as CreatePermissionSchema;
     const member = req.model as Member;
 
-    if (!member.hasPermission(permission)) {
-      return next("route");
+    if (!hasPermission(req.user!, permission)) {
+      req.flash("danger", "403");
+      return res.redirect(req.originalUrl);
     }
 
     const dupe = member.permissions.find((p) => p.permission === permission);
