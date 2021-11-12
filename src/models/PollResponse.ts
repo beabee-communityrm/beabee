@@ -12,7 +12,7 @@ import type Poll from "./Poll";
 
 export type PollResponseAnswers = Record<
   string,
-  string | boolean | number | undefined
+  string | boolean | number | undefined | Record<string, boolean>
 >;
 
 @Entity()

@@ -198,10 +198,19 @@ interface ComponentSchema {
   key: string;
   label?: string;
   input?: boolean;
-  data?: {
-    values: { label: string; value: string }[];
-  };
+  values?: { label: string; value: string }[];
   components?: ComponentSchema[];
+}
+
+function flattenComponents(components: ComponentSchema[]): ComponentSchema[] {
+  return components.flatMap((component) => [
+    component,
+    ...flattenComponents(component.components || [])
+  ]);
+}
+
+function getNiceAnswer(component: ComponentSchema, value: string) {
+  return component.values?.find((v) => v.value === value)?.label || value;
 }
 
 export function convertAnswers(
@@ -215,16 +224,26 @@ export function convertAnswers(
   const formSchema = poll.templateSchema.formSchema as {
     components: ComponentSchema[];
   };
+
   return Object.assign(
     {},
-    ...formSchema.components
-      .flatMap((component) => [component, ...(component.components || [])])
+    ...flattenComponents(formSchema.components)
       .filter((component) => component.input)
       .map((component) => {
         const rawAnswer = answers[component.key];
-        const answer =
-          component.data?.values.find((v) => v.value === rawAnswer)?.label ||
-          rawAnswer;
+        let answer: string;
+        // Use for multiselect (e.g. selectboxes)
+        if (typeof rawAnswer === "object") {
+          answer = Object.entries(rawAnswer)
+            .filter(([value, selected]) => selected)
+            .map(([value]) => getNiceAnswer(component, value))
+            .join(", ");
+        } else if (typeof rawAnswer === "string") {
+          answer = getNiceAnswer(component, rawAnswer);
+        } else {
+          answer = rawAnswer?.toString() || "";
+        }
+
         return {
           [component.label || component.key]: answer
         };
