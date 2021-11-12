@@ -10,7 +10,7 @@ span.list-group-item( class=( permission.dateAdded > moment() || permission.date
 
 		else
 			|  onwards
-	if access( 'admin' )
+	if access(permission.permission)
 		span( style="position: absolute; top: 1em; right: 1em;" )
 			a( href="/members/" + member.id + "/permissions/" + permission.permission + "/modify", style="margin-right: 1em;" )
 				span.glyphicon.glyphicon-pencil
