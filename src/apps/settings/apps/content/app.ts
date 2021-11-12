@@ -1,7 +1,7 @@
 import express from "express";
 import { getRepository } from "typeorm";
 
-import { isSuperAdmin } from "@core/middleware";
+import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
 import Content from "@models/Content";
@@ -10,7 +10,7 @@ const app = express();
 
 app.set("views", __dirname + "/views");
 
-app.use(isSuperAdmin);
+app.use(isAdmin);
 
 type ContentId = "join" | "join/setup" | "profile";
 
