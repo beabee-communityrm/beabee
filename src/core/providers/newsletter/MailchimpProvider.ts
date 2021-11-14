@@ -165,6 +165,11 @@ function validateOperationStatus(statusCode: number, operationId: string) {
   );
 }
 
+// Temporary solution for users without a valid email
+function validEmail(email: string) {
+  return !email.endsWith("example.com");
+}
+
 export default class MailchimpProvider implements NewsletterProvider {
   private readonly instance;
   private readonly listId;
@@ -175,7 +180,7 @@ export default class MailchimpProvider implements NewsletterProvider {
   }
 
   async addTagToMembers(emails: string[], tag: string): Promise<void> {
-    const operations: Operation[] = emails.map((email) => ({
+    const operations: Operation[] = emails.filter(validEmail).map((email) => ({
       path: this.emailUrl(email) + "/tags",
       method: "POST",
       body: JSON.stringify({
@@ -187,7 +192,7 @@ export default class MailchimpProvider implements NewsletterProvider {
   }
 
   async removeTagFromMembers(emails: string[], tag: string): Promise<void> {
-    const operations: Operation[] = emails.map((email) => ({
+    const operations: Operation[] = emails.filter(validEmail).map((email) => ({
       path: this.emailUrl(email) + "/tags",
       method: "POST",
       body: JSON.stringify({
@@ -225,25 +230,32 @@ export default class MailchimpProvider implements NewsletterProvider {
     member: UpdateNewsletterMember,
     oldEmail = member.email
   ): Promise<void> {
-    await this.instance.put(this.emailUrl(oldEmail), memberToMCMember(member));
+    if (validEmail(oldEmail)) {
+      await this.instance.put(
+        this.emailUrl(oldEmail),
+        memberToMCMember(member)
+      );
+    }
   }
 
   async upsertMembers(members: UpdateNewsletterMember[]): Promise<void> {
-    const operations: Operation[] = members.map((member) => {
-      const mcMember = memberToMCMember(member);
-      return {
-        path: this.emailUrl(member.email),
-        method: "PUT",
-        body: JSON.stringify({ ...mcMember, status_if_new: mcMember.status }),
-        operation_id: `update_${member.email}`
-      };
-    });
+    const operations: Operation[] = members
+      .filter((m) => validEmail(m.email))
+      .map((member) => {
+        const mcMember = memberToMCMember(member);
+        return {
+          path: this.emailUrl(member.email),
+          method: "PUT",
+          body: JSON.stringify({ ...mcMember, status_if_new: mcMember.status }),
+          operation_id: `update_${member.email}`
+        };
+      });
 
     await this.dispatchOperations(operations);
   }
 
   async archiveMembers(emails: string[]): Promise<void> {
-    const operations: Operation[] = emails.map((email) => ({
+    const operations: Operation[] = emails.filter(validEmail).map((email) => ({
       path: this.emailUrl(email),
       method: "DELETE",
       operation_id: `delete_${email}`
@@ -252,7 +264,7 @@ export default class MailchimpProvider implements NewsletterProvider {
   }
 
   async deleteMembers(emails: string[]): Promise<void> {
-    const operations: Operation[] = emails.map((email) => ({
+    const operations: Operation[] = emails.filter(validEmail).map((email) => ({
       path: this.emailUrl(email) + "/actions/permanently-delete",
       method: "POST",
       operation_id: `delete-permanently_${email}`
