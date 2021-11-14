@@ -18,10 +18,9 @@ block contents
 								include /views/partials/permission.pug
 						else
 							p This member has no permissions.
-			if access('superadmin')
-				hr
-				.row
-					.col-md-5
-						h4 Add role
-						- action = 'Add'
-						include partials/permission-form.pug
+			hr
+			.row
+				.col-md-5
+					h4 Add role
+					- action = 'Add'
+					include partials/permission-form.pug

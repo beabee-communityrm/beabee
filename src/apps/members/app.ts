@@ -22,6 +22,32 @@ function getAvailableTags() {
   return Promise.resolve(OptionsService.getList("available-tags"));
 }
 
+type SortOption = {
+  label: string;
+  order: readonly string[];
+};
+
+const sortOptions: Record<string, SortOption> = {
+  lf: {
+    label: "Last name, first name",
+    order: ["lastname_n", "firstname_n", "email"]
+  },
+  fl: {
+    label: "First name, last name",
+    order: ["firstname_n", "lastname_n", "email"]
+  },
+  e: {
+    label: "Email",
+    order: ["email", "lastname_n", "firstname_n"]
+  },
+  j: {
+    label: "Joined",
+    order: ["joined", "lastname_n", "firstname_n"]
+  }
+} as const;
+
+type SortKey = keyof typeof sortOptions;
+
 function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
   const search: RuleGroup = {
     condition: "AND",
@@ -84,8 +110,20 @@ app.get(
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 50;
 
+    const sort = (query.sort as string) || "lf_ASC";
+    const [sortId, sortDir] = sort.split("_");
+
+    const orderBy = Object.assign(
+      {},
+      ...sortOptions[sortId as SortKey].order.map((col) => ({
+        [col]: sortDir
+      }))
+    );
+
     const [members, total] = await buildQuery(searchRuleGroup)
-      .orderBy("NULLIF(lastname, '') ASC, NULLIF(firstname, ''), email")
+      .addSelect("NULLIF(lastname, '')", "lastname_n")
+      .addSelect("NULLIF(firstname, '')", "firstname_n")
+      .orderBy(orderBy)
       .offset(limit * (page - 1))
       .limit(limit)
       .getManyAndCount();
@@ -120,6 +158,7 @@ app.get(
       searchQuery: query,
       searchType,
       searchRuleGroup,
+      sortOptions,
       totalMembers,
       segments,
       activeSegment,

@@ -45,13 +45,8 @@ export default (appConfigs: AppConfig[]) =>
 
     // Permissions
     res.locals.isLoggedIn = !!req.user;
-    res.locals.access = function (permission: PermissionType) {
-      if (!req.user) return false;
-      return (
-        req.user.quickPermissions.indexOf("superadmin") > -1 ||
-        req.user.quickPermissions.indexOf(permission) > -1
-      );
-    };
+    res.locals.access = (permission: PermissionType) =>
+      req.user?.hasPermission(permission);
 
     // Prepare a CSRF token if available
     if (req.csrfToken) res.locals.csrf = req.csrfToken();

@@ -69,23 +69,26 @@ block contents
 
 			hr
 
-			h4 Manual update
-			.alert.alert-danger.
-				This could result in payments being taken but not recorded if done incorrectly,
-				proceed with caution
+			if access('superadmin')
+				h4 Manual update
+				.alert.alert-danger.
+					This could result in payments being taken but not recorded if done incorrectly,
+					proceed with caution
 
-			form( method="post" ).form-horizontal
-				+csrf
-				input( type='hidden' name='action' value='force-update' )
-				include ./partials/fields.pug
+				form( method="post" ).form-horizontal
+					+csrf
+					input( type='hidden' name='action' value='force-update' )
+					include ./partials/fields.pug
 
-				.form-group: .col-md-offset-3.col-md-9
-					.checkbox
-						label
-							input(type='checkbox' required)
-							| I confirm I understand the risks in updating this data
+					.form-group: .col-md-offset-3.col-md-9
+						.checkbox
+							label
+								input(type='checkbox' required)
+								| I confirm I understand the risks in updating this data
 
-				+form_button( 'Update', 'danger', { left: 3 } )
+					+form_button( 'Update', 'danger', { left: 3 } )
+
+				hr
 
 			h4 Payments
 			if payments.length > 0

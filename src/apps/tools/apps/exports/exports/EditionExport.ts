@@ -4,7 +4,6 @@ import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
 import { ContributionType } from "@core/utils";
 import { Param } from "@core/utils/params";
 
-import ExportItem from "@models/ExportItem";
 import Member from "@models/Member";
 
 import { ExportResult } from "./BaseExport";
@@ -57,30 +56,6 @@ export default class EditionExport extends ActiveMembersExport {
   }
 
   async getExport(members: Member[]): Promise<ExportResult> {
-    const editionExportItems = (await createQueryBuilder(ExportItem, "ei")
-      .innerJoin("ei.export", "e")
-      .where("e.type = 'edition'")
-      .orderBy("e.date", "ASC")
-      .loadAllRelationIds()
-      .getMany()) as unknown as WithRelationIds<ExportItem, "export">[];
-
-    // Get list of edition export IDs
-    const editionExportIdsByDate = editionExportItems
-      .filter((ei, i, arr) => arr.indexOf(ei) === i)
-      .map((ei) => ei.export);
-
-    function getExportNo(id: string) {
-      const i = editionExportIdsByDate.indexOf(id);
-      return i > -1 ? i : editionExportIdsByDate.length;
-    }
-
-    const currentExportNo = getExportNo(this.ex!.id);
-
-    const editionExportItemsByMemberId = _.groupBy(
-      editionExportItems,
-      "itemId"
-    );
-
     return members.map((member) => {
       const deliveryAddress = member.profile.deliveryAddress || {
         line1: "",
@@ -88,7 +63,6 @@ export default class EditionExport extends ActiveMembersExport {
         city: "",
         postcode: ""
       };
-      const memberExportItems = editionExportItemsByMemberId[member.id] || [];
 
       return {
         EmailAddress: member.email,
@@ -100,9 +74,6 @@ export default class EditionExport extends ActiveMembersExport {
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
         ReferralCode: member.referralCode,
         IsGift: member.contributionType === ContributionType.Gift,
-        IsFirstEdition: memberExportItems.every(
-          (ei) => getExportNo(ei.export) >= currentExportNo
-        ),
         //NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
         ContributionMonthlyAmount: member.contributionMonthlyAmount
       };
