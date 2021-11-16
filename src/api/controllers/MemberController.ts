@@ -15,7 +15,7 @@ import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
-import { ContributionPeriod } from "@core/utils";
+import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import Member from "@models/Member";
@@ -27,7 +27,6 @@ import {
   StartJoinFlowData
 } from "@api/data/JoinFlowData";
 import {
-  GetContributionData,
   SetContributionData,
   StartContributionData,
   UpdateContributionData
@@ -91,7 +90,7 @@ export class MemberController {
   @Get("/me/contribution")
   async getContribution(
     @CurrentUser({ required: true }) member: Member
-  ): Promise<GetContributionData | undefined> {
+  ): Promise<ContributionInfo | undefined> {
     return await PaymentService.getContributionInfo(member);
   }
 

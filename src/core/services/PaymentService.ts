@@ -45,6 +45,8 @@ class PaymentService {
         return await GCPaymentService.getContributionInfo(member);
       case ContributionType.Manual:
         return {
+          amount: member.contributionAmount,
+          period: member.contributionPeriod,
           type: ContributionType.Manual,
           isActive: true
         };

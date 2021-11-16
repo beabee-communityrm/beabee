@@ -4,7 +4,11 @@ import { QueryFailedError } from "typeorm";
 
 export interface ContributionInfo {
   type: ContributionType;
+  amount?: number;
+  period?: ContributionPeriod;
   isActive: boolean;
+  expiryDate?: Date;
+  cancellationDate?: Date;
   paymentSource?: PaymentSource;
 }
 

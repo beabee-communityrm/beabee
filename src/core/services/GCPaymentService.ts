@@ -332,7 +332,11 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
       return {
         type: ContributionType.GoCardless,
-        isActive: !gcData?.cancelledAt,
+        amount: member.contributionAmount,
+        period: member.contributionPeriod,
+        isActive: !gcData.cancelledAt,
+        expiryDate: gcData.cancelledAt && member.membershipExpires,
+        cancellationDate: gcData.cancelledAt,
         paymentSource: bankAccount && {
           type: "direct-debit" as const,
           bankName: bankAccount.bank_name,

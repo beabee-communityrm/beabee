@@ -43,17 +43,3 @@ export class UpdateContributionData {
   @IsBoolean()
   prorate!: boolean;
 }
-
-// There will be more of these
-interface DirectDebitPaymentSource {
-  type: "direct-debit";
-  bankName: string;
-  accountHolderName: string;
-  accountNumberEnding: string;
-}
-
-export interface GetContributionData {
-  type: ContributionType;
-  isActive: boolean;
-  paymentSource?: DirectDebitPaymentSource;
-}
