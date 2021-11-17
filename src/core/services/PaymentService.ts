@@ -59,7 +59,7 @@ class PaymentService {
   ): Promise<void> {
     switch (member.contributionType) {
       case ContributionType.GoCardless:
-        await GCPaymentService.updateContribution(member, paymentForm);
+        return await GCPaymentService.updateContribution(member, paymentForm);
       default:
         throw new Error("Not implemented");
     }
@@ -72,7 +72,7 @@ class PaymentService {
   ): Promise<void> {
     switch (member.contributionType) {
       case ContributionType.GoCardless:
-        await GCPaymentService.updatePaymentSource(
+        return await GCPaymentService.updatePaymentSource(
           member,
           customerId,
           mandateId
