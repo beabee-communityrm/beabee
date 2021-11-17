@@ -94,12 +94,11 @@ export class MemberController {
     return await PaymentService.getContributionInfo(member);
   }
 
-  @OnUndefined(204)
   @Patch("/me/contribution")
   async updateContribution(
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: UpdateContributionData
-  ): Promise<void> {
+  ): Promise<ContributionInfo | undefined> {
     // TODO: can we move this into validators?
     const contributionData = new SetContributionData();
     contributionData.amount = data.amount;
@@ -116,6 +115,8 @@ export class MemberController {
       monthlyAmount: contributionData.monthlyAmount,
       period: contributionData.period
     });
+
+    return await PaymentService.getContributionInfo(member);
   }
 
   @Post("/me/contribution")
@@ -126,14 +127,14 @@ export class MemberController {
     return await this.handleStartUpdatePaymentSource(member, data);
   }
 
-  @OnUndefined(204)
   @Post("/me/contribution/complete")
   async completeStartContribution(
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: CompleteJoinFlowData
-  ): Promise<void> {
+  ): Promise<ContributionInfo | undefined> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
     await PaymentService.updateContribution(member, joinFlow.joinForm);
+    return await PaymentService.getContributionInfo(member);
   }
 
   @Put("/me/payment-source")
@@ -151,13 +152,13 @@ export class MemberController {
     });
   }
 
-  @OnUndefined(204)
   @Post("/me/payment-source/complete")
   async completeUpdatePaymentSource(
     @CurrentUser({ required: true }) member: Member,
     @Body({ required: true }) data: CompleteJoinFlowData
-  ): Promise<void> {
+  ): Promise<ContributionInfo | undefined> {
     await this.handleCompleteUpdatePaymentSource(member, data);
+    return await PaymentService.getContributionInfo(member);
   }
 
   private async handleStartUpdatePaymentSource(
