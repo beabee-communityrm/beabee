@@ -46,7 +46,7 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
     // Just used for validation (email and password are in passport strategy)
-    @Body({ required: true }) data: LoginData
+    @Body() data: LoginData
   ): Promise<void> {
     await new Promise<Member>((resolve, reject) => {
       passport.authenticate("local", (err, user, info) => {

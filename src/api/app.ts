@@ -61,6 +61,11 @@ db.connect().then(() => {
         value: false
       }
     },
+    defaults: {
+      paramOptions: {
+        required: true
+      }
+    },
     defaultErrorHandler: false
   });
 
