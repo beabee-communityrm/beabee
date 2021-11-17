@@ -286,14 +286,7 @@ export default class MembersService {
       if (loginError) {
         throw loginError;
       } else {
-        if (!url) {
-          url = OptionsService.getText(
-            canAdmin(req) === AuthenticationStatus.LOGGED_IN
-              ? "admin-home-url"
-              : "user-home-url"
-          );
-        }
-        res.redirect(url);
+        res.redirect(url || "/");
       }
     });
   }
