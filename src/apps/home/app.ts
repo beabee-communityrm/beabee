@@ -1,14 +1,18 @@
 import express from "express";
-
-import OptionsService from "@core/services/OptionsService";
-import { isNotLoggedIn } from "@core/middleware";
+import OptionsService, { OptionKey } from "@core/services/OptionsService";
 
 const app = express();
 
 app.set("views", __dirname + "/views");
 
 app.get("/", (req, res, next) => {
-  const redirectUrl = OptionsService.getText("home-redirect-url");
+  const redirectUrlOpt: OptionKey = req.user
+    ? req.user.hasPermission("admin")
+      ? "admin-home-url"
+      : "user-home-url"
+    : "home-redirect-url";
+
+  const redirectUrl = OptionsService.getText(redirectUrlOpt);
   if (redirectUrl) {
     res.redirect(redirectUrl);
   } else {
@@ -16,7 +20,7 @@ app.get("/", (req, res, next) => {
   }
 });
 
-app.get("/", isNotLoggedIn, function (req, res) {
+app.get("/", function (req, res) {
   res.render("index");
 });
 
