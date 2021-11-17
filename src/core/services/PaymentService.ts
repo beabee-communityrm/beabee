@@ -40,17 +40,33 @@ class PaymentService {
   async getContributionInfo(
     member: Member
   ): Promise<ContributionInfo | undefined> {
-    switch (member.contributionType) {
-      case ContributionType.GoCardless:
-        return await GCPaymentService.getContributionInfo(member);
-      case ContributionType.Manual:
-        return {
-          amount: member.contributionAmount,
-          period: member.contributionPeriod,
-          type: ContributionType.Manual,
-          isActive: true
-        };
-    }
+    const basicInfo = {
+      type: member.contributionType,
+      amount: member.contributionAmount,
+      period: member.contributionPeriod,
+      membershipExpiryDate: member.membershipExpires
+    };
+
+    const extraInfo =
+      member.contributionType === ContributionType.GoCardless
+        ? await GCPaymentService.getContributionInfo(member)
+        : undefined;
+
+    const memberPermission = member.permissions.find(
+      (p) => p.permission === "member"
+    );
+
+    return {
+      ...basicInfo,
+      ...extraInfo,
+      membershipStatus: memberPermission
+        ? memberPermission.isActive
+          ? extraInfo?.cancellationDate
+            ? "expiring"
+            : "active"
+          : "expired"
+        : "none"
+    };
   }
 
   async updateContribution(

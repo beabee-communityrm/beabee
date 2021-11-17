@@ -311,7 +311,9 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
   static async getContributionInfo(
     member: Member
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<
+    Pick<ContributionInfo, "cancellationDate" | "paymentSource"> | undefined
+  > {
     const gcData = await this.getPaymentData(member);
 
     if (gcData) {
@@ -331,11 +333,6 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
       }
 
       return {
-        type: ContributionType.GoCardless,
-        amount: member.contributionAmount,
-        period: member.contributionPeriod,
-        isActive: !gcData.cancelledAt,
-        expiryDate: gcData.cancelledAt && member.membershipExpires,
         cancellationDate: gcData.cancelledAt,
         paymentSource: bankAccount && {
           type: "direct-debit" as const,

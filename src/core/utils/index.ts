@@ -6,10 +6,10 @@ export interface ContributionInfo {
   type: ContributionType;
   amount?: number;
   period?: ContributionPeriod;
-  isActive: boolean;
-  expiryDate?: Date;
   cancellationDate?: Date;
   paymentSource?: PaymentSource;
+  membershipStatus: "active" | "expiring" | "expired" | "none";
+  membershipExpiryDate?: Date;
 }
 
 export enum ContributionPeriod {
