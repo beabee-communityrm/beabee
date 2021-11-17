@@ -6,7 +6,7 @@
   "home-text": "Hello there Makers!",
   "home-link-text": "Find out more",
   "home-link-url": "http://example.com/about",
-  "home-redirect-url": "",
+  "home-redirect-url": "/login",
 
   "user-redirect-url": "",
 
