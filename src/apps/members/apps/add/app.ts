@@ -118,7 +118,7 @@ app.post(
     }
 
     if (data.type === ContributionType.GoCardless) {
-      await GCPaymentService.updatePaymentMethod(
+      await GCPaymentService.updatePaymentSource(
         member,
         data.customerId,
         data.mandateId

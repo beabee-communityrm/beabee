@@ -10,14 +10,13 @@ import { getRepository } from "typeorm";
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
-  cleanEmailAddress,
   ContributionPeriod,
   ContributionType,
   getActualAmount,
-  PaymentForm
+  PaymentForm,
+  ContributionInfo
 } from "@core/utils";
 
-import { CompletedJoinFlow } from "@core/services/JoinFlowService";
 import MembersService, {
   PartialMember,
   PartialMemberProfile
@@ -29,6 +28,9 @@ import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
+import JoinForm from "@models/JoinForm";
+
+import NoPaymentSource from "@api/errors/NoPaymentSource";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -52,10 +54,10 @@ abstract class UpdateContributionPaymentService {
     let gcData = await GCPaymentService.getPaymentData(user);
 
     if (!gcData?.mandateId) {
-      throw new Error("User does not have active payment method");
+      throw new NoPaymentSource();
     }
 
-    let startNow = true;
+    let startNow;
 
     if (user.isActiveMember) {
       if (gcData.subscriptionId) {
@@ -65,11 +67,8 @@ abstract class UpdateContributionPaymentService {
           paymentForm
         );
       } else {
-        const membershipExpiryDate = user.permissions.find(
-          (p) => p.permission === "member"
-        )!.dateExpires;
         const startDate = moment
-          .utc(membershipExpiryDate)
+          .utc(user.membershipExpires)
           .subtract(config.gracePeriod);
         gcData = await this.createSubscription(
           user,
@@ -91,6 +90,7 @@ abstract class UpdateContributionPaymentService {
       }
 
       gcData = await this.createSubscription(user, gcData, paymentForm);
+      startNow = true;
     }
 
     await this.activateContribution(user, gcData, paymentForm, startNow);
@@ -280,18 +280,21 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-  static async customerToMember(joinFlow: CompletedJoinFlow): Promise<{
+  static async customerToMember(
+    customerId: string,
+    joinForm: JoinForm
+  ): Promise<{
     partialMember: PartialMember;
     partialProfile: PartialMemberProfile;
   }> {
-    const customer = await gocardless.customers.get(joinFlow.customerId);
+    const customer = await gocardless.customers.get(customerId);
 
     return {
       partialMember: {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
-        email: joinFlow.joinForm.email,
-        password: joinFlow.joinForm.password,
+        email: joinForm.email,
+        password: joinForm.password,
         contributionType: ContributionType.GoCardless
       },
       partialProfile: {
@@ -306,25 +309,38 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     };
   }
 
-  static async getBankAccount(
+  static async getContributionInfo(
     member: Member
-  ): Promise<CustomerBankAccount | null> {
+  ): Promise<
+    Pick<ContributionInfo, "cancellationDate" | "paymentSource"> | undefined
+  > {
     const gcData = await this.getPaymentData(member);
-    if (gcData?.mandateId) {
-      try {
-        const mandate = await gocardless.mandates.get(gcData.mandateId);
-        return await gocardless.customerBankAccounts.get(
-          mandate.links.customer_bank_account
-        );
-      } catch (err: any) {
-        // 404s can happen on dev as we don't use real mandate IDs
-        if (config.dev && err.response && err.response.status === 404) {
-          return null;
+
+    if (gcData) {
+      let bankAccount;
+      if (gcData.mandateId) {
+        try {
+          const mandate = await gocardless.mandates.get(gcData.mandateId);
+          bankAccount = await gocardless.customerBankAccounts.get(
+            mandate.links.customer_bank_account
+          );
+        } catch (err: any) {
+          // 404s can happen on dev as we don't use real mandate IDs
+          if (!(config.dev && err.response && err.response.status === 404)) {
+            throw err;
+          }
         }
-        throw err;
       }
-    } else {
-      return null;
+
+      return {
+        cancellationDate: gcData.cancelledAt,
+        paymentSource: bankAccount && {
+          type: "direct-debit" as const,
+          bankName: bankAccount.bank_name,
+          accountHolderName: bankAccount.account_holder_name,
+          accountNumberEnding: bankAccount.account_number_ending
+        }
+      };
     }
   }
 
@@ -391,7 +407,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     }
   }
 
-  static async updatePaymentMethod(
+  static async updatePaymentSource(
     member: Member,
     customerId: string,
     mandateId: string
@@ -399,12 +415,14 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     const gcData =
       (await GCPaymentService.getPaymentData(member)) || new GCPaymentData();
 
-    log.info("Update payment method for " + member.id, {
+    log.info("Update payment source for " + member.id, {
       userId: member.id,
       gcData,
       customerId,
       mandateId
     });
+
+    const hadSubscription = !!gcData.subscriptionId;
 
     if (gcData.mandateId) {
       // Remove subscription before cancelling mandate to stop the webhook triggering a cancelled email
@@ -421,6 +439,15 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     gcData.subscriptionId = undefined;
 
     await getRepository(GCPaymentData).save(gcData);
+
+    if (hadSubscription) {
+      await this.updateContribution(member, {
+        monthlyAmount: member.contributionMonthlyAmount!,
+        period: member.contributionPeriod!,
+        payFee: !!gcData.payFee,
+        prorate: false
+      });
+    }
   }
 
   static async hasPendingPayment(member: Member): Promise<boolean> {
@@ -462,17 +489,9 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
   static async createRedirectFlow(
     sessionToken: string,
     completeUrl: string,
-    paymentForm: PaymentForm,
     redirectFlowParams = {}
   ): Promise<RedirectFlow> {
-    const actualAmount = getActualAmount(
-      paymentForm.monthlyAmount,
-      paymentForm.period
-    );
     return await gocardless.redirectFlows.create({
-      description: `Membership: ${config.currencySymbol}${actualAmount}/${
-        paymentForm.period
-      }${paymentForm.payFee ? " (+ fee)" : ""}`,
       session_token: sessionToken,
       success_redirect_url: completeUrl,
       ...redirectFlowParams

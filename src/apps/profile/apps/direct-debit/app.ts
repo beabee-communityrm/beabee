@@ -57,7 +57,7 @@ app.get(
       res.render("index", {
         user: req.user,
         hasPendingPayment: await GCPaymentService.hasPendingPayment(req.user),
-        bankAccount: await GCPaymentService.getBankAccount(req.user),
+        bankAccount: await GCPaymentService.getContributionInfo(req.user),
         canChange: await GCPaymentService.canChangeContribution(
           req.user,
           !!res.locals.gcData?.mandateId
@@ -119,13 +119,7 @@ app.post(
               email: req.user.email,
               password: req.user.password
             },
-            {
-              prefilled_customer: {
-                email: req.user.email,
-                given_name: req.user.firstname,
-                family_name: req.user.lastname
-              }
-            }
+            req.user
           );
         }
       } else {
@@ -143,14 +137,16 @@ app.get(
   wrapAsync(
     hasUser(async (req, res) => {
       if (await GCPaymentService.canChangeContribution(req.user, false)) {
-        const joinFlow = await JoinFlowService.completeJoinFlow(
+        const joinFlow = await JoinFlowService.getJoinFlow(
           req.query.redirect_flow_id as string
         );
         if (joinFlow) {
-          await GCPaymentService.updatePaymentMethod(
+          const { customerId, mandateId } =
+            await JoinFlowService.completeJoinFlow(joinFlow);
+          await GCPaymentService.updatePaymentSource(
             req.user,
-            joinFlow.customerId,
-            joinFlow.mandateId
+            customerId,
+            mandateId
           );
           await handleChangeContribution(req, joinFlow.joinForm);
         } else {

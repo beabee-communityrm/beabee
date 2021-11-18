@@ -1,102 +1,39 @@
-import { Type } from "class-transformer";
 import {
-  IsBoolean,
-  IsDefined,
-  IsEmail,
-  IsEnum,
-  IsString,
-  ValidateNested,
-  ValidationError
-} from "class-validator";
-import {
-  BadRequestError,
   Body,
   CurrentUser,
   Get,
   JsonController,
+  NotFoundError,
+  OnUndefined,
+  Patch,
+  Post,
   Put
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { NewsletterStatus } from "@core/providers/newsletter";
-
+import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
+import PaymentService from "@core/services/PaymentService";
 
-import { ContributionPeriod } from "@core/utils";
+import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
-import Address from "@models/Address";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
-import config from "@config";
+import { GetMemberData, UpdateMemberData } from "@api/data/MemberData";
+import {
+  CompleteJoinFlowData,
+  StartJoinFlowData
+} from "@api/data/JoinFlowData";
+import {
+  SetContributionData,
+  StartContributionData,
+  UpdateContributionData
+} from "@api/data/ContributionData";
 
-interface MemberData {
-  email: string;
-  firstname: string;
-  lastname: string;
-}
-
-interface MemberProfileData {
-  deliveryOptIn: boolean;
-  deliveryAddress?: Address;
-  newsletterStatus: NewsletterStatus;
-}
-
-interface GetMemberData extends MemberData {
-  joined: Date;
-  contributionAmount?: number;
-  contributionPeriod?: ContributionPeriod;
-  contributionCurrencyCode?: string;
-  profile: MemberProfileData;
-}
-
-class UpdateAddressData implements Address {
-  @IsDefined()
-  @IsString()
-  line1!: string;
-
-  @IsString()
-  line2?: string;
-
-  @IsDefined()
-  @IsString()
-  city!: string;
-
-  @IsDefined()
-  @IsString()
-  postcode!: string;
-}
-
-class UpdateMemberProfileData implements Partial<MemberProfileData> {
-  @IsBoolean()
-  deliveryOptIn?: boolean;
-
-  @ValidateNested()
-  @Type(() => UpdateAddressData)
-  deliveryAddress?: UpdateAddressData;
-
-  @IsEnum(NewsletterStatus)
-  newsletterStatus?: NewsletterStatus;
-}
-
-class UpdateMemberData implements Partial<MemberData> {
-  @IsEmail()
-  email?: string;
-
-  @IsString()
-  firstname?: string;
-
-  @IsString()
-  lastname?: string;
-
-  @IsString()
-  password?: string;
-
-  @ValidateNested()
-  @Type(() => UpdateMemberProfileData)
-  profile?: UpdateMemberProfileData;
-}
+import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import { validateOrReject } from "@api/utils";
 
 async function memberToApiMember(member: Member): Promise<GetMemberData> {
   const profile = await getRepository(MemberProfile).findOneOrFail({ member });
@@ -111,13 +48,9 @@ async function memberToApiMember(member: Member): Promise<GetMemberData> {
       newsletterStatus: profile.newsletterStatus
     },
     joined: member.joined,
+    contributionAmount: member.contributionAmount,
     contributionPeriod: member.contributionPeriod,
-    ...(member.contributionMonthlyAmount !== undefined && {
-      contributionAmount:
-        member.contributionMonthlyAmount *
-        (member.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12),
-      contributionCurrencyCode: config.currencyCode
-    })
+    roles: member.permissions.filter((p) => p.isActive).map((p) => p.permission)
   };
 }
 
@@ -152,5 +85,125 @@ export class MemberController {
     }
 
     return await memberToApiMember(member);
+  }
+
+  @Get("/me/contribution")
+  async getContribution(
+    @CurrentUser({ required: true }) member: Member
+  ): Promise<ContributionInfo | undefined> {
+    return await PaymentService.getContributionInfo(member);
+  }
+
+  @Patch("/me/contribution")
+  async updateContribution(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: UpdateContributionData
+  ): Promise<ContributionInfo | undefined> {
+    // TODO: can we move this into validators?
+    const contributionData = new SetContributionData();
+    contributionData.amount = data.amount;
+    contributionData.period = member.contributionPeriod!;
+    contributionData.payFee = data.payFee;
+    await validateOrReject(contributionData);
+
+    if (!(await PaymentService.canChangeContribution(member, true))) {
+      throw new CantUpdateContribution();
+    }
+
+    await PaymentService.updateContribution(member, {
+      ...data,
+      monthlyAmount: contributionData.monthlyAmount,
+      period: contributionData.period
+    });
+
+    return await PaymentService.getContributionInfo(member);
+  }
+
+  @Post("/me/contribution")
+  async startContribution(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: StartContributionData
+  ): Promise<{ redirectUrl: string }> {
+    return await this.handleStartUpdatePaymentSource(member, data);
+  }
+
+  @Post("/me/contribution/complete")
+  async completeStartContribution(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: CompleteJoinFlowData
+  ): Promise<ContributionInfo | undefined> {
+    const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
+    await PaymentService.updateContribution(member, joinFlow.joinForm);
+    return await PaymentService.getContributionInfo(member);
+  }
+
+  @Put("/me/payment-source")
+  async updatePaymentSource(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: StartJoinFlowData
+  ): Promise<{ redirectUrl: string }> {
+    return await this.handleStartUpdatePaymentSource(member, {
+      ...data,
+      // TODO: not needed, should be optional
+      amount: 0,
+      period: ContributionPeriod.Annually,
+      monthlyAmount: 0,
+      payFee: false
+    });
+  }
+
+  @Post("/me/payment-source/complete")
+  async completeUpdatePaymentSource(
+    @CurrentUser({ required: true }) member: Member,
+    @Body({ required: true }) data: CompleteJoinFlowData
+  ): Promise<ContributionInfo | undefined> {
+    await this.handleCompleteUpdatePaymentSource(member, data);
+    return await PaymentService.getContributionInfo(member);
+  }
+
+  private async handleStartUpdatePaymentSource(
+    member: Member,
+    data: StartContributionData
+  ) {
+    if (!(await PaymentService.canChangeContribution(member, false))) {
+      throw new CantUpdateContribution();
+    }
+
+    const redirectUrl = await JoinFlowService.createJoinFlow(
+      data.completeUrl,
+      {
+        ...data,
+        monthlyAmount: data.monthlyAmount,
+        prorate: false,
+        // TODO: unnecessary, should be optional
+        password: await generatePassword(""),
+        email: ""
+      },
+      member
+    );
+    return {
+      redirectUrl
+    };
+  }
+
+  private async handleCompleteUpdatePaymentSource(
+    member: Member,
+    data: CompleteJoinFlowData
+  ) {
+    if (!(await PaymentService.canChangeContribution(member, false))) {
+      throw new CantUpdateContribution();
+    }
+
+    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
+    if (!joinFlow) {
+      throw new NotFoundError();
+    }
+
+    const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
+      joinFlow
+    );
+    await PaymentService.updatePaymentSource(member, customerId, mandateId);
+
+    return joinFlow;
   }
 }

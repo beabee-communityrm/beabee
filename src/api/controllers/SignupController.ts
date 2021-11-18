@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsEnum,
-  IsString,
-  Validate
-} from "class-validator";
+import { IsEmail, Validate } from "class-validator";
 import { Request } from "express";
 import {
   Body,
@@ -17,7 +11,6 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
@@ -30,36 +23,22 @@ import OptionsService from "@core/services/OptionsService";
 
 import JoinFlow from "@models/JoinFlow";
 
+import { CompleteJoinFlowData } from "@api/data/JoinFlowData";
+import { StartContributionData } from "@api/data/ContributionData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import IsPassword from "@api/validators/IsPassword";
 import IsUrl from "@api/validators/IsUrl";
-import MinContributionAmount from "@api/validators/MinContributionAmount";
 import { login } from "@api/utils";
 
-class SignupData {
+class SignupData extends StartContributionData {
   @IsEmail()
   email!: string;
 
   @Validate(IsPassword)
   password!: string;
-
-  @Validate(MinContributionAmount)
-  amount!: number;
-
-  @IsEnum(ContributionPeriod)
-  period!: ContributionPeriod;
-
-  @IsBoolean()
-  payFee!: boolean;
-
-  @IsUrl()
-  completeUrl!: string;
 }
 
-class SignupCompleteData {
-  @IsString()
-  redirectFlowId!: string;
-
+class SignupCompleteData extends CompleteJoinFlowData {
   @IsUrl()
   confirmUrl!: string;
 }
@@ -74,18 +53,11 @@ export class SignupController {
       data.completeUrl,
       {
         ...data,
-        monthlyAmount:
-          data.period === ContributionPeriod.Monthly
-            ? data.amount
-            : data.amount / 12,
+        monthlyAmount: data.monthlyAmount,
         password: await generatePassword(data.password),
         prorate: false
       },
-      {
-        prefilled_customer: {
-          email: data.email
-        }
-      }
+      { email: data.email }
     );
     return {
       redirectUrl
@@ -97,9 +69,7 @@ export class SignupController {
   async completeSignup(
     @Body({ required: true }) data: SignupCompleteData
   ): Promise<void> {
-    const joinFlow = await getRepository(JoinFlow).findOne({
-      redirectFlowId: data.redirectFlowId
-    });
+    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
     }
@@ -135,9 +105,11 @@ export class SignupController {
       throw new DuplicateEmailError();
     }
 
-    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
+      joinFlow
+    );
     const { partialMember, partialProfile } =
-      await GCPaymentService.customerToMember(completedJoinFlow);
+      await GCPaymentService.customerToMember(customerId, joinFlow.joinForm);
 
     if (OptionsService.getText("newsletter-default-status") === "subscribed") {
       partialProfile.newsletterStatus = NewsletterStatus.Subscribed;
@@ -153,15 +125,8 @@ export class SignupController {
       member = await MembersService.createMember(partialMember, partialProfile);
     }
 
-    await GCPaymentService.updatePaymentMethod(
-      member,
-      completedJoinFlow.customerId,
-      completedJoinFlow.mandateId
-    );
-    await GCPaymentService.updateContribution(
-      member,
-      completedJoinFlow.joinForm
-    );
+    await GCPaymentService.updatePaymentSource(member, customerId, mandateId);
+    await GCPaymentService.updateContribution(member, joinFlow.joinForm);
 
     await EmailService.sendTemplateToMember("welcome", member);
 

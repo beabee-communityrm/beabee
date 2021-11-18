@@ -15,7 +15,6 @@ export class ContentController {
     if (content && id === "join") {
       return {
         ...content.data,
-        currencySymbol: config.currencySymbol,
         minMonthlyAmount: OptionsService.getInt(
           "contribution-min-monthly-amount"
         ),

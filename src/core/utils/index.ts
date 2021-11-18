@@ -2,6 +2,16 @@ import { NextFunction, Request, RequestHandler, Response } from "express";
 import moment from "moment";
 import { QueryFailedError } from "typeorm";
 
+export interface ContributionInfo {
+  type: ContributionType;
+  amount?: number;
+  period?: ContributionPeriod;
+  cancellationDate?: Date;
+  paymentSource?: PaymentSource;
+  membershipStatus: "active" | "expiring" | "expired" | "none";
+  membershipExpiryDate?: Date;
+}
+
 export enum ContributionPeriod {
   Monthly = "monthly",
   Annually = "annually"
@@ -19,6 +29,13 @@ export interface PaymentForm {
   period: ContributionPeriod;
   payFee: boolean;
   prorate: boolean;
+}
+
+export interface PaymentSource {
+  type: "direct-debit";
+  bankName: string;
+  accountHolderName: string;
+  accountNumberEnding: string;
 }
 
 export interface ReferralGiftForm {

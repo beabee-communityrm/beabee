@@ -103,6 +103,13 @@ export default class Member {
       : "";
   }
 
+  get contributionAmount(): number | undefined {
+    return this.contributionMonthlyAmount === undefined
+      ? undefined
+      : this.contributionMonthlyAmount *
+          (this.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12);
+  }
+
   get contributionDescription(): string {
     if (this.contributionType === "Gift") {
       return "Gift";
