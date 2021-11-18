@@ -1,10 +1,10 @@
+import { Request } from "express";
 import {
   Body,
-  CurrentUser,
+  createParamDecorator,
   Get,
   JsonController,
   NotFoundError,
-  Param,
   Patch,
   Post,
   Put,
@@ -36,14 +36,41 @@ import {
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
 
+// The target user can either be the current user or for admins
+// it can be any user, this decorator injects the correct target
+// and also ensures the user has the correct permissions
+function TargetUser() {
+  return createParamDecorator({
+    required: true,
+    value: async (action): Promise<Member> => {
+      const request: Request = action.request;
+      const user = request.user;
+      if (!user) {
+        throw new UnauthorizedError();
+      }
+
+      const id = request.params.id;
+      if (id === "me" || id === user.id) {
+        return user;
+      } else {
+        if (!user.hasPermission("admin")) {
+          throw new UnauthorizedError();
+        }
+
+        const target = await MembersService.findOne(id);
+        if (!target) {
+          throw new NotFoundError();
+        }
+        return target;
+      }
+    }
+  });
+}
+
 @JsonController("/member")
 export class MemberController {
   @Get("/:id")
-  async getMember(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string
-  ): Promise<GetMemberData> {
-    const member = await this.findMember(_member, id);
+  async getMember(@TargetUser() member: Member): Promise<GetMemberData> {
     const profile = await getRepository(MemberProfile).findOneOrFail({
       member
     });
@@ -68,13 +95,10 @@ export class MemberController {
 
   @Put("/:id")
   async updateMember(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string,
+    @TargetUser() member: Member,
     @Body({ required: true, validate: { skipMissingProperties: true } })
     data: UpdateMemberData
   ): Promise<GetMemberData> {
-    const member = await this.findMember(_member, id);
-
     if (data.email || data.firstname || data.lastname || data.password) {
       await MembersService.updateMember(member, {
         ...(data.email && { email: data.email }),
@@ -90,26 +114,21 @@ export class MemberController {
       await MembersService.updateMemberProfile(member, data.profile);
     }
 
-    return await this.getMember(member, id);
+    return await this.getMember(member);
   }
 
   @Get("/:id/contribution")
   async getContribution(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string
+    @TargetUser() member: Member
   ): Promise<ContributionInfo | undefined> {
-    const member = await this.findMember(_member, id);
     return await PaymentService.getContributionInfo(member);
   }
 
   @Patch("/:id/contribution")
   async updateContribution(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: UpdateContributionData
   ): Promise<ContributionInfo | undefined> {
-    const member = await this.findMember(_member, id);
-
     // TODO: can we move this into validators?
     const contributionData = new SetContributionData();
     contributionData.amount = data.amount;
@@ -127,38 +146,32 @@ export class MemberController {
       period: contributionData.period
     });
 
-    return await this.getContribution(member, id);
+    return await this.getContribution(member);
   }
 
   @Post("/:id/contribution")
   async startContribution(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: StartContributionData
   ): Promise<{ redirectUrl: string }> {
-    const member = await this.findMember(_member, id);
     return await this.handleStartUpdatePaymentSource(member, data);
   }
 
   @Post("/:id/contribution/complete")
   async completeStartContribution(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
-    const member = await this.findMember(_member, id);
     const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
     await PaymentService.updateContribution(member, joinFlow.joinForm);
-    return await this.getContribution(member, id);
+    return await this.getContribution(member);
   }
 
   @Put("/:id/payment-source")
   async updatePaymentSource(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: StartJoinFlowData
   ): Promise<{ redirectUrl: string }> {
-    const member = await this.findMember(_member, id);
     return await this.handleStartUpdatePaymentSource(member, {
       ...data,
       // TODO: not needed, should be optional
@@ -171,29 +184,11 @@ export class MemberController {
 
   @Post("/:id/payment-source/complete")
   async completeUpdatePaymentSource(
-    @CurrentUser({ required: true }) _member: Member,
-    @Param("id") id: string,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
-    const member = await this.findMember(_member, id);
     await this.handleCompleteUpdatePaymentSource(member, data);
-    return await this.getContribution(member, id);
-  }
-
-  private async findMember(member: Member, id: string): Promise<Member> {
-    if (id === "me" || id === member.id) {
-      return member;
-    } else {
-      if (!member.hasPermission("admin")) {
-        throw new UnauthorizedError();
-      }
-
-      const member2 = await MembersService.findOne(id);
-      if (!member2) {
-        throw new NotFoundError();
-      }
-      return member2;
-    }
+    return await this.getContribution(member);
   }
 
   private async handleStartUpdatePaymentSource(
