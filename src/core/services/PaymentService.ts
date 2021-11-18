@@ -97,6 +97,15 @@ class PaymentService {
         throw new Error("Not implemented");
     }
   }
+
+  async cancelContribution(member: Member): Promise<void> {
+    switch (member.contributionType) {
+      case ContributionType.GoCardless:
+        return await GCPaymentService.cancelContribution(member);
+      default:
+        throw new Error("Not implemented");
+    }
+  }
 }
 
 export default new PaymentService();
