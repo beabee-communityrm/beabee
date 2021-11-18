@@ -36,6 +36,7 @@ import {
 
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
+import PartialBody from "@api/decorators/PartialBody";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -98,8 +99,7 @@ export class MemberController {
   @Put("/:id")
   async updateMember(
     @TargetUser() member: Member,
-    @Body({ validate: { skipMissingProperties: true } })
-    data: UpdateMemberData
+    @PartialBody() data: UpdateMemberData
   ): Promise<GetMemberData> {
     if (data.email || data.firstname || data.lastname || data.password) {
       await MembersService.updateMember(member, {

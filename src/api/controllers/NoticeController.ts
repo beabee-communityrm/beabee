@@ -16,6 +16,7 @@ import {
 import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 
 import Notice from "@models/Notice";
+import Member from "@models/Member";
 
 import {
   CreateNoticeData,
@@ -23,7 +24,7 @@ import {
   GetNoticesQuery,
   NoticeStatus
 } from "@api/data/NoticeData";
-import Member from "@models/Member";
+import PartialBody from "@api/decorators/PartialBody";
 
 @JsonController("/notice")
 @Authorized()
@@ -73,8 +74,7 @@ export class NoticeController {
   async updateNotice(
     @CurrentUser() member: Member,
     @Param("id") id: string,
-    @Body({ validate: { skipMissingProperties: true } })
-    data: CreateNoticeData
+    @PartialBody() data: CreateNoticeData
   ): Promise<GetNoticeData | undefined> {
     await getRepository(Notice).update(id, data);
     return this.getNotice(member, id);
