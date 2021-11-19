@@ -46,7 +46,7 @@
   "updateGiftAddressSchema": {
     "body": {
       "type": "object",
-      "required": ["giftAddress"],
+      "required": ["deliveryAddress"],
       "properties": {
         "giftAddress": {
           "type": "object",
