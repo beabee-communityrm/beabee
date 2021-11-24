@@ -221,7 +221,7 @@ export default class MembersService {
       prevDate: p?.dateExpires,
       newDate: dateExpires
     });
-    if (!p || (p.dateExpires && dateExpires > p.dateExpires)) {
+    if (!p?.dateExpires || dateExpires > p.dateExpires) {
       await MembersService.updateMemberPermission(member, permission, {
         dateExpires
       });

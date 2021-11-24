@@ -64,14 +64,14 @@ abstract class UpdateContributionPaymentService {
           paymentForm
         );
       } else {
-        const startDate = moment
-          .utc(user.membershipExpires)
-          .subtract(config.gracePeriod);
+        const startDate =
+          user.membershipExpires &&
+          moment.utc(user.membershipExpires).subtract(config.gracePeriod);
         gcData = await this.createSubscription(
           user,
           gcData,
           paymentForm,
-          startDate.format("YYYY-MM-DD")
+          startDate?.format("YYYY-MM-DD")
         );
       }
 
