@@ -1,13 +1,14 @@
+import { Request } from "express";
 import {
   Body,
-  CurrentUser,
+  createParamDecorator,
   Get,
   JsonController,
   NotFoundError,
-  OnUndefined,
   Patch,
   Post,
-  Put
+  Put,
+  UnauthorizedError
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
@@ -35,37 +36,66 @@ import {
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
 
-async function memberToApiMember(member: Member): Promise<GetMemberData> {
-  const profile = await getRepository(MemberProfile).findOneOrFail({ member });
+// The target user can either be the current user or for admins
+// it can be any user, this decorator injects the correct target
+// and also ensures the user has the correct permissions
+function TargetUser() {
+  return createParamDecorator({
+    required: true,
+    value: async (action): Promise<Member> => {
+      const request: Request = action.request;
+      const user = request.user;
+      if (!user) {
+        throw new UnauthorizedError();
+      }
 
-  return {
-    email: member.email,
-    firstname: member.firstname,
-    lastname: member.lastname,
-    profile: {
-      deliveryOptIn: !!profile.deliveryOptIn,
-      deliveryAddress: profile.deliveryAddress,
-      newsletterStatus: profile.newsletterStatus
-    },
-    joined: member.joined,
-    contributionAmount: member.contributionAmount,
-    contributionPeriod: member.contributionPeriod,
-    roles: member.permissions.filter((p) => p.isActive).map((p) => p.permission)
-  };
+      const id = request.params.id;
+      if (id === "me" || id === user.id) {
+        return user;
+      } else {
+        if (!user.hasPermission("admin")) {
+          throw new UnauthorizedError();
+        }
+
+        const target = await MembersService.findOne(id);
+        if (!target) {
+          throw new NotFoundError();
+        }
+        return target;
+      }
+    }
+  });
 }
 
 @JsonController("/member")
 export class MemberController {
-  @Get("/me")
-  async getMe(
-    @CurrentUser({ required: true }) member: Member
-  ): Promise<GetMemberData> {
-    return await memberToApiMember(member);
+  @Get("/:id")
+  async getMember(@TargetUser() member: Member): Promise<GetMemberData> {
+    const profile = await getRepository(MemberProfile).findOneOrFail({
+      member
+    });
+
+    return {
+      email: member.email,
+      firstname: member.firstname,
+      lastname: member.lastname,
+      profile: {
+        deliveryOptIn: !!profile.deliveryOptIn,
+        deliveryAddress: profile.deliveryAddress,
+        newsletterStatus: profile.newsletterStatus
+      },
+      joined: member.joined,
+      contributionAmount: member.contributionAmount,
+      contributionPeriod: member.contributionPeriod,
+      roles: member.permissions
+        .filter((p) => p.isActive)
+        .map((p) => p.permission)
+    };
   }
 
-  @Put("/me")
-  async updateMe(
-    @CurrentUser({ required: true }) member: Member,
+  @Put("/:id")
+  async updateMember(
+    @TargetUser() member: Member,
     @Body({ required: true, validate: { skipMissingProperties: true } })
     data: UpdateMemberData
   ): Promise<GetMemberData> {
@@ -84,19 +114,19 @@ export class MemberController {
       await MembersService.updateMemberProfile(member, data.profile);
     }
 
-    return await memberToApiMember(member);
+    return await this.getMember(member);
   }
 
-  @Get("/me/contribution")
+  @Get("/:id/contribution")
   async getContribution(
-    @CurrentUser({ required: true }) member: Member
+    @TargetUser() member: Member
   ): Promise<ContributionInfo | undefined> {
     return await PaymentService.getContributionInfo(member);
   }
 
-  @Patch("/me/contribution")
+  @Patch("/:id/contribution")
   async updateContribution(
-    @CurrentUser({ required: true }) member: Member,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: UpdateContributionData
   ): Promise<ContributionInfo | undefined> {
     // TODO: can we move this into validators?
@@ -116,30 +146,30 @@ export class MemberController {
       period: contributionData.period
     });
 
-    return await PaymentService.getContributionInfo(member);
+    return await this.getContribution(member);
   }
 
-  @Post("/me/contribution")
+  @Post("/:id/contribution")
   async startContribution(
-    @CurrentUser({ required: true }) member: Member,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: StartContributionData
   ): Promise<{ redirectUrl: string }> {
     return await this.handleStartUpdatePaymentSource(member, data);
   }
 
-  @Post("/me/contribution/complete")
+  @Post("/:id/contribution/complete")
   async completeStartContribution(
-    @CurrentUser({ required: true }) member: Member,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
     await PaymentService.updateContribution(member, joinFlow.joinForm);
-    return await PaymentService.getContributionInfo(member);
+    return await this.getContribution(member);
   }
 
-  @Put("/me/payment-source")
+  @Put("/:id/payment-source")
   async updatePaymentSource(
-    @CurrentUser({ required: true }) member: Member,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: StartJoinFlowData
   ): Promise<{ redirectUrl: string }> {
     return await this.handleStartUpdatePaymentSource(member, {
@@ -152,13 +182,13 @@ export class MemberController {
     });
   }
 
-  @Post("/me/payment-source/complete")
+  @Post("/:id/payment-source/complete")
   async completeUpdatePaymentSource(
-    @CurrentUser({ required: true }) member: Member,
+    @TargetUser() member: Member,
     @Body({ required: true }) data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
     await this.handleCompleteUpdatePaymentSource(member, data);
-    return await PaymentService.getContributionInfo(member);
+    return await this.getContribution(member);
   }
 
   private async handleStartUpdatePaymentSource(
