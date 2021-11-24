@@ -73,12 +73,9 @@ class PaymentService {
     member: Member,
     paymentForm: PaymentForm
   ): Promise<void> {
-    switch (member.contributionType) {
-      case ContributionType.GoCardless:
-        return await GCPaymentService.updateContribution(member, paymentForm);
-      default:
-        throw new Error("Not implemented");
-    }
+    // At the moment the only possibility is to go from whatever contribution
+    // type the user was before to a GC contribution
+    return await GCPaymentService.updateContribution(member, paymentForm);
   }
 
   async updatePaymentSource(
@@ -86,16 +83,13 @@ class PaymentService {
     customerId: string,
     mandateId: string
   ): Promise<void> {
-    switch (member.contributionType) {
-      case ContributionType.GoCardless:
-        return await GCPaymentService.updatePaymentSource(
-          member,
-          customerId,
-          mandateId
-        );
-      default:
-        throw new Error("Not implemented");
-    }
+    // At the moment the only possibility is to go from whatever contribution
+    // type the user was before to a GC contribution
+    return await GCPaymentService.updatePaymentSource(
+      member,
+      customerId,
+      mandateId
+    );
   }
 
   async cancelContribution(member: Member): Promise<void> {
