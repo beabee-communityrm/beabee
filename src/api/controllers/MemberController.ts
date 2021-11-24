@@ -1,5 +1,6 @@
 import { Request } from "express";
 import {
+  Authorized,
   Body,
   createParamDecorator,
   Get,
@@ -35,6 +36,7 @@ import {
 
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
+import PartialBody from "@api/decorators/PartialBody";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -68,6 +70,7 @@ function TargetUser() {
 }
 
 @JsonController("/member")
+@Authorized()
 export class MemberController {
   @Get("/:id")
   async getMember(@TargetUser() member: Member): Promise<GetMemberData> {
@@ -96,8 +99,7 @@ export class MemberController {
   @Put("/:id")
   async updateMember(
     @TargetUser() member: Member,
-    @Body({ required: true, validate: { skipMissingProperties: true } })
-    data: UpdateMemberData
+    @PartialBody() data: UpdateMemberData
   ): Promise<GetMemberData> {
     if (data.email || data.firstname || data.lastname || data.password) {
       await MembersService.updateMember(member, {
@@ -127,7 +129,7 @@ export class MemberController {
   @Patch("/:id/contribution")
   async updateContribution(
     @TargetUser() member: Member,
-    @Body({ required: true }) data: UpdateContributionData
+    @Body() data: UpdateContributionData
   ): Promise<ContributionInfo | undefined> {
     // TODO: can we move this into validators?
     const contributionData = new SetContributionData();
@@ -152,7 +154,7 @@ export class MemberController {
   @Post("/:id/contribution")
   async startContribution(
     @TargetUser() member: Member,
-    @Body({ required: true }) data: StartContributionData
+    @Body() data: StartContributionData
   ): Promise<{ redirectUrl: string }> {
     return await this.handleStartUpdatePaymentSource(member, data);
   }
@@ -160,7 +162,7 @@ export class MemberController {
   @Post("/:id/contribution/complete")
   async completeStartContribution(
     @TargetUser() member: Member,
-    @Body({ required: true }) data: CompleteJoinFlowData
+    @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
     await PaymentService.updateContribution(member, joinFlow.joinForm);
@@ -170,7 +172,7 @@ export class MemberController {
   @Put("/:id/payment-source")
   async updatePaymentSource(
     @TargetUser() member: Member,
-    @Body({ required: true }) data: StartJoinFlowData
+    @Body() data: StartJoinFlowData
   ): Promise<{ redirectUrl: string }> {
     return await this.handleStartUpdatePaymentSource(member, {
       ...data,
@@ -185,7 +187,7 @@ export class MemberController {
   @Post("/:id/payment-source/complete")
   async completeUpdatePaymentSource(
     @TargetUser() member: Member,
-    @Body({ required: true }) data: CompleteJoinFlowData
+    @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
     await this.handleCompleteUpdatePaymentSource(member, data);
     return await this.getContribution(member);

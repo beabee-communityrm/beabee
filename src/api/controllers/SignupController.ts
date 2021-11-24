@@ -47,7 +47,7 @@ class SignupCompleteData extends CompleteJoinFlowData {
 export class SignupController {
   @Post("/")
   async startSignup(
-    @Body({ required: true }) data: SignupData
+    @Body() data: SignupData
   ): Promise<{ redirectUrl: string }> {
     const redirectUrl = await JoinFlowService.createJoinFlow(
       data.completeUrl,
@@ -66,9 +66,7 @@ export class SignupController {
 
   @OnUndefined(204)
   @Post("/complete")
-  async completeSignup(
-    @Body({ required: true }) data: SignupCompleteData
-  ): Promise<void> {
+  async completeSignup(@Body() data: SignupCompleteData): Promise<void> {
     const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
@@ -88,7 +86,7 @@ export class SignupController {
   @Post("/confirm-email")
   async confirmEmail(
     @Req() req: Request,
-    @BodyParam("joinFlowId", { required: true }) joinFlowId: string
+    @BodyParam("joinFlowId") joinFlowId: string
   ): Promise<void> {
     const joinFlow = await getRepository(JoinFlow).findOne(joinFlowId);
     if (!joinFlow) {
