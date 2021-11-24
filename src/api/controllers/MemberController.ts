@@ -6,6 +6,7 @@ import {
   Get,
   JsonController,
   NotFoundError,
+  OnUndefined,
   Patch,
   Post,
   Put,
@@ -13,6 +14,7 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
+import EmailService from "@core/services/EmailService";
 import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
@@ -34,9 +36,9 @@ import {
   UpdateContributionData
 } from "@api/data/ContributionData";
 
+import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
-import PartialBody from "@api/decorators/PartialBody";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -157,6 +159,16 @@ export class MemberController {
     @Body() data: StartContributionData
   ): Promise<{ redirectUrl: string }> {
     return await this.handleStartUpdatePaymentSource(member, data);
+  }
+
+  @OnUndefined(204)
+  @Post("/:id/contribution/cancel")
+  async cancelContribution(@TargetUser() member: Member): Promise<void> {
+    await PaymentService.cancelContribution(member);
+    await EmailService.sendTemplateToMember(
+      "cancelled-contribution-no-survey",
+      member
+    );
   }
 
   @Post("/:id/contribution/complete")
