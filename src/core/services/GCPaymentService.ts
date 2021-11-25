@@ -64,9 +64,13 @@ abstract class UpdateContributionPaymentService {
           paymentForm
         );
       } else {
-        const startDate =
-          user.membershipExpires &&
-          moment.utc(user.membershipExpires).subtract(config.gracePeriod);
+        // Use their expiry date if possible, otherwise if they are converting
+        // from a manual contribution give them a 1 month grace period
+        const startDate = user.membershipExpires
+          ? moment.utc(user.membershipExpires).subtract(config.gracePeriod)
+          : user.contributionType === ContributionType.Manual
+          ? moment.utc().add({ month: 1 })
+          : undefined;
         gcData = await this.createSubscription(
           user,
           gcData,
