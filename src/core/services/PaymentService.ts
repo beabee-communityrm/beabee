@@ -6,6 +6,7 @@ import GCPaymentData from "@models/GCPaymentData";
 import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
 
+import EmailService from "./EmailService";
 import GCPaymentService from "./GCPaymentService";
 
 class PaymentService {
@@ -75,7 +76,12 @@ class PaymentService {
   ): Promise<void> {
     // At the moment the only possibility is to go from whatever contribution
     // type the user was before to a GC contribution
-    return await GCPaymentService.updateContribution(member, paymentForm);
+    const wasManual = member.contributionType === ContributionType.Manual;
+    await GCPaymentService.updateContribution(member, paymentForm);
+
+    if (wasManual) {
+      await EmailService.sendTemplateToMember("manual-to-gocardless", member);
+    }
   }
 
   async updatePaymentSource(
@@ -85,11 +91,7 @@ class PaymentService {
   ): Promise<void> {
     // At the moment the only possibility is to go from whatever contribution
     // type the user was before to a GC contribution
-    return await GCPaymentService.updatePaymentSource(
-      member,
-      customerId,
-      mandateId
-    );
+    await GCPaymentService.updatePaymentSource(member, customerId, mandateId);
   }
 
   async cancelContribution(member: Member): Promise<void> {

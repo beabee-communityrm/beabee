@@ -89,7 +89,8 @@ const memberEmailTemplates = {
     PURCHASER: params.fromName,
     MESSAGE: params.message,
     ACTIVATELINK: config.audience + "/gift/" + params.giftCode
-  })
+  }),
+  "manual-to-gocardless": () => ({})
 } as const;
 
 type EmailTemplates = typeof emailTemplates;
