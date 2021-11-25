@@ -1,6 +1,5 @@
 import moment from "moment";
 import {
-  CustomerBankAccount,
   PaymentCurrency,
   RedirectFlow,
   SubscriptionIntervalUnit
@@ -17,13 +16,11 @@ import {
   ContributionInfo
 } from "@core/utils";
 
-import MembersService, {
-  PartialMember,
-  PartialMemberProfile
-} from "@core/services/MembersService";
+import MembersService, { PartialMember } from "@core/services/MembersService";
 
 import config from "@config";
 
+import Address from "@models/Address";
 import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
@@ -285,7 +282,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     joinForm: JoinForm
   ): Promise<{
     partialMember: PartialMember;
-    partialProfile: PartialMemberProfile;
+    billingAddress: Address;
   }> {
     const customer = await gocardless.customers.get(customerId);
 
@@ -297,14 +294,11 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
         password: joinForm.password,
         contributionType: ContributionType.GoCardless
       },
-      partialProfile: {
-        deliveryOptIn: false,
-        deliveryAddress: {
-          line1: customer.address_line1 || "",
-          line2: customer.address_line2,
-          city: customer.city || "",
-          postcode: customer.postal_code || ""
-        }
+      billingAddress: {
+        line1: customer.address_line1 || "",
+        line2: customer.address_line2,
+        city: customer.city || "",
+        postcode: customer.postal_code || ""
       }
     };
   }

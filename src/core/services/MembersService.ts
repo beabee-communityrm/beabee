@@ -29,7 +29,6 @@ export type PartialMember = Pick<
   "email" | "firstname" | "lastname" | "contributionType"
 > &
   Partial<Member>;
-export type PartialMemberProfile = Partial<MemberProfile>;
 
 const log = mainLogger.child({ app: "members-service" });
 
@@ -81,7 +80,7 @@ export default class MembersService {
 
   static async createMember(
     partialMember: PartialMember,
-    partialProfile: PartialMemberProfile = {},
+    partialProfile: Partial<MemberProfile> = {},
     opts = { sync: true }
   ): Promise<Member> {
     log.info("Create member", { partialMember, partialProfile });

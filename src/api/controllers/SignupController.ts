@@ -22,6 +22,7 @@ import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 
 import JoinFlow from "@models/JoinFlow";
+import MemberProfile from "@models/MemberProfile";
 
 import { CompleteJoinFlowData } from "@api/data/JoinFlowData";
 import { StartContributionData } from "@api/data/ContributionData";
@@ -106,8 +107,15 @@ export class SignupController {
     const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
       joinFlow
     );
-    const { partialMember, partialProfile } =
+    const { partialMember, billingAddress } =
       await GCPaymentService.customerToMember(customerId, joinFlow.joinForm);
+
+    const partialProfile: Partial<MemberProfile> = {};
+
+    if (OptionsService.getBool("delivery-address-prefill")) {
+      partialProfile.deliveryOptIn = false;
+      partialProfile.deliveryAddress = billingAddress;
+    }
 
     if (OptionsService.getText("newsletter-default-status") === "subscribed") {
       partialProfile.newsletterStatus = NewsletterStatus.Subscribed;

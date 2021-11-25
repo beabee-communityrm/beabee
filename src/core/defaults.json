@@ -46,6 +46,8 @@
   "newsletter-resync-status": "",
   "newsletter-resync-data": "",
 
+  "delivery-address-prefill": "",
+
   "tracking-code": "",
 
   "flash-logged-in": "Login successful",
