@@ -18,6 +18,7 @@ export class ContentController {
         minMonthlyAmount: OptionsService.getInt(
           "contribution-min-monthly-amount"
         ),
+        showAbsorbFee: OptionsService.getBool("allow-absorb-fee"),
         privacyLink: OptionsService.getText("footer-privacy-link-url"),
         termsLink: OptionsService.getText("footer-terms-link-url"),
         name: OptionsService.getText("organisation")

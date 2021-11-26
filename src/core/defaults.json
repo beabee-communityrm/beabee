@@ -46,6 +46,7 @@
   "newsletter-resync-status": "",
   "newsletter-resync-data": "",
 
+  "allow-absorb-fee": "true",
   "delivery-address-prefill": "",
 
   "tracking-code": "",

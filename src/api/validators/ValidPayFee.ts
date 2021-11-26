@@ -5,6 +5,7 @@ import {
 } from "class-validator";
 
 import { ContributionPeriod } from "@core/utils";
+import OptionsService from "@core/services/OptionsService";
 
 @ValidatorConstraint({ name: "validPayFee" })
 export default class ValidPayFee implements ValidatorConstraintInterface {
@@ -17,6 +18,8 @@ export default class ValidPayFee implements ValidatorConstraintInterface {
   }
 
   private validPayFee(payFee: boolean, args: ValidationArguments): boolean {
+    if (!OptionsService.getBool("allow-absorb-fee")) return payFee === false;
+
     const amount = (args.object as any)?.amount as unknown;
     const period = (args.object as any)?.period as unknown;
     // Annual contributions don't pay a fee
