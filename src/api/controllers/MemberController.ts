@@ -3,6 +3,7 @@ import {
   Authorized,
   Body,
   createParamDecorator,
+  CurrentUser,
   Get,
   JsonController,
   NotFoundError,
@@ -10,6 +11,7 @@ import {
   Patch,
   Post,
   Put,
+  QueryParams,
   UnauthorizedError
 } from "routing-controllers";
 import { getRepository } from "typeorm";
@@ -25,7 +27,12 @@ import { generatePassword } from "@core/utils/auth";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
-import { GetMemberData, UpdateMemberData } from "@api/data/MemberData";
+import {
+  GetMemberData,
+  GetMemberQuery,
+  GetMemberWith,
+  UpdateMemberData
+} from "@api/data/MemberData";
 import {
   CompleteJoinFlowData,
   StartJoinFlowData
@@ -75,36 +82,55 @@ function TargetUser() {
 @Authorized()
 export class MemberController {
   @Get("/:id")
-  async getMember(@TargetUser() member: Member): Promise<GetMemberData> {
-    const profile = await getRepository(MemberProfile).findOneOrFail({
-      member
-    });
+  async getMember(
+    @CurrentUser() member: Member,
+    @TargetUser() target: Member,
+    @QueryParams() query: GetMemberQuery
+  ): Promise<GetMemberData> {
+    const profile =
+      query.with && query.with.indexOf(GetMemberWith.Profile) > -1
+        ? await getRepository(MemberProfile).findOneOrFail({
+            member: target
+          })
+        : undefined;
 
     return {
-      email: member.email,
-      firstname: member.firstname,
-      lastname: member.lastname,
-      profile: {
-        deliveryOptIn: !!profile.deliveryOptIn,
-        deliveryAddress: profile.deliveryAddress,
-        newsletterStatus: profile.newsletterStatus
-      },
-      joined: member.joined,
-      contributionAmount: member.contributionAmount,
-      contributionPeriod: member.contributionPeriod,
-      roles: member.permissions
+      email: target.email,
+      firstname: target.firstname,
+      lastname: target.lastname,
+      joined: target.joined,
+      contributionAmount: target.contributionAmount,
+      contributionPeriod: target.contributionPeriod,
+      roles: target.permissions
         .filter((p) => p.isActive)
-        .map((p) => p.permission)
+        .map((p) => p.permission),
+      ...(profile && {
+        profile: {
+          telephone: profile.telephone,
+          twitter: profile.twitter,
+          preferredContact: profile.preferredContact,
+          deliveryOptIn: profile.deliveryOptIn,
+          deliveryAddress: profile.deliveryAddress,
+          newsletterStatus: profile.newsletterStatus,
+          newsletterGroups: profile.newsletterGroups,
+          ...(member.hasPermission("admin") && {
+            tags: profile.tags,
+            notes: profile.notes,
+            description: profile.description
+          })
+        }
+      })
     };
   }
 
-  @Put("/:id")
+  @Patch("/:id")
   async updateMember(
-    @TargetUser() member: Member,
+    @CurrentUser() member: Member,
+    @TargetUser() target: Member,
     @PartialBody() data: UpdateMemberData
   ): Promise<GetMemberData> {
     if (data.email || data.firstname || data.lastname || data.password) {
-      await MembersService.updateMember(member, {
+      await MembersService.updateMember(target, {
         ...(data.email && { email: data.email }),
         ...(data.firstname && { firstname: data.firstname }),
         ...(data.lastname && { lastname: data.lastname }),
@@ -115,78 +141,87 @@ export class MemberController {
     }
 
     if (data.profile) {
-      await MembersService.updateMemberProfile(member, data.profile);
+      if (
+        !member.hasPermission("admin") &&
+        (data.profile.tags || data.profile.notes || data.profile.description)
+      ) {
+        throw new UnauthorizedError();
+      }
+
+      await MembersService.updateMemberProfile(target, data.profile);
     }
 
-    return await this.getMember(member);
+    return await this.getMember(member, target, {
+      with: data.profile ? [GetMemberWith.Profile] : []
+    });
   }
 
   @Get("/:id/contribution")
   async getContribution(
-    @TargetUser() member: Member
+    @TargetUser() target: Member
   ): Promise<ContributionInfo | undefined> {
-    return await PaymentService.getContributionInfo(member);
+    return await PaymentService.getContributionInfo(target);
   }
 
   @Patch("/:id/contribution")
   async updateContribution(
-    @TargetUser() member: Member,
+    @TargetUser() target: Member,
     @Body() data: UpdateContributionData
   ): Promise<ContributionInfo | undefined> {
     // TODO: can we move this into validators?
     const contributionData = new SetContributionData();
     contributionData.amount = data.amount;
-    contributionData.period = member.contributionPeriod!;
+    contributionData.period = target.contributionPeriod!;
     contributionData.payFee = data.payFee;
     await validateOrReject(contributionData);
 
-    if (!(await PaymentService.canChangeContribution(member, true))) {
+    if (!(await PaymentService.canChangeContribution(target, true))) {
       throw new CantUpdateContribution();
     }
 
-    await PaymentService.updateContribution(member, {
+    await PaymentService.updateContribution(target, {
       ...data,
       monthlyAmount: contributionData.monthlyAmount,
       period: contributionData.period
     });
 
-    return await this.getContribution(member);
+    return await this.getContribution(target);
   }
 
   @Post("/:id/contribution")
   async startContribution(
-    @TargetUser() member: Member,
+    @TargetUser() target: Member,
     @Body() data: StartContributionData
   ): Promise<{ redirectUrl: string }> {
-    return await this.handleStartUpdatePaymentSource(member, data);
+    return await this.handleStartUpdatePaymentSource(target, data);
   }
 
   @OnUndefined(204)
   @Post("/:id/contribution/cancel")
-  async cancelContribution(@TargetUser() member: Member): Promise<void> {
-    await PaymentService.cancelContribution(member);
+  async cancelContribution(@TargetUser() target: Member): Promise<void> {
+    await PaymentService.cancelContribution(target);
     await EmailService.sendTemplateToMember(
       "cancelled-contribution-no-survey",
-      member
+      target
     );
   }
 
   @Post("/:id/contribution/complete")
   async completeStartContribution(
-    @TargetUser() member: Member,
+    @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
-    const joinFlow = await this.handleCompleteUpdatePaymentSource(member, data);
-    await PaymentService.updateContribution(member, joinFlow.joinForm);
-    return await this.getContribution(member);
+    const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
+    await PaymentService.updateContribution(target, joinFlow.joinForm);
+    return await this.getContribution(target);
   }
 
   @Put("/:id/payment-source")
   async updatePaymentSource(
-    @TargetUser() member: Member,
+    @TargetUser() target: Member,
     @Body() data: StartJoinFlowData
   ): Promise<{ redirectUrl: string }> {
-    return await this.handleStartUpdatePaymentSource(member, {
+    return await this.handleStartUpdatePaymentSource(target, {
       ...data,
       // TODO: not needed, should be optional
       amount: 0,
@@ -198,18 +233,18 @@ export class MemberController {
 
   @Post("/:id/payment-source/complete")
   async completeUpdatePaymentSource(
-    @TargetUser() member: Member,
+    @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo | undefined> {
-    await this.handleCompleteUpdatePaymentSource(member, data);
-    return await this.getContribution(member);
+    await this.handleCompleteUpdatePaymentSource(target, data);
+    return await this.getContribution(target);
   }
 
   private async handleStartUpdatePaymentSource(
-    member: Member,
+    target: Member,
     data: StartContributionData
   ) {
-    if (!(await PaymentService.canChangeContribution(member, false))) {
+    if (!(await PaymentService.canChangeContribution(target, false))) {
       throw new CantUpdateContribution();
     }
 
@@ -223,7 +258,7 @@ export class MemberController {
         password: await generatePassword(""),
         email: ""
       },
-      member
+      target
     );
     return {
       redirectUrl
@@ -231,10 +266,10 @@ export class MemberController {
   }
 
   private async handleCompleteUpdatePaymentSource(
-    member: Member,
+    target: Member,
     data: CompleteJoinFlowData
   ) {
-    if (!(await PaymentService.canChangeContribution(member, false))) {
+    if (!(await PaymentService.canChangeContribution(target, false))) {
       throw new CantUpdateContribution();
     }
 
@@ -246,7 +281,7 @@ export class MemberController {
     const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
       joinFlow
     );
-    await PaymentService.updatePaymentSource(member, customerId, mandateId);
+    await PaymentService.updatePaymentSource(target, customerId, mandateId);
 
     return joinFlow;
   }
