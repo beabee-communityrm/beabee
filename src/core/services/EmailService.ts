@@ -53,17 +53,12 @@ const memberEmailTemplates = {
   "reset-password": (member: Member, params: { rpLink: string }) => ({
     RPLINK: params.rpLink
   }),
-  "cancelled-contribution": (member: Member) => {
-    const dateExpires = member.permissions.find(
-      (p) => p.permission === "member"
-    )?.dateExpires;
-    return {
-      EXPIRES: dateExpires
-        ? moment.utc(dateExpires).format("dddd Do MMMM")
-        : "-",
-      MEMBERSHIPID: member.id
-    };
-  },
+  "cancelled-contribution": (member: Member) => ({
+    EXPIRES: member.membershipExpires
+      ? moment.utc(member.membershipExpires).format("dddd Do MMMM")
+      : "-",
+    MEMBERSHIPID: member.id
+  }),
   "cancelled-contribution-no-survey": (member: Member) => {
     const dateExpires = member.permissions.find(
       (p) => p.permission === "member"
