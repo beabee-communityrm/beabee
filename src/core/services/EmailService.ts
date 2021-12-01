@@ -90,7 +90,16 @@ const memberEmailTemplates = {
     MESSAGE: params.message,
     ACTIVATELINK: config.audience + "/gift/" + params.giftCode
   }),
-  "manual-to-gocardless": () => ({})
+  "manual-to-gocardless": () => ({}),
+  "email-exists-login": (member: Member, params: { loginLink: string }) => ({
+    LOGINLINK: params.loginLink
+  }),
+  "email-exists-set-password": (
+    member: Member,
+    params: { spLink: string }
+  ) => ({
+    SPLINK: params.spLink
+  })
 } as const;
 
 type EmailTemplates = typeof emailTemplates;
