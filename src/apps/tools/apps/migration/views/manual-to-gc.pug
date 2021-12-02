@@ -39,7 +39,7 @@ block contents
             first payment taken a month after they convert
 
           p.
-            You have #{nonExpiringMonthlyMembers} manaul contributors(s) with an
+            You have #{nonExpiringMonthlyMembers} manual contributors(s) with an
             non-expiring monthly membership
         li
           p.
@@ -61,6 +61,7 @@ block contents
 
       form(method='POST').form-horizontal
         +csrf
+
         - systemEmails = ['convert-manual-to-gc']
         include /apps/tools/apps/emails/views/partials/email-fields
 

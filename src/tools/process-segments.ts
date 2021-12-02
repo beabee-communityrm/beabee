@@ -7,7 +7,6 @@ import { log as mainLogger } from "@core/logging";
 import buildQuery from "@core/utils/rules";
 
 import EmailService from "@core/services/EmailService";
-import { EmailRecipient } from "@core/providers/email";
 
 import Member from "@models/Member";
 import Segment from "@models/Segment";
@@ -17,15 +16,6 @@ import NewsletterService from "@core/services/NewsletterService";
 import MembersService from "@core/services/MembersService";
 
 const log = mainLogger.child({ app: "process-segments" });
-
-function membersToRecipients(members: Member[]): EmailRecipient[] {
-  return members.map((member) => ({
-    to: { name: member.fullname, email: member.email },
-    mergeFields: {
-      FNAME: member.firstname
-    }
-  }));
-}
 
 async function processSegment(segment: Segment) {
   log.info("Process segment " + segment.name);
@@ -79,10 +69,10 @@ async function processSegment(segment: Segment) {
         ? newMembers
         : [];
     if (emailMembers.length > 0) {
-      await EmailService.sendEmail(
-        outgoingEmail.email,
-        membersToRecipients(emailMembers)
+      const recipients = emailMembers.map((member) =>
+        EmailService.memberToRecipient(member)
       );
+      await EmailService.sendEmail(outgoingEmail.email, recipients);
     }
   }
 
