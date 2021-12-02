@@ -1,12 +1,12 @@
 extends /views/base.pug
 
 block prepend title
-	- title = 'Migration'
+  - title = 'Migration'
 
 block contents
   .row
     .col-md-12
-			+page_header('Migration')
+      +page_header('Migration')
 
   .row
     .col-md-8
@@ -14,6 +14,6 @@ block contents
 
       p.
         Use this tool to send an email to all your manual contributors asking
-        them to convert their payment to GoCardless. The tool will
+        them to convert their payment to GoCardless.
       
       p: a(href='/tools/migration/manual-to-gc').btn.btn-primary Start
