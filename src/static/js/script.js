@@ -75,9 +75,8 @@
 
 		var quill = new Quill(divEl, {theme: 'snow'});
 
-		$form.on('submit', function (evt) {
+		$form.on('submit', function () {
 			inputEl.value = quill.root.innerHTML;
-			evt.preventDefault();
 		})
 	});
 })();

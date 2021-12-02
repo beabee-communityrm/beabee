@@ -1,3 +1,5 @@
+import juice from "juice";
+
 import {
   Column,
   CreateDateColumn,
@@ -34,4 +36,11 @@ export default class Email {
   mailings!: EmailMailing[];
 
   mailingCount?: number;
+
+  get bodyInline(): string {
+    return juice(
+      "<style>p,ul,ol,h1,h2,h3,h4,h5,h6,pre,blockquote { margin: 0; }</style>" +
+        this.body
+    );
+  }
 }

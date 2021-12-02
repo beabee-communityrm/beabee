@@ -96,6 +96,11 @@ label.question {
 	white-space: pre-line;
 }
 
-.ql-editor{
+.ql-container {
+	font-size: inherit !important;
+	font-family: inherit !important;
+}
+
+.ql-editor {
 	min-height: 200px;
 }
