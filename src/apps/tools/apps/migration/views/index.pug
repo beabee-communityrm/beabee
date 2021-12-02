@@ -1,0 +1,19 @@
+extends /views/base.pug
+
+block prepend title
+	- title = 'Migration'
+
+block contents
+  .row
+    .col-md-12
+			+page_header('Migration')
+
+  .row
+    .col-md-8
+      h4 Email to convert manual contributors
+
+      p.
+        Use this tool to send an email to all your manual contributors asking
+        them to convert their payment to GoCardless. The tool will
+      
+      p: a(href='/tools/migration/manual-to-gc').btn.btn-primary Start
