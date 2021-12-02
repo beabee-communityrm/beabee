@@ -1,10 +1,10 @@
 extends /views/base.pug
 
-
 block prepend title
 	- title = 'Email'
 
 block prepend js
+	script(src='/static/js/lib/quill.min.js')
 	script(type='text/template').js-repeater-template
 		li.js-repeater-item
 			.form-group
@@ -16,6 +16,9 @@ block prepend js
 				.col-md-3
 					button(type='button').btn.btn-danger.js-repeater-remove-item
 							i.glyphicon.glyphicon-trash
+
+block append css
+	link(rel='stylesheet' href='/static/css/lib/quill.snow.css')
 
 block contents
 	.row
