@@ -46,6 +46,14 @@
           tr
             td *|CONFIRMLINK|*
             td Confirm email address link
+        if systemEmails.indexOf('email-exists-login') > -1
+          tr
+            td *|LOGINLINK|*
+            td Login link
+        if systemEmails.indexOf('email-exists-set-password') > -1
+          tr
+            td *|SPLINK|*
+            td Set password link
         if systemEmails.indexOf('convert-manual-to-gc') > -1
           tr
             td *|CONVERTLINK|*
