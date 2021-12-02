@@ -58,4 +58,25 @@
 		$(this).parents('.js-repeater-item').remove();
 		updateInputNames();
 	});
+
+	$('.js-rte-textarea').each(function () {
+		var parentNode = this.parentNode;
+		var $form = $(this).parents('form');
+
+		var inputEl = document.createElement('input');
+		inputEl.type = 'hidden';
+		inputEl.name = this.name;
+
+		var divEl = document.createElement('div');
+		divEl.innerHTML = this.value;
+
+		parentNode.replaceChild(divEl, this);
+		parentNode.insertBefore(inputEl, divEl);
+
+		var quill = new Quill(divEl, {theme: 'snow'});
+
+		$form.on('submit', function () {
+			inputEl.value = quill.root.innerHTML;
+		})
+	});
 })();

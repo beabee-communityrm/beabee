@@ -95,3 +95,12 @@ label.question {
 .formio-editor-read-only-content {
 	white-space: pre-line;
 }
+
+.ql-container {
+	font-size: inherit !important;
+	font-family: inherit !important;
+}
+
+.ql-editor {
+	min-height: 200px;
+}
