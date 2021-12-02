@@ -40,7 +40,9 @@ const assignableSystemEmails = {
   "reset-password": "Reset password",
   "cancelled-contribution": "Cancelled contribution",
   "cancelled-contribution-no-survey": "Cancelled contribution - no survey",
-  "confirm-email": "Confirm email"
+  "confirm-email": "Confirm email",
+  "email-exists-login": "Email exists - login",
+  "email-exists-set-password": "Email exists - set password"
 };
 
 app.set("views", __dirname + "/views");
