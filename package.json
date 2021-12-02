@@ -135,7 +135,7 @@
     ],
     "delay": "500",
     "signal": "SIGTERM",
-    "exec": "docker-compose restart app api_app webhook_app router && docker-compose logs -f --tail=0 app api_app webhook_app"
+    "exec": "docker-compose restart app api_app webhook_app && docker-compose exec -T router nginx -s reload && docker-compose logs -f --tail=0 app api_app webhook_app"
   },
   "_moduleAliases": {
     "@core": "./built/core",
