@@ -23,6 +23,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import JoinFlow from "@models/JoinFlow";
 import MemberProfile from "@models/MemberProfile";
+import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import { CompleteJoinFlowData } from "@api/data/JoinFlowData";
 import { StartContributionData } from "@api/data/ContributionData";
@@ -40,6 +41,12 @@ class SignupData extends StartContributionData {
 }
 
 class SignupCompleteData extends CompleteJoinFlowData {
+  @IsUrl()
+  loginUrl!: string;
+
+  @IsUrl()
+  setPasswordUrl!: string;
+
   @IsUrl()
   confirmUrl!: string;
 }
@@ -73,14 +80,35 @@ export class SignupController {
       throw new NotFoundError();
     }
 
-    await EmailService.sendTemplateTo(
-      "confirm-email",
-      { email: joinFlow.joinForm.email },
-      {
-        firstName: "", // We don't know this yet
-        confirmLink: data.confirmUrl + "/" + joinFlow.id
+    const member = await MembersService.findOne({
+      email: joinFlow.joinForm.email
+    });
+
+    if (member?.isActiveMember) {
+      if (member.password.hash) {
+        await EmailService.sendTemplateToMember("email-exists-login", member, {
+          loginLink: data.loginUrl
+        });
+      } else {
+        const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
+        await EmailService.sendTemplateToMember(
+          "email-exists-set-password",
+          member,
+          {
+            spLink: data.setPasswordUrl + "/" + rpFlow.id
+          }
+        );
       }
-    );
+    } else {
+      await EmailService.sendTemplateTo(
+        "confirm-email",
+        { email: joinFlow.joinForm.email },
+        {
+          firstName: "", // We don't know this yet
+          confirmLink: data.confirmUrl + "/" + joinFlow.id
+        }
+      );
+    }
   }
 
   @OnUndefined(204)
@@ -95,12 +123,13 @@ export class SignupController {
     }
 
     // Check for an existing active member first to avoid completing the join
-    // flow unnecessarily
+    // flow unnecessarily. This should never really happen as the user won't
+    // get a confirm email if they are already an active member
     let member = await MembersService.findOne({
       where: { email: joinFlow.joinForm.email },
       relations: ["profile"]
     });
-    if (member && member.isActiveMember) {
+    if (member?.isActiveMember) {
       throw new DuplicateEmailError();
     }
 

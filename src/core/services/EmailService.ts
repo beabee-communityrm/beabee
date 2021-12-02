@@ -54,17 +54,12 @@ const memberEmailTemplates = {
   "reset-password": (member: Member, params: { rpLink: string }) => ({
     RPLINK: params.rpLink
   }),
-  "cancelled-contribution": (member: Member) => {
-    const dateExpires = member.permissions.find(
-      (p) => p.permission === "member"
-    )?.dateExpires;
-    return {
-      EXPIRES: dateExpires
-        ? moment.utc(dateExpires).format("dddd Do MMMM")
-        : "-",
-      MEMBERSHIPID: member.id
-    };
-  },
+  "cancelled-contribution": (member: Member) => ({
+    EXPIRES: member.membershipExpires
+      ? moment.utc(member.membershipExpires).format("dddd Do MMMM")
+      : "-",
+    MEMBERSHIPID: member.id
+  }),
   "cancelled-contribution-no-survey": (member: Member) => {
     const dateExpires = member.permissions.find(
       (p) => p.permission === "member"
@@ -91,7 +86,16 @@ const memberEmailTemplates = {
     MESSAGE: params.message,
     ACTIVATELINK: config.audience + "/gift/" + params.giftCode
   }),
-  "manual-to-gocardless": () => ({})
+  "manual-to-gocardless": () => ({}),
+  "email-exists-login": (member: Member, params: { loginLink: string }) => ({
+    LOGINLINK: params.loginLink
+  }),
+  "email-exists-set-password": (
+    member: Member,
+    params: { spLink: string }
+  ) => ({
+    SPLINK: params.spLink
+  })
 } as const;
 
 type EmailTemplates = typeof emailTemplates;
