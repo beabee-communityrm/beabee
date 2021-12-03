@@ -80,7 +80,7 @@ app.post(
       (member) => member.password.hash
     );
 
-    const rpFlows = await getRepository(ResetPasswordFlow).insert(
+    const rpFlows = await getRepository(ResetPasswordFlow).save(
       membersWithoutPassword.map((member) => ({ member }))
     );
 
@@ -92,9 +92,9 @@ app.post(
           CONVERTLINK: `${config.audience}/auth/login${nextParam}`
         })
       ),
-      ...membersWithoutPassword.map((member, i) =>
-        EmailService.memberToRecipient(member, {
-          CONVERTLINK: `${config.audience}/auth/set-password/${rpFlows.identifiers[i].id}${nextParam}`
+      ...rpFlows.map((rpFlow) =>
+        EmailService.memberToRecipient(rpFlow.member, {
+          CONVERTLINK: `${config.audience}/auth/set-password/${rpFlow.id}${nextParam}`
         })
       )
     ];
