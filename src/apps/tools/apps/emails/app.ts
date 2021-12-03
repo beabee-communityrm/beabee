@@ -40,7 +40,7 @@ const assignableSystemEmails = {
   "reset-password": "Reset password",
   "cancelled-contribution": "Cancelled contribution",
   "cancelled-contribution-no-survey": "Cancelled contribution - no survey",
-  "join-confirm-email": "Confirm email"
+  "confirm-email": "Confirm email"
 };
 
 app.set("views", __dirname + "/views");

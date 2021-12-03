@@ -1,7 +1,7 @@
 const autoprefixer = require("autoprefixer");
 const gulp = require("gulp");
 const postcss = require("gulp-postcss");
-const sass = require("gulp-sass");
+const sass = require("gulp-sass")(require("sass"));
 const sourcemaps = require("gulp-sourcemaps");
 
 const browserSync = require("browser-sync").create();

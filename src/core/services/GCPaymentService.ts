@@ -182,7 +182,7 @@ abstract class UpdateContributionPaymentService {
         amount: chargeableAmount.toString(),
         name: "Membership" // Slowly overwrite subscription names
       });
-    } catch (gcError) {
+    } catch (gcError: any) {
       // Can't update subscription names if they are linked to a plan
       if (gcError.response && gcError.response.status === 422) {
         await gocardless.subscriptions.update(gcData.subscriptionId!, {
@@ -316,7 +316,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
         return await gocardless.customerBankAccounts.get(
           mandate.links.customer_bank_account
         );
-      } catch (err) {
+      } catch (err: any) {
         // 404s can happen on dev as we don't use real mandate IDs
         if (config.dev && err.response && err.response.status === 404) {
           return null;

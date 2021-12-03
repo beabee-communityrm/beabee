@@ -112,7 +112,6 @@ app.post(
       case "permanently-delete":
         // TODO: anonymise other data in poll answers
         //await PollAnswers.updateMany( { member }, { $set: { member: null } } );
-        // TODO: await RestartFlows.deleteMany( { member } );
 
         await ReferralsService.permanentlyDeleteMember(member);
         await GCPaymentService.permanentlyDeleteMember(member);

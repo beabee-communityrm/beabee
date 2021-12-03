@@ -16,6 +16,7 @@ export default class SendGridProvider implements EmailProvider {
 
   constructor(settings: SendGridEmailConfig["settings"]) {
     sgMail.setApiKey(settings.apiKey);
+    sgMail.setSubstitutionWrappers("*|", "|*");
     this.testMode = settings.testMode;
   }
 
@@ -30,7 +31,7 @@ export default class SendGridProvider implements EmailProvider {
         name: email.fromName
       },
       subject: email.subject,
-      html: email.body,
+      html: email.body.replace(/\r\n/g, "<br>"),
       personalizations: recipients.map((recipient) => ({
         to: recipient.to,
         substitutions: recipient.mergeFields

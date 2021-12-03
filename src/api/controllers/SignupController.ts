@@ -2,75 +2,39 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
-  IsNumber,
   IsString,
-  Validate,
-  ValidationArguments,
-  ValidatorConstraint,
-  ValidatorConstraintInterface
+  Validate
 } from "class-validator";
 import { Request } from "express";
 import {
   Body,
   BodyParam,
-  HttpError,
   JsonController,
   NotFoundError,
   OnUndefined,
   Post,
   Req
 } from "routing-controllers";
+import { getRepository } from "typeorm";
 
-import { ContributionPeriod, isDuplicateIndex } from "@core/utils";
+import { ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
 
 import EmailService from "@core/services/EmailService";
 import GCPaymentService from "@core/services/GCPaymentService";
-import JoinFlowService, {
-  CompletedJoinFlow
-} from "@core/services/JoinFlowService";
+import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 
-import Member from "@models/Member";
+import JoinFlow from "@models/JoinFlow";
 
-@ValidatorConstraint({ name: "minContributionAmount" })
-class MinContributionAmount implements ValidatorConstraintInterface {
-  validate(amount: unknown, args: ValidationArguments): boolean {
-    return typeof amount === "number" && amount >= this.minAmount(args);
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} must be at least ${this.minAmount(args)}`;
-  }
-
-  private minAmount(args: ValidationArguments) {
-    const period = (args.object as SignupData).period as unknown;
-    return (
-      OptionsService.getInt("contribution-min-monthly-amount") *
-      (period === ContributionPeriod.Annually ? 12 : 1)
-    );
-  }
-}
-
-@ValidatorConstraint({ name: "isPassword" })
-class IsPassword implements ValidatorConstraintInterface {
-  validate(password: unknown): boolean | Promise<boolean> {
-    return (
-      typeof password === "string" &&
-      password.length >= 8 &&
-      /[a-z]/.test(password) &&
-      /[A-Z]/.test(password) &&
-      /[0-9]/.test(password)
-    );
-  }
-
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} does not meet password requirements`;
-  }
-}
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import IsPassword from "@api/validators/IsPassword";
+import IsUrl from "@api/validators/IsUrl";
+import MinContributionAmount from "@api/validators/MinContributionAmount";
+import { login } from "@api/utils";
 
 class SignupData {
   @IsEmail()
@@ -88,63 +52,16 @@ class SignupData {
   @IsBoolean()
   payFee!: boolean;
 
-  @IsString()
+  @IsUrl()
   completeUrl!: string;
 }
 
-type SignupErrorCode =
-  | "duplicate-email"
-  | "confirm-email"
-  | "restart-membership"
-  | "confirm-email-failed";
+class SignupCompleteData {
+  @IsString()
+  redirectFlowId!: string;
 
-class SignupError extends HttpError {
-  constructor(readonly code: SignupErrorCode) {
-    super(400);
-    Object.setPrototypeOf(this, SignupError.prototype);
-  }
-
-  toJSON() {
-    return {
-      status: 400,
-      code: this.code
-    };
-  }
-}
-
-interface SignupStart {
-  redirectUrl: string;
-}
-
-async function handleJoin(
-  req: Request,
-  member: Member,
-  joinFlow: CompletedJoinFlow
-): Promise<void> {
-  await GCPaymentService.updatePaymentMethod(
-    member,
-    joinFlow.customerId,
-    joinFlow.mandateId
-  );
-  await GCPaymentService.updateContribution(member, joinFlow.joinForm);
-
-  await MembersService.updateMember(member, { activated: true });
-  if (OptionsService.getText("newsletter-default-status") === "subscribed") {
-    await MembersService.updateMemberProfile(member, {
-      newsletterStatus: NewsletterStatus.Subscribed,
-      newsletterGroups: OptionsService.getList("newsletter-default-groups")
-    });
-  }
-
-  await EmailService.sendTemplateToMember("welcome", member);
-
-  // For now use existing session infrastructure with a cookie
-  await new Promise<void>((resolve, reject) => {
-    req.login(member, (error) => {
-      if (error) reject(error);
-      else resolve();
-    });
-  });
+  @IsUrl()
+  confirmUrl!: string;
 }
 
 @JsonController("/signup")
@@ -152,7 +69,7 @@ export class SignupController {
   @Post("/")
   async startSignup(
     @Body({ required: true }) data: SignupData
-  ): Promise<SignupStart> {
+  ): Promise<{ redirectUrl: string }> {
     const redirectUrl = await JoinFlowService.createJoinFlow(
       data.completeUrl,
       {
@@ -178,72 +95,76 @@ export class SignupController {
   @OnUndefined(204)
   @Post("/complete")
   async completeSignup(
-    @Req() req: Request,
-    @BodyParam("redirectFlowId", { required: true }) redirectFlowId: string
+    @Body({ required: true }) data: SignupCompleteData
   ): Promise<void> {
-    const joinFlow = await JoinFlowService.completeJoinFlow(redirectFlowId);
+    const joinFlow = await getRepository(JoinFlow).findOne({
+      redirectFlowId: data.redirectFlowId
+    });
     if (!joinFlow) {
       throw new NotFoundError();
     }
 
-    const { partialMember, partialProfile } =
-      await GCPaymentService.customerToMember(joinFlow);
-
-    try {
-      const newMember = await MembersService.createMember(
-        partialMember,
-        partialProfile
-      );
-      await handleJoin(req, newMember, joinFlow);
-    } catch (error) {
-      if (isDuplicateIndex(error, "email")) {
-        const oldMember = await MembersService.findOne({
-          email: partialMember.email
-        });
-        // This should never be able to happen
-        if (!oldMember) {
-          throw error;
-        }
-
-        if (oldMember.isActiveMember) {
-          throw new SignupError("duplicate-email");
-        } else {
-          const restartFlow = await JoinFlowService.createRestartFlow(
-            oldMember,
-            joinFlow
-          );
-          await EmailService.sendTemplateToMember(
-            "join-confirm-email",
-            oldMember,
-            { code: restartFlow.id }
-          );
-          throw new SignupError(
-            oldMember.activated ? "restart-membership" : "confirm-email"
-          );
-        }
-      } else {
-        throw error;
+    await EmailService.sendTemplateTo(
+      "confirm-email",
+      { email: joinFlow.joinForm.email },
+      {
+        firstName: "", // We don't know this yet
+        confirmLink: data.confirmUrl + "/" + joinFlow.id
       }
-    }
+    );
   }
 
   @OnUndefined(204)
   @Post("/confirm-email")
   async confirmEmail(
     @Req() req: Request,
-    @BodyParam("restartFlowId", { required: true }) restartFlowId: string
+    @BodyParam("joinFlowId", { required: true }) joinFlowId: string
   ): Promise<void> {
-    const restartFlow = await JoinFlowService.completeRestartFlow(
-      restartFlowId
-    );
-    if (!restartFlow) {
+    const joinFlow = await getRepository(JoinFlow).findOne(joinFlowId);
+    if (!joinFlow) {
       throw new NotFoundError();
     }
 
-    if (restartFlow.member.isActiveMember) {
-      throw new SignupError("confirm-email-failed");
-    } else {
-      await handleJoin(req, restartFlow.member, restartFlow);
+    // Check for an existing active member first to avoid completing the join
+    // flow unnecessarily
+    let member = await MembersService.findOne({
+      where: { email: joinFlow.joinForm.email },
+      relations: ["profile"]
+    });
+    if (member && member.isActiveMember) {
+      throw new DuplicateEmailError();
     }
+
+    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    const { partialMember, partialProfile } =
+      await GCPaymentService.customerToMember(completedJoinFlow);
+
+    if (OptionsService.getText("newsletter-default-status") === "subscribed") {
+      partialProfile.newsletterStatus = NewsletterStatus.Subscribed;
+      partialProfile.newsletterGroups = OptionsService.getList(
+        "newsletter-default-groups"
+      );
+    }
+
+    if (member) {
+      await MembersService.updateMember(member, partialMember);
+      await MembersService.updateMemberProfile(member, partialProfile);
+    } else {
+      member = await MembersService.createMember(partialMember, partialProfile);
+    }
+
+    await GCPaymentService.updatePaymentMethod(
+      member,
+      completedJoinFlow.customerId,
+      completedJoinFlow.mandateId
+    );
+    await GCPaymentService.updateContribution(
+      member,
+      completedJoinFlow.joinForm
+    );
+
+    await EmailService.sendTemplateToMember("welcome", member);
+
+    await login(req, member);
   }
 }

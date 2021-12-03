@@ -29,7 +29,6 @@ import ProjectMember from "@models/ProjectMember";
 import ProjectEngagement from "@models/ProjectEngagement";
 import Referral from "@models/Referral";
 import ReferralGift from "@models/ReferralGift";
-import RestartFlow from "@models/RestartFlow";
 import Segment from "@models/Segment";
 import SegmentMember from "@models/SegmentMember";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
@@ -195,11 +194,6 @@ const referralsGiftDrier = createDrier(ReferralGift, {
   stock: copy // Add to map so it is serialised correctly
 });
 
-const restartFlowDrier = createDrier(RestartFlow, {
-  id: () => uuidv4(),
-  member: memberId
-});
-
 const segmentsDrier = createDrier(Segment);
 
 const segmentMembersDrier = createDrier(SegmentMember, {
@@ -230,7 +224,6 @@ export default [
   projectEngagmentsDrier,
   referralsGiftDrier, // Must be before referralsDrier
   referralsDrier,
-  restartFlowDrier,
   segmentsDrier,
   segmentMembersDrier,
   segmentOngoingEmailsDrier,

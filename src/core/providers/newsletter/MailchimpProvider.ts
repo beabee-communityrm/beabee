@@ -11,7 +11,7 @@ import {
   NewsletterMember,
   NewsletterProvider,
   NewsletterStatus,
-  PartialNewsletterMember
+  UpdateNewsletterMember
 } from ".";
 
 import { MailchimpNewsletterConfig } from "@config";
@@ -116,10 +116,10 @@ function mcStatusToStatus(mcStatus: MCStatus): NewsletterStatus {
   }
 }
 
-function memberToMCMember(member: PartialNewsletterMember): Partial<MCMember> {
+function memberToMCMember(member: UpdateNewsletterMember): Partial<MCMember> {
   return {
     email_address: member.email,
-    ...(member.status && { status: member.status }),
+    status: member.status,
     ...((member.firstname || member.lastname || member.fields) && {
       merge_fields: {
         ...(member.firstname && { FNAME: member.firstname }),
@@ -222,13 +222,13 @@ export default class MailchimpProvider implements NewsletterProvider {
   }
 
   async updateMember(
-    member: PartialNewsletterMember,
+    member: UpdateNewsletterMember,
     oldEmail = member.email
   ): Promise<void> {
     await this.instance.put(this.emailUrl(oldEmail), memberToMCMember(member));
   }
 
-  async upsertMembers(members: PartialNewsletterMember[]): Promise<void> {
+  async upsertMembers(members: UpdateNewsletterMember[]): Promise<void> {
     const operations: Operation[] = members.map((member) => {
       const mcMember = memberToMCMember(member);
       return {

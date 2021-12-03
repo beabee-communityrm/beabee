@@ -1,13 +1,14 @@
 import express from "express";
 
 import { hasSchema } from "@core/middleware";
-import { cleanEmailAddress, isDuplicateIndex, wrapAsync } from "@core/utils";
+import { wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
 
 import Member from "@models/Member";
 
 import { updateProfileSchema } from "./schemas.json";
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 const app = express();
 
@@ -35,11 +36,9 @@ app.post(
     } = req;
     const member = req.model as Member;
 
-    const cleanedEmail = cleanEmailAddress(email);
-
     try {
       await MembersService.updateMember(member, {
-        email: cleanedEmail,
+        email,
         firstname,
         lastname
       });
@@ -55,7 +54,7 @@ app.post(
           : undefined
       });
     } catch (error) {
-      if (isDuplicateIndex(error, "email")) {
+      if (error instanceof DuplicateEmailError) {
         req.flash("danger", "email-duplicate");
       } else {
         throw error;

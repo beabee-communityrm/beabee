@@ -56,9 +56,6 @@ export default class Member {
   @CreateDateColumn()
   joined!: Date;
 
-  @Column({ default: false })
-  activated!: boolean;
-
   @Column({ nullable: true })
   lastSeen?: Date;
 

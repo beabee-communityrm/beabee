@@ -35,7 +35,7 @@ app.post(
           evt.data.object as Stripe.Checkout.Session
         );
       }
-    } catch (err) {
+    } catch (err: any) {
       log.error(`Got webhook error: ${err.message}`, err);
       return res.status(400).send(`Webhook error: ${err.message}`);
     }

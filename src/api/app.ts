@@ -11,11 +11,13 @@ import {
   useExpressServer
 } from "routing-controllers";
 
+import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { ContentController } from "./controllers/ContentController";
 import { MemberController } from "./controllers/MemberController";
 import { NoticeController } from "./controllers/NoticeController";
 import { SignupController } from "./controllers/SignupController";
+import { ResetPasswordController } from "./controllers/ResetPasswordController";
 
 import * as db from "@core/database";
 import { log, requestErrorLogger, requestLogger } from "@core/logging";
@@ -40,11 +42,13 @@ db.connect().then(() => {
   useExpressServer(app, {
     routePrefix: "/1.0",
     controllers: [
+      AuthController,
       CalloutController,
       ContentController,
       MemberController,
       NoticeController,
-      SignupController
+      SignupController,
+      ResetPasswordController
     ],
     currentUserChecker,
     authorizationChecker: (action) => !!currentUserChecker(action),
