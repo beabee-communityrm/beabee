@@ -84,17 +84,17 @@ app.post(
       membersWithoutPassword.map((member) => ({ member }))
     );
 
+    const nextParam = "?next=" + encodeURIComponent("/profile/contribution");
+
     const recipients = [
       ...membersWithPassword.map((member) =>
         EmailService.memberToRecipient(member, {
-          CONVERTLINK: `${config.audience}/auth/login`
+          CONVERTLINK: `${config.audience}/auth/login${nextParam}`
         })
       ),
       ...membersWithoutPassword.map((member, i) =>
         EmailService.memberToRecipient(member, {
-          CONVERTLINK: `${config.audience}/auth/set-password/${
-            rpFlows.identifiers[i].id
-          }?next=${encodeURIComponent("/profile/contribution")}`
+          CONVERTLINK: `${config.audience}/auth/set-password/${rpFlows.identifiers[i].id}${nextParam}`
         })
       )
     ];
