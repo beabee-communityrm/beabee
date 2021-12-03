@@ -30,25 +30,37 @@ block contents
           p.
             Members with an expiring membership will have their first payment
             taken on the date it expires
-          p.
-            You have #{expiringMembers} manual contributor(s) with an expiring
-            membership
+          p
+            | You have 
+            |
+            a(href='/members?rules={"condition"%3A"AND"%2C"rules"%3A[{"id"%3A"membershipExpires"%2C"field"%3A"membershipExpires"%2C"type"%3A"datetime"%2C"input"%3A"text"%2C"operator"%3A"greater"%2C"value"%3A"%24now"}%2C{"id"%3A"contributionType"%2C"field"%3A"contributionType"%2C"type"%3A"string"%2C"input"%3A"select"%2C"operator"%3A"equal"%2C"value"%3A"Manual"}]%2C"valid"%3Atrue}&sort=lf_ASC&type=advanced').
+              #{expiringMembers} manual contributor(s)
+            |
+            | with an expiring membership
         li
           p.
             Monthly contributors with a non-expiring membership will have their
             first payment taken a month after they convert
 
-          p.
-            You have #{nonExpiringMonthlyMembers} manual contributors(s) with an
-            non-expiring monthly membership
+          p
+            | You have
+            | 
+            a(href='/members?rules=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%7B%22id%22%3A%22membershipExpires%22%2C%22field%22%3A%22membershipExpires%22%2C%22type%22%3A%22datetime%22%2C%22input%22%3A%22text%22%2C%22operator%22%3A%22is_null%22%2C%22value%22%3Anull%7D%2C%7B%22id%22%3A%22contributionType%22%2C%22field%22%3A%22contributionType%22%2C%22type%22%3A%22string%22%2C%22input%22%3A%22select%22%2C%22operator%22%3A%22equal%22%2C%22value%22%3A%22Manual%22%7D%2C%7B%22id%22%3A%22contributionPeriod%22%2C%22field%22%3A%22contributionPeriod%22%2C%22type%22%3A%22string%22%2C%22input%22%3A%22select%22%2C%22operator%22%3A%22equal%22%2C%22value%22%3A%22monthly%22%7D%5D%2C%22valid%22%3Atrue%7D&sort=lf_ASC&type=advanced').
+              #{nonExpiringMonthlyMembers} manual contributors(s)
+            |
+            | with a non-expiring monthly membership
         li
           p.
             Annual contributors with a non-expiring membership #[b will not] be
             able to convert their contribution.
 
-          p.
-            You have #{nonExpiringAnnualMembers} manual contributors(s) with an
-            non-expiring annual membership
+          p
+            | You have
+            |
+            a(href='/members?rules=%7B%22condition%22%3A%22AND%22%2C%22rules%22%3A%5B%7B%22id%22%3A%22membershipExpires%22%2C%22field%22%3A%22membershipExpires%22%2C%22type%22%3A%22datetime%22%2C%22input%22%3A%22text%22%2C%22operator%22%3A%22is_null%22%2C%22value%22%3Anull%7D%2C%7B%22id%22%3A%22contributionType%22%2C%22field%22%3A%22contributionType%22%2C%22type%22%3A%22string%22%2C%22input%22%3A%22select%22%2C%22operator%22%3A%22equal%22%2C%22value%22%3A%22Manual%22%7D%2C%7B%22id%22%3A%22contributionPeriod%22%2C%22field%22%3A%22contributionPeriod%22%2C%22type%22%3A%22string%22%2C%22input%22%3A%22select%22%2C%22operator%22%3A%22equal%22%2C%22value%22%3A%22annually%22%7D%5D%2C%22valid%22%3Atrue%7D&sort=lf_ASC&type=advanced').
+              #{nonExpiringAnnualMembers} manual contributors(s)
+            |
+            | with a non-expiring annual membership
 
       hr
 
@@ -56,8 +68,8 @@ block contents
 
       if nonExpiringAnnualMembers > 0
         .alert.alert-warning.
-          You have #{nonExpiringAnnualMembers} member(s) who pay an
-          annual contribution with no membership expiry date.
+          #{nonExpiringAnnualMembers} member(s) with a non-expiring annual
+          contribution will not be sent an email
 
       form(method='POST').form-horizontal
         +csrf
@@ -66,5 +78,14 @@ block contents
         include /apps/tools/apps/emails/views/partials/email-fields
 
         .row: .col-md-offset-3.col-md-9
-          p: button.btn.btn-primary Send
+          p.
+            You should include at least one #[code *|CONVERTLINK|*] merge tag.
+
+          p
+            .checkbox-inline
+              label
+                input(type='checkbox' required)
+                | Are you ready to send?
+
+          p: button.btn.btn-danger Send
 
