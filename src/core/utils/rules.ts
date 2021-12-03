@@ -3,7 +3,7 @@ import {
   Brackets,
   createQueryBuilder,
   SelectQueryBuilder,
-  WhereExpression
+  WhereExpressionBuilder
 } from "typeorm";
 
 import Member from "@models/Member";
@@ -54,18 +54,15 @@ const memberFields = [
 
 const profileFields = ["deliveryOptIn", "tags", "newsletterStatus"] as const;
 
-const permissionFields = ["dateAdded", "dateExpires", "permission"] as const;
-
-const complexFields = ["activeMembership"] as const;
-
-const gcPaymentDataFields = {
-  activeSubscription: "subscriptionId"
-} as const;
+const complexFields = [
+  "activeMembership",
+  "activePermission",
+  "membershipExpires"
+] as const;
 
 type RuleId =
   | typeof memberFields[number]
   | typeof profileFields[number]
-  | typeof permissionFields[number]
   | typeof complexFields[number];
 type RuleValue = string | number | boolean;
 type RichRuleValue = RuleValue | Date;
@@ -123,9 +120,14 @@ class QueryBuilder {
 
   private parseRule =
     (rule: Rule) =>
-    (qb: WhereExpression): void => {
+    (qb: WhereExpressionBuilder): void => {
       const values = Array.isArray(rule.value) ? rule.value : [rule.value];
       const parsedValues = values.map(parseValue);
+
+      // Special case where tags are in a JSON array
+      if (rule.field === "tags") {
+        rule.operator = "contains_jsonb";
+      }
 
       const [where, params] = operators[rule.operator](parsedValues);
 
@@ -137,16 +139,32 @@ class QueryBuilder {
       }
       const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
 
-      if (rule.field === "activeMembership") {
+      if (rule.field === "membershipExpires") {
+        const table = "mp" + suffix;
+        const subQb = createQueryBuilder()
+          .subQuery()
+          .select(`${table}.memberId`)
+          .from(MemberPermission, table)
+          .where(
+            `${table}.permission = 'member' AND ${table}.dateExpires ${namedWhere}`
+          );
+        qb.where("id IN " + subQb.getQuery());
+      } else if (
+        rule.field === "activeMembership" ||
+        rule.field === "activePermission"
+      ) {
         const table = "mp" + suffix;
         this.params["now" + suffix] = parseValue("$now");
+
+        const permission =
+          rule.field === "activeMembership" ? "member" : rule.value;
 
         const subQb = createQueryBuilder()
           .subQuery()
           .select(`${table}.memberId`)
           .from(MemberPermission, table)
           .where(
-            `${table}.permission = 'member' AND ${table}.dateAdded <= :now${suffix}`
+            `${table}.permission = '${permission}' AND ${table}.dateAdded <= :now${suffix}`
           )
           .andWhere(
             new Brackets((qb) => {
@@ -156,7 +174,7 @@ class QueryBuilder {
             })
           );
 
-        if (rule.value === true) {
+        if (rule.field === "activePermission" || rule.value === true) {
           qb.where("id IN " + subQb.getQuery());
         } else {
           qb.where("id NOT IN " + subQb.getQuery());
@@ -172,15 +190,6 @@ class QueryBuilder {
           .where(`${table}.${rule.field} ${namedWhere}`);
 
         qb.where("id IN " + subQb.getQuery());
-      } else if (permissionFields.indexOf(rule.field as any) > -1) {
-        const table = "mp" + suffix;
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`${table}.memberId`)
-          .from(MemberPermission, table)
-          .where(`${table}.${rule.field} ${namedWhere}`);
-
-        qb.where("id IN " + subQb.getQuery());
       }
 
       this.paramNo++;
@@ -188,7 +197,7 @@ class QueryBuilder {
 
   private parseRuleGroup =
     (ruleGroup: RuleGroup) =>
-    (qb: WhereExpression): void => {
+    (qb: WhereExpressionBuilder): void => {
       qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
       const conditionFn =
         ruleGroup.condition === "AND"
