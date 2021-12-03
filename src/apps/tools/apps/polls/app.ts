@@ -7,7 +7,10 @@ import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
 import Poll, { PollAccess, PollTemplate } from "@models/Poll";
-import PollResponse, { PollResponseAnswers } from "@models/PollResponse";
+import PollResponse, {
+  PollResponseAnswer,
+  PollResponseAnswers
+} from "@models/PollResponse";
 
 import { createPollSchema } from "./schemas.json";
 
@@ -209,8 +212,27 @@ function flattenComponents(components: ComponentSchema[]): ComponentSchema[] {
   ]);
 }
 
-function getNiceAnswer(component: ComponentSchema, value: string) {
+function getNiceAnswer(component: ComponentSchema, value: string): string {
   return component.values?.find((v) => v.value === value)?.label || value;
+}
+
+function convertAnswer(
+  component: ComponentSchema,
+  answer: PollResponseAnswer
+): string {
+  console.log(component, answer);
+  if (!answer) {
+    return "";
+  } else if (typeof answer === "object") {
+    return Object.entries(answer)
+      .filter(([value, selected]) => selected)
+      .map(([value]) => getNiceAnswer(component, value))
+      .join(", ");
+  } else if (typeof answer === "string") {
+    return getNiceAnswer(component, answer);
+  } else {
+    return answer.toString();
+  }
 }
 
 export function convertAnswers(
@@ -230,22 +252,11 @@ export function convertAnswers(
     ...flattenComponents(formSchema.components)
       .filter((component) => component.input)
       .map((component) => {
-        const rawAnswer = answers[component.key];
-        let answer: string;
-        // Use for multiselect (e.g. selectboxes)
-        if (typeof rawAnswer === "object") {
-          answer = Object.entries(rawAnswer)
-            .filter(([value, selected]) => selected)
-            .map(([value]) => getNiceAnswer(component, value))
-            .join(", ");
-        } else if (typeof rawAnswer === "string") {
-          answer = getNiceAnswer(component, rawAnswer);
-        } else {
-          answer = rawAnswer?.toString() || "";
-        }
-
         return {
-          [component.label || component.key]: answer
+          [component.label || component.key]: convertAnswer(
+            component,
+            answers[component.key]
+          )
         };
       })
   );
