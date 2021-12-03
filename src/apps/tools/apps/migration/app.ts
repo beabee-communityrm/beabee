@@ -12,6 +12,7 @@ import ResetPasswordFlow from "@models/ResetPasswordFlow";
 import { schemaToEmail } from "@apps/tools/apps/emails/app";
 
 import config from "@config";
+import _ from "lodash";
 
 const app = express();
 
@@ -74,27 +75,34 @@ app.post(
     const { expiringMembers, nonExpiringMonthlyMembers } =
       await getManualMembers();
 
-    const convertableMembers = [
-      ...expiringMembers,
-      ...nonExpiringMonthlyMembers
+    const [membersWithPassword, membersWithoutPassword] = _.partition(
+      [...expiringMembers, ...nonExpiringMonthlyMembers],
+      (member) => member.password.hash
+    );
+
+    const rpFlows = await getRepository(ResetPasswordFlow).save(
+      membersWithoutPassword.map((member) => ({ member }))
+    );
+
+    const nextParam = "?next=" + encodeURIComponent("/profile/contribution");
+
+    const recipients = [
+      ...membersWithPassword.map((member) =>
+        EmailService.memberToRecipient(member, {
+          CONVERTLINK: `${config.audience}/auth/login${nextParam}`
+        })
+      ),
+      ...rpFlows.map((rpFlow) =>
+        EmailService.memberToRecipient(rpFlow.member, {
+          CONVERTLINK: `${config.audience}/auth/set-password/${rpFlow.id}${nextParam}`
+        })
+      )
     ];
 
-    const rpFlows = await getRepository(ResetPasswordFlow).insert(
-      convertableMembers.map((member) => ({ member }))
-    );
-
     const email = schemaToEmail({ ...req.body, name: "" });
-
-    const recipients = convertableMembers.map((member, i) =>
-      EmailService.memberToRecipient(member, {
-        CONVERTLINK: `${config.audience}/auth/set-password/${
-          rpFlows.identifiers[i].id
-        }?next=${encodeURIComponent("/profile/contribution")}`
-      })
-    );
-
     await EmailService.sendEmail(email, recipients);
 
+    req.flash("success", "migration-manual-to-gc-sent");
     res.redirect("/tools/migration/manual-to-gc");
   })
 );
