@@ -109,107 +109,40 @@ app.get("/:slug", hasNewModel(Poll, "slug"), (req, res, next) => {
   }
 });
 
-function getSessionAnswers(req: Request) {
+async function getUserAnswers(req: Request): Promise<PollResponseAnswers> {
   const answers = req.session.answers;
   delete req.session.answers;
-  return answers;
-}
 
-async function getUserAnswers(req: Request) {
   return (
-    getSessionAnswers(req) ||
+    answers ||
     (req.user &&
-      (await PollsService.getResponse(req.model as Poll, req.user))?.answers)
+      (await PollsService.getResponse(req.model as Poll, req.user))?.answers) ||
+    {}
   );
 }
 
-app.get(
-  "/:slug:embed(/embed)?",
-  [hasNewModel(Poll, "slug")],
-  wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
-    const isEmbed = !!req.params.embed;
-    const user = isEmbed ? undefined : req.user;
+function pollUrl(
+  poll: Poll,
+  opts: { pollsCode?: string; isEmbed?: boolean }
+): string {
+  return [
+    "/polls/" + poll.slug,
+    ...(opts.pollsCode ? ["/" + opts.pollsCode] : []),
+    ...(opts.isEmbed ? ["/embed"] : [])
+  ].join("");
+}
 
-    if (isEmbed) {
-      res.removeHeader("X-Frame-Options");
-    }
-
-    if (poll.access === PollAccess.Member && !user) {
-      return res.render("login", { poll, isEmbed });
-    }
-
-    const answers = req.query.answers as PollResponseAnswers;
-    // Handle partial answers from URL
-    if (answers) {
-      if (user) {
-        await PollsService.setResponse(poll, user, answers, true);
-      } else {
-        req.session.answers = answers;
-      }
-      res.redirect(`/polls/${poll.slug}#vote`);
-    } else {
-      res.render(getView(poll), {
-        poll,
-        isEmbed,
-        isGuest: isEmbed || !user,
-        answers: (await getUserAnswers(req)) || {},
-        preview:
-          req.query.preview &&
-          auth.canAdmin(req) === auth.AuthenticationStatus.LOGGED_IN,
-
-        // TODO: remove this hack
-        ...(poll.access === PollAccess.OnlyAnonymous && {
-          isLoggedIn: false,
-          menu: { main: [] }
-        })
-      });
-    }
-  })
-);
-
-app.post(
-  "/:slug:embed(/embed)?",
-  [hasNewModel(Poll, "slug"), hasPollAnswers],
-  wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
-    const isEmbed = !!req.params.embed;
-    const user =
-      isEmbed || poll.access === PollAccess.OnlyAnonymous
-        ? undefined
-        : req.user;
-
-    if (poll.access === PollAccess.Member && !user) {
-      return auth.handleNotAuthed(
-        auth.AuthenticationStatus.NOT_LOGGED_IN,
-        req,
-        res
-      );
-    }
-
-    const error = user
-      ? await PollsService.setResponse(poll, user, req.answers!)
-      : await PollsService.setGuestResponse(
-          poll,
-          req.body.guestName,
-          req.body.guestEmail,
-          req.answers!
-        );
-
-    if (error) {
-      req.flash("error", error);
-      res.redirect(`/polls/${poll.slug}#vote`);
-    } else {
-      if (!req.user) {
-        req.session.answers = req.answers;
-      }
-      res.redirect(`/polls/${poll.slug}/thanks`);
-    }
-  })
-);
+// :code is greedily matching /embed
+function fixParams(req: Request, res: Response, next: NextFunction) {
+  if (!req.params.embed && req.params.code === "embed") {
+    req.params.embed = "/embed";
+    req.params.code = "";
+  }
+  next();
+}
 
 app.get(
-  "/:slug/thanks",
+  "/:slug/:code?/thanks",
   hasNewModel(Poll, "slug"),
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
@@ -222,6 +155,7 @@ app.get(
       res.render(poll.template === "custom" ? getView(poll) : "thanks", {
         poll,
         answers,
+        pollsCode: req.params.code,
 
         // TODO: remove this hack
         ...(poll.access === PollAccess.OnlyAnonymous && {
@@ -234,72 +168,112 @@ app.get(
 );
 
 app.get(
-  "/:slug/:code:embed(/embed)?",
+  "/:slug/:code?:embed(/embed)?",
   hasNewModel(Poll, "slug"),
+  fixParams,
   wrapAsync(async (req, res, next) => {
     const poll = req.model as Poll;
+    const pollsCode = req.params.code?.toUpperCase();
     const isEmbed = !!req.params.embed;
-
-    if (poll.access === PollAccess.OnlyAnonymous) {
-      return next("route");
-    }
+    const isPreview = req.query.preview && req.user?.hasPermission("admin");
+    const isGuest = isEmbed || !(pollsCode || req.user);
 
     if (isEmbed) {
       res.removeHeader("X-Frame-Options");
     }
 
-    const answers = req.query.answers as PollResponseAnswers;
-    const pollsCode = req.params.code.toUpperCase();
+    // Anonymous polls can't be accessed with polls code
+    if (poll.access === PollAccess.OnlyAnonymous && pollsCode) {
+      return next("route");
+    }
 
-    // Prefill answers from URL
-    if (answers) {
-      const member = await MembersService.findOne({ pollsCode });
+    // Member only polls need a member
+    if (poll.access === PollAccess.Member && isGuest) {
+      return res.render("login", { poll, isEmbed });
+    }
+
+    // Handle partial answers from URL
+    const answers = req.query.answers as PollResponseAnswers;
+    if (!isEmbed && answers) {
+      const member = pollsCode
+        ? await MembersService.findOne({ pollsCode })
+        : req.user;
       if (member) {
-        const error = await PollsService.setResponse(
-          poll,
-          member,
-          answers,
-          true
-        );
-        if (!error) {
-          req.session.answers = answers;
-        }
+        await PollsService.setResponse(poll, member, answers, true);
       }
-      res.redirect(`/polls/${poll.slug}/${pollsCode}#vote`);
+      if (!req.user) {
+        req.session.answers = answers;
+      }
+      res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
       res.render(getView(poll), {
-        poll: req.model,
-        isGuest: false,
+        poll,
+        answers: await getUserAnswers(req),
         isEmbed,
-        answers: getSessionAnswers(req) || {},
-        code: pollsCode
+        isGuest,
+        preview: isPreview,
+
+        // TODO: remove this hack
+        ...(poll.access === PollAccess.OnlyAnonymous && {
+          isLoggedIn: false,
+          menu: { main: [] }
+        })
       });
     }
   })
 );
 
 app.post(
-  "/:slug/:code:embed(/embed)?",
-  [hasNewModel(Poll, "slug"), hasPollAnswers],
+  "/:slug/:code?:embed(/embed)?",
+  hasNewModel(Poll, "slug"),
+  hasPollAnswers,
+  fixParams,
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
-    const pollsCode = req.params.code.toUpperCase();
-    let error;
+    const pollsCode = req.params.code?.toUpperCase();
+    const isEmbed = !!req.params.embed;
 
-    const member = await MembersService.findOne({ pollsCode });
+    const member =
+      isEmbed || poll.access === PollAccess.OnlyAnonymous
+        ? undefined
+        : pollsCode
+        ? await MembersService.findOne({ pollsCode })
+        : req.user;
+
+    if (poll.access === PollAccess.Member && !member) {
+      return auth.handleNotAuthed(
+        auth.AuthenticationStatus.NOT_LOGGED_IN,
+        req,
+        res
+      );
+    }
+
+    let error;
+    if (pollsCode && !member) {
+      error = "polls-unknown-user";
+    } else {
+      error = member
+        ? await PollsService.setResponse(poll, member, req.answers!)
+        : await PollsService.setGuestResponse(
+            poll,
+            req.body.guestName,
+            req.body.guestEmail,
+            req.answers!
+          );
+    }
+
     if (member) {
       setTrackingCookie(member.id, res);
-      error = await PollsService.setResponse(poll, member, req.answers!);
-    } else {
-      error = "polls-unknown-user";
     }
 
     if (error) {
       req.flash("error", error);
-      res.redirect(`/polls/${poll.slug}/${pollsCode}#vote`);
+      res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
-      req.session.answers = req.answers;
-      res.redirect(`/polls/${poll.slug}/thanks`);
+      if (!req.user) {
+        req.session.answers = req.answers;
+      }
+      res.redirect(pollUrl(poll, { pollsCode }) + "/thanks");
     }
   })
 );
