@@ -43,6 +43,7 @@
   "newsletter-active-member-tag": "Active member",
   "newsletter-default-status": "",
   "newsletter-default-groups": "",
+  "newsletter-archive-on-expired": "true",
   "newsletter-resync-status": "",
   "newsletter-resync-data": "",
 
