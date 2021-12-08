@@ -263,18 +263,6 @@ export default class MembersService {
     }
   }
 
-  static async resetMemberPassword(email: string): Promise<void> {
-    const member = await getRepository(Member).findOne({ email });
-    if (member) {
-      member.password.resetCode = generateCode();
-      await getRepository(Member).save(member);
-      await EmailService.sendTemplateToMember("reset-password", member, {
-        rpLink:
-          config.audience + "/password-reset/code/" + member.password.resetCode
-      });
-    }
-  }
-
   static loginAndRedirect(
     req: Request,
     res: Response,
