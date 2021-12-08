@@ -11,8 +11,8 @@ dl.dl-horizontal
 				button.btn.btn-xs.btn-default Generate link
 	dt Password reset
 	dd
-		if member.password.resetCode
-			a(href='/password-reset/code/' + member.password.resetCode)= member.password.resetCode
+		if rpFlow
+			a(href='/auth/reset-password/' + rpFlow.id)= rpFlow.id
 		else
 			form(method='POST')
 				+csrf
