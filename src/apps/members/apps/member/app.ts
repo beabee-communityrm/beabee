@@ -104,9 +104,7 @@ app.post(
         req.flash("success", "member-login-override-generated");
         break;
       case "password-reset":
-        await MembersService.updateMember(member, {
-          password: { ...member.password, resetCode: generateCode() }
-        });
+        // TODO: new password reset
         req.flash("success", "member-password-reset-generated");
         break;
       case "permanently-delete":
