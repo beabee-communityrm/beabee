@@ -44,26 +44,32 @@ async function fetchMembers(
 
 async function processMembers(members: Member[]) {
   const membersToArchive = members.filter((m) => !m.isActiveMember);
-  console.log(`Archiving ${membersToArchive.length}`);
-  for (const member of membersToArchive) {
-    await MembersService.updateMemberProfile(
-      member,
-      {
-        newsletterStatus: NewsletterStatus.Unsubscribed
-      },
-      {
-        // Sync in one go below with upsertMembers
-        sync: false
-      }
-    );
-  }
 
+  console.log(
+    `Removing active member tag from ${membersToArchive.length} members`
+  );
   await NewsletterService.removeTagFromMembers(
     membersToArchive,
     OptionsService.getText("newsletter-active-member-tag")
   );
-  await NewsletterService.upsertMembers(membersToArchive);
-  await NewsletterService.archiveMembers(membersToArchive);
+
+  if (OptionsService.getBool("newsletter-archive-on-expired")) {
+    console.log(`Archiving ${membersToArchive.length} members`);
+    for (const member of membersToArchive) {
+      await MembersService.updateMemberProfile(
+        member,
+        {
+          newsletterStatus: NewsletterStatus.Unsubscribed
+        },
+        {
+          // Sync in one go below with upsertMembers
+          sync: false
+        }
+      );
+    }
+    await NewsletterService.upsertMembers(membersToArchive);
+    await NewsletterService.archiveMembers(membersToArchive);
+  }
 }
 
 db.connect().then(async () => {
