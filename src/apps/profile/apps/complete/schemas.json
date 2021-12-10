@@ -13,6 +13,7 @@
           "required": ["delivery_line1", "delivery_city", "delivery_postcode"],
           "properties": {
             "delivery_optin": {
+              "type": "boolean",
               "const": true
             },
             "delivery_line1": {
@@ -33,6 +34,7 @@
         {
           "properties": {
             "delivery_optin": {
+              "type": "boolean",
               "const": false
             }
           }
