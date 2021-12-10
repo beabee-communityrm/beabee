@@ -22,14 +22,6 @@ const app = express();
 
 app.set("views", __dirname + "/views");
 
-app.use(function (req, res, next) {
-  if (req.user?.setupComplete) {
-    res.redirect("/profile");
-  } else {
-    next();
-  }
-});
-
 app.use(isLoggedIn);
 
 app.get(

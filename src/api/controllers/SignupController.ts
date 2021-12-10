@@ -1,6 +1,6 @@
-import { IsEmail, Validate } from "class-validator";
 import { Request } from "express";
 import {
+  BadRequestError,
   Body,
   BodyParam,
   JsonController,
@@ -11,6 +11,7 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
+import { ContributionPeriod, ContributionType } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
@@ -25,51 +26,46 @@ import JoinFlow from "@models/JoinFlow";
 import MemberProfile from "@models/MemberProfile";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
-import { CompleteJoinFlowData } from "@api/data/JoinFlowData";
-import { StartContributionData } from "@api/data/ContributionData";
+import {
+  CompleteUrls,
+  SignupCompleteData,
+  SignupData
+} from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
-import IsPassword from "@api/validators/IsPassword";
-import IsUrl from "@api/validators/IsUrl";
 import { login } from "@api/utils";
-
-class SignupData extends StartContributionData {
-  @IsEmail()
-  email!: string;
-
-  @Validate(IsPassword)
-  password!: string;
-}
-
-class SignupCompleteData extends CompleteJoinFlowData {
-  @IsUrl()
-  loginUrl!: string;
-
-  @IsUrl()
-  setPasswordUrl!: string;
-
-  @IsUrl()
-  confirmUrl!: string;
-}
 
 @JsonController("/signup")
 export class SignupController {
+  @OnUndefined(204)
   @Post("/")
   async startSignup(
     @Body() data: SignupData
-  ): Promise<{ redirectUrl: string }> {
-    const redirectUrl = await JoinFlowService.createJoinFlow(
-      data.completeUrl,
-      {
-        ...data,
-        monthlyAmount: data.monthlyAmount,
-        password: await generatePassword(data.password),
-        prorate: false
-      },
-      { email: data.email }
-    );
-    return {
-      redirectUrl
+  ): Promise<{ redirectUrl: string } | undefined> {
+    const joinForm = {
+      email: data.email,
+      password: await generatePassword(data.password),
+      // TODO: these should be optional
+      monthlyAmount: data.contribution?.monthlyAmount || 0,
+      period: data.contribution?.period || ContributionPeriod.Monthly,
+      payFee: data.contribution?.payFee || false,
+      prorate: false
     };
+
+    if (data.contribution) {
+      const { redirectUrl } = await JoinFlowService.createJoinFlow(
+        joinForm,
+        data.contribution.completeUrl,
+        { email: data.email }
+      );
+      return {
+        redirectUrl
+      };
+    } else if (data.complete) {
+      const { joinFlow } = await JoinFlowService.createJoinFlow(joinForm);
+      await this.sendConfirmEmail(joinFlow, data.complete);
+    } else {
+      throw new BadRequestError();
+    }
   }
 
   @OnUndefined(204)
@@ -80,6 +76,10 @@ export class SignupController {
       throw new NotFoundError();
     }
 
+    await this.sendConfirmEmail(joinFlow, data);
+  }
+
+  private async sendConfirmEmail(joinFlow: JoinFlow, urls: CompleteUrls) {
     const member = await MembersService.findOne({
       email: joinFlow.joinForm.email
     });
@@ -87,7 +87,7 @@ export class SignupController {
     if (member?.isActiveMember) {
       if (member.password.hash) {
         await EmailService.sendTemplateToMember("email-exists-login", member, {
-          loginLink: data.loginUrl
+          loginLink: urls.loginUrl
         });
       } else {
         const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
@@ -95,7 +95,7 @@ export class SignupController {
           "email-exists-set-password",
           member,
           {
-            spLink: data.setPasswordUrl + "/" + rpFlow.id
+            spLink: urls.setPasswordUrl + "/" + rpFlow.id
           }
         );
       }
@@ -105,7 +105,7 @@ export class SignupController {
         { email: joinFlow.joinForm.email },
         {
           firstName: "", // We don't know this yet
-          confirmLink: data.confirmUrl + "/" + joinFlow.id
+          confirmLink: urls.confirmUrl + "/" + joinFlow.id
         }
       );
     }
@@ -133,35 +133,51 @@ export class SignupController {
       throw new DuplicateEmailError();
     }
 
-    const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
-      joinFlow
-    );
-    const { partialMember, billingAddress } =
-      await GCPaymentService.customerToMember(customerId, joinFlow.joinForm);
+    const partialMember = {
+      email: joinFlow.joinForm.email,
+      password: joinFlow.joinForm.password,
+      contributionType: ContributionType.None
+    };
+    const partialProfile: Partial<MemberProfile> = {
+      ...(OptionsService.getText("newsletter-default-status") ===
+        "subscribed" && {
+        newsletterStatus: NewsletterStatus.Subscribed,
+        newsletterGroups: OptionsService.getList("newsletter-default-groups")
+      })
+    };
 
-    const partialProfile: Partial<MemberProfile> = {};
+    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
 
-    if (OptionsService.getBool("delivery-address-prefill")) {
-      partialProfile.deliveryOptIn = false;
-      partialProfile.deliveryAddress = billingAddress;
-    }
-
-    if (OptionsService.getText("newsletter-default-status") === "subscribed") {
-      partialProfile.newsletterStatus = NewsletterStatus.Subscribed;
-      partialProfile.newsletterGroups = OptionsService.getList(
-        "newsletter-default-groups"
+    if (completedJoinFlow) {
+      const gcData = await GCPaymentService.customerToMember(
+        completedJoinFlow.customerId
       );
+
+      Object.assign(partialMember, gcData.partialMember);
+
+      if (OptionsService.getBool("delivery-address-prefill")) {
+        partialProfile.deliveryOptIn = false;
+        partialProfile.deliveryAddress = gcData.billingAddress;
+      }
     }
 
     if (member) {
       await MembersService.updateMember(member, partialMember);
-      await MembersService.updateMemberProfile(member, partialProfile);
+      if (Object.keys(partialProfile).length > 0) {
+        await MembersService.updateMemberProfile(member, partialProfile);
+      }
     } else {
       member = await MembersService.createMember(partialMember, partialProfile);
     }
 
-    await GCPaymentService.updatePaymentSource(member, customerId, mandateId);
-    await GCPaymentService.updateContribution(member, joinFlow.joinForm);
+    if (completedJoinFlow) {
+      await GCPaymentService.updatePaymentSource(
+        member,
+        completedJoinFlow.customerId,
+        completedJoinFlow.mandateId
+      );
+      await GCPaymentService.updateContribution(member, joinFlow.joinForm);
+    }
 
     await EmailService.sendTemplateToMember("welcome", member);
 

@@ -248,8 +248,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const redirectUrl = await JoinFlowService.createJoinFlow(
-      data.completeUrl,
+    const { redirectUrl } = await JoinFlowService.createJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
@@ -258,6 +257,7 @@ export class MemberController {
         password: await generatePassword(""),
         email: ""
       },
+      data.completeUrl,
       target
     );
     return {
@@ -278,10 +278,14 @@ export class MemberController {
       throw new NotFoundError();
     }
 
-    const { customerId, mandateId } = await JoinFlowService.completeJoinFlow(
-      joinFlow
-    );
-    await PaymentService.updatePaymentSource(target, customerId, mandateId);
+    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    if (completedJoinFlow) {
+      await PaymentService.updatePaymentSource(
+        target,
+        completedJoinFlow.customerId,
+        completedJoinFlow.mandateId
+      );
+    }
 
     return joinFlow;
   }

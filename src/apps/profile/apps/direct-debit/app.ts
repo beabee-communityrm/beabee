@@ -111,16 +111,17 @@ app.post(
         } else {
           const completeUrl =
             config.audience + "/profile/direct-debit/complete";
-          redirectUrl = await JoinFlowService.createJoinFlow(
-            completeUrl,
+          const ret = await JoinFlowService.createJoinFlow(
             {
               ...paymentForm,
               // TODO: we don't need to store these here, they won't be used
               email: req.user.email,
               password: req.user.password
             },
+            completeUrl,
             req.user
           );
+          redirectUrl = ret.redirectUrl;
         }
       } else {
         req.flash("warning", "contribution-updating-not-allowed");
@@ -141,13 +142,16 @@ app.get(
           req.query.redirect_flow_id as string
         );
         if (joinFlow) {
-          const { customerId, mandateId } =
-            await JoinFlowService.completeJoinFlow(joinFlow);
-          await GCPaymentService.updatePaymentSource(
-            req.user,
-            customerId,
-            mandateId
+          const completedJoinFlow = await JoinFlowService.completeJoinFlow(
+            joinFlow
           );
+          if (completedJoinFlow) {
+            await GCPaymentService.updatePaymentSource(
+              req.user,
+              completedJoinFlow.customerId,
+              completedJoinFlow.mandateId
+            );
+          }
           await handleChangeContribution(req, joinFlow.joinForm);
         } else {
           req.flash("warning", "contribution-updating-failed");

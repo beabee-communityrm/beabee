@@ -92,10 +92,10 @@ app.post(
     try {
       member = await MembersService.createMember(
         {
-          firstname: data.firstname || "",
-          lastname: data.lastname || "",
           email: data.email,
           contributionType: data.type,
+          firstname: data.firstname,
+          lastname: data.lastname,
           permissions
         },
         data.addToNewsletter
