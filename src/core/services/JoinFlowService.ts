@@ -1,13 +1,9 @@
 import { getRepository } from "typeorm";
 
-import { generateCode } from "@core/utils/auth";
-
 import GCPaymentService from "@core/services/GCPaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
-import Password from "@models/Password";
-import { ContributionPeriod } from "@core/utils";
 
 export interface CompletedJoinFlow {
   customerId: string;
