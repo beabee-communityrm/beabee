@@ -155,8 +155,6 @@ export class SignupController {
 
       Object.assign(partialMember, gcData.partialMember);
 
-      const partialProfile: Partial<MemberProfile> = {};
-
       if (OptionsService.getBool("delivery-address-prefill")) {
         partialProfile.deliveryOptIn = false;
         partialProfile.deliveryAddress = gcData.billingAddress;
@@ -165,7 +163,9 @@ export class SignupController {
 
     if (member) {
       await MembersService.updateMember(member, partialMember);
-      await MembersService.updateMemberProfile(member, partialProfile);
+      if (Object.keys(partialProfile).length > 0) {
+        await MembersService.updateMemberProfile(member, partialProfile);
+      }
     } else {
       member = await MembersService.createMember(partialMember, partialProfile);
     }
