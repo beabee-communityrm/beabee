@@ -9,10 +9,12 @@ import {
 
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
-import { cleanEmailAddress, isDuplicateIndex } from "@core/utils";
-import { AuthenticationStatus, canAdmin, generateCode } from "@core/utils/auth";
+import {
+  cleanEmailAddress,
+  ContributionType,
+  isDuplicateIndex
+} from "@core/utils";
 
-import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
@@ -21,21 +23,15 @@ import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
-import config from "@config";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
-export type PartialMember = Pick<
-  Member,
-  "email" | "firstname" | "lastname" | "contributionType"
-> &
+export type PartialMember = Pick<Member, "email" | "contributionType"> &
   Partial<Member>;
 
 const log = mainLogger.child({ app: "members-service" });
 
 export default class MembersService {
-  static generateMemberCode(
-    member: Pick<Member, "firstname" | "lastname">
-  ): string | undefined {
+  static generateMemberCode(member: Partial<Member>): string | undefined {
     if (member.firstname && member.lastname) {
       const no = ("000" + Math.floor(Math.random() * 1000)).slice(-3);
       return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
@@ -79,7 +75,10 @@ export default class MembersService {
   }
 
   static async createMember(
-    partialMember: PartialMember,
+    partialMember: Partial<Member> & {
+      email: string;
+      contributionType: ContributionType;
+    },
     partialProfile: Partial<MemberProfile> = {},
     opts = { sync: true }
   ): Promise<Member> {
@@ -91,6 +90,8 @@ export default class MembersService {
         pollsCode: this.generateMemberCode(partialMember),
         permissions: [],
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
+        firstname: "",
+        lastname: "",
         ...partialMember,
         email: cleanEmailAddress(partialMember.email)
       });

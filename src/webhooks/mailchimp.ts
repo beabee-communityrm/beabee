@@ -136,9 +136,9 @@ async function handleSubscribe(data: MCProfileData) {
     await MembersService.createMember(
       {
         email,
-        firstname: data.merges.FNAME || "",
-        lastname: data.merges.LNAME || "",
-        contributionType: ContributionType.None
+        contributionType: ContributionType.None,
+        firstname: data.merges.FNAME,
+        lastname: data.merges.LNAME
       },
       {
         newsletterStatus: NewsletterStatus.Subscribed,

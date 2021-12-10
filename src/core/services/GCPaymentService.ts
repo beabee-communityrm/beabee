@@ -16,7 +16,7 @@ import {
   ContributionInfo
 } from "@core/utils";
 
-import MembersService, { PartialMember } from "@core/services/MembersService";
+import MembersService from "@core/services/MembersService";
 
 import config from "@config";
 
@@ -25,7 +25,6 @@ import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
-import JoinForm from "@models/JoinForm";
 
 import NoPaymentSource from "@api/errors/NoPaymentSource";
 
@@ -281,11 +280,8 @@ abstract class UpdateContributionPaymentService {
 }
 
 export default class GCPaymentService extends UpdateContributionPaymentService {
-  static async customerToMember(
-    customerId: string,
-    joinForm: JoinForm
-  ): Promise<{
-    partialMember: PartialMember;
+  static async customerToMember(customerId: string): Promise<{
+    partialMember: Partial<Member>;
     billingAddress: Address;
   }> {
     const customer = await gocardless.customers.get(customerId);
@@ -294,8 +290,6 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
       partialMember: {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
-        email: joinForm.email,
-        password: joinForm.password,
         contributionType: ContributionType.GoCardless
       },
       billingAddress: {

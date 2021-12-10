@@ -51,6 +51,13 @@ block contents
         .row: .col-md-offset-3.col-md-9: p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add period
 
         .form-group
+          .col-md-offset-3.col-md-9
+            .checkbox
+              label
+                input(type='checkbox' name="data[showNoContribution]" value="true" checked=join.showNoContribution).js-reveal-types
+                | Include no contribution option
+
+        .form-group
           label.control-label.col-md-3 Initial amount
           .col-md-9
             input(type='number' name="data[initialAmount]" value=join.initialAmount required).form-control
