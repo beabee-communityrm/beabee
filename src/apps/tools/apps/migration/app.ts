@@ -74,11 +74,18 @@ app.get(
 app.post(
   "/manual-to-gc",
   wrapAsync(async (req, res) => {
-    const { expiringMembers, nonExpiringMonthlyMembers } =
-      await getManualMembers();
+    const {
+      expiringMembers,
+      nonExpiringMonthlyMembers,
+      nonExpiringAnnualMembers
+    } = await getManualMembers();
 
     const [membersWithPassword, membersWithoutPassword] = _.partition(
-      [...expiringMembers, ...nonExpiringMonthlyMembers],
+      [
+        ...expiringMembers,
+        ...nonExpiringMonthlyMembers,
+        ...nonExpiringAnnualMembers
+      ],
       (member) => member.password.hash
     );
 
