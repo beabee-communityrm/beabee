@@ -8,8 +8,6 @@
   "home-link-url": "http://example.com/about",
   "home-redirect-url": "/login",
 
-  "user-redirect-url": "",
-
   "user-home-url": "/profile",
   "admin-home-url": "/members",
   "referral-short-url": "http://example.com/refer",
