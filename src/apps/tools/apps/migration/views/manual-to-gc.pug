@@ -51,8 +51,9 @@ block contents
             | with a non-expiring monthly membership
         li
           p.
-            Annual contributors with a non-expiring membership #[b will not] be
-            able to convert their contribution.
+            Annual contributors with a non-expiring membership will have their
+            first payment taken based on the next occurrence of their start
+            day/month.
 
           p
             | You have
@@ -65,11 +66,6 @@ block contents
       hr
 
       h4 Send email
-
-      if nonExpiringAnnualMembers > 0
-        .alert.alert-warning.
-          #{nonExpiringAnnualMembers} member(s) with a non-expiring annual
-          contribution will not be sent an email
 
       form(method='POST').form-horizontal
         +csrf

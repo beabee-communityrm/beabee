@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment, { Moment } from "moment";
 import {
   PaymentCurrency,
   RedirectFlow,
@@ -56,27 +56,18 @@ abstract class UpdateContributionPaymentService {
     let startNow;
 
     if (user.membership?.isActive) {
-      if (gcData.subscriptionId) {
-        gcData = await this.updateSubscription(
-          user as PayingMember,
-          gcData,
-          paymentForm
-        );
-      } else {
-        // Use their expiry date if possible, otherwise if they are converting
-        // from a manual contribution give them a 1 month grace period
-        const startDate = user.membership.dateExpires
-          ? moment.utc(user.membership.dateExpires).subtract(config.gracePeriod)
-          : user.contributionType === ContributionType.Manual
-          ? moment.utc().add({ month: 1 })
-          : undefined;
-        gcData = await this.createSubscription(
-          user,
-          gcData,
-          paymentForm,
-          startDate?.format("YYYY-MM-DD")
-        );
-      }
+      gcData = gcData.subscriptionId
+        ? await this.updateSubscription(
+            user as PayingMember,
+            gcData,
+            paymentForm
+          )
+        : await this.createSubscription(
+            user,
+            gcData,
+            paymentForm,
+            this.calcStartDate(user)?.format("YYYY-MM-DD")
+          );
 
       startNow = await this.prorateSubscription(
         user as PayingMember,
@@ -94,6 +85,35 @@ abstract class UpdateContributionPaymentService {
     }
 
     await this.activateContribution(user, gcData, paymentForm, startNow);
+  }
+
+  private static calcStartDate(user: Member): Moment | undefined {
+    if (user.membership?.isActive) {
+      // Has an expiry date, just use that minus the grace period
+      if (user.membership.dateExpires) {
+        return moment
+          .utc(user.membership.dateExpires)
+          .subtract(config.gracePeriod);
+      }
+
+      // Some special rules for upgrading non-expiring manual contributions
+      if (user.contributionType === ContributionType.Manual) {
+        // Annual contribution, calculate based on their start date
+        if (user.contributionPeriod === ContributionPeriod.Annually) {
+          const thisYear = moment.utc().get("year");
+          const startDate = moment
+            .utc(user.membership.dateAdded)
+            .set("year", thisYear);
+          if (startDate.isBefore()) {
+            startDate.set("year", thisYear + 1);
+          }
+          return startDate;
+        } else {
+          // Monthly contribution, give them a 1 month grace period
+          return moment.utc().add({ month: 1 });
+        }
+      }
+    }
   }
 
   private static getChargeableAmount(
