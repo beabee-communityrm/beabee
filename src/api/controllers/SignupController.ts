@@ -84,7 +84,7 @@ export class SignupController {
       email: joinFlow.joinForm.email
     });
 
-    if (member?.isActiveMember) {
+    if (member?.membership?.isActive) {
       if (member.password.hash) {
         await EmailService.sendTemplateToMember("email-exists-login", member, {
           loginLink: urls.loginUrl
@@ -129,7 +129,7 @@ export class SignupController {
       where: { email: joinFlow.joinForm.email },
       relations: ["profile"]
     });
-    if (member?.isActiveMember) {
+    if (member?.membership?.isActive) {
       throw new DuplicateEmailError();
     }
 

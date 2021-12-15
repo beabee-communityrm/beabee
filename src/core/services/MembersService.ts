@@ -173,7 +173,7 @@ export default class MembersService {
   ): Promise<void> {
     log.info(`Update permission ${permission} for ${member.id}`, updates);
 
-    const wasActive = member.isActiveMember;
+    const wasActive = member.membership?.isActive;
 
     const existingPermission = member.permissions.find(
       (p) => p.permission === permission
@@ -197,12 +197,12 @@ export default class MembersService {
     }
     await getRepository(Member).save(member);
 
-    if (!wasActive && member.isActiveMember) {
+    if (!wasActive && member.membership?.isActive) {
       await NewsletterService.addTagToMembers(
         [member],
         OptionsService.getText("newsletter-active-member-tag")
       );
-    } else if (wasActive && !member.isActiveMember) {
+    } else if (wasActive && !member.membership.isActive) {
       await NewsletterService.removeTagFromMembers(
         [member],
         OptionsService.getText("newsletter-active-member-tag")
@@ -239,7 +239,7 @@ export default class MembersService {
     );
     await getRepository(MemberPermission).delete({ member, permission });
 
-    if (!member.isActiveMember) {
+    if (!member.membership?.isActive) {
       await NewsletterService.removeTagFromMembers(
         [member],
         OptionsService.getText("newsletter-active-member-tag")

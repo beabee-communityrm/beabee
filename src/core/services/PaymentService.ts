@@ -45,7 +45,7 @@ class PaymentService {
       type: member.contributionType,
       amount: member.contributionAmount,
       period: member.contributionPeriod,
-      membershipExpiryDate: member.membershipExpires
+      membershipExpiryDate: member.membership?.dateExpires
     };
 
     const extraInfo =

@@ -55,7 +55,7 @@ abstract class UpdateContributionPaymentService {
 
     let startNow;
 
-    if (user.isActiveMember) {
+    if (user.membership?.isActive) {
       if (gcData.subscriptionId) {
         gcData = await this.updateSubscription(
           user as PayingMember,
@@ -65,8 +65,8 @@ abstract class UpdateContributionPaymentService {
       } else {
         // Use their expiry date if possible, otherwise if they are converting
         // from a manual contribution give them a 1 month grace period
-        const startDate = user.membershipExpires
-          ? moment.utc(user.membershipExpires).subtract(config.gracePeriod)
+        const startDate = user.membership.dateExpires
+          ? moment.utc(user.membership.dateExpires).subtract(config.gracePeriod)
           : user.contributionType === ContributionType.Manual
           ? moment.utc().add({ month: 1 })
           : undefined;

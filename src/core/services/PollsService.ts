@@ -57,7 +57,7 @@ export default class PollsService {
     answers: PollResponseAnswers,
     isPartial = false
   ): Promise<string | undefined> {
-    if (!member.isActiveMember) {
+    if (!member.membership?.isActive) {
       return "polls-expired-user";
     } else if (!poll.active) {
       return "polls-closed";

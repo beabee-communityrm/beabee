@@ -130,28 +130,20 @@ export default class Member {
     }
   }
 
-  get isActiveMember(): boolean {
-    return this.permissions.some(
-      (p) => p.permission === "member" && p.isActive
-    );
+  get membership(): MemberPermission | undefined {
+    return this.permissions.find((p) => p.permission === "member");
   }
 
   get memberMonthsRemaining(): number {
-    const membership = this.permissions.find((p) => p.permission === "member");
-    return membership
+    return this.membership
       ? Math.max(
           0,
           moment
-            .utc(membership.dateExpires)
+            .utc(this.membership.dateExpires)
             .subtract(config.gracePeriod)
             .diff(moment.utc(), "months")
         )
       : 0;
-  }
-
-  get membershipExpires(): Date | undefined {
-    const membership = this.permissions.find((p) => p.permission === "member");
-    return membership?.dateExpires;
   }
 
   get setupComplete(): boolean {

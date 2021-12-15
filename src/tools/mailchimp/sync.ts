@@ -37,13 +37,13 @@ async function fetchMembers(
   });
   console.log(`Got ${memberships.length} members`);
   return memberships.map(({ member }) => {
-    console.log(member.isActiveMember ? "U" : "D", member.email);
+    console.log(member.membership?.isActive ? "U" : "D", member.email);
     return member;
   });
 }
 
 async function processMembers(members: Member[]) {
-  const membersToArchive = members.filter((m) => !m.isActiveMember);
+  const membersToArchive = members.filter((m) => !m.membership?.isActive);
 
   console.log(
     `Removing active member tag from ${membersToArchive.length} members`

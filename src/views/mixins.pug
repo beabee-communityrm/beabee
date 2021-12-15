@@ -100,8 +100,8 @@ mixin membersTableBasicInfo(member)
 	span.members-table-action
 		a(href='/members/' + member.id).btn.btn-xs.btn-default
 			span(
-				style='color: ' + (member.isActiveMember ? 'green' : 'red')
-				title=member.isActiveMember ? 'Active' : 'Expired'
+				style='color: ' + (member.membership && member.membership.isActive ? 'green' : 'red')
+				title=member.membership && member.membership.isActive ? 'Active' : 'Expired'
 			).glyphicon.glyphicon-user
 	span.members-table-row-main
 		div.members-table-row-info

@@ -55,18 +55,15 @@ const memberEmailTemplates = {
     RPLINK: params.rpLink
   }),
   "cancelled-contribution": (member: Member) => ({
-    EXPIRES: member.membershipExpires
-      ? moment.utc(member.membershipExpires).format("dddd Do MMMM")
+    EXPIRES: member.membership?.dateExpires
+      ? moment.utc(member.membership.dateExpires).format("dddd Do MMMM")
       : "-",
     MEMBERSHIPID: member.id
   }),
   "cancelled-contribution-no-survey": (member: Member) => {
-    const dateExpires = member.permissions.find(
-      (p) => p.permission === "member"
-    )?.dateExpires;
     return {
-      EXPIRES: dateExpires
-        ? moment.utc(dateExpires).format("dddd Do MMMM")
+      EXPIRES: member.membership?.dateExpires
+        ? moment.utc(member.membership.dateExpires).format("dddd Do MMMM")
         : "-"
     };
   },

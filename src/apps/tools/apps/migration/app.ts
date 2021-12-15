@@ -29,20 +29,22 @@ async function getManualMembers() {
     where: { contributionType: ContributionType.Manual }
   });
 
-  const activeMembers = manualMembers.filter((m) => m.isActiveMember);
+  const activeMembers = manualMembers.filter((m) => m.membership?.isActive);
 
-  const expiringMembers = activeMembers.filter((m) => m.membershipExpires);
+  const expiringMembers = activeMembers.filter(
+    (m) => m.membership?.dateExpires
+  );
 
   const nonExpiringMonthlyMembers = activeMembers.filter(
     (member) =>
       member.contributionPeriod === ContributionPeriod.Monthly &&
-      !member.membershipExpires
+      !member.membership?.dateExpires
   );
 
   const nonExpiringAnnualMembers = activeMembers.filter(
     (member) =>
       member.contributionPeriod === ContributionPeriod.Annually &&
-      !member.membershipExpires
+      !member.membership?.dateExpires
   );
 
   return {
