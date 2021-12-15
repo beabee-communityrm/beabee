@@ -1,0 +1,7 @@
+{
+  "title": "Profile",
+  "path": "profile",
+  "permissions": ["loggedIn"],
+  "menu": "main",
+  "priority": 5
+}
