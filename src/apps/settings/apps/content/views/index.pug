@@ -29,22 +29,21 @@ block contents
 
   .row
     .col-md-8
-      h4 General
       form(method='POST').form-horizontal
         +csrf
 
         .form-group
           label.control-label.col-md-3 Organisation name
           .col-md-9
-            input(type='text' name='options[organisation]' value=Options('organisation') )
-        .form-group
-          label.control-label.col-md-3 Terms URL
-          .col-md-9
-            input(type='text' name='options[footer-terms-link]' value=Options('footer-terms-link-url') )
+            input(type='text' name='options[organisation]' value=Options('organisation') required).form-control
         .form-group
           label.control-label.col-md-3 Privacy URL
           .col-md-9
-            input(type='text' name='options[footer-privacy-link]' value=Options('footer-privacy-link-url') )
+            input(type='text' name='options[footer-privacy-link-url]' value=Options('footer-privacy-link-url') required).form-control
+        .form-group
+          label.control-label.col-md-3 Terms URL
+          .col-md-9
+            input(type='text' name='options[footer-terms-link-url]' value=Options('footer-terms-link-url')).form-control
 
         .row: .col-md-offset-3.col-md-9: p: button.btn.btn-primary Save
 
@@ -91,9 +90,15 @@ block contents
               option(value='annually' selected=join.initialPeriod === 'annually') Annually
 
         .form-group
+          label.control-label.col-md-3 Min monthly amount
+          .col-md-9
+            input(type='number' name="options[contribution-min-monthly-amount]" value=Options('contribution-min-monthly-amount') required).form-control
+
+        .form-group
           .col-md-offset-3.col-md-9
             .checkbox
               label
+                input(type='hidden' name="options[show-absorb-fee]" value="false")
                 input(type='checkbox' name="options[show-absorb-fee]" value="true" checked=Options.bool('show-absorb-fee'))
                 | Show absorb fee
 
@@ -118,7 +123,7 @@ block contents
                 label
                   input(type='checkbox' name="options[show-mail-opt-in]" value="true" checked=Options.bool('show-mail-opt-in')).js-reveal-types
                   | Show mail opt-in
-          .js-reveal-type(data-type="data[showMailOptIn]").hidden
+          .js-reveal-type(data-type="options[show-mail-opt-in]").hidden
             .form-group
               label.control-label.col-md-3 Mail title
               .col-md-9

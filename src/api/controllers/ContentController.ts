@@ -5,7 +5,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import Content, { ContentId } from "@models/Content";
 
-const extraContent: Record<ContentId, () => Record<string, any>> = {
+const extraContent = {
   join: () => ({
     minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
     showAbsorbFee: OptionsService.getBool("show-absorb-fee"),
@@ -17,7 +17,7 @@ const extraContent: Record<ContentId, () => Record<string, any>> = {
     showMailOptIn: OptionsService.getBool("show-mail-opt-in")
   }),
   profile: () => ({})
-};
+} as const;
 
 @JsonController("/content")
 export class ContentController {
