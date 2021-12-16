@@ -7,6 +7,7 @@ import { log as mainLogger } from "@core/logging";
 import Option from "@models/Option";
 
 export type OptionKey = keyof typeof _defaultOptions;
+type OptionValue = string | boolean | number;
 const defaultOptions: { [key in OptionKey]: string } = _defaultOptions;
 
 const log = mainLogger.child({ app: "options-service" });
@@ -78,17 +79,25 @@ export default class OptionsService {
     return OptionsService.optionCache;
   }
 
+  static async set(opts: Record<OptionKey, OptionValue>): Promise<void>;
+  static async set(key: OptionKey, value: OptionValue): Promise<void>;
   static async set(
-    key: OptionKey,
-    value: string | number | boolean
+    optsOrKey: Record<OptionKey, OptionValue> | OptionKey,
+    value?: OptionValue
   ): Promise<void> {
-    const option = OptionsService.get(key);
-    if (option) {
+    const opts = value
+      ? { [optsOrKey as OptionKey]: value }
+      : (optsOrKey as Record<OptionKey, OptionValue>);
+
+    const options = Object.entries(opts).map(([key, value]) => {
+      const option = OptionsService.get(key as OptionKey);
       option.value = value.toString();
       option.default = false;
-      await getRepository(Option).save(option);
-      await OptionsService.notify();
-    }
+      return option;
+    });
+
+    await getRepository(Option).save(options);
+    await OptionsService.notify();
   }
 
   static async setJSON(key: OptionKey, value: any): Promise<void> {
