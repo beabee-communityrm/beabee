@@ -16,6 +16,8 @@
   "support-email-from": "UK Makerspace Membership",
 
   "contribution-min-monthly-amount": "1",
+  "show-absorb-fee": "true",
+  "show-mail-opt-in": "",
 
   "available-tags": "",
   "available-manual-payment-sources": "",
@@ -44,9 +46,6 @@
   "newsletter-archive-on-expired": "true",
   "newsletter-resync-status": "",
   "newsletter-resync-data": "",
-
-  "allow-absorb-fee": "true",
-  "delivery-address-prefill": "",
 
   "tracking-code": "",
 

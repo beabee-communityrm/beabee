@@ -155,8 +155,7 @@ export class SignupController {
 
       Object.assign(partialMember, gcData.partialMember);
 
-      if (OptionsService.getBool("delivery-address-prefill")) {
-        partialProfile.deliveryOptIn = false;
+      if (OptionsService.getBool("show-mail-opt-in")) {
         partialProfile.deliveryAddress = gcData.billingAddress;
       }
     }
