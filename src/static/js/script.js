@@ -73,7 +73,16 @@
 		parentNode.replaceChild(divEl, this);
 		parentNode.insertBefore(inputEl, divEl);
 
-		var quill = new Quill(divEl, {theme: 'snow'});
+		var quill = new Quill(divEl, {
+			theme: 'snow',
+			modules: {
+				toolbar: [
+					['bold', 'italic', 'underline', 'strike'],
+					['link'],
+					[{ 'list': 'ordered'}, { 'list': 'bullet' }],
+				]
+			}
+		});
 
 		$form.on('submit', function () {
 			inputEl.value = quill.root.innerHTML;
