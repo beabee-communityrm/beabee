@@ -120,6 +120,7 @@ block contents
             .col-md-offset-3.col-md-9
               .checkbox
                 label
+                  input(type='hidden' name="options[show-mail-opt-in]" value="false")
                   input(type='checkbox' name="options[show-mail-opt-in]" value="true" checked=Options.bool('show-mail-opt-in')).js-reveal-types
                   | Show mail opt-in
           .js-reveal-type(data-type="options[show-mail-opt-in]").hidden
