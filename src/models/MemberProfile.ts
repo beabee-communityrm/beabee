@@ -38,7 +38,7 @@ export default class MemberProfile {
   @Column({ type: "jsonb", default: "[]" })
   tags!: string[];
 
-  @Column({ default: NewsletterStatus.Unsubscribed })
+  @Column({ default: NewsletterStatus.None })
   newsletterStatus!: NewsletterStatus;
 
   @Column({ type: "jsonb", default: "[]" })

@@ -2,7 +2,8 @@ export enum NewsletterStatus {
   Subscribed = "subscribed",
   Unsubscribed = "unsubscribed",
   Pending = "pending",
-  Cleaned = "cleaned"
+  Cleaned = "cleaned",
+  None = "none"
 }
 
 export interface UpdateNewsletterMember {
