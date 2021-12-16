@@ -4,15 +4,14 @@ import { getRepository } from "typeorm";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import Content from "@models/Content";
+import Content, { ContentId } from "@models/Content";
+import OptionsService from "@core/services/OptionsService";
 
 const app = express();
 
 app.set("views", __dirname + "/views");
 
 app.use(isAdmin);
-
-type ContentId = "join" | "join/setup" | "profile";
 
 app.get(
   "/",
@@ -37,7 +36,7 @@ const parseData = {
       name: p.name,
       presetAmounts: p.presetAmounts.split(",").map((s) => Number(s.trim()))
     })),
-    showAbsorbFee: d.showAbsorbFee === "true"
+    showNoContribution: d.showNoContribution === "true"
   }),
   "join/setup": (d: any) => ({
     ...d,
@@ -50,11 +49,17 @@ const parseData = {
 app.post(
   "/",
   wrapAsync(async (req, res) => {
-    const id = req.body.id as ContentId;
-    await getRepository(Content).save({
-      id,
-      data: parseData[id](req.body.data)
-    });
+    if (req.body.id) {
+      const id = req.body.id as ContentId;
+      await getRepository(Content).save({
+        id,
+        data: parseData[id](req.body.data)
+      });
+    }
+
+    if (req.body.options) {
+      await OptionsService.set(req.body.options);
+    }
 
     res.redirect("/settings/content");
   })

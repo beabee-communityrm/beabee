@@ -29,6 +29,27 @@ block contents
 
   .row
     .col-md-8
+      h4 General
+      form(method='POST').form-horizontal
+        +csrf
+
+        .form-group
+          label.control-label.col-md-3 Organisation name
+          .col-md-9
+            input(type='text' name='options[organisation]' value=Options('organisation') )
+        .form-group
+          label.control-label.col-md-3 Terms URL
+          .col-md-9
+            input(type='text' name='options[footer-terms-link]' value=Options('footer-terms-link-url') )
+        .form-group
+          label.control-label.col-md-3 Privacy URL
+          .col-md-9
+            input(type='text' name='options[footer-privacy-link]' value=Options('footer-privacy-link-url') )
+
+        .row: .col-md-offset-3.col-md-9: p: button.btn.btn-primary Save
+
+      hr
+
       h4 Join page
 
       form(method='POST').form-horizontal
@@ -54,8 +75,8 @@ block contents
           .col-md-offset-3.col-md-9
             .checkbox
               label
-                input(type='checkbox' name="data[showNoContribution]" value="true" checked=join.showNoContribution).js-reveal-types
-                | Include no contribution option
+                input(type='checkbox' name="data[showNoContribution]" value="true" checked=join.showNoContribution)
+                | Show no contribution option
 
         .form-group
           label.control-label.col-md-3 Initial amount
@@ -68,6 +89,13 @@ block contents
               option(value='' selected disabled)
               option(value='monthly' selected=join.initialPeriod === 'monthly') Monthly
               option(value='annually' selected=join.initialPeriod === 'annually') Annually
+
+        .form-group
+          .col-md-offset-3.col-md-9
+            .checkbox
+              label
+                input(type='checkbox' name="options[show-absorb-fee]" value="true" checked=Options.bool('show-absorb-fee'))
+                | Show absorb fee
 
         .row: .col-md-offset-3.col-md-9: p: button(name='id' value='join').btn.btn-primary Save
 
@@ -88,7 +116,7 @@ block contents
             .col-md-offset-3.col-md-9
               .checkbox
                 label
-                  input(type='checkbox' name="data[showMailOptIn]" value="true" checked=joinSetup.showMailOptIn).js-reveal-types
+                  input(type='checkbox' name="options[show-mail-opt-in]" value="true" checked=Options.bool('show-mail-opt-in')).js-reveal-types
                   | Show mail opt-in
           .js-reveal-type(data-type="data[showMailOptIn]").hidden
             .form-group

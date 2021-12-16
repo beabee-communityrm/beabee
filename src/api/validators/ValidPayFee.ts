@@ -18,7 +18,7 @@ export default class ValidPayFee implements ValidatorConstraintInterface {
   }
 
   private validPayFee(payFee: boolean, args: ValidationArguments): boolean {
-    if (!OptionsService.getBool("allow-absorb-fee")) return payFee === false;
+    if (!OptionsService.getBool("show-absorb-fee")) return payFee === false;
 
     const amount = (args.object as any)?.amount as unknown;
     const period = (args.object as any)?.period as unknown;

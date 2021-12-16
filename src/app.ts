@@ -46,6 +46,7 @@ database.connect().then(async () => {
   app.use((req, res, next) => {
     res.locals.Options = (opt: OptionKey) => OptionsService.getText(opt);
     res.locals.Options.list = (opt: OptionKey) => OptionsService.getList(opt);
+    res.locals.Options.bool = (opt: OptionKey) => OptionsService.getBool(opt);
     res.locals.pageSettings = PageSettingsService.getPath(req.path);
     next();
   });

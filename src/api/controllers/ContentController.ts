@@ -3,28 +3,29 @@ import { getRepository } from "typeorm";
 
 import OptionsService from "@core/services/OptionsService";
 
-import Content from "@models/Content";
+import Content, { ContentId } from "@models/Content";
 
-import config from "@config";
+const extraContent: Record<ContentId, () => Record<string, any>> = {
+  join: () => ({
+    minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
+    showAbsorbFee: OptionsService.getBool("show-absorb-fee"),
+    privacyLink: OptionsService.getText("footer-privacy-link-url"),
+    termsLink: OptionsService.getText("footer-terms-link-url"),
+    name: OptionsService.getText("organisation")
+  }),
+  "join/setup": () => ({
+    showMailOptIn: OptionsService.getBool("show-mail-opt-in")
+  }),
+  profile: () => ({})
+};
 
 @JsonController("/content")
 export class ContentController {
   @Get("/:id(*)")
-  async getId(@Param("id") id: string): Promise<object | undefined> {
+  async getId(@Param("id") id: ContentId): Promise<object | undefined> {
     const content = await getRepository(Content).findOne(id);
-    if (content && id === "join") {
-      return {
-        ...content.data,
-        minMonthlyAmount: OptionsService.getInt(
-          "contribution-min-monthly-amount"
-        ),
-        showAbsorbFee: OptionsService.getBool("allow-absorb-fee"),
-        privacyLink: OptionsService.getText("footer-privacy-link-url"),
-        termsLink: OptionsService.getText("footer-terms-link-url"),
-        name: OptionsService.getText("organisation")
-      };
-    } else {
-      return content?.data;
+    if (content) {
+      return { ...content.data, ...extraContent[id]() };
     }
   }
 }
