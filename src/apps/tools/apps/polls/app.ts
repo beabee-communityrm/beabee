@@ -5,9 +5,10 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
+import { convertAnswers } from "@core/utils/polls";
 
 import Poll, { PollAccess, PollTemplate } from "@models/Poll";
-import PollResponse, { PollResponseAnswer } from "@models/PollResponse";
+import PollResponse from "@models/PollResponse";
 
 import { createPollSchema } from "./schemas.json";
 
@@ -195,70 +196,5 @@ app.post(
     }
   })
 );
-
-interface ComponentSchema {
-  key: string;
-  label?: string;
-  input?: boolean;
-  values?: { label: string; value: string }[];
-  components?: ComponentSchema[];
-}
-
-function flattenComponents(components: ComponentSchema[]): ComponentSchema[] {
-  return components.flatMap((component) => [
-    component,
-    ...flattenComponents(component.components || [])
-  ]);
-}
-
-function getNiceAnswer(component: ComponentSchema, value: string): string {
-  return component.values?.find((v) => v.value === value)?.label || value;
-}
-
-function convertAnswer(
-  component: ComponentSchema,
-  answer: PollResponseAnswer
-): string {
-  console.log(component, answer);
-  if (!answer) {
-    return "";
-  } else if (typeof answer === "object") {
-    return Object.entries(answer)
-      .filter(([value, selected]) => selected)
-      .map(([value]) => getNiceAnswer(component, value))
-      .join(", ");
-  } else if (typeof answer === "string") {
-    return getNiceAnswer(component, answer);
-  } else {
-    return answer.toString();
-  }
-}
-
-export function convertAnswers(
-  poll: Poll,
-  answers: Record<string, unknown>
-): Record<string, unknown> {
-  if (poll.template !== "builder") {
-    return answers;
-  }
-
-  const formSchema = poll.templateSchema.formSchema as {
-    components: ComponentSchema[];
-  };
-
-  return Object.assign(
-    {},
-    ...flattenComponents(formSchema.components)
-      .filter((component) => component.input)
-      .map((component) => {
-        return {
-          [component.label || component.key]: convertAnswer(
-            component,
-            answers[component.key]
-          )
-        };
-      })
-  );
-}
 
 export default app;
