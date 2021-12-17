@@ -58,6 +58,9 @@ export default class Poll {
   @Column()
   allowUpdate!: boolean;
 
+  @Column({ default: false })
+  allowMultiple!: boolean;
+
   @Column({ default: PollAccess.Member })
   access!: PollAccess;
 

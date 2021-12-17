@@ -109,7 +109,9 @@ app.get("/:slug", hasNewModel(Poll, "slug"), (req, res, next) => {
   }
 });
 
-async function getUserAnswers(req: Request): Promise<PollResponseAnswers> {
+async function getUserAnswersAndClear(
+  req: Request
+): Promise<PollResponseAnswers> {
   const answers = req.session.answers;
   delete req.session.answers;
 
@@ -147,7 +149,7 @@ app.get(
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
     // Always fetch answers to clear session even on redirect
-    const answers = await getUserAnswers(req);
+    const answers = await getUserAnswersAndClear(req);
 
     if (poll.templateSchema.thanksRedirect) {
       res.redirect(poll.templateSchema.thanksRedirect as string);
@@ -194,7 +196,8 @@ app.get(
 
     // Handle partial answers from URL
     const answers = req.query.answers as PollResponseAnswers;
-    if (!isEmbed && answers) {
+    // We don't support allowMultiple polls at the moment
+    if (!isEmbed && answers && !poll.allowMultiple) {
       const member = pollsCode
         ? await MembersService.findOne({ pollsCode })
         : req.user;
@@ -208,7 +211,7 @@ app.get(
     } else {
       res.render(getView(poll), {
         poll,
-        answers: await getUserAnswers(req),
+        answers: poll.allowMultiple ? {} : await getUserAnswersAndClear(req),
         isEmbed,
         isGuest,
         preview: isPreview,
