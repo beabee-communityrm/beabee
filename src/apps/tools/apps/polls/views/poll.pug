@@ -175,10 +175,23 @@ block contents
 						input(type='text' name='slug' required)#slug.form-control
 				button(name='action' value='replicate').btn.btn-primary Replicate
 
-				hr
+			hr
 
-	.row
-		.col-md-8
+			h4 Clear responses
+
+			p.
+				Clear all the responses to this poll, you will not be able to recover
+				the responses.
+
+			form(method='POST')
+				+csrf
+				p
+					label.checkbox-inline
+						input(type='checkbox' required)
+						| This change is irreversible, confirm to proceed
+				button(name='action' value='delete-responses').btn.btn-danger Clear
+
+			hr
 
 			h4 Delete callout
 

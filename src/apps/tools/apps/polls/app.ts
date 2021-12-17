@@ -193,6 +193,11 @@ app.post(
         }
         break;
       }
+      case "delete-responses":
+        await getRepository(PollResponse).delete({ poll: { slug: poll.slug } });
+        req.flash("success", "polls-responses-deleted");
+        res.redirect("/tools/polls/" + poll.slug);
+        break;
     }
   })
 );
