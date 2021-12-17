@@ -71,19 +71,27 @@ form(method='POST').form-horizontal
 					input(type='radio' name='access' value='only-anonymous' required checked=poll.access === 'only-anonymous')
 					| Only anonymous
 
-	if isNew
+	.js-reveal
 		.form-group
 			.col-md-offset-3.col-md-9
 				label.checkbox-inline
-					input(type='checkbox' name='allowUpdate' value='true')
+					input(type='checkbox' name='allowMultiple' value='true' checked=poll.allowMultiple).js-reveal-types
+					| Allow users to submit multiple responses
+
+		.form-group.js-reveal-type(data-type='allowMultiple' data-inverse)
+			.col-md-offset-3.col-md-9
+				label.checkbox-inline
+					input(type='checkbox' name='allowUpdate' value='true' checked=poll.allowUpdate)
 					| Allow users to update their answers
-		input(type='hidden' name='closed' value='true')
-	else
-		.form-group
-			.col-md-offset-3.col-md-9
-				label.checkbox-inline
-					input(type='checkbox' name='closed' value='true' checked=poll.closed)
-					| Closed
+
+		if isNew
+			input(type='hidden' name='closed' value='true')
+		else
+			.form-group
+				.col-md-offset-3.col-md-9
+					label.checkbox-inline
+						input(type='checkbox' name='closed' value='true' checked=poll.closed)
+						| Closed
 
 	.form-group
 		.col-md-offset-3.col-md-9

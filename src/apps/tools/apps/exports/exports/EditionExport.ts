@@ -3,6 +3,7 @@ import { createQueryBuilder, getRepository, SelectQueryBuilder } from "typeorm";
 
 import { ContributionType } from "@core/utils";
 import { Param } from "@core/utils/params";
+import { convertAnswers } from "@core/utils/polls";
 
 import Member from "@models/Member";
 
@@ -10,8 +11,6 @@ import { ExportResult } from "./BaseExport";
 import ActiveMembersExport from "./ActiveMembersExport";
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
-
-import { convertAnswers } from "@apps/tools/apps/polls/app";
 
 export default class EditionExport extends ActiveMembersExport {
   exportName = "Edition export";

@@ -5,12 +5,10 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
+import { convertAnswers } from "@core/utils/polls";
 
 import Poll, { PollAccess, PollTemplate } from "@models/Poll";
-import PollResponse, {
-  PollResponseAnswer,
-  PollResponseAnswers
-} from "@models/PollResponse";
+import PollResponse from "@models/PollResponse";
 
 import { createPollSchema } from "./schemas.json";
 
@@ -24,6 +22,7 @@ interface CreatePollSchema {
   mcMergeField?: string;
   pollMergeField?: string;
   allowUpdate?: boolean;
+  allowMultiple?: boolean;
   startsDate?: string;
   startsTime?: string;
   expiresDate?: string;
@@ -44,7 +43,8 @@ function schemaToPoll(
   poll.mcMergeField = data.mcMergeField;
   poll.pollMergeField = data.pollMergeField;
   poll.template = data.template;
-  poll.allowUpdate = data.allowUpdate !== undefined && data.allowUpdate;
+  poll.allowUpdate = !!data.allowUpdate;
+  poll.allowMultiple = !!data.allowMultiple;
   poll.access = data.access;
   poll.hidden = !!data.hidden;
   poll.starts = createDateTime(data.startsDate, data.startsTime);
@@ -193,73 +193,13 @@ app.post(
           break;
         }
       }
+      case "delete-responses":
+        await getRepository(PollResponse).delete({ poll: { slug: poll.slug } });
+        req.flash("success", "polls-responses-deleted");
+        res.redirect("/tools/polls/" + poll.slug);
+        break;
     }
   })
 );
-
-interface ComponentSchema {
-  key: string;
-  label?: string;
-  input?: boolean;
-  values?: { label: string; value: string }[];
-  components?: ComponentSchema[];
-}
-
-function flattenComponents(components: ComponentSchema[]): ComponentSchema[] {
-  return components.flatMap((component) => [
-    component,
-    ...flattenComponents(component.components || [])
-  ]);
-}
-
-function getNiceAnswer(component: ComponentSchema, value: string): string {
-  return component.values?.find((v) => v.value === value)?.label || value;
-}
-
-function convertAnswer(
-  component: ComponentSchema,
-  answer: PollResponseAnswer
-): string {
-  console.log(component, answer);
-  if (!answer) {
-    return "";
-  } else if (typeof answer === "object") {
-    return Object.entries(answer)
-      .filter(([value, selected]) => selected)
-      .map(([value]) => getNiceAnswer(component, value))
-      .join(", ");
-  } else if (typeof answer === "string") {
-    return getNiceAnswer(component, answer);
-  } else {
-    return answer.toString();
-  }
-}
-
-export function convertAnswers(
-  poll: Poll,
-  answers: PollResponseAnswers
-): Record<string, unknown> {
-  if (poll.template !== "builder") {
-    return answers;
-  }
-
-  const formSchema = poll.templateSchema.formSchema as {
-    components: ComponentSchema[];
-  };
-
-  return Object.assign(
-    {},
-    ...flattenComponents(formSchema.components)
-      .filter((component) => component.input)
-      .map((component) => {
-        return {
-          [component.label || component.key]: convertAnswer(
-            component,
-            answers[component.key]
-          )
-        };
-      })
-  );
-}
 
 export default app;
