@@ -46,8 +46,12 @@ export default class PollsService {
     member: Member
   ): Promise<PollResponse | undefined> {
     return await getRepository(PollResponse).findOne({
-      poll: { slug: poll.slug },
-      member
+      where: {
+        poll: { slug: poll.slug },
+        member
+      },
+      // Get most recent response for polls with allowMultiple
+      order: { createdAt: "DESC" }
     });
   }
 
@@ -65,8 +69,13 @@ export default class PollsService {
       return "polls-closed";
     }
 
+    // Don't allow partial answers for multiple answer polls
+    if (poll.allowMultiple && isPartial) {
+      return;
+    }
+
     let pollResponse = await PollsService.getResponse(poll, member);
-    if (pollResponse) {
+    if (pollResponse && !poll.allowMultiple) {
       if (!poll.allowUpdate && !pollResponse.isPartial) {
         return "polls-cant-update";
       }
