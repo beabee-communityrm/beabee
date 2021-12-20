@@ -29,6 +29,6 @@ export default class ProjectEngagement {
   @Column()
   type!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   notes: string | undefined;
 }

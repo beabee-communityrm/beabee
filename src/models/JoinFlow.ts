@@ -15,7 +15,7 @@ export default class JoinFlow {
   @CreateDateColumn()
   date!: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   redirectFlowId: string | undefined;
 
   @Column(() => JoinForm)

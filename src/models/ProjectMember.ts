@@ -20,6 +20,6 @@ export default class ProjectMember {
   @ManyToOne("Member")
   member!: Member;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   tag: string | undefined;
 }

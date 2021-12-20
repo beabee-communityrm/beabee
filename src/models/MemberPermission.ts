@@ -21,7 +21,7 @@ export default class MemberPermission {
   @CreateDateColumn()
   dateAdded!: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: Date, nullable: true })
   dateExpires: Date | undefined;
 
   get isActive(): boolean {

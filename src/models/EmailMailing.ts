@@ -20,16 +20,16 @@ export default class EmailMailing {
   @CreateDateColumn()
   createdDate!: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: Date, nullable: true })
   sentDate: Date | undefined;
 
   @Column({ type: "jsonb" })
   recipients!: EmailMailingRecipient[];
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   emailField: string | undefined;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   nameField: string | undefined;
 
   @Column({ type: "json", nullable: true })

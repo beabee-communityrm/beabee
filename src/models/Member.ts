@@ -26,7 +26,7 @@ interface LoginOverride {
 }
 
 class OneTimePassword {
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   key: string | undefined;
 
   @Column({ default: false })
@@ -56,7 +56,7 @@ export default class Member {
   @CreateDateColumn()
   joined!: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: Date, nullable: true })
   lastSeen: Date | undefined;
 
   @Column({ type: "jsonb", nullable: true })
@@ -65,7 +65,7 @@ export default class Member {
   @Column()
   contributionType!: ContributionType;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   contributionPeriod: ContributionPeriod | undefined;
 
   @Column({ type: "real", nullable: true })
@@ -74,10 +74,10 @@ export default class Member {
   @Column({ type: "real", nullable: true })
   nextContributionMonthlyAmount: number | undefined;
 
-  @Column({ unique: true, nullable: true })
+  @Column({ type: String, unique: true, nullable: true })
   referralCode: string | undefined;
 
-  @Column({ unique: true, nullable: true })
+  @Column({ type: String, unique: true, nullable: true })
   pollsCode: string | undefined;
 
   @OneToMany("MemberPermission", "member", { eager: true, cascade: true })

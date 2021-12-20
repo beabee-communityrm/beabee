@@ -22,7 +22,7 @@ export class GiftForm {
   @Column({ type: "date" })
   startDate!: Date;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   message: string | undefined;
 
   @Column()

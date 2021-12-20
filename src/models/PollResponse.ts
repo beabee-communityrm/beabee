@@ -26,10 +26,10 @@ export default class PollResponse {
   @ManyToOne("Member", { nullable: true })
   member: Member | undefined;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   guestName: string | undefined;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   guestEmail: string | undefined;
 
   @Column({ type: "jsonb" })
