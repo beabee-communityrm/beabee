@@ -117,12 +117,12 @@ export default class MandrillProvider implements EmailProvider {
       to: recipients.map((r) => r.to),
       merge_vars: recipients.map((r) => ({
         rcpt: r.to.email,
-        vars:
-          r.mergeFields &&
-          Object.keys(r.mergeFields).map((mergeField) => ({
-            name: mergeField,
-            content: r.mergeFields![mergeField]
+        ...(r.mergeFields && {
+          vars: Object.entries(r.mergeFields).map(([name, content]) => ({
+            name,
+            content
           }))
+        })
       })),
       ...(opts?.attachments && { attachments: opts.attachments })
     };

@@ -31,6 +31,6 @@ declare module "papaparse" {
 declare module "express-session" {
   interface SessionData {
     method?: "plain" | "totp";
-    answers?: PollResponseAnswers;
+    answers: PollResponseAnswers | undefined;
   }
 }

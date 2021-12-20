@@ -30,5 +30,5 @@ export default class ProjectEngagement {
   type!: string;
 
   @Column({ nullable: true })
-  notes?: string;
+  notes: string | undefined;
 }

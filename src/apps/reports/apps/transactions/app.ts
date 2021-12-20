@@ -43,7 +43,7 @@ app.get(
 
     const successfulPayments = payments
       .filter((p) => p.isSuccessful)
-      .map((p) => p.amount - p.amountRefunded)
+      .map((p) => p.amount - (p.amountRefunded || 0))
       .filter((amount) => !isNaN(amount));
 
     const total = successfulPayments.reduce((a, b) => a + b, 0).toFixed(2);

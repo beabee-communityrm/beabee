@@ -4,12 +4,12 @@ import { QueryFailedError } from "typeorm";
 
 export interface ContributionInfo {
   type: ContributionType;
-  amount?: number;
-  period?: ContributionPeriod;
-  cancellationDate?: Date;
-  paymentSource?: PaymentSource;
+  amount?: number | undefined;
+  period?: ContributionPeriod | undefined;
+  cancellationDate?: Date | undefined;
+  paymentSource?: PaymentSource | undefined;
   membershipStatus: "active" | "expiring" | "expired" | "none";
-  membershipExpiryDate?: Date;
+  membershipExpiryDate?: Date | undefined;
 }
 
 export enum ContributionPeriod {
@@ -39,8 +39,8 @@ export interface PaymentSource {
 }
 
 export interface ReferralGiftForm {
-  referralGift?: string;
-  referralGiftOptions?: Record<string, string>;
+  referralGift?: string | undefined;
+  referralGiftOptions?: Record<string, string> | undefined;
 }
 
 export function getActualAmount(

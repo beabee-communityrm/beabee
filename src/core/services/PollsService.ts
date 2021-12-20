@@ -34,7 +34,7 @@ export default class PollsService {
       Object.assign(pwr, poll);
       pwr.response = responses.find(
         (r) => (r.poll as unknown as string) === poll.slug
-      );
+      )!;
       return pwr;
     });
 

@@ -21,5 +21,5 @@ export default class ProjectMember {
   member!: Member;
 
   @Column({ nullable: true })
-  tag?: string;
+  tag: string | undefined;
 }
