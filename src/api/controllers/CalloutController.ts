@@ -35,9 +35,9 @@ interface BasicCalloutData {
   slug: string;
   title: string;
   excerpt: string;
-  image: string | undefined;
-  starts: Date | undefined;
-  expires: Date | undefined;
+  image?: string;
+  starts?: Date;
+  expires?: Date;
 }
 
 interface MoreCalloutData extends BasicCalloutData {
@@ -49,9 +49,9 @@ function pollToBasicCallout(poll: Poll): BasicCalloutData {
     slug: poll.slug,
     title: poll.title,
     excerpt: poll.excerpt,
-    image: poll.image,
-    starts: poll.starts,
-    expires: poll.expires
+    ...(poll.image && { image: poll.image }),
+    ...(poll.starts && { starts: poll.starts }),
+    ...(poll.expires && { expires: poll.expires })
   };
 }
 

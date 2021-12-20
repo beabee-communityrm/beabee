@@ -26,7 +26,7 @@ function schemaToNotice(data: NoticeSchema): Notice {
   notice.expires = createDateTime(data.expiresDate, data.expiresTime);
   notice.text = data.text;
   notice.buttonText = data.buttonText;
-  notice.url = data.url;
+  notice.url = data.url || null;
   notice.enabled = !!data.enabled;
 
   return notice;

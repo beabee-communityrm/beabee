@@ -4,12 +4,12 @@ import { QueryFailedError } from "typeorm";
 
 export interface ContributionInfo {
   type: ContributionType;
-  amount?: number | undefined;
-  period?: ContributionPeriod | undefined;
-  cancellationDate?: Date | undefined;
-  paymentSource?: PaymentSource | undefined;
+  amount?: number;
+  period?: ContributionPeriod;
+  cancellationDate?: Date;
+  paymentSource?: PaymentSource;
   membershipStatus: "active" | "expiring" | "expired" | "none";
-  membershipExpiryDate?: Date | undefined;
+  membershipExpiryDate?: Date;
 }
 
 export enum ContributionPeriod {
@@ -36,11 +36,6 @@ export interface PaymentSource {
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;
-}
-
-export interface ReferralGiftForm {
-  referralGift?: string | undefined;
-  referralGiftOptions?: Record<string, string> | undefined;
 }
 
 export function getActualAmount(
@@ -106,12 +101,12 @@ export function createDateTime(date: string, time: string): Date;
 export function createDateTime(
   date: string | undefined,
   time: string | undefined
-): Date | undefined;
+): Date | null;
 export function createDateTime(
   date: string | undefined,
   time: string | undefined
-): Date | undefined {
-  return date && time ? moment.utc(date + "T" + time).toDate() : undefined;
+): Date | null {
+  return date && time ? moment.utc(date + "T" + time).toDate() : null;
 }
 
 interface PgError {

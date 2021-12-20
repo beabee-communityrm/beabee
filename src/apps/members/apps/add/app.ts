@@ -140,8 +140,8 @@ app.post(
       });
       await getRepository(ManualPaymentData).save(paymentData);
       await MembersService.updateMember(member, {
-        contributionPeriod: data.period,
-        contributionMonthlyAmount: data.amount
+        contributionPeriod: data.period || null,
+        contributionMonthlyAmount: data.amount || null
       });
     }
 

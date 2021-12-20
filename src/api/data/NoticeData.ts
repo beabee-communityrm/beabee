@@ -9,11 +9,11 @@ import {
 
 interface NoticeData {
   name: string;
-  expires?: Date | undefined;
+  expires?: Date;
   enabled: boolean;
   text: string;
   buttonText: string;
-  url?: string | undefined;
+  url?: string;
 }
 
 export enum NoticeStatus {
@@ -41,7 +41,7 @@ export class CreateNoticeData implements NoticeData {
   @Type(() => Date)
   @IsDate()
   @IsOptional()
-  expires?: Date | undefined;
+  expires?: Date;
 
   @IsBoolean()
   enabled!: boolean;
@@ -54,5 +54,5 @@ export class CreateNoticeData implements NoticeData {
 
   @IsString()
   @IsOptional()
-  url?: string | undefined;
+  url?: string;
 }

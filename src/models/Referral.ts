@@ -18,7 +18,7 @@ export default class Referral {
   date!: Date;
 
   @ManyToOne("Member", { nullable: true })
-  referrer: Member | undefined;
+  referrer!: Member | null;
 
   @ManyToOne("Member")
   referee!: Member;
@@ -27,16 +27,16 @@ export default class Referral {
   refereeAmount!: number;
 
   @ManyToOne(() => ReferralGift, { nullable: true })
-  refereeGift: ReferralGift | undefined;
+  refereeGift!: ReferralGift | null;
 
   @Column({ type: "jsonb", nullable: true })
-  refereeGiftOptions: Record<string, string> | undefined;
+  refereeGiftOptions!: Record<string, string> | null;
 
   @ManyToOne(() => ReferralGift, { nullable: true })
-  referrerGift: ReferralGift | undefined;
+  referrerGift!: ReferralGift | null;
 
   @Column({ type: "jsonb", nullable: true })
-  referrerGiftOptions: Record<string, string> | undefined;
+  referrerGiftOptions!: Record<string, string> | null;
 
   @Column({ default: false })
   referrerHasSelected!: boolean;

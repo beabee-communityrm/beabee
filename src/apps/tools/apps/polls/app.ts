@@ -36,10 +36,10 @@ function schemaToPoll(
   poll.title = data.title;
   poll.slug = data.slug;
   poll.excerpt = data.excerpt;
-  poll.image = data.image || undefined;
+  poll.image = data.image || null;
   poll.closed = !!data.closed;
-  poll.mcMergeField = data.mcMergeField;
-  poll.pollMergeField = data.pollMergeField;
+  poll.mcMergeField = data.mcMergeField || null;
+  poll.pollMergeField = data.pollMergeField || null;
   poll.template = data.template;
   poll.allowUpdate = data.allowUpdate !== undefined && data.allowUpdate;
   poll.access = data.access;

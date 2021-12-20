@@ -23,7 +23,7 @@ export default class Segment {
   order!: number;
 
   @Column({ type: String, nullable: true })
-  newsletterTag: string | undefined;
+  newsletterTag!: string | null;
 
   memberCount?: number;
 }

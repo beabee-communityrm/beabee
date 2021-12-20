@@ -7,7 +7,7 @@ import GiftFlow from "@models/GiftFlow";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 
-function addressFields(address?: Address) {
+function addressFields(address: Address | null) {
   return {
     GifteeAddress1: address?.line1 || "",
     GifteeAddress2: address?.line2 || "",

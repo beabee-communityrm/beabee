@@ -22,7 +22,7 @@ export default class MemberPermission {
   dateAdded!: Date;
 
   @Column({ type: Date, nullable: true })
-  dateExpires: Date | undefined;
+  dateExpires!: Date | null;
 
   get isActive(): boolean {
     const now = new Date();

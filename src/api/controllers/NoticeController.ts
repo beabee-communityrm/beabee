@@ -97,8 +97,8 @@ export class NoticeController {
       text: notice.text,
       buttonText: notice.buttonText,
       enabled: notice.enabled,
-      expires: notice.expires,
-      url: notice.url,
+      ...(notice.expires !== null && { expires: notice.expires }),
+      ...(notice.url !== null && { url: notice.url }),
       status: notice.active ? NoticeStatus.Open : NoticeStatus.Finished
     };
   }

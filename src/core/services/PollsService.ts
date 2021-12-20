@@ -98,8 +98,8 @@ export default class PollsService {
 
     const pollResponse = new PollResponse();
     pollResponse.poll = poll;
-    pollResponse.guestName = guestName;
-    pollResponse.guestEmail = guestEmail;
+    pollResponse.guestName = guestName || null;
+    pollResponse.guestEmail = guestEmail || null;
     pollResponse.answers = answers;
     pollResponse.isPartial = false;
 
