@@ -12,7 +12,7 @@ export default abstract class Payment {
   id!: string;
 
   @ManyToOne("Member", { nullable: true })
-  member?: Member;
+  member: Member | undefined;
 
   @Column()
   status!: string;
@@ -24,7 +24,7 @@ export default abstract class Payment {
   amount!: number;
 
   @Column({ type: "real", nullable: true })
-  amountRefunded!: number;
+  amountRefunded: number | undefined;
 
   @Column({ type: "date" })
   chargeDate!: Date;

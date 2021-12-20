@@ -34,7 +34,7 @@ export default class SendGridProvider implements EmailProvider {
       html: email.bodyInline,
       personalizations: recipients.map((recipient) => ({
         to: recipient.to,
-        substitutions: recipient.mergeFields
+        ...(recipient.mergeFields && { substitutions: recipient.mergeFields })
       })),
       ...(opts?.sendAt && {
         sendAt: +opts.sendAt

@@ -9,11 +9,11 @@ import {
 
 interface NoticeData {
   name: string;
-  expires?: Date;
+  expires?: Date | undefined;
   enabled: boolean;
   text: string;
   buttonText: string;
-  url?: string;
+  url?: string | undefined;
 }
 
 export enum NoticeStatus {

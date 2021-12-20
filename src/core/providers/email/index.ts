@@ -25,7 +25,7 @@ export interface EmailAttachment {
 
 export interface EmailOptions {
   attachments?: EmailAttachment[];
-  sendAt?: Date;
+  sendAt?: Date | undefined;
 }
 
 export interface EmailProvider {

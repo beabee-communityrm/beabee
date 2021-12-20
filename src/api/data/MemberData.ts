@@ -24,7 +24,7 @@ interface MemberProfileData {
   twitter: string;
   preferredContact: string;
   deliveryOptIn: boolean;
-  deliveryAddress?: Address;
+  deliveryAddress: Address | undefined;
   newsletterStatus: NewsletterStatus;
   newsletterGroups: string[];
 
@@ -36,8 +36,8 @@ interface MemberProfileData {
 
 export interface GetMemberData extends MemberData {
   joined: Date;
-  contributionAmount?: number;
-  contributionPeriod?: ContributionPeriod;
+  contributionAmount: number | undefined;
+  contributionPeriod: ContributionPeriod | undefined;
   profile?: MemberProfileData;
   roles: PermissionType[];
 }

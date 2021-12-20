@@ -160,7 +160,7 @@ abstract class UpdateContributionPaymentService {
           : SubscriptionIntervalUnit.Monthly,
       name: "Membership",
       links: {
-        mandate: gcData.mandateId
+        mandate: gcData.mandateId!
       },
       ...(startDate && { start_date: startDate })
     });
@@ -240,7 +240,7 @@ abstract class UpdateContributionPaymentService {
         currency: config.currencyCode.toUpperCase() as PaymentCurrency,
         description: "One-off payment to start new contribution",
         links: {
-          mandate: gcData.mandateId
+          mandate: gcData.mandateId!
         }
       });
     }

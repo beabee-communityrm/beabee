@@ -35,9 +35,9 @@ interface BasicCalloutData {
   slug: string;
   title: string;
   excerpt: string;
-  image?: string;
-  starts?: Date;
-  expires?: Date;
+  image: string | undefined;
+  starts: Date | undefined;
+  expires: Date | undefined;
 }
 
 interface MoreCalloutData extends BasicCalloutData {

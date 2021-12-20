@@ -78,8 +78,8 @@ app.post(
       case "update-options": {
         const options = _.zip(data.optionNames, data.optionValues)
           .map(([name, values]) => ({
-            name,
-            values: values?.split(",").map((s) => s.trim())
+            name: name!,
+            values: values ? values.split(",").map((s) => s.trim()) : []
           }))
           .filter(({ name }) => !!name);
         await giftRepository.update(gift.name, { options });

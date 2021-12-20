@@ -27,7 +27,7 @@ interface LoginOverride {
 
 class OneTimePassword {
   @Column({ nullable: true })
-  key?: string;
+  key: string | undefined;
 
   @Column({ default: false })
   activated!: boolean;
@@ -57,28 +57,28 @@ export default class Member {
   joined!: Date;
 
   @Column({ nullable: true })
-  lastSeen?: Date;
+  lastSeen: Date | undefined;
 
   @Column({ type: "jsonb", nullable: true })
-  loginOverride?: LoginOverride;
+  loginOverride: LoginOverride | undefined;
 
   @Column()
   contributionType!: ContributionType;
 
   @Column({ nullable: true })
-  contributionPeriod?: ContributionPeriod;
+  contributionPeriod: ContributionPeriod | undefined;
 
   @Column({ type: "real", nullable: true })
-  contributionMonthlyAmount?: number;
+  contributionMonthlyAmount: number | undefined;
 
   @Column({ type: "real", nullable: true })
-  nextContributionMonthlyAmount?: number;
+  nextContributionMonthlyAmount: number | undefined;
 
   @Column({ unique: true, nullable: true })
-  referralCode?: string;
+  referralCode: string | undefined;
 
   @Column({ unique: true, nullable: true })
-  pollsCode?: string;
+  pollsCode: string | undefined;
 
   @OneToMany("MemberPermission", "member", { eager: true, cascade: true })
   permissions!: MemberPermission[];
