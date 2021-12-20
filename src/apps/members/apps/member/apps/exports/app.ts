@@ -37,7 +37,6 @@ app.post(
   "/",
   wrapAsync(async (req, res) => {
     if (req.body.action === "update") {
-      console.log(req.body);
       await getRepository(ExportItem).update(req.body.exportItemId, {
         status: req.body.status
       });

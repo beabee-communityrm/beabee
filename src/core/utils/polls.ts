@@ -29,7 +29,6 @@ function convertAnswer(
   component: ComponentSchema,
   answer: PollResponseAnswer
 ): string {
-  console.log(component, answer);
   if (!answer) {
     return "";
   } else if (typeof answer === "object") {
