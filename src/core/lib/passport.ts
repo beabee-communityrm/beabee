@@ -1,6 +1,7 @@
 import passport from "passport";
 import passportLocal from "passport-local";
 import passportTotp from "passport-totp";
+import { getRepository } from "typeorm";
 
 import config from "@config";
 
@@ -111,7 +112,9 @@ passport.deserializeUser(async function (data, done) {
         // Debounce last seen updates, we don't need to know to the second
         const now = new Date();
         if (!member.lastSeen || +now - +member.lastSeen > 60000) {
-          await MembersService.updateMember(member, { lastSeen: now });
+          // Don't use MembersService.updateMember to avoid overhead
+          await getRepository(Member).update(member.id, { lastSeen: now });
+          member.lastSeen = now;
         }
 
         return done(null, member);
