@@ -11,6 +11,7 @@ import appLoader from "@core/app-loader";
 import * as database from "@core/database";
 import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import quickflash from "@core/quickflash";
+import startServer from "@core/server";
 import sessions from "@core/sessions";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
@@ -19,7 +20,6 @@ import PageSettingsService from "@core/services/PageSettingsService";
 //import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
 
 import config from "@config";
-import startServer from "@core/server";
 
 if (!config.gocardless.sandbox && config.dev) {
   log.error(
@@ -34,11 +34,42 @@ app.set("views", __dirname + "/views");
 app.set("view engine", "pug");
 app.set("view cache", false);
 
-app.use(requestLogger);
-
-// Use helmet
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cookie());
+app.use(express.urlencoded({ extended: true }));
+
+// Remove empty strings from form submissions
+app.use((req, res, next) => {
+  if (req.headers["content-type"] === "application/x-www-form-urlencoded") {
+    req.body = cleanDeep(req.body, {
+      emptyArrays: false,
+      emptyObjects: false
+    });
+  }
+  next();
+});
+
+// Setup tracker
+app.use("/membership.js", (req, res) => {
+  const referrerUrl = req.get("referer");
+  res.set("Content-Type", "application/javascript");
+  if (
+    referrerUrl &&
+    config.trackDomains.some((domain) => referrerUrl.startsWith(domain))
+  ) {
+    const memberId = req.cookies.memberId;
+    if (memberId) {
+      res.send('window.Membership = {memberId: "' + memberId + '"}');
+    } else {
+      res.send("window.Membership = {}");
+    }
+  } else {
+    res.status(404).send("");
+  }
+});
+
+// Log the rest
+app.use(requestLogger);
 
 database.connect().then(async () => {
   // Load some caches and make them immediately available
@@ -47,39 +78,6 @@ database.connect().then(async () => {
     res.locals.Options = (opt: OptionKey) => OptionsService.getText(opt);
     res.locals.Options.list = (opt: OptionKey) => OptionsService.getList(opt);
     res.locals.pageSettings = PageSettingsService.getPath(req.path);
-    next();
-  });
-
-  // Setup tracker
-  app.use("/membership.js", (req, res) => {
-    const referrerUrl = req.get("referer");
-    res.set("Content-Type", "application/javascript");
-    if (
-      !referrerUrl ||
-      config.trackDomains.some((domain) => referrerUrl.startsWith(domain))
-    ) {
-      const memberId = req.cookies.memberId;
-      if (memberId) {
-        res.send('window.Membership = {memberId: "' + memberId + '"}');
-      } else {
-        res.send("window.Membership = {}");
-      }
-    } else {
-      res.status(404).send("");
-    }
-  });
-
-  // Form Body Parser
-  app.use(express.urlencoded({ extended: true }));
-
-  // Remove empty strings from form submissions
-  app.use((req, res, next) => {
-    if (req.headers["content-type"] === "application/x-www-form-urlencoded") {
-      req.body = cleanDeep(req.body, {
-        emptyArrays: false,
-        emptyObjects: false
-      });
-    }
     next();
   });
 
