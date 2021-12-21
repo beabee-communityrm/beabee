@@ -64,7 +64,7 @@ app.get(
   wrapAsync(async (req, res) => {
     const polls = await createQueryBuilder(Poll, "p")
       .loadRelationCountAndMap("p.responseCount", "p.responses")
-      .orderBy({ date: "ASC" })
+      .orderBy({ date: "DESC" })
       .getMany();
 
     res.render("index", { polls });

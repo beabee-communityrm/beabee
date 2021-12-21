@@ -39,7 +39,9 @@ app.use(isAdmin);
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const notices = await getRepository(Notice).find();
+    const notices = await getRepository(Notice).find({
+      order: { createdAt: "DESC" }
+    });
     res.render("index", { notices });
   })
 );
