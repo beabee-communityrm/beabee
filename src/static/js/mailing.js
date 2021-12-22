@@ -14,7 +14,7 @@
 			const mergeFieldRe = new RegExp('\\*\\|' + mergeField + '\\|\\*', 'g');
 			emailBody = emailBody.replace(mergeFieldRe, getField('#mf_' + mergeField, '*|' + mergeField + '|*'));
 		}
-		$('.js-email-body').val(emailBody);
+		$('.js-email-body').html(emailBody);
 	}
 
 	$('.js-email-form').on('input change', updatePreview());

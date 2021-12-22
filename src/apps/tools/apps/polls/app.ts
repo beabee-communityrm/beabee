@@ -146,7 +146,7 @@ app.post(
       case "replicate": {
         const newPoll = getRepository(Poll).create({
           ...poll,
-          date: undefined,
+          date: new Date(),
           title: req.body.title,
           slug: req.body.slug,
           closed: true

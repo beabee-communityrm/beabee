@@ -7,6 +7,7 @@ import { log as mainLogger } from "@core/logging";
 import Option from "@models/Option";
 
 export type OptionKey = keyof typeof _defaultOptions;
+type OptionValue = string | boolean | number;
 const defaultOptions: { [key in OptionKey]: string } = _defaultOptions;
 
 const log = mainLogger.child({ app: "options-service" });
@@ -15,14 +16,14 @@ interface OptionWithDefault extends Option {
   default: boolean;
 }
 
-export default class OptionsService {
-  private static optionCache: Record<OptionKey, OptionWithDefault>;
+class OptionsService {
+  private optionCache: Record<OptionKey, OptionWithDefault> | undefined;
 
-  static isKey(s: string): s is OptionKey {
+  isKey(s: any): s is OptionKey {
     return s in defaultOptions;
   }
 
-  static async reload(): Promise<void> {
+  async reload(): Promise<void> {
     log.info("Reload cache");
     const newCache: Partial<Record<OptionKey, OptionWithDefault>> = {};
     for (const key of Object.keys(defaultOptions)) {
@@ -33,31 +34,31 @@ export default class OptionsService {
       };
     }
     (await getRepository(Option).find()).map((option) => {
-      if (OptionsService.isKey(option.key)) {
+      if (this.isKey(option.key)) {
         newCache[option.key] = { ...option, default: false };
       }
     });
 
-    OptionsService.optionCache = newCache as Record<
-      OptionKey,
-      OptionWithDefault
-    >;
+    this.optionCache = newCache as Record<OptionKey, OptionWithDefault>;
   }
 
-  static get(key: OptionKey): OptionWithDefault {
-    return OptionsService.optionCache[key];
+  get(key: OptionKey): OptionWithDefault {
+    if (!this.optionCache) {
+      throw new Error("OptionsService not initialised");
+    }
+    return this.optionCache[key];
   }
 
-  static getText(key: OptionKey): string {
-    return OptionsService.get(key).value;
+  getText(key: OptionKey): string {
+    return this.get(key).value;
   }
 
-  static getInt(key: OptionKey): number {
-    return parseInt(OptionsService.getText(key));
+  getInt(key: OptionKey): number {
+    return parseInt(this.getText(key));
   }
 
-  static getBool(key: OptionKey): boolean {
-    switch (OptionsService.getText(key)) {
+  getBool(key: OptionKey): boolean {
+    switch (this.getText(key)) {
       case "true":
         return true;
       default:
@@ -65,47 +66,59 @@ export default class OptionsService {
     }
   }
 
-  static getList(key: OptionKey): string[] {
-    const text = OptionsService.getText(key);
+  getList(key: OptionKey): string[] {
+    const text = this.getText(key);
     return text === "" ? [] : text.split(",").map((s) => s.trim());
   }
 
-  static getJSON(key: OptionKey): any {
-    return JSON.parse(OptionsService.getText(key));
+  getJSON(key: OptionKey): any {
+    return JSON.parse(this.getText(key));
   }
 
-  static getAll(): Record<OptionKey, OptionWithDefault> {
-    return OptionsService.optionCache;
+  getAll(): Record<OptionKey, OptionWithDefault> {
+    if (!this.optionCache) {
+      throw new Error("OptionsService not initialised");
+    }
+    return this.optionCache;
   }
 
-  static async set(
-    key: OptionKey,
-    value: string | number | boolean
+  async set(opts: Record<OptionKey, OptionValue>): Promise<void>;
+  async set(key: OptionKey, value: OptionValue): Promise<void>;
+  async set(
+    optsOrKey: Record<OptionKey, OptionValue> | OptionKey,
+    value?: OptionValue
   ): Promise<void> {
-    const option = OptionsService.get(key);
-    if (option) {
+    const opts =
+      this.isKey(optsOrKey) && value !== undefined
+        ? { [optsOrKey]: value }
+        : optsOrKey;
+
+    const options = Object.entries(opts).map(([key, value]) => {
+      const option = this.get(key as OptionKey);
       option.value = value.toString();
       option.default = false;
-      await getRepository(Option).save(option);
-      await OptionsService.notify();
-    }
+      return option;
+    });
+
+    await getRepository(Option).save(options);
+    await this.notify();
   }
 
-  static async setJSON(key: OptionKey, value: any): Promise<void> {
-    await OptionsService.set(key, JSON.stringify(value));
+  async setJSON(key: OptionKey, value: any): Promise<void> {
+    await this.set(key, JSON.stringify(value));
   }
 
-  static async reset(key: OptionKey): Promise<void> {
-    const option = OptionsService.get(key);
+  async reset(key: OptionKey): Promise<void> {
+    const option = this.get(key);
     if (option) {
       option.value = defaultOptions[key];
       option.default = true;
       await getRepository(Option).delete(key);
-      await OptionsService.notify();
+      await this.notify();
     }
   }
 
-  private static async notify() {
+  private async notify() {
     try {
       // TODO: remove hardcoded service references
       await axios.post("http://app:4000/reload");
@@ -116,3 +129,5 @@ export default class OptionsService {
     }
   }
 }
+
+export default new OptionsService();

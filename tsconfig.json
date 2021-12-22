@@ -16,6 +16,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strict": true,
+    "exactOptionalPropertyTypes": true,
     "sourceMap": true,
     "baseUrl": "./",
     "paths": {

@@ -35,7 +35,8 @@ $('#builder').queryBuilder({
 		label: 'Contribution type',
 		type: 'string',
 		input: 'select',
-		values: ['Gift', 'GoCardless', 'Manual', 'None']
+		values: ['Gift', 'GoCardless', 'Manual', 'None'],
+		operators: ['equal', 'not_equal']
 	}, {
 		id: 'contributionMonthlyAmount',
 		label: 'Contribution amount (monthly)',
@@ -48,7 +49,8 @@ $('#builder').queryBuilder({
 		values: {
 			'monthly': 'Monthly',
 			'annually': 'Annual'
-		}
+		},
+		operators: ['equal', 'not_equal']
 	}, {
 		id: 'deliveryOptIn',
 		label: 'Delivery opted-in',
@@ -62,8 +64,11 @@ $('#builder').queryBuilder({
 		input: 'select',
 		values: {
 			'subscribed': 'Subscribed',
-			'unsubscribed': 'Unsubscribed'
-		}
+			'unsubscribed': 'Unsubscribed',
+			'cleaned': 'Cleaned',
+			'pending': 'Pending'
+		},
+		operators: ['equal', 'not_equal']
 	}, {
 		id: 'activeMembership',
 		label: 'Is active member',
@@ -72,7 +77,11 @@ $('#builder').queryBuilder({
 		values: {true: 'Yes', false: 'No'},
 		operators: ['equal']
 	}, {
-		id: 'permission',
+		id: 'membershipExpires',
+		label: 'Membership expires',
+		type: 'datetime'
+	}, {
+		id: 'activePermission',
 		label: 'Role',
 		type: 'string',
 		input: 'select',
@@ -82,17 +91,10 @@ $('#builder').queryBuilder({
 			'superadmin': 'Superadmin'
 		}
 	}, {
-		id: 'dateAdded',
-		label: 'Role start date',
-		type: 'datetime'
-	}, {
-		id: 'dateExpires',
-		label: 'Role expiry date',
-		type: 'datetime'
-	}, {
 		id: 'tags',
 		label: 'Tags',
-		type: 'string'
+		type: 'string',
+		operators: ['contains']
 	}]
 });
 

@@ -22,8 +22,8 @@ export class GiftForm {
   @Column({ type: "date" })
   startDate!: Date;
 
-  @Column({ nullable: true })
-  message?: string;
+  @Column({ type: String, nullable: true })
+  message: string | undefined;
 
   @Column()
   fromName!: string;
@@ -35,10 +35,10 @@ export class GiftForm {
   months!: number;
 
   @Column({ type: "jsonb", nullable: true })
-  giftAddress?: Address;
+  giftAddress: Address | undefined;
 
   @Column({ type: "jsonb", nullable: true })
-  deliveryAddress?: Address;
+  deliveryAddress: Address | undefined;
 }
 
 @Entity()

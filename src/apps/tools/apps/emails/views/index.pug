@@ -3,6 +3,12 @@ extends /views/base.pug
 block prepend title
 	- title = 'Email'
 
+block prepend js
+	script(src='/static/js/lib/quill.min.js')
+
+block append css
+	link(rel='stylesheet' href='/static/css/lib/quill.snow.css')
+
 block contents
 	.row
 		.col-md-12

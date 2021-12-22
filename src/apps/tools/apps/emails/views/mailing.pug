@@ -89,7 +89,7 @@ block contents
 					input(type='text' readonly value=email.subject).form-control
 				.form-group
 					label.control-label Body
-					textarea(readonly rows="10").form-control.js-email-body
+					div.well.js-email-body
 
 				hr
 
@@ -103,7 +103,7 @@ block contents
 block append js
 	script.
 		var mailing = {
-			emailBodyTemplate: !{JSON.stringify(email.body)},
+			emailBodyTemplate: !{JSON.stringify(email.bodyInline)},
 			recipients: !{JSON.stringify(mailing.recipients.slice(0, 10))},
 			mergeFields: !{JSON.stringify(mergeFields)}
 		};

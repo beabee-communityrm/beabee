@@ -26,8 +26,8 @@ interface LoginOverride {
 }
 
 class OneTimePassword {
-  @Column({ nullable: true })
-  key?: string;
+  @Column({ type: String, nullable: true })
+  key: string | undefined;
 
   @Column({ default: false })
   activated!: boolean;
@@ -56,29 +56,29 @@ export default class Member {
   @CreateDateColumn()
   joined!: Date;
 
-  @Column({ nullable: true })
-  lastSeen?: Date;
+  @Column({ type: Date, nullable: true })
+  lastSeen: Date | undefined;
 
   @Column({ type: "jsonb", nullable: true })
-  loginOverride?: LoginOverride;
+  loginOverride: LoginOverride | undefined;
 
   @Column()
   contributionType!: ContributionType;
 
-  @Column({ nullable: true })
-  contributionPeriod?: ContributionPeriod;
+  @Column({ type: String, nullable: true })
+  contributionPeriod: ContributionPeriod | undefined;
 
   @Column({ type: "real", nullable: true })
-  contributionMonthlyAmount?: number;
+  contributionMonthlyAmount: number | undefined;
 
   @Column({ type: "real", nullable: true })
-  nextContributionMonthlyAmount?: number;
+  nextContributionMonthlyAmount: number | undefined;
 
-  @Column({ unique: true, nullable: true })
-  referralCode?: string;
+  @Column({ type: String, unique: true, nullable: true })
+  referralCode: string | undefined;
 
-  @Column({ unique: true, nullable: true })
-  pollsCode?: string;
+  @Column({ type: String, unique: true, nullable: true })
+  pollsCode: string | undefined;
 
   @OneToMany("MemberPermission", "member", { eager: true, cascade: true })
   permissions!: MemberPermission[];
@@ -103,6 +103,13 @@ export default class Member {
       : "";
   }
 
+  get contributionAmount(): number | undefined {
+    return this.contributionMonthlyAmount === undefined
+      ? undefined
+      : this.contributionMonthlyAmount *
+          (this.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12);
+  }
+
   get contributionDescription(): string {
     if (this.contributionType === "Gift") {
       return "Gift";
@@ -123,28 +130,20 @@ export default class Member {
     }
   }
 
-  get isActiveMember(): boolean {
-    return this.permissions.some(
-      (p) => p.permission === "member" && p.isActive
-    );
+  get membership(): MemberPermission | undefined {
+    return this.permissions.find((p) => p.permission === "member");
   }
 
   get memberMonthsRemaining(): number {
-    const membership = this.permissions.find((p) => p.permission === "member");
-    return membership
+    return this.membership
       ? Math.max(
           0,
           moment
-            .utc(membership.dateExpires)
+            .utc(this.membership.dateExpires)
             .subtract(config.gracePeriod)
             .diff(moment.utc(), "months")
         )
       : 0;
-  }
-
-  get membershipExpires(): Date | undefined {
-    const membership = this.permissions.find((p) => p.permission === "member");
-    return membership?.dateExpires;
   }
 
   get setupComplete(): boolean {

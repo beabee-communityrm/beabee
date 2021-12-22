@@ -37,33 +37,39 @@ async function fetchMembers(
   });
   console.log(`Got ${memberships.length} members`);
   return memberships.map(({ member }) => {
-    console.log(member.isActiveMember ? "U" : "D", member.email);
+    console.log(member.membership?.isActive ? "U" : "D", member.email);
     return member;
   });
 }
 
 async function processMembers(members: Member[]) {
-  const membersToArchive = members.filter((m) => !m.isActiveMember);
-  console.log(`Archiving ${membersToArchive.length}`);
-  for (const member of membersToArchive) {
-    await MembersService.updateMemberProfile(
-      member,
-      {
-        newsletterStatus: NewsletterStatus.Unsubscribed
-      },
-      {
-        // Sync in one go below with upsertMembers
-        sync: false
-      }
-    );
-  }
+  const membersToArchive = members.filter((m) => !m.membership?.isActive);
 
+  console.log(
+    `Removing active member tag from ${membersToArchive.length} members`
+  );
   await NewsletterService.removeTagFromMembers(
     membersToArchive,
     OptionsService.getText("newsletter-active-member-tag")
   );
-  await NewsletterService.upsertMembers(membersToArchive);
-  await NewsletterService.archiveMembers(membersToArchive);
+
+  if (OptionsService.getBool("newsletter-archive-on-expired")) {
+    console.log(`Archiving ${membersToArchive.length} members`);
+    for (const member of membersToArchive) {
+      await MembersService.updateMemberProfile(
+        member,
+        {
+          newsletterStatus: NewsletterStatus.Unsubscribed
+        },
+        {
+          // Sync in one go below with upsertMembers
+          sync: false
+        }
+      );
+    }
+    await NewsletterService.upsertMembers(membersToArchive);
+    await NewsletterService.archiveMembers(membersToArchive);
+  }
 }
 
 db.connect().then(async () => {

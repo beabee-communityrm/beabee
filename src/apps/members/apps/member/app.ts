@@ -1,5 +1,6 @@
 import express from "express";
 import moment from "moment";
+import { getRepository } from "typeorm";
 
 import config from "@config";
 
@@ -14,6 +15,7 @@ import PaymentService from "@core/services/PaymentService";
 import ReferralsService from "@core/services/ReferralsService";
 
 import Member from "@models/Member";
+import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 const app = express();
 
@@ -48,8 +50,14 @@ app.get(
     const member = req.model as Member;
     const availableTags = await getAvailableTags();
 
+    const rpFlow = await getRepository(ResetPasswordFlow).findOne({
+      where: { member },
+      order: { date: "DESC" }
+    });
+
     res.render("index", {
       member,
+      rpFlow,
       availableTags,
       password_tries: config.passwordTries
     });
@@ -104,9 +112,7 @@ app.post(
         req.flash("success", "member-login-override-generated");
         break;
       case "password-reset":
-        await MembersService.updateMember(member, {
-          password: { ...member.password, resetCode: generateCode() }
-        });
+        await getRepository(ResetPasswordFlow).save({ member });
         req.flash("success", "member-password-reset-generated");
         break;
       case "permanently-delete":

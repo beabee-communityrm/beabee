@@ -22,8 +22,8 @@ export default class Segment {
   @Column({ type: "int", default: 0 })
   order!: number;
 
-  @Column({ nullable: true })
-  newsletterTag?: string;
+  @Column({ type: String, nullable: true })
+  newsletterTag: string | undefined;
 
   memberCount?: number;
 }

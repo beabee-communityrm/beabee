@@ -12,7 +12,4 @@ export default class Password {
 
   @Column({ default: 0 })
   tries!: number;
-
-  @Column({ nullable: true })
-  resetCode?: string;
 }

@@ -21,8 +21,8 @@ export default class MemberPermission {
   @CreateDateColumn()
   dateAdded!: Date;
 
-  @Column({ nullable: true })
-  dateExpires?: Date;
+  @Column({ type: Date, nullable: true })
+  dateExpires: Date | undefined;
 
   get isActive(): boolean {
     const now = new Date();

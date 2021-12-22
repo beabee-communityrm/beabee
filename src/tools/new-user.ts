@@ -86,7 +86,7 @@ db.connect().then(async () => {
 
   if (answers.membership != "No") {
     const now = moment();
-    let dateAdded, dateExpires;
+    let dateAdded: Date | undefined, dateExpires: Date | undefined;
     switch (answers.membership) {
       case "Yes (expires after 1 month)":
         dateExpires = now.add("1", "months").toDate();
@@ -99,7 +99,7 @@ db.connect().then(async () => {
 
     const membership = getRepository(MemberPermission).create({
       permission: "member",
-      dateAdded,
+      ...(dateAdded && { dateAdded }),
       dateExpires
     });
     permissions.push(membership);

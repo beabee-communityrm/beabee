@@ -70,7 +70,7 @@ function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
       id: "tags",
       field: "tags",
       type: "string",
-      operator: "contains_jsonb",
+      operator: "contains",
       value: query.tag as string
     });
   }

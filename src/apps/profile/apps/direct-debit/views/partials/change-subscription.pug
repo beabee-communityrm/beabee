@@ -78,12 +78,12 @@ form(
 					label
 						input(type='radio', name='useMandate', value='true', required, checked)
 						span
-							= bankAccount.account_holder_name
+							= bankAccount.accountHolderName
 							| ,
 							|
-							= bankAccount.bank_name
+							= bankAccount.bankName
 							| , •••••••
-							= bankAccount.account_number_ending
+							= bankAccount.accountNumberEnding
 				.radio
 					label
 						input(type='radio', name='useMandate', value='false', required)

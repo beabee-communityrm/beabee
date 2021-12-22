@@ -27,7 +27,7 @@ app.get(
   "/",
   wrapAsync(async function (req, res) {
     const referral = await getRepository(Referral).findOne({
-      referee: req.user
+      referee: req.user!
     });
 
     res.render("complete", {

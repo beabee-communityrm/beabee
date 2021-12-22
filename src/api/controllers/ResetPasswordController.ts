@@ -41,9 +41,7 @@ class UpdateResetPasswordData {
 export class ResetPasswordController {
   @OnUndefined(204)
   @Post()
-  async create(
-    @Body({ required: true }) data: CreateResetPasswordData
-  ): Promise<void> {
+  async create(@Body() data: CreateResetPasswordData): Promise<void> {
     const member = await MembersService.findOne({ email: data.email });
     if (member) {
       const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
@@ -58,7 +56,7 @@ export class ResetPasswordController {
   async complete(
     @Req() req: Request,
     @Param("id") id: string,
-    @Body({ required: true }) data: UpdateResetPasswordData
+    @Body() data: UpdateResetPasswordData
   ) {
     const rpFlow = await getRepository(ResetPasswordFlow).findOne({
       where: { id },

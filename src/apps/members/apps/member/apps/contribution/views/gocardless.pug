@@ -14,13 +14,13 @@ block contents
 			if bankAccount
 				dl.dl-horizontal
 					dt Bank
-					dd= bankAccount.bank_name
+					dd= bankAccount.bankName
 					dt Account holder
-					dd= bankAccount.account_holder_name
+					dd= bankAccount.accountHolderName
 					dt Account number
 					dd
 						| •••••••
-						= bankAccount.account_number_ending
+						= bankAccount.accountNumberEnding
 
 			h4= paymentData.subscriptionId ? 'Update contribution' : 'Start contribution'
 			if !paymentData.mandateId

@@ -28,13 +28,13 @@ export default class PollResponse {
   poll!: Poll;
 
   @ManyToOne("Member", { nullable: true })
-  member?: Member;
+  member: Member | undefined;
 
-  @Column({ nullable: true })
-  guestName?: string;
+  @Column({ type: String, nullable: true })
+  guestName: string | undefined;
 
-  @Column({ nullable: true })
-  guestEmail?: string;
+  @Column({ type: String, nullable: true })
+  guestEmail: string | undefined;
 
   @Column({ type: "jsonb" })
   answers!: PollResponseAnswers;

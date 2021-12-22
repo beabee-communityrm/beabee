@@ -15,11 +15,11 @@ export default class GCPayment extends Payment {
   @Column({ unique: true })
   paymentId!: string;
 
-  @Column({ nullable: true })
-  subscriptionId?: string;
+  @Column({ type: String, nullable: true })
+  subscriptionId: string | undefined;
 
-  @Column({ nullable: true })
-  subscriptionPeriod?: ContributionPeriod;
+  @Column({ type: String, nullable: true })
+  subscriptionPeriod: ContributionPeriod | undefined;
 
   @Column()
   status!: string;
