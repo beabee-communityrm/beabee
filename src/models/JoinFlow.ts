@@ -15,11 +15,8 @@ export default class JoinFlow {
   @CreateDateColumn()
   date!: Date;
 
-  @Column()
-  redirectFlowId!: string;
-
-  @Column()
-  sessionToken!: string;
+  @Column({ type: String, nullable: true })
+  redirectFlowId: string | undefined;
 
   @Column(() => JoinForm)
   joinForm!: JoinForm;

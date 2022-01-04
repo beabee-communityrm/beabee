@@ -57,7 +57,8 @@ app.get(
       res.render("index", {
         user: req.user,
         hasPendingPayment: await GCPaymentService.hasPendingPayment(req.user),
-        bankAccount: await GCPaymentService.getBankAccount(req.user),
+        bankAccount: (await GCPaymentService.getContributionInfo(req.user))
+          ?.paymentSource,
         canChange: await GCPaymentService.canChangeContribution(
           req.user,
           !!res.locals.gcData?.mandateId
@@ -103,36 +104,29 @@ app.post(
     hasUser(async (req, res) => {
       const { useMandate, paymentForm } = schemaToPaymentForm(req.body);
 
-      let redirectUrl = "/profile/direct-debit";
-
       if (await GCPaymentService.canChangeContribution(req.user, useMandate)) {
         if (useMandate) {
           await handleChangeContribution(req, paymentForm);
         } else {
           const completeUrl =
             config.audience + "/profile/direct-debit/complete";
-          redirectUrl = await JoinFlowService.createJoinFlow(
-            completeUrl,
+          const { redirectUrl } = await JoinFlowService.createJoinFlow(
             {
               ...paymentForm,
               // TODO: we don't need to store these here, they won't be used
               email: req.user.email,
               password: req.user.password
             },
-            {
-              prefilled_customer: {
-                email: req.user.email,
-                given_name: req.user.firstname,
-                family_name: req.user.lastname
-              }
-            }
+            completeUrl,
+            req.user
           );
+          return res.redirect(redirectUrl);
         }
       } else {
         req.flash("warning", "contribution-updating-not-allowed");
       }
 
-      res.redirect(redirectUrl);
+      res.redirect("/profile/direct-debit");
     })
   )
 );
@@ -143,19 +137,25 @@ app.get(
   wrapAsync(
     hasUser(async (req, res) => {
       if (await GCPaymentService.canChangeContribution(req.user, false)) {
-        const joinFlow = await JoinFlowService.completeJoinFlow(
+        const joinFlow = await JoinFlowService.getJoinFlow(
           req.query.redirect_flow_id as string
         );
         if (joinFlow) {
-          await GCPaymentService.updatePaymentMethod(
-            req.user,
-            joinFlow.customerId,
-            joinFlow.mandateId
+          const completedJoinFlow = await JoinFlowService.completeJoinFlow(
+            joinFlow
           );
-          await handleChangeContribution(req, joinFlow.joinForm);
-        } else {
-          req.flash("warning", "contribution-updating-failed");
+          if (completedJoinFlow) {
+            await GCPaymentService.updatePaymentSource(
+              req.user,
+              completedJoinFlow.customerId,
+              completedJoinFlow.mandateId
+            );
+
+            await handleChangeContribution(req, joinFlow.joinForm);
+            return res.redirect("/profile/direct-debit");
+          }
         }
+        req.flash("warning", "contribution-updating-failed");
       } else {
         req.flash("warning", "contribution-updating-not-allowed");
       }

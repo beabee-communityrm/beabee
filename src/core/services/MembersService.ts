@@ -9,10 +9,12 @@ import {
 
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
-import { cleanEmailAddress, isDuplicateIndex } from "@core/utils";
-import { AuthenticationStatus, canAdmin, generateCode } from "@core/utils/auth";
+import {
+  cleanEmailAddress,
+  ContributionType,
+  isDuplicateIndex
+} from "@core/utils";
 
-import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
@@ -21,22 +23,15 @@ import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
-import config from "@config";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
-export type PartialMember = Pick<
-  Member,
-  "email" | "firstname" | "lastname" | "contributionType"
-> &
+export type PartialMember = Pick<Member, "email" | "contributionType"> &
   Partial<Member>;
-export type PartialMemberProfile = Partial<MemberProfile>;
 
 const log = mainLogger.child({ app: "members-service" });
 
 export default class MembersService {
-  static generateMemberCode(
-    member: Pick<Member, "firstname" | "lastname">
-  ): string | undefined {
+  static generateMemberCode(member: Partial<Member>): string | undefined {
     if (member.firstname && member.lastname) {
       const no = ("000" + Math.floor(Math.random() * 1000)).slice(-3);
       return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
@@ -80,8 +75,11 @@ export default class MembersService {
   }
 
   static async createMember(
-    partialMember: PartialMember,
-    partialProfile: PartialMemberProfile = {},
+    partialMember: Partial<Member> & {
+      email: string;
+      contributionType: ContributionType;
+    },
+    partialProfile: Partial<MemberProfile> = {},
     opts = { sync: true }
   ): Promise<Member> {
     log.info("Create member", { partialMember, partialProfile });
@@ -92,6 +90,8 @@ export default class MembersService {
         pollsCode: this.generateMemberCode(partialMember),
         permissions: [],
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
+        firstname: "",
+        lastname: "",
         ...partialMember,
         email: cleanEmailAddress(partialMember.email)
       });
@@ -173,7 +173,7 @@ export default class MembersService {
   ): Promise<void> {
     log.info(`Update permission ${permission} for ${member.id}`, updates);
 
-    const wasActive = member.isActiveMember;
+    const wasActive = member.membership?.isActive;
 
     const existingPermission = member.permissions.find(
       (p) => p.permission === permission
@@ -197,12 +197,12 @@ export default class MembersService {
     }
     await getRepository(Member).save(member);
 
-    if (!wasActive && member.isActiveMember) {
+    if (!wasActive && member.membership?.isActive) {
       await NewsletterService.addTagToMembers(
         [member],
         OptionsService.getText("newsletter-active-member-tag")
       );
-    } else if (wasActive && !member.isActiveMember) {
+    } else if (wasActive && !member.membership.isActive) {
       await NewsletterService.removeTagFromMembers(
         [member],
         OptionsService.getText("newsletter-active-member-tag")
@@ -222,7 +222,7 @@ export default class MembersService {
       prevDate: p?.dateExpires,
       newDate: dateExpires
     });
-    if (!p || (p.dateExpires && dateExpires > p.dateExpires)) {
+    if (!p?.dateExpires || dateExpires > p.dateExpires) {
       await MembersService.updateMemberPermission(member, permission, {
         dateExpires
       });
@@ -239,7 +239,7 @@ export default class MembersService {
     );
     await getRepository(MemberPermission).delete({ member, permission });
 
-    if (!member.isActiveMember) {
+    if (!member.membership?.isActive) {
       await NewsletterService.removeTagFromMembers(
         [member],
         OptionsService.getText("newsletter-active-member-tag")
@@ -264,18 +264,6 @@ export default class MembersService {
     }
   }
 
-  static async resetMemberPassword(email: string): Promise<void> {
-    const member = await getRepository(Member).findOne({ email });
-    if (member) {
-      member.password.resetCode = generateCode();
-      await getRepository(Member).save(member);
-      await EmailService.sendTemplateToMember("reset-password", member, {
-        rpLink:
-          config.audience + "/password-reset/code/" + member.password.resetCode
-      });
-    }
-  }
-
   static loginAndRedirect(
     req: Request,
     res: Response,
@@ -286,14 +274,7 @@ export default class MembersService {
       if (loginError) {
         throw loginError;
       } else {
-        if (!url) {
-          url = OptionsService.getText(
-            canAdmin(req) === AuthenticationStatus.LOGGED_IN
-              ? "admin-home-url"
-              : "user-home-url"
-          );
-        }
-        res.redirect(url);
+        res.redirect(url || "/");
       }
     });
   }

@@ -37,23 +37,23 @@ export default class Poll {
   @Column()
   excerpt!: string;
 
-  @Column({ nullable: true })
-  image?: string;
+  @Column({ type: String, nullable: true })
+  image: string | undefined;
 
-  @Column({ nullable: true })
-  mcMergeField?: string;
+  @Column({ type: String, nullable: true })
+  mcMergeField: string | undefined;
 
-  @Column({ nullable: true })
-  pollMergeField?: string;
+  @Column({ type: String, nullable: true })
+  pollMergeField: string | undefined;
 
   @Column({ default: true })
   closed!: boolean;
 
-  @Column({ nullable: true })
-  starts?: Date;
+  @Column({ type: Date, nullable: true })
+  starts: Date | undefined;
 
-  @Column({ nullable: true })
-  expires?: Date;
+  @Column({ type: Date, nullable: true })
+  expires: Date | undefined;
 
   @Column()
   allowUpdate!: boolean;

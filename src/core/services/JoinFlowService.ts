@@ -1,7 +1,5 @@
 import { getRepository } from "typeorm";
 
-import { generateCode } from "@core/utils/auth";
-
 import GCPaymentService from "@core/services/GCPaymentService";
 
 import JoinFlow from "@models/JoinFlow";
@@ -10,56 +8,65 @@ import JoinForm from "@models/JoinForm";
 export interface CompletedJoinFlow {
   customerId: string;
   mandateId: string;
-  joinForm: JoinForm;
 }
 
-export default class JoinFlowService {
-  static async createJoinFlow(
-    completeUrl: string,
+class JoinFlowService {
+  async createJoinFlow(joinForm: JoinForm): Promise<{ joinFlow: JoinFlow }>;
+  async createJoinFlow(
     joinForm: JoinForm,
-    redirectFlowParams = {}
-  ): Promise<string> {
-    const sessionToken = generateCode();
-    const redirectFlow = await GCPaymentService.createRedirectFlow(
-      sessionToken,
-      completeUrl,
-      joinForm,
-      redirectFlowParams
-    );
-    const joinFlow = new JoinFlow();
-    joinFlow.redirectFlowId = redirectFlow.id;
-    joinFlow.sessionToken = sessionToken;
-    joinFlow.joinForm = joinForm;
+    completeUrl: string,
+    user: { email: string; firstname?: string; lastname?: string }
+  ): Promise<{ joinFlow: JoinFlow; redirectUrl: string }>;
+  async createJoinFlow(
+    joinForm: JoinForm,
+    completeUrl?: string,
+    user?: { email: string; firstname?: string; lastname?: string }
+  ): Promise<{ joinFlow: JoinFlow; redirectUrl?: string }> {
+    const joinFlow = await getRepository(JoinFlow).save({ joinForm });
 
-    await getRepository(JoinFlow).save(joinFlow);
-
-    return redirectFlow.redirect_url;
+    if (completeUrl && user) {
+      const redirectFlow = await GCPaymentService.createRedirectFlow(
+        joinFlow.id,
+        completeUrl,
+        {
+          prefilled_customer: {
+            email: user.email,
+            ...(user.firstname && { given_name: user.firstname }),
+            ...(user.lastname && { family_name: user.lastname })
+          }
+        }
+      );
+      await getRepository(JoinFlow).update(joinFlow.id, {
+        redirectFlowId: redirectFlow.id
+      });
+      return { joinFlow, redirectUrl: redirectFlow.redirect_url };
+    } else {
+      return { joinFlow };
+    }
   }
 
-  static async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedJoinFlow>;
-  static async completeJoinFlow(
-    redirectFlowId: string
-  ): Promise<CompletedJoinFlow | undefined>;
-  static async completeJoinFlow(
-    arg1: string | JoinFlow
-  ): Promise<CompletedJoinFlow | undefined> {
-    const joinFlow =
-      typeof arg1 === "string"
-        ? await getRepository(JoinFlow).findOne({ redirectFlowId: arg1 })
-        : arg1;
+  async getJoinFlow(redirectFlowId: string): Promise<JoinFlow | undefined> {
+    return await getRepository(JoinFlow).findOne({ redirectFlowId });
+  }
 
-    if (joinFlow) {
+  async completeJoinFlow(
+    joinFlow: JoinFlow
+  ): Promise<CompletedJoinFlow | undefined> {
+    if (joinFlow.redirectFlowId) {
       const redirectFlow = await GCPaymentService.completeRedirectFlow(
         joinFlow.redirectFlowId,
-        joinFlow.sessionToken
+        joinFlow.id
       );
       await getRepository(JoinFlow).delete(joinFlow.id);
 
       return {
         customerId: redirectFlow.links.customer,
-        mandateId: redirectFlow.links.mandate,
-        joinForm: joinFlow.joinForm
+        mandateId: redirectFlow.links.mandate
       };
+    } else {
+      await getRepository(JoinFlow).delete(joinFlow.id);
     }
   }
 }
+
+export default new JoinFlowService();

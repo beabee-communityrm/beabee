@@ -1,18 +1,17 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { getRepository } from "typeorm";
 
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import Content from "@models/Content";
+import Content, { ContentId } from "@models/Content";
+import OptionsService from "@core/services/OptionsService";
 
 const app = express();
 
 app.set("views", __dirname + "/views");
 
 app.use(isAdmin);
-
-type ContentId = "join" | "join/setup" | "profile";
 
 app.get(
   "/",
@@ -30,31 +29,52 @@ app.get(
 );
 
 const parseData = {
-  join: (d: any) => ({
-    ...d,
-    initialAmount: Number(d.initialAmount),
-    periods: d.periods.map((p: { name: string; presetAmounts: string }) => ({
+  join: (data: any) => ({
+    ...data,
+    initialAmount: Number(data.initialAmount),
+    periods: data.periods.map((p: { name: string; presetAmounts: string }) => ({
       name: p.name,
       presetAmounts: p.presetAmounts.split(",").map((s) => Number(s.trim()))
     })),
-    showAbsorbFee: d.showAbsorbFee === "true"
+    showNoContribution: data.showNoContribution === "true"
   }),
-  "join/setup": (d: any) => ({
-    ...d,
-    showMailOptIn: d.showMailOptIn === "true",
-    showNewsletterOptIn: d.showNewsletterOptIn === "true"
+  "join/setup": (data: any) => ({
+    ...data,
+    showNewsletterOptIn: data.showNewsletterOptIn === "true"
   }),
   profile: (d: any) => d
 } as const;
 
+// urlencoding parser doesn't support overwriting if the same query param
+// appears multiple times, we use this to submit checkboxes
+// Turn options[key] = [a, b] into options[key] = b
+function dedupeOptions(req: Request, res: Response, next: NextFunction) {
+  if (req.body.options) {
+    for (const opt in req.body.options) {
+      const value = req.body.options[opt];
+      if (Array.isArray(value)) {
+        req.body.options[opt] = value[value.length - 1];
+      }
+    }
+  }
+  next();
+}
+
 app.post(
   "/",
+  dedupeOptions,
   wrapAsync(async (req, res) => {
-    const id = req.body.id as ContentId;
-    await getRepository(Content).save({
-      id,
-      data: parseData[id](req.body.data)
-    });
+    if (req.body.id) {
+      const id = req.body.id as ContentId;
+      await getRepository(Content).save({
+        id,
+        data: parseData[id](req.body.data)
+      });
+    }
+
+    if (req.body.options) {
+      await OptionsService.set(req.body.options);
+    }
 
     res.redirect("/settings/content");
   })

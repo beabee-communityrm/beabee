@@ -117,6 +117,10 @@ function mcStatusToStatus(mcStatus: MCStatus): NewsletterStatus {
 }
 
 function memberToMCMember(member: UpdateNewsletterMember): Partial<MCMember> {
+  if (member.status === NewsletterStatus.None) {
+    throw new Error("NewsletterStatus = None for " + member.email);
+  }
+
   return {
     email_address: member.email,
     status: member.status,

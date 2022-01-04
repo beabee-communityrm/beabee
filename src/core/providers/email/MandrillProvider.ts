@@ -44,7 +44,7 @@ export default class MandrillProvider implements EmailProvider {
             from_name: email.fromName,
             from_email: email.fromEmail,
             subject: email.subject,
-            html: email.body.replace(/\r\n/g, "<br>"),
+            html: email.bodyInline,
             auto_text: true
           },
           ...(opts?.sendAt && { send_at: opts.sendAt.toISOString() })
@@ -117,12 +117,12 @@ export default class MandrillProvider implements EmailProvider {
       to: recipients.map((r) => r.to),
       merge_vars: recipients.map((r) => ({
         rcpt: r.to.email,
-        vars:
-          r.mergeFields &&
-          Object.keys(r.mergeFields).map((mergeField) => ({
-            name: mergeField,
-            content: r.mergeFields![mergeField]
+        ...(r.mergeFields && {
+          vars: Object.entries(r.mergeFields).map(([name, content]) => ({
+            name,
+            content
           }))
+        })
       })),
       ...(opts?.attachments && { attachments: opts.attachments })
     };

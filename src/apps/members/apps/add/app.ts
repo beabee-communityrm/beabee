@@ -80,22 +80,23 @@ app.post(
     const data = req.body as AddContactSchema;
 
     const permissions =
-      data.permissions?.map((p) =>
-        getRepository(MemberPermission).create({
+      data.permissions?.map((p) => {
+        const dateAdded = createDateTime(p.startDate, p.startTime);
+        return getRepository(MemberPermission).create({
           permission: p.permission,
-          dateAdded: createDateTime(p.startDate, p.startTime),
+          ...(dateAdded && { dateAdded }),
           dateExpires: createDateTime(p.expiryDate, p.expiryTime)
-        })
-      ) || [];
+        });
+      }) || [];
 
     let member;
     try {
       member = await MembersService.createMember(
         {
-          firstname: data.firstname || "",
-          lastname: data.lastname || "",
           email: data.email,
           contributionType: data.type,
+          firstname: data.firstname || "",
+          lastname: data.lastname || "",
           permissions
         },
         data.addToNewsletter
@@ -118,7 +119,7 @@ app.post(
     }
 
     if (data.type === ContributionType.GoCardless) {
-      await GCPaymentService.updatePaymentMethod(
+      await GCPaymentService.updatePaymentSource(
         member,
         data.customerId,
         data.mandateId

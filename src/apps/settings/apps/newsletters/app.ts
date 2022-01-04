@@ -167,11 +167,11 @@ async function handleResync(
     );
 
     await NewsletterService.addTagToMembers(
-      membersInNewsletter.filter((m) => m.isActiveMember),
+      membersInNewsletter.filter((m) => m.membership?.isActive),
       OptionsService.getText("newsletter-active-member-tag")
     );
     await NewsletterService.removeTagFromMembers(
-      membersInNewsletter.filter((m) => !m.isActiveMember),
+      membersInNewsletter.filter((m) => !m.membership?.isActive),
       OptionsService.getText("newsletter-active-member-tag")
     );
 

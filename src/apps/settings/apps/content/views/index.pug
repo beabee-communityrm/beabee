@@ -3,24 +3,19 @@ extends /views/base.pug
 block prepend title
   - title = app.title
 
+block prepend js
+  script(src='/static/js/lib/quill.min.js')
+
+block append css
+  link(rel='stylesheet' href='/static/css/lib/quill.snow.css')
+
 mixin periodSchema(i, period)
-  li.js-repeater-item
     .form-group
-      label.control-label.col-md-3 Period
+      label.control-label.col-md-3 Preset amounts (#{period.name})
       .col-md-9
-        select(name="data[periods][" + i + "][name]" required).form-control
-          option(value='' selected disabled)
-          option(value='monthly' selected=period.name === 'monthly') Monthly
-          option(value='annually' selected=period.name === 'annually') Annually
-    .form-group
-      label.control-label.col-md-3 Preset amounts
-      .col-md-9
+        input(type="hidden" name="data[periods][" + i + "][name]" value=period.name)
         input(type='text' name="data[periods][" + i + "][presetAmounts]" value=period.presetAmounts.join(', ') required).form-control
 
-
-block prepend js
-  script(type='text/template').js-repeater-template
-    +periodSchema(0, {presetAmounts: []})
 
 block contents
   .row
@@ -29,6 +24,34 @@ block contents
 
   .row
     .col-md-8
+      form(method='POST').form-horizontal
+        +csrf
+
+        .form-group
+          label.control-label.col-md-3 Organisation name
+          .col-md-9
+            input(type='text' name='options[organisation]' value=Options('organisation') required).form-control
+        .form-group
+          label.control-label.col-md-3 Privacy URL
+          .col-md-9
+            input(type='text' name='options[footer-privacy-link-url]' value=Options('footer-privacy-link-url') required).form-control
+        .form-group
+          label.control-label.col-md-3 Terms URL
+          .col-md-9
+            input(type='text' name='options[footer-terms-link-url]' value=Options('footer-terms-link-url')).form-control
+        .form-group
+          label.control-label.col-md-3 Support email
+          .col-md-9
+            input(type='text' name='options[support-email]' value=Options('support-email')).form-control
+        .form-group
+          label.control-label.col-md-3 Support email from
+          .col-md-9
+            input(type='text' name='options[support-email-from]' value=Options('support-email-from')).form-control
+
+        .row: .col-md-offset-3.col-md-9: p: button.btn.btn-primary Save
+
+      hr
+
       h4 Join page
 
       form(method='POST').form-horizontal
@@ -41,14 +64,17 @@ block contents
         .form-group
           label.control-label.col-md-3 Subtitle
           .col-md-9
-            input(type='text' name="data[subtitle]" value=join.subtitle required).form-control
+            textarea(name="data[subtitle]" required).form-control.js-rte-textarea= join.subtitle
         
-        ul(data-name="data[periods]").repeater.js-repeater
-          if join.periods
-            each period, i in join.periods
-              +periodSchema(i, period)
+        +periodSchema(0, join.periods ? join.periods[0] : {'name': 'monthly', presetAmounts: []})
+        +periodSchema(1, join.periods ? join.periods[1] : {'name': 'annually', presetAmounts: []})
           
-        .row: .col-md-offset-3.col-md-9: p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add period
+        .form-group.hidden
+          .col-md-offset-3.col-md-9
+            .checkbox
+              label
+                input(type='checkbox' name="data[showNoContribution]" value="true" checked=join.showNoContribution)
+                | Show no contribution option
 
         .form-group
           label.control-label.col-md-3 Initial amount
@@ -63,12 +89,17 @@ block contents
               option(value='annually' selected=join.initialPeriod === 'annually') Annually
 
         .form-group
+          label.control-label.col-md-3 Min monthly amount
+          .col-md-9
+            input(type='number' name="options[contribution-min-monthly-amount]" value=Options('contribution-min-monthly-amount') required).form-control
+
+        .form-group
           .col-md-offset-3.col-md-9
             .checkbox
               label
-                input(type='checkbox' name="data[showAbsorbFee]" value="true")
-                | Show absorb fee option
-
+                input(type='hidden' name="options[show-absorb-fee]" value="false")
+                input(type='checkbox' name="options[show-absorb-fee]" value="true" checked=Options.bool('show-absorb-fee'))
+                | Show absorb fee
 
         .row: .col-md-offset-3.col-md-9: p: button(name='id' value='join').btn.btn-primary Save
 
@@ -89,9 +120,10 @@ block contents
             .col-md-offset-3.col-md-9
               .checkbox
                 label
-                  input(type='checkbox' name="data[showMailOptIn]" value="true" checked=joinSetup.showMailOptIn).js-reveal-types
+                  input(type='hidden' name="options[show-mail-opt-in]" value="false")
+                  input(type='checkbox' name="options[show-mail-opt-in]" value="true" checked=Options.bool('show-mail-opt-in')).js-reveal-types
                   | Show mail opt-in
-          .js-reveal-type(data-type="data[showMailOptIn]").hidden
+          .js-reveal-type(data-type="options[show-mail-opt-in]").hidden
             .form-group
               label.control-label.col-md-3 Mail title
               .col-md-9
@@ -146,14 +178,6 @@ block contents
         .form-group
           label.control-label.col-md-3 Intro message
           .col-md-9
-            textarea(name="data[introMessage]" required).form-control= profile.introMessage
-        .form-group
-          label.control-label.col-md-3 Intro message author name
-          .col-md-9
-            input(type='text' name="data[introMessageAuthorName]" value=profile.introMessageAuthorName required).form-control
-        .form-group
-          label.control-label.col-md-3 Intro message author title
-          .col-md-9
-            input(type='text' name="data[introMessageAuthorTitle]" value=profile.introMessageAuthorTitle required).form-control
+            textarea(name="data[introMessage]" required).form-control.js-rte-textarea= profile.introMessage
 
         .row: .col-md-offset-3.col-md-9: p: button(name='id' value='profile').btn.btn-primary Save

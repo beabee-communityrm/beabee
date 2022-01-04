@@ -2,6 +2,16 @@ import { NextFunction, Request, RequestHandler, Response } from "express";
 import moment from "moment";
 import { QueryFailedError } from "typeorm";
 
+export interface ContributionInfo {
+  type: ContributionType;
+  amount?: number | undefined;
+  period?: ContributionPeriod | undefined;
+  cancellationDate?: Date | undefined;
+  paymentSource?: PaymentSource | undefined;
+  membershipStatus: "active" | "expiring" | "expired" | "none";
+  membershipExpiryDate?: Date | undefined;
+}
+
 export enum ContributionPeriod {
   Monthly = "monthly",
   Annually = "annually"
@@ -21,9 +31,16 @@ export interface PaymentForm {
   prorate: boolean;
 }
 
+export interface PaymentSource {
+  type: "direct-debit";
+  bankName: string;
+  accountHolderName: string;
+  accountNumberEnding: string;
+}
+
 export interface ReferralGiftForm {
-  referralGift?: string;
-  referralGiftOptions?: Record<string, string>;
+  referralGift?: string | undefined;
+  referralGiftOptions?: Record<string, string> | undefined;
 }
 
 export function getActualAmount(

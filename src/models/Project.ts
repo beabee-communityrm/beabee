@@ -30,8 +30,8 @@ export default class Project {
   @Column()
   status!: string;
 
-  @Column({ nullable: true })
-  groupName?: string;
+  @Column({ type: String, nullable: true })
+  groupName: string | undefined;
 
   @OneToMany("ProjectMember", "project")
   members!: ProjectMember[];

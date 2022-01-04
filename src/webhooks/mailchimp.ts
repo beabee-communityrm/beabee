@@ -136,13 +136,13 @@ async function handleSubscribe(data: MCProfileData) {
     await MembersService.createMember(
       {
         email,
+        contributionType: ContributionType.None,
         firstname: data.merges.FNAME || "",
-        lastname: data.merges.LNAME || "",
-        contributionType: ContributionType.None
+        lastname: data.merges.LNAME || ""
       },
       {
         newsletterStatus: NewsletterStatus.Subscribed,
-        newsletterGroups: nlMember?.groups
+        newsletterGroups: nlMember?.groups || []
       }
     );
   }
@@ -170,11 +170,11 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
   if (member) {
     const nlMember = await NewsletterService.getNewsletterMember(email);
     await MembersService.updateMember(member, {
-      firstname: data.merges.FNAME,
-      lastname: data.merges.LNAME
+      firstname: data.merges.FNAME || "",
+      lastname: data.merges.LNAME || ""
     });
     await MembersService.updateMemberProfile(member, {
-      newsletterGroups: nlMember?.groups
+      newsletterGroups: nlMember?.groups || []
     });
     return true;
   } else {

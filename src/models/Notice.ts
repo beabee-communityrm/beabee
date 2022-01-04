@@ -21,8 +21,8 @@ export default class Notice {
   @Column()
   name!: string;
 
-  @Column({ nullable: true })
-  expires?: Date;
+  @Column({ type: Date, nullable: true })
+  expires: Date | undefined;
 
   @Column()
   enabled!: boolean;
@@ -33,8 +33,8 @@ export default class Notice {
   @Column()
   buttonText!: string;
 
-  @Column({ nullable: true })
-  url?: string;
+  @Column({ type: String, nullable: true })
+  url: string | undefined;
 
   get active(): boolean {
     return (

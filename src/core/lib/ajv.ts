@@ -32,6 +32,8 @@ if (config.countryCode === "en") {
   ajv.addFormat("postcode", function (postcode) {
     return postcodeRegex.test(postcode.replace(/ /g, "").toLowerCase());
   });
+} else if (config.countryCode === "be") {
+  ajv.addFormat("postcode", (postcode) => /^[1-9]{1}[0-9]{3}$/.test(postcode));
 } else {
   ajv.addFormat("postcode", (postcode) => /^\d{5}$/.test(postcode));
 }

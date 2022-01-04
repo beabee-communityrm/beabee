@@ -178,7 +178,7 @@ export function isNotLoggedIn(
     case auth.AuthenticationStatus.NOT_LOGGED_IN:
       return next();
     default:
-      res.redirect(OptionsService.getText("user-home-url"));
+      res.redirect("/");
       return;
   }
 }
@@ -191,7 +191,7 @@ export function isAdmin(req: Request, res: Response, next: NextFunction): void {
       return next();
     case auth.AuthenticationStatus.NOT_ADMIN:
       req.flash("warning", "403");
-      res.redirect(OptionsService.getText("user-home-url"));
+      res.redirect("/");
       return;
     default:
       auth.handleNotAuthed(status, req, res);
@@ -211,7 +211,7 @@ export function isSuperAdmin(
       return next();
     case auth.AuthenticationStatus.NOT_ADMIN:
       req.flash("warning", "403");
-      res.redirect(OptionsService.getText("user-home-url"));
+      res.redirect("/");
       return;
     default:
       auth.handleNotAuthed(status, req, res);

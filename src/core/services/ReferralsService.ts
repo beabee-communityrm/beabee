@@ -44,18 +44,20 @@ export default class ReferralsService {
   static async updateGiftStock(giftForm: ReferralGiftForm): Promise<void> {
     log.info("Update gift stock", giftForm);
 
-    const gift = await getRepository(ReferralGift).findOne({
-      name: giftForm.referralGift
-    });
-    if (gift && giftForm.referralGiftOptions) {
-      const optionStockRef = Object.values(giftForm.referralGiftOptions).join(
-        "/"
-      );
-      const optionStock = gift.stock.get(optionStockRef);
-      if (optionStock !== undefined) {
-        // TODO: this update isn't atomic
-        gift.stock.set(optionStockRef, optionStock - 1);
-        getRepository(ReferralGift).update(gift.name, { stock: gift.stock });
+    if (giftForm.referralGift) {
+      const gift = await getRepository(ReferralGift).findOne({
+        name: giftForm.referralGift
+      });
+      if (gift && giftForm.referralGiftOptions) {
+        const optionStockRef = Object.values(giftForm.referralGiftOptions).join(
+          "/"
+        );
+        const optionStock = gift.stock.get(optionStockRef);
+        if (optionStock !== undefined) {
+          // TODO: this update isn't atomic
+          gift.stock.set(optionStockRef, optionStock - 1);
+          getRepository(ReferralGift).update(gift.name, { stock: gift.stock });
+        }
       }
     }
   }

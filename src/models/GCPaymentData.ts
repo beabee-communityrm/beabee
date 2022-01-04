@@ -6,18 +6,18 @@ export default class GCPaymentData {
   @ManyToOne("Member", { primary: true })
   member!: Member;
 
-  @Column({ nullable: true })
-  customerId?: string;
+  @Column({ type: String, nullable: true })
+  customerId: string | undefined;
 
-  @Column({ nullable: true })
-  mandateId?: string;
+  @Column({ type: String, nullable: true })
+  mandateId: string | undefined;
 
-  @Column({ nullable: true })
-  subscriptionId?: string;
+  @Column({ type: String, nullable: true })
+  subscriptionId: string | undefined;
 
-  @Column({ nullable: true })
-  cancelledAt?: Date;
+  @Column({ type: Date, nullable: true })
+  cancelledAt: Date | undefined;
 
-  @Column({ nullable: true })
-  payFee?: boolean;
+  @Column({ type: Boolean, nullable: true })
+  payFee: boolean | undefined;
 }

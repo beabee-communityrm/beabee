@@ -23,12 +23,12 @@ export default class JoinForm
   @Column({ default: false })
   prorate!: boolean;
 
-  @Column({ nullable: true })
-  referralCode?: string;
+  @Column({ type: String, nullable: true })
+  referralCode?: string | undefined;
 
-  @Column({ nullable: true })
-  referralGift?: string;
+  @Column({ type: String, nullable: true })
+  referralGift?: string | undefined;
 
   @Column({ type: "jsonb", nullable: true })
-  referralGiftOptions?: Record<string, string>;
+  referralGiftOptions?: Record<string, string> | undefined;
 }

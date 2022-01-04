@@ -8,6 +8,7 @@ import Member from "@models/Member";
 import config from "@config";
 
 import {
+  EmailMergeFields,
   EmailOptions,
   EmailPerson,
   EmailProvider,
@@ -53,24 +54,16 @@ const memberEmailTemplates = {
   "reset-password": (member: Member, params: { rpLink: string }) => ({
     RPLINK: params.rpLink
   }),
-  "cancelled-contribution": (member: Member) => {
-    const dateExpires = member.permissions.find(
-      (p) => p.permission === "member"
-    )?.dateExpires;
-    return {
-      EXPIRES: dateExpires
-        ? moment.utc(dateExpires).format("dddd Do MMMM")
-        : "-",
-      MEMBERSHIPID: member.id
-    };
-  },
+  "cancelled-contribution": (member: Member) => ({
+    EXPIRES: member.membership?.dateExpires
+      ? moment.utc(member.membership.dateExpires).format("dddd Do MMMM")
+      : "-",
+    MEMBERSHIPID: member.id
+  }),
   "cancelled-contribution-no-survey": (member: Member) => {
-    const dateExpires = member.permissions.find(
-      (p) => p.permission === "member"
-    )?.dateExpires;
     return {
-      EXPIRES: dateExpires
-        ? moment.utc(dateExpires).format("dddd Do MMMM")
+      EXPIRES: member.membership?.dateExpires
+        ? moment.utc(member.membership.dateExpires).format("dddd Do MMMM")
         : "-"
     };
   },
@@ -89,6 +82,16 @@ const memberEmailTemplates = {
     PURCHASER: params.fromName,
     MESSAGE: params.message,
     ACTIVATELINK: config.audience + "/gift/" + params.giftCode
+  }),
+  "manual-to-gocardless": () => ({}),
+  "email-exists-login": (member: Member, params: { loginLink: string }) => ({
+    LOGINLINK: params.loginLink
+  }),
+  "email-exists-set-password": (
+    member: Member,
+    params: { spLink: string }
+  ) => ({
+    SPLINK: params.spLink
   })
 } as const;
 
@@ -168,20 +171,14 @@ class EmailService implements EmailProvider {
     params: MemberEmailParams<T>,
     opts?: EmailOptions
   ): Promise<void> {
-    const mergeFields = {
-      EMAIL: member.email,
-      NAME: member.fullname,
-      FNAME: member.firstname,
-      LNAME: member.lastname,
-      ...memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
-    };
-
     log.info("Sending template to member " + member.id);
 
-    const recipients = [
-      { to: { email: member.email, name: member.fullname }, mergeFields }
-    ];
-    await this.sendTemplate(template, recipients, opts);
+    const recipient = this.memberToRecipient(
+      member,
+      memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
+    );
+
+    await this.sendTemplate(template, [recipient], opts);
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {
@@ -199,6 +196,22 @@ class EmailService implements EmailProvider {
     Record<EmailTemplateId | MemberEmailTemplateId, string>
   > {
     return OptionsService.getJSON("email-templates");
+  }
+
+  memberToRecipient(
+    member: Member,
+    additionalMergeFields?: EmailMergeFields
+  ): EmailRecipient {
+    return {
+      to: { email: member.email, name: member.fullname },
+      mergeFields: {
+        EMAIL: member.email,
+        NAME: member.fullname,
+        FNAME: member.firstname,
+        LNAME: member.lastname,
+        ...additionalMergeFields
+      }
+    };
   }
 }
 

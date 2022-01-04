@@ -180,7 +180,7 @@ app.post(
         await getRepository(ProjectEngagement).insert({
           ...schemaToEngagement(data),
           project,
-          byMember: req.user
+          byMember: req.user!
         });
         res.redirect(req.originalUrl + "#members");
         break;

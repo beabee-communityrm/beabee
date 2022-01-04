@@ -34,7 +34,7 @@ export default class PollsService {
       Object.assign(pwr, poll);
       pwr.response = responses.find(
         (r) => (r.poll as unknown as string) === poll.slug
-      );
+      )!;
       return pwr;
     });
 
@@ -63,7 +63,7 @@ export default class PollsService {
   ): Promise<string | undefined> {
     if (poll.access === PollAccess.OnlyAnonymous) {
       return "poll-only-anonymous";
-    } else if (!member.isActiveMember) {
+    } else if (!member.membership?.isActive) {
       return "polls-expired-user";
     } else if (!poll.active) {
       return "polls-closed";

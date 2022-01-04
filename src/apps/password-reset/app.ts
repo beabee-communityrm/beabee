@@ -8,6 +8,10 @@ import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 
 import { getResetCodeSchema, resetPasswordSchema } from "./schemas.json";
+import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import { getRepository } from "typeorm";
+import EmailService from "@core/services/EmailService";
+import config from "@config";
 
 const app = express();
 
@@ -23,15 +27,17 @@ app.post(
   "/",
   hasSchema(getResetCodeSchema).orFlash,
   wrapAsync(async function (req, res) {
-    const {
-      body: { email }
-    } = req;
-
-    await MembersService.resetMemberPassword(cleanEmailAddress(email));
+    const member = await MembersService.findOne({ email: req.body.email });
+    if (member) {
+      const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
+      await EmailService.sendTemplateToMember("reset-password", member, {
+        rpLink: config.audience + "/password-reset/code/" + rpFlow.id
+      });
+    }
 
     const passwordResetMessage =
       OptionsService.getText("flash-password-reset") || "";
-    req.flash("info", passwordResetMessage.replace("%", email));
+    req.flash("info", passwordResetMessage.replace("%", req.body.email));
 
     res.redirect(app.mountpath as string);
   })
@@ -51,20 +57,18 @@ app.post(
   "/code/:password_reset_code?",
   hasSchema(resetPasswordSchema).orFlash,
   wrapAsync(async function (req, res) {
-    const member = await MembersService.findOne({
-      password: { resetCode: req.body.password_reset_code }
+    const rpFlow = await getRepository(ResetPasswordFlow).findOne({
+      where: { id: req.body.password_reset_code },
+      relations: ["member"]
     });
-    if (member) {
-      await MembersService.updateMember(member, {
-        password: {
-          ...(await generatePassword(req.body.password)),
-          resetCode: undefined
-        }
+    if (rpFlow) {
+      await MembersService.updateMember(rpFlow.member, {
+        password: await generatePassword(req.body.password)
       });
+      await getRepository(ResetPasswordFlow).delete(rpFlow.id);
 
       req.flash("success", "password-changed");
-
-      MembersService.loginAndRedirect(req, res, member);
+      MembersService.loginAndRedirect(req, res, rpFlow.member);
     } else {
       req.flash("warning", "password-reset-code-err");
       res.redirect(app.mountpath as string);

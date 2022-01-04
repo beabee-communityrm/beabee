@@ -31,10 +31,10 @@ export default class SendGridProvider implements EmailProvider {
         name: email.fromName
       },
       subject: email.subject,
-      html: email.body.replace(/\r\n/g, "<br>"),
+      html: email.bodyInline,
       personalizations: recipients.map((recipient) => ({
         to: recipient.to,
-        substitutions: recipient.mergeFields
+        ...(recipient.mergeFields && { substitutions: recipient.mergeFields })
       })),
       ...(opts?.sendAt && {
         sendAt: +opts.sendAt

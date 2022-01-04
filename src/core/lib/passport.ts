@@ -40,13 +40,6 @@ passport.use(
           user.password.iterations
         );
         if (hash === user.password.hash) {
-          if (user.password.resetCode) {
-            await MembersService.updateMember(user, {
-              password: { ...user.password, resetCode: undefined }
-            });
-            return done(null, user, { message: "password-reset-attempt" });
-          }
-
           if (tries > 0) {
             await MembersService.updateMember(user, {
               password: { ...user.password, tries: 0 }
