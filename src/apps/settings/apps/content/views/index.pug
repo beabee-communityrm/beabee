@@ -64,7 +64,7 @@ block contents
         .form-group
           label.control-label.col-md-3 Subtitle
           .col-md-9
-            input(type='text' name="data[subtitle]" value=join.subtitle required).form-control
+            textarea(name="data[subtitle]" required).form-control.js-rte-textarea= join.subtitle
         
         +periodSchema(0, join.periods ? join.periods[0] : {'name': 'monthly', presetAmounts: []})
         +periodSchema(1, join.periods ? join.periods[1] : {'name': 'annually', presetAmounts: []})
