@@ -150,7 +150,9 @@ app.get(
               completedJoinFlow.customerId,
               completedJoinFlow.mandateId
             );
-            return await handleChangeContribution(req, joinFlow.joinForm);
+
+            await handleChangeContribution(req, joinFlow.joinForm);
+            return res.redirect("/profile/direct-debit");
           }
         }
         req.flash("warning", "contribution-updating-failed");
