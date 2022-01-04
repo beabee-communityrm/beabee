@@ -7,18 +7,19 @@ block append js
 	script( src="/static/js/update-contribution.js?v=" + git )
 
 block contents
+	- isActiveMember = user.membership && user.membership.isActive
 	.row
 		.col-md-3
 			- page = 'direct-debit'
 			include /apps/profile/views/partials/sidebar.pug
 		.col-md-9.col-lg-7
 			+page_header( 'Contribution details' )
-			if !user.isActiveMember && user.membershipExpires
+			if user.membership && !isActiveMember
 				.alert.alert-danger Your membership has expired
 			else if gcData && gcData.cancelledAt
 				.alert.alert-warning You cancelled your contribution
 
-			if user.isActiveMember
+			if isActiveMember
 				if user.contributionMonthlyAmount >= 3 && !user.profile.deliveryOptIn
 					a(href='/profile/delivery').alert.alert-info.
 						You are eligible to receive the print edition, #[b click here to set your delivery address]
@@ -26,16 +27,16 @@ block contents
 					.alert.alert-info.
 						Increase your contribution to £3/month or more to receive the print edition
 
-			if user.contributionType === 'gift' && user.isActiveMember
+			if user.contributionType === 'gift' && isActiveMember
 				p.
 					You are on a gift membership. You can start a contribution to
 					continue your membership beyond
-					#{ moment(user.membershipExpires).format('dddd, MMMM Do YYYY') }
+					#{ moment(user.membership.dateExpires).format('dddd, MMMM Do YYYY') }
 
 				hr
 			else if gcData
 				p
-					| You #{user.isActiveMember ? 'contribute' : 'previously contributed'}
+					| You #{isActiveMember ? 'contribute' : 'previously contributed'}
 					|
 					= user.contributionDescription
 					if gcData.payFee
@@ -47,12 +48,12 @@ block contents
 						| we are currently processing your payment.
 					else
 						if gcData.subscriptionId
-							| #{user.isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'} around
+							| #{isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'} around
 						else
-							| it #{user.isActiveMember ? 'will expire' : 'expired'} on
+							| it #{isActiveMember ? 'will expire' : 'expired'} on
 						|
 						|
-						= moment(user.membershipExpires).format('dddd, MMMM Do YYYY')
+						= moment(user.membership.dateExpires).format('dddd, MMMM Do YYYY')
 						| .
 				hr
 

@@ -1,12 +1,13 @@
+- isActiveMember = user.membership && user.membership.isActive
 - hasActiveSubscription = gcData && !!gcData.subscriptionId
 
 form(
 	method='post'
 	data-amount=user.contributionMonthlyAmount
 	data-paying-fee=gcData && gcData.payFee
-	data-active-member=user.isActiveMember
+	data-active-member=isActiveMember
 	data-active-subscription=hasActiveSubscription
-	data-next=user.isActiveMember && moment(user.membershipExpires).format('dddd, MMMM Do YYYY')
+	data-next=isActiveMember && moment(user.membership.dateExpires).format('dddd, MMMM Do YYYY')
 	data-months=user.memberMonthsRemaining
 ).form-horizontal.js-update-form
 	+csrf
@@ -119,7 +120,7 @@ form(
 							input(type='radio' name='prorate' value='false' required)
 							| No, I'll wait until
 							|
-							= moment(user.membershipExpires).format('DD/MM/YYYY')
+							= moment(user.membership.dateExpires).format('DD/MM/YYYY')
 							|
 							| to start my new contribution
 					p
