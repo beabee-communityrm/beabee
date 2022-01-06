@@ -190,8 +190,8 @@ app.post(
             };
           });
           res.attachment(exportName).send(Papa.unparse(exportData));
-          break;
         }
+        break;
       }
       case "delete-responses":
         await getRepository(PollResponse).delete({ poll: { slug: poll.slug } });
