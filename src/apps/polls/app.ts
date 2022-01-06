@@ -109,70 +109,141 @@ app.get("/:slug", hasNewModel(Poll, "slug"), (req, res, next) => {
   }
 });
 
-function getSessionAnswers(req: Request) {
+async function getUserAnswersAndClear(
+  req: Request
+): Promise<PollResponseAnswers> {
   const answers = req.session.answers;
   delete req.session.answers;
-  return answers;
-}
 
-async function getUserAnswers(req: Request) {
   return (
-    getSessionAnswers(req) ||
+    answers ||
     (req.user &&
-      (await PollsService.getResponse(req.model as Poll, req.user))?.answers)
+      (await PollsService.getResponse(req.model as Poll, req.user))?.answers) ||
+    {}
   );
 }
 
+function pollUrl(
+  poll: Poll,
+  opts: { pollsCode?: string; isEmbed?: boolean }
+): string {
+  return [
+    "/polls/" + poll.slug,
+    ...(opts.pollsCode ? ["/" + opts.pollsCode] : []),
+    ...(opts.isEmbed ? ["/embed"] : [])
+  ].join("");
+}
+
+// :code is greedily matching /embed
+function fixParams(req: Request, res: Response, next: NextFunction) {
+  if (!req.params.embed && req.params.code === "embed") {
+    req.params.embed = "/embed";
+    req.params.code = "";
+  }
+  next();
+}
+
 app.get(
-  "/:slug:embed(/embed)?",
-  [hasNewModel(Poll, "slug")],
+  "/:slug/:code?/thanks",
+  hasNewModel(Poll, "slug"),
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
+    // Always fetch answers to clear session even on redirect
+    const answers = await getUserAnswersAndClear(req);
+
+    if (poll.templateSchema.thanksRedirect) {
+      res.redirect(poll.templateSchema.thanksRedirect as string);
+    } else {
+      res.render(poll.template === "custom" ? getView(poll) : "thanks", {
+        poll,
+        answers,
+        pollsCode: req.params.code,
+
+        // TODO: remove this hack
+        ...(poll.access === PollAccess.OnlyAnonymous && {
+          isLoggedIn: false,
+          menu: { main: [] }
+        })
+      });
+    }
+  })
+);
+
+app.get(
+  "/:slug/:code?:embed(/embed)?",
+  hasNewModel(Poll, "slug"),
+  fixParams,
+  wrapAsync(async (req, res, next) => {
+    const poll = req.model as Poll;
+    const pollsCode = req.params.code?.toUpperCase();
     const isEmbed = !!req.params.embed;
-    const user = isEmbed ? undefined : req.user;
-    if (poll.access === PollAccess.Member && !user) {
-      return auth.handleNotAuthed(
-        auth.AuthenticationStatus.NOT_LOGGED_IN,
-        req,
-        res
-      );
+    const isPreview = req.query.preview && req.user?.hasPermission("admin");
+    const isGuest = isEmbed || !(pollsCode || req.user);
+
+    if (isEmbed) {
+      res.removeHeader("X-Frame-Options");
     }
 
-    const answers = req.query.answers as PollResponseAnswers;
+    // Anonymous polls can't be accessed with polls code
+    if (poll.access === PollAccess.OnlyAnonymous && pollsCode) {
+      return next("route");
+    }
+
+    // Member only polls need a member
+    if (poll.access === PollAccess.Member && isGuest) {
+      return res.render("login", { poll, isEmbed });
+    }
+
     // Handle partial answers from URL
-    if (answers) {
-      if (user) {
-        await PollsService.setResponse(poll, user, answers, true);
-      } else {
+    const answers = req.query.answers as PollResponseAnswers;
+    // We don't support allowMultiple polls at the moment
+    if (!isEmbed && answers && !poll.allowMultiple) {
+      const member = pollsCode
+        ? await MembersService.findOne({ pollsCode })
+        : req.user;
+      if (member) {
+        await PollsService.setResponse(poll, member, answers, true);
+      }
+      if (!req.user) {
         req.session.answers = answers;
       }
-      res.redirect(`/polls/${poll.slug}#vote`);
+      res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
-      if (isEmbed) {
-        res.removeHeader("X-Frame-Options");
-      }
       res.render(getView(poll), {
         poll,
+        answers: poll.allowMultiple ? {} : await getUserAnswersAndClear(req),
         isEmbed,
-        isGuest: isEmbed || !user,
-        answers: (await getUserAnswers(req)) || {},
-        preview:
-          req.query.preview &&
-          auth.canAdmin(req) === auth.AuthenticationStatus.LOGGED_IN
+        isGuest,
+        preview: isPreview,
+
+        // TODO: remove this hack
+        ...(poll.access === PollAccess.OnlyAnonymous && {
+          isLoggedIn: false,
+          menu: { main: [] }
+        })
       });
     }
   })
 );
 
 app.post(
-  "/:slug:embed(/embed)?",
-  [hasNewModel(Poll, "slug"), hasPollAnswers],
+  "/:slug/:code?:embed(/embed)?",
+  hasNewModel(Poll, "slug"),
+  hasPollAnswers,
+  fixParams,
   wrapAsync(async (req, res) => {
     const poll = req.model as Poll;
+    const pollsCode = req.params.code?.toUpperCase();
     const isEmbed = !!req.params.embed;
-    const user = isEmbed ? undefined : req.user;
 
-    if (poll.access === PollAccess.Member && !user) {
+    const member =
+      isEmbed || poll.access === PollAccess.OnlyAnonymous
+        ? undefined
+        : pollsCode
+        ? await MembersService.findOne({ pollsCode })
+        : req.user;
+
+    if (poll.access === PollAccess.Member && !member) {
       return auth.handleNotAuthed(
         auth.AuthenticationStatus.NOT_LOGGED_IN,
         req,
@@ -181,113 +252,31 @@ app.post(
     }
 
     let error;
-    if (user) {
-      error = await PollsService.setResponse(poll, user, req.answers!);
+    if (pollsCode && !member) {
+      error = "polls-unknown-user";
     } else {
-      const { guestName, guestEmail } = req.body;
-      if ((guestName && guestEmail) || poll.access === PollAccess.Anonymous) {
-        error = await PollsService.setGuestResponse(
-          poll,
-          guestName,
-          guestEmail,
-          req.answers!
-        );
-      } else {
-        error = "polls-guest-fields-missing";
-      }
+      error = member
+        ? await PollsService.setResponse(poll, member, req.answers!)
+        : await PollsService.setGuestResponse(
+            poll,
+            req.body.guestName,
+            req.body.guestEmail,
+            req.answers!
+          );
+    }
+
+    if (member) {
+      setTrackingCookie(member.id, res);
     }
 
     if (error) {
       req.flash("error", error);
-      res.redirect(`/polls/${poll.slug}#vote`);
+      res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
       if (!req.user) {
         req.session.answers = req.answers;
       }
-      res.redirect(
-        (poll.templateSchema.thanksRedirect as string) ||
-          `/polls/${poll.slug}/thanks`
-      );
-    }
-  })
-);
-
-app.get(
-  "/:slug/thanks",
-  hasNewModel(Poll, "slug"),
-  wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
-    const answers = await getUserAnswers(req);
-    if (answers) {
-      res.render(poll.template === "custom" ? getView(poll) : "thanks", {
-        poll,
-        answers
-      });
-    } else {
-      res.redirect("/polls/" + poll.slug);
-    }
-  })
-);
-
-app.get(
-  "/:slug/:code",
-  hasNewModel(Poll, "slug"),
-  wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
-    const answers = req.query.answers as PollResponseAnswers;
-    const pollsCode = req.params.code.toUpperCase();
-
-    // Prefill answers from URL
-    if (answers) {
-      const member = await MembersService.findOne({ pollsCode });
-      if (member) {
-        const error = await PollsService.setResponse(
-          poll,
-          member,
-          answers,
-          true
-        );
-        if (!error) {
-          req.session.answers = answers;
-        }
-      }
-      res.redirect(`/polls/${poll.slug}/${pollsCode}#vote`);
-    } else {
-      res.render(getView(poll), {
-        poll: req.model,
-        isGuest: false,
-        answers: getSessionAnswers(req) || {},
-        code: pollsCode
-      });
-    }
-  })
-);
-
-app.post(
-  "/:slug/:code",
-  [hasNewModel(Poll, "slug"), hasPollAnswers],
-  wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
-    const pollsCode = req.params.code.toUpperCase();
-    let error;
-
-    const member = await MembersService.findOne({ pollsCode });
-    if (member) {
-      setTrackingCookie(member.id, res);
-      error = await PollsService.setResponse(poll, member, req.answers!);
-    } else {
-      error = "polls-unknown-user";
-    }
-
-    if (error) {
-      req.flash("error", error);
-      res.redirect(`/polls/${poll.slug}/${pollsCode}#vote`);
-    } else {
-      req.session.answers = req.answers;
-      res.redirect(
-        (poll.templateSchema.thanksRedirect as string) ||
-          `/polls/${poll.slug}/thanks`
-      );
+      res.redirect(pollUrl(poll, { pollsCode }) + "/thanks");
     }
   })
 );

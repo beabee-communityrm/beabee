@@ -75,7 +75,7 @@ block contents
 						input(type='hidden' name='answers')
 
 						if isGuest
-							if !isEmbed
+							if !isEmbed && poll.access !== 'only-anonymous'
 								.alert.alert-info
 									| Are you Cable member?
 									|

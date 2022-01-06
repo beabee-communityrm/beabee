@@ -11,9 +11,10 @@ import PollResponse from "./PollResponse";
 export type PollTemplate = "custom" | "builder" | "ballot";
 
 export enum PollAccess {
+  Member = "member",
   Guest = "guest",
   Anonymous = "anonymous",
-  Member = "member"
+  OnlyAnonymous = "only-anonymous"
 }
 
 @Entity()
@@ -57,6 +58,9 @@ export default class Poll {
   @Column()
   allowUpdate!: boolean;
 
+  @Column({ default: false })
+  allowMultiple!: boolean;
+
   @Column({ default: PollAccess.Member })
   access!: PollAccess;
 
@@ -65,6 +69,9 @@ export default class Poll {
 
   @OneToMany(() => PollResponse, (r) => r.poll)
   responses!: PollResponse[];
+
+  @Column({ nullable: true })
+  responsePassword?: string;
 
   responseCount?: number;
 
