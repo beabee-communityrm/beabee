@@ -94,6 +94,14 @@ export class MemberController {
           })
         : undefined;
 
+    const roles = target.permissions
+      .filter((p) => p.isActive)
+      .map((p) => p.permission);
+
+    if (roles.includes("superadmin")) {
+      roles.push("admin");
+    }
+
     return {
       email: target.email,
       firstname: target.firstname,
@@ -101,9 +109,7 @@ export class MemberController {
       joined: target.joined,
       contributionAmount: target.contributionAmount,
       contributionPeriod: target.contributionPeriod,
-      roles: target.permissions
-        .filter((p) => p.isActive)
-        .map((p) => p.permission),
+      roles,
       ...(profile && {
         profile: {
           telephone: profile.telephone,
