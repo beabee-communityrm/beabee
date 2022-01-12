@@ -10,10 +10,14 @@ import {
 import type Member from "./Member";
 import type Poll from "./Poll";
 
-export type PollResponseAnswers = Record<
-  string,
-  string | boolean | number | undefined
->;
+export type PollResponseAnswer =
+  | string
+  | boolean
+  | number
+  | null
+  | undefined
+  | Record<string, boolean>;
+export type PollResponseAnswers = Record<string, PollResponseAnswer>;
 
 @Entity()
 export default class PollResponse {
