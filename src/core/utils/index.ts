@@ -7,7 +7,9 @@ export interface ContributionInfo {
   amount?: number;
   period?: ContributionPeriod;
   cancellationDate?: Date;
+  renewalDate?: Date;
   paymentSource?: PaymentSource;
+  payFee?: boolean;
   membershipStatus: "active" | "expiring" | "expired" | "none";
   membershipExpiryDate?: Date;
 }

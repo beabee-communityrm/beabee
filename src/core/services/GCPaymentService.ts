@@ -13,7 +13,7 @@ import {
   ContributionType,
   getActualAmount,
   PaymentForm,
-  ContributionInfo
+  PaymentSource
 } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
@@ -31,6 +31,13 @@ import NoPaymentSource from "@api/errors/NoPaymentSource";
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
   contributionPeriod: ContributionPeriod;
+}
+
+interface GCContributionInfo {
+  cancellationDate?: Date;
+  renewalDate?: Date;
+  paymentSource?: PaymentSource;
+  payFee?: boolean;
 }
 
 const log = mainLogger.child({ app: "gc-payment-service" });
@@ -323,9 +330,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
   static async getContributionInfo(
     member: Member
-  ): Promise<
-    Pick<ContributionInfo, "cancellationDate" | "paymentSource"> | undefined
-  > {
+  ): Promise<GCContributionInfo | undefined> {
     const gcData = await this.getPaymentData(member);
 
     if (gcData) {
@@ -346,6 +351,13 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
       return {
         ...(gcData.cancelledAt && { cancellationDate: gcData.cancelledAt }),
+        ...(!gcData.cancelledAt &&
+          member.membership?.dateExpires && {
+            renewalDate: moment
+              .utc(member.membership.dateExpires)
+              .subtract(config.gracePeriod)
+              .toDate()
+          }),
         ...(bankAccount && {
           paymentSource: {
             type: "direct-debit" as const,
@@ -353,7 +365,8 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
             accountHolderName: bankAccount.account_holder_name,
             accountNumberEnding: bankAccount.account_number_ending
           }
-        })
+        }),
+        payFee: gcData.payFee || false
       };
     }
   }
