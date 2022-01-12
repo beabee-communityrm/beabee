@@ -7,17 +7,17 @@ export default class GCPaymentData {
   member!: Member;
 
   @Column({ type: String, nullable: true })
-  customerId: string | undefined;
+  customerId!: string | null;
 
   @Column({ type: String, nullable: true })
-  mandateId: string | undefined;
+  mandateId!: string | null;
 
   @Column({ type: String, nullable: true })
-  subscriptionId: string | undefined;
+  subscriptionId!: string | null;
 
   @Column({ type: Date, nullable: true })
-  cancelledAt: Date | undefined;
+  cancelledAt!: Date | null;
 
   @Column({ type: Boolean, nullable: true })
-  payFee: boolean | undefined;
+  payFee!: boolean | null;
 }

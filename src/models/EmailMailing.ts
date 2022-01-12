@@ -21,17 +21,17 @@ export default class EmailMailing {
   createdDate!: Date;
 
   @Column({ type: Date, nullable: true })
-  sentDate: Date | undefined;
+  sentDate!: Date | null;
 
   @Column({ type: "jsonb" })
   recipients!: EmailMailingRecipient[];
 
   @Column({ type: String, nullable: true })
-  emailField: string | undefined;
+  emailField!: string | null;
 
   @Column({ type: String, nullable: true })
-  nameField: string | undefined;
+  nameField!: string | null;
 
   @Column({ type: "json", nullable: true })
-  mergeFields: Record<string, string> | undefined;
+  mergeFields!: Record<string, string> | null;
 }

@@ -107,8 +107,12 @@ export class MemberController {
       firstname: target.firstname,
       lastname: target.lastname,
       joined: target.joined,
-      contributionAmount: target.contributionAmount,
-      contributionPeriod: target.contributionPeriod,
+      ...(target.contributionAmount && {
+        contributionAmount: target.contributionAmount
+      }),
+      ...(target.contributionPeriod && {
+        contributionPeriod: target.contributionPeriod
+      }),
       roles,
       ...(profile && {
         profile: {

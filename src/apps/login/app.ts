@@ -58,7 +58,7 @@ app.get(
     const nextParam = req.query.next as string;
     const member = await MembersService.findByLoginOverride(req.params.code);
     if (member) {
-      await MembersService.updateMember(member, { loginOverride: undefined });
+      await MembersService.updateMember(member, { loginOverride: null });
       MembersService.loginAndRedirect(
         req,
         res,

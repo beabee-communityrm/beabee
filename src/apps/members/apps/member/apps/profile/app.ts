@@ -51,7 +51,7 @@ app.post(
               city: delivery_city,
               postcode: delivery_postcode
             }
-          : undefined
+          : null
       });
     } catch (error) {
       if (error instanceof DuplicateEmailError) {

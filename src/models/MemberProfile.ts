@@ -33,7 +33,7 @@ export default class MemberProfile {
   deliveryOptIn!: boolean;
 
   @Column({ type: "jsonb", nullable: true })
-  deliveryAddress: Address | undefined;
+  deliveryAddress!: Address | null;
 
   @Column({ type: "jsonb", default: "[]" })
   tags!: string[];

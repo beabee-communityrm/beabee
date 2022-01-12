@@ -75,7 +75,7 @@ app.post(
           contributionType: req.body.type,
           contributionMonthlyAmount: req.body.amount
             ? Number(req.body.amount)
-            : undefined,
+            : null,
           contributionPeriod: req.body.period
         });
         if (req.body.type === ContributionType.GoCardless) {

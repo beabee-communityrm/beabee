@@ -77,7 +77,7 @@ abstract class UpdateContributionPaymentService {
     } else {
       if (gcData.subscriptionId) {
         await GCPaymentService.cancelContribution(user, true);
-        gcData.subscriptionId = undefined;
+        gcData.subscriptionId = null;
       }
 
       gcData = await this.createSubscription(user, gcData, paymentForm);
@@ -281,7 +281,7 @@ abstract class UpdateContributionPaymentService {
       ...(startNow
         ? {
             contributionMonthlyAmount: paymentForm.monthlyAmount,
-            nextContributionMonthlyAmount: undefined
+            nextContributionMonthlyAmount: null
           }
         : {
             nextContributionMonthlyAmount: paymentForm.monthlyAmount
@@ -294,7 +294,7 @@ abstract class UpdateContributionPaymentService {
       nextChargeDate.toDate()
     );
 
-    gcData.cancelledAt = undefined;
+    gcData.cancelledAt = null;
     await getRepository(GCPaymentData).update(gcData.member.id, gcData);
   }
 }
@@ -345,13 +345,15 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
       }
 
       return {
-        cancellationDate: gcData.cancelledAt,
-        paymentSource: bankAccount && {
-          type: "direct-debit" as const,
-          bankName: bankAccount.bank_name,
-          accountHolderName: bankAccount.account_holder_name,
-          accountNumberEnding: bankAccount.account_number_ending
-        }
+        ...(gcData.cancelledAt && { cancellationDate: gcData.cancelledAt }),
+        ...(bankAccount && {
+          paymentSource: {
+            type: "direct-debit" as const,
+            bankName: bankAccount.bank_name,
+            accountHolderName: bankAccount.account_holder_name,
+            accountNumberEnding: bankAccount.account_number_ending
+          }
+        })
       };
     }
   }
@@ -401,8 +403,8 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     if (gcData) {
       // Do this before cancellation to avoid webhook race conditions
       await getRepository(GCPaymentData).update(gcData.member.id, {
-        subscriptionId: undefined,
-        ...(!keepMandate && { mandateId: undefined }),
+        subscriptionId: null,
+        ...(!keepMandate && { mandateId: null }),
         cancelledAt: new Date()
       });
 
@@ -414,7 +416,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
       }
 
       await MembersService.updateMember(member, {
-        nextContributionMonthlyAmount: undefined
+        nextContributionMonthlyAmount: null
       });
     }
   }
@@ -439,7 +441,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     if (gcData.mandateId) {
       // Remove subscription before cancelling mandate to stop the webhook triggering a cancelled email
       await getRepository(GCPaymentData).update(gcData.member.id, {
-        subscriptionId: undefined
+        subscriptionId: null
       });
       await gocardless.mandates.cancel(gcData.mandateId);
     }
@@ -448,7 +450,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     gcData.member = member;
     gcData.customerId = customerId;
     gcData.mandateId = mandateId;
-    gcData.subscriptionId = undefined;
+    gcData.subscriptionId = null;
 
     await getRepository(GCPaymentData).save(gcData);
 

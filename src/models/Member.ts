@@ -27,7 +27,7 @@ interface LoginOverride {
 
 class OneTimePassword {
   @Column({ type: String, nullable: true })
-  key: string | undefined;
+  key!: string | null;
 
   @Column({ default: false })
   activated!: boolean;
@@ -57,28 +57,28 @@ export default class Member {
   joined!: Date;
 
   @Column({ type: Date, nullable: true })
-  lastSeen: Date | undefined;
+  lastSeen!: Date | null;
 
   @Column({ type: "jsonb", nullable: true })
-  loginOverride: LoginOverride | undefined;
+  loginOverride!: LoginOverride | null;
 
   @Column()
   contributionType!: ContributionType;
 
   @Column({ type: String, nullable: true })
-  contributionPeriod: ContributionPeriod | undefined;
+  contributionPeriod!: ContributionPeriod | null;
 
   @Column({ type: "real", nullable: true })
-  contributionMonthlyAmount: number | undefined;
+  contributionMonthlyAmount!: number | null;
 
   @Column({ type: "real", nullable: true })
-  nextContributionMonthlyAmount: number | undefined;
+  nextContributionMonthlyAmount!: number | null;
 
   @Column({ type: String, unique: true, nullable: true })
-  referralCode: string | undefined;
+  referralCode!: string | null;
 
   @Column({ type: String, unique: true, nullable: true })
-  pollsCode: string | undefined;
+  pollsCode!: string | null;
 
   @OneToMany("MemberPermission", "member", { eager: true, cascade: true })
   permissions!: MemberPermission[];
@@ -103,9 +103,9 @@ export default class Member {
       : "";
   }
 
-  get contributionAmount(): number | undefined {
-    return this.contributionMonthlyAmount === undefined
-      ? undefined
+  get contributionAmount(): number | null {
+    return this.contributionMonthlyAmount === null
+      ? null
       : this.contributionMonthlyAmount *
           (this.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12);
   }

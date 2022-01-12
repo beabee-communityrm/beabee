@@ -31,11 +31,12 @@ export type PartialMember = Pick<Member, "email" | "contributionType"> &
 const log = mainLogger.child({ app: "members-service" });
 
 export default class MembersService {
-  static generateMemberCode(member: Partial<Member>): string | undefined {
+  static generateMemberCode(member: Partial<Member>): string | null {
     if (member.firstname && member.lastname) {
       const no = ("000" + Math.floor(Math.random() * 1000)).slice(-3);
       return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
     }
+    return null;
   }
 
   static async find(options?: FindManyOptions<Member>): Promise<Member[]> {
@@ -180,13 +181,6 @@ export default class MembersService {
     );
     if (existingPermission && updates) {
       Object.assign(existingPermission, updates);
-      // TODO: temporary hack to force save undefined dateExpires
-      if (
-        Object.keys(updates).indexOf("dateExpires") > -1 &&
-        !updates.dateExpires
-      ) {
-        existingPermission.dateExpires = null as any;
-      }
     } else {
       const newPermission = getRepository(MemberPermission).create({
         member,

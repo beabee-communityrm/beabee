@@ -43,9 +43,15 @@ class PaymentService {
   ): Promise<ContributionInfo | undefined> {
     const basicInfo = {
       type: member.contributionType,
-      amount: member.contributionAmount,
-      period: member.contributionPeriod,
-      membershipExpiryDate: member.membership?.dateExpires
+      ...(member.contributionAmount !== null && {
+        amount: member.contributionAmount
+      }),
+      ...(member.contributionPeriod !== null && {
+        period: member.contributionPeriod
+      }),
+      ...(member.membership?.dateExpires && {
+        membershipExpiryDate: member.membership.dateExpires
+      })
     };
 
     const extraInfo =
