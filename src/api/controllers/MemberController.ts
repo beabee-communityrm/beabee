@@ -113,6 +113,9 @@ export class MemberController {
       ...(target.contributionPeriod && {
         contributionPeriod: target.contributionPeriod
       }),
+      ...(target.nextContributionAmount && {
+        nextContributionAmount: target.nextContributionAmount
+      }),
       roles,
       ...(profile && {
         profile: {

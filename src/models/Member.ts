@@ -130,6 +130,13 @@ export default class Member {
     }
   }
 
+  get nextContributionAmount(): number | null {
+    return this.nextContributionMonthlyAmount === null
+      ? null
+      : this.nextContributionMonthlyAmount *
+          (this.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12);
+  }
+
   get membership(): MemberPermission | undefined {
     return this.permissions.find((p) => p.permission === "member");
   }
