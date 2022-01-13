@@ -5,6 +5,7 @@ import { QueryFailedError } from "typeorm";
 export interface ContributionInfo {
   type: ContributionType;
   amount?: number;
+  nextAmount?: number;
   period?: ContributionPeriod;
   cancellationDate?: Date;
   renewalDate?: Date;
@@ -44,7 +45,8 @@ export function getActualAmount(
   amount: number,
   period: ContributionPeriod
 ): number {
-  return amount * (period === ContributionPeriod.Annually ? 12 : 1);
+  // TODO: fix this properly
+  return Math.round(amount * (period === ContributionPeriod.Annually ? 12 : 1));
 }
 
 export function isValidNextUrl(url: string): boolean {

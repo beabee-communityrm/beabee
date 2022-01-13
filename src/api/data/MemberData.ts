@@ -38,7 +38,6 @@ export interface GetMemberData extends MemberData {
   joined: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
-  nextContributionAmount?: number;
   profile?: MemberProfileData;
   roles: PermissionType[];
 }

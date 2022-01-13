@@ -106,8 +106,10 @@ export default class Member {
   get contributionAmount(): number | null {
     return this.contributionMonthlyAmount === null
       ? null
-      : this.contributionMonthlyAmount *
-          (this.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12);
+      : getActualAmount(
+          this.contributionMonthlyAmount,
+          this.contributionPeriod!
+        );
   }
 
   get contributionDescription(): string {
@@ -120,11 +122,7 @@ export default class Member {
     ) {
       return "None";
     } else {
-      const amount = getActualAmount(
-        this.contributionMonthlyAmount,
-        this.contributionPeriod
-      );
-      return `${config.currencySymbol}${amount}/${
+      return `${config.currencySymbol}${this.contributionAmount}/${
         this.contributionPeriod === "monthly" ? "month" : "year"
       }`;
     }
@@ -133,8 +131,10 @@ export default class Member {
   get nextContributionAmount(): number | null {
     return this.nextContributionMonthlyAmount === null
       ? null
-      : this.nextContributionMonthlyAmount *
-          (this.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12);
+      : getActualAmount(
+          this.nextContributionMonthlyAmount,
+          this.contributionPeriod!
+        );
   }
 
   get membership(): MemberPermission | undefined {
