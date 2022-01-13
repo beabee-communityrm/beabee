@@ -219,7 +219,7 @@ abstract class UpdateContributionPaymentService {
       // Amounts of less than 1 can't be charged, just ignore them
       if (prorateAmount < 1) {
         return true;
-      } else if (prorateAmount > 1 && paymentForm.prorate) {
+      } else if (paymentForm.prorate) {
         await gocardless.payments.create({
           amount: (prorateAmount * 100).toFixed(0),
           currency: config.currencyCode.toUpperCase() as PaymentCurrency,
