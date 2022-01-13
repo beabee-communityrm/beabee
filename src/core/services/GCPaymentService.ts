@@ -229,15 +229,14 @@ abstract class UpdateContributionPaymentService {
     gcData: GCPaymentData,
     paymentForm: PaymentForm
   ): Promise<boolean> {
-    const monthsLeft = member.memberMonthsRemaining;
     const prorateAmount =
       (paymentForm.monthlyAmount - member.contributionMonthlyAmount) *
-      monthsLeft;
+      member.memberMonthsRemaining;
 
     log.info("Prorate subscription for " + member.id, {
       userId: member.id,
       paymentForm,
-      monthsLeft,
+      monthsLeft: member.memberMonthsRemaining,
       prorateAmount
     });
 
@@ -245,7 +244,7 @@ abstract class UpdateContributionPaymentService {
       await gocardless.payments.create({
         amount: (prorateAmount * 100).toFixed(0),
         currency: config.currencyCode.toUpperCase() as PaymentCurrency,
-        description: "One-off payment to start new contribution",
+        // TODO: i18n description: "One-off payment to start new contribution",
         links: {
           mandate: gcData.mandateId!
         }
