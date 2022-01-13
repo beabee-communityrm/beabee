@@ -16,7 +16,7 @@ import {
   PaymentForm,
   PaymentSource
 } from "@core/utils";
-import { calcRenewalDate } from "@core/utils/payment";
+import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
 import MembersService from "@core/services/MembersService";
 
@@ -204,14 +204,15 @@ abstract class UpdateContributionPaymentService {
     gcData: GCPaymentData,
     paymentForm: PaymentForm
   ): Promise<boolean> {
+    const monthsLeft = calcMonthsLeft(member);
     const prorateAmount =
       (paymentForm.monthlyAmount - member.contributionMonthlyAmount) *
-      member.memberMonthsRemaining;
+      monthsLeft;
 
     log.info("Prorate subscription for " + member.id, {
       userId: member.id,
       paymentForm,
-      monthsLeft: member.memberMonthsRemaining,
+      monthsLeft,
       prorateAmount
     });
 

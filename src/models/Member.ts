@@ -1,4 +1,3 @@
-import { differenceInMonths, sub } from "date-fns";
 import {
   Column,
   CreateDateColumn,
@@ -139,18 +138,6 @@ export default class Member {
 
   get membership(): MemberPermission | undefined {
     return this.permissions.find((p) => p.permission === "member");
-  }
-
-  get memberMonthsRemaining(): number {
-    return this.membership?.dateExpires
-      ? Math.max(
-          0,
-          differenceInMonths(
-            sub(this.membership.dateExpires, config.gracePeriod),
-            new Date()
-          )
-        )
-      : 0;
   }
 
   get setupComplete(): boolean {

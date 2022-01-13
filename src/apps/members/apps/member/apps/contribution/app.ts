@@ -2,6 +2,7 @@ import express from "express";
 import { getRepository } from "typeorm";
 
 import { ContributionType, wrapAsync } from "@core/utils";
+import { calcMonthsLeft } from "@core/utils/payment";
 
 import EmailService from "@core/services/EmailService";
 import GCPaymentService from "@core/services/GCPaymentService";
@@ -32,6 +33,7 @@ app.get(
       res.render("gocardless", {
         member: req.model,
         canChange: await GCPaymentService.canChangeContribution(member, true),
+        monthsLeft: calcMonthsLeft(member),
         payments,
         total
       });

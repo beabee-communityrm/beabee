@@ -1,6 +1,13 @@
 import config from "@config";
 import Member from "@models/Member";
-import { addMonths, getYear, isBefore, setYear, sub } from "date-fns";
+import {
+  addMonths,
+  getYear,
+  isBefore,
+  setYear,
+  sub,
+  differenceInMonths
+} from "date-fns";
 import { ContributionPeriod, ContributionType } from ".";
 
 export function calcRenewalDate(user: Member): Date {
@@ -29,4 +36,8 @@ export function calcRenewalDate(user: Member): Date {
   }
 
   return now;
+}
+
+export function calcMonthsLeft(user: Member): number {
+  return Math.max(0, differenceInMonths(calcRenewalDate(user), new Date()));
 }
