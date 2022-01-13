@@ -1,5 +1,5 @@
-import { sub } from "date-fns";
-import moment, { Moment } from "moment";
+import format from "date-fns/format";
+import moment from "moment";
 import {
   PaymentCurrency,
   RedirectFlow,
@@ -16,6 +16,7 @@ import {
   PaymentForm,
   PaymentSource
 } from "@core/utils";
+import { calcRenewalDate } from "@core/utils/payment";
 
 import MembersService from "@core/services/MembersService";
 
@@ -36,7 +37,6 @@ interface PayingMember extends Member {
 
 interface GCContributionInfo {
   cancellationDate?: Date;
-  renewalDate?: Date;
   paymentSource?: PaymentSource;
   payFee: boolean;
   hasPendingPayment: boolean;
@@ -75,7 +75,7 @@ abstract class UpdateContributionPaymentService {
             user,
             gcData,
             paymentForm,
-            this.calcStartDate(user)?.format("YYYY-MM-DD")
+            calcRenewalDate(user)
           );
 
       startNow = await this.prorateSubscription(
@@ -96,35 +96,6 @@ abstract class UpdateContributionPaymentService {
     await this.activateContribution(user, gcData, paymentForm, startNow);
   }
 
-  private static calcStartDate(user: Member): Moment | undefined {
-    if (user.membership?.isActive) {
-      // Has an expiry date, just use that minus the grace period
-      if (user.membership.dateExpires) {
-        return moment
-          .utc(user.membership.dateExpires)
-          .subtract(config.gracePeriod);
-      }
-
-      // Some special rules for upgrading non-expiring manual contributions
-      if (user.contributionType === ContributionType.Manual) {
-        // Annual contribution, calculate based on their start date
-        if (user.contributionPeriod === ContributionPeriod.Annually) {
-          const thisYear = moment.utc().get("year");
-          const startDate = moment
-            .utc(user.membership.dateAdded)
-            .set("year", thisYear);
-          if (startDate.isBefore()) {
-            startDate.set("year", thisYear + 1);
-          }
-          return startDate;
-        } else {
-          // Monthly contribution, give them a 1 month grace period
-          return moment.utc().add({ month: 1 });
-        }
-      }
-    }
-  }
-
   private static getChargeableAmount(
     amount: number,
     period: ContributionPeriod,
@@ -141,8 +112,10 @@ abstract class UpdateContributionPaymentService {
     member: Member,
     gcData: GCPaymentData,
     paymentForm: PaymentForm,
-    startDate?: string
+    _startDate?: Date
   ): Promise<GCPaymentData> {
+    let startDate = _startDate && format(_startDate, "YYYY-MM-DD");
+
     log.info("Create subscription for " + member.id, {
       paymentForm,
       startDate
@@ -358,10 +331,6 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
       return {
         ...(gcData.cancelledAt && { cancellationDate: gcData.cancelledAt }),
-        ...(!gcData.cancelledAt &&
-          member.membership?.dateExpires && {
-            renewalDate: sub(member.membership.dateExpires, config.gracePeriod)
-          }),
         ...(bankAccount && {
           paymentSource: {
             type: "direct-debit" as const,

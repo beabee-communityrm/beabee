@@ -1,6 +1,7 @@
 import { getRepository } from "typeorm";
 
 import { ContributionType, ContributionInfo, PaymentForm } from "@core/utils";
+import { calcRenewalDate } from "@core/utils/payment";
 
 import GCPaymentData from "@models/GCPaymentData";
 import ManualPaymentData from "@models/ManualPaymentData";
@@ -59,12 +60,17 @@ class PaymentService {
 
     const extraInfo = await this.getContributionExtraInfo(member);
 
+    const hsaCancelled = !!extraInfo?.cancellationDate;
+
     return {
       ...basicInfo,
       ...extraInfo,
+      ...(!hsaCancelled && {
+        renewalDate: calcRenewalDate(member)
+      }),
       membershipStatus: member.membership
         ? member.membership.isActive
-          ? extraInfo?.cancellationDate
+          ? hsaCancelled
             ? "expiring"
             : "active"
           : "expired"
@@ -78,12 +84,6 @@ class PaymentService {
     switch (member.contributionType) {
       case ContributionType.GoCardless:
         return await GCPaymentService.getContributionInfo(member);
-      case ContributionType.Manual:
-        if (member.membership?.dateExpires) {
-          return {
-            renewalDate: member.membership.dateExpires
-          };
-        }
     }
   }
 
