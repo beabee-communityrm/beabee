@@ -1,4 +1,4 @@
-import moment from "moment";
+import { differenceInMonths, sub } from "date-fns";
 import {
   Column,
   CreateDateColumn,
@@ -142,13 +142,13 @@ export default class Member {
   }
 
   get memberMonthsRemaining(): number {
-    return this.membership
+    return this.membership?.dateExpires
       ? Math.max(
           0,
-          moment
-            .utc(this.membership.dateExpires)
-            .subtract(config.gracePeriod)
-            .diff(moment.utc(), "months")
+          differenceInMonths(
+            sub(this.membership.dateExpires, config.gracePeriod),
+            new Date()
+          )
         )
       : 0;
   }

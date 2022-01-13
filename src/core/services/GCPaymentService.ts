@@ -353,10 +353,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
         ...(gcData.cancelledAt && { cancellationDate: gcData.cancelledAt }),
         ...(!gcData.cancelledAt &&
           member.membership?.dateExpires && {
-            renewalDate: moment
-              .utc(member.membership.dateExpires)
-              .subtract(config.gracePeriod)
-              .toDate()
+            renewalDate: sub(member.membership.dateExpires, config.gracePeriod)
           }),
         ...(bankAccount && {
           paymentSource: {
