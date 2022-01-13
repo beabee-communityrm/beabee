@@ -114,7 +114,7 @@ abstract class UpdateContributionPaymentService {
     paymentForm: PaymentForm,
     _startDate?: Date
   ): Promise<GCPaymentData> {
-    let startDate = _startDate && format(_startDate, "YYYY-MM-DD");
+    let startDate = _startDate && format(_startDate, "yyyy-MM-dd");
 
     log.info("Create subscription for " + member.id, {
       paymentForm,
