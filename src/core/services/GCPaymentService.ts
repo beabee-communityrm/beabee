@@ -37,7 +37,8 @@ interface GCContributionInfo {
   cancellationDate?: Date;
   renewalDate?: Date;
   paymentSource?: PaymentSource;
-  payFee?: boolean;
+  payFee: boolean;
+  hasPendingPayment: boolean;
 }
 
 const log = mainLogger.child({ app: "gc-payment-service" });
@@ -365,7 +366,8 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
             accountNumberEnding: bankAccount.account_number_ending
           }
         }),
-        payFee: gcData.payFee || false
+        payFee: gcData.payFee || false,
+        hasPendingPayment: await this.hasPendingPayment(member)
       };
     }
   }

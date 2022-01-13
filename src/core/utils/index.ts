@@ -11,6 +11,7 @@ export interface ContributionInfo {
   renewalDate?: Date;
   paymentSource?: PaymentSource;
   payFee?: boolean;
+  hasPendingPayment?: boolean;
   membershipStatus: "active" | "expiring" | "expired" | "none";
   membershipExpiryDate?: Date;
 }
