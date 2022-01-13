@@ -242,18 +242,24 @@ abstract class UpdateContributionPaymentService {
       prorateAmount
     });
 
-    if (prorateAmount > 0 && paymentForm.prorate) {
-      await gocardless.payments.create({
-        amount: (prorateAmount * 100).toFixed(0),
-        currency: config.currencyCode.toUpperCase() as PaymentCurrency,
-        // TODO: i18n description: "One-off payment to start new contribution",
-        links: {
-          mandate: gcData.mandateId!
-        }
-      });
+    if (prorateAmount >= 0) {
+      // Amounts of less than 1 can't be charged, just ignore them
+      if (prorateAmount < 1) {
+        return true;
+      } else if (prorateAmount > 1 && paymentForm.prorate) {
+        await gocardless.payments.create({
+          amount: (prorateAmount * 100).toFixed(0),
+          currency: config.currencyCode.toUpperCase() as PaymentCurrency,
+          // TODO: i18n description: "One-off payment to start new contribution",
+          links: {
+            mandate: gcData.mandateId!
+          }
+        });
+        return true;
+      }
     }
 
-    return prorateAmount === 0 || paymentForm.prorate;
+    return false;
   }
 
   private static async activateContribution(
