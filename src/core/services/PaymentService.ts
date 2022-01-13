@@ -54,26 +54,34 @@ class PaymentService {
       })
     };
 
-    const extraInfo =
-      member.contributionType === ContributionType.GoCardless
-        ? await GCPaymentService.getContributionInfo(member)
-        : undefined;
-
-    const memberPermission = member.permissions.find(
-      (p) => p.permission === "member"
-    );
+    const extraInfo = await this.getContributionExtraInfo(member);
 
     return {
       ...basicInfo,
       ...extraInfo,
-      membershipStatus: memberPermission
-        ? memberPermission.isActive
+      membershipStatus: member.membership
+        ? member.membership.isActive
           ? extraInfo?.cancellationDate
             ? "expiring"
             : "active"
           : "expired"
         : "none"
     };
+  }
+
+  private async getContributionExtraInfo(
+    member: Member
+  ): Promise<Partial<ContributionInfo> | undefined> {
+    switch (member.contributionType) {
+      case ContributionType.GoCardless:
+        return await GCPaymentService.getContributionInfo(member);
+      case ContributionType.Manual:
+        if (member.membership?.dateExpires) {
+          return {
+            renewalDate: member.membership.dateExpires
+          };
+        }
+    }
   }
 
   async updateContribution(
