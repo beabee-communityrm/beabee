@@ -2,10 +2,10 @@ import _ from "lodash";
 import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
-import { ReferralGiftForm } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
 
+import { ReferralGiftForm } from "@models/JoinForm";
 import Member from "@models/Member";
 import ReferralGift from "@models/ReferralGift";
 import Referral from "@models/Referral";
@@ -75,13 +75,13 @@ export default class ReferralsService {
     });
 
     const referral = new Referral();
-    referral.referrer = referrer;
+    referral.referrer = referrer || null;
     referral.referee = referee;
     referral.refereeAmount = referee.contributionMonthlyAmount || 0;
     referral.refereeGift = {
       name: giftForm.referralGift || ""
     } as ReferralGift;
-    referral.refereeGiftOptions = giftForm.referralGiftOptions;
+    referral.refereeGiftOptions = giftForm.referralGiftOptions || null;
 
     await getRepository(Referral).save(referral);
 
@@ -114,10 +114,10 @@ export default class ReferralsService {
     ) {
       await getRepository(Referral).update(referral.id, {
         referrerGift:
-          giftForm.referralGift !== undefined
+          giftForm.referralGift != null
             ? { name: giftForm.referralGift }
-            : undefined,
-        referrerGiftOptions: giftForm.referralGiftOptions,
+            : null,
+        referrerGiftOptions: giftForm.referralGiftOptions || null,
         referrerHasSelected: true
       });
 
@@ -131,7 +131,7 @@ export default class ReferralsService {
   static async permanentlyDeleteMember(member: Member): Promise<void> {
     await getRepository(Referral).update(
       { referrer: member },
-      { referrer: undefined }
+      { referrer: null }
     );
   }
 }

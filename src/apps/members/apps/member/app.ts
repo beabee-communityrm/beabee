@@ -141,7 +141,7 @@ app.post(
   "/2fa",
   wrapAsync(async (req, res) => {
     await MembersService.updateMember(req.model as Member, {
-      otp: { key: undefined, activated: false }
+      otp: { key: null, activated: false }
     });
     req.flash("success", "2fa-disabled");
     res.redirect(req.baseUrl);

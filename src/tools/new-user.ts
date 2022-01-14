@@ -86,7 +86,8 @@ db.connect().then(async () => {
 
   if (answers.membership != "No") {
     const now = moment();
-    let dateAdded: Date | undefined, dateExpires: Date | undefined;
+    let dateAdded: Date | null = null;
+    let dateExpires: Date | null = null;
     switch (answers.membership) {
       case "Yes (expires after 1 month)":
         dateExpires = now.add("1", "months").toDate();

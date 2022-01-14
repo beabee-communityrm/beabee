@@ -5,7 +5,7 @@ import Referral from "@models/Referral";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 
-function memberDetails(member?: Member) {
+function memberDetails(member: Member | null) {
   return member
     ? [
         member.email,

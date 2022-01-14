@@ -1,10 +1,13 @@
 import { Column } from "typeorm";
-import { ContributionPeriod, ReferralGiftForm, PaymentForm } from "@core/utils";
+import { ContributionPeriod, PaymentForm } from "@core/utils";
 import Password from "./Password";
 
-export default class JoinForm
-  implements PaymentForm, Partial<ReferralGiftForm>
-{
+export interface ReferralGiftForm {
+  referralGift?: string | null;
+  referralGiftOptions?: Record<string, string> | null;
+}
+
+export default class JoinForm implements PaymentForm, ReferralGiftForm {
   @Column()
   email!: string;
 
@@ -24,11 +27,11 @@ export default class JoinForm
   prorate!: boolean;
 
   @Column({ type: String, nullable: true })
-  referralCode?: string | undefined;
+  referralCode?: string | null;
 
   @Column({ type: String, nullable: true })
-  referralGift?: string | undefined;
+  referralGift?: string | null;
 
   @Column({ type: "jsonb", nullable: true })
-  referralGiftOptions?: Record<string, string> | undefined;
+  referralGiftOptions?: Record<string, string> | null;
 }

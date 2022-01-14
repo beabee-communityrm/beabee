@@ -72,7 +72,7 @@ export default class GCPaymentWebhookService {
       if (newAmount === payment.member.nextContributionMonthlyAmount) {
         await MembersService.updateMember(payment.member, {
           contributionMonthlyAmount: newAmount,
-          nextContributionMonthlyAmount: undefined
+          nextContributionMonthlyAmount: null
         });
       }
     }
@@ -130,7 +130,7 @@ export default class GCPaymentWebhookService {
       });
 
       await getRepository(GCPaymentData).update(gcData.member, {
-        mandateId: undefined
+        mandateId: null
       });
     } else {
       log.info("Unlinked mandate " + mandateId);
@@ -190,7 +190,7 @@ export default class GCPaymentWebhookService {
 
   private static getSubscriptionPeriod(
     subscription: Subscription
-  ): ContributionPeriod | undefined {
+  ): ContributionPeriod | null {
     const interval = Number(subscription.interval);
     const intervalUnit = subscription.interval_unit;
     if (
@@ -204,7 +204,7 @@ export default class GCPaymentWebhookService {
     log.error(
       `Unrecognised subscription period interval: ${interval} unit:${intervalUnit}`
     );
-    return;
+    return null;
   }
 
   private static getSubscriptionDuration({

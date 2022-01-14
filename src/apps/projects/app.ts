@@ -68,7 +68,7 @@ function schemaToProject(
   data: CreateProjectSchema
 ): Pick<Project, "title" | "description" | "status" | "groupName"> {
   const { title, description, status, groupName } = data;
-  return { title, description, status, groupName };
+  return { title, description, status, groupName: groupName || null };
 }
 
 function schemaToEngagement(
