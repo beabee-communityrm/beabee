@@ -122,7 +122,7 @@ app.post(
       );
       if (test && Math.abs(test.delta) < 2 && hash === req.user.password.hash) {
         await MembersService.updateMember(req.user, {
-          otp: { key: undefined, activated: false }
+          otp: { key: null, activated: false }
         });
         req.flash("success", "2fa-disabled");
         res.redirect("/profile/2fa");

@@ -41,7 +41,7 @@ app.post(
               city: delivery_city,
               postcode: delivery_postcode
             }
-          : undefined
+          : null
       });
 
       req.flash("success", "delivery-updated");

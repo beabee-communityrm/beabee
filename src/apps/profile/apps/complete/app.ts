@@ -81,7 +81,7 @@ app.post(
                 city: delivery_city,
                 postcode: delivery_postcode
               }
-            : undefined
+            : null
         });
 
         res.redirect("/profile");
