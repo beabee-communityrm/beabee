@@ -39,9 +39,7 @@ class PaymentService {
     }
   }
 
-  async getContributionInfo(
-    member: Member
-  ): Promise<ContributionInfo | undefined> {
+  async getContributionInfo(member: Member): Promise<ContributionInfo> {
     const basicInfo = {
       type: member.contributionType,
       ...(member.contributionAmount !== null && {

@@ -169,7 +169,7 @@ export class MemberController {
   @Get("/:id/contribution")
   async getContribution(
     @TargetUser() target: Member
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     return await PaymentService.getContributionInfo(target);
   }
 
@@ -177,7 +177,7 @@ export class MemberController {
   async updateContribution(
     @TargetUser() target: Member,
     @Body() data: UpdateContributionData
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     // TODO: can we move this into validators?
     const contributionData = new SetContributionData();
     contributionData.amount = data.amount;
@@ -217,7 +217,7 @@ export class MemberController {
   async completeStartContribution(
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
     await PaymentService.updateContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
@@ -243,7 +243,7 @@ export class MemberController {
   async completeUpdatePaymentSource(
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     await this.handleCompleteUpdatePaymentSource(target, data);
     return await this.getContribution(target);
   }
