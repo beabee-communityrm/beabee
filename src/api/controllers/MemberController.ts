@@ -183,17 +183,14 @@ export class MemberController {
     contributionData.amount = data.amount;
     contributionData.period = target.contributionPeriod!;
     contributionData.payFee = data.payFee;
+    contributionData.prorate = data.prorate;
     await validateOrReject(contributionData);
 
     if (!(await PaymentService.canChangeContribution(target, true))) {
       throw new CantUpdateContribution();
     }
 
-    await PaymentService.updateContribution(target, {
-      ...data,
-      monthlyAmount: contributionData.monthlyAmount,
-      period: contributionData.period
-    });
+    await PaymentService.updateContribution(target, contributionData);
 
     return await this.getContribution(target);
   }
@@ -237,7 +234,8 @@ export class MemberController {
       amount: 0,
       period: ContributionPeriod.Annually,
       monthlyAmount: 0,
-      payFee: false
+      payFee: false,
+      prorate: false
     });
   }
 
@@ -262,7 +260,6 @@ export class MemberController {
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
-        prorate: false,
         // TODO: unnecessary, should be optional
         password: await generatePassword(""),
         email: ""

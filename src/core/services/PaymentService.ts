@@ -1,6 +1,7 @@
 import { getRepository } from "typeorm";
 
 import { ContributionType, ContributionInfo, PaymentForm } from "@core/utils";
+import { calcRenewalDate } from "@core/utils/payment";
 
 import GCPaymentData from "@models/GCPaymentData";
 import ManualPaymentData from "@models/ManualPaymentData";
@@ -46,6 +47,9 @@ class PaymentService {
       ...(member.contributionAmount !== null && {
         amount: member.contributionAmount
       }),
+      ...(member.nextContributionAmount !== null && {
+        nextAmount: member.nextContributionAmount
+      }),
       ...(member.contributionPeriod !== null && {
         period: member.contributionPeriod
       }),
@@ -54,26 +58,33 @@ class PaymentService {
       })
     };
 
-    const extraInfo =
-      member.contributionType === ContributionType.GoCardless
-        ? await GCPaymentService.getContributionInfo(member)
-        : undefined;
+    const extraInfo = await this.getContributionExtraInfo(member);
 
-    const memberPermission = member.permissions.find(
-      (p) => p.permission === "member"
-    );
+    const hsaCancelled = !!extraInfo?.cancellationDate;
 
     return {
       ...basicInfo,
       ...extraInfo,
-      membershipStatus: memberPermission
-        ? memberPermission.isActive
-          ? extraInfo?.cancellationDate
+      ...(!hsaCancelled && {
+        renewalDate: calcRenewalDate(member)
+      }),
+      membershipStatus: member.membership
+        ? member.membership.isActive
+          ? hsaCancelled
             ? "expiring"
             : "active"
           : "expired"
         : "none"
     };
+  }
+
+  private async getContributionExtraInfo(
+    member: Member
+  ): Promise<Partial<ContributionInfo> | undefined> {
+    switch (member.contributionType) {
+      case ContributionType.GoCardless:
+        return await GCPaymentService.getContributionInfo(member);
+    }
   }
 
   async updateContribution(

@@ -41,7 +41,7 @@ block contents
 						value: paymentData.payFee
 					})
 
-					if member.memberMonthsRemaining > 0
+					if monthsLeft > 0
 						.form-group
 							label(for='prorate').col-md-3.control-label Prorate
 							.col-md-9
@@ -50,7 +50,7 @@ block contents
 										input(type='checkbox' value='true')#prorate
 										|  Yes
 										|
-										small (#{member.memberMonthsRemaining} months left until next payment)
+										small (#{monthsLeft} months left until next payment)
 
 					+form_button( paymentData.subscriptionId ? 'Update' : 'Start', 'success', { left: 3 } )
 
