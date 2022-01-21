@@ -85,6 +85,33 @@ function TargetUser() {
 @JsonController("/member")
 @Authorized()
 export class MemberController {
+  @Get("/stats")
+  async stats(
+    @Req() req: Request,
+    @Res() res: Response
+  ): Promise<{ total: number }> {
+    if (req.headers.origin) {
+      if (config.trackDomains.indexOf(req.headers.origin) === -1) {
+        throw new UnauthorizedError();
+      } else {
+        res.set("Access-Control-Allow-Origin", req.headers.origin);
+      }
+    }
+
+    const total = await createQueryBuilder(Member, "m")
+      .innerJoin("m.permissions", "mp")
+      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where("mp.dateExpires IS NULL").orWhere("mp.dateExpires > :now");
+        })
+      )
+      .setParameters({ now: new Date() })
+      .getCount();
+
+    return { total };
+  }
+
   @Get("/:id")
   async getMember(
     @CurrentUser() member: Member,
@@ -302,32 +329,5 @@ export class MemberController {
     }
 
     return joinFlow;
-  }
-
-  @Get("/stats")
-  async stats(
-    @Req() req: Request,
-    @Res() res: Response
-  ): Promise<{ total: number }> {
-    if (req.headers.origin) {
-      if (config.trackDomains.indexOf(req.headers.origin) === -1) {
-        throw new UnauthorizedError();
-      } else {
-        res.set("Access-Control-Allow-Origin", req.headers.origin);
-      }
-    }
-
-    const total = await createQueryBuilder(Member, "m")
-      .innerJoin("m.permissions", "mp")
-      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("mp.dateExpires IS NULL").orWhere("mp.dateExpires > :now");
-        })
-      )
-      .setParameters({ now: new Date() })
-      .getCount();
-
-    return { total };
   }
 }
