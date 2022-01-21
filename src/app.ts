@@ -21,6 +21,8 @@ import PageSettingsService from "@core/services/PageSettingsService";
 
 import config from "@config";
 
+log.info("Starting app");
+
 if (!config.gocardless.sandbox && config.dev) {
   log.error(
     "Dev mode enabled but GoCardless is not in sandbox, refusing to start"

@@ -1,4 +1,5 @@
-import moment, { Moment } from "moment";
+import format from "date-fns/format";
+import moment from "moment";
 import {
   PaymentCurrency,
   RedirectFlow,
@@ -13,8 +14,9 @@ import {
   ContributionType,
   getActualAmount,
   PaymentForm,
-  ContributionInfo
+  PaymentSource
 } from "@core/utils";
+import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
 import MembersService from "@core/services/MembersService";
 
@@ -31,6 +33,13 @@ import NoPaymentSource from "@api/errors/NoPaymentSource";
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
   contributionPeriod: ContributionPeriod;
+}
+
+interface GCContributionInfo {
+  cancellationDate?: Date;
+  paymentSource?: PaymentSource;
+  payFee: boolean;
+  hasPendingPayment: boolean;
 }
 
 const log = mainLogger.child({ app: "gc-payment-service" });
@@ -66,7 +75,7 @@ abstract class UpdateContributionPaymentService {
             user,
             gcData,
             paymentForm,
-            this.calcStartDate(user)?.format("YYYY-MM-DD")
+            calcRenewalDate(user)
           );
 
       startNow = await this.prorateSubscription(
@@ -87,35 +96,6 @@ abstract class UpdateContributionPaymentService {
     await this.activateContribution(user, gcData, paymentForm, startNow);
   }
 
-  private static calcStartDate(user: Member): Moment | undefined {
-    if (user.membership?.isActive) {
-      // Has an expiry date, just use that minus the grace period
-      if (user.membership.dateExpires) {
-        return moment
-          .utc(user.membership.dateExpires)
-          .subtract(config.gracePeriod);
-      }
-
-      // Some special rules for upgrading non-expiring manual contributions
-      if (user.contributionType === ContributionType.Manual) {
-        // Annual contribution, calculate based on their start date
-        if (user.contributionPeriod === ContributionPeriod.Annually) {
-          const thisYear = moment.utc().get("year");
-          const startDate = moment
-            .utc(user.membership.dateAdded)
-            .set("year", thisYear);
-          if (startDate.isBefore()) {
-            startDate.set("year", thisYear + 1);
-          }
-          return startDate;
-        } else {
-          // Monthly contribution, give them a 1 month grace period
-          return moment.utc().add({ month: 1 });
-        }
-      }
-    }
-  }
-
   private static getChargeableAmount(
     amount: number,
     period: ContributionPeriod,
@@ -132,8 +112,10 @@ abstract class UpdateContributionPaymentService {
     member: Member,
     gcData: GCPaymentData,
     paymentForm: PaymentForm,
-    startDate?: string
+    _startDate?: Date
   ): Promise<GCPaymentData> {
+    let startDate = _startDate && format(_startDate, "yyyy-MM-dd");
+
     log.info("Create subscription for " + member.id, {
       paymentForm,
       startDate
@@ -222,7 +204,7 @@ abstract class UpdateContributionPaymentService {
     gcData: GCPaymentData,
     paymentForm: PaymentForm
   ): Promise<boolean> {
-    const monthsLeft = member.memberMonthsRemaining;
+    const monthsLeft = calcMonthsLeft(member);
     const prorateAmount =
       (paymentForm.monthlyAmount - member.contributionMonthlyAmount) *
       monthsLeft;
@@ -234,18 +216,24 @@ abstract class UpdateContributionPaymentService {
       prorateAmount
     });
 
-    if (prorateAmount > 0 && paymentForm.prorate) {
-      await gocardless.payments.create({
-        amount: (prorateAmount * 100).toFixed(0),
-        currency: config.currencyCode.toUpperCase() as PaymentCurrency,
-        description: "One-off payment to start new contribution",
-        links: {
-          mandate: gcData.mandateId!
-        }
-      });
+    if (prorateAmount >= 0) {
+      // Amounts of less than 1 can't be charged, just ignore them
+      if (prorateAmount < 1) {
+        return true;
+      } else if (paymentForm.prorate) {
+        await gocardless.payments.create({
+          amount: (prorateAmount * 100).toFixed(0),
+          currency: config.currencyCode.toUpperCase() as PaymentCurrency,
+          // TODO: i18n description: "One-off payment to start new contribution",
+          links: {
+            mandate: gcData.mandateId!
+          }
+        });
+        return true;
+      }
     }
 
-    return prorateAmount === 0 || paymentForm.prorate;
+    return false;
   }
 
   private static async activateContribution(
@@ -323,9 +311,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
 
   static async getContributionInfo(
     member: Member
-  ): Promise<
-    Pick<ContributionInfo, "cancellationDate" | "paymentSource"> | undefined
-  > {
+  ): Promise<GCContributionInfo | undefined> {
     const gcData = await this.getPaymentData(member);
 
     if (gcData) {
@@ -353,7 +339,9 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
             accountHolderName: bankAccount.account_holder_name,
             accountNumberEnding: bankAccount.account_number_ending
           }
-        })
+        }),
+        payFee: gcData.payFee || false,
+        hasPendingPayment: await this.hasPendingPayment(member)
       };
     }
   }

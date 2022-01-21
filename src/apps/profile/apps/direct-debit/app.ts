@@ -19,6 +19,7 @@ import OptionsService from "@core/services/OptionsService";
 import PollsService from "@core/services/PollsService";
 
 import { completeFlowSchema, updateSubscriptionSchema } from "./schemas.json";
+import { calcMonthsLeft } from "@core/utils/payment";
 
 interface UpdateSubscriptionSchema {
   amount: number;
@@ -62,7 +63,8 @@ app.get(
         canChange: await GCPaymentService.canChangeContribution(
           req.user,
           !!res.locals.gcData?.mandateId
-        )
+        ),
+        monthsLeft: calcMonthsLeft(req.user)
       });
     })
   )

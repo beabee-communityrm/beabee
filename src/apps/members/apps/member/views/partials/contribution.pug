@@ -4,9 +4,13 @@ dl.dl-horizontal
 	dd= member.contributionType || '–'
 	if member.contributionType
 		dt Amount
-		dd= member.contributionMonthlyAmount ? currencySymbol + member.contributionMonthlyAmount : '–'
-		dt Period
-		dd= member.contributionPeriod || '–'
+		dd
+			= member.contributionDescription
+			if member.nextContributionAmount
+				br
+				| Will change to
+				|
+				= currencySymbol + member.nextContributionAmount
 		case member.contributionType
 			when 'GoCardless'
 				include gocardless.pug
