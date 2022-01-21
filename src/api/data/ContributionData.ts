@@ -1,6 +1,6 @@
 import { IsBoolean, IsEnum, IsNumber, Validate } from "class-validator";
 
-import { ContributionPeriod, ContributionType } from "@core/utils";
+import { ContributionPeriod } from "@core/utils";
 
 import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
@@ -8,7 +8,13 @@ import ValidPayFee from "@api/validators/ValidPayFee";
 
 import { StartJoinFlowData } from "./JoinFlowData";
 
-export class SetContributionData {
+interface ContributionData {
+  amount: number;
+  payFee: boolean;
+  prorate: boolean;
+}
+
+export class SetContributionData implements ContributionData {
   @Validate(MinContributionAmount)
   amount!: number;
 
@@ -17,6 +23,9 @@ export class SetContributionData {
 
   @Validate(ValidPayFee)
   payFee!: boolean;
+
+  @IsBoolean()
+  prorate!: boolean;
 
   get monthlyAmount(): number {
     return this.period === ContributionPeriod.Annually
@@ -33,7 +42,7 @@ export class StartContributionData
   completeUrl!: string;
 }
 
-export class UpdateContributionData {
+export class UpdateContributionData implements ContributionData {
   @IsNumber()
   amount!: number;
 

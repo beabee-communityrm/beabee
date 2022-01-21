@@ -1,4 +1,3 @@
-import moment from "moment";
 import {
   Column,
   CreateDateColumn,
@@ -106,8 +105,10 @@ export default class Member {
   get contributionAmount(): number | null {
     return this.contributionMonthlyAmount === null
       ? null
-      : this.contributionMonthlyAmount *
-          (this.contributionPeriod === ContributionPeriod.Monthly ? 1 : 12);
+      : getActualAmount(
+          this.contributionMonthlyAmount,
+          this.contributionPeriod!
+        );
   }
 
   get contributionDescription(): string {
@@ -120,30 +121,23 @@ export default class Member {
     ) {
       return "None";
     } else {
-      const amount = getActualAmount(
-        this.contributionMonthlyAmount,
-        this.contributionPeriod
-      );
-      return `${config.currencySymbol}${amount}/${
+      return `${config.currencySymbol}${this.contributionAmount}/${
         this.contributionPeriod === "monthly" ? "month" : "year"
       }`;
     }
   }
 
-  get membership(): MemberPermission | undefined {
-    return this.permissions.find((p) => p.permission === "member");
+  get nextContributionAmount(): number | null {
+    return this.nextContributionMonthlyAmount === null
+      ? null
+      : getActualAmount(
+          this.nextContributionMonthlyAmount,
+          this.contributionPeriod!
+        );
   }
 
-  get memberMonthsRemaining(): number {
-    return this.membership
-      ? Math.max(
-          0,
-          moment
-            .utc(this.membership.dateExpires)
-            .subtract(config.gracePeriod)
-            .diff(moment.utc(), "months")
-        )
-      : 0;
+  get membership(): MemberPermission | undefined {
+    return this.permissions.find((p) => p.permission === "member");
   }
 
   get setupComplete(): boolean {

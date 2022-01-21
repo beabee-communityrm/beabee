@@ -57,7 +57,7 @@ export class ResetPasswordController {
     @Req() req: Request,
     @Param("id") id: string,
     @Body() data: UpdateResetPasswordData
-  ) {
+  ): Promise<void> {
     const rpFlow = await getRepository(ResetPasswordFlow).findOne({
       where: { id },
       relations: ["member"]

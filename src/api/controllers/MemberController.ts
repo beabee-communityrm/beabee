@@ -200,7 +200,7 @@ export class MemberController {
   @Get("/:id/contribution")
   async getContribution(
     @TargetUser() target: Member
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     return await PaymentService.getContributionInfo(target);
   }
 
@@ -208,23 +208,20 @@ export class MemberController {
   async updateContribution(
     @TargetUser() target: Member,
     @Body() data: UpdateContributionData
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     // TODO: can we move this into validators?
     const contributionData = new SetContributionData();
     contributionData.amount = data.amount;
     contributionData.period = target.contributionPeriod!;
     contributionData.payFee = data.payFee;
+    contributionData.prorate = data.prorate;
     await validateOrReject(contributionData);
 
     if (!(await PaymentService.canChangeContribution(target, true))) {
       throw new CantUpdateContribution();
     }
 
-    await PaymentService.updateContribution(target, {
-      ...data,
-      monthlyAmount: contributionData.monthlyAmount,
-      period: contributionData.period
-    });
+    await PaymentService.updateContribution(target, contributionData);
 
     return await this.getContribution(target);
   }
@@ -251,7 +248,7 @@ export class MemberController {
   async completeStartContribution(
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
     await PaymentService.updateContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
@@ -268,7 +265,8 @@ export class MemberController {
       amount: 0,
       period: ContributionPeriod.Annually,
       monthlyAmount: 0,
-      payFee: false
+      payFee: false,
+      prorate: false
     });
   }
 
@@ -276,7 +274,7 @@ export class MemberController {
   async completeUpdatePaymentSource(
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
-  ): Promise<ContributionInfo | undefined> {
+  ): Promise<ContributionInfo> {
     await this.handleCompleteUpdatePaymentSource(target, data);
     return await this.getContribution(target);
   }
@@ -293,7 +291,6 @@ export class MemberController {
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
-        prorate: false,
         // TODO: unnecessary, should be optional
         password: await generatePassword(""),
         email: ""

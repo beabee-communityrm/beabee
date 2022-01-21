@@ -2,6 +2,7 @@ import express from "express";
 import { getRepository } from "typeorm";
 
 import { ContributionType, wrapAsync } from "@core/utils";
+import { calcMonthsLeft } from "@core/utils/payment";
 
 import EmailService from "@core/services/EmailService";
 import GCPaymentService from "@core/services/GCPaymentService";
@@ -34,6 +35,7 @@ app.get(
         bankAccount: (await GCPaymentService.getContributionInfo(member))
           ?.paymentSource,
         canChange: await GCPaymentService.canChangeContribution(member, true),
+        monthsLeft: calcMonthsLeft(member),
         payments,
         total
       });
