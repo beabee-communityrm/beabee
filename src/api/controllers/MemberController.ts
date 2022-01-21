@@ -82,10 +82,9 @@ function TargetUser() {
   });
 }
 
-@JsonController("/member")
-@Authorized()
-export class MemberController {
-  @Get("/stats")
+@JsonController("/member/stats")
+export class MemberStatsController {
+  @Get("/")
   async stats(
     @Req() req: Request,
     @Res() res: Response
@@ -111,7 +110,11 @@ export class MemberController {
 
     return { total };
   }
+}
 
+@JsonController("/member")
+@Authorized()
+export class MemberController {
   @Get("/:id")
   async getMember(
     @CurrentUser() member: Member,
