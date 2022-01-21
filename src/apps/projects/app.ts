@@ -106,7 +106,7 @@ app.post(
   wrapAsync(async (req, res) => {
     const project = await getRepository(Project).save({
       ...schemaToProject(req.body),
-      ownerId: req.user?.id
+      owner: req.user!
     });
     req.flash("success", "project-created");
     res.redirect("/projects/" + project.id);
