@@ -27,6 +27,7 @@ import { generatePassword } from "@core/utils/auth";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
+import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
@@ -46,7 +47,6 @@ import {
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
-import { isUUID } from "class-validator";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -66,14 +66,18 @@ function TargetUser() {
         return user;
       } else if (!user.hasPermission("admin")) {
         throw new UnauthorizedError();
-      } else if (isUUID(id, "4")) {
+      } else {
+        const uuid = new UUIDParam();
+        uuid.id = id;
+        await validateOrReject(uuid);
+
         const target = await MembersService.findOne(id);
         if (target) {
           return target;
+        } else {
+          throw new NotFoundError();
         }
       }
-
-      throw new NotFoundError();
     }
   });
 }

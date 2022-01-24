@@ -77,7 +77,7 @@ export class AuthController {
         relations: ["member"]
       });
       member = permission?.member;
-    } else if (isUUID(id)) {
+    } else if (isUUID(id, "4")) {
       member = await MembersService.findOne(id);
     }
 

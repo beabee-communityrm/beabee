@@ -1,11 +1,10 @@
-import { IsEmail, Validate } from "class-validator";
 import { Request } from "express";
 import {
   Body,
   JsonController,
   NotFoundError,
   OnUndefined,
-  Param,
+  Params,
   Post,
   Put,
   Req
@@ -19,23 +18,12 @@ import EmailService from "@core/services/EmailService";
 
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
-import IsPassword from "@api/validators/IsPassword";
-import IsUrl from "@api/validators/IsUrl";
-
 import { login } from "@api/utils";
-
-class CreateResetPasswordData {
-  @IsEmail()
-  email!: string;
-
-  @IsUrl()
-  resetUrl!: string;
-}
-
-class UpdateResetPasswordData {
-  @Validate(IsPassword)
-  password!: string;
-}
+import { UUIDParam } from "@api/data";
+import {
+  CreateResetPasswordData,
+  UpdateResetPasswordData
+} from "@api/data/ResetPasswordData";
 
 @JsonController("/reset-password")
 export class ResetPasswordController {
@@ -55,7 +43,7 @@ export class ResetPasswordController {
   @Put("/:id")
   async complete(
     @Req() req: Request,
-    @Param("id") id: string,
+    @Params() { id }: UUIDParam,
     @Body() data: UpdateResetPasswordData
   ): Promise<void> {
     const rpFlow = await getRepository(ResetPasswordFlow).findOne({
