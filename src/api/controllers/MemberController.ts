@@ -27,6 +27,7 @@ import { generatePassword } from "@core/utils/auth";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
+import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
@@ -63,16 +64,19 @@ function TargetUser() {
       const id = request.params.id;
       if (id === "me" || id === user.id) {
         return user;
+      } else if (!user.hasPermission("admin")) {
+        throw new UnauthorizedError();
       } else {
-        if (!user.hasPermission("admin")) {
-          throw new UnauthorizedError();
-        }
+        const uuid = new UUIDParam();
+        uuid.id = id;
+        await validateOrReject(uuid);
 
         const target = await MembersService.findOne(id);
-        if (!target) {
+        if (target) {
+          return target;
+        } else {
           throw new NotFoundError();
         }
-        return target;
       }
     }
   });
