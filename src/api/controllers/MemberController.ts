@@ -46,6 +46,7 @@ import {
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
+import { isUUID } from "class-validator";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -63,17 +64,16 @@ function TargetUser() {
       const id = request.params.id;
       if (id === "me" || id === user.id) {
         return user;
-      } else {
-        if (!user.hasPermission("admin")) {
-          throw new UnauthorizedError();
-        }
-
+      } else if (!user.hasPermission("admin")) {
+        throw new UnauthorizedError();
+      } else if (isUUID(id, "4")) {
         const target = await MembersService.findOne(id);
-        if (!target) {
-          throw new NotFoundError();
+        if (target) {
+          return target;
         }
-        return target;
       }
+
+      throw new NotFoundError();
     }
   });
 }
