@@ -85,14 +85,14 @@ export default class Member {
   @OneToOne("MemberProfile", "member")
   profile!: MemberProfile;
 
-  get quickPermissions(): PermissionType[] {
+  get activePermissions(): PermissionType[] {
     return this.permissions.filter((p) => p.isActive).map((p) => p.permission);
   }
 
   hasPermission(permission: PermissionType): boolean {
     return (
-      this.quickPermissions.indexOf("superadmin") > -1 ||
-      this.quickPermissions.indexOf(permission) > -1
+      this.activePermissions.includes("superadmin") ||
+      this.activePermissions.includes(permission)
     );
   }
 

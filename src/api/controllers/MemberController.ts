@@ -78,59 +78,77 @@ function TargetUser() {
   });
 }
 
+function memberToData(
+  member: Member,
+  opts: {
+    withRestricted: boolean;
+  }
+): GetMemberData {
+  const roles = [...member.activePermissions];
+  if (roles.includes("superadmin")) {
+    roles.push("admin");
+  }
+
+  return {
+    id: member.id,
+    email: member.email,
+    firstname: member.firstname,
+    lastname: member.lastname,
+    joined: member.joined,
+    ...(member.contributionAmount && {
+      contributionAmount: member.contributionAmount
+    }),
+    ...(member.contributionPeriod && {
+      contributionPeriod: member.contributionPeriod
+    }),
+    roles,
+    ...(member.profile && {
+      profile: {
+        telephone: member.profile.telephone,
+        twitter: member.profile.twitter,
+        preferredContact: member.profile.preferredContact,
+        deliveryOptIn: member.profile.deliveryOptIn,
+        deliveryAddress: member.profile.deliveryAddress,
+        newsletterStatus: member.profile.newsletterStatus,
+        newsletterGroups: member.profile.newsletterGroups,
+        ...(opts.withRestricted && {
+          tags: member.profile.tags,
+          notes: member.profile.notes,
+          description: member.profile.description
+        })
+      }
+    })
+  };
+}
+
 @JsonController("/member")
 @Authorized()
 export class MemberController {
+  @Authorized("admin")
+  @Get("/")
+  async getMembers(@CurrentUser() member: Member): Promise<GetMemberData[]> {
+    const targets = await getRepository(Member).find({
+      relations: ["profile"]
+    });
+    return targets.map((member) =>
+      memberToData(member, { withRestricted: true })
+    );
+  }
+
   @Get("/:id")
   async getMember(
     @CurrentUser() member: Member,
     @TargetUser() target: Member,
     @QueryParams() query: GetMemberQuery
   ): Promise<GetMemberData> {
-    const profile =
-      query.with && query.with.indexOf(GetMemberWith.Profile) > -1
-        ? await getRepository(MemberProfile).findOneOrFail({
-            member: target
-          })
-        : undefined;
-
-    const roles = target.permissions
-      .filter((p) => p.isActive)
-      .map((p) => p.permission);
-
-    if (roles.includes("superadmin")) {
-      roles.push("admin");
+    if (query.with && query.with.includes(GetMemberWith.Profile)) {
+      target.profile = await getRepository(MemberProfile).findOneOrFail({
+        member: target
+      });
     }
-
-    return {
-      email: target.email,
-      firstname: target.firstname,
-      lastname: target.lastname,
-      joined: target.joined,
-      ...(target.contributionAmount && {
-        contributionAmount: target.contributionAmount
-      }),
-      ...(target.contributionPeriod && {
-        contributionPeriod: target.contributionPeriod
-      }),
-      roles,
-      ...(profile && {
-        profile: {
-          telephone: profile.telephone,
-          twitter: profile.twitter,
-          preferredContact: profile.preferredContact,
-          deliveryOptIn: profile.deliveryOptIn,
-          deliveryAddress: profile.deliveryAddress,
-          newsletterStatus: profile.newsletterStatus,
-          newsletterGroups: profile.newsletterGroups,
-          ...(member.hasPermission("admin") && {
-            tags: profile.tags,
-            notes: profile.notes,
-            description: profile.description
-          })
-        }
-      })
-    };
+    return memberToData(target, {
+      withRestricted: member.hasPermission("admin")
+    });
   }
 
   @Patch("/:id")
