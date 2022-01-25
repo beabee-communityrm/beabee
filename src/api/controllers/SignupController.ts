@@ -2,7 +2,6 @@ import { Request } from "express";
 import {
   BadRequestError,
   Body,
-  BodyParam,
   JsonController,
   NotFoundError,
   OnUndefined,
@@ -29,7 +28,8 @@ import ResetPasswordFlow from "@models/ResetPasswordFlow";
 import {
   CompleteUrls,
   SignupCompleteData,
-  SignupData
+  SignupData,
+  SignupConfirmEmailParam
 } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import { login } from "@api/utils";
@@ -115,7 +115,7 @@ export class SignupController {
   @Post("/confirm-email")
   async confirmEmail(
     @Req() req: Request,
-    @BodyParam("joinFlowId") joinFlowId: string
+    @Body() { joinFlowId }: SignupConfirmEmailParam
   ): Promise<void> {
     const joinFlow = await getRepository(JoinFlow).findOne(joinFlowId);
     if (!joinFlow) {

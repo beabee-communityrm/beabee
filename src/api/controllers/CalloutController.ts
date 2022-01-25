@@ -4,13 +4,15 @@ import {
   Authorized,
   Get,
   JsonController,
-  Param,
+  Params,
   QueryParams
 } from "routing-controllers";
 import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
+
+import { UUIDParam } from "@api/data";
 
 enum Status {
   Open = "open",
@@ -106,7 +108,7 @@ export class CalloutController {
 
   @Get("/:id")
   async getCallout(
-    @Param("id") id: string
+    @Params() { id }: UUIDParam
   ): Promise<MoreCalloutData | undefined> {
     const poll = await getRepository(Poll).findOne(id);
     if (poll) {

@@ -6,7 +6,8 @@ import {
   Validate,
   ValidateNested,
   IsOptional,
-  IsString
+  IsString,
+  IsUUID
 } from "class-validator";
 import { StartContributionData } from "./ContributionData";
 import { CompleteJoinFlowData } from "./JoinFlowData";
@@ -46,4 +47,9 @@ export class SignupCompleteData
 {
   @IsString()
   redirectFlowId!: string;
+}
+
+export class SignupConfirmEmailParam {
+  @IsUUID("4")
+  joinFlowId!: string;
 }
