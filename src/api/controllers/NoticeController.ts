@@ -8,7 +8,7 @@ import {
   JsonController,
   NotFoundError,
   OnUndefined,
-  Param,
+  Params,
   Patch,
   Post,
   QueryParams
@@ -18,6 +18,7 @@ import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 import Notice from "@models/Notice";
 import Member from "@models/Member";
 
+import { UUIDParam } from "@api/data";
 import {
   CreateNoticeData,
   GetNoticeData,
@@ -54,7 +55,7 @@ export class NoticeController {
   @Get("/:id")
   async getNotice(
     @CurrentUser() member: Member,
-    @Param("id") id: string
+    @Params() { id }: UUIDParam
   ): Promise<GetNoticeData | undefined> {
     const notice = await getRepository(Notice).findOne(id);
     if (notice && (notice.active || member.hasPermission("admin"))) {
@@ -73,17 +74,17 @@ export class NoticeController {
   @Authorized("admin")
   async updateNotice(
     @CurrentUser() member: Member,
-    @Param("id") id: string,
+    @Params() { id }: UUIDParam,
     @PartialBody() data: CreateNoticeData
   ): Promise<GetNoticeData | undefined> {
     await getRepository(Notice).update(id, data);
-    return this.getNotice(member, id);
+    return this.getNotice(member, { id });
   }
 
   @OnUndefined(204)
   @Delete("/:id")
   @Authorized("admin")
-  async deleteNotice(@Param("id") id: string) {
+  async deleteNotice(@Params() { id }: UUIDParam) {
     const result = await getRepository(Notice).delete(id);
     if (!result.affected) throw new NotFoundError();
   }
