@@ -10,6 +10,8 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  Max,
+  Min,
   ValidateNested
 } from "class-validator";
 
@@ -51,6 +53,35 @@ export class GetMemberQuery {
   @IsEnum(GetMemberWith, { each: true })
   @IsOptional()
   with?: GetMemberWith[];
+}
+
+export class GetMembersQuery {
+  @IsOptional()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+
+  @IsOptional()
+  @Min(0)
+  offset?: number;
+
+  @IsOptional()
+  @IsEnum(GetMemberWith, { each: true })
+  with?: GetMemberWith[];
+
+  @IsOptional()
+  @IsString()
+  sort?: "firstname" | "lastname";
+
+  @IsOptional()
+  order?: "ASC" | "DESC";
+}
+
+export interface GetMembersData {
+  items: GetMemberData[];
+  offset: number;
+  count: number;
+  total: number;
 }
 
 class UpdateAddressData implements Address {

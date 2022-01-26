@@ -14,7 +14,7 @@ import {
   QueryParams,
   UnauthorizedError
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+import { createQueryBuilder, getRepository } from "typeorm";
 
 import EmailService from "@core/services/EmailService";
 import JoinFlowService from "@core/services/JoinFlowService";
@@ -31,6 +31,8 @@ import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
+  GetMembersData,
+  GetMembersQuery,
   GetMemberWith,
   UpdateMemberData
 } from "@api/data/MemberData";
@@ -47,6 +49,7 @@ import {
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
+import MemberPermission from "@models/MemberPermission";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -130,13 +133,48 @@ function memberToData(
 export class MemberController {
   @Authorized("admin")
   @Get("/")
-  async getMembers(@CurrentUser() member: Member): Promise<GetMemberData[]> {
-    const targets = await getRepository(Member).find({
-      relations: ["profile"]
-    });
-    return targets.map((member) =>
-      memberToData(member, { withRestricted: true })
-    );
+  async getMembers(
+    @QueryParams() query: GetMembersQuery
+  ): Promise<GetMembersData> {
+    const limit = query.limit || 50;
+    const offset = query.offset || 0;
+
+    const qb = createQueryBuilder(Member, "m");
+    if (query.with?.includes(GetMemberWith.Profile)) {
+      qb.innerJoinAndSelect("m.profile", "mpro");
+    }
+
+    const [targets, total] = await qb
+      .orderBy({
+        [query.sort || "m.firstname"]: query.order || "ASC",
+        // Always sort by ID to ensure predictable offset and limit
+        "m.id": "ASC"
+      })
+      .offset(offset)
+      .limit(limit)
+      .getManyAndCount();
+
+    if (targets.length > 0) {
+      // Load permissions after to ensure offset/limit work
+      const permissions = await createQueryBuilder(MemberPermission, "mp")
+        .where("mp.memberId IN (:...ids)", { ids: targets.map((t) => t.id) })
+        .loadAllRelationIds()
+        .getMany();
+      for (const target of targets) {
+        target.permissions = permissions.filter(
+          (p) => (p.member as any) === target.id
+        );
+      }
+    }
+
+    return {
+      total,
+      offset,
+      count: targets.length,
+      items: targets.map((target) =>
+        memberToData(target, { withRestricted: true })
+      )
+    };
   }
 
   @Get("/:id")
@@ -145,7 +183,7 @@ export class MemberController {
     @TargetUser() target: Member,
     @QueryParams() query: GetMemberQuery
   ): Promise<GetMemberData> {
-    if (query.with && query.with.includes(GetMemberWith.Profile)) {
+    if (query.with?.includes(GetMemberWith.Profile)) {
       target.profile = await getRepository(MemberProfile).findOneOrFail({
         member: target
       });
