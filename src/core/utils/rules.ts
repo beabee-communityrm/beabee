@@ -60,18 +60,23 @@ const complexFields = [
   "membershipExpires"
 ] as const;
 
-type RuleId =
+export const ruleFields = [
+  ...memberFields,
+  ...profileFields,
+  ...complexFields
+] as const;
+
+export type RuleField =
   | typeof memberFields[number]
   | typeof profileFields[number]
   | typeof complexFields[number];
-type RuleValue = string | number | boolean;
-type RichRuleValue = RuleValue | Date;
+export type RuleValue = string | number | boolean;
+export type RichRuleValue = RuleValue | Date;
+export type RuleOperator = keyof typeof operators;
 
 export interface Rule {
-  id: RuleId;
-  field: RuleId;
-  type: "string" | "integer" | "boolean" | "double";
-  operator: keyof typeof operators;
+  field: RuleField;
+  operator: RuleOperator;
   value: RuleValue | RuleValue[];
 }
 
@@ -80,7 +85,7 @@ export interface RuleGroup {
   rules: (Rule | RuleGroup)[];
 }
 
-function isRuleGroup(a: Rule | RuleGroup): a is RuleGroup {
+export function isRuleGroup(a: Rule | RuleGroup): a is RuleGroup {
   return "condition" in a;
 }
 

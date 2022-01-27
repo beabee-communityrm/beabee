@@ -2,8 +2,6 @@ import { UUIDParam } from "@api/data";
 import { GetMembersData, GetMembersQuery } from "@api/data/MemberData";
 import { fetchPaginatedMembers } from "@api/utils/members";
 import SegmentService from "@core/services/SegmentService";
-import { buildRuleQuery } from "@core/utils/rules";
-import Member from "@models/Member";
 import Segment from "@models/Segment";
 import {
   Authorized,
@@ -12,7 +10,7 @@ import {
   Params,
   QueryParams
 } from "routing-controllers";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { getRepository } from "typeorm";
 
 interface GetSegmentData extends Segment {}
 
@@ -42,9 +40,18 @@ export class SegmentController {
   ): Promise<GetMembersData | undefined> {
     const segment = await getRepository(Segment).findOne(id);
     if (segment) {
-      const qb = createQueryBuilder(Member, "m");
-      buildRuleQuery(qb, segment.ruleGroup);
-      return await fetchPaginatedMembers(qb, query);
+      return await fetchPaginatedMembers(
+        {
+          ...query,
+          rules: query.rules
+            ? {
+                condition: "AND",
+                rules: [segment.ruleGroup, query.rules]
+              }
+            : segment.ruleGroup
+        },
+        { withRestricted: true }
+      );
     }
   }
 }

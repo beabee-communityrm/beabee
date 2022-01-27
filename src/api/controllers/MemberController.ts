@@ -14,7 +14,7 @@ import {
   QueryParams,
   UnauthorizedError
 } from "routing-controllers";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { getRepository } from "typeorm";
 
 import EmailService from "@core/services/EmailService";
 import JoinFlowService from "@core/services/JoinFlowService";
@@ -93,7 +93,7 @@ export class MemberController {
   async getMembers(
     @QueryParams() query: GetMembersQuery
   ): Promise<GetMembersData> {
-    return await fetchPaginatedMembers(createQueryBuilder(Member, "m"), query);
+    return await fetchPaginatedMembers(query, { withRestricted: true });
   }
 
   @Get("/:id")

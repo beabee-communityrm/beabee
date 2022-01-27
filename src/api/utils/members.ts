@@ -1,4 +1,4 @@
-import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
+import { createQueryBuilder } from "typeorm";
 import {
   GetMemberData,
   GetMembersQuery,
@@ -6,12 +6,15 @@ import {
 } from "@api/data/MemberData";
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
+import { buildRuleQuery } from "@core/utils/rules";
+
+interface MemberToDataOpts {
+  withRestricted: boolean;
+}
 
 export function memberToData(
   member: Member,
-  opts: {
-    withRestricted: boolean;
-  }
+  opts: MemberToDataOpts
 ): GetMemberData {
   const roles = [...member.activePermissions];
   if (roles.includes("superadmin")) {
@@ -51,19 +54,26 @@ export function memberToData(
 }
 
 export async function fetchPaginatedMembers(
-  qb: SelectQueryBuilder<Member>,
-  query: GetMembersQuery
+  query: GetMembersQuery,
+  opts: MemberToDataOpts
 ) {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
 
+  const qb = createQueryBuilder(Member, "m");
+  if (query.rules) {
+    buildRuleQuery(qb, query.rules);
+  }
   if (query.with?.includes(GetMemberWith.Profile)) {
     qb.innerJoinAndSelect("m.profile", "profile");
   }
 
   const [targets, total] = await qb
+    // Force empty names to be last
+    .addSelect("NULLIF(m.firstname, '')", "firstname")
     .orderBy({
-      [query.sort || "m.firstname"]: query.order || "ASC",
+      [query.sort || "firstname"]: query.order || "ASC",
+      firstname: "ASC",
       // Always sort by ID to ensure predictable offset and limit
       "m.id": "ASC"
     })
@@ -88,8 +98,6 @@ export async function fetchPaginatedMembers(
     total,
     offset,
     count: targets.length,
-    items: targets.map((target) =>
-      memberToData(target, { withRestricted: true })
-    )
+    items: targets.map((target) => memberToData(target, opts))
   };
 }
