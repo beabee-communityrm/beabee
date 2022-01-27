@@ -177,14 +177,19 @@ app.post(
           const exportData = responses.map((response) => {
             return {
               Date: response.createdAt,
-              FullName: response.guestName,
-              EmailAddress: response.guestEmail,
-              ...(response.member && {
-                FirstName: response.member.firstname,
-                LastName: response.member.lastname,
-                FullName: response.member.fullname,
-                EmailAddress: response.member.email
-              }),
+              ...(response.member
+                ? {
+                    FirstName: response.member.firstname,
+                    LastName: response.member.lastname,
+                    FullName: response.member.fullname,
+                    EmailAddress: response.member.email
+                  }
+                : {
+                    FirstName: "",
+                    LastName: "",
+                    FullName: response.guestName,
+                    EmailAddress: response.guestEmail
+                  }),
               IsMember: !!response.member,
               ...convertAnswers(poll, response.answers)
             };

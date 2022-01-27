@@ -68,9 +68,14 @@
     "winston": "^3.3.3"
   },
   "scripts": {
-    "start": "npm run build && docker-compose restart && concurrently -c green,red,blue npm:watchApp npm:watch nodemon",
-    "watchApp": "tsc --watch --preserveWatchOutput --incremental",
-    "watch": "gulp watch",
+    "start": "npm run dev:app",
+    "dev:app": "npm run build && docker-compose restart && concurrently -c red,green,blue npm:dev:app:*",
+    "dev:app:watch": "tsc-watch --noClear --onSuccess 'docker-compose restart app api_app webhook_app router'",
+    "dev:app:watch:assets": "gulp watch",
+    "dev:app:logs": "while true; do docker-compose logs -f --tail=0 app api_app webhook_app; sleep 1; done",
+    "dev:api": "npm run build && docker-compose restart && concurrently -c red,green,blue npm:dev:api:*",
+    "dev:api:watch": "tsc-watch --noClear --onSuccess 'docker-compose restart api_app router'",
+    "dev:api:logs": "while true; do docker-compose logs -f --tail=0 api_app; sleep 1; done",
     "build": "rimraf built/ && gulp build && tsc",
     "checkDependencies": "npm run build && tscpaths -s src -o built -p tsconfig.json && madge --warning -c built",
     "typeorm": "node --require module-alias/register node_modules/.bin/typeorm",
@@ -110,11 +115,11 @@
     "gulp-sass": "^5.0.0",
     "gulp-sourcemaps": "^3.0.0",
     "madge": "^5.0.1",
-    "nodemon": "^2.0.15",
     "postcss": "^8.3.11",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "sass": "1.32.*",
+    "tsc-watch": "^4.6.0",
     "tscpaths": "0.0.9",
     "typescript": "^4.4.4"
   },
@@ -127,17 +132,6 @@
     "last 1 versions",
     "> 1%"
   ],
-  "nodemonConfig": {
-    "watch": [
-      "built/"
-    ],
-    "ignore": [
-      "built/static/**/*"
-    ],
-    "delay": "500",
-    "signal": "SIGTERM",
-    "exec": "docker-compose restart app api_app webhook_app && docker-compose exec -T router nginx -s reload && docker-compose logs -f --tail=0 app api_app webhook_app"
-  },
   "_moduleAliases": {
     "@core": "./built/core",
     "@api": "./built/api",
