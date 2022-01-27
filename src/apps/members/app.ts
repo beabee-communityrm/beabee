@@ -4,7 +4,7 @@ import { getRepository } from "typeorm";
 
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import buildQuery, { RuleGroup } from "@core/utils/rules";
+import { RuleGroup, buildQuery } from "@core/utils/rules";
 
 import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";

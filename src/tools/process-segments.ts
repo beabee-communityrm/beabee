@@ -4,7 +4,7 @@ import { getRepository, In } from "typeorm";
 
 import * as db from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import buildQuery from "@core/utils/rules";
+import { buildQuery } from "@core/utils/rules";
 
 import EmailService from "@core/services/EmailService";
 
