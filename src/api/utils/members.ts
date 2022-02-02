@@ -73,7 +73,8 @@ export async function fetchPaginatedMembers(
     .addSelect("NULLIF(m.firstname, '')", "firstname")
     .orderBy({
       [query.sort || "firstname"]: query.order || "ASC",
-      firstname: "ASC",
+      // Put empty names at the bottom
+      ...(query.sort !== "firstname" && { firstname: "ASC" }),
       // Always sort by ID to ensure predictable offset and limit
       "m.id": "ASC"
     })
