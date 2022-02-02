@@ -93,7 +93,10 @@ export class MemberController {
   async getMembers(
     @QueryParams() query: GetMembersQuery
   ): Promise<GetMembersData> {
-    return await fetchPaginatedMembers(query, { withRestricted: true });
+    return await fetchPaginatedMembers(query, {
+      with: query.with,
+      withRestricted: true
+    });
   }
 
   @Get("/:id")
@@ -108,6 +111,7 @@ export class MemberController {
       });
     }
     return memberToData(target, {
+      with: query.with,
       withRestricted: member.hasPermission("admin")
     });
   }

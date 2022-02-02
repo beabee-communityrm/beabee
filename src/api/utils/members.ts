@@ -9,6 +9,7 @@ import MemberPermission from "@models/MemberPermission";
 import { buildRuleQuery } from "@core/utils/rules";
 
 interface MemberToDataOpts {
+  with?: GetMemberWith[] | undefined;
   withRestricted: boolean;
 }
 
@@ -16,9 +17,9 @@ export function memberToData(
   member: Member,
   opts: MemberToDataOpts
 ): GetMemberData {
-  const roles = [...member.activePermissions];
-  if (roles.includes("superadmin")) {
-    roles.push("admin");
+  const activeRoles = [...member.activePermissions];
+  if (activeRoles.includes("superadmin")) {
+    activeRoles.push("admin");
   }
 
   return {
@@ -27,13 +28,16 @@ export function memberToData(
     firstname: member.firstname,
     lastname: member.lastname,
     joined: member.joined,
+    ...(member.lastSeen && {
+      lastSeen: member.lastSeen
+    }),
     ...(member.contributionAmount && {
       contributionAmount: member.contributionAmount
     }),
     ...(member.contributionPeriod && {
       contributionPeriod: member.contributionPeriod
     }),
-    roles,
+    activeRoles,
     ...(member.profile && {
       profile: {
         telephone: member.profile.telephone,

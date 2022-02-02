@@ -1,5 +1,6 @@
+import IsPassword from "@api/validators/IsPassword";
 import { NewsletterStatus } from "@core/providers/newsletter";
-import { ContributionPeriod } from "@core/utils";
+import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import {
   Rule,
   RuleGroup,
@@ -10,7 +11,7 @@ import {
   ruleFields
 } from "@core/utils/rules";
 import Address from "@models/Address";
-import { PermissionType } from "@models/MemberPermission";
+import MemberPermission, { PermissionType } from "@models/MemberPermission";
 import {
   plainToClass,
   Transform,
@@ -28,6 +29,7 @@ import {
   IsString,
   Max,
   Min,
+  Validate,
   ValidateNested
 } from "class-validator";
 
@@ -55,19 +57,24 @@ interface MemberProfileData {
 export interface GetMemberData extends MemberData {
   id: string;
   joined: Date;
+  lastSeen?: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
+  activeRoles: PermissionType[];
   profile?: MemberProfileData;
-  roles: PermissionType[];
+  roles?: MemberPermission[];
+  contribution?: ContributionInfo;
 }
 
 export enum GetMemberWith {
-  Profile = "profile"
+  Contribution = "contribution",
+  Profile = "profile",
+  Roles = "roles"
 }
 
 export class GetMemberQuery {
-  @IsEnum(GetMemberWith, { each: true })
   @IsOptional()
+  @IsEnum(GetMemberWith, { each: true })
   with?: GetMemberWith[];
 }
 
@@ -105,7 +112,7 @@ class GetMembersQueryRuleGroup implements RuleGroup {
   rules!: (GetMembersQueryRuleGroup | GetMembersQueryRule)[];
 }
 
-export class GetMembersQuery {
+export class GetMembersQuery extends GetMemberQuery {
   @IsOptional()
   @Min(1)
   @Max(100)
@@ -114,10 +121,6 @@ export class GetMembersQuery {
   @IsOptional()
   @Min(0)
   offset?: number;
-
-  @IsOptional()
-  @IsEnum(GetMemberWith, { each: true })
-  with?: GetMemberWith[];
 
   @IsOptional()
   @IsIn(["firstname", "email", "joined"])
@@ -201,7 +204,7 @@ export class UpdateMemberData implements Partial<MemberData> {
   @IsString()
   lastname?: string;
 
-  @IsString()
+  @Validate(IsPassword)
   password?: string;
 
   @ValidateNested()
