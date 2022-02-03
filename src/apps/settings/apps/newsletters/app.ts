@@ -45,7 +45,12 @@ function groupsList(groups: string[]) {
 function isMismatchedMember(member: Member, nlMember: NewsletterMember) {
   return (
     member.profile.newsletterStatus !== nlMember.status ||
-    groupsList(member.profile.newsletterGroups) !== groupsList(nlMember.groups)
+    groupsList(member.profile.newsletterGroups) !==
+      groupsList(nlMember.groups) ||
+    !!member.membership?.isActive !==
+      nlMember.tags.includes(
+        OptionsService.getText("newsletter-active-member-tag")
+      )
   );
 }
 
@@ -60,6 +65,7 @@ interface ReportData {
     id: string;
     status: string;
     groups: string[];
+    tags: string[];
   }[];
 }
 
@@ -74,10 +80,10 @@ async function handleResync(
     const members = await MembersService.find({ relations: ["profile"] });
     const newsletterMembers = await NewsletterService.getNewsletterMembers();
 
-    const newMembersToUpload = [],
-      existingMembers = [],
-      existingMembersToArchive = [],
-      mismatchedMembers = [];
+    const newMembersToUpload: Member[] = [],
+      existingMembers: Member[] = [],
+      existingMembersToArchive: Member[] = [],
+      mismatchedMembers: [Member, NewsletterMember][] = [];
     for (const member of members) {
       const nlMember = newsletterMembers.find(
         (nm) => nm.email === member.email
@@ -94,7 +100,7 @@ async function handleResync(
         }
 
         if (isMismatchedMember(member, nlMember)) {
-          mismatchedMembers.push([member, nlMember] as const);
+          mismatchedMembers.push([member, nlMember]);
         }
       } else if (
         member.profile.newsletterStatus === NewsletterStatus.Subscribed
@@ -106,8 +112,6 @@ async function handleResync(
     const newsletterMembersToImport = newsletterMembers.filter((nm) =>
       members.every((m) => m.email !== nm.email)
     );
-
-    const membersInNewsletter = [...existingMembers, ...newMembersToUpload];
 
     await OptionsService.set(
       "newsletter-resync-data",
@@ -121,7 +125,8 @@ async function handleResync(
         mismatched: mismatchedMembers.map(([m, nlm]) => ({
           id: m.id,
           status: nlm.status,
-          groups: nlm.groups
+          groups: nlm.groups,
+          tags: nlm.tags
         }))
       } as ReportData)
     );
@@ -163,15 +168,17 @@ async function handleResync(
 
     // Sync tags before archiving
     await setResyncStatus(
-      `In progress: Updating active member tag for ${membersInNewsletter.length} contacts in newsletter list`
+      `In progress: Updating active member tag for ${mismatchedMembers.length} contacts in newsletter list`
     );
 
     await NewsletterService.addTagToMembers(
-      membersInNewsletter.filter((m) => m.membership?.isActive),
+      mismatchedMembers.filter(([m]) => m.membership?.isActive).map(([m]) => m),
       OptionsService.getText("newsletter-active-member-tag")
     );
     await NewsletterService.removeTagFromMembers(
-      membersInNewsletter.filter((m) => !m.membership?.isActive),
+      mismatchedMembers
+        .filter(([m]) => !m.membership?.isActive)
+        .map(([m]) => m),
       OptionsService.getText("newsletter-active-member-tag")
     );
 
@@ -243,9 +250,8 @@ app.get(
       contactsToImport: data.imports,
       newMembersToUpload,
       mismatchedMembers: data.mismatched.map((m) => ({
-        member: mismatchedMembers.find((m2) => m.id === m2.id),
-        status: m.status,
-        groups: m.groups
+        ...m,
+        member: mismatchedMembers.find((m2) => m.id === m2.id)
       }))
     });
   })

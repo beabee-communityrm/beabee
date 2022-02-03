@@ -66,7 +66,8 @@ $('#builder').queryBuilder({
 			'subscribed': 'Subscribed',
 			'unsubscribed': 'Unsubscribed',
 			'cleaned': 'Cleaned',
-			'pending': 'Pending'
+			'pending': 'Pending',
+			'none': 'None'
 		},
 		operators: ['equal', 'not_equal']
 	}, {

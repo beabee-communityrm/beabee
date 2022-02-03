@@ -39,15 +39,20 @@ block contents
 						th Member
 						th Status
 						th Groups
+						th Active?
 				tbody
 					each m in mismatchedMembers
 						tr
 							td: a(href='/members/' + m.member.id)= m.member.fullname
 							td
 								= m.member.profile.newsletterStatus
-								| ->
+								| <>
 								= m.status
 							td
 								= m.member.profile.newsletterGroups
-								| ->
+								| <>
 								= m.groups
+							td
+								= m.member.membership && m.member.membership.isActive ? 'Yes' : 'No'
+								| <>
+								= m.tags.includes(Options('newsletter-active-member-tag')) ? 'Yes' : 'No'
