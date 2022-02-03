@@ -43,7 +43,11 @@ async function fetchMembers(
 }
 
 async function processMembers(members: Member[]) {
-  const membersToArchive = members.filter((m) => !m.membership?.isActive);
+  const membersToArchive = members.filter(
+    (m) =>
+      m.profile.newsletterStatus !== NewsletterStatus.None &&
+      !m.membership?.isActive
+  );
 
   console.log(
     `Removing active member tag from ${membersToArchive.length} members`
