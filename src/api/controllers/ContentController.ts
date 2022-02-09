@@ -17,7 +17,11 @@ const extraContent = {
   }),
   join: () => ({
     minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
-    showAbsorbFee: OptionsService.getBool("show-absorb-fee")
+    showAbsorbFee: OptionsService.getBool("show-absorb-fee"),
+    // TODO: remove these once new frontend footer is merged
+    privacyLink: OptionsService.getText("footer-privacy-link-url"),
+    termsLink: OptionsService.getText("footer-terms-link-url"),
+    name: OptionsService.getText("organisation")
   }),
   "join/setup": () => ({
     showMailOptIn: OptionsService.getBool("show-mail-opt-in")
