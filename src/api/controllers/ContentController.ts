@@ -8,7 +8,7 @@ import config from "@config";
 
 const extraContent = {
   general: () => ({
-    name: OptionsService.getText("organisation"),
+    organisationName: OptionsService.getText("organisation"),
     siteUrl: OptionsService.getText("home-link-url"),
     supportEmail: OptionsService.getText("support-email"),
     privacyLink: OptionsService.getText("footer-privacy-link-url"),
