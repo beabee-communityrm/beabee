@@ -4,6 +4,7 @@ import { getRepository } from "typeorm";
 import OptionsService from "@core/services/OptionsService";
 
 import Content, { ContentId } from "@models/Content";
+import config from "@config";
 
 const extraContent = {
   general: () => ({
@@ -11,7 +12,8 @@ const extraContent = {
     siteUrl: OptionsService.getText("home-link-url"),
     supportEmail: OptionsService.getText("support-email"),
     privacyLink: OptionsService.getText("footer-privacy-link-url"),
-    termsLink: OptionsService.getText("footer-terms-link-url")
+    termsLink: OptionsService.getText("footer-terms-link-url"),
+    currencyCode: config.currencyCode
   }),
   join: () => ({
     minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
