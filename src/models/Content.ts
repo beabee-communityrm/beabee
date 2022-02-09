@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
-export type ContentId = "join" | "join/setup" | "profile";
+export type ContentId = "join" | "join/setup" | "profile" | "general";
 
 @Entity()
 export default class Content {
