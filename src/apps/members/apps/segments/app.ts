@@ -3,7 +3,7 @@ import { getRepository } from "typeorm";
 
 import { hasNewModel } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import buildQuery from "@core/utils/rules";
+import { buildQuery } from "@core/utils/rules";
 
 import SegmentService from "@core/services/SegmentService";
 

@@ -2,7 +2,7 @@ import { getRepository } from "typeorm";
 
 import Segment from "@models/Segment";
 
-import buildQuery, { RuleGroup } from "@core/utils/rules";
+import { RuleGroup, buildQuery } from "@core/utils/rules";
 
 class SegmentService {
   async createSegment(name: string, ruleGroup: RuleGroup): Promise<Segment> {

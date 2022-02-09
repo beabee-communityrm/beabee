@@ -1,15 +1,35 @@
+import IsPassword from "@api/validators/IsPassword";
 import { NewsletterStatus } from "@core/providers/newsletter";
-import { ContributionPeriod } from "@core/utils";
-import Address from "@models/Address";
-import { PermissionType } from "@models/MemberPermission";
-import { Type } from "class-transformer";
+import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import {
+  Rule,
+  RuleGroup,
+  RuleField,
+  RuleOperator,
+  RuleValue,
+  isRuleGroup,
+  ruleFields
+} from "@core/utils/rules";
+import Address from "@models/Address";
+import MemberPermission, { PermissionType } from "@models/MemberPermission";
+import {
+  plainToClass,
+  Transform,
+  TransformFnParams,
+  Type
+} from "class-transformer";
+import {
+  IsArray,
   IsBoolean,
   IsDefined,
   IsEmail,
   IsEnum,
+  IsIn,
   IsOptional,
   IsString,
+  Max,
+  Min,
+  Validate,
   ValidateNested
 } from "class-validator";
 
@@ -35,21 +55,92 @@ interface MemberProfileData {
 }
 
 export interface GetMemberData extends MemberData {
+  id: string;
   joined: Date;
+  lastSeen?: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
+  activeRoles: PermissionType[];
   profile?: MemberProfileData;
-  roles: PermissionType[];
+  roles?: MemberPermission[];
+  contribution?: ContributionInfo;
 }
 
 export enum GetMemberWith {
-  Profile = "profile"
+  Contribution = "contribution",
+  Profile = "profile",
+  Roles = "roles"
 }
 
 export class GetMemberQuery {
-  @IsEnum(GetMemberWith, { each: true })
   @IsOptional()
+  @IsEnum(GetMemberWith, { each: true })
   with?: GetMemberWith[];
+}
+
+function transformRules({
+  value
+}: TransformFnParams): GetMembersQueryRule | GetMembersQueryRuleGroup {
+  return value.map((v: any) => {
+    if (isRuleGroup(v)) {
+      return plainToClass(GetMembersQueryRuleGroup, v);
+    } else {
+      return plainToClass(GetMembersQueryRule, v);
+    }
+  });
+}
+
+class GetMembersQueryRule implements Rule {
+  @IsIn(ruleFields)
+  field!: RuleField;
+
+  // TODO: Enforce proper validation
+  @IsString()
+  operator!: RuleOperator;
+
+  @IsString()
+  value!: RuleValue | RuleValue[];
+}
+
+class GetMembersQueryRuleGroup implements RuleGroup {
+  @IsIn(["AND", "OR"])
+  condition!: "AND" | "OR";
+
+  @IsArray()
+  @ValidateNested()
+  @Transform(transformRules)
+  rules!: (GetMembersQueryRuleGroup | GetMembersQueryRule)[];
+}
+
+export class GetMembersQuery extends GetMemberQuery {
+  @IsOptional()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+
+  @IsOptional()
+  @Min(0)
+  offset?: number;
+
+  @IsOptional()
+  @IsIn(["firstname", "email", "joined"])
+  sort?: "firstname" | "email" | "joined";
+
+  @IsOptional()
+  @IsIn(["ASC", "DESC"])
+  order?: "ASC" | "DESC";
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GetMembersQueryRuleGroup)
+  rules?: GetMembersQueryRuleGroup;
+}
+
+export interface GetMembersData {
+  items: GetMemberData[];
+  offset: number;
+  count: number;
+  total: number;
 }
 
 class UpdateAddressData implements Address {
@@ -113,7 +204,7 @@ export class UpdateMemberData implements Partial<MemberData> {
   @IsString()
   lastname?: string;
 
-  @IsString()
+  @Validate(IsPassword)
   password?: string;
 
   @ValidateNested()

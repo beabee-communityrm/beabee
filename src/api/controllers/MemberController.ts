@@ -31,6 +31,8 @@ import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
+  GetMembersData,
+  GetMembersQuery,
   GetMemberWith,
   UpdateMemberData
 } from "@api/data/MemberData";
@@ -47,6 +49,7 @@ import {
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
+import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -85,56 +88,32 @@ function TargetUser() {
 @JsonController("/member")
 @Authorized()
 export class MemberController {
+  @Authorized("admin")
+  @Get("/")
+  async getMembers(
+    @QueryParams() query: GetMembersQuery
+  ): Promise<GetMembersData> {
+    return await fetchPaginatedMembers(query, {
+      with: query.with,
+      withRestricted: true
+    });
+  }
+
   @Get("/:id")
   async getMember(
     @CurrentUser() member: Member,
     @TargetUser() target: Member,
     @QueryParams() query: GetMemberQuery
   ): Promise<GetMemberData> {
-    const profile =
-      query.with && query.with.indexOf(GetMemberWith.Profile) > -1
-        ? await getRepository(MemberProfile).findOneOrFail({
-            member: target
-          })
-        : undefined;
-
-    const roles = target.permissions
-      .filter((p) => p.isActive)
-      .map((p) => p.permission);
-
-    if (roles.includes("superadmin")) {
-      roles.push("admin");
+    if (query.with?.includes(GetMemberWith.Profile)) {
+      target.profile = await getRepository(MemberProfile).findOneOrFail({
+        member: target
+      });
     }
-
-    return {
-      email: target.email,
-      firstname: target.firstname,
-      lastname: target.lastname,
-      joined: target.joined,
-      ...(target.contributionAmount && {
-        contributionAmount: target.contributionAmount
-      }),
-      ...(target.contributionPeriod && {
-        contributionPeriod: target.contributionPeriod
-      }),
-      roles,
-      ...(profile && {
-        profile: {
-          telephone: profile.telephone,
-          twitter: profile.twitter,
-          preferredContact: profile.preferredContact,
-          deliveryOptIn: profile.deliveryOptIn,
-          deliveryAddress: profile.deliveryAddress,
-          newsletterStatus: profile.newsletterStatus,
-          newsletterGroups: profile.newsletterGroups,
-          ...(member.hasPermission("admin") && {
-            tags: profile.tags,
-            notes: profile.notes,
-            description: profile.description
-          })
-        }
-      })
-    };
+    return memberToData(target, {
+      with: query.with,
+      withRestricted: member.hasPermission("admin")
+    });
   }
 
   @Patch("/:id")

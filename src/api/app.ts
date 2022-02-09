@@ -16,6 +16,7 @@ import { CalloutController } from "./controllers/CalloutController";
 import { ContentController } from "./controllers/ContentController";
 import { MemberController } from "./controllers/MemberController";
 import { NoticeController } from "./controllers/NoticeController";
+import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
 import { ResetPasswordController } from "./controllers/ResetPasswordController";
 
@@ -25,9 +26,18 @@ import sessions from "@core/sessions";
 import startServer from "@core/server";
 
 import Member from "@models/Member";
+import { PermissionType } from "@models/MemberPermission";
 
 function currentUserChecker(action: Action): Member | undefined {
   return (action.request as Request).user;
+}
+
+function authorizationChecker(
+  action: Action,
+  roles: PermissionType[]
+): boolean {
+  const user = currentUserChecker(action);
+  return !!user && roles.every((role) => user.hasPermission(role));
 }
 
 const app = express();
@@ -47,11 +57,12 @@ db.connect().then(() => {
       ContentController,
       MemberController,
       NoticeController,
+      SegmentController,
       SignupController,
       ResetPasswordController
     ],
     currentUserChecker,
-    authorizationChecker: (action) => !!currentUserChecker(action),
+    authorizationChecker,
     validation: {
       forbidNonWhitelisted: true,
       forbidUnknownValues: true,
