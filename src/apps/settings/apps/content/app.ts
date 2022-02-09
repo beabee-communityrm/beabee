@@ -21,6 +21,7 @@ app.get(
       return content.find((c) => c.id === id)?.data || {};
     }
     res.render("index", {
+      general: get("general"),
       join: get("join"),
       joinSetup: get("join/setup"),
       profile: get("profile")
@@ -29,6 +30,7 @@ app.get(
 );
 
 const parseData = {
+  general: (d: any) => d,
   join: (data: any) => ({
     ...data,
     initialAmount: Number(data.initialAmount),

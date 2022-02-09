@@ -4,11 +4,21 @@ import { getRepository } from "typeorm";
 import OptionsService from "@core/services/OptionsService";
 
 import Content, { ContentId } from "@models/Content";
+import config from "@config";
 
 const extraContent = {
+  general: () => ({
+    organisationName: OptionsService.getText("organisation"),
+    siteUrl: OptionsService.getText("home-link-url"),
+    supportEmail: OptionsService.getText("support-email"),
+    privacyLink: OptionsService.getText("footer-privacy-link-url"),
+    termsLink: OptionsService.getText("footer-terms-link-url"),
+    currencyCode: config.currencyCode
+  }),
   join: () => ({
     minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
     showAbsorbFee: OptionsService.getBool("show-absorb-fee"),
+    // TODO: remove these once new frontend footer is merged
     privacyLink: OptionsService.getText("footer-privacy-link-url"),
     termsLink: OptionsService.getText("footer-terms-link-url"),
     name: OptionsService.getText("organisation")
