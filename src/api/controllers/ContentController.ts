@@ -6,12 +6,16 @@ import OptionsService from "@core/services/OptionsService";
 import Content, { ContentId } from "@models/Content";
 
 const extraContent = {
+  general: () => ({
+    name: OptionsService.getText("organisation"),
+    siteUrl: OptionsService.getText("home-link-url"),
+    supportEmail: OptionsService.getText("support-email"),
+    privacyLink: OptionsService.getText("footer-privacy-link-url"),
+    termsLink: OptionsService.getText("footer-terms-link-url")
+  }),
   join: () => ({
     minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
-    showAbsorbFee: OptionsService.getBool("show-absorb-fee"),
-    privacyLink: OptionsService.getText("footer-privacy-link-url"),
-    termsLink: OptionsService.getText("footer-terms-link-url"),
-    name: OptionsService.getText("organisation")
+    showAbsorbFee: OptionsService.getBool("show-absorb-fee")
   }),
   "join/setup": () => ({
     showMailOptIn: OptionsService.getBool("show-mail-opt-in")
