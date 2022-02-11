@@ -70,7 +70,7 @@ app.post(
       const id = req.body.id as ContentId;
       await getRepository(Content).save({
         id,
-        data: parseData[id](req.body.data)
+        data: parseData[id](req.body.data || {})
       });
     }
 
