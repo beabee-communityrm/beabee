@@ -75,7 +75,7 @@ export type RichRuleValue = RuleValue | Date;
 export type RuleOperator = keyof typeof operators;
 
 export interface Rule {
-  field: RuleField;
+  field: string;
   operator: RuleOperator;
   value: RuleValue | RuleValue[];
 }

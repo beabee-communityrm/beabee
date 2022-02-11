@@ -1,5 +1,5 @@
-import { UUIDParam } from "@api/data";
-import { GetMembersData, GetMembersQuery } from "@api/data/MemberData";
+import { Paginated, UUIDParam } from "@api/data";
+import { GetMemberData, GetMembersQuery } from "@api/data/MemberData";
 import { fetchPaginatedMembers } from "@api/utils/members";
 import SegmentService from "@core/services/SegmentService";
 import Segment from "@models/Segment";
@@ -37,7 +37,7 @@ export class SegmentController {
   async getSegmentMembers(
     @Params() { id }: UUIDParam,
     @QueryParams() query: GetMembersQuery
-  ): Promise<GetMembersData | undefined> {
+  ): Promise<Paginated<GetMemberData> | undefined> {
     const segment = await getRepository(Segment).findOne(id);
     if (segment) {
       return await fetchPaginatedMembers(

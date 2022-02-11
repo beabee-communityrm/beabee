@@ -1,25 +1,10 @@
 import IsPassword from "@api/validators/IsPassword";
 import { NewsletterStatus } from "@core/providers/newsletter";
 import { ContributionInfo, ContributionPeriod } from "@core/utils";
-import {
-  Rule,
-  RuleGroup,
-  RuleField,
-  RuleOperator,
-  RuleValue,
-  isRuleGroup,
-  ruleFields
-} from "@core/utils/rules";
 import Address from "@models/Address";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
+import { Type } from "class-transformer";
 import {
-  plainToClass,
-  Transform,
-  TransformFnParams,
-  Type
-} from "class-transformer";
-import {
-  IsArray,
   IsBoolean,
   IsDefined,
   IsEmail,
@@ -27,11 +12,10 @@ import {
   IsIn,
   IsOptional,
   IsString,
-  Max,
-  Min,
   Validate,
   ValidateNested
 } from "class-validator";
+import { GetPaginatedQuery } from ".";
 
 interface MemberData {
   email: string;
@@ -78,69 +62,16 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
-function transformRules({
-  value
-}: TransformFnParams): GetMembersQueryRule | GetMembersQueryRuleGroup {
-  return value.map((v: any) => {
-    if (isRuleGroup(v)) {
-      return plainToClass(GetMembersQueryRuleGroup, v);
-    } else {
-      return plainToClass(GetMembersQueryRule, v);
-    }
-  });
-}
-
-class GetMembersQueryRule implements Rule {
-  @IsIn(ruleFields)
-  field!: RuleField;
-
-  // TODO: Enforce proper validation
-  @IsString()
-  operator!: RuleOperator;
-
-  @IsString()
-  value!: RuleValue | RuleValue[];
-}
-
-class GetMembersQueryRuleGroup implements RuleGroup {
-  @IsIn(["AND", "OR"])
-  condition!: "AND" | "OR";
-
-  @IsArray()
-  @ValidateNested()
-  @Transform(transformRules)
-  rules!: (GetMembersQueryRuleGroup | GetMembersQueryRule)[];
-}
-
-export class GetMembersQuery extends GetMemberQuery {
-  @IsOptional()
-  @Min(1)
-  @Max(100)
-  limit?: number;
-
-  @IsOptional()
-  @Min(0)
-  offset?: number;
-
-  @IsOptional()
+export class GetMembersQuery extends GetPaginatedQuery<
+  "firstname" | "email" | "joined"
+> {
   @IsIn(["firstname", "email", "joined"])
   sort?: "firstname" | "email" | "joined";
 
+  // TODO: inherit from GetMemberQuery
   @IsOptional()
-  @IsIn(["ASC", "DESC"])
-  order?: "ASC" | "DESC";
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => GetMembersQueryRuleGroup)
-  rules?: GetMembersQueryRuleGroup;
-}
-
-export interface GetMembersData {
-  items: GetMemberData[];
-  offset: number;
-  count: number;
-  total: number;
+  @IsEnum(GetMemberWith, { each: true })
+  with?: GetMemberWith[];
 }
 
 class UpdateAddressData implements Address {

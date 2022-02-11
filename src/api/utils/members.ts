@@ -7,6 +7,7 @@ import {
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
 import { buildRuleQuery } from "@core/utils/rules";
+import { Paginated } from "@api/data";
 
 interface MemberToDataOpts {
   with?: GetMemberWith[] | undefined;
@@ -60,7 +61,7 @@ export function memberToData(
 export async function fetchPaginatedMembers(
   query: GetMembersQuery,
   opts: MemberToDataOpts
-) {
+): Promise<Paginated<GetMemberData>> {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
 

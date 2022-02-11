@@ -27,11 +27,10 @@ import { generatePassword } from "@core/utils/auth";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
-import { UUIDParam } from "@api/data";
+import { Paginated, UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
-  GetMembersData,
   GetMembersQuery,
   GetMemberWith,
   UpdateMemberData
@@ -92,7 +91,7 @@ export class MemberController {
   @Get("/")
   async getMembers(
     @QueryParams() query: GetMembersQuery
-  ): Promise<GetMembersData> {
+  ): Promise<Paginated<GetMemberData>> {
     return await fetchPaginatedMembers(query, {
       with: query.with,
       withRestricted: true
