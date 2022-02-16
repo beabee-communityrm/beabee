@@ -60,21 +60,11 @@ const complexFields = [
   "membershipExpires"
 ] as const;
 
-export const ruleFields = [
-  ...memberFields,
-  ...profileFields,
-  ...complexFields
-] as const;
+type RuleValue = string | number | boolean;
+type RichRuleValue = RuleValue | Date;
+type RuleOperator = keyof typeof operators;
 
-export type RuleField =
-  | typeof memberFields[number]
-  | typeof profileFields[number]
-  | typeof complexFields[number];
-export type RuleValue = string | number | boolean;
-export type RichRuleValue = RuleValue | Date;
-export type RuleOperator = keyof typeof operators;
-
-export interface Rule {
+interface Rule {
   field: string;
   operator: RuleOperator;
   value: RuleValue | RuleValue[];
@@ -85,7 +75,7 @@ export interface RuleGroup {
   rules: (Rule | RuleGroup)[];
 }
 
-export function isRuleGroup(a: Rule | RuleGroup): a is RuleGroup {
+function isRuleGroup(a: Rule | RuleGroup): a is RuleGroup {
   return "condition" in a;
 }
 
@@ -107,10 +97,7 @@ function parseValue(value: RuleValue): RichRuleValue {
   }
 }
 
-export function buildRuleQuery(
-  qb: SelectQueryBuilder<Member>,
-  ruleGroup: RuleGroup
-) {
+function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
   const params: Record<string, unknown> = {};
   let paramNo = 0;
 

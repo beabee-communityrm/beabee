@@ -27,7 +27,7 @@ import { generatePassword } from "@core/utils/auth";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
-import { Paginated, UUIDParam } from "@api/data";
+import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
@@ -49,6 +49,7 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
 import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
+import { Paginated } from "@api/utils/pagination";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target

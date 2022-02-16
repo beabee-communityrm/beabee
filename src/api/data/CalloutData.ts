@@ -1,14 +1,56 @@
+import {
+  GetPaginatedQuery,
+  GetPaginatedRule,
+  GetPaginatedRuleGroup
+} from "@api/utils/pagination";
+import { isRuleGroup } from "@core/utils/newRules";
+import {
+  plainToClass,
+  Transform,
+  TransformFnParams,
+  Type
+} from "class-transformer";
 import { IsBoolean, IsEnum, IsIn, IsOptional } from "class-validator";
-import { GetPaginatedQuery } from ".";
 
 export enum CalloutStatus {
   Open = "open",
   Finished = "finished"
 }
 
-export class GetCalloutsQuery extends GetPaginatedQuery<"title"> {
-  @IsIn(["title"])
-  sort?: "title";
+const fields = ["title"] as const;
+const sortFields = ["title"] as const;
+
+type Field = typeof fields[number];
+type SortField = typeof sortFields[number];
+
+function transformRules({
+  value
+}: TransformFnParams): GetCalloutsRuleGroup | GetCalloutsRule {
+  return value.map((v: any) => {
+    if (isRuleGroup<Field>(v)) {
+      return plainToClass(GetCalloutsRuleGroup, v);
+    } else {
+      return plainToClass(GetCalloutsRule, v);
+    }
+  });
+}
+
+class GetCalloutsRule extends GetPaginatedRule<Field> {
+  @IsIn(fields)
+  field!: Field;
+}
+
+class GetCalloutsRuleGroup extends GetPaginatedRuleGroup<Field> {
+  @Transform(transformRules)
+  rules!: (GetCalloutsRuleGroup | GetCalloutsRule)[];
+}
+
+export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
+  @IsIn(sortFields)
+  sort?: SortField;
+
+  @Type(() => GetCalloutsRuleGroup)
+  rules?: GetCalloutsRuleGroup;
 
   @IsOptional()
   @IsEnum(CalloutStatus)

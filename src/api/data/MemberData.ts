@@ -1,9 +1,20 @@
+import {
+  GetPaginatedQuery,
+  GetPaginatedRule,
+  GetPaginatedRuleGroup
+} from "@api/utils/pagination";
 import IsPassword from "@api/validators/IsPassword";
 import { NewsletterStatus } from "@core/providers/newsletter";
 import { ContributionInfo, ContributionPeriod } from "@core/utils";
+import { isRuleGroup } from "@core/utils/newRules";
 import Address from "@models/Address";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
-import { Type } from "class-transformer";
+import {
+  plainToClass,
+  Transform,
+  TransformFnParams,
+  Type
+} from "class-transformer";
 import {
   IsBoolean,
   IsDefined,
@@ -15,7 +26,6 @@ import {
   Validate,
   ValidateNested
 } from "class-validator";
-import { GetPaginatedQuery } from ".";
 
 interface MemberData {
   email: string;
@@ -62,13 +72,41 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
-export class GetMembersQuery extends GetPaginatedQuery<
-  "firstname" | "email" | "joined"
-> {
-  @IsIn(["firstname", "email", "joined"])
-  sort?: "firstname" | "email" | "joined";
+const fields = ["firstname", "lastname", "email"] as const;
+const sortFields = ["firstname", "email", "joined"] as const;
 
-  // TODO: inherit from GetMemberQuery
+type Field = typeof fields[number];
+type SortField = typeof sortFields[number];
+
+function transformRules({
+  value
+}: TransformFnParams): GetMembersRuleGroup | GetMembersRule {
+  return value.map((v: any) => {
+    if (isRuleGroup<Field>(v)) {
+      return plainToClass(GetMembersRuleGroup, v);
+    } else {
+      return plainToClass(GetMembersRule, v);
+    }
+  });
+}
+
+class GetMembersRule extends GetPaginatedRule<Field> {
+  @IsIn(fields)
+  field!: Field;
+}
+
+export class GetMembersRuleGroup extends GetPaginatedRuleGroup<Field> {
+  @Transform(transformRules)
+  rules!: (GetMembersRuleGroup | GetMembersRule)[];
+}
+
+export class GetMembersQuery extends GetPaginatedQuery<Field, SortField> {
+  @IsIn(sortFields)
+  sort?: SortField;
+
+  @Type(() => GetMembersRuleGroup)
+  rules?: GetMembersRuleGroup;
+
   @IsOptional()
   @IsEnum(GetMemberWith, { each: true })
   with?: GetMemberWith[];

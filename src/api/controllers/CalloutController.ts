@@ -6,18 +6,19 @@ import {
   Params,
   QueryParams
 } from "routing-controllers";
-import { Brackets, createQueryBuilder, getRepository } from "typeorm";
+import { Brackets, getRepository } from "typeorm";
 
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
-import { Paginated, UUIDParam } from "@api/data";
+import { UUIDParam } from "@api/data";
 import {
   CalloutStatus,
   GetBasicCalloutData,
   GetCalloutsQuery,
   GetMoreCalloutData
 } from "@api/data/CalloutData";
+import { fetchPaginated, Paginated } from "@api/utils/pagination";
 
 function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
   return {
@@ -37,50 +38,43 @@ export class CalloutController {
   async getCallouts(
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetBasicCalloutData>> {
-    const limit = query.limit || 50;
-    const offset = query.offset || 0;
+    const results = await fetchPaginated(Poll, query, (qb) => {
+      qb.andWhere("item.hidden = FALSE");
 
-    const qb = createQueryBuilder(Poll, "poll").where("poll.hidden = FALSE");
-
-    if (query.status === CalloutStatus.Open) {
-      qb.andWhere("poll.closed = FALSE")
-        .andWhere(
+      if (query.status === CalloutStatus.Open) {
+        qb.andWhere("item.closed = FALSE")
+          .andWhere(
+            new Brackets((qb) => {
+              qb.where("item.expires IS NULL").orWhere("item.expires > :now");
+            })
+          )
+          .andWhere(
+            new Brackets((qb) => {
+              qb.where("item.starts IS NULL").orWhere("item.starts < :now");
+            })
+          );
+      } else if (query.status === CalloutStatus.Finished) {
+        qb.andWhere(
           new Brackets((qb) => {
-            qb.where("poll.expires IS NULL").orWhere("poll.expires > :now");
+            qb.where("item.starts IS NULL").orWhere("item.starts < :now");
           })
-        )
-        .andWhere(
+        ).andWhere(
           new Brackets((qb) => {
-            qb.where("poll.starts IS NULL").orWhere("poll.starts < :now");
+            qb.where("item.closed = TRUE").orWhere("item.expires < :now");
           })
         );
-    } else if (query.status === CalloutStatus.Finished) {
-      qb.andWhere(
-        new Brackets((qb) => {
-          qb.where("poll.starts IS NULL").orWhere("poll.starts < :now");
-        })
-      ).andWhere(
-        new Brackets((qb) => {
-          qb.where("poll.closed = TRUE").orWhere("poll.expires < :now");
-        })
-      );
-    }
+      }
 
-    if (query.answered) {
-      qb.innerJoin(PollResponse, "pr", "poll.slug = pr.pollSlug");
-    }
+      if (query.answered) {
+        qb.innerJoin(PollResponse, "pr", "item.slug = pr.pollSlug");
+      }
 
-    const [polls, total] = await qb
-      .setParameters({ now: moment.utc().toDate() })
-      .offset(offset)
-      .limit(limit)
-      .getManyAndCount();
+      qb.setParameters({ now: moment.utc().toDate() });
+    });
 
     return {
-      total,
-      offset,
-      count: polls.length,
-      items: polls.map(pollToBasicCallout)
+      ...results,
+      items: results.items.map(pollToBasicCallout)
     };
   }
 
