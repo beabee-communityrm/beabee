@@ -54,7 +54,14 @@ export interface RuleGroup<Field extends string> {
 }
 
 export type SpecialFields<Field extends string> = Partial<
-  Record<Field, (rule: Rule<Field>, qb: WhereExpressionBuilder) => void>
+  Record<
+    Field,
+    (
+      rule: Rule<Field>,
+      qb: WhereExpressionBuilder,
+      suffix: string
+    ) => Record<string, unknown> | undefined
+  >
 >;
 
 export function isRuleGroup<Field extends string = string>(
@@ -106,7 +113,12 @@ export function buildRuleQuery<Entity, Field extends string>(
 
       const specialField = specialFields && specialFields[rule.field];
       if (specialField) {
-        specialField(rule, qb);
+        const specialRuleParams = specialField(rule, qb, suffix);
+        if (specialRuleParams) {
+          for (const paramKey in specialRuleParams) {
+            params[paramKey + suffix] = specialRuleParams[paramKey];
+          }
+        }
       } else {
         qb.where(`item.${rule.field} ${namedWhere}`);
       }

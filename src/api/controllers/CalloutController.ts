@@ -49,38 +49,70 @@ export class CalloutController {
       query,
       (qb) => {
         qb.andWhere("item.hidden = FALSE");
-        qb.setParameters({ now: moment.utc().toDate() });
       },
       {
-        // TODO: validation?
-        status: (rule, qb) => {
+        // TODO: add validation errors
+        status: (rule, qb, suffix) => {
           if (rule.operator !== "equal") return;
+
+          const now = "now" + suffix;
 
           if (rule.value === CalloutStatus.Open) {
             qb.andWhere("item.closed = FALSE")
               .andWhere(
                 new Brackets((qb) => {
                   qb.where("item.expires IS NULL").orWhere(
-                    "item.expires > :now"
+                    `item.expires > :${now}`
                   );
                 })
               )
               .andWhere(
                 new Brackets((qb) => {
-                  qb.where("item.starts IS NULL").orWhere("item.starts < :now");
+                  qb.where("item.starts IS NULL").orWhere(
+                    `item.starts < :${now}`
+                  );
                 })
               );
           } else if (rule.value === CalloutStatus.Finished) {
             qb.andWhere(
               new Brackets((qb) => {
-                qb.where("item.starts IS NULL").orWhere("item.starts < :now");
+                qb.where("item.starts IS NULL").orWhere(
+                  `item.starts < :${now}`
+                );
               })
             ).andWhere(
               new Brackets((qb) => {
-                qb.where("item.closed = TRUE").orWhere("item.expires < :now");
+                qb.where("item.closed = TRUE").orWhere(
+                  `item.expires < :${now}`
+                );
               })
             );
           }
+
+          return {
+            now: moment.utc().toDate()
+          };
+        },
+        answeredBy: (rule, qb, suffix) => {
+          if (rule.operator !== "equal") return;
+
+          // TODO: allow admins to filter for other users
+          if (rule.value !== "me" && rule.value !== member.id) return;
+
+          // TODO: deduplicate with hasAnswered
+          const subQb = createQueryBuilder()
+            .subQuery()
+            .select("pr.pollSlug", "slug")
+            .distinctOn(["pr.pollSlug"])
+            .from(PollResponse, "pr")
+            .where(`pr.memberId = :id${suffix}`)
+            .orderBy("pr.pollSlug");
+
+          qb.where("item.slug IN " + subQb.getQuery());
+
+          return {
+            id: member.id
+          };
         }
       }
     );
@@ -92,11 +124,11 @@ export class CalloutController {
       const answeredPolls = await createQueryBuilder(PollResponse, "pr")
         .select("pr.pollSlug", "slug")
         .distinctOn(["pr.pollSlug"])
-        .orderBy("pr.pollSlug")
         .where("pr.pollSlug IN (:...slugs) AND pr.memberId = :id", {
           slugs: results.items.map((item) => item.slug),
           id: member.id
         })
+        .orderBy("pr.pollSlug")
         .getRawMany<{ slug: string }>();
 
       const answeredSlugs = answeredPolls.map((p) => p.slug);
