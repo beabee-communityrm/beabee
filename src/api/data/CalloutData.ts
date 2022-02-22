@@ -10,14 +10,14 @@ import {
   TransformFnParams,
   Type
 } from "class-transformer";
-import { IsEnum, IsIn, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsIn, IsOptional, IsString } from "class-validator";
 
 export enum CalloutStatus {
   Open = "open",
   Finished = "finished"
 }
 
-const fields = ["title"] as const;
+const fields = ["title", "status"] as const;
 const sortFields = ["title", "starts", "expires"] as const;
 
 type Field = typeof fields[number];
@@ -51,10 +51,6 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
 
   @Type(() => GetCalloutsRuleGroup)
   rules?: GetCalloutsRuleGroup;
-
-  @IsOptional()
-  @IsEnum(CalloutStatus)
-  status?: CalloutStatus;
 
   @IsOptional()
   @IsString()

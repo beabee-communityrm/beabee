@@ -3,7 +3,8 @@ import {
   Rule,
   RuleGroup,
   RuleOperator,
-  RuleValue
+  RuleValue,
+  SpecialFields
 } from "@core/utils/newRules";
 import {
   IsArray,
@@ -80,18 +81,21 @@ export async function fetchPaginated<
 >(
   entity: EntityTarget<Entity>,
   query: GetPaginatedQuery<Field, SortField>,
-  fn?: (qb: SelectQueryBuilder<Entity>) => void
+  queryCallback?: (qb: SelectQueryBuilder<Entity>) => void,
+  specialFields?: SpecialFields<Field>
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
 
-  const qb = buildRuleQuery(entity, query.rules).offset(offset).limit(limit);
+  const qb = buildRuleQuery(entity, query.rules, specialFields)
+    .offset(offset)
+    .limit(limit);
   if (query.sort) {
     qb.orderBy({ [query.sort]: query.order || "ASC" });
   }
 
-  if (fn) {
-    fn(qb);
+  if (queryCallback) {
+    queryCallback(qb);
   }
 
   const [items, total] = await qb.getManyAndCount();

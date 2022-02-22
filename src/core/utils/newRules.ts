@@ -42,16 +42,20 @@ export type RuleOperator = keyof typeof operators;
 
 type RichRuleValue = RuleValue | Date;
 
-export interface Rule<Field extends string = string> {
+export interface Rule<Field extends string> {
   field: Field;
   operator: RuleOperator;
   value: RuleValue | RuleValue[];
 }
 
-export interface RuleGroup<Field extends string = string> {
+export interface RuleGroup<Field extends string> {
   condition: "AND" | "OR";
   rules: (Rule<Field> | RuleGroup<Field>)[];
 }
+
+export type SpecialFields<Field extends string> = Partial<
+  Record<Field, (rule: Rule<Field>, qb: WhereExpressionBuilder) => void>
+>;
 
 export function isRuleGroup<Field extends string = string>(
   a: Rule<Field> | RuleGroup<Field>
@@ -79,7 +83,8 @@ function parseValue(value: RuleValue): RichRuleValue {
 
 export function buildRuleQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
-  ruleGroup?: RuleGroup<Field>
+  ruleGroup?: RuleGroup<Field>,
+  specialFields?: SpecialFields<Field>
 ): SelectQueryBuilder<Entity> {
   const params: Record<string, unknown> = {};
   let paramNo = 0;
@@ -99,7 +104,12 @@ export function buildRuleQuery<Entity, Field extends string>(
       }
       const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
 
-      qb.where(`item.${rule.field} ${namedWhere}`);
+      const specialField = specialFields && specialFields[rule.field];
+      if (specialField) {
+        specialField(rule, qb);
+      } else {
+        qb.where(`item.${rule.field} ${namedWhere}`);
+      }
 
       paramNo++;
     };
