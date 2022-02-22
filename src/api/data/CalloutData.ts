@@ -10,7 +10,7 @@ import {
   TransformFnParams,
   Type
 } from "class-transformer";
-import { IsBoolean, IsEnum, IsIn, IsOptional } from "class-validator";
+import { IsEnum, IsIn, IsOptional, IsString } from "class-validator";
 
 export enum CalloutStatus {
   Open = "open",
@@ -18,7 +18,7 @@ export enum CalloutStatus {
 }
 
 const fields = ["title"] as const;
-const sortFields = ["title"] as const;
+const sortFields = ["title", "starts", "expires"] as const;
 
 type Field = typeof fields[number];
 type SortField = typeof sortFields[number];
@@ -57,8 +57,8 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
   status?: CalloutStatus;
 
   @IsOptional()
-  @IsBoolean()
-  answered?: boolean;
+  @IsString()
+  hasAnswered?: string;
 }
 
 export interface GetBasicCalloutData {
@@ -68,6 +68,7 @@ export interface GetBasicCalloutData {
   image?: string;
   starts?: Date;
   expires?: Date;
+  hasAnswered?: boolean;
 }
 
 export interface GetMoreCalloutData extends GetBasicCalloutData {
