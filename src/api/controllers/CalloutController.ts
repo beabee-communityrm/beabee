@@ -4,7 +4,7 @@ import {
   CurrentUser,
   Get,
   JsonController,
-  Params,
+  Param,
   QueryParams
 } from "routing-controllers";
 import { Brackets, createQueryBuilder, getRepository } from "typeorm";
@@ -12,7 +12,6 @@ import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
-import { UUIDParam } from "@api/data";
 import {
   CalloutStatus,
   GetBasicCalloutData,
@@ -146,7 +145,7 @@ export class CalloutController {
 
   @Get("/:id")
   async getCallout(
-    @Params() { id }: UUIDParam
+    @Param("id") id: string
   ): Promise<GetMoreCalloutData | undefined> {
     const poll = await getRepository(Poll).findOne(id);
     if (poll) {
