@@ -56,7 +56,7 @@ export class SegmentController {
               }
             : ruleGroup
         },
-        { withRestricted: true }
+        { withRestricted: true, with: query.with }
       );
     }
   }

@@ -59,8 +59,9 @@ export type SpecialFields<Field extends string> = Partial<
     (
       rule: Rule<Field>,
       qb: WhereExpressionBuilder,
-      suffix: string
-    ) => Record<string, unknown> | undefined
+      suffix: string,
+      namedWhere: string
+    ) => Record<string, unknown> | undefined | void
   >
 >;
 
@@ -113,7 +114,7 @@ export function buildRuleQuery<Entity, Field extends string>(
 
       const specialField = specialFields && specialFields[rule.field];
       if (specialField) {
-        const specialRuleParams = specialField(rule, qb, suffix);
+        const specialRuleParams = specialField(rule, qb, suffix, namedWhere);
         if (specialRuleParams) {
           for (const paramKey in specialRuleParams) {
             params[paramKey + suffix] = specialRuleParams[paramKey];

@@ -78,8 +78,31 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
-const fields = ["firstname", "lastname", "email"] as const;
-const sortFields = ["firstname", "email", "joined"] as const;
+const fields = [
+  "firstname",
+  "lastname",
+  "email",
+  "joined",
+  "lastSeen",
+  "contributionType",
+  "contributionMonthlyAmount",
+  "contributionPeriod",
+  // Special fields
+  "deliveryOptIn",
+  "newsletterStatus",
+  "activePermission",
+  "activeMembership",
+  "membershipExpires",
+  "tags"
+] as const;
+const sortFields = [
+  "firstname",
+  "lastname",
+  "email",
+  "joined",
+  "lastSeen",
+  "contributionMonthlyAmount"
+] as const;
 
 type Field = typeof fields[number];
 type SortField = typeof sortFields[number];
