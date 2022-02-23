@@ -38,21 +38,29 @@ export function memberToData(
       contributionPeriod: member.contributionPeriod
     }),
     activeRoles,
-    ...(member.profile && {
-      profile: {
-        telephone: member.profile.telephone,
-        twitter: member.profile.twitter,
-        preferredContact: member.profile.preferredContact,
-        deliveryOptIn: member.profile.deliveryOptIn,
-        deliveryAddress: member.profile.deliveryAddress,
-        newsletterStatus: member.profile.newsletterStatus,
-        newsletterGroups: member.profile.newsletterGroups,
-        ...(opts.withRestricted && {
-          tags: member.profile.tags,
-          notes: member.profile.notes,
-          description: member.profile.description
-        })
-      }
+    ...(opts.with?.includes(GetMemberWith.Profile) &&
+      member.profile && {
+        profile: {
+          telephone: member.profile.telephone,
+          twitter: member.profile.twitter,
+          preferredContact: member.profile.preferredContact,
+          deliveryOptIn: member.profile.deliveryOptIn,
+          deliveryAddress: member.profile.deliveryAddress,
+          newsletterStatus: member.profile.newsletterStatus,
+          newsletterGroups: member.profile.newsletterGroups,
+          ...(opts.withRestricted && {
+            tags: member.profile.tags,
+            notes: member.profile.notes,
+            description: member.profile.description
+          })
+        }
+      }),
+    ...(opts.with?.includes(GetMemberWith.Roles) && {
+      roles: member.permissions.map((p) => ({
+        role: p.permission,
+        dateAdded: p.dateAdded,
+        dateExpires: p.dateExpires
+      }))
     })
   };
 }

@@ -8,7 +8,7 @@ import { NewsletterStatus } from "@core/providers/newsletter";
 import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import { isRuleGroup } from "@core/utils/newRules";
 import Address from "@models/Address";
-import MemberPermission, { PermissionType } from "@models/MemberPermission";
+import { PermissionType } from "@models/MemberPermission";
 import {
   plainToClass,
   Transform,
@@ -48,6 +48,12 @@ interface MemberProfileData {
   description?: string;
 }
 
+interface MemberRoleData {
+  role: PermissionType;
+  dateAdded: Date;
+  dateExpires: Date | null;
+}
+
 export interface GetMemberData extends MemberData {
   id: string;
   joined: Date;
@@ -56,7 +62,7 @@ export interface GetMemberData extends MemberData {
   contributionPeriod?: ContributionPeriod;
   activeRoles: PermissionType[];
   profile?: MemberProfileData;
-  roles?: MemberPermission[];
+  roles?: MemberRoleData[];
   contribution?: ContributionInfo;
 }
 

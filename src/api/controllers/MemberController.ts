@@ -110,10 +110,16 @@ export class MemberController {
         member: target
       });
     }
-    return memberToData(target, {
+    const data = memberToData(target, {
       with: query.with,
       withRestricted: member.hasPermission("admin")
     });
+    return {
+      ...data,
+      ...(query.with?.includes(GetMemberWith.Contribution) && {
+        contribution: await PaymentService.getContributionInfo(target)
+      })
+    };
   }
 
   @Patch("/:id")
