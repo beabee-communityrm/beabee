@@ -73,6 +73,7 @@ export default class Poll {
   @Column({ nullable: true })
   responsePassword?: string;
 
+  hasAnswered?: boolean;
   responseCount?: number;
 
   get active(): boolean {

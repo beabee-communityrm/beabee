@@ -1,6 +1,11 @@
 import { UUIDParam } from "@api/data";
-import { GetMembersData, GetMembersQuery } from "@api/data/MemberData";
+import {
+  GetMemberData,
+  GetMembersQuery,
+  GetMembersRuleGroup
+} from "@api/data/MemberData";
 import { fetchPaginatedMembers } from "@api/utils/members";
+import { Paginated } from "@api/utils/pagination";
 import SegmentService from "@core/services/SegmentService";
 import Segment from "@models/Segment";
 import {
@@ -37,18 +42,19 @@ export class SegmentController {
   async getSegmentMembers(
     @Params() { id }: UUIDParam,
     @QueryParams() query: GetMembersQuery
-  ): Promise<GetMembersData | undefined> {
+  ): Promise<Paginated<GetMemberData> | undefined> {
     const segment = await getRepository(Segment).findOne(id);
     if (segment) {
+      const ruleGroup = segment.ruleGroup as GetMembersRuleGroup;
       return await fetchPaginatedMembers(
         {
           ...query,
           rules: query.rules
             ? {
                 condition: "AND",
-                rules: [segment.ruleGroup, query.rules]
+                rules: [ruleGroup, query.rules]
               }
-            : segment.ruleGroup
+            : ruleGroup
         },
         { withRestricted: true }
       );

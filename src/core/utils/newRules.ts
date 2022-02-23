@@ -2,13 +2,10 @@ import moment, { DurationInputArg2 } from "moment";
 import {
   Brackets,
   createQueryBuilder,
+  EntityTarget,
   SelectQueryBuilder,
   WhereExpressionBuilder
 } from "typeorm";
-
-import Member from "@models/Member";
-import MemberProfile from "@models/MemberProfile";
-import MemberPermission from "@models/MemberPermission";
 
 const operators = {
   equal: (v: RichRuleValue[]) => ["= :a", { a: v[0] }] as const,
@@ -40,42 +37,36 @@ const operators = {
   contains_jsonb: (v: RichRuleValue[]) => ["? :a", { a: v[0] }] as const
 } as const;
 
-const memberFields = [
-  "id",
-  "firstname",
-  "lastname",
-  "email",
-  "joined",
-  "lastSeen",
-  "contributionType",
-  "contributionMonthlyAmount",
-  "contributionPeriod"
-] as const;
+export type RuleValue = string | number | boolean;
+export type RuleOperator = keyof typeof operators;
 
-const profileFields = ["deliveryOptIn", "tags", "newsletterStatus"] as const;
-
-const complexFields = [
-  "activeMembership",
-  "activePermission",
-  "membershipExpires"
-] as const;
-
-type RuleValue = string | number | boolean;
 type RichRuleValue = RuleValue | Date;
-type RuleOperator = keyof typeof operators;
 
-interface Rule {
-  field: string;
+export interface Rule<Field extends string> {
+  field: Field;
   operator: RuleOperator;
   value: RuleValue | RuleValue[];
 }
 
-export interface RuleGroup {
+export interface RuleGroup<Field extends string> {
   condition: "AND" | "OR";
-  rules: (Rule | RuleGroup)[];
+  rules: (Rule<Field> | RuleGroup<Field>)[];
 }
 
-function isRuleGroup(a: Rule | RuleGroup): a is RuleGroup {
+export type SpecialFields<Field extends string> = Partial<
+  Record<
+    Field,
+    (
+      rule: Rule<Field>,
+      qb: WhereExpressionBuilder,
+      suffix: string
+    ) => Record<string, unknown> | undefined
+  >
+>;
+
+export function isRuleGroup<Field extends string = string>(
+  a: Rule<Field> | RuleGroup<Field>
+): a is RuleGroup<Field> {
   return "condition" in a;
 }
 
@@ -97,19 +88,18 @@ function parseValue(value: RuleValue): RichRuleValue {
   }
 }
 
-function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
+export function buildRuleQuery<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  ruleGroup?: RuleGroup<Field>,
+  specialFields?: SpecialFields<Field>
+): SelectQueryBuilder<Entity> {
   const params: Record<string, unknown> = {};
   let paramNo = 0;
 
-  function parseRule(rule: Rule) {
+  function parseRule(rule: Rule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
       const values = Array.isArray(rule.value) ? rule.value : [rule.value];
       const parsedValues = values.map(parseValue);
-
-      // Special case where tags are in a JSON array
-      if (rule.field === "tags") {
-        rule.operator = "contains_jsonb";
-      }
 
       const [where, ruleParams] = operators[rule.operator](parsedValues);
 
@@ -121,64 +111,23 @@ function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
       }
       const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
 
-      if (rule.field === "membershipExpires") {
-        const table = "mp" + suffix;
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`${table}.memberId`)
-          .from(MemberPermission, table)
-          .where(
-            `${table}.permission = 'member' AND ${table}.dateExpires ${namedWhere}`
-          );
-        qb.where("id IN " + subQb.getQuery());
-      } else if (
-        rule.field === "activeMembership" ||
-        rule.field === "activePermission"
-      ) {
-        const table = "mp" + suffix;
-        params["now" + suffix] = parseValue("$now");
-
-        const permission =
-          rule.field === "activeMembership" ? "member" : rule.value;
-
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`${table}.memberId`)
-          .from(MemberPermission, table)
-          .where(
-            `${table}.permission = '${permission}' AND ${table}.dateAdded <= :now${suffix}`
-          )
-          .andWhere(
-            new Brackets((qb) => {
-              qb.where(`${table}.dateExpires IS NULL`).orWhere(
-                `${table}.dateExpires > :now${suffix}`
-              );
-            })
-          );
-
-        if (rule.field === "activePermission" || rule.value === true) {
-          qb.where("id IN " + subQb.getQuery());
-        } else {
-          qb.where("id NOT IN " + subQb.getQuery());
+      const specialField = specialFields && specialFields[rule.field];
+      if (specialField) {
+        const specialRuleParams = specialField(rule, qb, suffix);
+        if (specialRuleParams) {
+          for (const paramKey in specialRuleParams) {
+            params[paramKey + suffix] = specialRuleParams[paramKey];
+          }
         }
-      } else if (memberFields.indexOf(rule.field as any) > -1) {
-        qb.where(`m.${rule.field} ${namedWhere}`);
-      } else if (profileFields.indexOf(rule.field as any) > -1) {
-        const table = "profile" + suffix;
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`${table}.memberId`)
-          .from(MemberProfile, table)
-          .where(`${table}.${rule.field} ${namedWhere}`);
-
-        qb.where("id IN " + subQb.getQuery());
+      } else {
+        qb.where(`item.${rule.field} ${namedWhere}`);
       }
 
       paramNo++;
     };
   }
 
-  function parseRuleGroup(ruleGroup: RuleGroup) {
+  function parseRuleGroup(ruleGroup: RuleGroup<Field>) {
     return (qb: WhereExpressionBuilder): void => {
       qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
       const conditionFn =
@@ -195,15 +144,10 @@ function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
     };
   }
 
-  parseRuleGroup(ruleGroup)(qb);
-
-  qb.setParameters(params);
+  const qb = createQueryBuilder(entity, "item");
+  if (ruleGroup) {
+    const where = new Brackets(parseRuleGroup(ruleGroup));
+    qb.where(where).setParameters(params);
+  }
   return qb;
-}
-
-export function buildQuery(ruleGroup?: RuleGroup): SelectQueryBuilder<Member> {
-  const qb = createQueryBuilder(Member, "m");
-  qb.leftJoinAndSelect("m.permissions", "mp");
-  qb.innerJoinAndSelect("m.profile", "profile");
-  return ruleGroup ? buildRuleQuery(qb, ruleGroup) : qb;
 }

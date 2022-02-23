@@ -1,15 +1,12 @@
+import {
+  GetPaginatedQuery,
+  GetPaginatedRule,
+  GetPaginatedRuleGroup
+} from "@api/utils/pagination";
 import IsPassword from "@api/validators/IsPassword";
 import { NewsletterStatus } from "@core/providers/newsletter";
 import { ContributionInfo, ContributionPeriod } from "@core/utils";
-import {
-  Rule,
-  RuleGroup,
-  RuleField,
-  RuleOperator,
-  RuleValue,
-  isRuleGroup,
-  ruleFields
-} from "@core/utils/rules";
+import { isRuleGroup } from "@core/utils/newRules";
 import Address from "@models/Address";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 import {
@@ -19,7 +16,6 @@ import {
   Type
 } from "class-transformer";
 import {
-  IsArray,
   IsBoolean,
   IsDefined,
   IsEmail,
@@ -27,8 +23,6 @@ import {
   IsIn,
   IsOptional,
   IsString,
-  Max,
-  Min,
   Validate,
   ValidateNested
 } from "class-validator";
@@ -78,69 +72,44 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
+const fields = ["firstname", "lastname", "email"] as const;
+const sortFields = ["firstname", "email", "joined"] as const;
+
+type Field = typeof fields[number];
+type SortField = typeof sortFields[number];
+
 function transformRules({
   value
-}: TransformFnParams): GetMembersQueryRule | GetMembersQueryRuleGroup {
+}: TransformFnParams): GetMembersRuleGroup | GetMembersRule {
   return value.map((v: any) => {
-    if (isRuleGroup(v)) {
-      return plainToClass(GetMembersQueryRuleGroup, v);
+    if (isRuleGroup<Field>(v)) {
+      return plainToClass(GetMembersRuleGroup, v);
     } else {
-      return plainToClass(GetMembersQueryRule, v);
+      return plainToClass(GetMembersRule, v);
     }
   });
 }
 
-class GetMembersQueryRule implements Rule {
-  @IsIn(ruleFields)
-  field!: RuleField;
-
-  // TODO: Enforce proper validation
-  @IsString()
-  operator!: RuleOperator;
-
-  @IsString()
-  value!: RuleValue | RuleValue[];
+class GetMembersRule extends GetPaginatedRule<Field> {
+  @IsIn(fields)
+  field!: Field;
 }
 
-class GetMembersQueryRuleGroup implements RuleGroup {
-  @IsIn(["AND", "OR"])
-  condition!: "AND" | "OR";
-
-  @IsArray()
-  @ValidateNested()
+export class GetMembersRuleGroup extends GetPaginatedRuleGroup<Field> {
   @Transform(transformRules)
-  rules!: (GetMembersQueryRuleGroup | GetMembersQueryRule)[];
+  rules!: (GetMembersRuleGroup | GetMembersRule)[];
 }
 
-export class GetMembersQuery extends GetMemberQuery {
-  @IsOptional()
-  @Min(1)
-  @Max(100)
-  limit?: number;
+export class GetMembersQuery extends GetPaginatedQuery<Field, SortField> {
+  @IsIn(sortFields)
+  sort?: SortField;
+
+  @Type(() => GetMembersRuleGroup)
+  rules?: GetMembersRuleGroup;
 
   @IsOptional()
-  @Min(0)
-  offset?: number;
-
-  @IsOptional()
-  @IsIn(["firstname", "email", "joined"])
-  sort?: "firstname" | "email" | "joined";
-
-  @IsOptional()
-  @IsIn(["ASC", "DESC"])
-  order?: "ASC" | "DESC";
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => GetMembersQueryRuleGroup)
-  rules?: GetMembersQueryRuleGroup;
-}
-
-export interface GetMembersData {
-  items: GetMemberData[];
-  offset: number;
-  count: number;
-  total: number;
+  @IsEnum(GetMemberWith, { each: true })
+  with?: GetMemberWith[];
 }
 
 class UpdateAddressData implements Address {

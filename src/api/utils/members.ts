@@ -6,7 +6,7 @@ import {
 } from "@api/data/MemberData";
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
-import { buildRuleQuery } from "@core/utils/rules";
+import { fetchPaginated, Paginated } from "./pagination";
 
 interface MemberToDataOpts {
   with?: GetMemberWith[] | undefined;
@@ -60,39 +60,31 @@ export function memberToData(
 export async function fetchPaginatedMembers(
   query: GetMembersQuery,
   opts: MemberToDataOpts
-) {
-  const limit = query.limit || 50;
-  const offset = query.offset || 0;
+): Promise<Paginated<GetMemberData>> {
+  const results = await fetchPaginated(Member, query, (qb) => {
+    if (query.with?.includes(GetMemberWith.Profile)) {
+      qb.innerJoinAndSelect("item.profile", "profile");
+    }
 
-  const qb = createQueryBuilder(Member, "m");
-  if (query.rules) {
-    buildRuleQuery(qb, query.rules);
-  }
-  if (query.with?.includes(GetMemberWith.Profile)) {
-    qb.innerJoinAndSelect("m.profile", "profile");
-  }
+    // Put empty names at the bottom
+    qb.addSelect("NULLIF(item.firstname, '')", "firstname");
+    if (query.sort !== "firstname") {
+      qb.addOrderBy("firstname", "ASC");
+    }
 
-  const [targets, total] = await qb
-    // Force empty names to be last
-    .addSelect("NULLIF(m.firstname, '')", "firstname")
-    .orderBy({
-      [query.sort || "firstname"]: query.order || "ASC",
-      // Put empty names at the bottom
-      ...(query.sort !== "firstname" && { firstname: "ASC" }),
-      // Always sort by ID to ensure predictable offset and limit
-      "m.id": "ASC"
-    })
-    .offset(offset)
-    .limit(limit)
-    .getManyAndCount();
+    // Always sort by ID to ensure predictable offset and limit
+    qb.addOrderBy("item.id", "ASC");
+  });
 
-  if (targets.length > 0) {
+  if (results.items.length > 0) {
     // Load permissions after to ensure offset/limit work
     const permissions = await createQueryBuilder(MemberPermission, "mp")
-      .where("mp.memberId IN (:...ids)", { ids: targets.map((t) => t.id) })
+      .where("mp.memberId IN (:...ids)", {
+        ids: results.items.map((t) => t.id)
+      })
       .loadAllRelationIds()
       .getMany();
-    for (const target of targets) {
+    for (const target of results.items) {
       target.permissions = permissions.filter(
         (p) => (p.member as any) === target.id
       );
@@ -100,9 +92,7 @@ export async function fetchPaginatedMembers(
   }
 
   return {
-    total,
-    offset,
-    count: targets.length,
-    items: targets.map((target) => memberToData(target, opts))
+    ...results,
+    items: results.items.map((target) => memberToData(target, opts))
   };
 }

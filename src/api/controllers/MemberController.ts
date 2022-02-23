@@ -31,7 +31,6 @@ import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
-  GetMembersData,
   GetMembersQuery,
   GetMemberWith,
   UpdateMemberData
@@ -50,6 +49,7 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
 import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
+import { Paginated } from "@api/utils/pagination";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -92,7 +92,7 @@ export class MemberController {
   @Get("/")
   async getMembers(
     @QueryParams() query: GetMembersQuery
-  ): Promise<GetMembersData> {
+  ): Promise<Paginated<GetMemberData>> {
     return await fetchPaginatedMembers(query, {
       with: query.with,
       withRestricted: true
