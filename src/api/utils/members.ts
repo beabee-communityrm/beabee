@@ -137,7 +137,7 @@ export async function fetchPaginatedMembers(
       qb.addSelect("NULLIF(item.firstname, '')", "firstname");
       if (query.sort === "firstname") {
         // Override "item.firstname"
-        qb.orderBy("firstname", "ASC");
+        qb.orderBy("firstname", query.order || "ASC");
       } else {
         qb.addOrderBy("firstname", "ASC");
       }
