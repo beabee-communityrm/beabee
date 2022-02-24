@@ -1,20 +1,15 @@
 import {
   GetPaginatedQuery,
   GetPaginatedRule,
-  GetPaginatedRuleGroup
+  GetPaginatedRuleGroup,
+  transformRules
 } from "@api/utils/pagination";
 import IsPassword from "@api/validators/IsPassword";
 import { NewsletterStatus } from "@core/providers/newsletter";
 import { ContributionInfo, ContributionPeriod } from "@core/utils";
-import { isRuleGroup } from "@core/utils/newRules";
 import Address from "@models/Address";
 import { PermissionType } from "@models/MemberPermission";
-import {
-  plainToClass,
-  Transform,
-  TransformFnParams,
-  Type
-} from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
   IsDefined,
@@ -78,7 +73,7 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
-const fields = [
+const memberFields = [
   "firstname",
   "lastname",
   "email",
@@ -95,7 +90,7 @@ const fields = [
   "membershipExpires",
   "tags"
 ] as const;
-const sortFields = [
+const memberSortFields = [
   "firstname",
   "lastname",
   "email",
@@ -104,34 +99,25 @@ const sortFields = [
   "contributionMonthlyAmount"
 ] as const;
 
-type Field = typeof fields[number];
-type SortField = typeof sortFields[number];
+type MemberField = typeof memberFields[number];
+type MemberSortField = typeof memberSortFields[number];
 
-function transformRules({
-  value
-}: TransformFnParams): GetMembersRuleGroup | GetMembersRule {
-  return value.map((v: any) => {
-    if (isRuleGroup<Field>(v)) {
-      return plainToClass(GetMembersRuleGroup, v);
-    } else {
-      return plainToClass(GetMembersRule, v);
-    }
-  });
+class GetMembersRule extends GetPaginatedRule<MemberField> {
+  @IsIn(memberFields)
+  field!: MemberField;
 }
 
-class GetMembersRule extends GetPaginatedRule<Field> {
-  @IsIn(fields)
-  field!: Field;
-}
-
-export class GetMembersRuleGroup extends GetPaginatedRuleGroup<Field> {
-  @Transform(transformRules)
+export class GetMembersRuleGroup extends GetPaginatedRuleGroup<MemberField> {
+  @Transform(transformRules(GetMembersRuleGroup, GetMembersRule))
   rules!: (GetMembersRuleGroup | GetMembersRule)[];
 }
 
-export class GetMembersQuery extends GetPaginatedQuery<Field, SortField> {
-  @IsIn(sortFields)
-  sort?: SortField;
+export class GetMembersQuery extends GetPaginatedQuery<
+  MemberField,
+  MemberSortField
+> {
+  @IsIn(memberSortFields)
+  sort?: MemberSortField;
 
   @Type(() => GetMembersRuleGroup)
   rules?: GetMembersRuleGroup;
