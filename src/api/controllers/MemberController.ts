@@ -33,6 +33,8 @@ import {
   GetMemberQuery,
   GetMembersQuery,
   GetMemberWith,
+  GetPaymentData,
+  GetPaymentsQuery,
   UpdateMemberData
 } from "@api/data/MemberData";
 import {
@@ -49,7 +51,8 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
 import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
-import { Paginated } from "@api/utils/pagination";
+import { fetchPaginated, Paginated } from "@api/utils/pagination";
+import GCPayment from "@models/GCPayment";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -210,6 +213,24 @@ export class MemberController {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
     await PaymentService.updateContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
+  }
+
+  @Get("/:id/payment")
+  async getPayments(
+    @TargetUser() target: Member,
+    @QueryParams() query: GetPaymentsQuery
+  ): Promise<Paginated<GetPaymentData>> {
+    const data = await fetchPaginated(GCPayment, query, (qb) =>
+      qb.andWhere("item.memberId = :id", { id: target.id })
+    );
+    return {
+      ...data,
+      items: data.items.map((item) => ({
+        amount: item.amount,
+        chargeDate: item.chargeDate,
+        status: item.status
+      }))
+    };
   }
 
   @Put("/:id/payment-source")

@@ -1,11 +1,17 @@
 import {
   buildRuleQuery,
+  isRuleGroup,
   Rule,
   RuleGroup,
   RuleOperator,
   RuleValue,
   SpecialFields
 } from "@core/utils/newRules";
+import {
+  ClassConstructor,
+  plainToClass,
+  TransformFnParams
+} from "class-transformer";
 import {
   IsArray,
   IsIn,
@@ -72,6 +78,18 @@ export abstract class GetPaginatedQuery<
   @IsOptional()
   @ValidateNested()
   rules?: GetPaginatedRuleGroup<Field>;
+}
+
+export function transformRules<
+  F extends string,
+  RG extends GetPaginatedRuleGroup<F>,
+  R extends GetPaginatedRule<F>
+>(RuleGroup: ClassConstructor<RG>, Rule: ClassConstructor<R>) {
+  return ({ value }: TransformFnParams): RG | R => {
+    return value.map((v: RG | R) =>
+      plainToClass<RG | R, unknown>(isRuleGroup<F>(v) ? RuleGroup : Rule, v)
+    );
+  };
 }
 
 export async function fetchPaginated<
