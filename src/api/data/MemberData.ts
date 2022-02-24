@@ -195,3 +195,36 @@ export class UpdateMemberData implements Partial<MemberData> {
   @Type(() => UpdateMemberProfileData)
   profile?: UpdateMemberProfileData;
 }
+
+export interface GetPaymentData {
+  status: string;
+  amount: number;
+  chargeDate: Date;
+}
+
+const paymentFields = ["chargeDate"] as const;
+const paymentSortFields = ["amount", "chargeDate"] as const;
+
+type PaymentField = typeof paymentFields[number];
+type PaymentSortField = typeof paymentSortFields[number];
+
+class GetPaymentsRule extends GetPaginatedRule<PaymentField> {
+  @IsIn(paymentFields)
+  field!: PaymentField;
+}
+
+class GetPaymentRuleGroup extends GetPaginatedRuleGroup<PaymentField> {
+  @Transform(transformRules(GetPaymentRuleGroup, GetPaymentsRule))
+  rules!: (GetPaymentRuleGroup | GetPaymentsRule)[];
+}
+
+export class GetPaymentsQuery extends GetPaginatedQuery<
+  PaymentField,
+  PaymentSortField
+> {
+  @IsIn(paymentSortFields)
+  sort?: PaymentSortField;
+
+  @Type(() => GetPaymentRuleGroup)
+  rules?: GetPaymentRuleGroup;
+}
