@@ -189,8 +189,6 @@ class QueryBuilder {
           .from(GCPaymentData, table)
           .where(`${table}.cancelledAt ${namedWhere}`);
 
-        console.log(subQb.getSql());
-
         qb.where("id IN " + subQb.getQuery());
       } else if (memberFields.indexOf(rule.field as any) > -1) {
         qb.where(`m.${rule.field} ${namedWhere}`);
