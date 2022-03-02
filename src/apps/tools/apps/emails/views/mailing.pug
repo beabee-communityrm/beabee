@@ -103,8 +103,10 @@ block contents
 block append js
 	script.
 		var mailing = {
-			emailBodyTemplate: !{JSON.stringify(email.bodyInline)},
 			recipients: !{JSON.stringify(mailing.recipients.slice(0, 10))},
 			mergeFields: !{JSON.stringify(mergeFields)}
 		};
+
+	script(type='text/template').js-email-template
+		!= emailBody
 	script(src='/static/js/mailing.js?v=' + git)
