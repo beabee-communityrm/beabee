@@ -13,6 +13,7 @@ const extraContent = {
     supportEmail: OptionsService.getText("support-email"),
     privacyLink: OptionsService.getText("footer-privacy-link-url"),
     termsLink: OptionsService.getText("footer-terms-link-url"),
+    impressumLink: OptionsService.getText("footer-impressum-link-url"),
     currencyCode: config.currencyCode
   }),
   join: () => ({
