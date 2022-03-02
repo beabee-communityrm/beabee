@@ -25,7 +25,7 @@
       "@apps/*": ["./src/apps/*"],
       "@api/*": ["./src/api/*"],
       "@config": ["./src/config/config"],
-      "@locale": ["./src/locales/_current.json"],
+      "@locale": ["./src/locales/current"],
       "@models/*": ["./src/models/*"]
     },
     "resolveJsonModule": true,

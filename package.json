@@ -137,7 +137,7 @@
     "@api": "./built/api",
     "@apps": "./built/apps",
     "@config": "./built/config/config.js",
-    "@locale": "./built/locales/_current.json",
+    "@locale": "./built/locales/current.js",
     "@models": "./built/models"
   }
 }
