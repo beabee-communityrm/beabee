@@ -6,6 +6,7 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import { hasNewModel, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
+import { formatEmailBody } from "@core/utils/email";
 
 import EmailService from "@core/services/EmailService";
 import OptionsService from "@core/services/OptionsService";
@@ -188,6 +189,7 @@ app.get(
     );
     res.render("mailing", {
       email,
+      emailBody: formatEmailBody(email.body),
       mailing,
       mergeFields,
       headers: Object.keys(mailing.recipients[0]),

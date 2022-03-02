@@ -3,6 +3,7 @@ import Mail from "nodemailer/lib/mailer";
 import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
+import { formatEmailBody } from "@core/utils/email";
 
 import Email from "@models/Email";
 
@@ -38,7 +39,7 @@ export default class SMTPProvider implements EmailProvider {
             "" + recipient.mergeFields![field]
           );
         },
-        email.bodyInline
+        formatEmailBody(email.body)
       );
 
       await this.client.sendMail({
