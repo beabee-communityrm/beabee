@@ -48,6 +48,9 @@ export interface GetBasicCalloutData {
   image?: string;
   starts?: Date;
   expires?: Date;
+  allowUpdate: boolean;
+  allowMultiple: boolean;
+  status: CalloutStatus;
   hasAnswered?: boolean;
 }
 
