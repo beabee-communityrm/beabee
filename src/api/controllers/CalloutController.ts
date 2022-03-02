@@ -167,13 +167,25 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    const results = await fetchPaginated(PollResponse, query, (qb) => {
-      qb.andWhere("item.poll = :slug", { slug }).loadAllRelationIds();
+    const results = await fetchPaginated(
+      PollResponse,
+      query,
+      (qb) => {
+        qb.andWhere("item.poll = :slug", { slug }).loadAllRelationIds();
 
-      if (!member.hasPermission("admin")) {
-        qb.andWhere("item.member = :id", { id: member.id });
+        if (!member.hasPermission("admin")) {
+          qb.andWhere("item.member = :id", { id: member.id });
+        }
+      },
+      {
+        member: (rule, qb, suffix, namedWhere) => {
+          qb.where(`item.member ${namedWhere}`);
+          if (rule.value === "me") {
+            return { a: member.id };
+          }
+        }
       }
-    });
+    );
 
     return {
       ...results,
