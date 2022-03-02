@@ -4,6 +4,7 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
 import { IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
 
@@ -56,4 +57,40 @@ export interface GetBasicCalloutData {
 
 export interface GetMoreCalloutData extends GetBasicCalloutData {
   templateSchema?: Record<string, unknown>;
+}
+
+const responseFields = ["member"] as const;
+const responseSortFields = ["createdAt", "updatedAt"] as const;
+
+type ResponseField = typeof responseFields[number];
+type ResponseSortField = typeof responseSortFields[number];
+
+class GetCalloutResponsesRule extends GetPaginatedRule<ResponseField> {
+  @IsIn(responseFields)
+  field!: ResponseField;
+}
+
+class GetCalloutResponsesRuleGroup extends GetPaginatedRuleGroup<ResponseField> {
+  @Transform(
+    transformRules(GetCalloutResponsesRuleGroup, GetCalloutResponsesRule)
+  )
+  rules!: (GetCalloutResponsesRuleGroup | GetCalloutResponsesRule)[];
+}
+
+export class GetCalloutResponsesQuery extends GetPaginatedQuery<
+  ResponseField,
+  ResponseSortField
+> {
+  @IsIn(responseSortFields)
+  sort?: ResponseSortField;
+
+  @Type(() => GetCalloutResponsesRuleGroup)
+  rules?: GetCalloutResponsesRuleGroup;
+}
+
+export interface GetCalloutResponseData {
+  member: string;
+  answers: PollResponseAnswers;
+  createdAt: Date;
+  updatedAt: Date;
 }

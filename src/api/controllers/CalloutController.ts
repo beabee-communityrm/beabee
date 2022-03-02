@@ -15,6 +15,8 @@ import PollResponse from "@models/PollResponse";
 import {
   CalloutStatus,
   GetBasicCalloutData,
+  GetCalloutResponseData,
+  GetCalloutResponsesQuery,
   GetCalloutsQuery,
   GetMoreCalloutData
 } from "@api/data/CalloutData";
@@ -154,5 +156,30 @@ export class CalloutController {
         templateSchema: poll.templateSchema
       };
     }
+  }
+
+  @Get("/:slug/responses")
+  async getCalloutResponses(
+    @CurrentUser() member: Member,
+    @Param("slug") slug: string,
+    @QueryParams() query: GetCalloutResponsesQuery
+  ): Promise<Paginated<GetCalloutResponseData>> {
+    const results = await fetchPaginated(PollResponse, query, (qb) => {
+      qb.andWhere("item.poll = :slug", { slug }).loadAllRelationIds();
+
+      if (!member.hasPermission("admin")) {
+        qb.andWhere("item.member = :id", { id: member.id });
+      }
+    });
+
+    return {
+      ...results,
+      items: results.items.map((item) => ({
+        member: item.member as unknown as string, // TODO: fix typing
+        answers: item.answers,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt
+      }))
+    };
   }
 }
