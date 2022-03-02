@@ -6,7 +6,7 @@ import {
 } from "@api/utils/pagination";
 import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
+import { IsIn, IsOptional, IsString } from "class-validator";
 
 export enum CalloutStatus {
   Open = "open",
@@ -39,10 +39,6 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
   @IsOptional()
   @IsString()
   hasAnswered?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  onlyHasAnswered?: boolean;
 }
 
 export interface GetBasicCalloutData {

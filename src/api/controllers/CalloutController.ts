@@ -145,11 +145,11 @@ export class CalloutController {
     };
   }
 
-  @Get("/:id")
+  @Get("/:slug")
   async getCallout(
-    @Param("id") id: string
+    @Param("slug") slug: string
   ): Promise<GetMoreCalloutData | undefined> {
-    const poll = await getRepository(Poll).findOne(id);
+    const poll = await getRepository(Poll).findOne(slug);
     if (poll) {
       return {
         ...pollToBasicCallout(poll),
