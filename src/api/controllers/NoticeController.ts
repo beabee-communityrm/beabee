@@ -57,17 +57,15 @@ export class NoticeController {
         const now = "now" + suffix;
 
         if (rule.value === NoticeStatus.Open) {
-          qb.where("notice.enabled = TRUE").andWhere(
+          qb.where("item.enabled = TRUE").andWhere(
             new Brackets((qb) => {
-              qb.where("notice.expires IS NULL").orWhere(
-                `notice.expires > :${now}`
+              qb.where("item.expires IS NULL").orWhere(
+                `item.expires > :${now}`
               );
             })
           );
         } else if (rule.value === NoticeStatus.Finished) {
-          qb.where("notice.enabled = FALSE").orWhere(
-            `notice.expires < :${now}`
-          );
+          qb.where("item.enabled = FALSE").orWhere(`item.expires < :${now}`);
         }
 
         return {
