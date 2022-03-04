@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.13
-      - run: npm ci
+      - run: npm install dpdm
       - run: npm run checkDependencies
       - run: npx prettier --check .
 
