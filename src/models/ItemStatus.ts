@@ -50,14 +50,17 @@ export function ruleAsQuery<Field extends string>(
       break;
     case ItemStatus.Scheduled:
       qb.andWhere(`item.starts > :${now}`);
+      break;
     case ItemStatus.Open:
       qb.andWhere(`item.starts < :${now}`).andWhere(
         new Brackets((qb) => {
           qb.where("item.expires IS NULL").orWhere(`item.expires > :${now}`);
         })
       );
+      break;
     case ItemStatus.Ended:
       qb.andWhere(`item.starts < :${now}`).andWhere(`item.expires < :${now}`);
+      break;
   }
 
   return {
