@@ -4,14 +4,10 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import ItemStatus from "@models/ItemStatus";
 import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
 import { IsIn, IsOptional, IsString } from "class-validator";
-
-export enum CalloutStatus {
-  Open = "open",
-  Finished = "finished"
-}
 
 const fields = ["title", "status", "answeredBy"] as const;
 const sortFields = ["title", "starts", "expires"] as const;
@@ -50,7 +46,7 @@ export interface GetBasicCalloutData {
   expires?: Date;
   allowUpdate: boolean;
   allowMultiple: boolean;
-  status: CalloutStatus;
+  status: ItemStatus;
   hasAnswered?: boolean;
 }
 
