@@ -54,6 +54,7 @@ export interface GetBasicCalloutData {
   allowUpdate: boolean;
   allowMultiple: boolean;
   status: ItemStatus;
+  access: "member" | "guest" | "anonymous" | "only-anonymous";
   hasAnswered?: boolean;
 }
 
