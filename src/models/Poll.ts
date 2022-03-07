@@ -37,8 +37,8 @@ export default class Poll extends ItemWithStatus {
   @Column()
   excerpt!: string;
 
-  @Column({ type: String, nullable: true })
-  image!: string | null;
+  @Column({ type: String })
+  image!: string;
 
   @Column({ type: String, nullable: true })
   mcMergeField!: string | null;
