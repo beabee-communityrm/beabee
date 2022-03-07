@@ -13,7 +13,7 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { Brackets, createQueryBuilder, getRepository } from "typeorm";
+import { Brackets, getRepository } from "typeorm";
 
 import Notice from "@models/Notice";
 import Member from "@models/Member";
@@ -26,6 +26,7 @@ import {
   NoticeStatus
 } from "@api/data/NoticeData";
 import PartialBody from "@api/decorators/PartialBody";
+import { fetchPaginated, Paginated } from "@api/utils/pagination";
 
 @JsonController("/notice")
 @Authorized()
@@ -34,22 +35,49 @@ export class NoticeController {
   async getNotices(
     @CurrentUser() member: Member,
     @QueryParams() query: GetNoticesQuery
-  ): Promise<GetNoticeData[]> {
-    const qb = createQueryBuilder(Notice, "notice");
-    if (query.status === NoticeStatus.Open || !member.hasPermission("admin")) {
-      qb.where("notice.enabled = TRUE").andWhere(
-        new Brackets((qb) => {
-          qb.where("notice.expires IS NULL").orWhere("notice.expires > :now", {
-            now: moment.utc().toDate()
-          });
-        })
-      );
-    } else if (query.status === NoticeStatus.Finished) {
-      qb.where("notice.enabled = FALSE").orWhere("notice.expires < :now", {
-        now: moment.utc().toDate()
-      });
-    }
-    return (await qb.getMany()).map(this.noticeToData);
+  ): Promise<Paginated<GetNoticeData>> {
+    const authedQuery: GetNoticesQuery = member.hasPermission("admin")
+      ? query
+      : {
+          ...query,
+          rules: {
+            condition: "AND",
+            rules: [
+              // Non-admins can only see open notices
+              { field: "status", operator: "equal", value: NoticeStatus.Open },
+              ...(query.rules ? [query.rules] : [])
+            ]
+          }
+        };
+
+    const results = await fetchPaginated(Notice, authedQuery, (qb) => qb, {
+      status: (rule, qb, suffix) => {
+        if (rule.operator !== "equal") return;
+
+        const now = "now" + suffix;
+
+        if (rule.value === NoticeStatus.Open) {
+          qb.where("item.enabled = TRUE").andWhere(
+            new Brackets((qb) => {
+              qb.where("item.expires IS NULL").orWhere(
+                `item.expires > :${now}`
+              );
+            })
+          );
+        } else if (rule.value === NoticeStatus.Finished) {
+          qb.where("item.enabled = FALSE").orWhere(`item.expires < :${now}`);
+        }
+
+        return {
+          now: moment.utc().toDate()
+        };
+      }
+    });
+
+    return {
+      ...results,
+      items: results.items.map(this.noticeToData)
+    };
   }
 
   @Get("/:id")
