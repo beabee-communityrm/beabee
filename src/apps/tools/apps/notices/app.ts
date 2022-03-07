@@ -1,4 +1,5 @@
 import express from "express";
+import moment from "moment";
 import { getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
@@ -12,6 +13,8 @@ const app = express();
 
 interface NoticeSchema {
   name: string;
+  startsDate?: string;
+  startsTime?: string;
   expiresDate?: string;
   expiresTime?: string;
   text: string;
@@ -22,6 +25,7 @@ interface NoticeSchema {
 function schemaToNotice(data: NoticeSchema): Notice {
   const notice = new Notice();
   notice.name = data.name;
+  notice.starts = createDateTime(data.startsDate, data.startsTime);
   notice.expires = createDateTime(data.expiresDate, data.expiresTime);
   notice.text = data.text;
   notice.buttonText = data.buttonText;
