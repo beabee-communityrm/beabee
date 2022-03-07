@@ -9,7 +9,14 @@ import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
 import { IsIn, IsOptional, IsString } from "class-validator";
 
-const fields = ["title", "status", "answeredBy"] as const;
+const fields = [
+  "title",
+  "status",
+  "answeredBy",
+  "starts",
+  "expires",
+  "hidden"
+] as const;
 const sortFields = ["title", "starts", "expires"] as const;
 
 type Field = typeof fields[number];

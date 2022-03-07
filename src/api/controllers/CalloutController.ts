@@ -48,9 +48,24 @@ export class CalloutController {
     @CurrentUser() member: Member,
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetBasicCalloutData>> {
+    const authQuery: GetCalloutsQuery = member.hasPermission("admin")
+      ? query
+      : {
+          ...query,
+          rules: {
+            condition: "AND",
+            rules: [
+              // Unauthed users can only query for open non-hidden callouts
+              { field: "status", operator: "equal", value: ItemStatus.Open },
+              { field: "hidden", operator: "equal", value: false },
+              ...(query.rules ? [query.rules] : [])
+            ]
+          }
+        };
+
     const results = await fetchPaginated(
       Poll,
-      query,
+      authQuery,
       (qb) => {
         qb.andWhere("item.hidden = FALSE");
       },
