@@ -51,7 +51,7 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
 import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
-import { fetchPaginated, Paginated } from "@api/utils/pagination";
+import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 import GCPayment from "@models/GCPayment";
 
 // The target user can either be the current user or for admins
@@ -220,9 +220,10 @@ export class MemberController {
     @TargetUser() target: Member,
     @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
-    const data = await fetchPaginated(GCPayment, query, (qb) =>
-      qb.andWhere("item.memberId = :id", { id: target.id })
-    );
+    const targetQuery = mergeRules(query, [
+      { field: "member", operator: "equal", value: target.id }
+    ]);
+    const data = await fetchPaginated(GCPayment, targetQuery);
     return {
       ...data,
       items: data.items.map((item) => ({

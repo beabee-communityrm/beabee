@@ -19,7 +19,7 @@ import {
   GetCalloutsQuery,
   GetMoreCalloutData
 } from "@api/data/CalloutData";
-import { fetchPaginated, Paginated } from "@api/utils/pagination";
+import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 import Member from "@models/Member";
 import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
@@ -48,53 +48,46 @@ export class CalloutController {
     @CurrentUser() member: Member,
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetBasicCalloutData>> {
-    const authQuery: GetCalloutsQuery = member.hasPermission("admin")
-      ? query
-      : {
-          ...query,
-          rules: {
-            condition: "AND",
-            rules: [
-              // Unauthed users can only query for open non-hidden callouts
-              { field: "status", operator: "equal", value: ItemStatus.Open },
-              { field: "hidden", operator: "equal", value: false },
-              ...(query.rules ? [query.rules] : [])
-            ]
-          }
-        };
-
-    const results = await fetchPaginated(
-      Poll,
-      authQuery,
-      (qb) => {
-        qb.andWhere("item.hidden = FALSE");
-      },
-      {
-        // TODO: add validation errors
-        status: ruleAsQuery,
-        answeredBy: (rule, qb, suffix) => {
-          if (rule.operator !== "equal") return;
-
-          // TODO: allow admins to filter for other users
-          if (rule.value !== "me" && rule.value !== member.id) return;
-
-          // TODO: deduplicate with hasAnswered
-          const subQb = createQueryBuilder()
-            .subQuery()
-            .select("pr.pollSlug", "slug")
-            .distinctOn(["pr.pollSlug"])
-            .from(PollResponse, "pr")
-            .where(`pr.memberId = :id${suffix}`)
-            .orderBy("pr.pollSlug");
-
-          qb.where("item.slug IN " + subQb.getQuery());
-
-          return {
-            id: member.id
-          };
-        }
-      }
+    const scopedQuery = mergeRules(
+      query,
+      !member.hasPermission("admin") && [
+        // Unauthed users can only query for open or ended non-hidden callouts
+        {
+          condition: "OR",
+          rules: [
+            { field: "status", operator: "equal", value: ItemStatus.Open },
+            { field: "status", operator: "equal", value: ItemStatus.Ended }
+          ]
+        },
+        { field: "hidden", operator: "equal", value: false }
+      ]
     );
+
+    const results = await fetchPaginated(Poll, scopedQuery, {
+      // TODO: add validation errors
+      status: ruleAsQuery,
+      answeredBy: (rule, qb, suffix) => {
+        if (rule.operator !== "equal") return;
+
+        // TODO: allow admins to filter for other users
+        if (rule.value !== "me" && rule.value !== member.id) return;
+
+        // TODO: deduplicate with hasAnswered
+        const subQb = createQueryBuilder()
+          .subQuery()
+          .select("pr.pollSlug", "slug")
+          .distinctOn(["pr.pollSlug"])
+          .from(PollResponse, "pr")
+          .where(`pr.memberId = :id${suffix}`)
+          .orderBy("pr.pollSlug");
+
+        qb.where("item.slug IN " + subQb.getQuery());
+
+        return {
+          id: member.id
+        };
+      }
+    });
 
     if (
       results.items.length > 0 &&
@@ -142,25 +135,23 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    const results = await fetchPaginated(
-      PollResponse,
-      query,
-      (qb) => {
-        qb.andWhere("item.poll = :slug", { slug }).loadAllRelationIds();
-
-        if (!member.hasPermission("admin")) {
-          qb.andWhere("item.member = :id", { id: member.id });
-        }
-      },
-      {
-        member: (rule, qb, suffix, namedWhere) => {
-          qb.where(`item.member ${namedWhere}`);
-          if (rule.value === "me") {
-            return { a: member.id };
-          }
+    const scopedQuery = mergeRules(query, [
+      { field: "poll", operator: "equal", value: slug },
+      // Member's can only see their own responses
+      !member.hasPermission("admin") && {
+        field: "member",
+        operator: "equal",
+        value: member.id
+      }
+    ]);
+    const results = await fetchPaginated(PollResponse, scopedQuery, {
+      member: (rule, qb, suffix, namedWhere) => {
+        qb.where(`item.member ${namedWhere}`);
+        if (rule.value === "me") {
+          return { a: member.id };
         }
       }
-    );
+    });
 
     return {
       ...results,

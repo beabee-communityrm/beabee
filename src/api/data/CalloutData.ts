@@ -61,7 +61,7 @@ export interface GetMoreCalloutData extends GetBasicCalloutData {
   templateSchema?: Record<string, unknown>;
 }
 
-const responseFields = ["member"] as const;
+const responseFields = ["member", "poll"] as const;
 const responseSortFields = ["createdAt", "updatedAt"] as const;
 
 type ResponseField = typeof responseFields[number];
