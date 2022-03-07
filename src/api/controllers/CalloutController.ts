@@ -1,6 +1,5 @@
 import moment from "moment";
 import {
-  Authorized,
   CurrentUser,
   Get,
   JsonController,
@@ -9,6 +8,8 @@ import {
 } from "routing-controllers";
 import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 
+import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
+import Member from "@models/Member";
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
@@ -20,8 +21,6 @@ import {
   GetMoreCalloutData
 } from "@api/data/CalloutData";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
-import Member from "@models/Member";
-import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
 function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
   return {
@@ -41,17 +40,16 @@ function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
 }
 
 @JsonController("/callout")
-@Authorized()
 export class CalloutController {
   @Get("/")
   async getCallouts(
-    @CurrentUser() member: Member,
+    @CurrentUser() member: Member | undefined,
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetBasicCalloutData>> {
     const scopedQuery = mergeRules(
       query,
-      !member.hasPermission("admin") && [
-        // Unauthed users can only query for open or ended non-hidden callouts
+      !member?.hasPermission("admin") && [
+        // Non-admins can only query for open or ended non-hidden callouts
         {
           condition: "OR",
           rules: [
@@ -67,7 +65,7 @@ export class CalloutController {
       // TODO: add validation errors
       status: ruleAsQuery,
       answeredBy: (rule, qb, suffix) => {
-        if (rule.operator !== "equal") return;
+        if (rule.operator !== "equal" || !member) return;
 
         // TODO: allow admins to filter for other users
         if (rule.value !== "me" && rule.value !== member.id) return;
@@ -90,6 +88,7 @@ export class CalloutController {
     });
 
     if (
+      member &&
       results.items.length > 0 &&
       (query.hasAnswered === "me" || query.hasAnswered === member.id)
     ) {
@@ -131,7 +130,7 @@ export class CalloutController {
 
   @Get("/:slug/responses")
   async getCalloutResponses(
-    @CurrentUser() member: Member,
+    @CurrentUser({ required: true }) member: Member,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
@@ -144,14 +143,19 @@ export class CalloutController {
         value: member.id
       }
     ]);
-    const results = await fetchPaginated(PollResponse, scopedQuery, {
-      member: (rule, qb, suffix, namedWhere) => {
-        qb.where(`item.member ${namedWhere}`);
-        if (rule.value === "me") {
-          return { a: member.id };
+    const results = await fetchPaginated(
+      PollResponse,
+      scopedQuery,
+      {
+        member: (rule, qb, suffix, namedWhere) => {
+          qb.where(`item.member ${namedWhere}`);
+          if (rule.value === "me") {
+            return { a: member.id };
+          }
         }
-      }
-    });
+      },
+      (qb) => qb.loadAllRelationIds()
+    );
 
     return {
       ...results,
