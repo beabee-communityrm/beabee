@@ -1,3 +1,4 @@
+import { IsType } from "@api/validators/IsType";
 import {
   buildRuleQuery,
   isRuleGroup,
@@ -39,8 +40,7 @@ export abstract class GetPaginatedRule<Field extends string>
   @IsString()
   operator!: RuleOperator;
 
-  // TODO: allow RuleValue[]
-  @IsString()
+  @IsType(["string", "boolean", "number"], { each: true })
   value!: RuleValue | RuleValue[];
 }
 
