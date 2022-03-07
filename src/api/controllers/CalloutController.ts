@@ -1,12 +1,17 @@
-import moment from "moment";
 import {
+  Body,
   CurrentUser,
   Get,
   JsonController,
+  NotFoundError,
+  OnUndefined,
   Param,
+  Post,
   QueryParams
 } from "routing-controllers";
-import { Brackets, createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder, getRepository } from "typeorm";
+
+import PollsService from "@core/services/PollsService";
 
 import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 import Member from "@models/Member";
@@ -14,12 +19,14 @@ import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
 import {
+  CreateCalloutResponseData,
   GetBasicCalloutData,
   GetCalloutResponseData,
   GetCalloutResponsesQuery,
   GetCalloutsQuery,
   GetMoreCalloutData
 } from "@api/data/CalloutData";
+import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 
 function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
@@ -166,5 +173,35 @@ export class CalloutController {
         updatedAt: item.updatedAt
       }))
     };
+  }
+
+  @Post("/:slug/responses")
+  @OnUndefined(204)
+  async createCalloutResponse(
+    @CurrentUser() member: Member | undefined,
+    @Param("slug") slug: string,
+    @Body() data: CreateCalloutResponseData
+  ) {
+    const poll = await getRepository(Poll).findOne(slug);
+    if (!poll) {
+      throw new NotFoundError();
+    }
+
+    if (member && (data.guestEmail || data.guestName)) {
+      throw new InvalidCalloutResponse("logged-in-guest-fields");
+    }
+
+    const error = member
+      ? await PollsService.setResponse(poll, member, data.answers)
+      : await PollsService.setGuestResponse(
+          poll,
+          data.guestName,
+          data.guestEmail,
+          data.answers
+        );
+
+    if (error) {
+      throw new InvalidCalloutResponse(error);
+    }
   }
 }

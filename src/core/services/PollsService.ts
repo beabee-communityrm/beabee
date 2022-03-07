@@ -60,13 +60,15 @@ export default class PollsService {
     member: Member,
     answers: PollResponseAnswers,
     isPartial = false
-  ): Promise<string | undefined> {
+  ): Promise<
+    "only-anonymous" | "expired-user" | "closed" | "cant-update" | undefined
+  > {
     if (poll.access === PollAccess.OnlyAnonymous) {
-      return "poll-only-anonymous";
+      return "only-anonymous";
     } else if (!member.membership?.isActive) {
-      return "polls-expired-user";
+      return "expired-user";
     } else if (!poll.active) {
-      return "polls-closed";
+      return "closed";
     }
 
     // Don't allow partial answers for multiple answer polls
@@ -77,7 +79,7 @@ export default class PollsService {
     let pollResponse = await PollsService.getResponse(poll, member);
     if (pollResponse && !poll.allowMultiple) {
       if (!poll.allowUpdate && !pollResponse.isPartial) {
-        return "polls-cant-update";
+        return "cant-update";
       }
     } else {
       pollResponse = new PollResponse();
@@ -102,16 +104,16 @@ export default class PollsService {
     guestName: string | undefined,
     guestEmail: string | undefined,
     answers: PollResponseAnswers
-  ): Promise<string | undefined> {
+  ): Promise<"guest-fields-missing" | "only-anonymous" | "closed" | undefined> {
     if (poll.access === PollAccess.Guest && !(guestName && guestEmail)) {
-      return "polls-guest-fields-missing";
+      return "guest-fields-missing";
     } else if (
       poll.access === PollAccess.OnlyAnonymous &&
       (guestName || guestEmail)
     ) {
-      return "poll-only-anonymous";
+      return "only-anonymous";
     } else if (!poll.active || poll.access === PollAccess.Member) {
-      return "poll-closed";
+      return "closed";
     }
 
     const pollResponse = new PollResponse();

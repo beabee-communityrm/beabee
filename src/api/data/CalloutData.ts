@@ -7,7 +7,7 @@ import {
 import ItemStatus from "@models/ItemStatus";
 import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
-import { IsIn, IsOptional, IsString } from "class-validator";
+import { IsIn, IsObject, IsOptional, IsString } from "class-validator";
 
 const fields = [
   "title",
@@ -95,4 +95,17 @@ export interface GetCalloutResponseData {
   answers: PollResponseAnswers;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export class CreateCalloutResponseData {
+  @IsObject()
+  answers!: PollResponseAnswers;
+
+  @IsOptional()
+  @IsString()
+  guestName?: string;
+
+  @IsOptional()
+  @IsString()
+  guestEmail?: string;
 }
