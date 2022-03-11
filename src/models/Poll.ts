@@ -5,7 +5,7 @@ import {
   OneToMany,
   PrimaryColumn
 } from "typeorm";
-import ItemStatus, { ItemWithStatus } from "./ItemStatus";
+import { ItemWithStatus } from "./ItemStatus";
 import PollResponse from "./PollResponse";
 
 export type PollTemplate = "custom" | "builder" | "ballot";
