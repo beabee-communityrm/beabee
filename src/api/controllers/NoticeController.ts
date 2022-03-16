@@ -25,7 +25,7 @@ import {
   GetNoticesQuery
 } from "@api/data/NoticeData";
 import PartialBody from "@api/decorators/PartialBody";
-import { fetchPaginated, Paginated } from "@api/utils/pagination";
+import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
 @JsonController("/notice")
@@ -36,21 +36,15 @@ export class NoticeController {
     @CurrentUser() member: Member,
     @QueryParams() query: GetNoticesQuery
   ): Promise<Paginated<GetNoticeData>> {
-    const authedQuery: GetNoticesQuery = member.hasPermission("admin")
-      ? query
-      : {
-          ...query,
-          rules: {
-            condition: "AND",
-            rules: [
-              // Non-admins can only see open notices
-              { field: "status", operator: "equal", value: ItemStatus.Open },
-              ...(query.rules ? [query.rules] : [])
-            ]
-          }
-        };
-
-    const results = await fetchPaginated(Notice, authedQuery, (qb) => qb, {
+    const authedQuery = mergeRules(query, [
+      // Non-admins can only see open notices
+      !member.hasPermission("admin") && {
+        field: "status",
+        operator: "equal",
+        value: ItemStatus.Open
+      }
+    ]);
+    const results = await fetchPaginated(Notice, authedQuery, {
       status: ruleAsQuery
     });
 

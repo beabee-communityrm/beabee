@@ -1,3 +1,4 @@
+import { IsType } from "@api/validators/IsType";
 import {
   buildRuleQuery,
   isRuleGroup,
@@ -39,10 +40,13 @@ export abstract class GetPaginatedRule<Field extends string>
   @IsString()
   operator!: RuleOperator;
 
-  // TODO: allow RuleValue[]
-  @IsString()
+  @IsType(["string", "boolean", "number"], { each: true })
   value!: RuleValue | RuleValue[];
 }
+
+type GetPaginatedRuleGroupRule<Field extends string> =
+  | GetPaginatedRuleGroup<Field>
+  | GetPaginatedRule<Field>;
 
 export abstract class GetPaginatedRuleGroup<Field extends string>
   implements RuleGroup<Field>
@@ -52,7 +56,7 @@ export abstract class GetPaginatedRuleGroup<Field extends string>
 
   @IsArray()
   @ValidateNested()
-  rules!: (GetPaginatedRuleGroup<Field> | GetPaginatedRule<Field>)[];
+  rules!: GetPaginatedRuleGroupRule<Field>[];
 }
 
 export abstract class GetPaginatedQuery<
@@ -99,8 +103,8 @@ export async function fetchPaginated<
 >(
   entity: EntityTarget<Entity>,
   query: GetPaginatedQuery<Field, SortField>,
-  queryCallback?: (qb: SelectQueryBuilder<Entity>) => void,
-  specialFields?: SpecialFields<Field>
+  specialFields?: SpecialFields<Field>,
+  queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
@@ -123,5 +127,25 @@ export async function fetchPaginated<
     offset,
     count: items.length,
     items
+  };
+}
+
+export function mergeRules<Field extends string, SortField extends string>(
+  query: GetPaginatedQuery<Field, SortField>,
+  extraRules?: (GetPaginatedRuleGroupRule<Field> | undefined | false)[] | false
+): GetPaginatedQuery<Field, SortField> {
+  if (!extraRules) return query;
+
+  return {
+    ...query,
+    rules: {
+      condition: "AND",
+      rules: [
+        ...(extraRules.filter(
+          (rule) => !!rule
+        ) as GetPaginatedRuleGroupRule<Field>[]),
+        ...(query.rules ? [query.rules] : [])
+      ]
+    }
   };
 }

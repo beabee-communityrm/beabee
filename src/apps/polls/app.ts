@@ -251,11 +251,10 @@ app.post(
       );
     }
 
-    let error;
-    if (pollsCode && !member) {
-      error = "polls-unknown-user";
-    } else {
-      error = member
+    const error =
+      pollsCode && !member
+        ? "unknown-user"
+        : member
         ? await PollsService.setResponse(poll, member, req.answers!)
         : await PollsService.setGuestResponse(
             poll,
@@ -263,14 +262,13 @@ app.post(
             req.body.guestEmail,
             req.answers!
           );
-    }
 
     if (member) {
       setTrackingCookie(member.id, res);
     }
 
     if (error) {
-      req.flash("error", error);
+      req.flash("error", "polls-" + error);
       res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
       if (!req.user) {

@@ -16,7 +16,7 @@ interface CreatePollSchema {
   title: string;
   slug: string;
   excerpt: string;
-  image?: string;
+  image: string;
   template: PollTemplate;
   closed?: boolean;
   mcMergeField?: string;
@@ -38,7 +38,7 @@ function schemaToPoll(
   poll.title = data.title;
   poll.slug = data.slug;
   poll.excerpt = data.excerpt;
-  poll.image = data.image || null;
+  poll.image = data.image;
   poll.mcMergeField = data.mcMergeField || null;
   poll.pollMergeField = data.pollMergeField || null;
   poll.template = data.template;

@@ -4,10 +4,19 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import ItemStatus from "@models/ItemStatus";
+import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsIn, IsObject, IsOptional, IsString } from "class-validator";
 
-const fields = ["title", "status", "answeredBy"] as const;
+const fields = [
+  "title",
+  "status",
+  "answeredBy",
+  "starts",
+  "expires",
+  "hidden"
+] as const;
 const sortFields = ["title", "starts", "expires"] as const;
 
 type Field = typeof fields[number];
@@ -33,10 +42,6 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
   @IsOptional()
   @IsString()
   hasAnswered?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  onlyHasAnswered?: boolean;
 }
 
 export interface GetBasicCalloutData {
@@ -46,9 +51,62 @@ export interface GetBasicCalloutData {
   image?: string;
   starts?: Date;
   expires?: Date;
+  allowUpdate: boolean;
+  allowMultiple: boolean;
+  status: ItemStatus;
+  access: "member" | "guest" | "anonymous" | "only-anonymous";
   hasAnswered?: boolean;
 }
 
 export interface GetMoreCalloutData extends GetBasicCalloutData {
   templateSchema?: Record<string, unknown>;
+}
+
+const responseFields = ["member", "poll"] as const;
+const responseSortFields = ["createdAt", "updatedAt"] as const;
+
+type ResponseField = typeof responseFields[number];
+type ResponseSortField = typeof responseSortFields[number];
+
+class GetCalloutResponsesRule extends GetPaginatedRule<ResponseField> {
+  @IsIn(responseFields)
+  field!: ResponseField;
+}
+
+class GetCalloutResponsesRuleGroup extends GetPaginatedRuleGroup<ResponseField> {
+  @Transform(
+    transformRules(GetCalloutResponsesRuleGroup, GetCalloutResponsesRule)
+  )
+  rules!: (GetCalloutResponsesRuleGroup | GetCalloutResponsesRule)[];
+}
+
+export class GetCalloutResponsesQuery extends GetPaginatedQuery<
+  ResponseField,
+  ResponseSortField
+> {
+  @IsIn(responseSortFields)
+  sort?: ResponseSortField;
+
+  @Type(() => GetCalloutResponsesRuleGroup)
+  rules?: GetCalloutResponsesRuleGroup;
+}
+
+export interface GetCalloutResponseData {
+  member: string;
+  answers: PollResponseAnswers;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class CreateCalloutResponseData {
+  @IsObject()
+  answers!: PollResponseAnswers;
+
+  @IsOptional()
+  @IsString()
+  guestName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  guestEmail?: string;
 }

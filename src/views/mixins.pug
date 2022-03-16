@@ -141,9 +141,9 @@ mixin paymentStatus(payment)
 mixin itemStatus(item)
 	case item.status
 		when 'draft'
-			span.label.label-success Draft
+			span.label.label-default Draft
 		when 'scheduled'
-			span.label.label-default Scheduled
+			span.label.label-info Scheduled
 		when 'open'
 			span.label.label-success Open
 		when 'ended'

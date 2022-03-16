@@ -128,25 +128,6 @@ export async function fetchPaginatedMembers(
   const results = await fetchPaginated(
     Member,
     query,
-    (qb) => {
-      if (query.with?.includes(GetMemberWith.Profile)) {
-        qb.innerJoinAndSelect("item.profile", "profile");
-      }
-
-      // Put empty names at the bottom
-      qb.addSelect("NULLIF(item.firstname, '')", "firstname");
-      if (query.sort === "firstname") {
-        // Override "item.firstname"
-        qb.orderBy("firstname", query.order || "ASC");
-      } else {
-        qb.addOrderBy("firstname", "ASC");
-      }
-
-      // Always sort by ID to ensure predictable offset and limit
-      qb.addOrderBy("item.id", "ASC");
-
-      console.log(qb.getSql());
-    },
     {
       deliveryOptIn: profileField("deliveryOptIn"),
       newsletterStatus: profileField("newsletterStatus"),
@@ -171,6 +152,23 @@ export async function fetchPaginatedMembers(
           );
         qb.where("id IN " + subQb.getQuery());
       }
+    },
+    (qb) => {
+      if (query.with?.includes(GetMemberWith.Profile)) {
+        qb.innerJoinAndSelect("item.profile", "profile");
+      }
+
+      // Put empty names at the bottom
+      qb.addSelect("NULLIF(item.firstname, '')", "firstname");
+      if (query.sort === "firstname") {
+        // Override "item.firstname"
+        qb.orderBy("firstname", query.order || "ASC");
+      } else {
+        qb.addOrderBy("firstname", "ASC");
+      }
+
+      // Always sort by ID to ensure predictable offset and limit
+      qb.addOrderBy("item.id", "ASC");
     }
   );
 
