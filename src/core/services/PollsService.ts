@@ -65,7 +65,10 @@ export default class PollsService {
   > {
     if (poll.access === PollAccess.OnlyAnonymous) {
       return "only-anonymous";
-    } else if (!member.membership?.isActive) {
+    } else if (
+      !member.membership?.isActive &&
+      poll.access === PollAccess.Member
+    ) {
       return "expired-user";
     } else if (!poll.active) {
       return "closed";
