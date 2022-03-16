@@ -4,28 +4,16 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import ItemStatus from "@models/ItemStatus";
 import { Transform, Type } from "class-transformer";
-import {
-  IsBoolean,
-  IsDate,
-  IsEnum,
-  IsIn,
-  IsOptional,
-  IsString
-} from "class-validator";
+import { IsBoolean, IsDate, IsIn, IsOptional, IsString } from "class-validator";
 
 interface NoticeData {
   name: string;
   expires?: Date;
-  enabled: boolean;
   text: string;
   buttonText: string;
   url?: string;
-}
-
-export enum NoticeStatus {
-  Open = "open",
-  Finished = "finished"
 }
 
 const fields = [
@@ -64,7 +52,7 @@ export interface GetNoticeData extends NoticeData {
   id: string;
   createdAt: Date;
   updatedAt: Date;
-  status: NoticeStatus;
+  status: ItemStatus;
 }
 
 export class CreateNoticeData implements NoticeData {

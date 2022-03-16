@@ -17,7 +17,6 @@ interface NoticeSchema {
   text: string;
   buttonText: string;
   url?: string;
-  enabled?: boolean;
 }
 
 function schemaToNotice(data: NoticeSchema): Notice {
@@ -27,7 +26,6 @@ function schemaToNotice(data: NoticeSchema): Notice {
   notice.text = data.text;
   notice.buttonText = data.buttonText;
   notice.url = data.url || null;
-  notice.enabled = !!data.enabled;
 
   return notice;
 }

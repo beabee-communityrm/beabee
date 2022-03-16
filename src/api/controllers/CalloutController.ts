@@ -13,13 +13,13 @@ import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
 import {
-  CalloutStatus,
   GetBasicCalloutData,
   GetCalloutsQuery,
   GetMoreCalloutData
 } from "@api/data/CalloutData";
 import { fetchPaginated, Paginated } from "@api/utils/pagination";
 import Member from "@models/Member";
+import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
 function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
   return {
@@ -51,47 +51,7 @@ export class CalloutController {
       },
       {
         // TODO: add validation errors
-        status: (rule, qb, suffix) => {
-          if (rule.operator !== "equal") return;
-
-          const now = "now" + suffix;
-
-          if (rule.value === CalloutStatus.Open) {
-            qb.andWhere("item.closed = FALSE")
-              .andWhere(
-                new Brackets((qb) => {
-                  qb.where("item.expires IS NULL").orWhere(
-                    `item.expires > :${now}`
-                  );
-                })
-              )
-              .andWhere(
-                new Brackets((qb) => {
-                  qb.where("item.starts IS NULL").orWhere(
-                    `item.starts < :${now}`
-                  );
-                })
-              );
-          } else if (rule.value === CalloutStatus.Finished) {
-            qb.andWhere(
-              new Brackets((qb) => {
-                qb.where("item.starts IS NULL").orWhere(
-                  `item.starts < :${now}`
-                );
-              })
-            ).andWhere(
-              new Brackets((qb) => {
-                qb.where("item.closed = TRUE").orWhere(
-                  `item.expires < :${now}`
-                );
-              })
-            );
-          }
-
-          return {
-            now: moment.utc().toDate()
-          };
-        },
+        status: ruleAsQuery,
         answeredBy: (rule, qb, suffix) => {
           if (rule.operator !== "equal") return;
 
