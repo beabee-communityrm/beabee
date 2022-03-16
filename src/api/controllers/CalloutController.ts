@@ -179,7 +179,7 @@ export class CalloutController {
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
-    @CurrentUser() member: Member | undefined,
+    @CurrentUser({ required: false }) member: Member | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseData
   ) {
