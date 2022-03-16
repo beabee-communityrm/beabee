@@ -7,7 +7,7 @@ import {
 import ItemStatus from "@models/ItemStatus";
 import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
-import { IsIn, IsObject, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsIn, IsObject, IsOptional, IsString } from "class-validator";
 
 const fields = [
   "title",
@@ -107,6 +107,6 @@ export class CreateCalloutResponseData {
   guestName?: string;
 
   @IsOptional()
-  @IsString()
+  @IsEmail()
   guestEmail?: string;
 }
