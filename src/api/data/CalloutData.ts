@@ -7,11 +7,6 @@ import {
 import { Transform, Type } from "class-transformer";
 import { IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
 
-export enum CalloutStatus {
-  Open = "open",
-  Finished = "finished"
-}
-
 const fields = ["title", "status", "answeredBy"] as const;
 const sortFields = ["title", "starts", "expires"] as const;
 

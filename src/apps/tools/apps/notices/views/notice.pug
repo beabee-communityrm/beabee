@@ -13,10 +13,6 @@ block contents
 
 			if notice.active
 				.alert.alert-success This notice is currently active
-			else if !notice.enabled
-				.alert.alert-warning This notice is disabled
-			else if notice.expires
-				.alert.alert-warning This notice has expired
 
 	.row
 		.col-md-8
@@ -49,11 +45,6 @@ block contents
 					label(for='url').control-label.col-md-3 URL
 					.col-md-9
 						input(type='text' name='url' value=notice.url)#url.form-control
-				.form-group
-					.col-md-offset-3.col-md-9
-						.checkbox-inline
-							input(type='checkbox' name='enabled' value='true' checked=notice.enabled)
-							| Enabled
 
 				p.col-md-offset-3
 					button.btn.btn-primary Update

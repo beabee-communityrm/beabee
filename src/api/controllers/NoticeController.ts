@@ -22,11 +22,11 @@ import { UUIDParam } from "@api/data";
 import {
   CreateNoticeData,
   GetNoticeData,
-  GetNoticesQuery,
-  NoticeStatus
+  GetNoticesQuery
 } from "@api/data/NoticeData";
 import PartialBody from "@api/decorators/PartialBody";
 import { fetchPaginated, Paginated } from "@api/utils/pagination";
+import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
 @JsonController("/notice")
 @Authorized()
@@ -44,34 +44,14 @@ export class NoticeController {
             condition: "AND",
             rules: [
               // Non-admins can only see open notices
-              { field: "status", operator: "equal", value: NoticeStatus.Open },
+              { field: "status", operator: "equal", value: ItemStatus.Open },
               ...(query.rules ? [query.rules] : [])
             ]
           }
         };
 
     const results = await fetchPaginated(Notice, authedQuery, (qb) => qb, {
-      status: (rule, qb, suffix) => {
-        if (rule.operator !== "equal") return;
-
-        const now = "now" + suffix;
-
-        if (rule.value === NoticeStatus.Open) {
-          qb.where("item.enabled = TRUE").andWhere(
-            new Brackets((qb) => {
-              qb.where("item.expires IS NULL").orWhere(
-                `item.expires > :${now}`
-              );
-            })
-          );
-        } else if (rule.value === NoticeStatus.Finished) {
-          qb.where("item.enabled = FALSE").orWhere(`item.expires < :${now}`);
-        }
-
-        return {
-          now: moment.utc().toDate()
-        };
-      }
+      status: ruleAsQuery
     });
 
     return {
@@ -125,10 +105,9 @@ export class NoticeController {
       name: notice.name,
       text: notice.text,
       buttonText: notice.buttonText,
-      enabled: notice.enabled,
       ...(notice.expires !== null && { expires: notice.expires }),
       ...(notice.url !== null && { url: notice.url }),
-      status: notice.active ? NoticeStatus.Open : NoticeStatus.Finished
+      status: notice.status
     };
   }
 }
