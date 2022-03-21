@@ -19,7 +19,7 @@ Browser testing with<br/>
 
 > ⚠️⚠️⚠️ **WARNING** ⚠️⚠️⚠️
 >
-> If you want to deploy beabee on a server please to refer to
+> If you want to deploy beabee on a server refer to
 > [beabee/beabee-deploy](https://github.com/beabee-communityrm/beabee-deploy/)
 > instead. The instructions below are for running beabee locally for development
 
