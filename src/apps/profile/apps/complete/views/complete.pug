@@ -1,0 +1,110 @@
+extends /views/base.pug
+
+block prepend title
+	- title = app.title
+
+block append css
+	if joinPoll
+		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
+
+block append js
+	script(src='/static/js/delivery-address.js')
+	if joinPoll
+		script.
+			window.pollSchema = !{JSON.stringify(joinPoll.templateSchema.formSchema)};
+		script(src='/static/js/lib/formio.full.min.js')
+		script(src='/static/js/embedded-poll.js?v' + git)
+
+block body
+	- deliveryAddress = user.profile.deliveryAddress || {}
+
+	header.join-header-static
+
+	.container
+		.row
+			.col-md-8.col-md-offset-2
+
+				h3 Hi #{user.firstname}, welcome to the Cable!
+
+				p.
+					You're now the newest member of Bristol's media cooperative, owned
+					and supported by more than 2,600 people in Bristol.
+
+				include /views/partials/flash
+
+				form( method="post" ).form-horizontal#pollForm
+					+csrf
+
+					.row
+						.col-md-12
+							h4 Delivery details
+
+							mixin deliveryAddressFields
+								+input( 'text', 'Address line 1', 'delivery_line1', { required: true, left: 4, right: 6, value: deliveryAddress.line1 } )
+								+input( 'text', 'Address line 2', 'delivery_line2', { left: 4, right: 6, value: deliveryAddress.line2 } )
+								+input( 'text', 'City/town', 'delivery_city', { required: true, left: 4, right: 6, value: deliveryAddress.city } )
+								+input( 'text', 'Postcode', 'delivery_postcode', { required: true, left: 4, right: 6, value: deliveryAddress.postcode } )
+
+							if isReferralWithGift
+								.alert.alert-warning We need your address to send you your referral gift
+								+deliveryAddressFields
+
+							if isGift
+								p
+									| Your gift includes a copy of our quarterly newspaper in the post.
+									|
+									if deliveryAddress.line1
+										| Please check that the delivery address we have for you is
+										| correct.
+									else
+										| Please let us know your delivery address.
+								+deliveryAddressFields
+
+							else if user.contributionMonthlyAmount >= 3
+								p.
+									You are eligible for a
+									#[b free copy of our quarterly newspaper]!
+									We would also like to send you very occasional mail
+									such as a reminder for the AGM.
+								p.
+									Can we send you our quarterly newspaper and very
+									occasional mail? You can change your mind later.
+								
+							else
+								.alert.alert-warning.
+									You aren't eligible for a
+									#[b free copy of our quarterly newspaper]
+								p.
+									Unfortunately it's not financial viable for us to send
+									copies of the quarterly newspaper to members
+									contributing less than £3 per month. However, we'd
+									like to send you very occasional mail such as a reminder
+									for the AGM.
+								p.
+									Can we send you very occasional mail? You can
+									change your mind later.
+
+							if isGift
+								input(type='hidden' name='delivery_optin' value='true')
+							else
+								ul.join-options
+									li.join-options__opt
+										input(type='radio', name='delivery_optin', id='delivery_optin_yes' , value='true', required, checked).js-delivery-opt
+										label(for='delivery_optin_yes').btn.btn-primary Yes
+									li.join-options__opt
+										input(type='radio', name='delivery_optin', id='delivery_optin_no' , value='false', required).js-delivery-opt
+										label(for='delivery_optin_no').btn.btn-primary No
+									li.join-options__opt
+
+								if !isReferralWithGift
+									.js-delivery-details
+										+deliveryAddressFields
+
+					if !isGift && joinPoll
+						.row.hidden-nojs
+							.col-md-12
+								!= joinPoll.templateSchema.intro
+								.col-md-12
+									#pollFields
+
+					button.btn.btn-success.btn-lg Save

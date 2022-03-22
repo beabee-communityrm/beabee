@@ -52,6 +52,10 @@ $('#builder').queryBuilder({
 		},
 		operators: ['equal', 'not_equal']
 	}, {
+		id: 'contributionCancelled',
+		label: 'Contribution cancelled',
+		type: 'datetime'
+	}, {
 		id: 'deliveryOptIn',
 		label: 'Delivery opted-in',
 		type: 'boolean',

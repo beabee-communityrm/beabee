@@ -32,6 +32,8 @@ app.get(
 
       res.render("gocardless", {
         member: req.model,
+        bankAccount: (await GCPaymentService.getContributionInfo(member))
+          ?.paymentSource,
         canChange: await GCPaymentService.canChangeContribution(member, true),
         monthsLeft: calcMonthsLeft(member),
         payments,

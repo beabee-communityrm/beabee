@@ -9,6 +9,7 @@ import {
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission from "@models/MemberPermission";
+import GCPaymentData from "@models/GCPaymentData";
 
 const operators = {
   equal: (v: RichRuleValue[]) => ["= :a", { a: v[0] }] as const,
@@ -57,7 +58,8 @@ const profileFields = ["deliveryOptIn", "tags", "newsletterStatus"] as const;
 const complexFields = [
   "activeMembership",
   "activePermission",
-  "membershipExpires"
+  "membershipExpires",
+  "contributionCancelled"
 ] as const;
 
 type RuleValue = string | number | boolean;
@@ -161,6 +163,15 @@ function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
         } else {
           qb.where("id NOT IN " + subQb.getQuery());
         }
+      } else if (rule.field === "contributionCancelled") {
+        const table = "gc" + suffix;
+        const subQb = createQueryBuilder()
+          .subQuery()
+          .select(`${table}.memberId`)
+          .from(GCPaymentData, table)
+          .where(`${table}.cancelledAt ${namedWhere}`);
+
+        qb.where("id IN " + subQb.getQuery());
       } else if (memberFields.indexOf(rule.field as any) > -1) {
         qb.where(`m.${rule.field} ${namedWhere}`);
       } else if (profileFields.indexOf(rule.field as any) > -1) {

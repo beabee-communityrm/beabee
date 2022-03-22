@@ -1,0 +1,23 @@
+{
+  "changePasswordSchema": {
+    "body": {
+      "type": "object",
+      "required": ["new", "verify"],
+      "properties": {
+        "current": {
+          "type": "string",
+          "format": "password"
+        },
+        "new": {
+          "type": "string",
+          "format": "password"
+        },
+        "verify": {
+          "const": {
+            "$data": "1/new"
+          }
+        }
+      }
+    }
+  }
+}

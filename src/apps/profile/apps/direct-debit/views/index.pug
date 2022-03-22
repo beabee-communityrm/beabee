@@ -1,0 +1,82 @@
+extends /views/base.pug
+
+block prepend title
+	- title = 'Contribution details'
+
+block append js
+	script( src="/static/js/update-contribution.js?v=" + git )
+
+block contents
+	- isActiveMember = user.membership && user.membership.isActive
+	.row
+		.col-md-3
+			- page = 'direct-debit'
+			include /apps/profile/views/partials/sidebar.pug
+		.col-md-9.col-lg-7
+			+page_header( 'Contribution details' )
+			if user.membership && !isActiveMember
+				.alert.alert-danger Your membership has expired
+			else if gcData && gcData.cancelledAt
+				.alert.alert-warning You cancelled your contribution
+
+			if isActiveMember
+				if user.contributionMonthlyAmount >= 3 && !user.profile.deliveryOptIn
+					a(href='/profile/delivery').alert.alert-info.
+						You are eligible to receive the print edition, #[b click here to set your delivery address]
+				else if user.contributionMonthlyAmount < 3
+					.alert.alert-info.
+						Increase your contribution to £3/month or more to receive the print edition
+
+			if user.contributionType === 'gift' && isActiveMember
+				p.
+					You are on a gift membership. You can start a contribution to
+					continue your membership beyond
+					#{ moment(user.membership.dateExpires).format('dddd, MMMM Do YYYY') }
+
+				hr
+			else if gcData
+				p
+					| You #{isActiveMember ? 'contribute' : 'previously contributed'}
+					|
+					= user.contributionDescription
+					if gcData.payFee
+						|
+						| (+ fee)
+					| ,
+					|
+					if hasPendingPayment
+						| we are currently processing your payment.
+					else
+						if gcData.subscriptionId
+							| #{isActiveMember ? 'the next payment will be taken' : 'a payment will be retried'} around
+						else
+							| it #{isActiveMember ? 'will expire' : 'expired'} on
+						|
+						|
+						= moment(user.membership.dateExpires).format('dddd, MMMM Do YYYY')
+						| .
+				hr
+
+			h4 #{!gcData ? 'Start' : gcData.subscriptionId ? 'Update' : 'Restart'} contribution
+
+			if user.nextContributionAmount
+				p.alert.alert-success.
+					You updated your contribution amount, it will change to
+					#{currencySymbol}#{user.nextContributionAmount} on your next payment
+
+			if canChange
+				include partials/change-subscription
+			else
+				p.
+					Your contribution is currently processing and can't be changed
+					until it has completed. Please check back in a few days or contact
+					#[+emailSupport] for help.
+
+			if gcData && gcData.subscriptionId
+				hr
+
+				h4 Cancel contribution
+				p.
+					If you cancel your contribution your membership will finish at the end of
+					your current payment cycle.
+				a( href="/profile/direct-debit/cancel-subscription" ).btn.btn-danger Cancel contribution

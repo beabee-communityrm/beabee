@@ -1,0 +1,56 @@
+extends /views/base.pug
+
+block prepend title
+	- title = "Delivery details"
+
+block append js
+	script(src='/static/js/delivery-address.js')
+
+block contents
+	.row
+		.col-md-3
+			- page = 'delivery'
+			include ../../../views/partials/sidebar.pug
+		.col-md-9.col-lg-7
+			+page_header( 'Delivery details' )
+			form( method="post" ).form-horizontal
+				+csrf
+
+				if user.contributionMonthlyAmount >= 3
+					p.
+						You are eligible for a
+						#[b free copy of our quarterly newspaper]!
+						We would also like to send you very occasional mail
+						such as a reminder for the AGM.
+					p.
+						Can we send you our quarterly newspaper and very
+						occasional mail?
+				else
+					.alert.alert-warning.
+						You aren't eligible for a
+						#[b free copy of our quarterly newspaper]
+					p.
+						Unfortunately it's not financial viable for us to send
+						copies of the quarterly newspaper to members
+						contributing less than £3 per month. However, we'd
+						like to send you very occasional mail such as a reminder
+						for the AGM.
+					p.
+						Can we send you very occasional mail?
+
+				p
+					label(style='padding-top: 0').radio-inline
+						input(type='radio' name='delivery_optin' value='true' required checked=user.profile.deliveryOptIn).js-delivery-opt
+						| Yes
+					label(style='padding-top: 0').radio-inline
+						input(type='radio' name='delivery_optin' value='false' required checked=!user.profile.deliveryOptIn).js-delivery-opt
+						| No
+
+				.js-delivery-details(class={'hidden-js': !user.profile.deliveryOptIn})
+					- deliveryAddress = user.profile.deliveryAddress || {}
+					+input( 'text', 'Address line 1', 'delivery_line1', { value: deliveryAddress.line1, left: 3, right: 9 } )
+					+input( 'text', 'Address line 2', 'delivery_line2', { value: deliveryAddress.line2, left: 3, right: 9 } )
+					+input( 'text', 'City/town', 'delivery_city', { value: deliveryAddress.city, left: 3, right: 5 } )
+					+input( 'text', 'Postcode', 'delivery_postcode', { value: deliveryAddress.postcode, left: 3, right: 5 } )
+				
+				button.btn.btn-success Save

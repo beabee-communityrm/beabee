@@ -35,7 +35,7 @@ interface AddressSchema {
   postcode: string;
 }
 
-type UpdateGiftAddressSchema =
+/*type UpdateGiftAddressSchema =
   | {
       sameAddress: true;
       giftAddress: AddressSchema;
@@ -44,7 +44,10 @@ type UpdateGiftAddressSchema =
       sameAddress: false;
       giftAddress: AddressSchema;
       deliveryAddress: AddressSchema;
-    };
+    };*/
+type UpdateGiftAddressSchema = {
+  deliveryAddress: AddressSchema;
+};
 
 function schemaToGiftForm(data: CreateGiftSchema): GiftForm {
   const giftForm = new GiftForm();
@@ -67,10 +70,12 @@ function schemaToAddresses(data: UpdateGiftAddressSchema): {
   giftAddress: Address;
   deliveryAddress: Address;
 } {
-  const giftAddress = schemaToAddress(data.giftAddress);
+  /*const giftAddress = schemaToAddress(data.giftAddress);
   const deliveryAddress = data.sameAddress
     ? schemaToAddress(data.giftAddress)
-    : schemaToAddress(data.deliveryAddress);
+    : schemaToAddress(data.deliveryAddress);*/
+  const giftAddress = schemaToAddress(data.deliveryAddress);
+  const deliveryAddress = schemaToAddress(data.deliveryAddress);
   return { giftAddress, deliveryAddress };
 }
 

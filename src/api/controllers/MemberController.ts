@@ -1,4 +1,4 @@
-import { Request } from "express";
+import { Request, Response } from "express";
 import {
   Authorized,
   Body,
@@ -12,9 +12,11 @@ import {
   Post,
   Put,
   QueryParams,
+  Req,
+  Res,
   UnauthorizedError
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 
 import EmailService from "@core/services/EmailService";
 import JoinFlowService from "@core/services/JoinFlowService";
@@ -54,6 +56,8 @@ import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 import GCPayment from "@models/GCPayment";
 
+import config from "@config";
+
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
 // and also ensures the user has the correct permissions
@@ -86,6 +90,36 @@ function TargetUser() {
       }
     }
   });
+}
+
+@JsonController("/member/stats")
+export class MemberStatsController {
+  @Get("/")
+  async stats(
+    @Req() req: Request,
+    @Res() res: Response
+  ): Promise<{ total: number }> {
+    if (req.headers.origin) {
+      if (config.trackDomains.indexOf(req.headers.origin) === -1) {
+        throw new UnauthorizedError();
+      } else {
+        res.set("Access-Control-Allow-Origin", req.headers.origin);
+      }
+    }
+
+    const total = await createQueryBuilder(Member, "m")
+      .innerJoin("m.permissions", "mp")
+      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where("mp.dateExpires IS NULL").orWhere("mp.dateExpires > :now");
+        })
+      )
+      .setParameters({ now: new Date() })
+      .getCount();
+
+    return { total };
+  }
 }
 
 @JsonController("/member")

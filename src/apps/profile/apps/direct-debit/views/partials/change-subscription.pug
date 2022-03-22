@@ -1,0 +1,164 @@
+- isActiveMember = user.membership && user.membership.isActive
+- hasActiveSubscription = gcData && !!gcData.subscriptionId
+
+form(
+	method='post'
+	data-amount=user.contributionMonthlyAmount
+	data-paying-fee=gcData && gcData.payFee
+	data-active-member=isActiveMember
+	data-active-subscription=hasActiveSubscription
+	data-next=isActiveMember && moment(user.membership.dateExpires).format('dddd, MMMM Do YYYY')
+	data-months=monthsLeft
+).form-horizontal.js-update-form
+	+csrf
+
+	.form-group
+		label( for='amount' ).col-md-3.control-label Amount
+		.col-md-4
+			.input-group
+				span.input-group-addon= currencySymbol
+				input( type='number', name='amount', id='amount', value=user.contributionMonthlyAmount, required, min=1, step=1 ).form-control.js-new-amount-input
+				span.input-group-addon / month
+	
+	if hasActiveSubscription
+		input(type='hidden' name='period' value=user.contributionPeriod)
+	else
+		.form-group
+			label.col-md-3.control-label Period
+			.col-md-9
+				label.radio-inline
+					input(
+						type='radio' name='period' value='monthly' required
+						checked=user.contributionPeriod === 'monthly'
+					)
+					| Monthly
+				label.radio-inline
+					input(
+						type='radio' name='period' value='annually' required
+						checked=user.contributionPeriod !== 'monthly'
+					)
+					| Annually
+
+	.form-group.js-new-fee
+		label.col-md-3.control-label.
+			Absorb the #[span.js-new-fee-amount] #[span.hidden-js 1% + 20p] transaction fee?
+		.col-md-9
+			.js-new-fee-opt
+				label.radio-inline
+					input(
+						type='radio' name='payFee' value='true' required
+						checked=!hasActiveSubscription || gcData.payFee
+					)
+					| Yes
+				label.radio-inline
+					input(
+						type='radio' name='payFee' value='false' required
+						checked=hasActiveSubscription && !gcData.payFee
+					)
+					| No
+			p(style='padding-top:7px;margin:0').js-new-fee-force
+				i #{currencySymbol}1/month contributions must absorb the fee
+			p.small.help-block.hidden-nojs
+				a(href="#").js-new-fee-toggle What is this?
+			.panel.panel-default.hidden.js-new-fee-explainer
+				.panel-body
+					| Our payment processor charges us per transaction so we receive less
+					| from monthly contributions.
+					if hasActiveSubscription
+						|
+						|
+						+emailSupport('Contact us')
+						|
+						| to switch to an annual contribution.
+
+	.form-group
+		label.col-md-3.control-label Bank account
+		.col-md-9
+			if bankAccount
+				.radio
+					label
+						input(type='radio', name='useMandate', value='true', required, checked)
+						span
+							= bankAccount.accountHolderName
+							| ,
+							|
+							= bankAccount.bankName
+							| , •••••••
+							= bankAccount.accountNumberEnding
+				.radio
+					label
+						input(type='radio', name='useMandate', value='false', required)
+						span Change bank details
+						br
+						small: i You'll be asked for your new bank details on the next step
+			else
+				.form-control-static
+					input(type='hidden', name='useMandate', value='false')
+					i You'll be asked for your bank details on the next step
+
+	if monthsLeft < 1
+		input(type='hidden' name='prorate' value='false')
+	else
+		.hidden.js-new-amount-more
+			p.alert.alert-info.
+				Your current contribution runs for another
+				#{monthsLeft} months, if you want to start your new
+				contribution immediately we can take a one-off payment of
+				#{currencySymbol}#[span.js-new-amount-prorated -].
+
+			.form-group(style="margin-bottom: 0")
+				.col-md-12
+					.radio
+						label
+							input(type='radio' name='prorate' value='true' required checked)
+							| Yes, take a one-off payment of #{currencySymbol}
+							span.js-new-amount-prorated -
+							|
+							| to start my new contribution now
+					.radio
+						label
+							input(type='radio' name='prorate' value='false' required)
+							| No, I'll wait until
+							|
+							= moment(user.membership.dateExpires).format('DD/MM/YYYY')
+							|
+							| to start my new contribution
+					p
+					p.small
+						a(href="#").js-new-amount-prorated-toggle How is my one-off payment calculated?
+
+					.panel.panel-default.hidden.js-new-amount-prorated-calc
+						.panel-body
+							p.
+								We calculated your one-off payment based on having
+								#[b #{monthsLeft} months] left in your payment cycle, with
+								an old contribution of
+								#[b #{currencySymbol}#{user.contributionMonthlyAmount}/month] and a new
+								contribution of
+								#[b #{currencySymbol}#[span.js-new-amount]/month].
+							table.table.table-condensed.text-right
+								thead
+									tr
+										th Amount
+										th Calculation
+										th Description
+								tbody
+									tr
+										td #{currencySymbol}#[span.js-new-amount-prorated-new]
+										td #{currencySymbol}#[span.js-new-amount] * #{monthsLeft}
+										td.text-left Partial payment for new contribution
+									tr
+										td - #{currencySymbol}#{user.contributionMonthlyAmount * monthsLeft}
+										td #{currencySymbol}#{user.contributionMonthlyAmount} * #{monthsLeft}
+
+										td.text-left Partial refund for old contribution
+									tr
+										td
+											b #{currencySymbol}#[span.js-new-amount-prorated]
+										td
+										td
+
+	.form-group
+		.col-md-offset-3.col-md-9
+			p.join-charge.hidden.js-new-charge
+			button.btn.btn-success Submit

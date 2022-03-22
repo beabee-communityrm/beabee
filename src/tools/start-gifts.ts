@@ -36,7 +36,7 @@ async function main(date: string | undefined) {
     try {
       await GiftService.processGiftFlow(giftFlow);
     } catch (error) {
-      log.error(`Error prorcessing gift ${giftFlow.id}`, error);
+      log.error(`Error processing gift ${giftFlow.id}`, error);
     }
   }
 }
@@ -45,7 +45,7 @@ db.connect().then(async () => {
   try {
     await main(process.argv[2]);
   } catch (err) {
-    console.error(err);
+    log.error(`Error starting gifts`, err);
   }
   await db.close();
 });

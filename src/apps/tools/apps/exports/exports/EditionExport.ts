@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
+import { createQueryBuilder, getRepository, SelectQueryBuilder } from "typeorm";
 
 import { ContributionType } from "@core/utils";
 import { Param } from "@core/utils/params";
@@ -9,6 +9,8 @@ import Member from "@models/Member";
 
 import { ExportResult } from "./BaseExport";
 import ActiveMembersExport from "./ActiveMembersExport";
+import Poll from "@models/Poll";
+import PollResponse from "@models/PollResponse";
 
 export default class EditionExport extends ActiveMembersExport {
   exportName = "Edition export";
@@ -17,6 +19,10 @@ export default class EditionExport extends ActiveMembersExport {
   idColumn = "m.id";
 
   async getParams(): Promise<Param[]> {
+    const polls: [string, string][] = (
+      await getRepository(Poll).find({ order: { date: "DESC" } })
+    ).map((poll) => [poll.slug, poll.title]);
+
     return [
       {
         name: "monthlyAmountThreshold",
@@ -27,6 +33,12 @@ export default class EditionExport extends ActiveMembersExport {
         name: "includeNonOptIn",
         label: "Include those without delivery opt in",
         type: "boolean"
+      },
+      {
+        name: "pollSlug",
+        label: "Include answers from a poll?",
+        type: "select",
+        values: [["", ""], ...polls]
       }
     ];
   }
@@ -57,6 +69,25 @@ export default class EditionExport extends ActiveMembersExport {
   }
 
   async getExport(members: Member[]): Promise<ExportResult> {
+    let latestResponseByMember: Record<
+      string,
+      WithRelationIds<PollResponse, "member">
+    > = {};
+    if (this.ex?.params?.pollSlug) {
+      const responses = (await createQueryBuilder(PollResponse, "pr")
+        .where("pr.pollSlug = :pollSlug", {
+          pollSlug: this.ex.params.pollSlug
+        })
+        .innerJoinAndSelect("pr.poll", "poll")
+        .loadAllRelationIds({ relations: ["member"] })
+        .orderBy("pr.updatedAt")
+        .getMany()) as unknown as WithRelationIds<PollResponse, "member">[];
+
+      for (const response of responses) {
+        latestResponseByMember[response.member] = response;
+      }
+    }
+
     return members.map((member) => {
       const deliveryAddress = member.profile.deliveryAddress || {
         line1: "",
@@ -64,6 +95,7 @@ export default class EditionExport extends ActiveMembersExport {
         city: "",
         postcode: ""
       };
+      const response = latestResponseByMember[member.id];
 
       return {
         EmailAddress: member.email,
@@ -75,8 +107,8 @@ export default class EditionExport extends ActiveMembersExport {
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
         ReferralCode: member.referralCode,
         IsGift: member.contributionType === ContributionType.Gift,
-        //NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
-        ContributionMonthlyAmount: member.contributionMonthlyAmount
+        ContributionMonthlyAmount: member.contributionMonthlyAmount,
+        ...(response && convertAnswers(response.poll, response.answers))
       };
     });
   }
