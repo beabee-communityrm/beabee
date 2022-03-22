@@ -138,7 +138,10 @@ export class SignupController {
       password: joinFlow.joinForm.password,
       contributionType: ContributionType.None
     };
-    let partialProfile: Partial<MemberProfile> = {};
+    const partialProfile: Partial<MemberProfile> = {
+      newsletterStatus: NewsletterStatus.Subscribed,
+      newsletterGroups: OptionsService.getList("newsletter-default-groups")
+    };
 
     const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
 
