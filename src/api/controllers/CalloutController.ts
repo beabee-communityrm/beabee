@@ -1,4 +1,5 @@
 import {
+  Authorized,
   Body,
   CurrentUser,
   Get,
@@ -19,6 +20,7 @@ import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
 import {
+  CreateCalloutData,
   CreateCalloutResponseData,
   GetBasicCalloutData,
   GetCalloutResponseData,
@@ -121,6 +123,22 @@ export class CalloutController {
       ...results,
       items: results.items.map(pollToBasicCallout)
     };
+  }
+
+  @Authorized("admin")
+  @Post("/")
+  async createCallout(
+    @Body() data: CreateCalloutData
+  ): Promise<GetBasicCalloutData> {
+    const poll = await getRepository(Poll).save({
+      ...data,
+      template: "builder",
+      templateSchema: {
+        intro: data.intro,
+        formSchema: data.formSchema
+      }
+    });
+    return pollToBasicCallout(poll);
   }
 
   @Get("/:slug")

@@ -17,6 +17,19 @@ export enum PollAccess {
   OnlyAnonymous = "only-anonymous"
 }
 
+export interface PollComponentSchema {
+  key: string;
+  type: string;
+  label?: string;
+  input?: boolean;
+  values?: { label: string; value: string }[];
+  components?: PollComponentSchema[];
+}
+
+export interface PollFormSchema {
+  components: PollComponentSchema[];
+}
+
 @Entity()
 export default class Poll extends ItemWithStatus {
   @PrimaryColumn()

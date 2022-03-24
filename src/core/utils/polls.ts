@@ -1,32 +1,21 @@
-import Poll from "@models/Poll";
+import Poll, { PollComponentSchema, PollFormSchema } from "@models/Poll";
 import { PollResponseAnswer, PollResponseAnswers } from "@models/PollResponse";
 
-interface ComponentSchema {
-  key: string;
-  type: string;
-  label?: string;
-  input?: boolean;
-  values?: { label: string; value: string }[];
-  components?: ComponentSchema[];
-}
-
-interface FormSchema {
-  components: ComponentSchema[];
-}
-
-function flattenComponents(components: ComponentSchema[]): ComponentSchema[] {
+function flattenComponents(
+  components: PollComponentSchema[]
+): PollComponentSchema[] {
   return components.flatMap((component) => [
     component,
     ...flattenComponents(component.components || [])
   ]);
 }
 
-function getNiceAnswer(component: ComponentSchema, value: string): string {
+function getNiceAnswer(component: PollComponentSchema, value: string): string {
   return component.values?.find((v) => v.value === value)?.label || value;
 }
 
 function convertAnswer(
-  component: ComponentSchema,
+  component: PollComponentSchema,
   answer: PollResponseAnswer
 ): string {
   if (!answer) {
@@ -51,7 +40,7 @@ export function convertAnswers(
     return answers;
   }
 
-  const formSchema = poll.templateSchema.formSchema as FormSchema;
+  const formSchema = poll.templateSchema.formSchema as PollFormSchema;
 
   return Object.assign(
     {},

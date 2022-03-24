@@ -4,10 +4,21 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import IsUrl from "@api/validators/IsUrl";
 import ItemStatus from "@models/ItemStatus";
+import { PollFormSchema, PollAccess } from "@models/Poll";
 import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
-import { IsEmail, IsIn, IsObject, IsOptional, IsString } from "class-validator";
+import {
+  IsBoolean,
+  IsDate,
+  IsEmail,
+  IsEnum,
+  IsIn,
+  IsObject,
+  IsOptional,
+  IsString
+} from "class-validator";
 
 const fields = [
   "title",
@@ -44,7 +55,7 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
   hasAnswered?: string;
 }
 
-export interface GetBasicCalloutData {
+interface CalloutData {
   slug: string;
   title: string;
   excerpt: string;
@@ -53,13 +64,53 @@ export interface GetBasicCalloutData {
   expires?: Date;
   allowUpdate: boolean;
   allowMultiple: boolean;
+  access: PollAccess;
+}
+
+export interface GetBasicCalloutData extends CalloutData {
   status: ItemStatus;
-  access: "member" | "guest" | "anonymous" | "only-anonymous";
   hasAnswered?: boolean;
 }
 
 export interface GetMoreCalloutData extends GetBasicCalloutData {
   templateSchema?: Record<string, unknown>;
+}
+
+export class CreateCalloutData implements CalloutData {
+  @IsString()
+  slug!: string;
+
+  @IsString()
+  title!: string;
+
+  @IsString()
+  excerpt!: string;
+
+  @IsUrl()
+  image!: string;
+
+  @IsString()
+  intro!: string;
+
+  @IsObject()
+  formSchema!: PollFormSchema;
+
+  @Type(() => Date)
+  @IsDate()
+  starts!: Date;
+
+  @Type(() => Date)
+  @IsDate()
+  expires!: Date;
+
+  @IsBoolean()
+  allowUpdate!: boolean;
+
+  @IsBoolean()
+  allowMultiple!: boolean;
+
+  @IsEnum(PollAccess)
+  access!: PollAccess;
 }
 
 const responseFields = ["member", "poll"] as const;
