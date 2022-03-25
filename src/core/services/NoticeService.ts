@@ -6,14 +6,13 @@ import Notice from "@models/Notice";
 export default class NoticeService {
   static async findActive(): Promise<Notice[]> {
     return createQueryBuilder(Notice, "notice")
-      .where("notice.enabled = TRUE")
+      .where("notice.starts < :now")
       .andWhere(
         new Brackets((qb) => {
-          qb.where("notice.expires IS NULL").orWhere("notice.expires > :now", {
-            now: moment.utc().toDate()
-          });
+          qb.where("notice.expires IS NULL").orWhere("notice.expires > :now");
         })
       )
+      .setParameter("now", moment.utc().toDate())
       .getMany();
   }
 }
