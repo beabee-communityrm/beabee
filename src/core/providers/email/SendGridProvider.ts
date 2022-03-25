@@ -2,6 +2,7 @@ import sgMail from "@sendgrid/mail";
 import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
+import { formatEmailBody } from "@core/utils/email";
 
 import Email from "@models/Email";
 
@@ -31,7 +32,7 @@ export default class SendGridProvider implements EmailProvider {
         name: email.fromName
       },
       subject: email.subject,
-      html: email.bodyInline,
+      html: formatEmailBody(email.body),
       personalizations: recipients.map((recipient) => ({
         to: recipient.to,
         ...(recipient.mergeFields && { substitutions: recipient.mergeFields })

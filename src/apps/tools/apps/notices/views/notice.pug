@@ -8,15 +8,11 @@ block contents
 		.col-md-12
 			+page_header(notice.name)
 
-			p.
-				Created #{moment(notice.date).format('DD/MM/YYYY [at] HH:mm')}
-
-			if notice.active
-				.alert.alert-success This notice is currently active
-			else if !notice.enabled
-				.alert.alert-warning This notice is disabled
-			else if notice.expires
-				.alert.alert-warning This notice has expired
+			dl.dl-horizontal
+				dt Created
+				dd= moment(notice.date).format('DD/MM/YYYY [at] HH:mm')
+				dt Status
+				dd: +itemStatus(notice)
 
 	.row
 		.col-md-8
@@ -31,6 +27,12 @@ block contents
 					label(for='name').control-label.col-md-3 Name
 					.col-md-6
 						input(type='text' name='name' value=notice.name required)#name.form-control
+				.form-group
+					label(for='starts').control-label.col-md-3 Starts (UTC)
+					.col-md-3
+						input(type='date', name='startsDate' value=moment.utc(notice.starts).format('YYYY-MM-DD'))#starts.form-control
+					.col-md-3
+						input(type='time', name='startsTime' value=moment.utc(notice.starts).format('HH:mm')).form-control
 				.form-group
 					label(for='expires').control-label.col-md-3 Expires (UTC)
 					.col-md-3
@@ -49,11 +51,6 @@ block contents
 					label(for='url').control-label.col-md-3 URL
 					.col-md-9
 						input(type='text' name='url' value=notice.url)#url.form-control
-				.form-group
-					.col-md-offset-3.col-md-9
-						.checkbox-inline
-							input(type='checkbox' name='enabled' value='true' checked=notice.enabled)
-							| Enabled
 
 				p.col-md-offset-3
 					button.btn.btn-primary Update

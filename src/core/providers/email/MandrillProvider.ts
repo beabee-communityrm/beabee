@@ -2,6 +2,7 @@ import mandrill from "mandrill-api/mandrill";
 import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
+import { formatEmailBody } from "@core/utils/email";
 
 import Email from "@models/Email";
 
@@ -44,7 +45,7 @@ export default class MandrillProvider implements EmailProvider {
             from_name: email.fromName,
             from_email: email.fromEmail,
             subject: email.subject,
-            html: email.bodyInline,
+            html: formatEmailBody(email.body),
             auto_text: true
           },
           ...(opts?.sendAt && { send_at: opts.sendAt.toISOString() })

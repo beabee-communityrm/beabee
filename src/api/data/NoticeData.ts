@@ -1,37 +1,58 @@
-import { Type } from "class-transformer";
 import {
-  IsBoolean,
-  IsDate,
-  IsEnum,
-  IsOptional,
-  IsString
-} from "class-validator";
+  GetPaginatedQuery,
+  GetPaginatedRule,
+  GetPaginatedRuleGroup,
+  transformRules
+} from "@api/utils/pagination";
+import ItemStatus from "@models/ItemStatus";
+import { Transform, Type } from "class-transformer";
+import { IsBoolean, IsDate, IsIn, IsOptional, IsString } from "class-validator";
 
 interface NoticeData {
   name: string;
   expires?: Date;
-  enabled: boolean;
   text: string;
   buttonText: string;
   url?: string;
 }
 
-export enum NoticeStatus {
-  Open = "open",
-  Finished = "finished"
+const fields = [
+  "createdAt",
+  "updatedAt",
+  "name",
+  "expires",
+  "enabled",
+  "text",
+  "status"
+] as const;
+const sortFields = ["createdAt", "updatedAt", "name", "expires"];
+
+type Field = typeof fields[number];
+type SortField = typeof sortFields[number];
+
+class GetNoticesRule extends GetPaginatedRule<Field> {
+  @IsIn(fields)
+  field!: Field;
 }
 
-export class GetNoticesQuery {
-  @IsEnum(NoticeStatus)
-  @IsOptional()
-  status?: NoticeStatus;
+class GetNoticesRuleGroup extends GetPaginatedRuleGroup<Field> {
+  @Transform(transformRules(GetNoticesRuleGroup, GetNoticesRule))
+  rules!: (GetNoticesRuleGroup | GetNoticesRule)[];
+}
+
+export class GetNoticesQuery extends GetPaginatedQuery<Field, SortField> {
+  @IsIn(sortFields)
+  sort?: SortField;
+
+  @Type(() => GetNoticesRuleGroup)
+  rules?: GetNoticesRuleGroup;
 }
 
 export interface GetNoticeData extends NoticeData {
   id: string;
   createdAt: Date;
   updatedAt: Date;
-  status: NoticeStatus;
+  status: ItemStatus;
 }
 
 export class CreateNoticeData implements NoticeData {

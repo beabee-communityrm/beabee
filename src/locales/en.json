@@ -1,0 +1,297 @@
+{
+  "callouts": {
+    "archive": "Archive",
+    "data": {
+      "callout": "Callout",
+      "endDate": "End date"
+    },
+    "search": "Search callouts...",
+    "show": "Show",
+    "showAll": "All",
+    "showAnswered": "Answered"
+  },
+  "common": {
+    "annually": "Annually",
+    "backToHome": "Back to home",
+    "contributing": "Contributing",
+    "every": "every",
+    "goBack": "Go back",
+    "hello": "Hello",
+    "in": "in",
+    "joined": "Joined",
+    "login": "Login",
+    "month": "month | months",
+    "monthly": "Monthly",
+    "new": "new!",
+    "no": "No",
+    "participate": "Participate",
+    "role": {
+      "admin": "Admin",
+      "member": "Member",
+      "superadmin": "Super Admin"
+    },
+    "thankYou": "Thank you!",
+    "timeAgo": "{time} ago",
+    "timeIn": "in {time}",
+    "until": "until",
+    "year": "year | years",
+    "yes": "Yes"
+  },
+  "contactInformation": {
+    "deliveryOptIn": "Delivery opt-in"
+  },
+  "contactOverview": {
+    "about": "About",
+    "annotation": {
+      "copy": {
+        "begin": "All information added in this section is",
+        "bold": "visible for admins only.",
+        "end": "Members will never see these in their profile or member area."
+      }
+    },
+    "contribution": "Contribution",
+    "information": "Information",
+    "overview": "Overview",
+    "roles": "Roles",
+    "security": {
+      "instructions": "Copy and share this link:",
+      "loginOverride": "Login override",
+      "resetPassword": "Reset password",
+      "title": "Security",
+      "whatDoTheButtonsDo": "Click the button to generate an emergency link:"
+    }
+  },
+  "contacts": {
+    "addContact": "Add contact",
+    "advancedSearch": "Advanced",
+    "allContacts": "All contacts",
+    "data": {
+      "amount": "Amount",
+      "contribution": "Contribution",
+      "contributionType": "Type",
+      "deliveryOptIn": "Delivery opt-in?",
+      "description": "Description",
+      "email": "Email",
+      "groups": "Groups",
+      "joined": "Joined",
+      "lastSeen": "Last seen",
+      "name": "Name",
+      "newsletter": "Newsletter",
+      "notes": "Notes",
+      "payingFee": "Paying fee?",
+      "period": "Period",
+      "phone": "Phone",
+      "roles": "Roles",
+      "rolesCopy": {
+        "today": "present"
+      },
+      "tags": "Tags"
+    },
+    "noResults": "No contacts found",
+    "search": "Search contacts...",
+    "showingOf": "Showing {start} to {end} contacts out of {total}"
+  },
+  "contribution": {
+    "bankAccount": "Bank account",
+    "billing": "Billing",
+    "cancelContribution": "Cancel contribution",
+    "cancelDescription": "If you cancel your contribution your membership will finish at the end of your current payment cycle, {day} of {month}.",
+    "cancelMessage": "We're sorry to see you go.",
+    "changeBank": "Change to a different bank account",
+    "changeBankInfo": "You'll be asked for the details of your new bank account in the next step.",
+    "contributing": "You're contributing",
+    "contributionUpdateError": "You can't update your contribution at the moment as you have a payment pending",
+    "expired": "Your contribution expired.",
+    "expiredText": "Please consider renewing, even if at the lowest amount it would help us immensely. Thank you!",
+    "hasPendingPayment": "Your payment is currently being processed.",
+    "manualPayment": "You are paying manually through bank transfer right now. To make it easier for you to manage your contribution and easier for us to know on how much money from our members we can rely on month on month, please update to paying automatically via direct debit.",
+    "nextAmountChanging": "Your contribution will change to {nextAmount} on {renewalDate}.",
+    "paymentHistory": {
+      "amount": "Amount",
+      "date": "Date",
+      "title": "Payment history"
+    },
+    "paymentSourceUpdateError": "You can't update your bank account at the moment as you have a payment pending",
+    "prorateDecreaseMessage": "You have {monthsLeft} {months} left on your current contribution, your new contribution will start on {renewalDate}.",
+    "prorateIncreaseMessage": "You have {monthsLeft} {months} left on your current contribution. You can make a one-off payment of {oneOffPayment} to start your new contribution immediately.",
+    "prorateNoText": "You'll stay on your current contribution until then.",
+    "prorateNoTitle": "Update my contribution on {renewalDate}",
+    "prorateYesText": "You'll be charged a one-off payment of {oneOffPayment} now and your contribution will be updated immedately",
+    "prorateYesTitle": "Update my contribution now",
+    "restartContribution": "Restart contribution",
+    "startContribution": "Start contribution",
+    "startedContribution": "Your contribution has started.",
+    "updateContribution": "Update contribution",
+    "updatePaymentType": "Update payment type",
+    "updatedContribution": "Your contribution has been updated.",
+    "updatedPaymentSource": "Your bank account has been updated.",
+    "willExpire": "Your contribution will expire in {expires}.",
+    "willRenew": "Your contribution will automatically renew on {renewalDate}.",
+    "willRenewWithNewAmount": "Your contribution will automatically renew on {renewalDate} and will change to your chosen amount of {nextAmount}."
+  },
+  "footer": {
+    "contactUs": "Contact us at",
+    "contacts": "Contacts",
+    "handbookResources": "Handbook & Resources",
+    "joinCommunity": "Join the Community",
+    "poweredBy": "powering independent local newsrooms",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms and Conditions"
+  },
+  "forgotPassword": {
+    "checkInbox": "Please check your inbox and follow the instructions in the email. Check your spam folder if it doesn't appear.",
+    "description": "Please enter your email address and we’ll send you password reset instructions.",
+    "message": "If there is an account associated with {email}, you will receive an email shortly.",
+    "resetPassword": "Reset your password",
+    "title": "Forgot your password?"
+  },
+  "form": {
+    "addressLine1": "Address line 1",
+    "addressLine2": "Address line 2",
+    "cancel": "Cancel",
+    "cityOrTown": "City/Town",
+    "deliveryOptIn": "Delivery opt-in",
+    "description": "Description",
+    "email": "Email",
+    "errors": {
+      "address": {
+        "required": "This field is required if you want to add address"
+      },
+      "aggregator": "Something is missing! Please check the fields above.",
+      "email": {
+        "invalid": "Invalid email address",
+        "required": "Email is required"
+      },
+      "firstName": {
+        "required": "First name is required"
+      },
+      "lastName": {
+        "required": "Last name is required"
+      },
+      "password": {
+        "invalid": "Invalid password",
+        "required": "Password is required",
+        "sameAs": "The passwords don't match"
+      }
+    },
+    "firstName": "First name",
+    "lastName": "Last name",
+    "newPassword": "New password",
+    "newPasswordConfirm": "Confirm new password",
+    "notes": "Notes",
+    "password": "Password",
+    "passwordInfo": "Set a secure password: 8+ characters at least one number, one uppercase and one lowercase letters.",
+    "phone": "Phone",
+    "postCode": "Postcode",
+    "saveChanges": "Save Changes",
+    "saved": "Saved!",
+    "warning": "Please only make updates to this page with the consent of the user. Changes you make here will also be visible to the user."
+  },
+  "homePage": {
+    "editProfile": "Edit your community profile",
+    "manageContribution": "Manage contribution",
+    "manageYourContribution": "Manage your contribution",
+    "newCallout": "New callout!",
+    "openCallouts": "Open callouts",
+    "passwordReset": "Your password has been reset.",
+    "quickActions": "Quick actions",
+    "title": "Home",
+    "viewAllCallouts": "View all callouts",
+    "viewOpenCallouts": "View open callouts",
+    "welcome": "Welcome abroad {firstName}!",
+    "yourProfile": "Your profile"
+  },
+  "informationPage": {
+    "changePassword": "Change password",
+    "contactInformation": "Contact information",
+    "deliveryAddress": "Delivery address",
+    "loginDetail": "Login details",
+    "savedPassword": "New password saved",
+    "subTitle": "Required fields are marked with an asterisk. All information submitted here is private.",
+    "title": "Your information"
+  },
+  "join": {
+    "absorbFeeForce": "{amount} contributions must absorb the {fee} fee.",
+    "absorbFeeOptIn": "Yes, I'll absorb the {fee} fee.",
+    "absorbFeeText": "Our payment processor charges us per transaction which means we receive less from monthly contributions. Are you happy to absorb the {fee} transaction fee?  Alternatively you could pay annually.",
+    "contribute": "Contribute {amount} / {period}",
+    "contribution": "Contribution",
+    "errors": {
+      "confirmEmail": {
+        "message": "Almost there! We just need to confirm your email address to finish setting up your membership.",
+        "proceed": "We've sent you an email please click the link to proceed",
+        "title": "Confirm your email address"
+      },
+      "duplicateEmail": {
+        "message": "This email address is already registered you can login to proceed.",
+        "title": "Duplicate email address"
+      },
+      "failed": {
+        "backToJoin": "Back to join page",
+        "message": "There was a problem setting up your membership, our team has been notified. Please contact support if the problem persists.",
+        "title": "Something went wrong"
+      }
+    },
+    "login": "Log in",
+    "memberAccount": "Member account",
+    "memberAlready": "Are you a member already?",
+    "minimumContribution": "Minimum contribution is",
+    "noContribution": "I don't want to contribute right now",
+    "notice": "By proceeding you are accepting the",
+    "now": "Join now!",
+    "privacy": "Privacy Policy"
+  },
+  "joinSetup": {
+    "confirmDetails": "Please confirm your details",
+    "continue": "All good! Continue",
+    "welcome": "Welcome {firstName}!"
+  },
+  "locale": "en",
+  "login": {
+    "backTo": "Back to {newsroomName}",
+    "forgotPassword": "Forgot your password?",
+    "joinNow": "Join now!",
+    "login": "Login",
+    "notMember": "Not a member?",
+    "title": "Log in to your account",
+    "wrongCredentials": "Wrong password/email combination"
+  },
+  "menu": {
+    "admin": "Admin",
+    "adminDashboard": "Dashboard",
+    "callouts": "Callouts",
+    "community": "Community",
+    "contribution": "Contribution",
+    "home": "Home",
+    "logout": "Log out",
+    "settings": "Settings",
+    "yourInformation": "Your information",
+    "yourProfile": "Your profile"
+  },
+  "notification": {
+    "error": "Oops, something went wrong!",
+    "success": "Well done! Your action was successful."
+  },
+  "pageTitle": {
+    "confirmEmail": "Confirm email",
+    "duplicateEmail": "Duplicate email",
+    "failed": "Failed",
+    "forgotPassword": "Forgot password",
+    "join": "Join",
+    "login": "Login",
+    "resetPassword": "Reset password",
+    "setup": "Setup"
+  },
+  "resetPassword": {
+    "changePassword": "Change password",
+    "confirmPassword": "Confirm password",
+    "description": "Set a new password to login.",
+    "login": "Login to your account",
+    "newPassword": "New password",
+    "title": "Reset your password?"
+  },
+  "setPassword": {
+    "description": "Set a new password to login.",
+    "title": "Set a password"
+  }
+}

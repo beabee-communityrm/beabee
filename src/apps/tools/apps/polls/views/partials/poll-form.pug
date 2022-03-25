@@ -84,15 +84,6 @@ form(method='POST').form-horizontal
 					input(type='checkbox' name='allowUpdate' value='true' checked=poll.allowUpdate)
 					| Allow users to update their answers
 
-		if isNew
-			input(type='hidden' name='closed' value='true')
-		else
-			.form-group
-				.col-md-offset-3.col-md-9
-					label.checkbox-inline
-						input(type='checkbox' name='closed' value='true' checked=poll.closed)
-						| Closed
-
 	.form-group
 		.col-md-offset-3.col-md-9
 			label.checkbox-inline

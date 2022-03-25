@@ -139,11 +139,8 @@ export class SignupController {
       contributionType: ContributionType.None
     };
     const partialProfile: Partial<MemberProfile> = {
-      ...(OptionsService.getText("newsletter-default-status") ===
-        "subscribed" && {
-        newsletterStatus: NewsletterStatus.Subscribed,
-        newsletterGroups: OptionsService.getList("newsletter-default-groups")
-      })
+      newsletterStatus: NewsletterStatus.Subscribed,
+      newsletterGroups: OptionsService.getList("newsletter-default-groups")
     };
 
     const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
@@ -162,9 +159,7 @@ export class SignupController {
 
     if (member) {
       await MembersService.updateMember(member, partialMember);
-      if (Object.keys(partialProfile).length > 0) {
-        await MembersService.updateMemberProfile(member, partialProfile);
-      }
+      // Don't overwrite profile for an existing member
     } else {
       member = await MembersService.createMember(partialMember, partialProfile);
     }

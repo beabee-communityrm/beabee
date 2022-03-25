@@ -33,7 +33,10 @@ import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMemberQuery,
+  GetMembersQuery,
   GetMemberWith,
+  GetPaymentData,
+  GetPaymentsQuery,
   UpdateMemberData
 } from "@api/data/MemberData";
 import {
@@ -49,6 +52,9 @@ import {
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
+import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
+import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
+import GCPayment from "@models/GCPayment";
 
 import config from "@config";
 
@@ -119,54 +125,36 @@ export class MemberStatsController {
 @JsonController("/member")
 @Authorized()
 export class MemberController {
+  @Authorized("admin")
+  @Get("/")
+  async getMembers(
+    @QueryParams() query: GetMembersQuery
+  ): Promise<Paginated<GetMemberData>> {
+    return await fetchPaginatedMembers(query, {
+      with: query.with,
+      withRestricted: true
+    });
+  }
+
   @Get("/:id")
   async getMember(
     @CurrentUser() member: Member,
     @TargetUser() target: Member,
     @QueryParams() query: GetMemberQuery
   ): Promise<GetMemberData> {
-    const profile =
-      query.with && query.with.indexOf(GetMemberWith.Profile) > -1
-        ? await getRepository(MemberProfile).findOneOrFail({
-            member: target
-          })
-        : undefined;
-
-    const roles = target.permissions
-      .filter((p) => p.isActive)
-      .map((p) => p.permission);
-
-    if (roles.includes("superadmin")) {
-      roles.push("admin");
+    if (query.with?.includes(GetMemberWith.Profile)) {
+      target.profile = await getRepository(MemberProfile).findOneOrFail({
+        member: target
+      });
     }
-
+    const data = memberToData(target, {
+      with: query.with,
+      withRestricted: member.hasPermission("admin")
+    });
     return {
-      email: target.email,
-      firstname: target.firstname,
-      lastname: target.lastname,
-      joined: target.joined,
-      ...(target.contributionAmount && {
-        contributionAmount: target.contributionAmount
-      }),
-      ...(target.contributionPeriod && {
-        contributionPeriod: target.contributionPeriod
-      }),
-      roles,
-      ...(profile && {
-        profile: {
-          telephone: profile.telephone,
-          twitter: profile.twitter,
-          preferredContact: profile.preferredContact,
-          deliveryOptIn: profile.deliveryOptIn,
-          deliveryAddress: profile.deliveryAddress,
-          newsletterStatus: profile.newsletterStatus,
-          newsletterGroups: profile.newsletterGroups,
-          ...(member.hasPermission("admin") && {
-            tags: profile.tags,
-            notes: profile.notes,
-            description: profile.description
-          })
-        }
+      ...data,
+      ...(query.with?.includes(GetMemberWith.Contribution) && {
+        contribution: await PaymentService.getContributionInfo(target)
       })
     };
   }
@@ -259,6 +247,25 @@ export class MemberController {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
     await PaymentService.updateContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
+  }
+
+  @Get("/:id/payment")
+  async getPayments(
+    @TargetUser() target: Member,
+    @QueryParams() query: GetPaymentsQuery
+  ): Promise<Paginated<GetPaymentData>> {
+    const targetQuery = mergeRules(query, [
+      { field: "member", operator: "equal", value: target.id }
+    ]);
+    const data = await fetchPaginated(GCPayment, targetQuery);
+    return {
+      ...data,
+      items: data.items.map((item) => ({
+        amount: item.amount,
+        chargeDate: item.chargeDate,
+        status: item.status
+      }))
+    };
   }
 
   @Put("/:id/payment-source")

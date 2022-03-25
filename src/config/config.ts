@@ -138,6 +138,7 @@ export default {
     secretKey: env.s("BEABEE_STRIPE_SECRETKEY", ""),
     webhookSecret: env.s("BEABEE_STRIPE_WEBHOOKSECRET", "")
   },
+  locale: env.e("BEABEE_LOCALE", ["en", "de", "de@informal"] as const),
   countryCode: env.e("BEABEE_COUNTRYCODE", ["en", "de", "be"] as const),
   currencyCode: env.s("BEABEE_CURRENCYCODE"),
   currencySymbol: env.s("BEABEE_CURRENCYSYMBOL"),

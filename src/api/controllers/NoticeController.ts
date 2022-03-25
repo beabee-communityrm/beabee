@@ -13,7 +13,7 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { Brackets, createQueryBuilder, getRepository } from "typeorm";
+import { Brackets, getRepository } from "typeorm";
 
 import Notice from "@models/Notice";
 import Member from "@models/Member";
@@ -22,10 +22,11 @@ import { UUIDParam } from "@api/data";
 import {
   CreateNoticeData,
   GetNoticeData,
-  GetNoticesQuery,
-  NoticeStatus
+  GetNoticesQuery
 } from "@api/data/NoticeData";
 import PartialBody from "@api/decorators/PartialBody";
+import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
+import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
 @JsonController("/notice")
 @Authorized()
@@ -34,22 +35,23 @@ export class NoticeController {
   async getNotices(
     @CurrentUser() member: Member,
     @QueryParams() query: GetNoticesQuery
-  ): Promise<GetNoticeData[]> {
-    const qb = createQueryBuilder(Notice, "notice");
-    if (query.status === NoticeStatus.Open || !member.hasPermission("admin")) {
-      qb.where("notice.enabled = TRUE").andWhere(
-        new Brackets((qb) => {
-          qb.where("notice.expires IS NULL").orWhere("notice.expires > :now", {
-            now: moment.utc().toDate()
-          });
-        })
-      );
-    } else if (query.status === NoticeStatus.Finished) {
-      qb.where("notice.enabled = FALSE").orWhere("notice.expires < :now", {
-        now: moment.utc().toDate()
-      });
-    }
-    return (await qb.getMany()).map(this.noticeToData);
+  ): Promise<Paginated<GetNoticeData>> {
+    const authedQuery = mergeRules(query, [
+      // Non-admins can only see open notices
+      !member.hasPermission("admin") && {
+        field: "status",
+        operator: "equal",
+        value: ItemStatus.Open
+      }
+    ]);
+    const results = await fetchPaginated(Notice, authedQuery, {
+      status: ruleAsQuery
+    });
+
+    return {
+      ...results,
+      items: results.items.map(this.noticeToData)
+    };
   }
 
   @Get("/:id")
@@ -97,10 +99,9 @@ export class NoticeController {
       name: notice.name,
       text: notice.text,
       buttonText: notice.buttonText,
-      enabled: notice.enabled,
       ...(notice.expires !== null && { expires: notice.expires }),
       ...(notice.url !== null && { url: notice.url }),
-      status: notice.active ? NoticeStatus.Open : NoticeStatus.Finished
+      status: notice.status
     };
   }
 }

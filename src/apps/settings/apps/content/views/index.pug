@@ -1,21 +1,36 @@
 extends /views/base.pug
 
+mixin periodSchema(i, period)
+  .form-group
+    label.control-label.col-md-3 Preset amounts (#{period.name})
+    .col-md-9
+      input(type="hidden" name="data[periods][" + i + "][name]" value=period.name)
+      input(type='text' name="data[periods][" + i + "][presetAmounts]" value=period.presetAmounts.join(', ') required).form-control
+
+mixin linkSchema(i, link)
+  li.js-repeater-item.well
+    .form-group
+      label.control-label.col-md-3 Text
+      .col-md-9
+        input(type='text' name='data[footerLinks][' + i + '][text]' value=link.text required).form-control
+    .form-group
+      label.control-label.col-md-3 Link
+      .col-md-9
+        input(type='text' name='data[footerLinks][' + i + '][url]' value=link.url required).form-control
+    .row: .col-md-offset-3.col-md-9
+        button(type='button').btn.btn-xs.btn-danger.js-repeater-remove-item Delete
+
 block prepend title
   - title = app.title
 
 block prepend js
   script(src='/static/js/lib/quill.min.js')
+  script(src='/static/js/lib/quill-paste-smart.js')
+  script(type='text/template').js-repeater-template
+    +linkSchema(0, {})
 
 block append css
   link(rel='stylesheet' href='/static/css/lib/quill.snow.css')
-
-mixin periodSchema(i, period)
-    .form-group
-      label.control-label.col-md-3 Preset amounts (#{period.name})
-      .col-md-9
-        input(type="hidden" name="data[periods][" + i + "][name]" value=period.name)
-        input(type='text' name="data[periods][" + i + "][presetAmounts]" value=period.presetAmounts.join(', ') required).form-control
-
 
 block contents
   .row
@@ -24,6 +39,8 @@ block contents
 
   .row
     .col-md-8
+      h4 General
+
       form(method='POST').form-horizontal
         +csrf
 
@@ -40,6 +57,10 @@ block contents
           .col-md-9
             input(type='text' name='options[footer-terms-link-url]' value=Options('footer-terms-link-url')).form-control
         .form-group
+          label.control-label.col-md-3 Impressum URL
+          .col-md-9
+            input(type='text' name='options[footer-impressum-link-url]' value=Options('footer-impressum-link-url')).form-control
+        .form-group
           label.control-label.col-md-3 Support email
           .col-md-9
             input(type='text' name='options[support-email]' value=Options('support-email')).form-control
@@ -47,8 +68,21 @@ block contents
           label.control-label.col-md-3 Support email from
           .col-md-9
             input(type='text' name='options[support-email-from]' value=Options('support-email-from')).form-control
+        .form-group
+          label.control-label.col-md-3 Main site URL
+          .col-md-9
+            input(type='text' name='options[home-link-url]' value=Options('home-link-url')).form-control
 
-        .row: .col-md-offset-3.col-md-9: p: button.btn.btn-primary Save
+        .row: .col-md-offset-3.col-md-9: h5 Footer links
+        ul(data-name="data[footerLinks]").no-list.js-repeater
+          if general.footerLinks
+            each link, i in general.footerLinks
+              +linkSchema(i, link)
+
+        .row: .col-md-offset-3.col-md-9
+          p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add link
+
+        .row: .col-md-offset-3.col-md-9: p: button(name='id' value='general').btn.btn-primary Save
 
       hr
 

@@ -139,11 +139,12 @@ mixin paymentStatus(payment)
 			span.label.label-default( title=payment.status ) #{ payment.status }
 
 mixin itemStatus(item)
-	if item.active
-		span.label.label-success Active
-	else if item.closed
-		span.label.label-danger Closed
-	else if item.expires && moment().isAfter(item.expires)
-		span.label.label-warning Expired
-	else if item.starts
-		span.label.label-info Scheduled
+	case item.status
+		when 'draft'
+			span.label.label-default Draft
+		when 'scheduled'
+			span.label.label-info Scheduled
+		when 'open'
+			span.label.label-success Open
+		when 'ended'
+			span.label.label-danger Ended

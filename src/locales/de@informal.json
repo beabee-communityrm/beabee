@@ -1,0 +1,277 @@
+{
+  "callouts": {
+    "data": {}
+  },
+  "common": {
+    "annually": "Jährlich",
+    "backToHome": "Zurück zur Startseite",
+    "contributing": "Dein Beitrag",
+    "every": "pro",
+    "goBack": "Zurück",
+    "hello": "Hallo",
+    "in": "in",
+    "joined": "Mitglied seit",
+    "login": "Login",
+    "month": "Monat | Monaten",
+    "monthly": "Monatlich",
+    "new": "neu!",
+    "no": "Nein",
+    "participate": "Teilnehmen",
+    "role": {
+      "admin": "Admin",
+      "member": "Mitglied",
+      "superadmin": "Überadmin"
+    },
+    "thankYou": "Vielen Dank!",
+    "timeIn": "in {time}",
+    "until": "bis",
+    "year": "Jahr | Jahren",
+    "yes": "Ja"
+  },
+  "contactInformation": {
+    "deliveryOptIn": "Postsendung"
+  },
+  "contactOverview": {
+    "about": "Über",
+    "annotation": {
+      "copy": {}
+    },
+    "contribution": "Beitrag",
+    "information": "Information",
+    "overview": "Überblick",
+    "roles": "Rolle",
+    "security": {}
+  },
+  "contacts": {
+    "addContact": "Kontakt hinzufügen",
+    "advancedSearch": "Erweiterte Suche",
+    "allContacts": "Alle Kontakte",
+    "data": {
+      "amount": "Betrag",
+      "contribution": "Beitrag",
+      "contributionType": "Zahlungsart",
+      "deliveryOptIn": "Postsendung",
+      "description": "Beschreibung",
+      "email": "E-Mail",
+      "groups": "Grupper",
+      "joined": "Mitglied seit",
+      "lastSeen": "Zuletzt angemeldet",
+      "name": "Name",
+      "newsletter": "Newsletter",
+      "notes": "Notizen",
+      "payingFee": "Übernimmt Transaktionskosten?",
+      "period": "Zeitraum",
+      "phone": "Telefon",
+      "roles": "Rolle",
+      "rolesCopy": {
+        "today": "heute"
+      },
+      "tags": "Tags"
+    },
+    "noResults": "Keine Kontakte gefunden",
+    "search": "Kontakte durchsuchen...",
+    "showingOf": "{start} to {end} von {total} Kontakten werden angezeigt."
+  },
+  "contribution": {
+    "bankAccount": "Bankverbindung",
+    "billing": "Zahlungsart",
+    "cancelContribution": "Mitgliedschaft kündigen",
+    "cancelDescription": "Wenn du jetzt kündigst, endet deine Mitgliedschaft am {day} {month}.",
+    "cancelMessage": "Schade, dass du uns verlässt.",
+    "changeBank": "Ändere deine Bankverbindung.",
+    "changeBankInfo": "Im nächsten Schritt kannst du deine neue Bankverbindung eingeben.",
+    "contributing": "Dein Beitrag ist",
+    "contributionUpdateError": "Du kannst deinen Beitrag aktuell nicht ändern, weil eine Zahlung kurz bevorsteht.",
+    "expired": "Deine Mitgliedschaft ist abgelaufen.",
+    "expiredText": "Möchtest du deine Mitgliedschaft verlängern? Selbst kleinste Beträge helfen uns und unserer Arbeit. Danke!",
+    "hasPendingPayment": "Deine Zahlung wird gerade verarbeitet.",
+    "manualPayment": "Du leistest deinen Beitrag aktuell manuell via Banküberweisung. Richte hier jetzt eine automatische Abbuchung via Lastschrift ein. Dann wird es für dich leichter, deine Beiträge zu verwalten. Und wir bekommen einen besseren Überblick, auf welche Beiträge wir uns monatlich verlassen können.",
+    "nextAmountChanging": "Ab dem {renewalDate} ist dein Beitrag {nextAmount}.",
+    "paymentHistory": {
+      "amount": "Betrag",
+      "date": "Datum"
+    },
+    "paymentSourceUpdateError": "Du kannst deine Bankverbindung aktuell nicht ändern, weil eine Zahlung kurz bevorsteht.",
+    "prorateDecreaseMessage": "Dein Beitrag bleibt noch für {monthsLeft} {months} gleich. Der neue Beitrag wird am {renewalDate} zum ersten Mal eingezogen.",
+    "prorateIncreaseMessage": "Deine Mitgliedschaft läuft noch {monthsLeft} {months} unter diesem Beitrag. Du kannst eine Einmalzahlung in Höhe von {oneOffPayment} leisten um deine Mitgliedschaft sofort zu erneuern und den Beitrag zu erhöhen.",
+    "prorateNoText": "Bis dahin bleibt dein Beitrag gleich.",
+    "prorateNoTitle": "Ändern Sie meinen Beitrag ab dem {renewalDate}.",
+    "prorateYesText": "Wir buchen eine Einmalzahlung in Höhe von {oneOffPayment} ab und deine Mitgliedschaft wird mit deinem neuen Beitrag sofort verlängert.",
+    "prorateYesTitle": "Meinen Beitrag sofort erhöhen.",
+    "restartContribution": "Mitgliedschaft erneuern",
+    "startContribution": "Mitgliedschaft beginnen",
+    "startedContribution": "Deine Mitgliedschaft hat begonnen.",
+    "updateContribution": "Beitrag aktualisieren",
+    "updatePaymentType": "Neuen Zahlungsweg einrichten",
+    "updatedContribution": "Ihr Beitrag wurde geändert.",
+    "updatedPaymentSource": "Deine Bankverbindung wurde geändert.",
+    "willExpire": "Deine Mitgliedschaft läuft in {expires} ab.",
+    "willRenew": "Deine Mitgliedschaft verlängert sich am {renewalDate} automatisch.",
+    "willRenewWithNewAmount": "Deine Mitgliedschaft verlängert sich am {renewalDate} automatisch. Dein Beitrag ist dann {nextAmount}."
+  },
+  "footer": {
+    "contactUs": "Kontaktiere uns unter",
+    "contacts": "Kontakte",
+    "handbookResources": "Handbuch & Ressourcen",
+    "joinCommunity": "Mitglied werden",
+    "poweredBy": "Wir stärken unabhängige Lokalredaktionen.",
+    "privacyPolicy": "Datenschutzerklärung",
+    "terms": "Allgemeine Geschäftsbedingungen"
+  },
+  "forgotPassword": {
+    "checkInbox": "Bitte schaue in deinen Posteingang und befolge die Anleitung in der Email. Sollte die Email nicht auftauchen, checke deinen Spamordner. ",
+    "description": "Bitte gib deine Email-Adresse ein. Wir schicken dir dann die Anleitung zum Zurücksetzen deines Passworts.",
+    "message": "Gibt es einen Account mit der Email-Adresse {email}, bekommst du in Kürze eine Nachricht.",
+    "resetPassword": "Passwort zurücksetzen",
+    "title": "Passwort vergessen?"
+  },
+  "form": {
+    "addressLine1": "Adresse",
+    "addressLine2": "Adresse 2",
+    "cancel": "Abbrechen",
+    "cityOrTown": "Ort",
+    "deliveryOptIn": "Einverständnis zur Postsendung",
+    "description": "Bezeichnung",
+    "email": "Email",
+    "errors": {
+      "address": {
+        "required": "Dieses Feld wird benötigt, wenn du eine Adresse eintragen willst."
+      },
+      "aggregator": "Es fehlt etwas! Bitte kontrolliere die obigen Felder.",
+      "email": {
+        "invalid": "Ungültige Email-Adresse",
+        "required": "Email-Adresse benötigt"
+      },
+      "firstName": {
+        "required": "Vorname benötigt"
+      },
+      "lastName": {
+        "required": "Nachname benötigt"
+      },
+      "password": {
+        "invalid": "Passwort ungültig",
+        "required": "Passwort benötigt",
+        "sameAs": "Passwörter stimmen nicht überein"
+      }
+    },
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "newPassword": "Neues Passwort",
+    "newPasswordConfirm": "Neues Passwort bestätigen",
+    "notes": "Anmerkungen",
+    "password": "Passwort",
+    "passwordInfo": "Das Passwort muss aus mindestens acht Zeichen bestehen und mindestens eine Zahl, einen Groß- und einen Kleinbuchstaben enthalten.",
+    "phone": "Telefon",
+    "postCode": "Postleitzahl",
+    "saveChanges": "Änderungen speichern",
+    "saved": "Gespeichert!",
+    "warning": "Ändere hier nur etwas, wenn du das Einverständnis hast. Änderungen werden auch den Nutzern angezeigt."
+  },
+  "homePage": {
+    "editProfile": "Profil bearbeiten",
+    "manageContribution": "Beitrag ändern",
+    "manageYourContribution": "Beitrag ändern",
+    "newCallout": "Neuer Callout!",
+    "openCallouts": "Offene Callouts",
+    "passwordReset": "Dein Passwort wurde aktualisiert.",
+    "quickActions": "Schnellaktionen",
+    "title": "Home",
+    "viewAllCallouts": "Alle Callouts anzeigen",
+    "viewOpenCallouts": "Offene Callouts anzeigen",
+    "welcome": "Herzlich willkommen {firstName}!",
+    "yourProfile": "Dein Profil"
+  },
+  "informationPage": {
+    "changePassword": "Passwort ändern",
+    "contactInformation": "Kontaktdaten",
+    "deliveryAddress": "Adresse",
+    "loginDetail": "Login-Daten",
+    "savedPassword": "Das neue Passwort wurde gespeichert. ",
+    "subTitle": "Alle benötigten Felder sind mit * markiert. Alle Informationen werden vertraulich behandelt.",
+    "title": "Deine Informationen"
+  },
+  "join": {
+    "absorbFeeForce": "Bei einem Beitrag von {amount}, musst du die {fee} Transaktionskosten übernehmen.",
+    "absorbFeeOptIn": "Ja, ich übernehme die {fee} Transaktionskosten.",
+    "absorbFeeText": "Unser Zahlungsdienstleister stellt uns jede Transaktion in Rechnung. Das heißt, wir erhalten weniger von deinem monatlichen Beitrag. Möchtest du die Kosten dafür übernehmen? Alternativ kannst du auch jährlich bezahlen.",
+    "contribute": "Mit {amount} pro {period} unterstützen.",
+    "contribution": "Beitrag",
+    "errors": {
+      "confirmEmail": {
+        "message": "Fast geschafft! Wir müssen nur noch deine Email-Adresse bestätigen, um fortzufahren.",
+        "proceed": "Wir haben dir eine Email geschickt. Bitte klicke auf den Bestätigungslink, um fortzufahren.",
+        "title": "Email-Adresse bestätigen"
+      },
+      "duplicateEmail": {
+        "message": "Diese Email-Adresse ist bereits registriert. Bitte logge dich ein, um fortzufahren.",
+        "title": "Email-Adresse wiederholen"
+      },
+      "failed": {
+        "backToJoin": "Zurück zur Registrierung",
+        "message": "Es gab ein Problem bei der Registrierung, unser Team wurde benachrichtigt. Bitte kontaktiere uns, wenn das Problem weiterhin auftritt.",
+        "title": "Etwas ist schief gelaufen"
+      }
+    },
+    "login": "Log in",
+    "memberAccount": "Mitglieder-Account",
+    "memberAlready": "Bist du bereits Mitglied?",
+    "minimumContribution": "Der minimale Beitrag ist",
+    "noContribution": "Ich möchte jetzt keinen Beitrag leisten",
+    "notice": "Indem du fortfährst, akzeptierst Du unsere",
+    "now": "Jetzt Mitglied werden! ",
+    "privacy": "Datenschutzerklärung"
+  },
+  "joinSetup": {
+    "confirmDetails": "Bitte bestätige deine Angaben:",
+    "continue": "Weiter",
+    "welcome": "Willkommen {firstName}!"
+  },
+  "locale": "de",
+  "login": {
+    "backTo": "Zurück zu {newsroomName}",
+    "forgotPassword": "Passwort vergessen?",
+    "joinNow": "Jetzt Mitglied werden!",
+    "login": "Login",
+    "notMember": "Noch kein Mitglied?",
+    "title": "Einloggen",
+    "wrongCredentials": "Falsche Kombination von Passwort und Email."
+  },
+  "menu": {
+    "admin": "Administrator",
+    "adminDashboard": "Dashboard",
+    "callouts": "Callouts",
+    "community": "Community",
+    "contribution": "Beitrag",
+    "home": "Home",
+    "logout": "Log out",
+    "settings": "Einstellungen",
+    "yourInformation": "Deine Informationen",
+    "yourProfile": "Dein Profil"
+  },
+  "notification": {
+    "error": "Da ist etwas schiefgelaufen!",
+    "success": "Sehr gut! Das hat funktioniert."
+  },
+  "pageTitle": {
+    "confirmEmail": "Email-Adresse bestätigen",
+    "duplicateEmail": "Email-Adresse duplizieren",
+    "failed": "Fehler",
+    "forgotPassword": "Passwort vergessen",
+    "join": "Mitglied werden",
+    "login": "Login",
+    "resetPassword": "Passwort zurücksetzen",
+    "setup": "Account fertigstellen"
+  },
+  "resetPassword": {
+    "changePassword": "Passwort ändern",
+    "confirmPassword": "Passwort bestätigen",
+    "description": "Neues Passwort eingeben, um fortzufahren.",
+    "login": "Einloggen",
+    "newPassword": "Neues Passwort",
+    "title": "Passwort aktualisieren?"
+  },
+  "setPassword": {
+    "description": "Neues Passwort eingeben, um fortzufahren.",
+    "title": "Passwort vergeben"
+  }
+}

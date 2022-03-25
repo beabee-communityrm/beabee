@@ -2,14 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches:
-      - master
-  workflow_dispatch:
-    inputs:
-      stage:
-        description: "Stage"
-        required: true
-        default: "dev"
+    branches: ["master", "dev", "release"]
 
 jobs:
   init:
@@ -20,13 +13,20 @@ jobs:
     steps:
       - id: setvars
         run: |
-          if [[ "${{ github.event.inputs.stage }}" == "dev" || "${{ github.ref }}" != "refs/heads/master" ]]; then
-            echo "::set-output name=stage::dev"
-            echo "::set-output name=tag::dev"
-          else
-            echo "::set-output name=stage::live"
-            echo "::set-output name=tag::latest"
-          fi
+          case "${{ github.ref }}" in
+            refs/heads/master)
+              echo "::set-output name=stage::live"
+              echo "::set-output name=tag::latest"
+              ;;
+            refs/heads/dev)
+              echo "::set-output name=stage::dev"
+              echo "::set-output name=tag::dev"
+              ;;
+            refs/heads/release)
+              echo "::set-output name=stage::release"
+              echo "::set-output name=tag::stable"
+              ;;
+          esac
 
   test:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.13
-      - run: npm ci
+      - run: npm install dpdm
       - run: npm run checkDependencies
       - run: npx prettier --check .
 

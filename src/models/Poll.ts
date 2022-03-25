@@ -1,4 +1,3 @@
-import moment from "moment";
 import {
   Column,
   CreateDateColumn,
@@ -6,6 +5,7 @@ import {
   OneToMany,
   PrimaryColumn
 } from "typeorm";
+import ItemStatus, { ItemWithStatus } from "./ItemStatus";
 import PollResponse from "./PollResponse";
 
 export type PollTemplate = "custom" | "builder" | "ballot";
@@ -18,7 +18,7 @@ export enum PollAccess {
 }
 
 @Entity()
-export default class Poll {
+export default class Poll extends ItemWithStatus {
   @PrimaryColumn()
   slug!: string;
 
@@ -37,17 +37,14 @@ export default class Poll {
   @Column()
   excerpt!: string;
 
-  @Column({ type: String, nullable: true })
-  image!: string | null;
+  @Column({ type: String })
+  image!: string;
 
   @Column({ type: String, nullable: true })
   mcMergeField!: string | null;
 
   @Column({ type: String, nullable: true })
   pollMergeField!: string | null;
-
-  @Column({ default: true })
-  closed!: boolean;
 
   @Column({ type: Date, nullable: true })
   starts!: Date | null;
@@ -73,14 +70,6 @@ export default class Poll {
   @Column({ nullable: true })
   responsePassword?: string;
 
+  hasAnswered?: boolean;
   responseCount?: number;
-
-  get active(): boolean {
-    const now = moment.utc();
-    return (
-      !this.closed &&
-      (!this.starts || now.isAfter(this.starts)) &&
-      (!this.expires || now.isBefore(this.expires))
-    );
-  }
 }

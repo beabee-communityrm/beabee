@@ -16,7 +16,7 @@ interface CreatePollSchema {
   title: string;
   slug: string;
   excerpt: string;
-  image?: string;
+  image: string;
   template: PollTemplate;
   closed?: boolean;
   mcMergeField?: string;
@@ -38,8 +38,7 @@ function schemaToPoll(
   poll.title = data.title;
   poll.slug = data.slug;
   poll.excerpt = data.excerpt;
-  poll.image = data.image || null;
-  poll.closed = !!data.closed;
+  poll.image = data.image;
   poll.mcMergeField = data.mcMergeField || null;
   poll.pollMergeField = data.pollMergeField || null;
   poll.template = data.template;
@@ -149,7 +148,8 @@ app.post(
           date: new Date(),
           title: req.body.title,
           slug: req.body.slug,
-          closed: true
+          starts: null,
+          expires: null
         });
         await getRepository(Poll).save(newPoll);
         res.redirect("/tools/polls/" + newPoll.slug);

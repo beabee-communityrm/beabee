@@ -62,18 +62,13 @@ const complexFields = [
   "contributionCancelled"
 ] as const;
 
-type RuleId =
-  | typeof memberFields[number]
-  | typeof profileFields[number]
-  | typeof complexFields[number];
 type RuleValue = string | number | boolean;
 type RichRuleValue = RuleValue | Date;
+type RuleOperator = keyof typeof operators;
 
-export interface Rule {
-  id: RuleId;
-  field: RuleId;
-  type: "string" | "integer" | "boolean" | "double";
-  operator: keyof typeof operators;
+interface Rule {
+  field: string;
+  operator: RuleOperator;
   value: RuleValue | RuleValue[];
 }
 
@@ -104,25 +99,12 @@ function parseValue(value: RuleValue): RichRuleValue {
   }
 }
 
-class QueryBuilder {
-  private params: Record<string, unknown> = {};
-  private paramNo = 0;
+function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
+  const params: Record<string, unknown> = {};
+  let paramNo = 0;
 
-  readonly mainQb: SelectQueryBuilder<Member>;
-
-  constructor(ruleGroup?: RuleGroup) {
-    this.mainQb = createQueryBuilder(Member, "m");
-    this.mainQb.leftJoinAndSelect("m.permissions", "mp");
-    this.mainQb.innerJoinAndSelect("m.profile", "profile");
-    if (ruleGroup) {
-      this.parseRuleGroup(ruleGroup)(this.mainQb);
-      this.mainQb.setParameters(this.params);
-    }
-  }
-
-  private parseRule =
-    (rule: Rule) =>
-    (qb: WhereExpressionBuilder): void => {
+  function parseRule(rule: Rule) {
+    return (qb: WhereExpressionBuilder): void => {
       const values = Array.isArray(rule.value) ? rule.value : [rule.value];
       const parsedValues = values.map(parseValue);
 
@@ -131,13 +113,13 @@ class QueryBuilder {
         rule.operator = "contains_jsonb";
       }
 
-      const [where, params] = operators[rule.operator](parsedValues);
+      const [where, ruleParams] = operators[rule.operator](parsedValues);
 
       // Horrible code to make sure param names are unique
-      const suffix = "_" + this.paramNo;
-      for (const paramKey in params) {
-        this.params[paramKey + suffix] =
-          params[paramKey as keyof typeof params];
+      const suffix = "_" + paramNo;
+      for (const paramKey in ruleParams) {
+        params[paramKey + suffix] =
+          ruleParams[paramKey as keyof typeof ruleParams];
       }
       const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
 
@@ -156,7 +138,7 @@ class QueryBuilder {
         rule.field === "activePermission"
       ) {
         const table = "mp" + suffix;
-        this.params["now" + suffix] = parseValue("$now");
+        params["now" + suffix] = parseValue("$now");
 
         const permission =
           rule.field === "activeMembership" ? "member" : rule.value;
@@ -203,12 +185,12 @@ class QueryBuilder {
         qb.where("id IN " + subQb.getQuery());
       }
 
-      this.paramNo++;
+      paramNo++;
     };
+  }
 
-  private parseRuleGroup =
-    (ruleGroup: RuleGroup) =>
-    (qb: WhereExpressionBuilder): void => {
+  function parseRuleGroup(ruleGroup: RuleGroup) {
+    return (qb: WhereExpressionBuilder): void => {
       qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
       const conditionFn =
         ruleGroup.condition === "AND"
@@ -217,15 +199,22 @@ class QueryBuilder {
       for (const rule of ruleGroup.rules) {
         qb[conditionFn](
           new Brackets(
-            isRuleGroup(rule) ? this.parseRuleGroup(rule) : this.parseRule(rule)
+            isRuleGroup(rule) ? parseRuleGroup(rule) : parseRule(rule)
           )
         );
       }
     };
+  }
+
+  parseRuleGroup(ruleGroup)(qb);
+
+  qb.setParameters(params);
+  return qb;
 }
 
-export default function buildQuery(
-  ruleGroup?: RuleGroup
-): SelectQueryBuilder<Member> {
-  return new QueryBuilder(ruleGroup).mainQb;
+export function buildQuery(ruleGroup?: RuleGroup): SelectQueryBuilder<Member> {
+  const qb = createQueryBuilder(Member, "m");
+  qb.leftJoinAndSelect("m.permissions", "mp");
+  qb.innerJoinAndSelect("m.profile", "profile");
+  return ruleGroup ? buildRuleQuery(qb, ruleGroup) : qb;
 }

@@ -9,7 +9,7 @@
 
 	function updatePreview() {
 		$('.js-email-to').val(getField('#name', 'Name') + ' <' + getField('#email', 'Email address') + '>');
-		var emailBody = mailing.emailBodyTemplate;
+		var emailBody = $('.js-email-template').html();
 		for (var mergeField of mailing.mergeFields) {
 			const mergeFieldRe = new RegExp('\\*\\|' + mergeField + '\\|\\*', 'g');
 			emailBody = emailBody.replace(mergeFieldRe, getField('#mf_' + mergeField, '*|' + mergeField + '|*'));
