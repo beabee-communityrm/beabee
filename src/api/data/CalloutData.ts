@@ -65,6 +65,7 @@ interface CalloutData {
   allowUpdate: boolean;
   allowMultiple: boolean;
   access: PollAccess;
+  hidden: boolean;
 }
 
 export interface GetBasicCalloutData extends CalloutData {
@@ -111,6 +112,9 @@ export class CreateCalloutData implements CalloutData {
 
   @IsEnum(PollAccess)
   access!: PollAccess;
+
+  @IsBoolean()
+  hidden!: boolean;
 }
 
 const responseFields = ["member", "poll"] as const;
