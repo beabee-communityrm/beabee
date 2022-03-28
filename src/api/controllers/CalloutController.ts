@@ -38,6 +38,7 @@ function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
     allowMultiple: poll.allowMultiple,
     access: poll.access,
     status: poll.status,
+    hidden: poll.hidden,
     ...(poll.image && { image: poll.image }),
     ...(poll.starts && { starts: poll.starts }),
     ...(poll.expires && { expires: poll.expires }),
