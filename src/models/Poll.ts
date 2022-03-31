@@ -17,6 +17,19 @@ export enum PollAccess {
   OnlyAnonymous = "only-anonymous"
 }
 
+export interface PollComponentSchema {
+  key: string;
+  type: string;
+  label?: string;
+  input?: boolean;
+  values?: { label: string; value: string }[];
+  components?: PollComponentSchema[];
+}
+
+export interface PollFormSchema {
+  components: PollComponentSchema[];
+}
+
 @Entity()
 export default class Poll extends ItemWithStatus {
   @PrimaryColumn()
@@ -26,19 +39,28 @@ export default class Poll extends ItemWithStatus {
   date!: Date;
 
   @Column()
-  template!: PollTemplate;
-
-  @Column({ type: "jsonb", default: "{}" })
-  templateSchema!: Record<string, unknown>;
-
-  @Column()
   title!: string;
 
   @Column()
   excerpt!: string;
 
-  @Column({ type: String })
+  @Column()
   image!: string;
+
+  @Column()
+  intro!: string;
+
+  @Column()
+  thanksTitle!: string;
+
+  @Column()
+  thanksText!: string;
+
+  @Column({ type: String, nullable: true })
+  thanksRedirect!: string | null;
+
+  @Column({ type: "jsonb", default: "{}" })
+  formSchema!: PollFormSchema;
 
   @Column({ type: String, nullable: true })
   mcMergeField!: string | null;

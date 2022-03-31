@@ -1,4 +1,5 @@
 import {
+  Authorized,
   Body,
   CurrentUser,
   Get,
@@ -19,6 +20,7 @@ import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
 import {
+  CreateCalloutData,
   CreateCalloutResponseData,
   GetBasicCalloutData,
   GetCalloutResponseData,
@@ -34,11 +36,12 @@ function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
     slug: poll.slug,
     title: poll.title,
     excerpt: poll.excerpt,
+    image: poll.image,
     allowUpdate: poll.allowUpdate,
     allowMultiple: poll.allowMultiple,
     access: poll.access,
     status: poll.status,
-    ...(poll.image && { image: poll.image }),
+    hidden: poll.hidden,
     ...(poll.starts && { starts: poll.starts }),
     ...(poll.expires && { expires: poll.expires }),
     ...(poll.hasAnswered !== undefined && {
@@ -123,6 +126,15 @@ export class CalloutController {
     };
   }
 
+  @Authorized("admin")
+  @Post("/")
+  async createCallout(
+    @Body() data: CreateCalloutData
+  ): Promise<GetBasicCalloutData> {
+    const poll = await getRepository(Poll).save(data);
+    return pollToBasicCallout(poll);
+  }
+
   @Get("/:slug")
   async getCallout(
     @Param("slug") slug: string
@@ -131,7 +143,11 @@ export class CalloutController {
     if (poll) {
       return {
         ...pollToBasicCallout(poll),
-        templateSchema: poll.templateSchema
+        intro: poll.intro,
+        thanksText: poll.thanksText,
+        thanksTitle: poll.thanksTitle,
+        formSchema: poll.formSchema,
+        ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect })
       };
     }
   }

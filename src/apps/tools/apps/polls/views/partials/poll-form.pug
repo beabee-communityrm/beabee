@@ -20,16 +20,6 @@ form(method='POST').form-horizontal
 		.col-md-9
 			input(type='text' name='image' value=poll.image required)#image.form-control
 
-	if isNew
-		.form-group
-			label(for='template').control-label.col-md-3 Template
-			.col-md-9
-				select(name='template' required)#template.form-control
-					option(value='' disabled selected) Select template
-					option(value='builder') Form builder
-					option(value='ballot') Ballot
-	else
-		input(type='hidden' name='template' value=poll.template)
 	if !isNew
 		.form-group
 			label(for='mergeField').control-label.col-md-3 MailChimp merge field

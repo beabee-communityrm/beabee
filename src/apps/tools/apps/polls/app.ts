@@ -17,7 +17,6 @@ interface CreatePollSchema {
   slug: string;
   excerpt: string;
   image: string;
-  template: PollTemplate;
   closed?: boolean;
   mcMergeField?: string;
   pollMergeField?: string;
@@ -31,9 +30,7 @@ interface CreatePollSchema {
   hidden?: boolean;
 }
 
-function schemaToPoll(
-  data: CreatePollSchema
-): Omit<Poll, "templateSchema" | "responses"> {
+function schemaToPoll(data: CreatePollSchema): Poll {
   const poll = new Poll();
   poll.title = data.title;
   poll.slug = data.slug;
@@ -41,7 +38,6 @@ function schemaToPoll(
   poll.image = data.image;
   poll.mcMergeField = data.mcMergeField || null;
   poll.pollMergeField = data.pollMergeField || null;
-  poll.template = data.template;
   poll.allowUpdate = !!data.allowUpdate;
   poll.allowMultiple = !!data.allowMultiple;
   poll.access = data.access;
@@ -74,7 +70,13 @@ app.post(
   "/",
   hasSchema(createPollSchema).orFlash,
   wrapAsync(async (req, res) => {
-    const poll = await getRepository(Poll).save(schemaToPoll(req.body));
+    const poll = await getRepository(Poll).save({
+      ...schemaToPoll(req.body),
+      intro: "",
+      thanksText: "",
+      thanksTitle: "",
+      thanksRedirect: ""
+    });
     req.flash("success", "polls-created");
     res.redirect("/tools/polls/" + poll.slug);
   })
@@ -133,11 +135,13 @@ app.post(
         break;
 
       case "edit-form": {
-        const templateSchema = req.body.templateSchema;
-        if (poll.template === "builder") {
-          templateSchema.formSchema = JSON.parse(req.body.formSchema);
-        }
-        await getRepository(Poll).update(poll.slug, { templateSchema });
+        await getRepository(Poll).update(poll.slug, {
+          formSchema: JSON.parse(req.body.formSchema),
+          intro: req.body.intro,
+          thanksText: req.body.thanksText,
+          thanksTitle: req.body.thanksTitle,
+          thanksRedirect: req.body.thanksRedirect
+        });
         req.flash("success", "polls-updated");
         res.redirect(req.originalUrl);
         break;

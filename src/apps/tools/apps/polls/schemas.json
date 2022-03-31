@@ -2,7 +2,7 @@
   "createPollSchema": {
     "body": {
       "type": "object",
-      "required": ["title", "slug", "excerpt", "closed", "template"],
+      "required": ["title", "slug", "excerpt"],
       "properties": {
         "title": {
           "type": "string"
@@ -15,13 +15,6 @@
         },
         "image": {
           "type": "string"
-        },
-        "template": {
-          "type": "string",
-          "enum": ["custom", "builder", "ballot"]
-        },
-        "closed": {
-          "type": "boolean"
         },
         "public": {
           "type": "boolean"
