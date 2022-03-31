@@ -36,12 +36,12 @@ function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
     slug: poll.slug,
     title: poll.title,
     excerpt: poll.excerpt,
+    image: poll.image,
     allowUpdate: poll.allowUpdate,
     allowMultiple: poll.allowMultiple,
     access: poll.access,
     status: poll.status,
     hidden: poll.hidden,
-    ...(poll.image && { image: poll.image }),
     ...(poll.starts && { starts: poll.starts }),
     ...(poll.expires && { expires: poll.expires }),
     ...(poll.hasAnswered !== undefined && {
@@ -131,14 +131,7 @@ export class CalloutController {
   async createCallout(
     @Body() data: CreateCalloutData
   ): Promise<GetBasicCalloutData> {
-    const poll = await getRepository(Poll).save({
-      ...data,
-      template: "builder",
-      templateSchema: {
-        intro: data.intro,
-        formSchema: data.formSchema
-      }
-    });
+    const poll = await getRepository(Poll).save(data);
     return pollToBasicCallout(poll);
   }
 
@@ -150,7 +143,11 @@ export class CalloutController {
     if (poll) {
       return {
         ...pollToBasicCallout(poll),
-        templateSchema: poll.templateSchema
+        intro: poll.intro,
+        thanksText: poll.thanksText,
+        thanksTitle: poll.thanksTitle,
+        formSchema: poll.formSchema,
+        ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect })
       };
     }
   }

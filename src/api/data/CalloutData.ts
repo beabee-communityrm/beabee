@@ -59,7 +59,7 @@ interface CalloutData {
   slug: string;
   title: string;
   excerpt: string;
-  image?: string;
+  image: string;
   starts?: Date;
   expires?: Date;
   allowUpdate: boolean;
@@ -74,7 +74,11 @@ export interface GetBasicCalloutData extends CalloutData {
 }
 
 export interface GetMoreCalloutData extends GetBasicCalloutData {
-  templateSchema?: Record<string, unknown>;
+  intro: string;
+  thanksTitle: string;
+  thanksText: string;
+  thanksRedirect?: string;
+  formSchema: PollFormSchema;
 }
 
 export class CreateCalloutData implements CalloutData {
@@ -92,6 +96,16 @@ export class CreateCalloutData implements CalloutData {
 
   @IsString()
   intro!: string;
+
+  @IsString()
+  thanksTitle!: string;
+
+  @IsString()
+  thanksText!: string;
+
+  @IsOptional()
+  @IsUrl()
+  thanksRedirect?: string;
 
   @IsObject()
   formSchema!: PollFormSchema;

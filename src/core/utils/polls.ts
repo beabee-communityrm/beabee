@@ -36,11 +36,7 @@ export function convertAnswers(
   poll: Poll,
   answers: PollResponseAnswers
 ): Record<string, unknown> {
-  if (poll.template !== "builder") {
-    return answers;
-  }
-
-  const formSchema = poll.templateSchema.formSchema as PollFormSchema;
+  const formSchema = poll.formSchema;
 
   return Object.assign(
     {},
