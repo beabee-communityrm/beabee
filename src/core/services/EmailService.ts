@@ -92,6 +92,12 @@ const memberEmailTemplates = {
     params: { spLink: string }
   ) => ({
     SPLINK: params.spLink
+  }),
+  "login-override-resend": (
+    member: Member,
+    params: { loginOverrideLink: string }
+  ) => ({
+    LOLINK: params.loginOverrideLink
   })
 } as const;
 
