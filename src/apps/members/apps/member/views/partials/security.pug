@@ -2,8 +2,8 @@ h4 Security
 dl.dl-horizontal
 	dt Login override
 	dd
-		if member.loginOverride && moment(member.loginOverride.expires).isAfter()
-			a(href='/login/' + member.loginOverride.code)= member.loginOverride.code
+		if loFlow && loFlow.isValid
+			a(href='/login/code/' + loFlow.id)= loFlow.id
 		else
 			form(method='POST')
 				+csrf

@@ -1,12 +1,11 @@
 import express from "express";
-import moment from "moment";
 import { getRepository } from "typeorm";
 
 import config from "@config";
 
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import { canSuperAdmin, generateCode } from "@core/utils/auth";
+import { canSuperAdmin } from "@core/utils/auth";
 
 import GCPaymentService from "@core/services/GCPaymentService";
 import MembersService from "@core/services/MembersService";
@@ -14,6 +13,7 @@ import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 import ReferralsService from "@core/services/ReferralsService";
 
+import LoginOverrideFlow from "@models/LoginOverrideFlow";
 import Member from "@models/Member";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
@@ -54,10 +54,15 @@ app.get(
       where: { member },
       order: { date: "DESC" }
     });
+    const loFlow = await getRepository(LoginOverrideFlow).findOne({
+      where: { member },
+      order: { date: "DESC" }
+    });
 
     res.render("index", {
       member,
       rpFlow,
+      loFlow,
       availableTags,
       password_tries: config.passwordTries
     });
@@ -103,12 +108,7 @@ app.post(
         req.flash("success", "member-updated");
         break;
       case "login-override":
-        await MembersService.updateMember(member, {
-          loginOverride: {
-            code: generateCode(),
-            expires: moment().add(24, "hours").toDate()
-          }
-        });
+        await getRepository(LoginOverrideFlow).save({ member });
         req.flash("success", "member-login-override-generated");
         break;
       case "password-reset":
