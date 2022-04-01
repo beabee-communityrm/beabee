@@ -2,12 +2,7 @@ import express from "express";
 import passport from "passport";
 import { getRepository } from "typeorm";
 
-import {
-  isValidNextUrl,
-  getNextParam,
-  wrapAsync,
-  cleanEmailAddress
-} from "@core/utils";
+import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
@@ -49,7 +44,7 @@ app.get("/expired", function (req, res) {
 });
 
 app.get(
-  "/code/:code",
+  "/code/:id/:code",
   wrapAsync(async function (req, res) {
     const nextParam = req.query.next as string;
 
@@ -58,7 +53,7 @@ app.get(
       relations: ["member"]
     });
 
-    if (loginOverride?.isValid) {
+    if (loginOverride?.isValid && loginOverride.member.id === req.params.id) {
       await getRepository(LoginOverrideFlow).delete({ id: req.params.code });
       MembersService.loginAndRedirect(
         req,
@@ -67,31 +62,25 @@ app.get(
         isValidNextUrl(nextParam) ? nextParam : "/"
       );
     } else {
-      // Try to generate a new link for the user
-      if (req.query.email) {
-        const member = await MembersService.findOne({
-          email: cleanEmailAddress(req.query.email.toString())
-        });
+      const member = await MembersService.findOne(req.params.id);
+      if (member) {
         // Generate a new link and email the user
-        if (member) {
-          const newLoginOverride = await getRepository(LoginOverrideFlow).save({
-            member
-          });
+        const newLoginOverride = await getRepository(LoginOverrideFlow).save({
+          member
+        });
 
-          await EmailService.sendTemplateToMember(
-            "login-override-resend",
-            member,
-            {
-              loginOverrideLink: `${config.audience}/login/code/${newLoginOverride.id}?email=${member.email}&next=${nextParam}`
-            }
-          );
-          res.redirect("/login/expired");
-          return;
-        }
+        await EmailService.sendTemplateToMember(
+          "login-override-resend",
+          member,
+          {
+            loginOverrideLink: `${config.audience}/login/code/${member.id}/${newLoginOverride.id}?next=${nextParam}`
+          }
+        );
+        res.redirect("/login/expired");
+      } else {
+        req.flash("error", "login-code-invalid");
+        res.redirect("/login");
       }
-
-      req.flash("error", "login-code-invalid");
-      res.redirect("/login");
     }
   })
 );
