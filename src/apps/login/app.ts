@@ -74,7 +74,7 @@ app.get(
             }${getNextParam(nextParam)}`
           }
         );
-        res.render("expired");
+        res.render("resend");
       } else {
         req.flash("error", "login-code-invalid");
         res.redirect("/login");
