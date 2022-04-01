@@ -20,7 +20,7 @@ const app = express();
 app.set("views", __dirname + "/views");
 
 app.get("/", function (req, res) {
-  const nextParam = req.query.next as string;
+  const nextParam = req.query.next?.toString() || "";
   if (req.user) {
     res.redirect(isValidNextUrl(nextParam) ? nextParam : "/");
   } else {
@@ -29,7 +29,7 @@ app.get("/", function (req, res) {
 });
 
 app.post("/", (req, res) => {
-  const nextParam = req.query.next as string;
+  const nextParam = req.query.next?.toString() || "";
   passport.authenticate("local", {
     failureRedirect: "/login" + getNextParam(nextParam),
     failureFlash: true
@@ -39,14 +39,10 @@ app.post("/", (req, res) => {
   });
 });
 
-app.get("/expired", function (req, res) {
-  res.render("expired");
-});
-
 app.get(
   "/code/:id/:code",
   wrapAsync(async function (req, res) {
-    const nextParam = req.query.next as string;
+    const nextParam = req.query.next?.toString() || "";
 
     const loginOverride = await getRepository(LoginOverrideFlow).findOne({
       where: { id: req.params.code },
@@ -73,10 +69,12 @@ app.get(
           "login-override-resend",
           member,
           {
-            loginOverrideLink: `${config.audience}/login/code/${member.id}/${newLoginOverride.id}?next=${nextParam}`
+            loginOverrideLink: `${config.audience}/login/code/${member.id}/${
+              newLoginOverride.id
+            }${getNextParam(nextParam)}`
           }
         );
-        res.redirect("/login/expired");
+        res.render("expired");
       } else {
         req.flash("error", "login-code-invalid");
         res.redirect("/login");

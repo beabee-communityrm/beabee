@@ -3,7 +3,7 @@ dl.dl-horizontal
 	dt Login override
 	dd
 		if loFlow && loFlow.isValid
-			a(href='/login/code/' + loFlow.id)= loFlow.id
+			a(href='/login/code/' + member.id + '/' + loFlow.id)= loFlow.id
 		else
 			form(method='POST')
 				+csrf
