@@ -68,13 +68,6 @@ export default class MembersService {
     return await getRepository(Member).findOne(arg1 as any, arg2);
   }
 
-  static async findByLoginOverride(code: string): Promise<Member | undefined> {
-    return await createQueryBuilder(Member, "m")
-      .where("m.loginOverride ->> 'code' = :code", { code: code })
-      .andWhere("m.loginOverride ->> 'expires' > :now", { now: new Date() })
-      .getOne();
-  }
-
   static async createMember(
     partialMember: Partial<Member> & {
       email: string;

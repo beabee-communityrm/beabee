@@ -58,9 +58,6 @@ export default class Member {
   @Column({ type: Date, nullable: true })
   lastSeen!: Date | null;
 
-  @Column({ type: "jsonb", nullable: true })
-  loginOverride!: LoginOverride | null;
-
   @Column()
   contributionType!: ContributionType;
 
