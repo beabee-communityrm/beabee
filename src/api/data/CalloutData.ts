@@ -114,9 +114,10 @@ export class CreateCalloutData implements CalloutData {
   @IsDate()
   starts!: Date;
 
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  expires!: Date;
+  expires?: Date;
 
   @IsBoolean()
   allowUpdate!: boolean;
