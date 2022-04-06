@@ -73,6 +73,13 @@ block contents
           .col-md-9
             input(type='text' name='options[home-link-url]' value=Options('home-link-url')).form-control
 
+        .form-group
+          .col-md-offset-3.col-md-9
+            .checkbox
+              label
+                input(type='checkbox' name="data[hideContribution]" value="true" checked=general.hideContribution)
+                | Hide contribution option
+
         .row: .col-md-offset-3.col-md-9: h5 Footer links
         ul(data-name="data[footerLinks]").no-list.js-repeater
           if general.footerLinks
