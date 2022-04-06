@@ -30,7 +30,10 @@ app.get(
 );
 
 const parseData = {
-  general: (d: any) => d,
+  general: (data: any) => ({
+    ...data,
+    hideContribution: data.hideContribution === "true"
+  }),
   join: (data: any) => ({
     ...data,
     initialAmount: Number(data.initialAmount),
