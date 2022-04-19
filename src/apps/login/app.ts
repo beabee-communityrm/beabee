@@ -4,8 +4,10 @@ import { getRepository } from "typeorm";
 
 import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
 
+import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
 
+import LoginOverrideFlow from "@models/LoginOverrideFlow";
 import MemberPermission, {
   PermissionType,
   PermissionTypes
@@ -18,13 +20,68 @@ const app = express();
 app.set("views", __dirname + "/views");
 
 app.get("/", function (req, res) {
-  const nextParam = req.query.next as string;
+  const nextParam = req.query.next?.toString() || "";
   if (req.user) {
     res.redirect(isValidNextUrl(nextParam) ? nextParam : "/");
   } else {
     res.render("index", { nextParam: getNextParam(nextParam) });
   }
 });
+
+app.post("/", (req, res) => {
+  const nextParam = req.query.next?.toString() || "";
+  passport.authenticate("local", {
+    failureRedirect: "/login" + getNextParam(nextParam),
+    failureFlash: true
+  })(req, res, () => {
+    req.session.method = "plain";
+    res.redirect(isValidNextUrl(nextParam) ? nextParam : "/");
+  });
+});
+
+app.get(
+  "/code/:id/:code",
+  wrapAsync(async function (req, res) {
+    const nextParam = req.query.next?.toString() || "";
+
+    const loginOverride = await getRepository(LoginOverrideFlow).findOne({
+      where: { id: req.params.code },
+      relations: ["member"]
+    });
+
+    if (loginOverride?.isValid && loginOverride.member.id === req.params.id) {
+      await getRepository(LoginOverrideFlow).delete({ id: req.params.code });
+      MembersService.loginAndRedirect(
+        req,
+        res,
+        loginOverride.member,
+        isValidNextUrl(nextParam) ? nextParam : "/"
+      );
+    } else {
+      const member = await MembersService.findOne(req.params.id);
+      if (member) {
+        // Generate a new link and email the user
+        const newLoginOverride = await getRepository(LoginOverrideFlow).save({
+          member
+        });
+
+        await EmailService.sendTemplateToMember(
+          "login-override-resend",
+          member,
+          {
+            loginOverrideLink: `${config.audience}/login/code/${member.id}/${
+              newLoginOverride.id
+            }${getNextParam(nextParam)}`
+          }
+        );
+        res.render("resend");
+      } else {
+        req.flash("error", "login-code-invalid");
+        res.redirect("/login");
+      }
+    }
+  })
+);
 
 if (config.dev) {
   app.get(
@@ -51,36 +108,5 @@ if (config.dev) {
     })
   );
 }
-
-app.get(
-  "/:code",
-  wrapAsync(async function (req, res) {
-    const nextParam = req.query.next as string;
-    const member = await MembersService.findByLoginOverride(req.params.code);
-    if (member) {
-      await MembersService.updateMember(member, { loginOverride: null });
-      MembersService.loginAndRedirect(
-        req,
-        res,
-        member,
-        isValidNextUrl(nextParam) ? nextParam : "/"
-      );
-    } else {
-      req.flash("error", "login-code-invalid");
-      res.redirect("/login");
-    }
-  })
-);
-
-app.post("/", (req, res) => {
-  const nextParam = req.query.next as string;
-  passport.authenticate("local", {
-    failureRedirect: "/login" + getNextParam(nextParam),
-    failureFlash: true
-  })(req, res, () => {
-    req.session.method = "plain";
-    res.redirect(isValidNextUrl(nextParam) ? nextParam : "/");
-  });
-});
 
 export default app;
