@@ -125,21 +125,13 @@ class NewsletterService {
     fields: Record<string, string>
   ): Promise<void> {
     log.info(`Update member fields for ${member.id}`, fields);
-    const nlMember = await memberToNlUpdate(member);
-    if (nlMember) {
-      await this.provider.updateMember({
-        email: nlMember.email,
-        status: nlMember.status,
-        fields
-      });
-    } else {
-      log.info("Ignoring member field update for " + member.id);
-    }
+    await this.updateMembersFields([[member, fields]]);
   }
 
   async updateMembersFields(
     membersWithFields: [Member, Record<string, string>][]
   ): Promise<void> {
+    log.info(`Update ${membersWithFields.length} members with fields`);
     const members = membersWithFields.map(([member]) => member);
     const updates = (await getNewsletterMembers(members))
       .map((nlMember, i) => {
