@@ -1,4 +1,3 @@
-import moment from "moment";
 import {
   Column,
   CreateDateColumn,
@@ -6,6 +5,7 @@ import {
   OneToMany,
   PrimaryColumn
 } from "typeorm";
+import ItemStatus, { ItemWithStatus } from "./ItemStatus";
 import PollResponse from "./PollResponse";
 
 export type PollTemplate = "custom" | "builder" | "ballot";
@@ -17,8 +17,21 @@ export enum PollAccess {
   OnlyAnonymous = "only-anonymous"
 }
 
+export interface PollComponentSchema {
+  key: string;
+  type: string;
+  label?: string;
+  input?: boolean;
+  values?: { label: string; value: string }[];
+  components?: PollComponentSchema[];
+}
+
+export interface PollFormSchema {
+  components: PollComponentSchema[];
+}
+
 @Entity()
-export default class Poll {
+export default class Poll extends ItemWithStatus {
   @PrimaryColumn()
   slug!: string;
 
@@ -26,28 +39,34 @@ export default class Poll {
   date!: Date;
 
   @Column()
-  template!: PollTemplate;
-
-  @Column({ type: "jsonb", default: "{}" })
-  templateSchema!: Record<string, unknown>;
-
-  @Column()
   title!: string;
 
   @Column()
   excerpt!: string;
 
+  @Column()
+  image!: string;
+
+  @Column()
+  intro!: string;
+
+  @Column()
+  thanksTitle!: string;
+
+  @Column()
+  thanksText!: string;
+
   @Column({ type: String, nullable: true })
-  image!: string | null;
+  thanksRedirect!: string | null;
+
+  @Column({ type: "jsonb", default: "{}" })
+  formSchema!: PollFormSchema;
 
   @Column({ type: String, nullable: true })
   mcMergeField!: string | null;
 
   @Column({ type: String, nullable: true })
   pollMergeField!: string | null;
-
-  @Column({ default: true })
-  closed!: boolean;
 
   @Column({ type: Date, nullable: true })
   starts!: Date | null;
@@ -75,13 +94,4 @@ export default class Poll {
 
   hasAnswered?: boolean;
   responseCount?: number;
-
-  get active(): boolean {
-    const now = moment.utc();
-    return (
-      !this.closed &&
-      (!this.starts || now.isAfter(this.starts)) &&
-      (!this.expires || now.isBefore(this.expires))
-    );
-  }
 }

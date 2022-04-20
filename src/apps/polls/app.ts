@@ -17,35 +17,9 @@ import schemas from "./schemas.json";
 
 import config from "@config";
 
-function getView(poll: Poll): string {
-  switch (poll.template) {
-    case "ballot":
-      return "ballot";
-    case "builder":
-      return "poll";
-    case "custom":
-      return `polls/${poll.slug}`;
-  }
-}
-
 function hasPollAnswers(req: Request, res: Response, next: NextFunction): void {
-  const poll = req.model as Poll;
-  const schema = (() => {
-    switch (poll.template) {
-      case "ballot":
-        return schemas.ballotSchema;
-      case "builder":
-        return schemas.builderSchema;
-      case "custom":
-        return (schemas.customSchemas as any)[poll.slug];
-    }
-  })();
-
-  hasSchema(schema).orFlash(req, res, () => {
-    req.answers =
-      poll.template === "builder"
-        ? JSON.parse(req.body.answers)
-        : req.body.answers;
+  hasSchema(schemas.builderSchema).orFlash(req, res, () => {
+    req.answers = JSON.parse(req.body.answers);
     // TODO: validate answers
     next();
   });
@@ -151,10 +125,10 @@ app.get(
     // Always fetch answers to clear session even on redirect
     const answers = await getUserAnswersAndClear(req);
 
-    if (poll.templateSchema.thanksRedirect) {
-      res.redirect(poll.templateSchema.thanksRedirect as string);
+    if (poll.thanksRedirect) {
+      res.redirect(poll.thanksRedirect);
     } else {
-      res.render(poll.template === "custom" ? getView(poll) : "thanks", {
+      res.render("thanks", {
         poll,
         answers,
         pollsCode: req.params.code,
@@ -209,7 +183,7 @@ app.get(
       }
       res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
-      res.render(getView(poll), {
+      res.render("poll", {
         poll,
         answers: poll.allowMultiple ? {} : await getUserAnswersAndClear(req),
         isEmbed,
@@ -251,11 +225,10 @@ app.post(
       );
     }
 
-    let error;
-    if (pollsCode && !member) {
-      error = "polls-unknown-user";
-    } else {
-      error = member
+    const error =
+      pollsCode && !member
+        ? "unknown-user"
+        : member
         ? await PollsService.setResponse(poll, member, req.answers!)
         : await PollsService.setGuestResponse(
             poll,
@@ -263,14 +236,13 @@ app.post(
             req.body.guestEmail,
             req.answers!
           );
-    }
 
     if (member) {
       setTrackingCookie(member.id, res);
     }
 
     if (error) {
-      req.flash("error", error);
+      req.flash("error", "polls-" + error);
       res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
       if (!req.user) {

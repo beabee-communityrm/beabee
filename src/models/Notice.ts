@@ -1,4 +1,3 @@
-import moment from "moment";
 import {
   Column,
   CreateDateColumn,
@@ -6,9 +5,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from "typeorm";
+import { ItemWithStatus } from "./ItemStatus";
 
 @Entity()
-export default class Notice {
+export default class Notice extends ItemWithStatus {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
@@ -21,12 +21,6 @@ export default class Notice {
   @Column()
   name!: string;
 
-  @Column({ type: Date, nullable: true })
-  expires!: Date | null;
-
-  @Column()
-  enabled!: boolean;
-
   @Column()
   text!: string;
 
@@ -35,15 +29,4 @@ export default class Notice {
 
   @Column({ type: String, nullable: true })
   url!: string | null;
-
-  get active(): boolean {
-    return (
-      this.enabled && (!this.expires || moment.utc(this.expires).isAfter())
-    );
-  }
-
-  // TODO: To match with polls, sync all these fields
-  get closed(): boolean {
-    return !this.enabled;
-  }
 }

@@ -202,7 +202,7 @@ export interface GetPaymentData {
   chargeDate: Date;
 }
 
-const paymentFields = ["chargeDate"] as const;
+const paymentFields = ["chargeDate", "member"] as const;
 const paymentSortFields = ["amount", "chargeDate"] as const;
 
 type PaymentField = typeof paymentFields[number];

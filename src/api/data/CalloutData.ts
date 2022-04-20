@@ -4,15 +4,30 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import IsUrl from "@api/validators/IsUrl";
+import ItemStatus from "@models/ItemStatus";
+import { PollFormSchema, PollAccess } from "@models/Poll";
+import { PollResponseAnswers } from "@models/PollResponse";
 import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsIn, IsOptional, IsString } from "class-validator";
+import {
+  IsBoolean,
+  IsDate,
+  IsEmail,
+  IsEnum,
+  IsIn,
+  IsObject,
+  IsOptional,
+  IsString
+} from "class-validator";
 
-export enum CalloutStatus {
-  Open = "open",
-  Finished = "finished"
-}
-
-const fields = ["title", "status", "answeredBy"] as const;
+const fields = [
+  "title",
+  "status",
+  "answeredBy",
+  "starts",
+  "expires",
+  "hidden"
+] as const;
 const sortFields = ["title", "starts", "expires"] as const;
 
 type Field = typeof fields[number];
@@ -38,22 +53,130 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
   @IsOptional()
   @IsString()
   hasAnswered?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  onlyHasAnswered?: boolean;
 }
 
-export interface GetBasicCalloutData {
+interface CalloutData {
   slug: string;
   title: string;
   excerpt: string;
-  image?: string;
+  image: string;
   starts?: Date;
   expires?: Date;
+  allowUpdate: boolean;
+  allowMultiple: boolean;
+  access: PollAccess;
+  hidden: boolean;
+}
+
+export interface GetBasicCalloutData extends CalloutData {
+  status: ItemStatus;
   hasAnswered?: boolean;
 }
 
 export interface GetMoreCalloutData extends GetBasicCalloutData {
-  templateSchema?: Record<string, unknown>;
+  intro: string;
+  thanksTitle: string;
+  thanksText: string;
+  thanksRedirect?: string;
+  formSchema: PollFormSchema;
+}
+
+export class CreateCalloutData implements CalloutData {
+  @IsString()
+  slug!: string;
+
+  @IsString()
+  title!: string;
+
+  @IsString()
+  excerpt!: string;
+
+  @IsUrl()
+  image!: string;
+
+  @IsString()
+  intro!: string;
+
+  @IsString()
+  thanksTitle!: string;
+
+  @IsString()
+  thanksText!: string;
+
+  @IsOptional()
+  @IsUrl()
+  thanksRedirect?: string;
+
+  @IsObject()
+  formSchema!: PollFormSchema;
+
+  @Type(() => Date)
+  @IsDate()
+  starts!: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  expires?: Date;
+
+  @IsBoolean()
+  allowUpdate!: boolean;
+
+  @IsBoolean()
+  allowMultiple!: boolean;
+
+  @IsEnum(PollAccess)
+  access!: PollAccess;
+
+  @IsBoolean()
+  hidden!: boolean;
+}
+
+const responseFields = ["member", "poll"] as const;
+const responseSortFields = ["createdAt", "updatedAt"] as const;
+
+type ResponseField = typeof responseFields[number];
+type ResponseSortField = typeof responseSortFields[number];
+
+class GetCalloutResponsesRule extends GetPaginatedRule<ResponseField> {
+  @IsIn(responseFields)
+  field!: ResponseField;
+}
+
+class GetCalloutResponsesRuleGroup extends GetPaginatedRuleGroup<ResponseField> {
+  @Transform(
+    transformRules(GetCalloutResponsesRuleGroup, GetCalloutResponsesRule)
+  )
+  rules!: (GetCalloutResponsesRuleGroup | GetCalloutResponsesRule)[];
+}
+
+export class GetCalloutResponsesQuery extends GetPaginatedQuery<
+  ResponseField,
+  ResponseSortField
+> {
+  @IsIn(responseSortFields)
+  sort?: ResponseSortField;
+
+  @Type(() => GetCalloutResponsesRuleGroup)
+  rules?: GetCalloutResponsesRuleGroup;
+}
+
+export interface GetCalloutResponseData {
+  member: string;
+  answers: PollResponseAnswers;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class CreateCalloutResponseData {
+  @IsObject()
+  answers!: PollResponseAnswers;
+
+  @IsOptional()
+  @IsString()
+  guestName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  guestEmail?: string;
 }
