@@ -96,7 +96,7 @@
     "prorateIncreaseMessage": "Ihre Mitgliedschaft läuft noch {monthsLeft} {months} unter diesem Beitrag. Sie können eine Einmalzahlung in Höhe von {oneOffPayment} leisten um Ihre Mitgliedschaft sofort zu erneuern und den Beitrag zu erhöhen.",
     "prorateNoText": "Bis dahin bleibt Ihr Beitrag gleich.",
     "prorateNoTitle": "Ändern Sie meinen Beitrag ab dem {renewalDate}.",
-    "prorateYesText": "Wir buchen eine Einmalzahlung in Höhe von {oneOffPayment} ab und Ihre Mitgliedschaft wird mit ihrem neuen Beitrag sofort verlängert.",
+    "prorateYesText": "Wir buchen eine Einmalzahlung in Höhe von {oneOffPayment} ab und Ihre Mitgliedschaft wird mit Ihrem neuen Beitrag sofort verlängert.",
     "prorateYesTitle": "Meinen Beitrag sofort erhöhen.",
     "restartContribution": "Mitgliedschaft erneuern",
     "startContribution": "Mitgliedschaft beginnen",
@@ -119,9 +119,9 @@
     "terms": "Allgemeine Geschäftsbedingungen"
   },
   "forgotPassword": {
-    "checkInbox": "Bitte schauen Sie in Ihren Posteingang und befolgen Sie die Anleitung in der Email. Sollte die Email nicht auftauchen, schauen Sie auch in ihrem Spamordner nach. ",
-    "description": "Bitte geben Sie Ihre Email-Adresse ein. Wir schicken Ihnen die Anleitung zum Zurücksetzten Ihres Passworts.",
-    "message": "Gibt es einen Account mit der Email-Adresse {email}, bekommen Sie in Kürze eine Nachricht.",
+    "checkInbox": "Bitte schauen Sie in Ihren Posteingang und befolgen Sie die Anleitung in der E-Mail. Sollte die E-Mail nicht auftauchen, schauen Sie auch in ihrem Spamordner nach. ",
+    "description": "Bitte geben Sie Ihre E-Mail-Adresse ein. Wir schicken Ihnen die Anleitung zum Zurücksetzten Ihres Passworts.",
+    "message": "Gibt es einen Account mit der E-Mail-Adresse {email}, bekommen Sie in Kürze eine Nachricht.",
     "resetPassword": "Passwort zurücksetzen",
     "title": "Passwort vergessen?"
   },
@@ -132,15 +132,15 @@
     "cityOrTown": "Ort",
     "deliveryOptIn": "Einverständnis zur Postsendung",
     "description": "Bezeichnung",
-    "email": "Email",
+    "email": "E-Mail",
     "errors": {
       "address": {
         "required": "Dieses Feld wird benötigt, wenn Sie eine Adresse eintragen wollen."
       },
       "aggregator": "Es fehlt etwas! Bitte kontrollieren Sie die obigen Felder.",
       "email": {
-        "invalid": "Ungültige Email-Adresse",
-        "required": "Email-Adresse benötigt"
+        "invalid": "Ungültige E-Mail-Adresse",
+        "required": "E-Mail-Adresse benötigt"
       },
       "firstName": {
         "required": "Vorname benötigt"
@@ -178,7 +178,7 @@
     "title": "Home",
     "viewAllCallouts": "Alle Callouts anzeigen",
     "viewOpenCallouts": "Offene Callouts anzeigen",
-    "welcome": "Herzlich willkommen {firstName}!",
+    "welcome": "Herzlich willkommen {firstName} {lastName}!",
     "yourProfile": "Ihr Profil"
   },
   "informationPage": {
@@ -198,13 +198,13 @@
     "contribution": "Beitrag",
     "errors": {
       "confirmEmail": {
-        "message": "Fast geschafft! Wir müssen nur noch Ihre Email-Adresse bestätigen, um fortzufahren.",
-        "proceed": "Wir haben Ihnen eine Email geschickt. Bitte klicken Sie auf den Bestätigung-Link, um fortzufahren.",
-        "title": "Email-Adresse bestätigen"
+        "message": "Fast geschafft! Wir müssen nur noch Ihre E-Mail-Adresse bestätigen, um fortzufahren.",
+        "proceed": "Wir haben Ihnen eine E-Mail geschickt. Bitte klicken Sie auf den Bestätigung-Link, um fortzufahren.",
+        "title": "E-Mail-Adresse bestätigen"
       },
       "duplicateEmail": {
-        "message": "Diese Email-Adresse ist bereits registriert. Bitte loggen Sie sich ein, um fortzufahren.",
-        "title": "Email-Adresse wiederholen"
+        "message": "Diese E-Mail-Adresse ist bereits registriert. Bitte loggen Sie sich ein, um fortzufahren.",
+        "title": "E-Mail-Adresse wiederholen"
       },
       "failed": {
         "backToJoin": "Zurück zur Registrierung",
@@ -234,7 +234,7 @@
     "login": "Login",
     "notMember": "Noch kein Mitglied?",
     "title": "Einloggen",
-    "wrongCredentials": "Falsche Kombination von Passwort und Email."
+    "wrongCredentials": "Falsche Kombination von Passwort und E-Mail."
   },
   "menu": {
     "admin": "Administrator",
@@ -253,8 +253,8 @@
     "success": "Sehr gut! Das hat funktioniert."
   },
   "pageTitle": {
-    "confirmEmail": "Email-Adresse bestätigen",
-    "duplicateEmail": "Email-Adresse duplizieren",
+    "confirmEmail": "E-Mail-Adresse bestätigen",
+    "duplicateEmail": "E-Mail-Adresse duplizieren",
     "failed": "Fehler",
     "forgotPassword": "Passwort vergessen",
     "join": "Mitglied werden",
