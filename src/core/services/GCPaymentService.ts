@@ -29,6 +29,11 @@ import Member from "@models/Member";
 import Payment from "@models/Payment";
 
 import NoPaymentSource from "@api/errors/NoPaymentSource";
+import {
+  PaymentProvider,
+  PaymentRedirectFlow,
+  PaymentRedirectFlowParams
+} from "@core/providers/payment";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -294,7 +299,10 @@ abstract class UpdateContributionPaymentService {
   }
 }
 
-class GCPaymentService extends UpdateContributionPaymentService {
+class GCPaymentService
+  extends UpdateContributionPaymentService
+  implements PaymentProvider
+{
   async customerToMember(customerId: string): Promise<{
     partialMember: Partial<Member>;
     billingAddress: Address;
@@ -492,13 +500,22 @@ class GCPaymentService extends UpdateContributionPaymentService {
   async createRedirectFlow(
     sessionToken: string,
     completeUrl: string,
-    redirectFlowParams = {}
-  ): Promise<RedirectFlow> {
-    return await gocardless.redirectFlows.create({
+    params: PaymentRedirectFlowParams
+  ): Promise<PaymentRedirectFlow> {
+    const redirectFlow = await gocardless.redirectFlows.create({
       session_token: sessionToken,
       success_redirect_url: completeUrl,
-      ...redirectFlowParams
+      prefilled_customer: {
+        email: params.email,
+        ...(params.firstname && { given_name: params.firstname }),
+        ...(params.lastname && { family_name: params.lastname })
+      }
     });
+
+    return {
+      id: redirectFlow.id,
+      url: redirectFlow.redirect_url
+    };
   }
 
   async completeRedirectFlow(

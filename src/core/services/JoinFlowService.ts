@@ -28,18 +28,12 @@ class JoinFlowService {
       const redirectFlow = await GCPaymentService.createRedirectFlow(
         joinFlow.id,
         completeUrl,
-        {
-          prefilled_customer: {
-            email: user.email,
-            ...(user.firstname && { given_name: user.firstname }),
-            ...(user.lastname && { family_name: user.lastname })
-          }
-        }
+        user
       );
       await getRepository(JoinFlow).update(joinFlow.id, {
         redirectFlowId: redirectFlow.id
       });
-      return { joinFlow, redirectUrl: redirectFlow.redirect_url };
+      return { joinFlow, redirectUrl: redirectFlow.url };
     } else {
       return { joinFlow };
     }
