@@ -23,8 +23,8 @@ class GetStatsQuery {
 
 interface GetStatsData {
   newMembers: number;
-  averageContribution: number;
-  totalRevenue: number;
+  averageContribution: number | null;
+  totalRevenue: number | null;
 }
 
 @JsonController("/stats")
@@ -40,7 +40,7 @@ export class StatsController {
       .select("SUM(p.amount)", "total")
       .addSelect("AVG(p.amount)", "average")
       .where("p.chargeDate BETWEEN :from AND :to", query)
-      .getRawOne<{ total: number; average: number }>();
+      .getRawOne<{ total: number | null; average: number | null }>();
 
     if (!payments) {
       throw new InternalServerError("No payment data");
