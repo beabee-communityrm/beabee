@@ -103,7 +103,7 @@
     "startedContribution": "Deine Mitgliedschaft hat begonnen.",
     "updateContribution": "Beitrag aktualisieren",
     "updatePaymentType": "Neuen Zahlungsweg einrichten",
-    "updatedContribution": "Ihr Beitrag wurde geändert.",
+    "updatedContribution": "Dein Beitrag wurde geändert.",
     "updatedPaymentSource": "Deine Bankverbindung wurde geändert.",
     "willExpire": "Deine Mitgliedschaft läuft in {expires} ab.",
     "willRenew": "Deine Mitgliedschaft verlängert sich am {renewalDate} automatisch.",
@@ -119,9 +119,9 @@
     "terms": "Allgemeine Geschäftsbedingungen"
   },
   "forgotPassword": {
-    "checkInbox": "Bitte schaue in deinen Posteingang und befolge die Anleitung in der Email. Sollte die Email nicht auftauchen, checke deinen Spamordner. ",
-    "description": "Bitte gib deine Email-Adresse ein. Wir schicken dir dann die Anleitung zum Zurücksetzen deines Passworts.",
-    "message": "Gibt es einen Account mit der Email-Adresse {email}, bekommst du in Kürze eine Nachricht.",
+    "checkInbox": "Bitte schaue in deinen Posteingang und befolge die Anleitung in der E-Mail. Sollte die E-Mail nicht auftauchen, checke deinen Spamordner. ",
+    "description": "Bitte gib deine E-Mail-Adresse ein. Wir schicken dir dann die Anleitung zum Zurücksetzen deines Passworts.",
+    "message": "Gibt es einen Account mit der E-Mail-Adresse {email}, bekommst du in Kürze eine Nachricht.",
     "resetPassword": "Passwort zurücksetzen",
     "title": "Passwort vergessen?"
   },
@@ -132,15 +132,15 @@
     "cityOrTown": "Ort",
     "deliveryOptIn": "Einverständnis zur Postsendung",
     "description": "Bezeichnung",
-    "email": "Email",
+    "email": "E-Mail",
     "errors": {
       "address": {
         "required": "Dieses Feld wird benötigt, wenn du eine Adresse eintragen willst."
       },
       "aggregator": "Es fehlt etwas! Bitte kontrolliere die obigen Felder.",
       "email": {
-        "invalid": "Ungültige Email-Adresse",
-        "required": "Email-Adresse benötigt"
+        "invalid": "Ungültige E-Mail-Adresse",
+        "required": "E-Mail-Adresse benötigt"
       },
       "firstName": {
         "required": "Vorname benötigt"
@@ -198,13 +198,13 @@
     "contribution": "Beitrag",
     "errors": {
       "confirmEmail": {
-        "message": "Fast geschafft! Wir müssen nur noch deine Email-Adresse bestätigen, um fortzufahren.",
-        "proceed": "Wir haben dir eine Email geschickt. Bitte klicke auf den Bestätigungslink, um fortzufahren.",
-        "title": "Email-Adresse bestätigen"
+        "message": "Fast geschafft! Wir müssen nur noch deine E-Mail-Adresse bestätigen, um fortzufahren.",
+        "proceed": "Wir haben dir eine E-Mail geschickt. Bitte klicke auf den Bestätigungslink, um fortzufahren.",
+        "title": "E-Mail-Adresse bestätigen"
       },
       "duplicateEmail": {
-        "message": "Diese Email-Adresse ist bereits registriert. Bitte logge dich ein, um fortzufahren.",
-        "title": "Email-Adresse wiederholen"
+        "message": "Diese E-Mail-Adresse ist bereits registriert. Bitte logge dich ein, um fortzufahren.",
+        "title": "E-Mail-Adresse wiederholen"
       },
       "failed": {
         "backToJoin": "Zurück zur Registrierung",
@@ -234,7 +234,7 @@
     "login": "Login",
     "notMember": "Noch kein Mitglied?",
     "title": "Einloggen",
-    "wrongCredentials": "Falsche Kombination von Passwort und Email."
+    "wrongCredentials": "Falsche Kombination von Passwort und E-Mail."
   },
   "menu": {
     "admin": "Administrator",
@@ -253,8 +253,8 @@
     "success": "Sehr gut! Das hat funktioniert."
   },
   "pageTitle": {
-    "confirmEmail": "Email-Adresse bestätigen",
-    "duplicateEmail": "Email-Adresse duplizieren",
+    "confirmEmail": "E-Mail-Adresse bestätigen",
+    "duplicateEmail": "E-Mail-Adresse duplizieren",
     "failed": "Fehler",
     "forgotPassword": "Passwort vergessen",
     "join": "Mitglied werden",
