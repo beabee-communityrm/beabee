@@ -9,7 +9,7 @@
   "home-redirect-url": "/login",
 
   "user-home-url": "/profile",
-  "admin-home-url": "/members",
+  "admin-home-url": "/admin",
   "referral-short-url": "http://example.com/refer",
 
   "support-email": "membership@example.com",
