@@ -57,22 +57,17 @@ async function memberToNlUpdate(
   }
 }
 
-async function getNewsletterMembers(
-  members: Member[]
-): Promise<(UpdateNewsletterMember | undefined)[]> {
-  const nlMembers: (UpdateNewsletterMember | undefined)[] = [];
-  for (const member of members) {
-    nlMembers.push(await memberToNlUpdate(member));
-  }
-  return nlMembers;
-}
-
-async function getValidNewsletterMembers(
+async function getValidMembers(
   members: Member[]
 ): Promise<UpdateNewsletterMember[]> {
-  return (await getNewsletterMembers(members)).filter(
-    (m) => !!m
-  ) as UpdateNewsletterMember[];
+  const nlMembers: UpdateNewsletterMember[] = [];
+  for (const member of members) {
+    const nlMember = await memberToNlUpdate(member);
+    if (nlMember) {
+      nlMembers.push(nlMember);
+    }
+  }
+  return nlMembers;
 }
 
 class NewsletterService {
@@ -84,7 +79,7 @@ class NewsletterService {
   async addTagToMembers(members: Member[], tag: string): Promise<void> {
     log.info(`Add tag ${tag} to ${members.length} members`);
     await this.provider.addTagToMembers(
-      (await getValidNewsletterMembers(members)).map((m) => m.email),
+      (await getValidMembers(members)).map((m) => m.email),
       tag
     );
   }
@@ -92,7 +87,7 @@ class NewsletterService {
   async removeTagFromMembers(members: Member[], tag: string): Promise<void> {
     log.info(`Remove tag ${tag} from ${members.length} members`);
     await this.provider.removeTagFromMembers(
-      (await getValidNewsletterMembers(members)).map((m) => m.email),
+      (await getValidMembers(members)).map((m) => m.email),
       tag
     );
   }
@@ -117,7 +112,7 @@ class NewsletterService {
 
   async upsertMembers(members: Member[]): Promise<void> {
     log.info(`Upsert ${members.length} members`);
-    await this.provider.upsertMembers(await getValidNewsletterMembers(members));
+    await this.provider.upsertMembers(await getValidMembers(members));
   }
 
   async updateMemberFields(
@@ -132,17 +127,18 @@ class NewsletterService {
     membersWithFields: [Member, Record<string, string>][]
   ): Promise<void> {
     log.info(`Update ${membersWithFields.length} members with fields`);
-    const members = membersWithFields.map(([member]) => member);
-    const updates = (await getNewsletterMembers(members))
-      .map((nlMember, i) => {
-        return nlMember
-          ? {
-              ...nlMember,
-              fields: membersWithFields[i][1]
-            }
-          : undefined;
-      })
-      .filter((u) => !!u) as UpdateNewsletterMember[];
+
+    const updates: UpdateNewsletterMember[] = [];
+    for (const [member, fields] of membersWithFields) {
+      const nlMember = await memberToNlUpdate(member);
+      if (nlMember) {
+        updates.push({
+          email: nlMember.email,
+          status: nlMember.status,
+          fields
+        });
+      }
+    }
 
     await this.provider.upsertMembers(updates);
   }
@@ -150,14 +146,14 @@ class NewsletterService {
   async archiveMembers(members: Member[]): Promise<void> {
     log.info(`Archive ${members.length} members`);
     await this.provider.archiveMembers(
-      (await getValidNewsletterMembers(members)).map((m) => m.email)
+      (await getValidMembers(members)).map((m) => m.email)
     );
   }
 
   async deleteMembers(members: Member[]): Promise<void> {
     log.info(`Delete ${members.length} members`);
     await this.provider.deleteMembers(
-      (await getValidNewsletterMembers(members)).map((m) => m.email)
+      (await getValidMembers(members)).map((m) => m.email)
     );
   }
 
