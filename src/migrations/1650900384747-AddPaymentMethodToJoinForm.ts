@@ -7,7 +7,7 @@ export class AddPaymentMethodToJoinForm1650900384747
   name = "AddPaymentMethodToJoinForm1650900384747";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    addThenSetNotNull(
+    await addThenSetNotNull(
       queryRunner,
       "join_flow",
       "joinFormPaymentmethod",
