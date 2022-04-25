@@ -43,28 +43,35 @@ export class SignupController {
   async startSignup(
     @Body() data: SignupData
   ): Promise<{ redirectUrl: string } | undefined> {
-    const joinForm = {
+    const baseForm = {
       email: data.email,
-      password: await generatePassword(data.password),
-      // TODO: these should be optional
-      monthlyAmount: data.contribution?.monthlyAmount || 0,
-      period: data.contribution?.period || ContributionPeriod.Monthly,
-      payFee: data.contribution?.payFee || false,
-      prorate: false,
-      paymentMethod: PaymentMethod.DirectDebit
+      password: await generatePassword(data.password)
     };
 
-    if (data.contribution) {
+    if (data.contribution && !data.complete) {
       const { redirectUrl } = await JoinFlowService.createJoinFlow(
-        joinForm,
+        {
+          ...baseForm,
+          ...data.contribution,
+          monthlyAmount: data.contribution.monthlyAmount,
+          paymentMethod: PaymentMethod.DirectDebit
+        },
         data.contribution.completeUrl,
         { email: data.email }
       );
       return {
         redirectUrl
       };
-    } else if (data.complete) {
-      const { joinFlow } = await JoinFlowService.createJoinFlow(joinForm);
+    } else if (data.complete && !data.contribution) {
+      const { joinFlow } = await JoinFlowService.createJoinFlow({
+        ...baseForm,
+        // TODO: should be optional
+        monthlyAmount: 0,
+        period: ContributionPeriod.Monthly,
+        payFee: false,
+        prorate: false,
+        paymentMethod: PaymentMethod.DirectDebit
+      });
       await this.sendConfirmEmail(joinFlow, data.complete);
     } else {
       throw new BadRequestError();
