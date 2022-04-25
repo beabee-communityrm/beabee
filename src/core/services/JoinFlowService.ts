@@ -1,14 +1,11 @@
 import { getRepository } from "typeorm";
 
-import GCPaymentService from "@core/services/GCPaymentService";
+import { CompletedPaymentRedirectFlow } from "@core/providers/payment";
+
+import PaymentService from "@core/services/PaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
-
-export interface CompletedJoinFlow {
-  customerId: string;
-  mandateId: string;
-}
 
 class JoinFlowService {
   async createJoinFlow(joinForm: JoinForm): Promise<{ joinFlow: JoinFlow }>;
@@ -22,11 +19,14 @@ class JoinFlowService {
     completeUrl?: string,
     user?: { email: string; firstname?: string; lastname?: string }
   ): Promise<{ joinFlow: JoinFlow; redirectUrl?: string }> {
-    const joinFlow = await getRepository(JoinFlow).save({ joinForm });
+    const joinFlow = await getRepository(JoinFlow).save({
+      joinForm,
+      redirectFlowId: ""
+    });
 
     if (completeUrl && user) {
-      const redirectFlow = await GCPaymentService.createRedirectFlow(
-        joinFlow.id,
+      const redirectFlow = await PaymentService.createRedirectFlow(
+        joinFlow,
         completeUrl,
         user
       );
@@ -45,18 +45,12 @@ class JoinFlowService {
 
   async completeJoinFlow(
     joinFlow: JoinFlow
-  ): Promise<CompletedJoinFlow | undefined> {
+  ): Promise<CompletedPaymentRedirectFlow | undefined> {
     if (joinFlow.redirectFlowId) {
-      const redirectFlow = await GCPaymentService.completeRedirectFlow(
-        joinFlow.redirectFlowId,
-        joinFlow.id
-      );
+      const redirectFlow = await PaymentService.completeRedirectFlow(joinFlow);
       await getRepository(JoinFlow).delete(joinFlow.id);
 
-      return {
-        customerId: redirectFlow.links.customer,
-        mandateId: redirectFlow.links.mandate
-      };
+      return redirectFlow;
     } else {
       await getRepository(JoinFlow).delete(joinFlow.id);
     }

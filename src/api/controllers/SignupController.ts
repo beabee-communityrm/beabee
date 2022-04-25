@@ -10,16 +10,18 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { ContributionPeriod, ContributionType } from "@core/utils";
+import {
+  ContributionPeriod,
+  ContributionType,
+  PaymentMethod
+} from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
-import { NewsletterStatus } from "@core/providers/newsletter";
-
 import EmailService from "@core/services/EmailService";
-import GCPaymentService from "@core/services/GCPaymentService";
 import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
+import PaymentService from "@core/services/PaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import MemberProfile from "@models/MemberProfile";
@@ -41,27 +43,35 @@ export class SignupController {
   async startSignup(
     @Body() data: SignupData
   ): Promise<{ redirectUrl: string } | undefined> {
-    const joinForm = {
+    const baseForm = {
       email: data.email,
-      password: await generatePassword(data.password),
-      // TODO: these should be optional
-      monthlyAmount: data.contribution?.monthlyAmount || 0,
-      period: data.contribution?.period || ContributionPeriod.Monthly,
-      payFee: data.contribution?.payFee || false,
-      prorate: false
+      password: await generatePassword(data.password)
     };
 
-    if (data.contribution) {
+    if (data.contribution && !data.complete) {
       const { redirectUrl } = await JoinFlowService.createJoinFlow(
-        joinForm,
+        {
+          ...baseForm,
+          ...data.contribution,
+          monthlyAmount: data.contribution.monthlyAmount,
+          paymentMethod: PaymentMethod.DirectDebit
+        },
         data.contribution.completeUrl,
         { email: data.email }
       );
       return {
         redirectUrl
       };
-    } else if (data.complete) {
-      const { joinFlow } = await JoinFlowService.createJoinFlow(joinForm);
+    } else if (data.complete && !data.contribution) {
+      const { joinFlow } = await JoinFlowService.createJoinFlow({
+        ...baseForm,
+        // TODO: should be optional
+        monthlyAmount: 0,
+        period: ContributionPeriod.Monthly,
+        payFee: false,
+        prorate: false,
+        paymentMethod: PaymentMethod.DirectDebit
+      });
       await this.sendConfirmEmail(joinFlow, data.complete);
     } else {
       throw new BadRequestError();
@@ -143,14 +153,15 @@ export class SignupController {
     const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
 
     if (completedJoinFlow) {
-      const gcData = await GCPaymentService.customerToMember(
+      const paymentData = await PaymentService.customerToMember(
+        joinFlow.joinForm.paymentMethod,
         completedJoinFlow.customerId
       );
 
-      Object.assign(partialMember, gcData.partialMember);
+      Object.assign(partialMember, paymentData.partialMember);
 
       if (OptionsService.getBool("show-mail-opt-in")) {
-        partialProfile.deliveryAddress = gcData.billingAddress;
+        partialProfile.deliveryAddress = paymentData.billingAddress;
       }
     }
 
@@ -162,12 +173,12 @@ export class SignupController {
     }
 
     if (completedJoinFlow) {
-      await GCPaymentService.updatePaymentSource(
+      await PaymentService.updatePaymentSource(
         member,
         completedJoinFlow.customerId,
         completedJoinFlow.mandateId
       );
-      await GCPaymentService.updateContribution(member, joinFlow.joinForm);
+      await PaymentService.updateContribution(member, joinFlow.joinForm);
     }
 
     await EmailService.sendTemplateToMember("welcome", member);

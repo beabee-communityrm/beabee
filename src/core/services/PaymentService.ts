@@ -1,16 +1,44 @@
 import { getRepository } from "typeorm";
 
-import { ContributionType, ContributionInfo, PaymentForm } from "@core/utils";
+import {
+  ContributionType,
+  ContributionInfo,
+  PaymentForm,
+  PaymentMethod
+} from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 
+import Address from "@models/Address";
 import GCPaymentData from "@models/GCPaymentData";
+import JoinFlow from "@models/JoinFlow";
 import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
 
 import EmailService from "./EmailService";
 import GCPaymentService from "./GCPaymentService";
+import StripePaymentService from "./StripePaymentService";
+import {
+  CompletedPaymentRedirectFlow,
+  PaymentRedirectFlow,
+  PaymentRedirectFlowParams
+} from "@core/providers/payment";
+
+const paymentProviders = {
+  [PaymentMethod.Card]: StripePaymentService,
+  [PaymentMethod.DirectDebit]: GCPaymentService
+};
 
 class PaymentService {
+  async customerToMember(
+    paymentMethod: PaymentMethod,
+    customerId: string
+  ): Promise<{
+    partialMember: Partial<Member>;
+    billingAddress: Address;
+  }> {
+    return paymentProviders[paymentMethod].customerToMember(customerId);
+  }
+
   async getPaymentData(
     member: Member
   ): Promise<GCPaymentData | ManualPaymentData | undefined> {
@@ -92,7 +120,14 @@ class PaymentService {
     // At the moment the only possibility is to go from whatever contribution
     // type the user was before to a GC contribution
     const wasManual = member.contributionType === ContributionType.Manual;
-    await GCPaymentService.updateContribution(member, paymentForm);
+
+    // TODO: Retrieve actual payment method
+    const paymentMethod = PaymentMethod.DirectDebit as PaymentMethod;
+
+    await paymentProviders[paymentMethod].updateContribution(
+      member,
+      paymentForm
+    );
 
     if (wasManual) {
       await EmailService.sendTemplateToMember("manual-to-gocardless", member);
@@ -104,9 +139,18 @@ class PaymentService {
     customerId: string,
     mandateId: string
   ): Promise<void> {
+    // TODO: Retrieve actual payment method
+    const paymentMethod = PaymentMethod.DirectDebit as PaymentMethod;
+
     // At the moment the only possibility is to go from whatever contribution
     // type the user was before to a GC contribution
-    await GCPaymentService.updatePaymentSource(member, customerId, mandateId);
+    // TODO: This is currently used to update the user's contributionType, this will change
+
+    await paymentProviders[paymentMethod].updatePaymentSource(
+      member,
+      customerId,
+      mandateId
+    );
   }
 
   async cancelContribution(member: Member): Promise<void> {
@@ -116,6 +160,26 @@ class PaymentService {
       default:
         throw new Error("Not implemented");
     }
+  }
+
+  async createRedirectFlow(
+    joinFlow: JoinFlow,
+    completeUrl: string,
+    params: PaymentRedirectFlowParams
+  ): Promise<PaymentRedirectFlow> {
+    return paymentProviders[joinFlow.joinForm.paymentMethod].createRedirectFlow(
+      joinFlow,
+      completeUrl,
+      params
+    );
+  }
+
+  async completeRedirectFlow(
+    joinFlow: JoinFlow
+  ): Promise<CompletedPaymentRedirectFlow> {
+    return paymentProviders[
+      joinFlow.joinForm.paymentMethod
+    ].completeRedirectFlow(joinFlow);
   }
 }
 

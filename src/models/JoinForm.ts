@@ -1,5 +1,5 @@
 import { Column } from "typeorm";
-import { ContributionPeriod, PaymentForm } from "@core/utils";
+import { ContributionPeriod, PaymentForm, PaymentMethod } from "@core/utils";
 import Password from "./Password";
 
 export interface ReferralGiftForm {
@@ -25,6 +25,9 @@ export default class JoinForm implements PaymentForm, ReferralGiftForm {
 
   @Column({ default: false })
   prorate!: boolean;
+
+  @Column()
+  paymentMethod!: PaymentMethod;
 
   @Column({ type: String, nullable: true })
   referralCode?: string | null;
