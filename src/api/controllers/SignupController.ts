@@ -17,13 +17,11 @@ import {
 } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
-import { NewsletterStatus } from "@core/providers/newsletter";
-
 import EmailService from "@core/services/EmailService";
-import GCPaymentService from "@core/services/GCPaymentService";
 import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
+import PaymentService from "@core/services/PaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import MemberProfile from "@models/MemberProfile";
@@ -148,14 +146,15 @@ export class SignupController {
     const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
 
     if (completedJoinFlow) {
-      const gcData = await GCPaymentService.customerToMember(
+      const paymentData = await PaymentService.customerToMember(
+        joinFlow.joinForm.paymentMethod,
         completedJoinFlow.customerId
       );
 
-      Object.assign(partialMember, gcData.partialMember);
+      Object.assign(partialMember, paymentData.partialMember);
 
       if (OptionsService.getBool("show-mail-opt-in")) {
-        partialProfile.deliveryAddress = gcData.billingAddress;
+        partialProfile.deliveryAddress = paymentData.billingAddress;
       }
     }
 
@@ -167,12 +166,12 @@ export class SignupController {
     }
 
     if (completedJoinFlow) {
-      await GCPaymentService.updatePaymentSource(
+      await PaymentService.updatePaymentSource(
         member,
         completedJoinFlow.customerId,
         completedJoinFlow.mandateId
       );
-      await GCPaymentService.updateContribution(member, joinFlow.joinForm);
+      await PaymentService.updateContribution(member, joinFlow.joinForm);
     }
 
     await EmailService.sendTemplateToMember("welcome", member);

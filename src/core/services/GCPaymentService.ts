@@ -2,7 +2,6 @@ import format from "date-fns/format";
 import moment from "moment";
 import {
   PaymentCurrency,
-  RedirectFlow,
   SubscriptionIntervalUnit
 } from "gocardless-nodejs/types/Types";
 import { getRepository } from "typeorm";
@@ -18,6 +17,13 @@ import {
 } from "@core/utils";
 import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
+import {
+  CompletedPaymentRedirectFlow,
+  PaymentProvider,
+  PaymentRedirectFlow,
+  PaymentRedirectFlowParams
+} from "@core/providers/payment";
+
 import MembersService from "@core/services/MembersService";
 
 import config from "@config";
@@ -25,15 +31,11 @@ import config from "@config";
 import Address from "@models/Address";
 import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
+import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
 
 import NoPaymentSource from "@api/errors/NoPaymentSource";
-import {
-  PaymentProvider,
-  PaymentRedirectFlow,
-  PaymentRedirectFlowParams
-} from "@core/providers/payment";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -498,12 +500,12 @@ class GCPaymentService
   }
 
   async createRedirectFlow(
-    sessionToken: string,
+    joinFlow: JoinFlow,
     completeUrl: string,
     params: PaymentRedirectFlowParams
   ): Promise<PaymentRedirectFlow> {
     const redirectFlow = await gocardless.redirectFlows.create({
-      session_token: sessionToken,
+      session_token: joinFlow.id,
       success_redirect_url: completeUrl,
       prefilled_customer: {
         email: params.email,
@@ -519,12 +521,18 @@ class GCPaymentService
   }
 
   async completeRedirectFlow(
-    redirectFlowId: string,
-    sessionToken: string
-  ): Promise<RedirectFlow> {
-    return await gocardless.redirectFlows.complete(redirectFlowId, {
-      session_token: sessionToken
-    });
+    joinFlow: JoinFlow
+  ): Promise<CompletedPaymentRedirectFlow> {
+    const redirectFlow = await gocardless.redirectFlows.complete(
+      joinFlow.redirectFlowId,
+      {
+        session_token: joinFlow.id
+      }
+    );
+    return {
+      customerId: redirectFlow.links.customer,
+      mandateId: redirectFlow.links.mandate
+    };
   }
 }
 
