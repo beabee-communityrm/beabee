@@ -10,7 +10,11 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { ContributionPeriod, ContributionType } from "@core/utils";
+import {
+  ContributionPeriod,
+  ContributionType,
+  PaymentMethod
+} from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
@@ -48,7 +52,8 @@ export class SignupController {
       monthlyAmount: data.contribution?.monthlyAmount || 0,
       period: data.contribution?.period || ContributionPeriod.Monthly,
       payFee: data.contribution?.payFee || false,
-      prorate: false
+      prorate: false,
+      paymentMethod: PaymentMethod.DirectDebit
     };
 
     if (data.contribution) {

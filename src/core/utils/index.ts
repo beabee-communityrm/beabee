@@ -35,6 +35,11 @@ export interface PaymentForm {
   prorate: boolean;
 }
 
+export enum PaymentMethod {
+  Card = "card",
+  DirectDebit = "direct-debit"
+}
+
 export interface PaymentSource {
   type: "direct-debit";
   bankName: string;

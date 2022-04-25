@@ -21,7 +21,11 @@ import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
-import { ContributionInfo, ContributionPeriod } from "@core/utils";
+import {
+  ContributionInfo,
+  ContributionPeriod,
+  PaymentMethod
+} from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import Member from "@models/Member";
@@ -273,7 +277,8 @@ export class MemberController {
         monthlyAmount: data.monthlyAmount,
         // TODO: unnecessary, should be optional
         password: await generatePassword(""),
-        email: ""
+        email: "",
+        paymentMethod: PaymentMethod.DirectDebit
       },
       data.completeUrl,
       target
