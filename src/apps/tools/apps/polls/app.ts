@@ -18,7 +18,6 @@ interface CreatePollSchema {
   excerpt: string;
   image: string;
   template: PollTemplate;
-  closed?: boolean;
   mcMergeField?: string;
   pollMergeField?: string;
   allowUpdate?: boolean;
