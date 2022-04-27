@@ -271,7 +271,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const { redirectUrl } = await JoinFlowService.createJoinFlow(
+    const { redirectUrl } = await JoinFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,

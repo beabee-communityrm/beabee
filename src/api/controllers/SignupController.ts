@@ -49,7 +49,7 @@ export class SignupController {
     };
 
     if (data.contribution && !data.complete) {
-      const { redirectUrl } = await JoinFlowService.createJoinFlow(
+      const { redirectUrl } = await JoinFlowService.createPaymentJoinFlow(
         {
           ...baseForm,
           ...data.contribution,
@@ -63,15 +63,7 @@ export class SignupController {
         redirectUrl
       };
     } else if (data.complete && !data.contribution) {
-      const { joinFlow } = await JoinFlowService.createJoinFlow({
-        ...baseForm,
-        // TODO: should be optional
-        monthlyAmount: 0,
-        period: ContributionPeriod.Monthly,
-        payFee: false,
-        prorate: false,
-        paymentMethod: PaymentMethod.DirectDebit
-      });
+      const joinFlow = await JoinFlowService.createJoinFlow(baseForm);
       await this.sendConfirmEmail(joinFlow, data.complete);
     } else {
       throw new BadRequestError();

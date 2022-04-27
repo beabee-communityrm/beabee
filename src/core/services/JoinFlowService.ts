@@ -1,6 +1,7 @@
 import { getRepository } from "typeorm";
 
 import { CompletedPaymentRedirectFlow } from "@core/providers/payment";
+import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
 import PaymentService from "@core/services/PaymentService";
 
@@ -8,35 +9,43 @@ import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 
 class JoinFlowService {
-  async createJoinFlow(joinForm: JoinForm): Promise<{ joinFlow: JoinFlow }>;
   async createJoinFlow(
+    form: Pick<JoinForm, "email" | "password">
+  ): Promise<JoinFlow> {
+    const joinForm: JoinForm = {
+      ...form,
+      // TODO: stubbed here, should be optional
+      monthlyAmount: 0,
+      period: ContributionPeriod.Monthly,
+      payFee: false,
+      prorate: false,
+      paymentMethod: PaymentMethod.DirectDebit
+    };
+    return await getRepository(JoinFlow).save({
+      joinForm,
+      redirectFlowId: ""
+    });
+  }
+
+  async createPaymentJoinFlow(
     joinForm: JoinForm,
     completeUrl: string,
     user: { email: string; firstname?: string; lastname?: string }
-  ): Promise<{ joinFlow: JoinFlow; redirectUrl: string }>;
-  async createJoinFlow(
-    joinForm: JoinForm,
-    completeUrl?: string,
-    user?: { email: string; firstname?: string; lastname?: string }
-  ): Promise<{ joinFlow: JoinFlow; redirectUrl?: string }> {
+  ): Promise<{ joinFlow: JoinFlow; redirectUrl: string }> {
     const joinFlow = await getRepository(JoinFlow).save({
       joinForm,
       redirectFlowId: ""
     });
 
-    if (completeUrl && user) {
-      const redirectFlow = await PaymentService.createRedirectFlow(
-        joinFlow,
-        completeUrl,
-        user
-      );
-      await getRepository(JoinFlow).update(joinFlow.id, {
-        redirectFlowId: redirectFlow.id
-      });
-      return { joinFlow, redirectUrl: redirectFlow.url };
-    } else {
-      return { joinFlow };
-    }
+    const redirectFlow = await PaymentService.createRedirectFlow(
+      joinFlow,
+      completeUrl,
+      user
+    );
+    await getRepository(JoinFlow).update(joinFlow.id, {
+      redirectFlowId: redirectFlow.id
+    });
+    return { joinFlow, redirectUrl: redirectFlow.url };
   }
 
   async getJoinFlow(redirectFlowId: string): Promise<JoinFlow | undefined> {
