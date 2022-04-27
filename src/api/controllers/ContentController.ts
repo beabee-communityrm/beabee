@@ -23,7 +23,13 @@ const extraContent = {
   "join/setup": () => ({
     showMailOptIn: OptionsService.getBool("show-mail-opt-in")
   }),
-  profile: () => ({})
+  profile: () => ({}),
+  contacts: () => ({
+    tags: OptionsService.getList("available-tags"),
+    manualPaymentSources: OptionsService.getList(
+      "available-manual-payment-sources"
+    )
+  })
 } as const;
 
 @JsonController("/content")
