@@ -62,13 +62,15 @@ class StripePaymentService implements PaymentProvider {
                   ? "month"
                   : "year"
             },
-            unit_amount: getActualAmount(
-              joinFlow.joinForm.monthlyAmount,
-              joinFlow.joinForm.period
-            )
+            unit_amount:
+              getActualAmount(
+                joinFlow.joinForm.monthlyAmount,
+                joinFlow.joinForm.period
+              ) * 100
           }
         }
       ],
+      payment_behavior: "default_incomplete",
       expand: ["latest_invoice.payment_intent"]
     });
 
