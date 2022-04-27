@@ -4,18 +4,18 @@ import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 
-export interface PaymentRedirectFlowParams {
+export interface PaymentFlow {
+  id: string;
+  url: string;
+}
+
+export interface PaymentFlowParams {
   email: string;
   firstname?: string;
   lastname?: string;
 }
 
-export interface PaymentRedirectFlow {
-  id: string;
-  url: string;
-}
-
-export interface CompletedPaymentRedirectFlow {
+export interface CompletedPaymentFlow {
   customerId: string;
   mandateId: string;
 }
@@ -26,15 +26,13 @@ export interface PaymentProvider {
     billingAddress: Address;
   }>;
 
-  createRedirectFlow(
+  createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
-    params: PaymentRedirectFlowParams
-  ): Promise<PaymentRedirectFlow>;
+    params: PaymentFlowParams
+  ): Promise<PaymentFlow>;
 
-  completeRedirectFlow(
-    joinFlow: JoinFlow
-  ): Promise<CompletedPaymentRedirectFlow>;
+  completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow>;
 
   hasPendingPayment(member: Member): Promise<boolean>;
 

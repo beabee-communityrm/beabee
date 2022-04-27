@@ -73,7 +73,7 @@ export class SignupController {
   @OnUndefined(204)
   @Post("/complete")
   async completeSignup(@Body() data: SignupCompleteData): Promise<void> {
-    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
+    const joinFlow = await JoinFlowService.getJoinFlow(data.paymentFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
     }

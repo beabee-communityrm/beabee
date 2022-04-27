@@ -1,6 +1,6 @@
 import { getRepository } from "typeorm";
 
-import { CompletedPaymentRedirectFlow } from "@core/providers/payment";
+import { CompletedPaymentFlow } from "@core/providers/payment";
 import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
 import PaymentService from "@core/services/PaymentService";
@@ -23,7 +23,7 @@ class JoinFlowService {
     };
     return await getRepository(JoinFlow).save({
       joinForm,
-      redirectFlowId: ""
+      paymentFlowId: ""
     });
   }
 
@@ -34,32 +34,32 @@ class JoinFlowService {
   ): Promise<{ joinFlow: JoinFlow; redirectUrl: string }> {
     const joinFlow = await getRepository(JoinFlow).save({
       joinForm,
-      redirectFlowId: ""
+      paymentFlowId: ""
     });
 
-    const redirectFlow = await PaymentService.createRedirectFlow(
+    const paymentFlow = await PaymentService.createPaymentFlow(
       joinFlow,
       completeUrl,
       user
     );
     await getRepository(JoinFlow).update(joinFlow.id, {
-      redirectFlowId: redirectFlow.id
+      paymentFlowId: paymentFlow.id
     });
-    return { joinFlow, redirectUrl: redirectFlow.url };
+    return { joinFlow, redirectUrl: paymentFlow.url };
   }
 
-  async getJoinFlow(redirectFlowId: string): Promise<JoinFlow | undefined> {
-    return await getRepository(JoinFlow).findOne({ redirectFlowId });
+  async getJoinFlow(paymentFlowId: string): Promise<JoinFlow | undefined> {
+    return await getRepository(JoinFlow).findOne({ paymentFlowId });
   }
 
   async completeJoinFlow(
     joinFlow: JoinFlow
-  ): Promise<CompletedPaymentRedirectFlow | undefined> {
-    if (joinFlow.redirectFlowId) {
-      const redirectFlow = await PaymentService.completeRedirectFlow(joinFlow);
+  ): Promise<CompletedPaymentFlow | undefined> {
+    if (joinFlow.paymentFlowId) {
+      const paymentFlow = await PaymentService.completePaymentFlow(joinFlow);
       await getRepository(JoinFlow).delete(joinFlow.id);
 
-      return redirectFlow;
+      return paymentFlow;
     } else {
       await getRepository(JoinFlow).delete(joinFlow.id);
     }

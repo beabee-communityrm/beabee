@@ -46,7 +46,7 @@ export class SignupCompleteData
   implements CompleteJoinFlowData
 {
   @IsString()
-  redirectFlowId!: string;
+  paymentFlowId!: string;
 }
 
 export class SignupConfirmEmailParam {

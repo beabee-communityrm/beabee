@@ -18,9 +18,9 @@ import EmailService from "./EmailService";
 import GCPaymentService from "./GCPaymentService";
 import StripePaymentService from "./StripePaymentService";
 import {
-  CompletedPaymentRedirectFlow,
-  PaymentRedirectFlow,
-  PaymentRedirectFlowParams
+  CompletedPaymentFlow,
+  PaymentFlow,
+  PaymentFlowParams
 } from "@core/providers/payment";
 
 const paymentProviders = {
@@ -162,24 +162,22 @@ class PaymentService {
     }
   }
 
-  async createRedirectFlow(
+  async createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
-    params: PaymentRedirectFlowParams
-  ): Promise<PaymentRedirectFlow> {
-    return paymentProviders[joinFlow.joinForm.paymentMethod].createRedirectFlow(
+    params: PaymentFlowParams
+  ): Promise<PaymentFlow> {
+    return paymentProviders[joinFlow.joinForm.paymentMethod].createPaymentFlow(
       joinFlow,
       completeUrl,
       params
     );
   }
 
-  async completeRedirectFlow(
-    joinFlow: JoinFlow
-  ): Promise<CompletedPaymentRedirectFlow> {
+  async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
     return paymentProviders[
       joinFlow.joinForm.paymentMethod
-    ].completeRedirectFlow(joinFlow);
+    ].completePaymentFlow(joinFlow);
   }
 }
 

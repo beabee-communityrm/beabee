@@ -1,8 +1,8 @@
 import {
-  CompletedPaymentRedirectFlow,
+  CompletedPaymentFlow,
   PaymentProvider,
-  PaymentRedirectFlow,
-  PaymentRedirectFlowParams
+  PaymentFlow,
+  PaymentFlowParams
 } from "@core/providers/payment";
 import { PaymentForm } from "@core/utils";
 import Address from "@models/Address";
@@ -10,9 +10,7 @@ import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 
 class StripePaymentService implements PaymentProvider {
-  completeRedirectFlow(
-    joinFlow: JoinFlow
-  ): Promise<CompletedPaymentRedirectFlow> {
+  completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
     throw new Error("Method not implemented.");
   }
   updatePaymentSource(
@@ -30,11 +28,11 @@ class StripePaymentService implements PaymentProvider {
   ): Promise<{ partialMember: Partial<Member>; billingAddress: Address }> {
     throw new Error("Method not implemented.");
   }
-  createRedirectFlow(
+  createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
-    params: PaymentRedirectFlowParams
-  ): Promise<PaymentRedirectFlow> {
+    params: PaymentFlowParams
+  ): Promise<PaymentFlow> {
     throw new Error("Method not implemented.");
   }
   hasPendingPayment(member: Member): Promise<boolean> {

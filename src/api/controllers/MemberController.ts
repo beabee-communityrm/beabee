@@ -296,7 +296,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
+    const joinFlow = await JoinFlowService.getJoinFlow(data.paymentFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
     }

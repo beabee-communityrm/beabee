@@ -8,5 +8,5 @@ export class StartJoinFlowData {
 
 export class CompleteJoinFlowData {
   @IsString()
-  redirectFlowId!: string;
+  paymentFlowId!: string;
 }
