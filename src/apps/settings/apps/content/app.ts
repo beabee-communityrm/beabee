@@ -47,7 +47,8 @@ const parseData = {
     ...data,
     showNewsletterOptIn: data.showNewsletterOptIn === "true"
   }),
-  profile: (d: any) => d
+  profile: (d: any) => d,
+  contacts: (d: any) => d
 } as const;
 
 // urlencoding parser doesn't support overwriting if the same query param
