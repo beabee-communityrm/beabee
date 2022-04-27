@@ -21,7 +21,7 @@ import {
   CompletedPaymentFlow,
   PaymentProvider,
   PaymentFlow,
-  PaymentFlowParams
+  PaymentFlowData
 } from "@core/providers/payment";
 
 import MembersService from "@core/services/MembersService";
@@ -502,7 +502,7 @@ class GCPaymentService
   async createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
-    params: PaymentFlowParams
+    params: PaymentFlowData
   ): Promise<PaymentFlow> {
     const redirectFlow = await gocardless.redirectFlows.create({
       session_token: joinFlow.id,
@@ -516,7 +516,9 @@ class GCPaymentService
 
     return {
       id: redirectFlow.id,
-      url: redirectFlow.redirect_url
+      params: {
+        redirectUrl: redirectFlow.redirect_url
+      }
     };
   }
 

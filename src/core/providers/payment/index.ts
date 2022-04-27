@@ -6,10 +6,15 @@ import Member from "@models/Member";
 
 export interface PaymentFlow {
   id: string;
-  url: string;
+  params: PaymentFlowParams;
 }
 
 export interface PaymentFlowParams {
+  clientSecret?: string;
+  redirectUrl?: string;
+}
+
+export interface PaymentFlowData {
   email: string;
   firstname?: string;
   lastname?: string;
@@ -29,7 +34,7 @@ export interface PaymentProvider {
   createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
-    params: PaymentFlowParams
+    data: PaymentFlowData
   ): Promise<PaymentFlow>;
 
   completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow>;

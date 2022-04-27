@@ -16,6 +16,8 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
+import { PaymentFlowParams } from "@core/providers/payment";
+
 import EmailService from "@core/services/EmailService";
 import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
@@ -28,6 +30,7 @@ import {
 } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
+import GCPayment from "@models/GCPayment";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
@@ -56,7 +59,6 @@ import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import { validateOrReject } from "@api/utils";
 import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
-import GCPayment from "@models/GCPayment";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -195,7 +197,7 @@ export class MemberController {
   async startContribution(
     @TargetUser() target: Member,
     @Body() data: StartContributionData
-  ): Promise<{ redirectUrl: string }> {
+  ): Promise<PaymentFlowParams> {
     return await this.handleStartUpdatePaymentSource(target, data);
   }
 
@@ -242,7 +244,7 @@ export class MemberController {
   async updatePaymentSource(
     @TargetUser() target: Member,
     @Body() data: StartJoinFlowData
-  ): Promise<{ redirectUrl: string }> {
+  ): Promise<PaymentFlowParams> {
     return await this.handleStartUpdatePaymentSource(target, {
       ...data,
       // TODO: not needed, should be optional
@@ -271,7 +273,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const { redirectUrl } = await JoinFlowService.createPaymentJoinFlow(
+    const paymentFlow = await JoinFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
@@ -283,9 +285,7 @@ export class MemberController {
       data.completeUrl,
       target
     );
-    return {
-      redirectUrl
-    };
+    return paymentFlow.params;
   }
 
   private async handleCompleteUpdatePaymentSource(

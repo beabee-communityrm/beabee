@@ -136,7 +136,8 @@ export default {
   stripe: {
     publicKey: env.s("BEABEE_STRIPE_PUBLICKEY", ""),
     secretKey: env.s("BEABEE_STRIPE_SECRETKEY", ""),
-    webhookSecret: env.s("BEABEE_STRIPE_WEBHOOKSECRET", "")
+    webhookSecret: env.s("BEABEE_STRIPE_WEBHOOKSECRET", ""),
+    membershipProductId: env.s("BEABEE_STRIPE_MEMBERSHIPPRODUCTID", "")
   },
   locale: env.e("BEABEE_LOCALE", ["en", "de", "de@informal"] as const),
   countryCode: env.e("BEABEE_COUNTRYCODE", ["en", "de", "be"] as const),

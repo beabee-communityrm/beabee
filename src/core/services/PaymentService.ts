@@ -20,7 +20,7 @@ import StripePaymentService from "./StripePaymentService";
 import {
   CompletedPaymentFlow,
   PaymentFlow,
-  PaymentFlowParams
+  PaymentFlowData
 } from "@core/providers/payment";
 
 const paymentProviders = {
@@ -165,12 +165,12 @@ class PaymentService {
   async createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
-    params: PaymentFlowParams
+    data: PaymentFlowData
   ): Promise<PaymentFlow> {
     return paymentProviders[joinFlow.joinForm.paymentMethod].createPaymentFlow(
       joinFlow,
       completeUrl,
-      params
+      data
     );
   }
 

@@ -10,12 +10,10 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import {
-  ContributionPeriod,
-  ContributionType,
-  PaymentMethod
-} from "@core/utils";
+import { ContributionType, PaymentMethod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
+
+import { PaymentFlowParams } from "@core/providers/payment";
 
 import EmailService from "@core/services/EmailService";
 import JoinFlowService from "@core/services/JoinFlowService";
@@ -42,14 +40,14 @@ export class SignupController {
   @Post("/")
   async startSignup(
     @Body() data: SignupData
-  ): Promise<{ redirectUrl: string } | undefined> {
+  ): Promise<PaymentFlowParams | undefined> {
     const baseForm = {
       email: data.email,
       password: await generatePassword(data.password)
     };
 
     if (data.contribution && !data.complete) {
-      const { redirectUrl } = await JoinFlowService.createPaymentJoinFlow(
+      const paymentFlow = await JoinFlowService.createPaymentJoinFlow(
         {
           ...baseForm,
           ...data.contribution,
@@ -59,9 +57,7 @@ export class SignupController {
         data.contribution.completeUrl,
         { email: data.email }
       );
-      return {
-        redirectUrl
-      };
+      return paymentFlow.params;
     } else if (data.complete && !data.contribution) {
       const joinFlow = await JoinFlowService.createJoinFlow(baseForm);
       await this.sendConfirmEmail(joinFlow, data.complete);

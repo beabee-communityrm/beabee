@@ -1,6 +1,6 @@
 import { getRepository } from "typeorm";
 
-import { CompletedPaymentFlow } from "@core/providers/payment";
+import { CompletedPaymentFlow, PaymentFlow } from "@core/providers/payment";
 import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
 import PaymentService from "@core/services/PaymentService";
@@ -31,7 +31,7 @@ class JoinFlowService {
     joinForm: JoinForm,
     completeUrl: string,
     user: { email: string; firstname?: string; lastname?: string }
-  ): Promise<{ joinFlow: JoinFlow; redirectUrl: string }> {
+  ): Promise<PaymentFlow> {
     const joinFlow = await getRepository(JoinFlow).save({
       joinForm,
       paymentFlowId: ""
@@ -45,7 +45,7 @@ class JoinFlowService {
     await getRepository(JoinFlow).update(joinFlow.id, {
       paymentFlowId: paymentFlow.id
     });
-    return { joinFlow, redirectUrl: paymentFlow.url };
+    return paymentFlow;
   }
 
   async getJoinFlow(paymentFlowId: string): Promise<JoinFlow | undefined> {
