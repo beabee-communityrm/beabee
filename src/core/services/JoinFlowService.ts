@@ -1,6 +1,7 @@
 import { getRepository } from "typeorm";
 
-import { CompletedPaymentRedirectFlow } from "@core/providers/payment";
+import { CompletedPaymentFlow } from "@core/providers/payment";
+import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
 import PaymentService from "@core/services/PaymentService";
 
@@ -8,49 +9,57 @@ import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 
 class JoinFlowService {
-  async createJoinFlow(joinForm: JoinForm): Promise<{ joinFlow: JoinFlow }>;
   async createJoinFlow(
+    form: Pick<JoinForm, "email" | "password">
+  ): Promise<JoinFlow> {
+    const joinForm: JoinForm = {
+      ...form,
+      // TODO: stubbed here, should be optional
+      monthlyAmount: 0,
+      period: ContributionPeriod.Monthly,
+      payFee: false,
+      prorate: false,
+      paymentMethod: PaymentMethod.DirectDebit
+    };
+    return await getRepository(JoinFlow).save({
+      joinForm,
+      paymentFlowId: ""
+    });
+  }
+
+  async createPaymentJoinFlow(
     joinForm: JoinForm,
     completeUrl: string,
     user: { email: string; firstname?: string; lastname?: string }
-  ): Promise<{ joinFlow: JoinFlow; redirectUrl: string }>;
-  async createJoinFlow(
-    joinForm: JoinForm,
-    completeUrl?: string,
-    user?: { email: string; firstname?: string; lastname?: string }
-  ): Promise<{ joinFlow: JoinFlow; redirectUrl?: string }> {
+  ): Promise<{ joinFlow: JoinFlow; redirectUrl: string }> {
     const joinFlow = await getRepository(JoinFlow).save({
       joinForm,
-      redirectFlowId: ""
+      paymentFlowId: ""
     });
 
-    if (completeUrl && user) {
-      const redirectFlow = await PaymentService.createRedirectFlow(
-        joinFlow,
-        completeUrl,
-        user
-      );
-      await getRepository(JoinFlow).update(joinFlow.id, {
-        redirectFlowId: redirectFlow.id
-      });
-      return { joinFlow, redirectUrl: redirectFlow.url };
-    } else {
-      return { joinFlow };
-    }
+    const paymentFlow = await PaymentService.createPaymentFlow(
+      joinFlow,
+      completeUrl,
+      user
+    );
+    await getRepository(JoinFlow).update(joinFlow.id, {
+      paymentFlowId: paymentFlow.id
+    });
+    return { joinFlow, redirectUrl: paymentFlow.url };
   }
 
-  async getJoinFlow(redirectFlowId: string): Promise<JoinFlow | undefined> {
-    return await getRepository(JoinFlow).findOne({ redirectFlowId });
+  async getJoinFlow(paymentFlowId: string): Promise<JoinFlow | undefined> {
+    return await getRepository(JoinFlow).findOne({ paymentFlowId });
   }
 
   async completeJoinFlow(
     joinFlow: JoinFlow
-  ): Promise<CompletedPaymentRedirectFlow | undefined> {
-    if (joinFlow.redirectFlowId) {
-      const redirectFlow = await PaymentService.completeRedirectFlow(joinFlow);
+  ): Promise<CompletedPaymentFlow | undefined> {
+    if (joinFlow.paymentFlowId) {
+      const paymentFlow = await PaymentService.completePaymentFlow(joinFlow);
       await getRepository(JoinFlow).delete(joinFlow.id);
 
-      return redirectFlow;
+      return paymentFlow;
     } else {
       await getRepository(JoinFlow).delete(joinFlow.id);
     }

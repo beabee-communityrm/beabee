@@ -18,10 +18,10 @@ import {
 import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
 import {
-  CompletedPaymentRedirectFlow,
+  CompletedPaymentFlow,
   PaymentProvider,
-  PaymentRedirectFlow,
-  PaymentRedirectFlowParams
+  PaymentFlow,
+  PaymentFlowParams
 } from "@core/providers/payment";
 
 import MembersService from "@core/services/MembersService";
@@ -499,11 +499,11 @@ class GCPaymentService
     }
   }
 
-  async createRedirectFlow(
+  async createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
-    params: PaymentRedirectFlowParams
-  ): Promise<PaymentRedirectFlow> {
+    params: PaymentFlowParams
+  ): Promise<PaymentFlow> {
     const redirectFlow = await gocardless.redirectFlows.create({
       session_token: joinFlow.id,
       success_redirect_url: completeUrl,
@@ -520,11 +520,9 @@ class GCPaymentService
     };
   }
 
-  async completeRedirectFlow(
-    joinFlow: JoinFlow
-  ): Promise<CompletedPaymentRedirectFlow> {
+  async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
     const redirectFlow = await gocardless.redirectFlows.complete(
-      joinFlow.redirectFlowId,
+      joinFlow.paymentFlowId,
       {
         session_token: joinFlow.id
       }

@@ -271,7 +271,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const { redirectUrl } = await JoinFlowService.createJoinFlow(
+    const { redirectUrl } = await JoinFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
@@ -296,7 +296,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
+    const joinFlow = await JoinFlowService.getJoinFlow(data.paymentFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
     }
