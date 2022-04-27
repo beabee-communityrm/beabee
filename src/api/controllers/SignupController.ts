@@ -51,8 +51,7 @@ export class SignupController {
         {
           ...baseForm,
           ...data.contribution,
-          monthlyAmount: data.contribution.monthlyAmount,
-          paymentMethod: PaymentMethod.DirectDebit
+          monthlyAmount: data.contribution.monthlyAmount
         },
         data.contribution.completeUrl,
         { email: data.email }

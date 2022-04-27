@@ -252,7 +252,8 @@ export class MemberController {
       period: ContributionPeriod.Annually,
       monthlyAmount: 0,
       payFee: false,
-      prorate: false
+      prorate: false,
+      paymentMethod: PaymentMethod.DirectDebit
     });
   }
 
