@@ -4,6 +4,11 @@ import Member from "@models/Member";
 import { PollResponseAnswers } from "@models/PollResponse";
 
 declare global {
+  type HTMLElement = never;
+  type BufferSource = never;
+  type FormData = never;
+  type URLSearchParams = never;
+
   type WithRelationIds<E, K extends keyof E> = Omit<E, K> & {
     [key in K]: string;
   };
