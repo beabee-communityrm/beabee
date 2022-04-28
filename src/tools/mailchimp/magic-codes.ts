@@ -17,8 +17,8 @@ db.connect().then(async () => {
 
   const members = await createQueryBuilder(Member, "m")
     .innerJoinAndSelect("m.profile", "profile")
-    .where("profile.newsletterStatus <> :status", {
-      status: NewsletterStatus.None
+    .where("profile.newsletterStatus = :status", {
+      status: NewsletterStatus.Subscribed
     })
     .getMany();
 
