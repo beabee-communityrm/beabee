@@ -8,12 +8,6 @@ declare global {
     [key in K]: string;
   };
 
-  // Stub types that some external libraries use
-  type BufferSource = never;
-  type FormData = never;
-  type URLSearchParams = never;
-  type HTMLElement = never;
-
   namespace Express {
     export interface User extends Member {}
 
