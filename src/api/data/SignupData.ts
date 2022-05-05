@@ -23,7 +23,7 @@ export class CompleteUrls {
   confirmUrl!: string;
 }
 
-export class SignupData {
+export class SignupData extends CompleteUrls {
   @IsEmail()
   email!: string;
 
@@ -34,20 +34,9 @@ export class SignupData {
   @ValidateNested()
   @IsOptional()
   contribution?: StartContributionData;
-
-  @Type(() => CompleteUrls)
-  @ValidateNested()
-  @IsOptional()
-  complete?: CompleteUrls;
 }
 
-export class SignupCompleteData
-  extends CompleteUrls
-  implements CompleteJoinFlowData
-{
-  @IsString()
-  paymentFlowId!: string;
-}
+export class SignupCompleteData extends CompleteJoinFlowData {}
 
 export class SignupConfirmEmailParam {
   @IsUUID("4")

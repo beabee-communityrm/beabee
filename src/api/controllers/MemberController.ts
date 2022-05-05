@@ -274,7 +274,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const paymentFlow = await JoinFlowService.createPaymentJoinFlow(
+    return await JoinFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
@@ -283,10 +283,14 @@ export class MemberController {
         email: "",
         paymentMethod: PaymentMethod.DirectDebit
       },
+      {
+        confirmUrl: "",
+        loginUrl: "",
+        setPasswordUrl: ""
+      },
       data.completeUrl,
       target
     );
-    return paymentFlow.params;
   }
 
   private async handleCompleteUpdatePaymentSource(
@@ -297,18 +301,16 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const joinFlow = await JoinFlowService.getJoinFlow(data.paymentFlowId);
+    const joinFlow = await JoinFlowService.getJoinFlowByPaymentId(
+      data.paymentFlowId
+    );
     if (!joinFlow) {
       throw new NotFoundError();
     }
 
-    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
-    if (completedJoinFlow) {
-      await PaymentService.updatePaymentSource(
-        target,
-        completedJoinFlow.customerId,
-        completedJoinFlow.mandateId
-      );
+    const completedFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    if (completedFlow) {
+      await PaymentService.updatePaymentSource(target, completedFlow);
     }
 
     return joinFlow;

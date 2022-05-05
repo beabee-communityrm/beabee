@@ -1,16 +1,24 @@
 import { getRepository } from "typeorm";
 
-import { CompletedPaymentFlow, PaymentFlow } from "@core/providers/payment";
+import {
+  CompletedPaymentFlow,
+  PaymentFlowParams
+} from "@core/providers/payment";
 import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
+import EmailService from "@core/services/EmailService";
+import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
+import { CompleteUrls } from "@api/data/SignupData";
+import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 class JoinFlowService {
   async createJoinFlow(
-    form: Pick<JoinForm, "email" | "password">
+    form: Pick<JoinForm, "email" | "password">,
+    urls: CompleteUrls
   ): Promise<JoinFlow> {
     const joinForm: JoinForm = {
       ...form,
@@ -22,6 +30,7 @@ class JoinFlowService {
       paymentMethod: PaymentMethod.DirectDebit
     };
     return await getRepository(JoinFlow).save({
+      ...urls,
       joinForm,
       paymentFlowId: ""
     });
@@ -29,10 +38,12 @@ class JoinFlowService {
 
   async createPaymentJoinFlow(
     joinForm: JoinForm,
+    urls: CompleteUrls,
     completeUrl: string,
     user: { email: string; firstname?: string; lastname?: string }
-  ): Promise<PaymentFlow> {
+  ): Promise<PaymentFlowParams> {
     const joinFlow = await getRepository(JoinFlow).save({
+      ...urls,
       joinForm,
       paymentFlowId: ""
     });
@@ -45,10 +56,12 @@ class JoinFlowService {
     await getRepository(JoinFlow).update(joinFlow.id, {
       paymentFlowId: paymentFlow.id
     });
-    return paymentFlow;
+    return paymentFlow.params;
   }
 
-  async getJoinFlow(paymentFlowId: string): Promise<JoinFlow | undefined> {
+  async getJoinFlowByPaymentId(
+    paymentFlowId: string
+  ): Promise<JoinFlow | undefined> {
     return await getRepository(JoinFlow).findOne({ paymentFlowId });
   }
 
@@ -62,6 +75,38 @@ class JoinFlowService {
       return paymentFlow;
     } else {
       await getRepository(JoinFlow).delete(joinFlow.id);
+    }
+  }
+
+  async sendConfirmEmail(joinFlow: JoinFlow) {
+    const member = await MembersService.findOne({
+      email: joinFlow.joinForm.email
+    });
+
+    if (member?.membership?.isActive) {
+      if (member.password.hash) {
+        await EmailService.sendTemplateToMember("email-exists-login", member, {
+          loginLink: joinFlow.loginUrl
+        });
+      } else {
+        const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
+        await EmailService.sendTemplateToMember(
+          "email-exists-set-password",
+          member,
+          {
+            spLink: joinFlow.setPasswordUrl + "/" + rpFlow.id
+          }
+        );
+      }
+    } else {
+      await EmailService.sendTemplateTo(
+        "confirm-email",
+        { email: joinFlow.joinForm.email },
+        {
+          firstName: "", // We don't know this yet
+          confirmLink: joinFlow.confirmUrl + "/" + joinFlow.id
+        }
+      );
     }
   }
 }

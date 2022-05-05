@@ -1,6 +1,5 @@
 import { Request } from "express";
 import {
-  BadRequestError,
   Body,
   JsonController,
   NotFoundError,
@@ -10,7 +9,7 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { ContributionType, PaymentMethod } from "@core/utils";
+import { ContributionType } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import { PaymentFlowParams } from "@core/providers/payment";
@@ -23,12 +22,10 @@ import PaymentService from "@core/services/PaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import MemberProfile from "@models/MemberProfile";
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import {
-  CompleteUrls,
-  SignupCompleteData,
   SignupData,
+  SignupCompleteData,
   SignupConfirmEmailParam
 } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
@@ -46,65 +43,30 @@ export class SignupController {
       password: await generatePassword(data.password)
     };
 
-    if (data.contribution && !data.complete) {
-      const paymentFlow = await JoinFlowService.createPaymentJoinFlow(
+    if (data.contribution) {
+      return await JoinFlowService.createPaymentJoinFlow(
         {
           ...baseForm,
           ...data.contribution,
           monthlyAmount: data.contribution.monthlyAmount
         },
+        data,
         data.contribution.completeUrl,
         { email: data.email }
       );
-      return paymentFlow.params;
-    } else if (data.complete && !data.contribution) {
-      const joinFlow = await JoinFlowService.createJoinFlow(baseForm);
-      await this.sendConfirmEmail(joinFlow, data.complete);
     } else {
-      throw new BadRequestError();
+      const joinFlow = await JoinFlowService.createJoinFlow(baseForm, data);
+      await JoinFlowService.sendConfirmEmail(joinFlow);
     }
   }
 
-  @OnUndefined(204)
   @Post("/complete")
   async completeSignup(@Body() data: SignupCompleteData): Promise<void> {
-    const joinFlow = await JoinFlowService.getJoinFlow(data.paymentFlowId);
-    if (!joinFlow) {
-      throw new NotFoundError();
-    }
-
-    await this.sendConfirmEmail(joinFlow, data);
-  }
-
-  private async sendConfirmEmail(joinFlow: JoinFlow, urls: CompleteUrls) {
-    const member = await MembersService.findOne({
-      email: joinFlow.joinForm.email
-    });
-
-    if (member?.membership?.isActive) {
-      if (member.password.hash) {
-        await EmailService.sendTemplateToMember("email-exists-login", member, {
-          loginLink: urls.loginUrl
-        });
-      } else {
-        const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
-        await EmailService.sendTemplateToMember(
-          "email-exists-set-password",
-          member,
-          {
-            spLink: urls.setPasswordUrl + "/" + rpFlow.id
-          }
-        );
-      }
-    } else {
-      await EmailService.sendTemplateTo(
-        "confirm-email",
-        { email: joinFlow.joinForm.email },
-        {
-          firstName: "", // We don't know this yet
-          confirmLink: urls.confirmUrl + "/" + joinFlow.id
-        }
-      );
+    const joinFlow = await JoinFlowService.getJoinFlowByPaymentId(
+      data.paymentFlowId
+    );
+    if (joinFlow) {
+      await JoinFlowService.sendConfirmEmail(joinFlow);
     }
   }
 
@@ -137,12 +99,12 @@ export class SignupController {
     };
     let partialProfile: Partial<MemberProfile> = {};
 
-    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    const completedFlow = await JoinFlowService.completeJoinFlow(joinFlow);
 
-    if (completedJoinFlow) {
+    if (completedFlow) {
       const paymentData = await PaymentService.customerToMember(
         joinFlow.joinForm.paymentMethod,
-        completedJoinFlow.customerId
+        completedFlow
       );
 
       Object.assign(partialMember, paymentData.partialMember);
@@ -159,12 +121,8 @@ export class SignupController {
       member = await MembersService.createMember(partialMember, partialProfile);
     }
 
-    if (completedJoinFlow) {
-      await PaymentService.updatePaymentSource(
-        member,
-        completedJoinFlow.customerId,
-        completedJoinFlow.mandateId
-      );
+    if (completedFlow) {
+      await PaymentService.updatePaymentSource(member, completedFlow);
       await PaymentService.updateContribution(member, joinFlow.joinForm);
     }
 

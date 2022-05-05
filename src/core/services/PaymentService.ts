@@ -31,12 +31,14 @@ const paymentProviders = {
 class PaymentService {
   async customerToMember(
     paymentMethod: PaymentMethod,
-    customerId: string
+    completedPaymentFlow: CompletedPaymentFlow
   ): Promise<{
     partialMember: Partial<Member>;
     billingAddress: Address;
   }> {
-    return paymentProviders[paymentMethod].customerToMember(customerId);
+    return paymentProviders[paymentMethod].customerToMember(
+      completedPaymentFlow
+    );
   }
 
   async getPaymentData(
@@ -136,8 +138,7 @@ class PaymentService {
 
   async updatePaymentSource(
     member: Member,
-    customerId: string,
-    mandateId: string
+    completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
     // TODO: Retrieve actual payment method
     const paymentMethod = PaymentMethod.DirectDebit as PaymentMethod;
@@ -148,8 +149,7 @@ class PaymentService {
 
     await paymentProviders[paymentMethod].updatePaymentSource(
       member,
-      customerId,
-      mandateId
+      completedPaymentFlow
     );
   }
 

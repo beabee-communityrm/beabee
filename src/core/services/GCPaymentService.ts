@@ -305,11 +305,13 @@ class GCPaymentService
   extends UpdateContributionPaymentService
   implements PaymentProvider
 {
-  async customerToMember(customerId: string): Promise<{
+  async customerToMember(completedPaymentFlow: CompletedPaymentFlow): Promise<{
     partialMember: Partial<Member>;
     billingAddress: Address;
   }> {
-    const customer = await gocardless.customers.get(customerId);
+    const customer = await gocardless.customers.get(
+      completedPaymentFlow.customerId
+    );
 
     return {
       partialMember: {
@@ -423,16 +425,14 @@ class GCPaymentService
 
   async updatePaymentSource(
     member: Member,
-    customerId: string,
-    mandateId: string
+    completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
     const gcData = (await this.getPaymentData(member)) || new GCPaymentData();
 
     log.info("Update payment source for " + member.id, {
       userId: member.id,
       gcData,
-      customerId,
-      mandateId
+      completedPaymentFlow
     });
 
     const hadSubscription = !!gcData.subscriptionId;
@@ -447,8 +447,8 @@ class GCPaymentService
 
     // This could be creating payment data for the first time
     gcData.member = member;
-    gcData.customerId = customerId;
-    gcData.mandateId = mandateId;
+    gcData.customerId = completedPaymentFlow.customerId;
+    gcData.mandateId = completedPaymentFlow.mandateId;
     gcData.subscriptionId = null;
 
     await getRepository(GCPaymentData).save(gcData);

@@ -26,7 +26,7 @@ export interface CompletedPaymentFlow {
 }
 
 export interface PaymentProvider {
-  customerToMember(customerId: string): Promise<{
+  customerToMember(completedPaymentFlow: CompletedPaymentFlow): Promise<{
     partialMember: Partial<Member>;
     billingAddress: Address;
   }>;
@@ -47,7 +47,6 @@ export interface PaymentProvider {
 
   updatePaymentSource(
     member: Member,
-    customerId: string,
-    mandateId: string
+    completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void>;
 }

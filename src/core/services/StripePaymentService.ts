@@ -18,13 +18,9 @@ import Member from "@models/Member";
 import config from "@config";
 
 class StripePaymentService implements PaymentProvider {
-  completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
-    throw new Error("Method not implemented.");
-  }
   updatePaymentSource(
     member: Member,
-    customerId: string,
-    mandateId: string
+    completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -32,7 +28,7 @@ class StripePaymentService implements PaymentProvider {
     throw new Error("Method not implemented.");
   }
   customerToMember(
-    customerId: string
+    completedPaymentFlow: CompletedPaymentFlow
   ): Promise<{ partialMember: Partial<Member>; billingAddress: Address }> {
     throw new Error("Method not implemented.");
   }
@@ -41,12 +37,39 @@ class StripePaymentService implements PaymentProvider {
     completeUrl: string,
     data: PaymentFlowData
   ): Promise<PaymentFlow> {
+    const setupIntent = await stripe.setupIntents.create({
+      payment_method_types: ["card"]
+    });
+
+    /*
+    return {
+      id: subscription.id,
+      params: {
+        clientSecret:
+          (
+            (subscription.latest_invoice as Stripe.Invoice)
+              .payment_intent as Stripe.PaymentIntent
+          ).client_secret || ""
+      }
+    };*/
+
+    return {
+      id: setupIntent.id,
+      params: {
+        clientSecret: setupIntent.client_secret as string
+      }
+    };
+  }
+  async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
+    const setupIntent = await stripe.setupIntents.retrieve(
+      joinFlow.paymentFlowId
+    );
+
+    const paymentMethod = setupIntent.payment_method as string;
+
     const customer = await stripe.customers.create({
-      email: data.email,
-      ...(data.firstname &&
-        data.lastname && {
-          name: `${data.firstname} ${data.lastname}`
-        })
+      email: joinFlow.joinForm.email,
+      payment_method: paymentMethod
     });
 
     const subscription = await stripe.subscriptions.create({
@@ -70,24 +93,20 @@ class StripePaymentService implements PaymentProvider {
           }
         }
       ],
-      payment_behavior: "default_incomplete",
-      expand: ["latest_invoice.payment_intent"]
+      default_payment_method: paymentMethod,
+      payment_behavior: "default_incomplete"
     });
 
     return {
-      id: subscription.id,
-      params: {
-        clientSecret:
-          (
-            (subscription.latest_invoice as Stripe.Invoice)
-              .payment_intent as Stripe.PaymentIntent
-          ).client_secret || ""
-      }
+      customerId: customer.id,
+      mandateId: subscription.id // TODO: not needed
     };
   }
+
   hasPendingPayment(member: Member): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
+
   cancelContribution(member: Member): Promise<void> {
     throw new Error("Method not implemented.");
   }

@@ -119,11 +119,7 @@ app.post(
     }
 
     if (data.type === ContributionType.GoCardless) {
-      await GCPaymentService.updatePaymentSource(
-        member,
-        data.customerId,
-        data.mandateId
-      );
+      await GCPaymentService.updatePaymentSource(member, data);
       if (data.amount && data.period) {
         await GCPaymentService.updateContribution(member, {
           monthlyAmount: data.amount,
