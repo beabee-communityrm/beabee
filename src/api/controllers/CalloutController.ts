@@ -44,8 +44,8 @@ function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
     access: poll.access,
     status: poll.status,
     hidden: poll.hidden,
-    ...(poll.starts && { starts: poll.starts }),
-    ...(poll.expires && { expires: poll.expires }),
+    starts: poll.starts,
+    expires: poll.expires,
     ...(poll.hasAnswered !== undefined && {
       hasAnswered: poll.hasAnswered
     })

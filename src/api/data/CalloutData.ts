@@ -60,8 +60,8 @@ interface BasicCalloutData {
   title: string;
   excerpt: string;
   image: string;
-  starts?: Date;
-  expires?: Date;
+  starts: Date | null;
+  expires: Date | null;
   allowUpdate: boolean;
   allowMultiple: boolean;
   access: PollAccess;
@@ -118,7 +118,7 @@ export class UpdateCalloutData implements Omit<MoreCalloutData, "slug"> {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  expires?: Date;
+  expires!: Date | null;
 
   @IsBoolean()
   allowUpdate!: boolean;
