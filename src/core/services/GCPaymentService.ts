@@ -21,7 +21,8 @@ import {
   CompletedPaymentFlow,
   PaymentProvider,
   PaymentFlow,
-  PaymentFlowData
+  PaymentFlowData,
+  CompletedPaymentFlowData
 } from "@core/providers/payment";
 
 import MembersService from "@core/services/MembersService";
@@ -305,29 +306,6 @@ class GCPaymentService
   extends UpdateContributionPaymentService
   implements PaymentProvider
 {
-  async customerToMember(completedPaymentFlow: CompletedPaymentFlow): Promise<{
-    partialMember: Partial<Member>;
-    billingAddress: Address;
-  }> {
-    const customer = await gocardless.customers.get(
-      completedPaymentFlow.customerId
-    );
-
-    return {
-      partialMember: {
-        firstname: customer.given_name || "",
-        lastname: customer.family_name || "",
-        contributionType: ContributionType.GoCardless
-      },
-      billingAddress: {
-        line1: customer.address_line1 || "",
-        line2: customer.address_line2,
-        city: customer.city || "",
-        postcode: customer.postal_code || ""
-      }
-    };
-  }
-
   async getContributionInfo(
     member: Member
   ): Promise<GCContributionInfo | undefined> {
@@ -532,6 +510,25 @@ class GCPaymentService
     return {
       customerId: redirectFlow.links.customer,
       mandateId: redirectFlow.links.mandate
+    };
+  }
+
+  async getCompletedPaymentFlowData(
+    completedPaymentFlow: CompletedPaymentFlow
+  ): Promise<CompletedPaymentFlowData> {
+    const customer = await gocardless.customers.get(
+      completedPaymentFlow.customerId
+    );
+
+    return {
+      ...(customer.given_name && { firstname: customer.given_name }),
+      ...(customer.family_name && { lastname: customer.given_name }),
+      billingAddress: {
+        line1: customer.address_line1 || "",
+        line2: customer.address_line2,
+        city: customer.city || "",
+        postcode: customer.postal_code || ""
+      }
     };
   }
 }

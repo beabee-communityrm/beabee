@@ -8,7 +8,6 @@ import {
 } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 
-import Address from "@models/Address";
 import GCPaymentData from "@models/GCPaymentData";
 import JoinFlow from "@models/JoinFlow";
 import ManualPaymentData from "@models/ManualPaymentData";
@@ -19,6 +18,7 @@ import GCPaymentService from "./GCPaymentService";
 import StripePaymentService from "./StripePaymentService";
 import {
   CompletedPaymentFlow,
+  CompletedPaymentFlowData,
   PaymentFlow,
   PaymentFlowData
 } from "@core/providers/payment";
@@ -29,18 +29,6 @@ const paymentProviders = {
 };
 
 class PaymentService {
-  async customerToMember(
-    paymentMethod: PaymentMethod,
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<{
-    partialMember: Partial<Member>;
-    billingAddress: Address;
-  }> {
-    return paymentProviders[paymentMethod].customerToMember(
-      completedPaymentFlow
-    );
-  }
-
   async getPaymentData(
     member: Member
   ): Promise<GCPaymentData | ManualPaymentData | undefined> {
@@ -178,6 +166,15 @@ class PaymentService {
     return paymentProviders[
       joinFlow.joinForm.paymentMethod
     ].completePaymentFlow(joinFlow);
+  }
+
+  async getCompletedPaymentFlowData(
+    paymentMethod: PaymentMethod,
+    completedPaymentFlow: CompletedPaymentFlow
+  ): Promise<CompletedPaymentFlowData> {
+    return paymentProviders[paymentMethod].getCompletedPaymentFlowData(
+      completedPaymentFlow
+    );
   }
 }
 

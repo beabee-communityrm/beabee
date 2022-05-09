@@ -25,12 +25,13 @@ export interface CompletedPaymentFlow {
   mandateId: string;
 }
 
-export interface PaymentProvider {
-  customerToMember(completedPaymentFlow: CompletedPaymentFlow): Promise<{
-    partialMember: Partial<Member>;
-    billingAddress: Address;
-  }>;
+export interface CompletedPaymentFlowData {
+  firstname?: string;
+  lastname?: string;
+  billingAddress?: Address;
+}
 
+export interface PaymentProvider {
   createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
@@ -38,6 +39,10 @@ export interface PaymentProvider {
   ): Promise<PaymentFlow>;
 
   completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow>;
+
+  getCompletedPaymentFlowData(
+    completedPaymentFlow: CompletedPaymentFlow
+  ): Promise<CompletedPaymentFlowData>;
 
   hasPendingPayment(member: Member): Promise<boolean>;
 

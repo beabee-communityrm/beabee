@@ -4,16 +4,24 @@ import {
   CompletedPaymentFlow,
   PaymentFlowParams
 } from "@core/providers/payment";
-import { ContributionPeriod, PaymentMethod } from "@core/utils";
+import {
+  ContributionPeriod,
+  ContributionType,
+  PaymentMethod
+} from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
+import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
-import { CompleteUrls } from "@api/data/SignupData";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
+
+import { CompleteUrls } from "@api/data/SignupData";
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import Member from "@models/Member";
 
 class JoinFlowService {
   async createJoinFlow(
@@ -65,20 +73,13 @@ class JoinFlowService {
     return await getRepository(JoinFlow).findOne({ paymentFlowId });
   }
 
-  async completeJoinFlow(
-    joinFlow: JoinFlow
-  ): Promise<CompletedPaymentFlow | undefined> {
-    if (joinFlow.paymentFlowId) {
-      const paymentFlow = await PaymentService.completePaymentFlow(joinFlow);
-      await getRepository(JoinFlow).delete(joinFlow.id);
-
-      return paymentFlow;
-    } else {
-      await getRepository(JoinFlow).delete(joinFlow.id);
-    }
+  async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
+    const paymentFlow = await PaymentService.completePaymentFlow(joinFlow);
+    await getRepository(JoinFlow).delete(joinFlow.id);
+    return paymentFlow;
   }
 
-  async sendConfirmEmail(joinFlow: JoinFlow) {
+  async sendConfirmEmail(joinFlow: JoinFlow): Promise<void> {
     const member = await MembersService.findOne({
       email: joinFlow.joinForm.email
     });
@@ -108,6 +109,51 @@ class JoinFlowService {
         }
       );
     }
+  }
+
+  async completeConfirmEmail(joinFlow: JoinFlow): Promise<Member> {
+    // Check for an existing active member first to avoid completing the join
+    // flow unnecessarily. This should never really happen as the user won't
+    // get a confirm email if they are already an active member
+    let member = await MembersService.findOne({
+      where: { email: joinFlow.joinForm.email },
+      relations: ["profile"]
+    });
+    if (member?.membership?.isActive) {
+      throw new DuplicateEmailError();
+    }
+
+    const completedFlow = await this.completeJoinFlow(joinFlow);
+    const paymentData = await PaymentService.getCompletedPaymentFlowData(
+      joinFlow.joinForm.paymentMethod,
+      completedFlow
+    );
+
+    const partialMember = {
+      email: joinFlow.joinForm.email,
+      password: joinFlow.joinForm.password,
+      firstname: paymentData.firstname || "",
+      lastname: paymentData.lastname || "",
+      contributionType: ContributionType.GoCardless
+    };
+
+    if (member) {
+      await MembersService.updateMember(member, partialMember);
+    } else {
+      member = await MembersService.createMember(
+        partialMember,
+        OptionsService.getBool("show-mail-opt-in") && paymentData.billingAddress
+          ? { deliveryAddress: paymentData.billingAddress }
+          : undefined
+      );
+    }
+
+    await PaymentService.updatePaymentSource(member, completedFlow);
+    await PaymentService.updateContribution(member, joinFlow.joinForm);
+
+    await EmailService.sendTemplateToMember("welcome", member);
+
+    return member;
   }
 }
 
