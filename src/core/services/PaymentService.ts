@@ -20,7 +20,8 @@ import StripePaymentService from "./StripePaymentService";
 import {
   CompletedPaymentFlow,
   PaymentFlow,
-  PaymentFlowParams
+  PaymentFlowParams,
+  UpdateContributionData
 } from "@core/providers/payment";
 
 const paymentProviders = {
@@ -116,7 +117,7 @@ class PaymentService {
   async updateContribution(
     member: Member,
     paymentForm: PaymentForm
-  ): Promise<void> {
+  ): Promise<UpdateContributionData> {
     // At the moment the only possibility is to go from whatever contribution
     // type the user was before to a GC contribution
     const wasManual = member.contributionType === ContributionType.Manual;
@@ -124,7 +125,7 @@ class PaymentService {
     // TODO: Retrieve actual payment method
     const paymentMethod = PaymentMethod.DirectDebit as PaymentMethod;
 
-    await paymentProviders[paymentMethod].updateContribution(
+    const ret = await paymentProviders[paymentMethod].updateContribution(
       member,
       paymentForm
     );
@@ -132,6 +133,8 @@ class PaymentService {
     if (wasManual) {
       await EmailService.sendTemplateToMember("manual-to-gocardless", member);
     }
+
+    return ret;
   }
 
   async updatePaymentSource(

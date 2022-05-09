@@ -55,7 +55,7 @@ app.post(
 
     switch (req.body.action) {
       case "update-subscription":
-        await GCPaymentService.updateContribution(member, {
+        await MembersService.updateMemberContribution(member, {
           monthlyAmount: Number(req.body.amount),
           period: req.body.period,
           prorate: req.body.prorate === "true",
@@ -65,7 +65,7 @@ app.post(
         break;
 
       case "cancel-subscription":
-        await GCPaymentService.cancelContribution(member);
+        await MembersService.cancelMemberContribution(member);
         await EmailService.sendTemplateToMember(
           "cancelled-contribution",
           member

@@ -2,7 +2,8 @@ import {
   CompletedPaymentFlow,
   PaymentProvider,
   PaymentFlow,
-  PaymentFlowParams
+  PaymentFlowParams,
+  UpdateContributionData
 } from "@core/providers/payment";
 import { PaymentForm } from "@core/utils";
 import Address from "@models/Address";
@@ -20,7 +21,10 @@ class StripePaymentService implements PaymentProvider {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  updateContribution(member: Member, paymentForm: PaymentForm): Promise<void> {
+  updateContribution(
+    member: Member,
+    paymentForm: PaymentForm
+  ): Promise<UpdateContributionData> {
     throw new Error("Method not implemented.");
   }
   customerToMember(
