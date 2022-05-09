@@ -14,6 +14,7 @@ import {
   ContributionType,
   isDuplicateIndex
 } from "@core/utils";
+import { generateMemberCode } from "@core/utils/member";
 
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
@@ -31,14 +32,6 @@ export type PartialMember = Pick<Member, "email" | "contributionType"> &
 const log = mainLogger.child({ app: "members-service" });
 
 export default class MembersService {
-  static generateMemberCode(member: Partial<Member>): string | null {
-    if (member.firstname && member.lastname) {
-      const no = ("000" + Math.floor(Math.random() * 1000)).slice(-3);
-      return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
-    }
-    return null;
-  }
-
   static async find(options?: FindManyOptions<Member>): Promise<Member[]> {
     return await getRepository(Member).find(options);
   }
@@ -87,8 +80,8 @@ export default class MembersService {
 
     try {
       const member = getRepository(Member).create({
-        referralCode: this.generateMemberCode(partialMember),
-        pollsCode: this.generateMemberCode(partialMember),
+        referralCode: generateMemberCode(partialMember),
+        pollsCode: generateMemberCode(partialMember),
         permissions: [],
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
         firstname: "",
@@ -256,21 +249,6 @@ export default class MembersService {
     if (opts.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       await NewsletterService.upsertMember(member);
     }
-  }
-
-  static loginAndRedirect(
-    req: Request,
-    res: Response,
-    member: Member,
-    url?: string
-  ): void {
-    req.login(member as Express.User, function (loginError) {
-      if (loginError) {
-        throw loginError;
-      } else {
-        res.redirect(url || "/");
-      }
-    });
   }
 
   static async permanentlyDeleteMember(member: Member): Promise<void> {
