@@ -468,6 +468,19 @@ class GCPaymentService
     });
   }
 
+  async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+    if (updates.email || updates.firstname || updates.lastname) {
+      const gcData = await this.getPaymentData(member);
+      if (gcData && gcData.customerId) {
+        log.info("Update member in GoCardless");
+        await gocardless.customers.update(gcData.customerId, {
+          ...(updates.email && { email: updates.email }),
+          ...(updates.firstname && { given_name: updates.firstname }),
+          ...(updates.lastname && { family_name: updates.lastname })
+        });
+      }
+    }
+  }
   async permanentlyDeleteMember(member: Member): Promise<void> {
     const gcData = await this.getPaymentData(member);
     await getRepository(GCPayment).delete({ member });

@@ -6,7 +6,6 @@ import {
   getRepository
 } from "typeorm";
 
-import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
   cleanEmailAddress,
@@ -19,7 +18,6 @@ import { generateMemberCode } from "@core/utils/member";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
-import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
@@ -141,18 +139,7 @@ class MembersService {
       await NewsletterService.upsertMember(member, updates, oldEmail);
     }
 
-    // TODO: This should be in GCPaymentService
-    if (updates.email || updates.firstname || updates.lastname) {
-      const gcData = await getRepository(GCPaymentData).findOne({ member });
-      if (gcData && gcData.customerId) {
-        log.info("Update member in GoCardless");
-        await gocardless.customers.update(gcData.customerId, {
-          ...(updates.email && { email: updates.email }),
-          ...(updates.firstname && { given_name: updates.firstname }),
-          ...(updates.lastname && { family_name: updates.lastname })
-        });
-      }
-    }
+    await PaymentService.updateMember(member, updates);
   }
 
   async updateMemberPermission(

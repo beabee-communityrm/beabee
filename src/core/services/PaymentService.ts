@@ -114,6 +114,10 @@ class PaymentService {
     }
   }
 
+  async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+    await GCPaymentService.updateMember(member, updates);
+  }
+
   async updateContribution(
     member: Member,
     paymentForm: PaymentForm

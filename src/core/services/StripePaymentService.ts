@@ -11,6 +11,9 @@ import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 
 class StripePaymentService implements PaymentProvider {
+  updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
     throw new Error("Method not implemented.");
   }

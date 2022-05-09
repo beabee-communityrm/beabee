@@ -43,6 +43,8 @@ export interface PaymentProvider {
 
   cancelContribution(member: Member): Promise<void>;
 
+  updateMember(member: Member, updates: Partial<Member>): Promise<void>;
+
   updateContribution(
     member: Member,
     paymentForm: PaymentForm
