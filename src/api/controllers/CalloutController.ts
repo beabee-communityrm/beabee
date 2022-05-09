@@ -7,6 +7,7 @@ import {
   NotFoundError,
   OnUndefined,
   Param,
+  Patch,
   Post,
   QueryParams
 } from "routing-controllers";
@@ -26,7 +27,8 @@ import {
   GetCalloutResponseData,
   GetCalloutResponsesQuery,
   GetCalloutsQuery,
-  GetMoreCalloutData
+  GetMoreCalloutData,
+  UpdateCalloutData
 } from "@api/data/CalloutData";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
@@ -150,6 +152,15 @@ export class CalloutController {
         ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect })
       };
     }
+  }
+
+  @Patch("/:slug")
+  async updateCallout(
+    @Param("slug") slug: string,
+    @Body() data: UpdateCalloutData
+  ): Promise<GetMoreCalloutData | undefined> {
+    await getRepository(Poll).update(slug, data);
+    return this.getCallout(slug);
   }
 
   @Get("/:slug/responses")
