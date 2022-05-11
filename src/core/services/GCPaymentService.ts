@@ -450,7 +450,7 @@ class GCPaymentService
         const payments = await gocardless.payments.list({
           limit: 1,
           status,
-          subscription: gcData.subscriptionId
+          mandate: gcData.mandateId
         });
         if (payments.length > 0) {
           return true;
