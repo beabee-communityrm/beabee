@@ -170,7 +170,7 @@ export class SignupController {
         completedJoinFlow.customerId,
         completedJoinFlow.mandateId
       );
-      await PaymentService.updateContribution(member, joinFlow.joinForm);
+      await MembersService.updateMemberContribution(member, joinFlow.joinForm);
     }
 
     await EmailService.sendTemplateToMember("welcome", member);

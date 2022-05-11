@@ -20,6 +20,11 @@ export interface CompletedPaymentFlow {
   mandateId: string;
 }
 
+export interface UpdateContributionData {
+  startNow: boolean;
+  expiryDate: Date;
+}
+
 export interface PaymentProvider {
   customerToMember(customerId: string): Promise<{
     partialMember: Partial<Member>;
@@ -38,7 +43,12 @@ export interface PaymentProvider {
 
   cancelContribution(member: Member): Promise<void>;
 
-  updateContribution(member: Member, paymentForm: PaymentForm): Promise<void>;
+  updateMember(member: Member, updates: Partial<Member>): Promise<void>;
+
+  updateContribution(
+    member: Member,
+    paymentForm: PaymentForm
+  ): Promise<UpdateContributionData>;
 
   updatePaymentSource(
     member: Member,

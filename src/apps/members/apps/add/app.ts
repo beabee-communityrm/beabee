@@ -125,7 +125,7 @@ app.post(
         data.mandateId
       );
       if (data.amount && data.period) {
-        await GCPaymentService.updateContribution(member, {
+        await MembersService.updateMemberContribution(member, {
           monthlyAmount: data.amount,
           period: data.period,
           payFee: !!data.payFee,

@@ -3,6 +3,7 @@ import passport from "passport";
 import { getRepository } from "typeorm";
 
 import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
+import { loginAndRedirect } from "@core/utils/member";
 
 import MembersService from "@core/services/MembersService";
 
@@ -44,7 +45,7 @@ if (config.dev) {
       }
 
       if (member) {
-        MembersService.loginAndRedirect(req, res, member);
+        loginAndRedirect(req, res, member);
       } else {
         res.redirect("/login");
       }
@@ -59,7 +60,7 @@ app.get(
     const member = await MembersService.findByLoginOverride(req.params.code);
     if (member) {
       await MembersService.updateMember(member, { loginOverride: null });
-      MembersService.loginAndRedirect(
+      loginAndRedirect(
         req,
         res,
         member,
