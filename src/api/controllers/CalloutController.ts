@@ -154,6 +154,7 @@ export class CalloutController {
     }
   }
 
+  @Authorized("admin")
   @Patch("/:slug")
   async updateCallout(
     @Param("slug") slug: string,
