@@ -186,7 +186,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    await PaymentService.updateContribution(target, contributionData);
+    await MembersService.updateMemberContribution(target, contributionData);
 
     return await this.getContribution(target);
   }
@@ -215,7 +215,7 @@ export class MemberController {
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
-    await PaymentService.updateContribution(target, joinFlow.joinForm);
+    await MembersService.updateMemberContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
   }
 

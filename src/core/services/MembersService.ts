@@ -17,13 +17,13 @@ import { generateMemberCode } from "@core/utils/member";
 
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
+import PaymentService from "@core/services/PaymentService";
 
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
-import PaymentService from "./PaymentService";
 
 export type PartialMember = Pick<Member, "email" | "contributionType"> &
   Partial<Member>;
