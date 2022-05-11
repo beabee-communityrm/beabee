@@ -20,7 +20,7 @@ app.get(
   "/",
   wrapAsync(async (req, res) => {
     const member = req.model as Member;
-    if (member.contributionType === ContributionType.GoCardless) {
+    if (member.contributionType === ContributionType.Automatic) {
       const payments = await GCPaymentService.getPayments(member);
 
       const successfulPayments = payments
@@ -80,7 +80,7 @@ app.post(
             : null,
           contributionPeriod: req.body.period
         });
-        if (req.body.type === ContributionType.GoCardless) {
+        if (req.body.type === ContributionType.Automatic) {
           await getRepository(GCPaymentData).save({
             member,
             customerId: req.body.customerId,
