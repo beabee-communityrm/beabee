@@ -44,7 +44,7 @@ class PaymentService {
     member: Member
   ): Promise<GCPaymentData | ManualPaymentData | undefined> {
     switch (member.contributionType) {
-      case ContributionType.GoCardless:
+      case ContributionType.Automatic:
         return await GCPaymentService.getPaymentData(member);
       case ContributionType.Manual:
         return await getRepository(ManualPaymentData).findOne(member.id);
@@ -56,7 +56,7 @@ class PaymentService {
     useExistingPaymentSource: boolean
   ): Promise<boolean> {
     switch (member.contributionType) {
-      case ContributionType.GoCardless:
+      case ContributionType.Automatic:
         return await GCPaymentService.canChangeContribution(
           member,
           useExistingPaymentSource
@@ -109,7 +109,7 @@ class PaymentService {
     member: Member
   ): Promise<Partial<ContributionInfo> | undefined> {
     switch (member.contributionType) {
-      case ContributionType.GoCardless:
+      case ContributionType.Automatic:
         return await GCPaymentService.getContributionInfo(member);
     }
   }
@@ -162,7 +162,7 @@ class PaymentService {
 
   async cancelContribution(member: Member): Promise<void> {
     switch (member.contributionType) {
-      case ContributionType.GoCardless:
+      case ContributionType.Automatic:
         return await GCPaymentService.cancelContribution(member);
       default:
         throw new Error("Not implemented");

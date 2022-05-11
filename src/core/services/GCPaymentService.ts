@@ -299,7 +299,7 @@ class GCPaymentService
       partialMember: {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
-        contributionType: ContributionType.GoCardless
+        contributionType: ContributionType.Automatic
       },
       billingAddress: {
         line1: customer.address_line1 || "",

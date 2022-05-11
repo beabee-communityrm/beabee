@@ -241,7 +241,7 @@ class MembersService {
     );
 
     await this.updateMember(member, {
-      contributionType: ContributionType.GoCardless,
+      contributionType: ContributionType.Automatic,
       contributionPeriod: paymentForm.period,
       ...(startNow
         ? {
