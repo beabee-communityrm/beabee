@@ -31,6 +31,11 @@ export interface CompletedPaymentFlowData {
   billingAddress?: Address;
 }
 
+export interface UpdateContributionData {
+  startNow: boolean;
+  expiryDate: Date;
+}
+
 export interface PaymentProvider {
   createPaymentFlow(
     joinFlow: JoinFlow,
@@ -48,7 +53,12 @@ export interface PaymentProvider {
 
   cancelContribution(member: Member): Promise<void>;
 
-  updateContribution(member: Member, paymentForm: PaymentForm): Promise<void>;
+  updateMember(member: Member, updates: Partial<Member>): Promise<void>;
+
+  updateContribution(
+    member: Member,
+    paymentForm: PaymentForm
+  ): Promise<UpdateContributionData>;
 
   updatePaymentSource(
     member: Member,

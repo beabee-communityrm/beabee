@@ -4,10 +4,11 @@ import stripe from "@core/lib/stripe";
 
 import {
   CompletedPaymentFlow,
+  CompletedPaymentFlowData,
   PaymentProvider,
   PaymentFlow,
   PaymentFlowData,
-  CompletedPaymentFlowData
+  UpdateContributionData
 } from "@core/providers/payment";
 
 import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
@@ -18,6 +19,9 @@ import Member from "@models/Member";
 import config from "@config";
 
 class StripePaymentService implements PaymentProvider {
+  updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   hasPendingPayment(member: Member): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
@@ -34,7 +38,9 @@ class StripePaymentService implements PaymentProvider {
   async updateContribution(
     member: Member,
     paymentForm: PaymentForm
-  ): Promise<void> {}
+  ): Promise<UpdateContributionData> {
+    throw new Error("Moethod not implemented.");
+  }
 
   async createPaymentFlow(
     joinFlow: JoinFlow,

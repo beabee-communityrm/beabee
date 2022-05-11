@@ -19,13 +19,12 @@ import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
 import {
   CompletedPaymentFlow,
-  PaymentProvider,
+  CompletedPaymentFlowData,
   PaymentFlow,
   PaymentFlowData,
-  CompletedPaymentFlowData
+  PaymentProvider,
+  UpdateContributionData
 } from "@core/providers/payment";
-
-import MembersService from "@core/services/MembersService";
 
 import config from "@config";
 
@@ -65,7 +64,7 @@ abstract class UpdateContributionPaymentService {
   async updateContribution(
     user: Member,
     paymentForm: PaymentForm
-  ): Promise<void> {
+  ): Promise<UpdateContributionData> {
     log.info("Update contribution for " + user.id, {
       userId: user.id,
       paymentForm
@@ -108,7 +107,13 @@ abstract class UpdateContributionPaymentService {
       startNow = true;
     }
 
-    await this.activateContribution(user, gcData, paymentForm, startNow);
+    const expiryDate = await this.activateContribution(
+      user,
+      gcData,
+      paymentForm,
+      startNow
+    );
+    return { startNow, expiryDate };
   }
 
   private getChargeableAmount(
@@ -160,10 +165,6 @@ abstract class UpdateContributionPaymentService {
         mandate: gcData.mandateId!
       },
       ...(startDate && { start_date: startDate })
-    });
-
-    await MembersService.updateMember(member, {
-      contributionPeriod: paymentForm.period
     });
 
     gcData.subscriptionId = subscription.id;
@@ -256,7 +257,7 @@ abstract class UpdateContributionPaymentService {
     gcData: GCPaymentData,
     paymentForm: PaymentForm,
     startNow: boolean
-  ): Promise<void> {
+  ): Promise<Date> {
     const subscription = await gocardless.subscriptions.get(
       gcData.subscriptionId!
     );
@@ -279,26 +280,9 @@ abstract class UpdateContributionPaymentService {
       nextChargeDate
     });
 
-    await MembersService.updateMember(member, {
-      contributionType: ContributionType.GoCardless,
-      ...(startNow
-        ? {
-            contributionMonthlyAmount: paymentForm.monthlyAmount,
-            nextContributionMonthlyAmount: null
-          }
-        : {
-            nextContributionMonthlyAmount: paymentForm.monthlyAmount
-          })
-    });
-
-    await MembersService.extendMemberPermission(
-      member,
-      "member",
-      nextChargeDate.toDate()
-    );
-
     gcData.cancelledAt = null;
     await getRepository(GCPaymentData).update(gcData.member.id, gcData);
+    return nextChargeDate.toDate();
   }
 }
 
@@ -394,10 +378,6 @@ class GCPaymentService
       if (gcData.subscriptionId) {
         await gocardless.subscriptions.cancel(gcData.subscriptionId);
       }
-
-      await MembersService.updateMember(member, {
-        nextContributionMonthlyAmount: null
-      });
     }
   }
 
@@ -448,7 +428,7 @@ class GCPaymentService
         const payments = await gocardless.payments.list({
           limit: 1,
           status,
-          subscription: gcData.subscriptionId
+          mandate: gcData.mandateId
         });
         if (payments.length > 0) {
           return true;
@@ -466,6 +446,19 @@ class GCPaymentService
     });
   }
 
+  async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+    if (updates.email || updates.firstname || updates.lastname) {
+      const gcData = await this.getPaymentData(member);
+      if (gcData && gcData.customerId) {
+        log.info("Update member in GoCardless");
+        await gocardless.customers.update(gcData.customerId, {
+          ...(updates.email && { email: updates.email }),
+          ...(updates.firstname && { given_name: updates.firstname }),
+          ...(updates.lastname && { family_name: updates.lastname })
+        });
+      }
+    }
+  }
   async permanentlyDeleteMember(member: Member): Promise<void> {
     const gcData = await this.getPaymentData(member);
     await getRepository(GCPayment).delete({ member });
