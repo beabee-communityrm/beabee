@@ -53,14 +53,17 @@ export class SignupController {
     }
   }
 
+  @OnUndefined(204)
   @Post("/complete")
   async completeSignup(@Body() data: SignupCompleteData): Promise<void> {
     const joinFlow = await JoinFlowService.getJoinFlowByPaymentId(
       data.paymentFlowId
     );
-    if (joinFlow) {
-      await JoinFlowService.sendConfirmEmail(joinFlow);
+    if (!joinFlow) {
+      throw new NotFoundError();
     }
+
+    await JoinFlowService.sendConfirmEmail(joinFlow);
   }
 
   @OnUndefined(204)
