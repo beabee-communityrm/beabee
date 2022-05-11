@@ -69,7 +69,10 @@ class StripePaymentService implements PaymentProvider {
 
     const customer = await stripe.customers.create({
       email: joinFlow.joinForm.email,
-      payment_method: paymentMethod
+      payment_method: paymentMethod,
+      invoice_settings: {
+        default_payment_method: paymentMethod
+      }
     });
 
     const subscription = await stripe.subscriptions.create({
@@ -93,8 +96,7 @@ class StripePaymentService implements PaymentProvider {
           }
         }
       ],
-      default_payment_method: paymentMethod,
-      payment_behavior: "default_incomplete"
+      off_session: true
     });
 
     return {
