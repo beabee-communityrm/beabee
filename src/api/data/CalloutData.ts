@@ -73,6 +73,8 @@ interface MoreCalloutData extends BasicCalloutData {
   thanksTitle: string;
   thanksText: string;
   thanksRedirect?: string;
+  shareTitle?: string;
+  shareDescription?: string;
   formSchema: PollFormSchema;
 }
 
@@ -107,6 +109,14 @@ export class UpdateCalloutData implements Omit<MoreCalloutData, "slug"> {
   @IsOptional()
   @IsUrl()
   thanksRedirect?: string;
+
+  @IsOptional()
+  @IsString()
+  shareTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  shareDescription?: string;
 
   @IsObject()
   formSchema!: PollFormSchema;
