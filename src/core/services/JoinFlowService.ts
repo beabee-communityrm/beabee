@@ -125,7 +125,6 @@ class JoinFlowService {
 
     const completedFlow = await this.completeJoinFlow(joinFlow);
     const paymentData = await PaymentService.getCompletedPaymentFlowData(
-      joinFlow.joinForm.paymentMethod,
       completedFlow
     );
 

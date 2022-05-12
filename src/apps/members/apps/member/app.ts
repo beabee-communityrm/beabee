@@ -8,7 +8,6 @@ import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 import { canSuperAdmin, generateCode } from "@core/utils/auth";
 
-import GCPaymentService from "@core/services/GCPaymentService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
@@ -120,7 +119,7 @@ app.post(
         //await PollAnswers.updateMany( { member }, { $set: { member: null } } );
 
         await ReferralsService.permanentlyDeleteMember(member);
-        await GCPaymentService.permanentlyDeleteMember(member);
+        await PaymentService.permanentlyDeleteMember(member);
 
         await MembersService.permanentlyDeleteMember(member);
 

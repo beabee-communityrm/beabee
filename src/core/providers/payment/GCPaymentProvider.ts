@@ -9,11 +9,11 @@ import { getRepository } from "typeorm";
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
+  ContributionInfo,
   ContributionPeriod,
-  ContributionType,
   getActualAmount,
   PaymentForm,
-  PaymentSource
+  PaymentMethod
 } from "@core/utils";
 import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
@@ -28,7 +28,6 @@ import {
 
 import config from "@config";
 
-import Address from "@models/Address";
 import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
 import JoinFlow from "@models/JoinFlow";
@@ -42,18 +41,11 @@ interface PayingMember extends Member {
   contributionPeriod: ContributionPeriod;
 }
 
-interface GCContributionInfo {
-  cancellationDate?: Date;
-  paymentSource?: PaymentSource;
-  payFee: boolean;
-  hasPendingPayment: boolean;
-}
-
 const log = mainLogger.child({ app: "gc-payment-service" });
 
 // Update contribution has been split into lots of methods as it's complicated
 // and has mutable state, nothing else should use the private methods in here
-abstract class UpdateContributionPaymentService {
+abstract class GCUpdateContributionProvider {
   abstract getPaymentData(member: Member): Promise<GCPaymentData | undefined>;
 
   abstract cancelContribution(
@@ -286,13 +278,13 @@ abstract class UpdateContributionPaymentService {
   }
 }
 
-class GCPaymentService
-  extends UpdateContributionPaymentService
+class GCPaymentProvider
+  extends GCUpdateContributionProvider
   implements PaymentProvider
 {
   async getContributionInfo(
     member: Member
-  ): Promise<GCContributionInfo | undefined> {
+  ): Promise<Partial<ContributionInfo> | undefined> {
     const gcData = await this.getPaymentData(member);
 
     if (gcData) {
@@ -315,7 +307,7 @@ class GCPaymentService
         ...(gcData.cancelledAt && { cancellationDate: gcData.cancelledAt }),
         ...(bankAccount && {
           paymentSource: {
-            type: "direct-debit" as const,
+            type: PaymentMethod.DirectDebit,
             bankName: bankAccount.bank_name,
             accountHolderName: bankAccount.account_holder_name,
             accountNumberEnding: bankAccount.account_number_ending
@@ -501,6 +493,7 @@ class GCPaymentService
       }
     );
     return {
+      paymentMethod: joinFlow.joinForm.paymentMethod,
       customerId: redirectFlow.links.customer,
       mandateId: redirectFlow.links.mandate
     };
@@ -526,4 +519,4 @@ class GCPaymentService
   }
 }
 
-export default new GCPaymentService();
+export default new GCPaymentProvider();

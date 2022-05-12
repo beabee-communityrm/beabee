@@ -11,14 +11,37 @@ import {
   UpdateContributionData
 } from "@core/providers/payment";
 
-import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
+import {
+  ContributionInfo,
+  ContributionPeriod,
+  getActualAmount,
+  PaymentForm
+} from "@core/utils";
 
 import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 
 import config from "@config";
+import Payment from "@models/Payment";
 
-class StripePaymentService implements PaymentProvider {
+class StripePaymentProvider implements PaymentProvider {
+  getPayments(member: Member): Promise<Payment[]> {
+    throw new Error("Method not implemented.");
+  }
+  permanentlyDeleteMember(member: Member): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  canChangeContribution(
+    member: Member,
+    useExistingMandate: boolean
+  ): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getContributionInfo(
+    member: Member
+  ): Promise<Partial<ContributionInfo> | undefined> {
+    throw new Error("Method not implemented.");
+  }
   updateMember(member: Member, updates: Partial<Member>): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -100,6 +123,7 @@ class StripePaymentService implements PaymentProvider {
     });
 
     return {
+      paymentMethod: joinFlow.joinForm.paymentMethod,
       customerId: customer.id,
       mandateId: subscription.id // TODO: not needed
     };
@@ -125,4 +149,4 @@ class StripePaymentService implements PaymentProvider {
   }
 }
 
-export default new StripePaymentService();
+export default new StripePaymentProvider();

@@ -309,9 +309,7 @@ export class MemberController {
     }
 
     const completedFlow = await JoinFlowService.completeJoinFlow(joinFlow);
-    if (completedFlow) {
-      await PaymentService.updatePaymentSource(target, completedFlow);
-    }
+    await PaymentService.updatePaymentSource(target, completedFlow);
 
     return joinFlow;
   }

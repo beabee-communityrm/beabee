@@ -5,7 +5,7 @@ import { ContributionType, wrapAsync } from "@core/utils";
 import { calcMonthsLeft } from "@core/utils/payment";
 
 import EmailService from "@core/services/EmailService";
-import GCPaymentService from "@core/services/GCPaymentService";
+import PaymentService from "@core/services/PaymentService";
 import MembersService from "@core/services/MembersService";
 
 import GCPaymentData from "@models/GCPaymentData";
@@ -21,7 +21,7 @@ app.get(
   wrapAsync(async (req, res) => {
     const member = req.model as Member;
     if (member.contributionType === ContributionType.Automatic) {
-      const payments = await GCPaymentService.getPayments(member);
+      const payments = await PaymentService.getPayments(member);
 
       const successfulPayments = payments
         .filter((p) => p.isSuccessful)
@@ -32,7 +32,7 @@ app.get(
 
       res.render("gocardless", {
         member: req.model,
-        canChange: await GCPaymentService.canChangeContribution(member, true),
+        canChange: await PaymentService.canChangeContribution(member, true),
         monthsLeft: calcMonthsLeft(member),
         payments,
         total

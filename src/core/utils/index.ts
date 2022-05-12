@@ -41,7 +41,7 @@ export enum PaymentMethod {
 }
 
 export interface PaymentSource {
-  type: "direct-debit";
+  type: PaymentMethod.DirectDebit;
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;

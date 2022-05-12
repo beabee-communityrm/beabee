@@ -1,8 +1,9 @@
-import { PaymentForm } from "@core/utils";
+import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
 
 import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
+import Payment from "@models/Payment";
 
 export interface PaymentFlow {
   id: string;
@@ -21,6 +22,7 @@ export interface PaymentFlowData {
 }
 
 export interface CompletedPaymentFlow {
+  paymentMethod: PaymentMethod;
   customerId: string;
   mandateId: string;
 }
@@ -51,7 +53,18 @@ export interface PaymentProvider {
 
   hasPendingPayment(member: Member): Promise<boolean>;
 
+  canChangeContribution(
+    member: Member,
+    useExistingMandate: boolean
+  ): Promise<boolean>;
+
   cancelContribution(member: Member): Promise<void>;
+
+  getContributionInfo(
+    member: Member
+  ): Promise<Partial<ContributionInfo> | undefined>;
+
+  getPayments(member: Member): Promise<Payment[]>;
 
   updateMember(member: Member, updates: Partial<Member>): Promise<void>;
 
@@ -64,4 +77,6 @@ export interface PaymentProvider {
     member: Member,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void>;
+
+  permanentlyDeleteMember(member: Member): Promise<void>;
 }

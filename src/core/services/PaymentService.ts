@@ -8,54 +8,74 @@ import {
 } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 
-import GCPaymentData from "@models/GCPaymentData";
 import JoinFlow from "@models/JoinFlow";
-import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
+import Payment from "@models/Payment";
+import PaymentData from "@models/PaymentData";
 
-import EmailService from "./EmailService";
-import GCPaymentService from "./GCPaymentService";
-import StripePaymentService from "./StripePaymentService";
+import EmailService from "@core/services/EmailService";
+
 import {
   CompletedPaymentFlow,
   CompletedPaymentFlowData,
   PaymentFlow,
   PaymentFlowData,
+  PaymentProvider,
   UpdateContributionData
 } from "@core/providers/payment";
+import GCPaymentProvider from "@core/providers/payment/GCPaymentProvider";
+import StripePaymentProvider from "@core/providers/payment/StripePaymentProvider";
 
-const paymentProviders = {
-  [PaymentMethod.Card]: StripePaymentService,
-  [PaymentMethod.DirectDebit]: GCPaymentService
+const paymentProviders: Record<PaymentMethod, PaymentProvider> = {
+  [PaymentMethod.Card]: StripePaymentProvider,
+  [PaymentMethod.DirectDebit]: GCPaymentProvider
 };
 
-class PaymentService {
-  async getPaymentData(
-    member: Member
-  ): Promise<GCPaymentData | ManualPaymentData | undefined> {
-    switch (member.contributionType) {
-      case ContributionType.Automatic:
-        return await GCPaymentService.getPaymentData(member);
-      case ContributionType.Manual:
-        return await getRepository(ManualPaymentData).findOne(member.id);
+class PaymentService implements PaymentProvider {
+  async getPaymentData(member: Member): Promise<PaymentData | undefined> {
+    return await getRepository(PaymentData).findOne(member.id);
+  }
+
+  private async provider(
+    member: Member,
+    fn: (provider: PaymentProvider) => Promise<void>
+  ): Promise<void>;
+  private async provider<T>(
+    member: Member,
+    fn: (provider: PaymentProvider) => Promise<T>,
+    def: T
+  ): Promise<T>;
+  private async provider<T>(
+    member: Member,
+    fn: (provider: PaymentProvider) => Promise<T>,
+    def?: T
+  ): Promise<T | void> {
+    const data = await this.getPaymentData(member);
+    const provider = data?.method ? paymentProviders[data.method] : undefined;
+    if (provider) {
+      return await fn(provider);
     }
+
+    return def;
+  }
+
+  async hasPendingPayment(member: Member): Promise<boolean> {
+    return await this.provider(
+      member,
+      (p) => p.hasPendingPayment(member),
+      false
+    );
   }
 
   async canChangeContribution(
     member: Member,
     useExistingPaymentSource: boolean
   ): Promise<boolean> {
-    switch (member.contributionType) {
-      case ContributionType.Automatic:
-        return await GCPaymentService.canChangeContribution(
-          member,
-          useExistingPaymentSource
-        );
-
-      // Other contributions don't have a payment source
-      default:
-        return !useExistingPaymentSource;
-    }
+    return await this.provider(
+      member,
+      (p) => p.canChangeContribution(member, useExistingPaymentSource),
+      false
+    );
   }
 
   async getContributionInfo(member: Member): Promise<ContributionInfo> {
@@ -98,63 +118,65 @@ class PaymentService {
   private async getContributionExtraInfo(
     member: Member
   ): Promise<Partial<ContributionInfo> | undefined> {
-    switch (member.contributionType) {
-      case ContributionType.Automatic:
-        return await GCPaymentService.getContributionInfo(member);
-    }
+    return await this.provider(
+      member,
+      (p) => p.getContributionInfo(member),
+      undefined
+    );
+  }
+
+  async getPayments(member: Member): Promise<Payment[]> {
+    return await this.provider(member, (p) => p.getPayments(member), []);
   }
 
   async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
-    await GCPaymentService.updateMember(member, updates);
+    await this.provider(member, (p) => p.updateMember(member, updates));
   }
 
   async updateContribution(
     member: Member,
     paymentForm: PaymentForm
   ): Promise<UpdateContributionData> {
-    // At the moment the only possibility is to go from whatever contribution
-    // type the user was before to a GC contribution
-    const wasManual = member.contributionType === ContributionType.Manual;
-
-    // TODO: Retrieve actual payment method
-    const paymentMethod = PaymentMethod.DirectDebit as PaymentMethod;
-
-    const ret = await paymentProviders[paymentMethod].updateContribution(
+    return await this.provider(
       member,
-      paymentForm
+      async (p) => {
+        // At the moment the only possibility is to go from whatever contribution
+        // type the user was before to a GC contribution
+        const wasManual = member.contributionType === ContributionType.Manual;
+
+        const ret = await p.updateContribution(member, paymentForm);
+
+        if (wasManual) {
+          await EmailService.sendTemplateToMember(
+            "manual-to-gocardless",
+            member
+          );
+        }
+
+        return ret;
+      },
+      {
+        startNow: true,
+        expiryDate: new Date()
+      }
     );
-
-    if (wasManual) {
-      await EmailService.sendTemplateToMember("manual-to-gocardless", member);
-    }
-
-    return ret;
   }
 
   async updatePaymentSource(
     member: Member,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
-    // TODO: Retrieve actual payment method
-    const paymentMethod = PaymentMethod.DirectDebit as PaymentMethod;
-
-    // At the moment the only possibility is to go from whatever contribution
-    // type the user was before to a GC contribution
-    // TODO: This is currently used to update the user's contributionType, this will change
-
-    await paymentProviders[paymentMethod].updatePaymentSource(
-      member,
-      completedPaymentFlow
+    await this.provider(member, (p) =>
+      p.updatePaymentSource(member, completedPaymentFlow)
     );
   }
 
   async cancelContribution(member: Member): Promise<void> {
-    switch (member.contributionType) {
-      case ContributionType.Automatic:
-        return await GCPaymentService.cancelContribution(member);
-      default:
-        throw new Error("Not implemented");
-    }
+    await this.provider(member, (p) => p.cancelContribution(member));
+  }
+
+  async permanentlyDeleteMember(member: Member): Promise<void> {
+    await this.provider(member, (p) => p.permanentlyDeleteMember(member));
   }
 
   async createPaymentFlow(
@@ -176,12 +198,11 @@ class PaymentService {
   }
 
   async getCompletedPaymentFlowData(
-    paymentMethod: PaymentMethod,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<CompletedPaymentFlowData> {
-    return paymentProviders[paymentMethod].getCompletedPaymentFlowData(
-      completedPaymentFlow
-    );
+    return paymentProviders[
+      completedPaymentFlow.paymentMethod
+    ].getCompletedPaymentFlowData(completedPaymentFlow);
   }
 }
 

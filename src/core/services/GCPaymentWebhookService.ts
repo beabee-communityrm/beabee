@@ -11,8 +11,8 @@ import { log as mainLogger } from "@core/logging";
 import { ContributionPeriod } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
-import GCPaymentService from "@core/services/GCPaymentService";
 import MembersService from "@core/services/MembersService";
+import PaymentService from "@core/services/PaymentService";
 
 import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
@@ -58,7 +58,7 @@ export default class GCPaymentWebhookService {
       return;
     }
 
-    const gcData = await GCPaymentService.getPaymentData(payment.member);
+    const gcData = await PaymentService.getPaymentData(payment.member);
     if (!gcData) {
       log.error("Member has no GC data but confirmed payments");
       return;
@@ -67,7 +67,8 @@ export default class GCPaymentWebhookService {
     if (payment.member.nextContributionMonthlyAmount) {
       const newAmount = GCPaymentWebhookService.getSubscriptionAmount(
         payment,
-        !!gcData.payFee
+        // TODO: wrong type
+        !!(gcData.data as GCPaymentData).payFee
       );
       if (newAmount === payment.member.nextContributionMonthlyAmount) {
         await MembersService.updateMember(payment.member, {

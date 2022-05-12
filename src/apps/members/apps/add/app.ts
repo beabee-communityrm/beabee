@@ -6,12 +6,13 @@ import {
   ContributionPeriod,
   ContributionType,
   createDateTime,
+  PaymentMethod,
   wrapAsync
 } from "@core/utils";
 
-import GCPaymentService from "@core/services/GCPaymentService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
+import PaymentService from "@core/services/PaymentService";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
 
@@ -119,7 +120,11 @@ app.post(
     }
 
     if (data.type === ContributionType.Automatic) {
-      await GCPaymentService.updatePaymentSource(member, data);
+      await PaymentService.updatePaymentSource(member, {
+        paymentMethod: PaymentMethod.DirectDebit,
+        customerId: data.customerId,
+        mandateId: data.mandateId
+      });
       if (data.amount && data.period) {
         await MembersService.updateMemberContribution(member, {
           monthlyAmount: data.amount,
