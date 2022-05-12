@@ -7,6 +7,7 @@ import {
   NotFoundError,
   OnUndefined,
   Param,
+  Patch,
   Post,
   QueryParams
 } from "routing-controllers";
@@ -26,7 +27,8 @@ import {
   GetCalloutResponseData,
   GetCalloutResponsesQuery,
   GetCalloutsQuery,
-  GetMoreCalloutData
+  GetMoreCalloutData,
+  UpdateCalloutData
 } from "@api/data/CalloutData";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
@@ -42,8 +44,8 @@ function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
     access: poll.access,
     status: poll.status,
     hidden: poll.hidden,
-    ...(poll.starts && { starts: poll.starts }),
-    ...(poll.expires && { expires: poll.expires }),
+    starts: poll.starts,
+    expires: poll.expires,
     ...(poll.hasAnswered !== undefined && {
       hasAnswered: poll.hasAnswered
     })
@@ -147,9 +149,23 @@ export class CalloutController {
         thanksText: poll.thanksText,
         thanksTitle: poll.thanksTitle,
         formSchema: poll.formSchema,
-        ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect })
+        ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect }),
+        ...(poll.shareTitle && { shareTitle: poll.shareTitle }),
+        ...(poll.shareDescription && {
+          shareDescription: poll.shareDescription
+        })
       };
     }
+  }
+
+  @Authorized("admin")
+  @Patch("/:slug")
+  async updateCallout(
+    @Param("slug") slug: string,
+    @Body() data: UpdateCalloutData
+  ): Promise<GetMoreCalloutData | undefined> {
+    await getRepository(Poll).update(slug, data);
+    return this.getCallout(slug);
   }
 
   @Get("/:slug/responses")

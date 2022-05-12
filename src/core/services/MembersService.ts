@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import {
   createQueryBuilder,
   FindConditions,
@@ -7,18 +6,19 @@ import {
   getRepository
 } from "typeorm";
 
-import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
   cleanEmailAddress,
   ContributionType,
-  isDuplicateIndex
+  isDuplicateIndex,
+  PaymentForm
 } from "@core/utils";
+import { generateMemberCode } from "@core/utils/member";
 
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
+import PaymentService from "@core/services/PaymentService";
 
-import GCPaymentData from "@models/GCPaymentData";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
@@ -30,52 +30,42 @@ export type PartialMember = Pick<Member, "email" | "contributionType"> &
 
 const log = mainLogger.child({ app: "members-service" });
 
-export default class MembersService {
-  static generateMemberCode(member: Partial<Member>): string | null {
-    if (member.firstname && member.lastname) {
-      const no = ("000" + Math.floor(Math.random() * 1000)).slice(-3);
-      return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
-    }
-    return null;
-  }
-
-  static async find(options?: FindManyOptions<Member>): Promise<Member[]> {
+class MembersService {
+  async find(options?: FindManyOptions<Member>): Promise<Member[]> {
     return await getRepository(Member).find(options);
   }
 
-  static async findByIds(
+  async findByIds(
     ids: string[],
     options?: FindOneOptions<Member>
   ): Promise<Member[]> {
     return await getRepository(Member).findByIds(ids, options);
   }
 
-  static async findOne(
+  async findOne(
     id?: string,
     options?: FindOneOptions<Member>
   ): Promise<Member | undefined>;
-  static async findOne(
-    options?: FindOneOptions<Member>
-  ): Promise<Member | undefined>;
-  static async findOne(
+  async findOne(options?: FindOneOptions<Member>): Promise<Member | undefined>;
+  async findOne(
     conditions: FindConditions<Member>,
     options?: FindOneOptions<Member>
   ): Promise<Member | undefined>;
-  static async findOne(
+  async findOne(
     arg1?: string | FindConditions<Member> | FindOneOptions<Member>,
     arg2?: FindOneOptions<Member>
   ): Promise<Member | undefined> {
     return await getRepository(Member).findOne(arg1 as any, arg2);
   }
 
-  static async findByLoginOverride(code: string): Promise<Member | undefined> {
+  async findByLoginOverride(code: string): Promise<Member | undefined> {
     return await createQueryBuilder(Member, "m")
       .where("m.loginOverride ->> 'code' = :code", { code: code })
       .andWhere("m.loginOverride ->> 'expires' > :now", { now: new Date() })
       .getOne();
   }
 
-  static async createMember(
+  async createMember(
     partialMember: Partial<Member> & {
       email: string;
       contributionType: ContributionType;
@@ -87,8 +77,8 @@ export default class MembersService {
 
     try {
       const member = getRepository(Member).create({
-        referralCode: this.generateMemberCode(partialMember),
-        pollsCode: this.generateMemberCode(partialMember),
+        referralCode: generateMemberCode(partialMember),
+        pollsCode: generateMemberCode(partialMember),
         permissions: [],
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
         firstname: "",
@@ -116,17 +106,13 @@ export default class MembersService {
         isDuplicateIndex(error, "referralCode") ||
         isDuplicateIndex(error, "pollsCode")
       ) {
-        return await MembersService.createMember(
-          partialMember,
-          partialProfile,
-          opts
-        );
+        return await this.createMember(partialMember, partialProfile, opts);
       }
       throw error;
     }
   }
 
-  static async updateMember(
+  async updateMember(
     member: Member,
     updates: Partial<Member>,
     opts = { sync: true }
@@ -153,21 +139,10 @@ export default class MembersService {
       await NewsletterService.upsertMember(member, updates, oldEmail);
     }
 
-    // TODO: This should be in GCPaymentService
-    if (updates.email || updates.firstname || updates.lastname) {
-      const gcData = await getRepository(GCPaymentData).findOne({ member });
-      if (gcData && gcData.customerId) {
-        log.info("Update member in GoCardless");
-        await gocardless.customers.update(gcData.customerId, {
-          ...(updates.email && { email: updates.email }),
-          ...(updates.firstname && { given_name: updates.firstname }),
-          ...(updates.lastname && { family_name: updates.lastname })
-        });
-      }
-    }
+    await PaymentService.updateMember(member, updates);
   }
 
-  static async updateMemberPermission(
+  async updateMemberPermission(
     member: Member,
     permission: PermissionType,
     updates?: Partial<Omit<MemberPermission, "member" | "permission">>
@@ -204,7 +179,7 @@ export default class MembersService {
     }
   }
 
-  static async extendMemberPermission(
+  async extendMemberPermission(
     member: Member,
     permission: PermissionType,
     dateExpires: Date
@@ -217,13 +192,11 @@ export default class MembersService {
       newDate: dateExpires
     });
     if (!p?.dateExpires || dateExpires > p.dateExpires) {
-      await MembersService.updateMemberPermission(member, permission, {
-        dateExpires
-      });
+      await this.updateMemberPermission(member, permission, { dateExpires });
     }
   }
 
-  static async revokeMemberPermission(
+  async revokeMemberPermission(
     member: Member,
     permission: PermissionType
   ): Promise<void> {
@@ -241,7 +214,7 @@ export default class MembersService {
     }
   }
 
-  static async updateMemberProfile(
+  async updateMemberProfile(
     member: Member,
     updates: Partial<MemberProfile>,
     opts = { sync: true }
@@ -258,23 +231,42 @@ export default class MembersService {
     }
   }
 
-  static loginAndRedirect(
-    req: Request,
-    res: Response,
+  async updateMemberContribution(
     member: Member,
-    url?: string
-  ): void {
-    req.login(member as Express.User, function (loginError) {
-      if (loginError) {
-        throw loginError;
-      } else {
-        res.redirect(url || "/");
-      }
+    paymentForm: PaymentForm
+  ): Promise<void> {
+    const { startNow, expiryDate } = await PaymentService.updateContribution(
+      member,
+      paymentForm
+    );
+
+    await this.updateMember(member, {
+      contributionType: ContributionType.Automatic,
+      contributionPeriod: paymentForm.period,
+      ...(startNow
+        ? {
+            contributionMonthlyAmount: paymentForm.monthlyAmount,
+            nextContributionMonthlyAmount: null
+          }
+        : {
+            nextContributionMonthlyAmount: paymentForm.monthlyAmount
+          })
+    });
+
+    await this.extendMemberPermission(member, "member", expiryDate);
+  }
+
+  async cancelMemberContribution(member: Member): Promise<void> {
+    await PaymentService.cancelContribution(member);
+    await this.updateMember(member, {
+      nextContributionMonthlyAmount: null
     });
   }
 
-  static async permanentlyDeleteMember(member: Member): Promise<void> {
+  async permanentlyDeleteMember(member: Member): Promise<void> {
     await getRepository(Member).delete(member.id);
     await NewsletterService.deleteMembers([member]);
   }
 }
+
+export default new MembersService();

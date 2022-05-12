@@ -63,6 +63,10 @@ block contents
 		.col-md-offset-2.col-md-8
 			p There are #{responses.length} responses
 
+			form(method='POST' action='/tools/polls/' + poll.slug)
+				+csrf
+				p: button(name='action' value='export-responses').btn.btn-warning Export
+
 			.input-group
 				.input-group-btn
 					button(value=1).btn.btn-default.js-set-response

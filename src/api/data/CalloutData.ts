@@ -55,36 +55,39 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
   hasAnswered?: string;
 }
 
-interface CalloutData {
+interface BasicCalloutData {
   slug: string;
   title: string;
   excerpt: string;
   image: string;
-  starts?: Date;
-  expires?: Date;
+  starts: Date | null;
+  expires: Date | null;
   allowUpdate: boolean;
   allowMultiple: boolean;
   access: PollAccess;
   hidden: boolean;
 }
 
-export interface GetBasicCalloutData extends CalloutData {
-  status: ItemStatus;
-  hasAnswered?: boolean;
-}
-
-export interface GetMoreCalloutData extends GetBasicCalloutData {
+interface MoreCalloutData extends BasicCalloutData {
   intro: string;
   thanksTitle: string;
   thanksText: string;
   thanksRedirect?: string;
+  shareTitle?: string;
+  shareDescription?: string;
   formSchema: PollFormSchema;
 }
 
-export class CreateCalloutData implements CalloutData {
-  @IsString()
-  slug!: string;
+export interface GetBasicCalloutData extends BasicCalloutData {
+  status: ItemStatus;
+  hasAnswered?: boolean;
+}
 
+export interface GetMoreCalloutData
+  extends GetBasicCalloutData,
+    MoreCalloutData {}
+
+export class UpdateCalloutData implements Omit<MoreCalloutData, "slug"> {
   @IsString()
   title!: string;
 
@@ -107,6 +110,14 @@ export class CreateCalloutData implements CalloutData {
   @IsUrl()
   thanksRedirect?: string;
 
+  @IsOptional()
+  @IsString()
+  shareTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  shareDescription?: string;
+
   @IsObject()
   formSchema!: PollFormSchema;
 
@@ -117,7 +128,7 @@ export class CreateCalloutData implements CalloutData {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  expires?: Date;
+  expires!: Date | null;
 
   @IsBoolean()
   allowUpdate!: boolean;
@@ -130,6 +141,14 @@ export class CreateCalloutData implements CalloutData {
 
   @IsBoolean()
   hidden!: boolean;
+}
+
+export class CreateCalloutData
+  extends UpdateCalloutData
+  implements MoreCalloutData
+{
+  @IsString()
+  slug!: string;
 }
 
 const responseFields = ["member", "poll"] as const;

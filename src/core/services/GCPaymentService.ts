@@ -2,7 +2,6 @@ import format from "date-fns/format";
 import moment from "moment";
 import {
   PaymentCurrency,
-  RedirectFlow,
   SubscriptionIntervalUnit
 } from "gocardless-nodejs/types/Types";
 import { getRepository } from "typeorm";
@@ -18,13 +17,20 @@ import {
 } from "@core/utils";
 import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
-import MembersService from "@core/services/MembersService";
+import {
+  CompletedPaymentFlow,
+  PaymentProvider,
+  PaymentFlow,
+  PaymentFlowParams,
+  UpdateContributionData
+} from "@core/providers/payment";
 
 import config from "@config";
 
 import Address from "@models/Address";
 import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
+import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
 
@@ -47,16 +53,23 @@ const log = mainLogger.child({ app: "gc-payment-service" });
 // Update contribution has been split into lots of methods as it's complicated
 // and has mutable state, nothing else should use the private methods in here
 abstract class UpdateContributionPaymentService {
-  static async updateContribution(
+  abstract getPaymentData(member: Member): Promise<GCPaymentData | undefined>;
+
+  abstract cancelContribution(
+    member: Member,
+    keepMandate: boolean
+  ): Promise<void>;
+
+  async updateContribution(
     user: Member,
     paymentForm: PaymentForm
-  ): Promise<void> {
+  ): Promise<UpdateContributionData> {
     log.info("Update contribution for " + user.id, {
       userId: user.id,
       paymentForm
     });
 
-    let gcData = await GCPaymentService.getPaymentData(user);
+    let gcData = await this.getPaymentData(user);
 
     if (!gcData?.mandateId) {
       throw new NoPaymentSource();
@@ -85,7 +98,7 @@ abstract class UpdateContributionPaymentService {
       );
     } else {
       if (gcData.subscriptionId) {
-        await GCPaymentService.cancelContribution(user, true);
+        await this.cancelContribution(user, true);
         gcData.subscriptionId = null;
       }
 
@@ -93,10 +106,16 @@ abstract class UpdateContributionPaymentService {
       startNow = true;
     }
 
-    await this.activateContribution(user, gcData, paymentForm, startNow);
+    const expiryDate = await this.activateContribution(
+      user,
+      gcData,
+      paymentForm,
+      startNow
+    );
+    return { startNow, expiryDate };
   }
 
-  private static getChargeableAmount(
+  private getChargeableAmount(
     amount: number,
     period: ContributionPeriod,
     payFee: boolean
@@ -108,7 +127,7 @@ abstract class UpdateContributionPaymentService {
     return Math.round(chargeableAmount); // TODO: fix this properly
   }
 
-  private static async createSubscription(
+  private async createSubscription(
     member: Member,
     gcData: GCPaymentData,
     paymentForm: PaymentForm,
@@ -147,16 +166,12 @@ abstract class UpdateContributionPaymentService {
       ...(startDate && { start_date: startDate })
     });
 
-    await MembersService.updateMember(member, {
-      contributionPeriod: paymentForm.period
-    });
-
     gcData.subscriptionId = subscription.id;
     gcData.payFee = paymentForm.payFee;
     return gcData;
   }
 
-  private static async updateSubscription(
+  private async updateSubscription(
     user: PayingMember,
     gcData: GCPaymentData,
     paymentForm: PaymentForm
@@ -199,7 +214,7 @@ abstract class UpdateContributionPaymentService {
     return gcData;
   }
 
-  private static async prorateSubscription(
+  private async prorateSubscription(
     member: PayingMember,
     gcData: GCPaymentData,
     paymentForm: PaymentForm
@@ -236,12 +251,12 @@ abstract class UpdateContributionPaymentService {
     return false;
   }
 
-  private static async activateContribution(
+  private async activateContribution(
     member: Member,
     gcData: GCPaymentData,
     paymentForm: PaymentForm,
     startNow: boolean
-  ): Promise<void> {
+  ): Promise<Date> {
     const subscription = await gocardless.subscriptions.get(
       gcData.subscriptionId!
     );
@@ -264,31 +279,17 @@ abstract class UpdateContributionPaymentService {
       nextChargeDate
     });
 
-    await MembersService.updateMember(member, {
-      contributionType: ContributionType.GoCardless,
-      ...(startNow
-        ? {
-            contributionMonthlyAmount: paymentForm.monthlyAmount,
-            nextContributionMonthlyAmount: null
-          }
-        : {
-            nextContributionMonthlyAmount: paymentForm.monthlyAmount
-          })
-    });
-
-    await MembersService.extendMemberPermission(
-      member,
-      "member",
-      nextChargeDate.toDate()
-    );
-
     gcData.cancelledAt = null;
     await getRepository(GCPaymentData).update(gcData.member.id, gcData);
+    return nextChargeDate.toDate();
   }
 }
 
-export default class GCPaymentService extends UpdateContributionPaymentService {
-  static async customerToMember(customerId: string): Promise<{
+class GCPaymentService
+  extends UpdateContributionPaymentService
+  implements PaymentProvider
+{
+  async customerToMember(customerId: string): Promise<{
     partialMember: Partial<Member>;
     billingAddress: Address;
   }> {
@@ -298,7 +299,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
       partialMember: {
         firstname: customer.given_name || "",
         lastname: customer.family_name || "",
-        contributionType: ContributionType.GoCardless
+        contributionType: ContributionType.Automatic
       },
       billingAddress: {
         line1: customer.address_line1 || "",
@@ -309,7 +310,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     };
   }
 
-  static async getContributionInfo(
+  async getContributionInfo(
     member: Member
   ): Promise<GCContributionInfo | undefined> {
     const gcData = await this.getPaymentData(member);
@@ -346,9 +347,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     }
   }
 
-  static async getPaymentData(
-    member: Member
-  ): Promise<GCPaymentData | undefined> {
+  async getPaymentData(member: Member): Promise<GCPaymentData | undefined> {
     const paymentData = await getRepository(GCPaymentData).findOne({ member });
     // TODO: is this necessary?
     if (paymentData) {
@@ -357,7 +356,7 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     return paymentData;
   }
 
-  static async canChangeContribution(
+  async canChangeContribution(
     user: Member,
     useExistingMandate: boolean
   ): Promise<boolean> {
@@ -381,13 +380,10 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     );
   }
 
-  static async cancelContribution(
-    member: Member,
-    keepMandate = false
-  ): Promise<void> {
+  async cancelContribution(member: Member, keepMandate = false): Promise<void> {
     log.info("Cancel subscription for " + member.id, { keepMandate });
 
-    const gcData = await GCPaymentService.getPaymentData(member);
+    const gcData = await this.getPaymentData(member);
     if (gcData) {
       // Do this before cancellation to avoid webhook race conditions
       await getRepository(GCPaymentData).update(gcData.member.id, {
@@ -402,20 +398,15 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
       if (gcData.subscriptionId) {
         await gocardless.subscriptions.cancel(gcData.subscriptionId);
       }
-
-      await MembersService.updateMember(member, {
-        nextContributionMonthlyAmount: null
-      });
     }
   }
 
-  static async updatePaymentSource(
+  async updatePaymentSource(
     member: Member,
     customerId: string,
     mandateId: string
   ): Promise<void> {
-    const gcData =
-      (await GCPaymentService.getPaymentData(member)) || new GCPaymentData();
+    const gcData = (await this.getPaymentData(member)) || new GCPaymentData();
 
     log.info("Update payment source for " + member.id, {
       userId: member.id,
@@ -452,14 +443,14 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     }
   }
 
-  static async hasPendingPayment(member: Member): Promise<boolean> {
-    const gcData = await GCPaymentService.getPaymentData(member);
+  async hasPendingPayment(member: Member): Promise<boolean> {
+    const gcData = await this.getPaymentData(member);
     if (gcData && gcData.subscriptionId) {
       for (const status of GCPayment.pendingStatuses) {
         const payments = await gocardless.payments.list({
           limit: 1,
           status,
-          subscription: gcData.subscriptionId
+          mandate: gcData.mandateId
         });
         if (payments.length > 0) {
           return true;
@@ -470,15 +461,28 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     return false;
   }
 
-  static async getPayments(member: Member): Promise<Payment[]> {
+  async getPayments(member: Member): Promise<Payment[]> {
     return await getRepository(GCPayment).find({
       where: { member: member.id },
       order: { chargeDate: "DESC" }
     });
   }
 
-  static async permanentlyDeleteMember(member: Member): Promise<void> {
-    const gcData = await GCPaymentService.getPaymentData(member);
+  async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
+    if (updates.email || updates.firstname || updates.lastname) {
+      const gcData = await this.getPaymentData(member);
+      if (gcData && gcData.customerId) {
+        log.info("Update member in GoCardless");
+        await gocardless.customers.update(gcData.customerId, {
+          ...(updates.email && { email: updates.email }),
+          ...(updates.firstname && { given_name: updates.firstname }),
+          ...(updates.lastname && { family_name: updates.lastname })
+        });
+      }
+    }
+  }
+  async permanentlyDeleteMember(member: Member): Promise<void> {
+    const gcData = await this.getPaymentData(member);
     await getRepository(GCPayment).delete({ member });
     if (gcData?.mandateId) {
       await gocardless.mandates.cancel(gcData.mandateId);
@@ -488,24 +492,39 @@ export default class GCPaymentService extends UpdateContributionPaymentService {
     }
   }
 
-  static async createRedirectFlow(
-    sessionToken: string,
+  async createPaymentFlow(
+    joinFlow: JoinFlow,
     completeUrl: string,
-    redirectFlowParams = {}
-  ): Promise<RedirectFlow> {
-    return await gocardless.redirectFlows.create({
-      session_token: sessionToken,
+    params: PaymentFlowParams
+  ): Promise<PaymentFlow> {
+    const redirectFlow = await gocardless.redirectFlows.create({
+      session_token: joinFlow.id,
       success_redirect_url: completeUrl,
-      ...redirectFlowParams
+      prefilled_customer: {
+        email: params.email,
+        ...(params.firstname && { given_name: params.firstname }),
+        ...(params.lastname && { family_name: params.lastname })
+      }
     });
+
+    return {
+      id: redirectFlow.id,
+      url: redirectFlow.redirect_url
+    };
   }
 
-  static async completeRedirectFlow(
-    redirectFlowId: string,
-    sessionToken: string
-  ): Promise<RedirectFlow> {
-    return await gocardless.redirectFlows.complete(redirectFlowId, {
-      session_token: sessionToken
-    });
+  async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
+    const redirectFlow = await gocardless.redirectFlows.complete(
+      joinFlow.paymentFlowId,
+      {
+        session_token: joinFlow.id
+      }
+    );
+    return {
+      customerId: redirectFlow.links.customer,
+      mandateId: redirectFlow.links.mandate
+    };
   }
 }
+
+export default new GCPaymentService();

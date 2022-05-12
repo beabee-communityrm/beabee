@@ -46,7 +46,7 @@ interface AddManualContactSchema extends BaseAddContactSchema {
 }
 
 interface AddGCContactSchema extends BaseAddContactSchema {
-  type: ContributionType.GoCardless;
+  type: ContributionType.Automatic;
   customerId: string;
   mandateId: string;
   amount?: number;
@@ -118,14 +118,14 @@ app.post(
       }
     }
 
-    if (data.type === ContributionType.GoCardless) {
+    if (data.type === ContributionType.Automatic) {
       await GCPaymentService.updatePaymentSource(
         member,
         data.customerId,
         data.mandateId
       );
       if (data.amount && data.period) {
-        await GCPaymentService.updateContribution(member, {
+        await MembersService.updateMemberContribution(member, {
           monthlyAmount: data.amount,
           period: data.period,
           payFee: !!data.payFee,

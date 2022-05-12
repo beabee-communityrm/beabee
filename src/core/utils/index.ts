@@ -22,7 +22,7 @@ export enum ContributionPeriod {
 }
 
 export enum ContributionType {
-  GoCardless = "GoCardless",
+  Automatic = "Automatic",
   Manual = "Manual",
   Gift = "Gift",
   None = "None"
@@ -33,6 +33,11 @@ export interface PaymentForm {
   period: ContributionPeriod;
   payFee: boolean;
   prorate: boolean;
+}
+
+export enum PaymentMethod {
+  Card = "card",
+  DirectDebit = "direct-debit"
 }
 
 export interface PaymentSource {

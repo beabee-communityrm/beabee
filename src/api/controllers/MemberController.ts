@@ -21,7 +21,11 @@ import JoinFlowService from "@core/services/JoinFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
-import { ContributionInfo, ContributionPeriod } from "@core/utils";
+import {
+  ContributionInfo,
+  ContributionPeriod,
+  PaymentMethod
+} from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import Member from "@models/Member";
@@ -182,7 +186,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    await PaymentService.updateContribution(target, contributionData);
+    await MembersService.updateMemberContribution(target, contributionData);
 
     return await this.getContribution(target);
   }
@@ -211,7 +215,7 @@ export class MemberController {
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
-    await PaymentService.updateContribution(target, joinFlow.joinForm);
+    await MembersService.updateMemberContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
   }
 
@@ -267,13 +271,14 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const { redirectUrl } = await JoinFlowService.createJoinFlow(
+    const { redirectUrl } = await JoinFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
         // TODO: unnecessary, should be optional
         password: await generatePassword(""),
-        email: ""
+        email: "",
+        paymentMethod: PaymentMethod.DirectDebit
       },
       data.completeUrl,
       target
@@ -291,7 +296,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const joinFlow = await JoinFlowService.getJoinFlow(data.redirectFlowId);
+    const joinFlow = await JoinFlowService.getJoinFlow(data.paymentFlowId);
     if (!joinFlow) {
       throw new NotFoundError();
     }
