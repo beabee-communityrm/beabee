@@ -59,6 +59,12 @@ export default class Poll extends ItemWithStatus {
   @Column({ type: String, nullable: true })
   thanksRedirect!: string | null;
 
+  @Column({ type: String, nullable: true })
+  shareTitle!: string | null;
+
+  @Column({ type: String, nullable: true })
+  shareDescription!: string | null;
+
   @Column({ type: "jsonb", default: "{}" })
   formSchema!: PollFormSchema;
 
