@@ -1,37 +1,9 @@
-import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
+import { ContributionInfo, PaymentForm } from "@core/utils";
 
-import Address from "@models/Address";
-import JoinFlow from "@models/JoinFlow";
+import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+
 import Member from "@models/Member";
 import Payment from "@models/Payment";
-
-export interface PaymentFlow {
-  id: string;
-  params: PaymentFlowParams;
-}
-
-export interface PaymentFlowParams {
-  clientSecret?: string;
-  redirectUrl?: string;
-}
-
-export interface PaymentFlowData {
-  email: string;
-  firstname?: string;
-  lastname?: string;
-}
-
-export interface CompletedPaymentFlow {
-  paymentMethod: PaymentMethod;
-  customerId: string;
-  mandateId: string;
-}
-
-export interface CompletedPaymentFlowData {
-  firstname?: string;
-  lastname?: string;
-  billingAddress?: Address;
-}
 
 export interface UpdateContributionData {
   startNow: boolean;
@@ -39,18 +11,6 @@ export interface UpdateContributionData {
 }
 
 export interface PaymentProvider {
-  createPaymentFlow(
-    joinFlow: JoinFlow,
-    completeUrl: string,
-    data: PaymentFlowData
-  ): Promise<PaymentFlow>;
-
-  completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow>;
-
-  getCompletedPaymentFlowData(
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<CompletedPaymentFlowData>;
-
   hasPendingPayment(member: Member): Promise<boolean>;
 
   canChangeContribution(

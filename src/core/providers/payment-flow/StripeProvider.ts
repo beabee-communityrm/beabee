@@ -1,70 +1,21 @@
 import type Stripe from "stripe";
 
 import stripe from "@core/lib/stripe";
+import { ContributionPeriod, getActualAmount } from "@core/utils";
 
 import {
   CompletedPaymentFlow,
   CompletedPaymentFlowData,
-  PaymentProvider,
   PaymentFlow,
   PaymentFlowData,
-  UpdateContributionData
-} from "@core/providers/payment";
-
-import {
-  ContributionInfo,
-  ContributionPeriod,
-  getActualAmount,
-  PaymentForm
-} from "@core/utils";
+  PaymentFlowProvider
+} from ".";
 
 import JoinFlow from "@models/JoinFlow";
-import Member from "@models/Member";
 
 import config from "@config";
-import Payment from "@models/Payment";
 
-class StripePaymentProvider implements PaymentProvider {
-  getPayments(member: Member): Promise<Payment[]> {
-    throw new Error("Method not implemented.");
-  }
-  permanentlyDeleteMember(member: Member): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  canChangeContribution(
-    member: Member,
-    useExistingMandate: boolean
-  ): Promise<boolean> {
-    throw new Error("Method not implemented.");
-  }
-  getContributionInfo(
-    member: Member
-  ): Promise<Partial<ContributionInfo> | undefined> {
-    throw new Error("Method not implemented.");
-  }
-  updateMember(member: Member, updates: Partial<Member>): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  hasPendingPayment(member: Member): Promise<boolean> {
-    throw new Error("Method not implemented.");
-  }
-
-  cancelContribution(member: Member): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-
-  async updatePaymentSource(
-    member: Member,
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<void> {}
-
-  async updateContribution(
-    member: Member,
-    paymentForm: PaymentForm
-  ): Promise<UpdateContributionData> {
-    throw new Error("Moethod not implemented.");
-  }
-
+class StripeProvider implements PaymentFlowProvider {
   async createPaymentFlow(
     joinFlow: JoinFlow,
     completeUrl: string,
@@ -149,4 +100,4 @@ class StripePaymentProvider implements PaymentProvider {
   }
 }
 
-export default new StripePaymentProvider();
+export default new StripeProvider();

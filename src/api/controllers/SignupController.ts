@@ -11,9 +11,9 @@ import { getRepository } from "typeorm";
 
 import { generatePassword } from "@core/utils/auth";
 
-import { PaymentFlowParams } from "@core/providers/payment";
+import PaymentFlowService from "@core/services/PaymentFlowService";
 
-import JoinFlowService from "@core/services/JoinFlowService";
+import { PaymentFlowParams } from "@core/providers/payment-flow";
 
 import JoinFlow from "@models/JoinFlow";
 
@@ -37,7 +37,7 @@ export class SignupController {
     };
 
     if (data.contribution) {
-      return await JoinFlowService.createPaymentJoinFlow(
+      return await PaymentFlowService.createPaymentJoinFlow(
         {
           ...baseForm,
           ...data.contribution,
@@ -48,22 +48,22 @@ export class SignupController {
         { email: data.email }
       );
     } else {
-      const joinFlow = await JoinFlowService.createJoinFlow(baseForm, data);
-      await JoinFlowService.sendConfirmEmail(joinFlow);
+      const joinFlow = await PaymentFlowService.createJoinFlow(baseForm, data);
+      await PaymentFlowService.sendConfirmEmail(joinFlow);
     }
   }
 
   @OnUndefined(204)
   @Post("/complete")
   async completeSignup(@Body() data: SignupCompleteData): Promise<void> {
-    const joinFlow = await JoinFlowService.getJoinFlowByPaymentId(
+    const joinFlow = await PaymentFlowService.getJoinFlowByPaymentId(
       data.paymentFlowId
     );
     if (!joinFlow) {
       throw new NotFoundError();
     }
 
-    await JoinFlowService.sendConfirmEmail(joinFlow);
+    await PaymentFlowService.sendConfirmEmail(joinFlow);
   }
 
   @OnUndefined(204)
@@ -77,7 +77,7 @@ export class SignupController {
       throw new NotFoundError();
     }
 
-    const member = await JoinFlowService.completeConfirmEmail(joinFlow);
+    const member = await PaymentFlowService.completeConfirmEmail(joinFlow);
     await login(req, member);
   }
 }

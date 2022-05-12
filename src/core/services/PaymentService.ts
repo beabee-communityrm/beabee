@@ -8,7 +8,6 @@ import {
 } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 
-import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
@@ -16,19 +15,17 @@ import PaymentData from "@models/PaymentData";
 import EmailService from "@core/services/EmailService";
 
 import {
-  CompletedPaymentFlow,
-  CompletedPaymentFlowData,
-  PaymentFlow,
-  PaymentFlowData,
   PaymentProvider,
   UpdateContributionData
 } from "@core/providers/payment";
-import GCPaymentProvider from "@core/providers/payment/GCPaymentProvider";
-import StripePaymentProvider from "@core/providers/payment/StripePaymentProvider";
+import GCProvider from "@core/providers/payment/GCProvider";
+import StripeProvider from "@core/providers/payment/StripeProvider";
 
-const paymentProviders: Record<PaymentMethod, PaymentProvider> = {
-  [PaymentMethod.Card]: StripePaymentProvider,
-  [PaymentMethod.DirectDebit]: GCPaymentProvider
+import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+
+const paymentProviders = {
+  [PaymentMethod.Card]: StripeProvider,
+  [PaymentMethod.DirectDebit]: GCProvider
 };
 
 class PaymentService implements PaymentProvider {
@@ -177,32 +174,6 @@ class PaymentService implements PaymentProvider {
 
   async permanentlyDeleteMember(member: Member): Promise<void> {
     await this.provider(member, (p) => p.permanentlyDeleteMember(member));
-  }
-
-  async createPaymentFlow(
-    joinFlow: JoinFlow,
-    completeUrl: string,
-    data: PaymentFlowData
-  ): Promise<PaymentFlow> {
-    return paymentProviders[joinFlow.joinForm.paymentMethod].createPaymentFlow(
-      joinFlow,
-      completeUrl,
-      data
-    );
-  }
-
-  async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
-    return paymentProviders[
-      joinFlow.joinForm.paymentMethod
-    ].completePaymentFlow(joinFlow);
-  }
-
-  async getCompletedPaymentFlowData(
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<CompletedPaymentFlowData> {
-    return paymentProviders[
-      completedPaymentFlow.paymentMethod
-    ].getCompletedPaymentFlowData(completedPaymentFlow);
   }
 }
 

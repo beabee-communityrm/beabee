@@ -9,7 +9,6 @@ import { wrapAsync } from "@core/utils";
 import GiftService from "@core/services/GiftService";
 
 import config from "@config";
-import JoinFlowService from "@core/services/JoinFlowService";
 
 const log = mainLogger.child({ app: "webhook-stripe" });
 
@@ -37,10 +36,6 @@ app.post(
             evt.data.object as Stripe.Checkout.Session
           );
           break;
-
-        case "invoice.paid":
-          await handleInvoicePaid(evt.data.object as Stripe.Invoice);
-          break;
       }
     } catch (err: any) {
       log.error(`Got webhook error: ${err.message}`, err);
@@ -55,20 +50,6 @@ async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
 ) {
   await GiftService.completeGiftFlow(session.id);
-}
-
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  if (invoice.billing_reason === "subscription_create") {
-    const paymentIntent = await stripe.paymentIntents.retrieve(
-      invoice.payment_intent as string
-    );
-    const subscription = await stripe.subscriptions.update(
-      invoice.subscription as string,
-      {
-        default_payment_method: paymentIntent.payment_method as string
-      }
-    );
-  }
 }
 
 export default app;

@@ -17,24 +17,17 @@ import {
 } from "@core/utils";
 import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
 
-import {
-  CompletedPaymentFlow,
-  CompletedPaymentFlowData,
-  PaymentFlow,
-  PaymentFlowData,
-  PaymentProvider,
-  UpdateContributionData
-} from "@core/providers/payment";
-
-import config from "@config";
+import { PaymentProvider, UpdateContributionData } from ".";
+import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import GCPayment from "@models/GCPayment";
 import GCPaymentData from "@models/GCPaymentData";
-import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import Payment from "@models/Payment";
 
 import NoPaymentSource from "@api/errors/NoPaymentSource";
+
+import config from "@config";
 
 interface PayingMember extends Member {
   contributionMonthlyAmount: number;
@@ -278,7 +271,7 @@ abstract class GCUpdateContributionProvider {
   }
 }
 
-class GCPaymentProvider
+class GCProvider
   extends GCUpdateContributionProvider
   implements PaymentProvider
 {
@@ -461,62 +454,6 @@ class GCPaymentProvider
       await gocardless.customers.remove(gcData.customerId);
     }
   }
-
-  async createPaymentFlow(
-    joinFlow: JoinFlow,
-    completeUrl: string,
-    params: PaymentFlowData
-  ): Promise<PaymentFlow> {
-    const redirectFlow = await gocardless.redirectFlows.create({
-      session_token: joinFlow.id,
-      success_redirect_url: completeUrl,
-      prefilled_customer: {
-        email: params.email,
-        ...(params.firstname && { given_name: params.firstname }),
-        ...(params.lastname && { family_name: params.lastname })
-      }
-    });
-
-    return {
-      id: redirectFlow.id,
-      params: {
-        redirectUrl: redirectFlow.redirect_url
-      }
-    };
-  }
-
-  async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
-    const redirectFlow = await gocardless.redirectFlows.complete(
-      joinFlow.paymentFlowId,
-      {
-        session_token: joinFlow.id
-      }
-    );
-    return {
-      paymentMethod: joinFlow.joinForm.paymentMethod,
-      customerId: redirectFlow.links.customer,
-      mandateId: redirectFlow.links.mandate
-    };
-  }
-
-  async getCompletedPaymentFlowData(
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<CompletedPaymentFlowData> {
-    const customer = await gocardless.customers.get(
-      completedPaymentFlow.customerId
-    );
-
-    return {
-      ...(customer.given_name && { firstname: customer.given_name }),
-      ...(customer.family_name && { lastname: customer.given_name }),
-      billingAddress: {
-        line1: customer.address_line1 || "",
-        line2: customer.address_line2,
-        city: customer.city || "",
-        postcode: customer.postal_code || ""
-      }
-    };
-  }
 }
 
-export default new GCPaymentProvider();
+export default new GCProvider();

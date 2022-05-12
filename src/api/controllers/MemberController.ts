@@ -16,10 +16,10 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import { PaymentFlowParams } from "@core/providers/payment";
+import { PaymentFlowParams } from "@core/providers/payment-flow";
 
 import EmailService from "@core/services/EmailService";
-import JoinFlowService from "@core/services/JoinFlowService";
+import PaymentFlowService from "@core/services/PaymentFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
@@ -274,7 +274,7 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    return await JoinFlowService.createPaymentJoinFlow(
+    return await PaymentFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
@@ -301,14 +301,14 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const joinFlow = await JoinFlowService.getJoinFlowByPaymentId(
+    const joinFlow = await PaymentFlowService.getJoinFlowByPaymentId(
       data.paymentFlowId
     );
     if (!joinFlow) {
       throw new NotFoundError();
     }
 
-    const completedFlow = await JoinFlowService.completeJoinFlow(joinFlow);
+    const completedFlow = await PaymentFlowService.completeJoinFlow(joinFlow);
     await PaymentService.updatePaymentSource(target, completedFlow);
 
     return joinFlow;

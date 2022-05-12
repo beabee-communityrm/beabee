@@ -1,10 +1,6 @@
 import { getRepository } from "typeorm";
 
 import {
-  CompletedPaymentFlow,
-  PaymentFlowParams
-} from "@core/providers/payment";
-import {
   ContributionPeriod,
   ContributionType,
   PaymentMethod
@@ -17,13 +13,29 @@ import PaymentService from "@core/services/PaymentService";
 
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
+import Member from "@models/Member";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
+
+import {
+  CompletedPaymentFlow,
+  CompletedPaymentFlowData,
+  PaymentFlow,
+  PaymentFlowData,
+  PaymentFlowParams,
+  PaymentFlowProvider
+} from "@core/providers/payment-flow";
+import StripeProvider from "@core/providers/payment-flow/StripeProvider";
+import GCProvider from "@core/providers/payment-flow/GCProvider";
 
 import { CompleteUrls } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
-import Member from "@models/Member";
 
-class JoinFlowService {
+const paymentProviders = {
+  [PaymentMethod.Card]: StripeProvider,
+  [PaymentMethod.DirectDebit]: GCProvider
+};
+
+class PaymentFlowService implements PaymentFlowProvider {
   async createJoinFlow(
     form: Pick<JoinForm, "email" | "password">,
     urls: CompleteUrls
@@ -56,7 +68,7 @@ class JoinFlowService {
       paymentFlowId: ""
     });
 
-    const paymentFlow = await PaymentService.createPaymentFlow(
+    const paymentFlow = await this.createPaymentFlow(
       joinFlow,
       completeUrl,
       user
@@ -74,7 +86,7 @@ class JoinFlowService {
   }
 
   async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
-    const paymentFlow = await PaymentService.completePaymentFlow(joinFlow);
+    const paymentFlow = await this.completePaymentFlow(joinFlow);
     await getRepository(JoinFlow).delete(joinFlow.id);
     return paymentFlow;
   }
@@ -124,9 +136,7 @@ class JoinFlowService {
     }
 
     const completedFlow = await this.completeJoinFlow(joinFlow);
-    const paymentData = await PaymentService.getCompletedPaymentFlowData(
-      completedFlow
-    );
+    const paymentData = await this.getCompletedPaymentFlowData(completedFlow);
 
     const partialMember = {
       email: joinFlow.joinForm.email,
@@ -154,6 +164,32 @@ class JoinFlowService {
 
     return member;
   }
+
+  async createPaymentFlow(
+    joinFlow: JoinFlow,
+    completeUrl: string,
+    data: PaymentFlowData
+  ): Promise<PaymentFlow> {
+    return paymentProviders[joinFlow.joinForm.paymentMethod].createPaymentFlow(
+      joinFlow,
+      completeUrl,
+      data
+    );
+  }
+
+  async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
+    return paymentProviders[
+      joinFlow.joinForm.paymentMethod
+    ].completePaymentFlow(joinFlow);
+  }
+
+  async getCompletedPaymentFlowData(
+    completedPaymentFlow: CompletedPaymentFlow
+  ): Promise<CompletedPaymentFlowData> {
+    return paymentProviders[
+      completedPaymentFlow.paymentMethod
+    ].getCompletedPaymentFlowData(completedPaymentFlow);
+  }
 }
 
-export default new JoinFlowService();
+export default new PaymentFlowService();
