@@ -21,8 +21,11 @@ import config from "@config";
 
 const log = mainLogger.child({ app: "payment-webhook-service" });
 
-export default class GCPaymentWebhookService {
-  static async updatePayment(gcPaymentId: string): Promise<GCPayment> {
+class GCPaymentWebhookService {
+  async updatePayment(
+    gcPaymentId: string,
+    isConfirmed: boolean = false
+  ): Promise<void> {
     log.info("Update payment " + gcPaymentId);
 
     const gcPayment = await gocardless.payments.get(gcPaymentId);
@@ -32,7 +35,7 @@ export default class GCPaymentWebhookService {
     });
 
     if (!payment) {
-      payment = await GCPaymentWebhookService.createPayment(gcPayment);
+      payment = await this.createPayment(gcPayment);
     }
 
     payment.status = gcPayment.status;
@@ -43,10 +46,12 @@ export default class GCPaymentWebhookService {
 
     await getRepository(GCPayment).save(payment);
 
-    return payment;
+    if (isConfirmed) {
+      await this.confirmPayment(payment);
+    }
   }
 
-  static async confirmPayment(payment: GCPayment): Promise<void> {
+  private async confirmPayment(payment: GCPayment): Promise<void> {
     log.info("Confirm payment " + payment.paymentId, {
       paymentId: payment.paymentId,
       memberId: payment.member?.id,
@@ -65,7 +70,7 @@ export default class GCPaymentWebhookService {
     }
 
     if (payment.member.nextContributionMonthlyAmount) {
-      const newAmount = GCPaymentWebhookService.getSubscriptionAmount(
+      const newAmount = this.getSubscriptionAmount(
         payment,
         // TODO: wrong type
         !!(gcData.data as GCPaymentData).payFee
@@ -78,9 +83,7 @@ export default class GCPaymentWebhookService {
       }
     }
 
-    const nextExpiryDate = await GCPaymentWebhookService.calcPaymentExpiryDate(
-      payment
-    );
+    const nextExpiryDate = await this.calcPaymentExpiryDate(payment);
     await MembersService.extendMemberPermission(
       payment.member,
       "member",
@@ -89,7 +92,7 @@ export default class GCPaymentWebhookService {
     // TODO: resubscribe to newsletter
   }
 
-  static async updatePaymentStatus(
+  async updatePaymentStatus(
     gcPaymentId: string,
     status: string
   ): Promise<void> {
@@ -100,7 +103,7 @@ export default class GCPaymentWebhookService {
     );
   }
 
-  static async cancelSubscription(subscriptionId: string): Promise<void> {
+  async cancelSubscription(subscriptionId: string): Promise<void> {
     log.info("Cancel subscription " + subscriptionId);
 
     const gcData = await getRepository(GCPaymentData).findOne({
@@ -118,7 +121,7 @@ export default class GCPaymentWebhookService {
     }
   }
 
-  static async cancelMandate(mandateId: string): Promise<void> {
+  async cancelMandate(mandateId: string): Promise<void> {
     const gcData = (await getRepository(GCPaymentData).findOne({
       where: { mandateId },
       loadRelationIds: true
@@ -138,9 +141,7 @@ export default class GCPaymentWebhookService {
     }
   }
 
-  private static async calcPaymentExpiryDate(
-    payment: GCPayment
-  ): Promise<Moment> {
+  private async calcPaymentExpiryDate(payment: GCPayment): Promise<Moment> {
     if (payment.subscriptionId) {
       const subscription = await gocardless.subscriptions.get(
         payment.subscriptionId
@@ -151,15 +152,13 @@ export default class GCPaymentWebhookService {
             .add(config.gracePeriod)
         : moment
             .utc(payment.chargeDate)
-            .add(GCPaymentWebhookService.getSubscriptionDuration(subscription));
+            .add(this.getSubscriptionDuration(subscription));
     } else {
       return moment.utc();
     }
   }
 
-  private static async createPayment(
-    gcApiPayment: GCApiPayment
-  ): Promise<GCPayment> {
+  private async createPayment(gcApiPayment: GCApiPayment): Promise<GCPayment> {
     const payment = new GCPayment();
     payment.paymentId = gcApiPayment.id;
 
@@ -182,14 +181,13 @@ export default class GCPaymentWebhookService {
         gcApiPayment.links.subscription
       );
       payment.subscriptionId = gcApiPayment.links.subscription;
-      payment.subscriptionPeriod =
-        GCPaymentWebhookService.getSubscriptionPeriod(subscription);
+      payment.subscriptionPeriod = this.getSubscriptionPeriod(subscription);
     }
 
     return payment;
   }
 
-  private static getSubscriptionPeriod(
+  private getSubscriptionPeriod(
     subscription: Subscription
   ): ContributionPeriod | null {
     const interval = Number(subscription.interval);
@@ -208,10 +206,7 @@ export default class GCPaymentWebhookService {
     return null;
   }
 
-  private static getSubscriptionDuration({
-    interval,
-    interval_unit
-  }: Subscription) {
+  private getSubscriptionDuration({ interval, interval_unit }: Subscription) {
     const unit =
       interval_unit === "weekly"
         ? "weeks"
@@ -221,13 +216,12 @@ export default class GCPaymentWebhookService {
     return moment.duration({ [unit]: Number(interval) });
   }
 
-  private static getSubscriptionAmount(
-    payment: GCPayment,
-    payFee: boolean
-  ): number {
+  private getSubscriptionAmount(payment: GCPayment, payFee: boolean): number {
     const amount =
       payment.amount /
       (payment.subscriptionPeriod === ContributionPeriod.Annually ? 12 : 1);
     return payFee ? Math.round(100 * (amount - 0.2) * 0.99) / 100 : amount;
   }
 }
+
+export default new GCPaymentWebhookService();

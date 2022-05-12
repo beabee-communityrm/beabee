@@ -6,9 +6,9 @@ import * as db from "@core/database";
 import { requestErrorLogger, requestLogger } from "@core/logging";
 import startServer from "@core/server";
 
-import gocardlessApp from "./gocardless";
-import mailchimpApp from "./mailchimp";
-import stripeApp from "./stripe";
+import gocardlessApp from "./handlers/gocardless";
+import mailchimpApp from "./handlers/mailchimp";
+import stripeApp from "./handlers/stripe";
 
 const app = express();
 

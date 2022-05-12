@@ -141,7 +141,7 @@ class PaymentService implements PaymentProvider {
       member,
       async (p) => {
         // At the moment the only possibility is to go from whatever contribution
-        // type the user was before to a GC contribution
+        // type the user was before to an automatic contribution
         const wasManual = member.contributionType === ContributionType.Manual;
 
         const ret = await p.updateContribution(member, paymentForm);

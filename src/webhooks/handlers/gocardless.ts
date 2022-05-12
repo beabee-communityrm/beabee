@@ -6,7 +6,7 @@ import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
 import { wrapAsync } from "@core/utils";
 
-import GCPaymentWebhookService from "@core/services/GCPaymentWebhookService";
+import GCPaymentWebhookService from "../services/GCPaymentWebhookService";
 
 const log = mainLogger.child({ app: "webhook-gocardless" });
 
@@ -78,12 +78,10 @@ async function handlePaymentResourceEvent(event: Event) {
       "paid_out"
     );
   } else {
-    const payment = await GCPaymentWebhookService.updatePayment(
-      event.links.payment
+    await GCPaymentWebhookService.updatePayment(
+      event.links.payment,
+      event.action === "confirmed"
     );
-    if (event.action === "confirmed") {
-      await GCPaymentWebhookService.confirmPayment(payment);
-    }
   }
 }
 
