@@ -7,11 +7,11 @@
     .col-md-6
       select(name='type' required).js-reveal-types.form-control
         option(value='' disabled selected) Select one
-        each t in ['None', 'GoCardless', 'Manual']
+        each t in ['None', 'Automatic', 'Manual']
           option(selected=member.contributionType === t)= t
 
 
-  .js-reveal-type(data-type='Manual|GoCardless')
+  .js-reveal-type(data-type='Manual|Automatic')
     +input( 'number', 'Monthly amount', 'amount', {
       left: 3, right: 4, before: currencySymbol,
       value: member.contributionMonthlyAmount
@@ -22,7 +22,7 @@
       value: member.contributionPeriod
     })
 
-  .js-reveal-type(data-type='GoCardless')
+  .js-reveal-type(data-type='Automatic')
     +input( 'text', 'Customer ID', 'customerId', {
       required: true, left: 3, right: 6, placeholder: 'CU...' ,
       value: paymentData.customerId

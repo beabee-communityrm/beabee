@@ -149,11 +149,16 @@ export class CalloutController {
         thanksText: poll.thanksText,
         thanksTitle: poll.thanksTitle,
         formSchema: poll.formSchema,
-        ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect })
+        ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect }),
+        ...(poll.shareTitle && { shareTitle: poll.shareTitle }),
+        ...(poll.shareDescription && {
+          shareDescription: poll.shareDescription
+        })
       };
     }
   }
 
+  @Authorized("admin")
   @Patch("/:slug")
   async updateCallout(
     @Param("slug") slug: string,

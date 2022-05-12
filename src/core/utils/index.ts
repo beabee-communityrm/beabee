@@ -22,7 +22,7 @@ export enum ContributionPeriod {
 }
 
 export enum ContributionType {
-  GoCardless = "GoCardless",
+  Automatic = "Automatic",
   Manual = "Manual",
   Gift = "Gift",
   None = "None"

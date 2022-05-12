@@ -1,0 +1,6 @@
+{
+  "title": "Share",
+  "path": "share",
+  "permissions": ["loggedOut"],
+  "menu": "none"
+}

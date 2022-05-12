@@ -80,7 +80,27 @@ block contents
                 input(type='checkbox' name="data[hideContribution]" value="true" checked=general.hideContribution)
                 | Hide contribution option
 
+        .row: .col-md-offset-3.col-md-9: h5 Share settings
+
+        .form-group
+          label.control-label.col-md-3 Twitter handle
+          .col-md-9
+            input(type='text' name='options[share-twitter-handle]' value=Options('share-twitter-handle')).form-control
+        .form-group
+          label.control-label.col-md-3 Share title
+          .col-md-9
+            input(type='text' name='options[share-title]' value=Options('share-title')).form-control
+        .form-group
+          label.control-label.col-md-3 Share description
+          .col-md-9
+            input(type='text' name='options[share-description]' value=Options('share-description')).form-control
+        .form-group
+          label.control-label.col-md-3 Share image URL
+          .col-md-9
+            input(type='text' name='options[share-image]' value=Options('share-image')).form-control
+
         .row: .col-md-offset-3.col-md-9: h5 Footer links
+
         ul(data-name="data[footerLinks]").no-list.js-repeater
           if general.footerLinks
             each link, i in general.footerLinks

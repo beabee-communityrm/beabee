@@ -134,7 +134,7 @@ class JoinFlowService {
       password: joinFlow.joinForm.password,
       firstname: paymentData.firstname || "",
       lastname: paymentData.lastname || "",
-      contributionType: ContributionType.GoCardless
+      contributionType: ContributionType.Automatic
     };
 
     if (member) {
