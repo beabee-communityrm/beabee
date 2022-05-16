@@ -6,55 +6,32 @@ block prepend title
 block append css
 	if poll.template === 'builder'
 		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
+		style.
+			.poll-response {
+				break-before: page;
+			}
 
 block append js
 	if poll.template === 'builder'
 		script(src='/static/js/lib/formio.full.min.js')
+		script(type='text/template').js-response-template
+			div.poll-response
+				hr
+
+				h4 Response {no}
+
+				dl.dl-horizontal
+					dt {type}
+					dd {user}
+					dt Date
+					dd {date}
+				
+				div.js-response-form
+
 		script.
-			var responses = !{JSON.stringify(responses)};
-
-			Formio.createForm(
-				document.getElementById('form'), !{JSON.stringify(poll.templateSchema.formSchema)},
-				{template: 'bootstrap3', readOnly: true}
-			).then(function (form) {
-				var currentResponseNo = 0;
-
-				function setResponse(responseNo) {
-					var response = responses[responseNo];
-					if (!response) return;
-
-					form.submission = {data: response.answers};
-					$('.js-response-i').text(responseNo + 1);
-					$('.js-response-no').val(responseNo + 1);
-					$('.js-response-date').text(response.updatedAtText);
-					$('.js-response-user-type').text(response.member ? 'Member' : 'Guest')
-					if (response.member) {
-						$('.js-response-user')
-							.html(
-								'<a href="/members/' + response.member.id + '">' +
-									response.member.firstname + ' ' + response.member.lastname +
-								'</a>');
-					} else {
-						$('.js-response-user')
-							.text(response.guestName + ' (' + response.guestEmail + ')');
-					}
-
-					currentResponseNo = responseNo;
-				}
-
-				function changeResponse(inc) {
-					currentResponseNo = Math.min(responses.length - 1, Math.max(0, currentResponseNo + inc));
-					setResponse(currentResponseNo);
-				}
-
-				setResponse(0);
-				$('.js-step-response').click(function () {
-					changeResponse(Number(this.value));
-				});
-				$('.js-set-response').on('click input', function () {
-					setResponse(Number(this.value) - 1);
-				});
-			});
+			var formResponses = !{JSON.stringify(responses)};
+			var formSchema = !{JSON.stringify(poll.templateSchema.formSchema)};
+		script(src='/static/js/poll-responses.js?v=' + git)
 
 block contents
 	.row
@@ -66,28 +43,26 @@ block contents
 			p There are #{responses.length} responses
 
 			if poll.template === 'builder'
-				.input-group
-					.input-group-btn
-						button(value=1).btn.btn-default.js-set-response
-							i.glyphicon.glyphicon-fast-backward
-						button(value=-1).btn.btn-default.js-step-response
-							i.glyphicon.glyphicon-step-backward
-						button(value=1).btn.btn-default.js-step-response
-							i.glyphicon.glyphicon-step-forward
-						button(value=responses.length).btn.btn-default.js-set-response
-							i.glyphicon.glyphicon-fast-forward
-					input(type='number' value=1 style='width:90px').form-control.js-set-response.js-response-no
+				.js-reveal
+					.checkbox
+						label
+							input(type='checkbox' name='showAll').js-show-all-responses.js-reveal-types
+							| Show all responses
 
-				hr
+					.input-group.responses.js-reveal-type(data-type="showAll" data-inverse)
+						.input-group-btn
+							button(value=1).btn.btn-default.js-set-response
+								i.glyphicon.glyphicon-fast-backward
+							button(value=-1).btn.btn-default.js-step-response
+								i.glyphicon.glyphicon-step-backward
+							button(value=1).btn.btn-default.js-step-response
+								i.glyphicon.glyphicon-step-forward
+							button(value=responses.length).btn.btn-default.js-set-response
+								i.glyphicon.glyphicon-fast-forward
+						input(type='number' value=1 style='width:90px').form-control.js-set-response.js-response-no
 
-				h4 Response #[span.js-response-i]
+				.js-response-container
 
-				dl.dl-horizontal
-					dt.js-response-user-type
-					dd.js-response-user
-					dt Date
-					dd.js-response-date
-
-				#form
+				#form.hidden
 			else
 				.alert.alert-warning Poll response breakdown not supported for this poll

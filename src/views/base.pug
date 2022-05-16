@@ -25,6 +25,7 @@ html
 			block css
 				link( rel="stylesheet", href="/static/css/theme.css?v=" + git )
 				link( rel="stylesheet", href="/static/css/style.css?v=" + git )
+				link( rel="stylesheet", href="/static/css/print.css?v=" + git, media='print' )
 	body( class=( dev ? 'dev' : '' ) + ' ' + (isEmbed ? 'is-embed' : '') )
 		script.
 			document.body.className += ' has-js';
