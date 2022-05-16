@@ -19,7 +19,7 @@
               ? '<a href="/members/' + response.member.id + '">' +
                 response.member.firstname + ' ' + response.member.lastname +
                 '</a>'
-              : response.guestName + '(' + response.guestEmail + ')'
+              : response.guestName + ' (' + response.guestEmail + ')'
         };
 
         $newForm = $form.clone().attr('id', 'response' + responseNo).removeClass('hidden');
