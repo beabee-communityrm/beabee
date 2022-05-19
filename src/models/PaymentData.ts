@@ -1,11 +1,13 @@
+import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+
 import { PaymentMethod } from "@core/utils";
-import { Column, ManyToOne } from "typeorm";
-import type Member from "./Member";
+
+import type Member from "@models/Member";
 
 export interface GCPaymentData {
-  customerId: string;
-  mandateId: string;
-  subscriptionId: string;
+  customerId: string | null;
+  mandateId: string | null;
+  subscriptionId: string | null;
   cancelledAt: Date | null;
   payFee: boolean | null;
 }
@@ -16,16 +18,27 @@ export interface ManualPaymentData {
 }
 
 export interface StripePaymentData {
-  customerId: string;
+  customerId: string | null;
+  mandateId: string | null;
+  subscriptionId: string | null;
+  cancelledAt: Date | null;
+  payFee: boolean | null;
 }
 
+export type PaymentProviderData =
+  | GCPaymentData
+  | ManualPaymentData
+  | StripePaymentData;
+
+@Entity()
 export default class PaymentData {
-  @ManyToOne("Member", { primary: true })
+  @OneToOne("Member", "profile", { primary: true })
+  @JoinColumn()
   member!: Member;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   method!: PaymentMethod | null;
 
   @Column({ type: "jsonb", default: "{}" })
-  data!: GCPaymentData | ManualPaymentData | StripePaymentData;
+  data!: PaymentProviderData;
 }

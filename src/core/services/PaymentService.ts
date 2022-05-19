@@ -6,6 +6,7 @@ import {
   PaymentForm,
   PaymentMethod
 } from "@core/utils";
+import { log as mainLogger } from "@core/logging";
 import { calcRenewalDate } from "@core/utils/payment";
 
 import Member from "@models/Member";
@@ -16,52 +17,57 @@ import EmailService from "@core/services/EmailService";
 
 import {
   PaymentProvider,
-  UpdateContributionData
+  UpdateContributionResult
 } from "@core/providers/payment";
 import GCProvider from "@core/providers/payment/GCProvider";
 import StripeProvider from "@core/providers/payment/StripeProvider";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
-const paymentProviders = {
+const log = mainLogger.child({ app: "payment-service" });
+
+const PaymentProviders = {
   [PaymentMethod.Card]: StripeProvider,
   [PaymentMethod.DirectDebit]: GCProvider
 };
 
-class PaymentService implements PaymentProvider {
-  async getPaymentData(member: Member): Promise<PaymentData | undefined> {
-    return await getRepository(PaymentData).findOne(member.id);
+class PaymentService {
+  async getPaymentData(member: Member): Promise<PaymentData> {
+    const paymentData = await getRepository(PaymentData).findOneOrFail(
+      member.id
+    );
+    // Load full member into data
+    return {
+      ...paymentData,
+      member
+    };
   }
 
-  private async provider(
+  private async provider<T>(
     member: Member,
-    fn: (provider: PaymentProvider) => Promise<void>
+    fn: (provider: PaymentProvider<any>) => Promise<void>
   ): Promise<void>;
   private async provider<T>(
     member: Member,
-    fn: (provider: PaymentProvider) => Promise<T>,
+    fn: (provider: PaymentProvider<any>) => Promise<T>,
     def: T
   ): Promise<T>;
   private async provider<T>(
     member: Member,
-    fn: (provider: PaymentProvider) => Promise<T>,
+    fn: (provider: PaymentProvider<any>) => Promise<T>,
     def?: T
   ): Promise<T | void> {
     const data = await this.getPaymentData(member);
-    const provider = data?.method ? paymentProviders[data.method] : undefined;
-    if (provider) {
-      return await fn(provider);
+    const Provider = data.method ? PaymentProviders[data.method] : undefined;
+    if (Provider) {
+      return await fn(new Provider(data));
     }
 
     return def;
   }
 
   async hasPendingPayment(member: Member): Promise<boolean> {
-    return await this.provider(
-      member,
-      (p) => p.hasPendingPayment(member),
-      false
-    );
+    return await this.provider(member, (p) => p.hasPendingPayment(), false);
   }
 
   async canChangeContribution(
@@ -70,7 +76,7 @@ class PaymentService implements PaymentProvider {
   ): Promise<boolean> {
     return await this.provider(
       member,
-      (p) => p.canChangeContribution(member, useExistingPaymentSource),
+      (p) => p.canChangeContribution(useExistingPaymentSource),
       false
     );
   }
@@ -95,13 +101,12 @@ class PaymentService implements PaymentProvider {
     const extraInfo = await this.getContributionExtraInfo(member);
 
     const hsaCancelled = !!extraInfo?.cancellationDate;
+    const renewalDate = !hsaCancelled && calcRenewalDate(member);
 
     return {
       ...basicInfo,
       ...extraInfo,
-      ...(!hsaCancelled && {
-        renewalDate: calcRenewalDate(member)
-      }),
+      ...(renewalDate && { renewalDate }),
       membershipStatus: member.membership
         ? member.membership.isActive
           ? hsaCancelled
@@ -117,23 +122,30 @@ class PaymentService implements PaymentProvider {
   ): Promise<Partial<ContributionInfo> | undefined> {
     return await this.provider(
       member,
-      (p) => p.getContributionInfo(member),
+      (p) => p.getContributionInfo(),
       undefined
     );
   }
 
   async getPayments(member: Member): Promise<Payment[]> {
-    return await this.provider(member, (p) => p.getPayments(member), []);
+    return await this.provider(member, (p) => p.getPayments(), []);
+  }
+
+  async createMember(member: Member): Promise<void> {
+    log.info("Create member for " + member.id);
+    await getRepository(PaymentData).save({ member });
   }
 
   async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
-    await this.provider(member, (p) => p.updateMember(member, updates));
+    log.info("Update member for " + member.id);
+    await this.provider(member, (p) => p.updateMember(updates));
   }
 
   async updateContribution(
     member: Member,
     paymentForm: PaymentForm
-  ): Promise<UpdateContributionData> {
+  ): Promise<UpdateContributionResult> {
+    log.info("Update contribution for " + member.id);
     return await this.provider(
       member,
       async (p) => {
@@ -141,7 +153,7 @@ class PaymentService implements PaymentProvider {
         // type the user was before to an automatic contribution
         const wasManual = member.contributionType === ContributionType.Manual;
 
-        const ret = await p.updateContribution(member, paymentForm);
+        const ret = await p.updateContribution(paymentForm);
 
         if (wasManual) {
           await EmailService.sendTemplateToMember(
@@ -163,17 +175,26 @@ class PaymentService implements PaymentProvider {
     member: Member,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
-    await this.provider(member, (p) =>
-      p.updatePaymentSource(member, completedPaymentFlow)
+    log.info("Update payment source for " + member.id);
+    const newMethod = completedPaymentFlow.paymentMethod;
+    // TODO: how to transition between methods?
+
+    const data = await this.getPaymentData(member);
+    await new PaymentProviders[newMethod](data).updatePaymentSource(
+      completedPaymentFlow
     );
+    await getRepository(PaymentData).update(member.id, {
+      method: newMethod
+    });
   }
 
-  async cancelContribution(member: Member): Promise<void> {
-    await this.provider(member, (p) => p.cancelContribution(member));
+  async cancelContribution(member: Member, keepMandate = false): Promise<void> {
+    log.info("Cancel contribution for " + member.id);
+    await this.provider(member, (p) => p.cancelContribution(keepMandate));
   }
 
   async permanentlyDeleteMember(member: Member): Promise<void> {
-    await this.provider(member, (p) => p.permanentlyDeleteMember(member));
+    await this.provider(member, (p) => p.permanentlyDeleteMember());
   }
 }
 

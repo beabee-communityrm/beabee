@@ -40,12 +40,21 @@ export enum PaymentMethod {
   DirectDebit = "direct-debit"
 }
 
-export interface PaymentSource {
+export interface DirectDebitPaymentSource {
   type: PaymentMethod.DirectDebit;
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;
 }
+
+export interface CardPaymentSource {
+  type: PaymentMethod.Card;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+}
+
+export type PaymentSource = DirectDebitPaymentSource | CardPaymentSource;
 
 export function getActualAmount(
   amount: number,

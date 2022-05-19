@@ -94,6 +94,8 @@ class MembersService {
       });
       await getRepository(MemberProfile).save(member.profile);
 
+      await PaymentService.createMember(member);
+
       if (opts.sync) {
         await NewsletterService.upsertMember(member);
       }

@@ -1,42 +1,54 @@
+import { getRepository } from "typeorm";
+
 import { ContributionInfo, PaymentForm } from "@core/utils";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import Member from "@models/Member";
 import Payment from "@models/Payment";
+import PaymentData, { PaymentProviderData } from "@models/PaymentData";
 
-export interface UpdateContributionData {
+export interface UpdateContributionResult {
   startNow: boolean;
   expiryDate: Date;
 }
 
-export interface PaymentProvider {
-  hasPendingPayment(member: Member): Promise<boolean>;
+export abstract class PaymentProvider<T extends PaymentProviderData> {
+  protected readonly data: T;
+  protected readonly member: Member;
 
-  canChangeContribution(
-    member: Member,
-    useExistingMandate: boolean
-  ): Promise<boolean>;
+  constructor(data: PaymentData) {
+    this.data = data.data as T;
+    this.member = data.member;
+  }
 
-  cancelContribution(member: Member): Promise<void>;
+  protected async updateData() {
+    await getRepository(PaymentData).update(this.member.id, {
+      data: this.data
+    });
+  }
 
-  getContributionInfo(
-    member: Member
-  ): Promise<Partial<ContributionInfo> | undefined>;
+  abstract hasPendingPayment(): Promise<boolean>;
 
-  getPayments(member: Member): Promise<Payment[]>;
+  abstract canChangeContribution(useExistingMandate: boolean): Promise<boolean>;
 
-  updateMember(member: Member, updates: Partial<Member>): Promise<void>;
+  abstract cancelContribution(keepMandate: boolean): Promise<void>;
 
-  updateContribution(
-    member: Member,
+  abstract getContributionInfo(): Promise<
+    Partial<ContributionInfo> | undefined
+  >;
+
+  abstract getPayments(): Promise<Payment[]>;
+
+  abstract updateMember(updates: Partial<Member>): Promise<void>;
+
+  abstract updateContribution(
     paymentForm: PaymentForm
-  ): Promise<UpdateContributionData>;
+  ): Promise<UpdateContributionResult>;
 
-  updatePaymentSource(
-    member: Member,
+  abstract updatePaymentSource(
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void>;
 
-  permanentlyDeleteMember(member: Member): Promise<void>;
+  abstract permanentlyDeleteMember(): Promise<void>;
 }

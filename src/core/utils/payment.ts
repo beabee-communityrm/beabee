@@ -10,8 +10,7 @@ import {
 } from "date-fns";
 import { ContributionPeriod, ContributionType } from ".";
 
-export function calcRenewalDate(user: Member): Date {
-  const now = new Date();
+export function calcRenewalDate(user: Member): Date | undefined {
   if (user.membership?.isActive) {
     // Has an expiry date, just use that minus the grace period
     if (user.membership.dateExpires) {
@@ -20,6 +19,7 @@ export function calcRenewalDate(user: Member): Date {
 
     // Some special rules for upgrading non-expiring manual contributions
     if (user.contributionType === ContributionType.Manual) {
+      const now = new Date();
       // Annual contribution, calculate based on their start date
       if (user.contributionPeriod === ContributionPeriod.Annually) {
         const thisYear = getYear(now);
@@ -34,10 +34,11 @@ export function calcRenewalDate(user: Member): Date {
       }
     }
   }
-
-  return now;
 }
 
 export function calcMonthsLeft(user: Member): number {
-  return Math.max(0, differenceInMonths(calcRenewalDate(user), new Date()));
+  const renewalDate = calcRenewalDate(user);
+  return renewalDate
+    ? Math.max(0, differenceInMonths(renewalDate, new Date()))
+    : 0;
 }
