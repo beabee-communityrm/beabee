@@ -52,14 +52,10 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
 
     return {
       payFee: !!this.data.payFee,
-      hasPendingPayment: await this.hasPendingPayment(),
+      // TODO hasPendingPayment: await this.hasPendingPayment(),
       ...(paymentSource && { paymentSource }),
       ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt })
     };
-  }
-
-  async hasPendingPayment(): Promise<boolean> {
-    return false; // TODO
   }
 
   async cancelContribution(keepMandate: boolean): Promise<void> {
