@@ -242,6 +242,8 @@ class MembersService {
       paymentForm
     );
 
+    log.info("Updated contribution", { startNow, expiryDate });
+
     await this.updateMember(member, {
       contributionType: ContributionType.Automatic,
       contributionPeriod: paymentForm.period,

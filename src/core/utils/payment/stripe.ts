@@ -53,7 +53,7 @@ export async function updateSubscription(
 ): Promise<{ subscription: Stripe.Subscription; startNow: boolean }> {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-  const renewalDate = new Date(subscription.current_period_end);
+  const renewalDate = new Date(subscription.current_period_end * 1000);
   const monthsLeft = Math.max(0, differenceInMonths(renewalDate, new Date()));
   const prorationDate = subMonths(renewalDate, monthsLeft);
 

@@ -158,7 +158,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     }
 
     await PaymentService.updatePaymentSource(member, completedFlow);
-    await PaymentService.updateContribution(member, joinFlow.joinForm);
+    await MembersService.updateMemberContribution(member, joinFlow.joinForm);
 
     await EmailService.sendTemplateToMember("welcome", member);
 
