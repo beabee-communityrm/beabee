@@ -100,11 +100,14 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     if (this.data.subscriptionId) {
       if (this.member.membership?.isActive) {
-        log.info("Updating subscription");
-        await updateSubscription(this.data.subscriptionId, paymentForm);
+        if (
+          this.member.contributionMonthlyAmount !== paymentForm.monthlyAmount ||
+          this.data.payFee !== paymentForm.payFee
+        ) {
+          await updateSubscription(this.data.subscriptionId, paymentForm);
+        }
       } else {
-        log.info("Cancelling previous subscription");
-        // Cancel failed subscriptions, we'll try again
+        // Cancel failed subscriptions, we'll try a new one
         await this.cancelContribution(true);
         // This happens in cancelContribution anyway, just here for clarity
         this.data.subscriptionId = null;
