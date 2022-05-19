@@ -1,3 +1,4 @@
+import { add } from "date-fns";
 import Stripe from "stripe";
 
 import { PaymentProvider, UpdateContributionResult } from ".";
@@ -11,7 +12,7 @@ import {
   PaymentMethod,
   PaymentSource
 } from "@core/utils";
-import { calcMonthsLeft, calcRenewalDate } from "@core/utils/payment";
+import { calcRenewalDate } from "@core/utils/payment";
 import {
   createSubscription,
   updateSubscription
@@ -22,6 +23,8 @@ import Payment from "@models/Payment";
 import { StripePaymentData } from "@models/PaymentData";
 
 import NoPaymentSource from "@api/errors/NoPaymentSource";
+
+import config from "@config";
 
 const log = mainLogger.child({ app: "stripe-payment-provider" });
 
@@ -146,7 +149,10 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
 
     return {
       startNow,
-      expiryDate: new Date(subscription.current_period_end)
+      expiryDate: add(
+        new Date(subscription.current_period_end),
+        config.gracePeriod
+      )
     };
   }
 
