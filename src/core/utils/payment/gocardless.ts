@@ -6,19 +6,16 @@ import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
 import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
 
-import GCPayment from "@models/GCPayment";
-
 import config from "@config";
 
 const log = mainLogger.child({ app: "gc-utils" });
 
-function getChargeableAmount(
-  amount: number,
-  period: ContributionPeriod,
-  payFee: boolean
-): number {
-  const actualAmount = getActualAmount(amount, period);
-  const chargeableAmount = payFee
+function getChargeableAmount(paymentForm: PaymentForm): number {
+  const actualAmount = getActualAmount(
+    paymentForm.monthlyAmount,
+    paymentForm.period
+  );
+  const chargeableAmount = paymentForm.payFee
     ? Math.floor((actualAmount / 0.99) * 100) + 20
     : actualAmount * 100;
   return Math.round(chargeableAmount); // TODO: fix this properly
@@ -55,10 +52,11 @@ export async function createSubscription(
   _startDate?: Date
 ): Promise<string> {
   let startDate = _startDate && format(_startDate, "yyyy-MM-dd");
-
+  const chargeableAmount = getChargeableAmount(paymentForm);
   log.info("Create subscription for " + mandateId, {
     paymentForm,
-    startDate
+    startDate,
+    chargeableAmount
   });
 
   if (startDate) {
@@ -70,11 +68,7 @@ export async function createSubscription(
   }
 
   const subscription = await gocardless.subscriptions.create({
-    amount: getChargeableAmount(
-      paymentForm.monthlyAmount,
-      paymentForm.period,
-      paymentForm.payFee
-    ).toString(),
+    amount: chargeableAmount.toString(),
     currency: config.currencyCode.toUpperCase(),
     interval_unit:
       paymentForm.period === ContributionPeriod.Annually
@@ -94,11 +88,7 @@ export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm
 ) {
-  const chargeableAmount = getChargeableAmount(
-    paymentForm.monthlyAmount,
-    paymentForm.period,
-    paymentForm.payFee
-  );
+  const chargeableAmount = getChargeableAmount(paymentForm);
 
   log.info(
     `Update subscription amount for ${subscriptionId} to ${chargeableAmount}`
