@@ -1,14 +1,10 @@
-import { format } from "date-fns";
+import { differenceInMonths, format } from "date-fns";
 import { SubscriptionIntervalUnit, PaymentCurrency } from "gocardless-nodejs";
 import moment from "moment";
 
 import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
-
-import Member from "@models/Member";
-
 import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
-import { calcMonthsLeft } from "@core/utils/payment";
 
 import config from "@config";
 
@@ -85,18 +81,17 @@ export async function createSubscription(
 }
 
 export async function updateSubscription(
-  member: Member,
   subscriptionId: string,
   paymentForm: PaymentForm
 ) {
   const chargeableAmount = getChargeableAmount(
     paymentForm.monthlyAmount,
-    member.contributionPeriod!, // TODO: clean assertion
+    paymentForm.period,
     paymentForm.payFee
   );
 
   log.info(
-    `Update subscription amount for ${member.id} to ${chargeableAmount}`
+    `Update subscription amount for ${subscriptionId} to ${chargeableAmount}`
   );
 
   await gocardless.subscriptions.update(subscriptionId, {
@@ -105,17 +100,17 @@ export async function updateSubscription(
 }
 
 export async function prorateSubscription(
-  member: Member,
   mandateId: string,
-  paymentForm: PaymentForm
+  renewalDate: Date,
+  paymentForm: PaymentForm,
+  lastMonthlyAmount: number
 ): Promise<boolean> {
-  const monthsLeft = calcMonthsLeft(member);
+  const monthsLeft = Math.max(0, differenceInMonths(renewalDate, new Date()));
   const prorateAmount =
-    (paymentForm.monthlyAmount - (member.contributionMonthlyAmount || 0)) *
-    monthsLeft;
+    (paymentForm.monthlyAmount - lastMonthlyAmount) * monthsLeft;
 
-  log.info("Prorate subscription for " + member.id, {
-    userId: member.id,
+  log.info("Prorate subscription for " + mandateId, {
+    lastMonthlyAmount,
     paymentForm,
     monthsLeft,
     prorateAmount

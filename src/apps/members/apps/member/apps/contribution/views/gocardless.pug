@@ -26,6 +26,7 @@ block contents
 						value: member.contributionMonthlyAmount
 					})
 					if !!paymentData.subscriptionId
+						input(type='hidden' name='period' value=member.contributionPeriod)
 						.form-group
 							label.col-md-3.control-label Period
 							.col-md-4.form-control-static= member.contributionPeriod

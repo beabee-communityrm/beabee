@@ -97,70 +97,36 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     if (this.data.subscriptionId) {
       if (this.member.membership?.isActive) {
-        await updateSubscription(
-          this.member,
-          this.data.subscriptionId,
-          paymentForm
-        );
+        log.info("Updating subscription");
+        await updateSubscription(this.data.subscriptionId, paymentForm);
       } else {
+        log.info("Cancelling previous subscription");
+        // Cancel failed subscriptions, we'll try again
         await this.cancelContribution(true);
+        // This happens in cancelContribution anyway, just here for clarity
+        this.data.subscriptionId = null;
       }
     }
 
+    const renewalDate = calcRenewalDate(this.member);
+
     if (!this.data.subscriptionId) {
+      log.info("Creating new subscription");
       this.data.subscriptionId = await createSubscription(
         this.data.mandateId,
         paymentForm,
-        calcRenewalDate(this.member)
+        renewalDate
       );
     }
 
-    const startNow = await prorateSubscription(
-      this.member,
-      this.data.mandateId,
-      paymentForm
-    );
-
-    /*
-    let startNow;
-    
-    if (this.member.membership?.isActive) {
-      if (this.data.subscriptionId) {
-        // Only update if there is a change
-        if (
-          paymentForm.monthlyAmount !== this.member.contributionMonthlyAmount ||
-          paymentForm.payFee !== this.data.payFee
-        ) {
-          await updateSubscription(
-            this.member,
-            this.data.subscriptionId,
-            paymentForm
-          );
-        }
-      } else {
-        this.data.subscriptionId = await createSubscription(
-          this.data.mandateId,
-          paymentForm,
-          calcRenewalDate(this.member)
-        );
-      }
-
-      startNow = await prorateSubscription(
-        this.member,
+    const startNow =
+      !renewalDate ||
+      (await prorateSubscription(
         this.data.mandateId,
-        paymentForm
-      );
-    } else {
-      if (this.data.subscriptionId) {
-        await this.cancelContribution(true);
-      }
-
-      this.data.subscriptionId = await createSubscription(
-        this.data.mandateId,
-        paymentForm
-      );
-      startNow = true;
-    }*/
+        renewalDate,
+        paymentForm,
+        this.member.contributionMonthlyAmount || 0
+      ));
 
     const expiryDate = await getNextChargeDate(this.data.subscriptionId);
 
@@ -172,6 +138,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     });
 
     this.data.payFee = paymentForm.payFee;
+
     await this.updateData();
 
     return { startNow, expiryDate };
