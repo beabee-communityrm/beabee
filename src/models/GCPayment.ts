@@ -1,17 +1,13 @@
 import { Column, Entity } from "typeorm";
 import { ContributionPeriod } from "@core/utils";
+import {
+  pendingStatuses,
+  successStatuses
+} from "@core/utils/payment/gocardless";
 import Payment from "./Payment";
 
 @Entity()
 export default class GCPayment extends Payment {
-  static readonly pendingStatuses = [
-    "pending_customer_approval",
-    "pending_submission",
-    "submitted"
-  ];
-
-  static readonly successStatuses = ["confirmed", "paid_out"];
-
   @Column({ unique: true })
   paymentId!: string;
 
@@ -25,10 +21,10 @@ export default class GCPayment extends Payment {
   status!: string;
 
   get isPending(): boolean {
-    return GCPayment.pendingStatuses.indexOf(this.status) > -1;
+    return pendingStatuses.indexOf(this.status) > -1;
   }
 
   get isSuccessful(): boolean {
-    return GCPayment.successStatuses.indexOf(this.status) > -1;
+    return successStatuses.indexOf(this.status) > -1;
   }
 }

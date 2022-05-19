@@ -66,10 +66,6 @@ class PaymentService {
     return def;
   }
 
-  async hasPendingPayment(member: Member): Promise<boolean> {
-    return await this.provider(member, (p) => p.hasPendingPayment(), false);
-  }
-
   async canChangeContribution(
     member: Member,
     useExistingPaymentSource: boolean

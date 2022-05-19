@@ -28,8 +28,6 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
     });
   }
 
-  abstract hasPendingPayment(): Promise<boolean>;
-
   abstract canChangeContribution(useExistingMandate: boolean): Promise<boolean>;
 
   abstract cancelContribution(keepMandate: boolean): Promise<void>;

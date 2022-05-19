@@ -12,7 +12,8 @@ import {
   updateSubscription,
   createSubscription,
   prorateSubscription,
-  getNextChargeDate
+  getNextChargeDate,
+  hasPendingPayment
 } from "@core/utils/payment/gocardless";
 import { calcRenewalDate } from "@core/utils/payment";
 
@@ -33,6 +34,7 @@ const log = mainLogger.child({ app: "gc-payment-provider" });
 export default class GCProvider extends PaymentProvider<GCPaymentData> {
   async getContributionInfo(): Promise<Partial<ContributionInfo> | undefined> {
     let paymentSource: PaymentSource | undefined;
+    let pendingPayment = false;
 
     if (this.data.mandateId) {
       try {
@@ -47,6 +49,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
           accountHolderName: bankAccount.account_holder_name,
           accountNumberEnding: bankAccount.account_number_ending
         };
+        pendingPayment = await hasPendingPayment(this.data.mandateId);
       } catch (err: any) {
         // 404s can happen on dev as we don't use real mandate IDs
         if (!(config.dev && err.response && err.response.status === 404)) {
@@ -57,7 +60,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     return {
       payFee: this.data.payFee || false,
-      hasPendingPayment: await this.hasPendingPayment(),
+      hasPendingPayment: pendingPayment,
       ...(paymentSource && { paymentSource }),
       ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt })
     };
@@ -79,7 +82,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     // result in double charging
     return (
       (useExistingMandate && this.member.contributionPeriod === "monthly") ||
-      !(await this.hasPendingPayment())
+      !(this.data.mandateId && (await hasPendingPayment(this.data.mandateId)))
     );
   }
 
@@ -176,19 +179,19 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     });
 
     const hadSubscription = !!this.data.subscriptionId;
+    const mandateId = this.data.mandateId;
 
     this.data.subscriptionId = null;
-
-    if (this.data.mandateId) {
-      // Remove subscription before cancelling mandate to stop the webhook triggering a cancelled email
-      await this.updateData();
-      // TODO: removed the removing?!
-    }
-
     this.data.customerId = completedPaymentFlow.customerId;
     this.data.mandateId = completedPaymentFlow.mandateId;
 
+    // Save before cancelling mandate to stop the webhook triggering a cancelled email
     await this.updateData();
+
+    if (mandateId) {
+      // This will also cancel the subscription
+      await gocardless.mandates.cancel(this.data.mandateId);
+    }
 
     if (
       hadSubscription &&
@@ -202,21 +205,6 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
         prorate: false
       });
     }
-  }
-
-  async hasPendingPayment(): Promise<boolean> {
-    for (const status of GCPayment.pendingStatuses) {
-      const payments = await gocardless.payments.list({
-        limit: 1,
-        status,
-        mandate: this.data.mandateId
-      });
-      if (payments.length > 0) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   async getPayments(): Promise<Payment[]> {

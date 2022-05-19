@@ -6,6 +6,8 @@ import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
 import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
 
+import GCPayment from "@models/GCPayment";
+
 import config from "@config";
 
 const log = mainLogger.child({ app: "gc-utils" });
@@ -21,6 +23,14 @@ function getChargeableAmount(
     : actualAmount * 100;
   return Math.round(chargeableAmount); // TODO: fix this properly
 }
+
+export const pendingStatuses = [
+  "pending_customer_approval",
+  "pending_submission",
+  "submitted"
+];
+
+export const successStatuses = ["confirmed", "paid_out"];
 
 export async function getNextChargeDate(subscriptionId: string): Promise<Date> {
   const subscription = await gocardless.subscriptions.get(subscriptionId);
@@ -129,6 +139,21 @@ export async function prorateSubscription(
           mandate: mandateId
         }
       });
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export async function hasPendingPayment(mandateId: string): Promise<boolean> {
+  for (const status of pendingStatuses) {
+    const payments = await gocardless.payments.list({
+      limit: 1,
+      status,
+      mandate: mandateId
+    });
+    if (payments.length > 0) {
       return true;
     }
   }
