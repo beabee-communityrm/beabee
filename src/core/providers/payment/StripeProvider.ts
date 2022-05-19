@@ -112,15 +112,17 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     }
 
     let subscription: Stripe.Subscription | undefined;
+    let startNow = true;
 
     if (this.data.subscriptionId) {
       if (this.member.membership?.isActive) {
         log.info("Update subscription");
-        subscription = await updateSubscription(
-          this.member,
+        const result = await updateSubscription(
           this.data.subscriptionId,
           paymentForm
         );
+        subscription = result.subscription;
+        startNow = result.startNow;
       } else {
         await this.cancelContribution(true);
         // This happens in cancelContribution anyway but is here for clarity
@@ -143,8 +145,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     await this.updateData();
 
     return {
-      // TODO
-      startNow: calcMonthsLeft(this.member) === 0 || paymentForm.prorate,
+      startNow,
       expiryDate: new Date(subscription.current_period_end)
     };
   }
