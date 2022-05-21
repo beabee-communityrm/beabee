@@ -252,8 +252,7 @@ export class MemberController {
       period: ContributionPeriod.Annually,
       monthlyAmount: 0,
       payFee: false,
-      prorate: false,
-      paymentMethod: PaymentMethod.DirectDebit
+      prorate: false
     });
   }
 
@@ -280,8 +279,7 @@ export class MemberController {
         monthlyAmount: data.monthlyAmount,
         // TODO: unnecessary, should be optional
         password: await generatePassword(""),
-        email: "",
-        paymentMethod: PaymentMethod.DirectDebit
+        email: ""
       },
       {
         confirmUrl: "",
