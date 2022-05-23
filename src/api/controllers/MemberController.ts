@@ -23,14 +23,11 @@ import PaymentFlowService from "@core/services/PaymentFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
-import {
-  ContributionInfo,
-  ContributionPeriod,
-  PaymentMethod
-} from "@core/utils";
+import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import GCPayment from "@models/GCPayment";
+import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 
@@ -294,7 +291,7 @@ export class MemberController {
   private async handleCompleteUpdatePaymentSource(
     target: Member,
     data: CompleteJoinFlowData
-  ) {
+  ): Promise<JoinFlow> {
     if (!(await PaymentService.canChangeContribution(target, false))) {
       throw new CantUpdateContribution();
     }

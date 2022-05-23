@@ -33,7 +33,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     throw new Error("Method not implemented.");
   }
   async canChangeContribution(useExistingMandate: boolean): Promise<boolean> {
-    return true;
+    return !useExistingMandate || !!this.data.mandateId;
   }
 
   async getContributionInfo(): Promise<Partial<ContributionInfo> | undefined> {
@@ -101,7 +101,11 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       this.data.customerId = customer.id;
     }
 
-    // TODO: cancel old paymentMethod?
+    if (this.data.mandateId) {
+      log.info("Detach old payment method " + this.data.mandateId);
+      await stripe.paymentMethods.detach(this.data.mandateId);
+    }
+
     this.data.mandateId = completedPaymentFlow.mandateId;
 
     await this.updateData();
