@@ -25,7 +25,8 @@ function shouldUpdate(updates: Partial<Member>): boolean {
     updates.referralCode ||
     updates.pollsCode ||
     updates.contributionPeriod ||
-    updates.contributionMonthlyAmount
+    updates.contributionMonthlyAmount ||
+    updates.contributionChanged
   );
 }
 
@@ -51,7 +52,8 @@ async function memberToNlUpdate(
         POLLSCODE: member.pollsCode || "",
         C_DESC: member.contributionDescription,
         C_MNTHAMT: member.contributionMonthlyAmount?.toString() || "",
-        C_PERIOD: member.contributionPeriod || ""
+        C_PERIOD: member.contributionPeriod || "",
+        C_CHANGED: member.contributionChanged?.toISOString() || ""
       }
     };
   }
