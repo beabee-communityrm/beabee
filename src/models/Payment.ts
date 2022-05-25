@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  Entity,
   ManyToOne,
   PrimaryColumn,
   UpdateDateColumn
@@ -14,6 +15,7 @@ export enum PaymentStatus {
   Cancelled = "cancelled"
 }
 
+@Entity()
 export default class Payment {
   @PrimaryColumn()
   id!: string;
