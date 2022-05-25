@@ -83,7 +83,7 @@ const memberEmailTemplates = {
     MESSAGE: params.message,
     ACTIVATELINK: config.audience + "/gift/" + params.giftCode
   }),
-  "manual-to-gocardless": () => ({}),
+  "manual-to-automatic": () => ({}),
   "email-exists-login": (member: Member, params: { loginLink: string }) => ({
     LOGINLINK: params.loginLink
   }),

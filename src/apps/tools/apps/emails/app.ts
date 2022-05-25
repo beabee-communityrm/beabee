@@ -42,7 +42,7 @@ const assignableSystemEmails = {
   "cancelled-contribution": "Cancelled contribution",
   "cancelled-contribution-no-survey": "Cancelled contribution - no survey",
   "confirm-email": "Confirm email",
-  "manual-to-gocardless": "Manual contributor converted to GoCardless",
+  "manual-to-automatic": "Manual contributor converted to automatic",
   "email-exists-login": "Email exists - login",
   "email-exists-set-password": "Email exists - set password"
 };

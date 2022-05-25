@@ -153,7 +153,7 @@ class PaymentService {
 
         if (wasManual) {
           await EmailService.sendTemplateToMember(
-            "manual-to-gocardless",
+            "manual-to-automatic",
             member
           );
         }
