@@ -35,7 +35,7 @@ app.use(
     });
     if (member) {
       req.model = member;
-      res.locals.paymentData = await PaymentService.getPaymentData(member);
+      res.locals.paymentData = await PaymentService.getData(member);
       next();
     } else {
       next("route");

@@ -36,8 +36,6 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
     Partial<ContributionInfo> | undefined
   >;
 
-  abstract getPayments(): Promise<Payment[]>;
-
   abstract updateMember(updates: Partial<Member>): Promise<void>;
 
   abstract updateContribution(

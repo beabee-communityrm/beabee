@@ -1,10 +1,17 @@
 import { differenceInMonths, format } from "date-fns";
-import { SubscriptionIntervalUnit, PaymentCurrency } from "gocardless-nodejs";
+import {
+  SubscriptionIntervalUnit,
+  PaymentCurrency,
+  Subscription,
+  PaymentStatus as GCPaymentStatus
+} from "gocardless-nodejs";
 import moment from "moment";
 
 import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
 import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
+
+import { PaymentStatus } from "@models/Payment";
 
 import config from "@config";
 
@@ -20,14 +27,6 @@ function getChargeableAmount(paymentForm: PaymentForm): number {
     : actualAmount * 100;
   return Math.round(chargeableAmount); // TODO: fix this properly
 }
-
-export const pendingStatuses = [
-  "pending_customer_approval",
-  "pending_submission",
-  "submitted"
-];
-
-export const successStatuses = ["confirmed", "paid_out"];
 
 export async function getNextChargeDate(subscriptionId: string): Promise<Date> {
   const subscription = await gocardless.subscriptions.get(subscriptionId);
@@ -137,7 +136,11 @@ export async function prorateSubscription(
 }
 
 export async function hasPendingPayment(mandateId: string): Promise<boolean> {
-  for (const status of pendingStatuses) {
+  for (const status of [
+    GCPaymentStatus.PendingCustomerApproval,
+    GCPaymentStatus.PendingSubmission,
+    GCPaymentStatus.Submitted
+  ]) {
     const payments = await gocardless.payments.list({
       limit: 1,
       status,
@@ -149,4 +152,70 @@ export async function hasPendingPayment(mandateId: string): Promise<boolean> {
   }
 
   return false;
+}
+
+// export async function calcSubscriptionExpiryDate(
+//   subscriptionId: string,
+//   fromDate: string
+// ): Promise<Date> {
+//   const subscription = await gocardless.subscriptions.get(subscriptionId);
+//   return subscription.upcoming_payments.length > 0
+//     ? moment
+//         .utc(subscription.upcoming_payments[0].charge_date)
+//         .add(config.gracePeriod)
+//         .toDate()
+//     : moment.utc(fromDate).add(getSubscriptionDuration(subscription)).toDate();
+// }
+
+// export function getSubscriptionDuration({
+//   interval,
+//   interval_unit
+// }: Subscription) {
+//   const unit =
+//     interval_unit === "weekly"
+//       ? "weeks"
+//       : interval_unit === "monthly"
+//       ? "months"
+//       : "years";
+//   return moment.duration({ [unit]: Number(interval) });
+// }
+
+// export function getSubscriptionPeriod(
+//   subscription: Subscription
+// ): ContributionPeriod | null {
+//   const interval = Number(subscription.interval);
+//   const intervalUnit = subscription.interval_unit;
+//   if (
+//     (interval === 12 && intervalUnit === SubscriptionIntervalUnit.Monthly) ||
+//     (interval === 1 && intervalUnit === SubscriptionIntervalUnit.Yearly)
+//   )
+//     return ContributionPeriod.Annually;
+//   if (interval === 1 && intervalUnit === "monthly")
+//     return ContributionPeriod.Monthly;
+
+//   log.error(
+//     `Unrecognised subscription period interval: ${interval} unit:${intervalUnit}`
+//   );
+//   return null;
+// }
+
+export function convertStatus(status: GCPaymentStatus): PaymentStatus {
+  switch (status) {
+    case GCPaymentStatus.PendingCustomerApproval:
+    case GCPaymentStatus.PendingSubmission:
+    case GCPaymentStatus.Submitted:
+      return PaymentStatus.Pending;
+
+    case GCPaymentStatus.Confirmed:
+    case GCPaymentStatus.PaidOut:
+      return PaymentStatus.Successful;
+
+    case GCPaymentStatus.Failed:
+    case GCPaymentStatus.CustomerApprovalDenied:
+      return PaymentStatus.Failed;
+
+    case GCPaymentStatus.Cancelled:
+    case GCPaymentStatus.ChargedBack:
+      return PaymentStatus.Cancelled;
+  }
 }

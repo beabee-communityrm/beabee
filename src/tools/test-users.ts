@@ -12,9 +12,9 @@ import {
 
 import config from "@config";
 
-import GCPayment from "@models/GCPayment";
-import GCPaymentData from "@models/GCPaymentData";
+import Payment, { PaymentStatus } from "@models/Payment";
 import Member from "@models/Member";
+import PaymentData from "@models/PaymentData";
 
 async function logMember(type: string, conditions: Brackets[]) {
   const qb = createQueryBuilder(Member, "m")
@@ -70,29 +70,29 @@ async function getFilters() {
 
   const hasScheduledPayments = createQueryBuilder()
     .subQuery()
-    .select("gc.memberId")
-    .from(GCPayment, "gc")
-    .where("gc.status = 'pending_submission'");
+    .select("p.memberId")
+    .from(Payment, "p")
+    .where("p.status = :status", { status: PaymentStatus.Pending });
   const hasFailedPayments = createQueryBuilder()
     .subQuery()
-    .select("gc.memberId")
-    .from(GCPayment, "gc")
-    .where("gc.status = 'failed'");
+    .select("p.memberId")
+    .from(Payment, "p")
+    .where("p.status = 'failed'", { status: PaymentStatus.Failed });
   const hasSubscription = createQueryBuilder()
     .subQuery()
-    .select("gc.memberId")
-    .from(GCPaymentData, "gc")
-    .where("gc.subscriptionId IS NOT NULL");
+    .select("pd.memberId")
+    .from(PaymentData, "p")
+    .where("pd.subscriptionId IS NOT NULL");
   const hasCancelled = createQueryBuilder()
     .subQuery()
-    .select("gc.memberId")
-    .from(GCPaymentData, "gc")
-    .where("gc.cancelledAt IS NOT NULL");
+    .select("pd.memberId")
+    .from(PaymentData, "md")
+    .where("md.cancelledAt IS NOT NULL");
   const isPayingFee = createQueryBuilder()
     .subQuery()
-    .select("gc.memberId")
-    .from(GCPaymentData, "gc")
-    .where("gc.payFee = TRUE");
+    .select("md.memberId")
+    .from(PaymentData, "md")
+    .where("md.payFee = TRUE");
 
   return {
     isActive: new Brackets((qb) =>

@@ -1,5 +1,3 @@
-import { getRepository } from "typeorm";
-
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
@@ -20,9 +18,7 @@ import { calcRenewalDate } from "@core/utils/payment";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
-import GCPayment from "@models/GCPayment";
 import Member from "@models/Member";
-import Payment from "@models/Payment";
 import { GCPaymentData } from "@models/PaymentData";
 
 import NoPaymentSource from "@api/errors/NoPaymentSource";
@@ -210,13 +206,6 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     }
   }
 
-  async getPayments(): Promise<Payment[]> {
-    return await getRepository(GCPayment).find({
-      where: { member: this.member.id },
-      order: { chargeDate: "DESC" }
-    });
-  }
-
   async updateMember(updates: Partial<Member>): Promise<void> {
     if (
       (updates.email || updates.firstname || updates.lastname) &&
@@ -231,7 +220,6 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     }
   }
   async permanentlyDeleteMember(): Promise<void> {
-    await getRepository(GCPayment).delete({ member: this.member });
     if (this.data.mandateId) {
       await gocardless.mandates.cancel(this.data.mandateId);
     }

@@ -26,10 +26,10 @@ import PaymentService from "@core/services/PaymentService";
 import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
-import GCPayment from "@models/GCPayment";
 import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
+import Payment from "@models/Payment";
 
 import { UUIDParam } from "@api/data";
 import {
@@ -226,7 +226,7 @@ export class MemberController {
     const targetQuery = mergeRules(query, [
       { field: "member", operator: "equal", value: target.id }
     ]);
-    const data = await fetchPaginated(GCPayment, targetQuery);
+    const data = await fetchPaginated(Payment, targetQuery);
     return {
       ...data,
       items: data.items.map((item) => ({

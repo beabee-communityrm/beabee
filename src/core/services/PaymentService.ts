@@ -1,4 +1,4 @@
-import { getRepository } from "typeorm";
+import { createQueryBuilder, getRepository } from "typeorm";
 
 import {
   ContributionType,
@@ -32,15 +32,34 @@ const PaymentProviders = {
 };
 
 class PaymentService {
-  async getPaymentData(member: Member): Promise<PaymentData> {
-    const paymentData = await getRepository(PaymentData).findOneOrFail(
-      member.id
-    );
+  async getData(member: Member): Promise<PaymentData> {
+    const data = await getRepository(PaymentData).findOneOrFail(member.id);
     // Load full member into data
     return {
-      ...paymentData,
+      ...data,
       member
     };
+  }
+
+  async getDataBy(
+    key: string,
+    value: string
+  ): Promise<PaymentData | undefined> {
+    const data = await createQueryBuilder(PaymentData, "pd")
+      .innerJoinAndSelect("pd.member", "m")
+      .where(`data->>:key = :value`, { key, value })
+      .getOne();
+
+    return data;
+  }
+
+  async updateDataBy(member: Member, key: string, value: unknown) {
+    await createQueryBuilder(PaymentData, "pd")
+      .update()
+      .set({ data: () => "jsonb_set(pd.data, :key, :value)" })
+      .where("pd.member = :id")
+      .setParameters({ key, value, id: member.id })
+      .execute();
   }
 
   private async provider<T>(
@@ -57,7 +76,7 @@ class PaymentService {
     fn: (provider: PaymentProvider<any>) => Promise<T>,
     def?: T
   ): Promise<T | void> {
-    const data = await this.getPaymentData(member);
+    const data = await this.getData(member);
     const Provider = data.method ? PaymentProviders[data.method] : undefined;
     if (Provider) {
       return await fn(new Provider(data));
@@ -124,7 +143,7 @@ class PaymentService {
   }
 
   async getPayments(member: Member): Promise<Payment[]> {
-    return await this.provider(member, (p) => p.getPayments(), []);
+    return await getRepository(Payment).find({ member });
   }
 
   async createMember(member: Member): Promise<void> {
@@ -175,7 +194,7 @@ class PaymentService {
     const newMethod = completedPaymentFlow.paymentMethod;
     // TODO: how to transition between methods?
 
-    const data = await this.getPaymentData(member);
+    const data = await this.getData(member);
     await new PaymentProviders[newMethod](data).updatePaymentSource(
       completedPaymentFlow
     );

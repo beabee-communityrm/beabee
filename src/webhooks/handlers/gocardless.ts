@@ -1,12 +1,20 @@
 import bodyParser from "body-parser";
 import express from "express";
-import { Event, EventResourceType } from "gocardless-nodejs/types/Types";
+import {
+  Event,
+  EventResourceType,
+  PaymentStatus
+} from "gocardless-nodejs/types/Types";
 
 import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
 import { wrapAsync } from "@core/utils";
-
-import GCPaymentWebhookService from "../services/GCPaymentWebhookService";
+import {
+  updatePaymentStatus,
+  updatePayment,
+  cancelSubscription,
+  cancelMandate
+} from "../utils/gocardless";
 
 const log = mainLogger.child({ app: "webhook-gocardless" });
 
@@ -72,16 +80,10 @@ async function handlePaymentResourceEvent(event: Event) {
   // related payment to check it hasn't changed, but if we do that we get rate
   // limited. It seems like we can pretty safely assume paid out payments
   // haven't changed though.
-  if (event.action === "paid_out") {
-    await GCPaymentWebhookService.updatePaymentStatus(
-      event.links.payment,
-      "paid_out"
-    );
+  if (event.action === PaymentStatus.PaidOut) {
+    await updatePaymentStatus(event.links.payment, PaymentStatus.PaidOut);
   } else {
-    await GCPaymentWebhookService.updatePayment(
-      event.links.payment,
-      event.action === "confirmed"
-    );
+    await updatePayment(event.links.payment, event.action === "confirmed");
   }
 }
 
@@ -96,9 +98,7 @@ async function handleSubscriptionResourceEvent(event: Event) {
     case "customer_approval_denied":
     case "cancelled":
     case "finished":
-      await GCPaymentWebhookService.cancelSubscription(
-        event.links.subscription
-      );
+      await cancelSubscription(event.links.subscription);
       break;
   }
 }
@@ -123,14 +123,14 @@ async function handleMandateResourceEvent(event: Event) {
     case "failed":
     case "expired":
       // Remove the mandate from the database
-      await GCPaymentWebhookService.cancelMandate(event.links.mandate);
+      await cancelMandate(event.links.mandate);
       break;
   }
 }
 
 async function handleRefundResourceEvent(event: Event) {
   const refund = await gocardless.refunds.get(event.links.refund);
-  await GCPaymentWebhookService.updatePayment(refund.links.payment);
+  await updatePayment(refund.links.payment);
 }
 
 export default app;

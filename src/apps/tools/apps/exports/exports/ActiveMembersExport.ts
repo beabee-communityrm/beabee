@@ -2,7 +2,7 @@ import { Brackets, createQueryBuilder, SelectQueryBuilder } from "typeorm";
 
 import { Param } from "@core/utils/params";
 
-import GCPaymentData from "@models/GCPaymentData";
+import PaymentData from "@models/PaymentData";
 import Member from "@models/Member";
 
 import BaseExport, { ExportResult } from "./BaseExport";
@@ -44,8 +44,8 @@ export default class ActiveMembersExport extends BaseExport<Member> {
 
     if (this.ex!.params?.hasActiveSubscription) {
       query
-        .innerJoin(GCPaymentData, "gc", "gc.memberId = m.memberId")
-        .andWhere("gc.subscriptionId IS NOT NULL");
+        .innerJoin(PaymentData, "pd", "pd.memberId = m.memberId")
+        .andWhere("pd.data ->> 'subscriptionId' IS NOT NULL");
     }
 
     return query;

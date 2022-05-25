@@ -8,9 +8,9 @@ import EmailService from "@core/services/EmailService";
 import PaymentService from "@core/services/PaymentService";
 import MembersService from "@core/services/MembersService";
 
-import GCPaymentData from "@models/GCPaymentData";
 import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
+import PaymentData from "@models/PaymentData";
 
 const app = express();
 
@@ -81,12 +81,14 @@ app.post(
           contributionPeriod: req.body.period
         });
         if (req.body.type === ContributionType.Automatic) {
-          await getRepository(GCPaymentData).save({
+          await getRepository(PaymentData).save({
             member,
-            customerId: req.body.customerId,
-            mandateId: req.body.mandateId,
-            subscriptionId: req.body.subscriptionId,
-            payFee: req.body.payFee === "true"
+            data: {
+              customerId: req.body.customerId,
+              mandateId: req.body.mandateId,
+              subscriptionId: req.body.subscriptionId,
+              payFee: req.body.payFee === "true"
+            }
           });
         } else if (req.body.type === ContributionType.Manual) {
           await getRepository(ManualPaymentData).save({

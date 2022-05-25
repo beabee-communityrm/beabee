@@ -29,9 +29,6 @@ import config from "@config";
 const log = mainLogger.child({ app: "stripe-payment-provider" });
 
 export default class StripeProvider extends PaymentProvider<StripePaymentData> {
-  async getPayments(): Promise<Payment[]> {
-    throw new Error("Method not implemented.");
-  }
   async canChangeContribution(useExistingMandate: boolean): Promise<boolean> {
     return !useExistingMandate || !!this.data.mandateId;
   }
