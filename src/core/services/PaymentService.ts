@@ -198,9 +198,8 @@ class PaymentService {
     const newMethod = completedPaymentFlow.paymentMethod;
     // TODO: how to transition between methods?
 
-    const data = await this.getData(member);
-    await new PaymentProviders[newMethod](data).updatePaymentSource(
-      completedPaymentFlow
+    await this.provider(member, (p) =>
+      p.updatePaymentSource(completedPaymentFlow)
     );
     await getRepository(PaymentData).update(member.id, {
       method: newMethod
