@@ -190,7 +190,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     if (mandateId) {
       // This will also cancel the subscription
-      await gocardless.mandates.cancel(this.data.mandateId);
+      await gocardless.mandates.cancel(mandateId);
     }
 
     if (
