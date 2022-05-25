@@ -145,6 +145,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
 
     this.data.subscriptionId = subscription.id;
     this.data.payFee = paymentForm.payFee;
+    this.data.cancelledAt = null;
 
     await this.updateData();
 

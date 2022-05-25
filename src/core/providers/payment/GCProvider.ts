@@ -140,6 +140,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     });
 
     this.data.payFee = paymentForm.payFee;
+    this.data.cancelledAt = null;
 
     await this.updateData();
 
