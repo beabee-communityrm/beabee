@@ -58,7 +58,11 @@ class PaymentService {
       .update()
       .set({ data: () => "jsonb_set(pd.data, :key, :value)" })
       .where("pd.member = :id")
-      .setParameters({ key, value, id: member.id })
+      .setParameters({
+        key: `{${key}}`,
+        value: JSON.stringify(value),
+        id: member.id
+      })
       .execute();
   }
 
