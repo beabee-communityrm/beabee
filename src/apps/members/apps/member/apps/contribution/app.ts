@@ -30,7 +30,7 @@ app.get(
 
       const total = successfulPayments.reduce((a, b) => a + b, 0);
 
-      res.render("gocardless", {
+      res.render("automatic", {
         member: req.model,
         canChange: await PaymentService.canChangeContribution(member, true),
         monthsLeft: calcMonthsLeft(member),

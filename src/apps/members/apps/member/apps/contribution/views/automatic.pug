@@ -106,10 +106,8 @@ block contents
 						tbody
 							each payment, p in payments
 								tr
-									td
-										a( href="https://manage.gocardless.com/payments/" + payment.paymentId ) #{ payment.paymentId }
-									td 
-										a( href="https://manage.gocardless.com/subscriptions/" + payment.subscriptionId ) #{ payment.subscriptionId }
+									td= payment.id
+									td= payment.subscriptionId
 									td #{ moment( payment.chargeDate ).format( 'DD/MM/YYYY' ) }
 									td #{ payment.description }
 									td: +paymentStatus(payment)

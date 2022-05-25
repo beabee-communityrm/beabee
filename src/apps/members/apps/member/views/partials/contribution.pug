@@ -13,6 +13,6 @@ dl.dl-horizontal
 				= currencySymbol + member.nextContributionAmount
 		case member.contributionType
 			when 'Automatic'
-				include gocardless.pug
+				include automatic.pug
 			when 'Manual'
 				include manual.pug
