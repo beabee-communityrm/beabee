@@ -2,9 +2,8 @@ import { differenceInMonths, format } from "date-fns";
 import {
   SubscriptionIntervalUnit,
   PaymentCurrency,
-  Subscription,
   PaymentStatus as GCPaymentStatus
-} from "gocardless-nodejs";
+} from "gocardless-nodejs/types/Types";
 import moment from "moment";
 
 import { log as mainLogger } from "@core/logging";
