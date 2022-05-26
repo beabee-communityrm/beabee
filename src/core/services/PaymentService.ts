@@ -1,19 +1,12 @@
 import { createQueryBuilder, getRepository } from "typeorm";
 
-import {
-  ContributionType,
-  ContributionInfo,
-  PaymentForm,
-  PaymentMethod
-} from "@core/utils";
+import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
 import { log as mainLogger } from "@core/logging";
 import { calcRenewalDate } from "@core/utils/payment";
 
 import Member from "@models/Member";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
-
-import EmailService from "@core/services/EmailService";
 
 import {
   PaymentProvider,
@@ -35,10 +28,7 @@ class PaymentService {
   async getData(member: Member): Promise<PaymentData> {
     const data = await getRepository(PaymentData).findOneOrFail(member.id);
     // Load full member into data
-    return {
-      ...data,
-      member
-    };
+    return { ...data, member };
   }
 
   async getDataBy(
@@ -114,14 +104,18 @@ class PaymentService {
       })
     };
 
-    const extraInfo = await this.getContributionExtraInfo(member);
+    const providerInfo = await this.provider(
+      member,
+      (p) => p.getContributionInfo(),
+      {}
+    );
 
-    const hsaCancelled = !!extraInfo?.cancellationDate;
+    const hsaCancelled = !!providerInfo?.cancellationDate;
     const renewalDate = !hsaCancelled && calcRenewalDate(member);
 
     return {
       ...basicInfo,
-      ...extraInfo,
+      ...providerInfo,
       ...(renewalDate && { renewalDate }),
       membershipStatus: member.membership
         ? member.membership.isActive
@@ -131,16 +125,6 @@ class PaymentService {
           : "expired"
         : "none"
     };
-  }
-
-  private async getContributionExtraInfo(
-    member: Member
-  ): Promise<Partial<ContributionInfo> | undefined> {
-    return await this.provider(
-      member,
-      (p) => p.getContributionInfo(),
-      undefined
-    );
   }
 
   async getPayments(member: Member): Promise<Payment[]> {
@@ -164,22 +148,7 @@ class PaymentService {
     log.info("Update contribution for " + member.id);
     return await this.provider(
       member,
-      async (p) => {
-        // At the moment the only possibility is to go from whatever contribution
-        // type the user was before to an automatic contribution
-        const wasManual = member.contributionType === ContributionType.Manual;
-
-        const ret = await p.updateContribution(paymentForm);
-
-        if (wasManual) {
-          await EmailService.sendTemplateToMember(
-            "manual-to-automatic",
-            member
-          );
-        }
-
-        return ret;
-      },
+      (p) => p.updateContribution(paymentForm),
       {
         startNow: true,
         expiryDate: new Date()

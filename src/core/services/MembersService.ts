@@ -15,6 +15,7 @@ import {
 } from "@core/utils";
 import { generateMemberCode } from "@core/utils/member";
 
+import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
@@ -235,6 +236,10 @@ class MembersService {
     member: Member,
     paymentForm: PaymentForm
   ): Promise<void> {
+    // At the moment the only possibility is to go from whatever contribution
+    // type the user was before to an automatic contribution
+    const wasManual = member.contributionType === ContributionType.Manual;
+
     const { startNow, expiryDate } = await PaymentService.updateContribution(
       member,
       paymentForm
@@ -251,6 +256,10 @@ class MembersService {
     });
 
     await this.extendMemberPermission(member, "member", expiryDate);
+
+    if (wasManual) {
+      await EmailService.sendTemplateToMember("manual-to-automatic", member);
+    }
   }
 
   async cancelMemberContribution(member: Member): Promise<void> {
