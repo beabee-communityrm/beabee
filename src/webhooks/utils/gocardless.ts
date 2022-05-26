@@ -40,11 +40,14 @@ export async function updatePayment(
   await getRepository(Payment).save(payment);
 
   if (isConfirmed) {
-    await confirmPayment(payment);
+    await confirmPayment(payment, gcPayment);
   }
 }
 
-async function confirmPayment(payment: Payment): Promise<void> {
+async function confirmPayment(
+  payment: Payment,
+  gcPayment: GCPayment
+): Promise<void> {
   log.info("Confirm payment " + payment.id, {
     paymentId: payment.id,
     memberId: payment.member?.id,
@@ -52,25 +55,41 @@ async function confirmPayment(payment: Payment): Promise<void> {
   });
 
   if (!payment.member || !payment.subscriptionId) {
-    log.info("Ignore confirm payment for " + payment.id);
+    log.info(
+      `Ignore confirm payment for ${payment.id}, not subscription related`
+    );
     return;
   }
 
-  const data = await PaymentService.getData(payment.member);
+  const gcData = (await PaymentService.getData(payment.member))
+    .data as GCPaymentData;
 
-  if (payment.amount === (data.data as GCPaymentData).nextAmount) {
-    await PaymentService.updateDataBy(payment.member, "nextAmount", null);
+  if (payment.subscriptionId !== gcData.subscriptionId) {
+    log.error("Mismatched subscription IDs for payment " + payment.id, {
+      ourSubscriptionId: payment.subscriptionId,
+      gcSubscriptionId: gcPayment.links.subscription
+    });
+    return;
+  }
+
+  // If there's a pending amount change we assume this confirms it.  Because we
+  // don't allow subscription changes while any payments are pending there can't
+  // be a pending payment for the previous amount
+  if (gcData.nextMonthlyAmount) {
+    await PaymentService.updateDataBy(
+      payment.member,
+      "nextMonthlyAmount",
+      null
+    );
     await MembersService.updateMember(payment.member, {
-      contributionMonthlyAmount: payment.member.nextContributionMonthlyAmount,
-      nextContributionMonthlyAmount: null
+      contributionMonthlyAmount: gcData.nextMonthlyAmount
     });
   }
 
-  const nextExpiryDate = await getNextChargeDate(payment.subscriptionId);
   await MembersService.extendMemberPermission(
     payment.member,
     "member",
-    nextExpiryDate
+    await getNextChargeDate(payment.subscriptionId)
   );
   // TODO: resubscribe to newsletter
 }
