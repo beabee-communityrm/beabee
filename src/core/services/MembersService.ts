@@ -66,10 +66,7 @@ class MembersService {
   }
 
   async createMember(
-    partialMember: Partial<Member> & {
-      email: string;
-      contributionType: ContributionType;
-    },
+    partialMember: Partial<Member> & Pick<Member, "email">,
     partialProfile: Partial<MemberProfile> = {},
     opts = { sync: true }
   ): Promise<Member> {
@@ -83,6 +80,7 @@ class MembersService {
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
         firstname: "",
         lastname: "",
+        contributionType: ContributionType.None,
         ...partialMember,
         email: cleanEmailAddress(partialMember.email)
       });

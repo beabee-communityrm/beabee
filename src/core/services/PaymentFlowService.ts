@@ -142,8 +142,7 @@ class PaymentFlowService implements PaymentFlowProvider {
       email: joinFlow.joinForm.email,
       password: joinFlow.joinForm.password,
       firstname: paymentData.firstname || "",
-      lastname: paymentData.lastname || "",
-      contributionType: ContributionType.Automatic
+      lastname: paymentData.lastname || ""
     };
 
     if (member) {
