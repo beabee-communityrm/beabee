@@ -106,9 +106,6 @@ class PaymentService {
       ...(member.contributionAmount !== null && {
         amount: member.contributionAmount
       }),
-      ...(member.nextContributionAmount !== null && {
-        nextAmount: member.nextContributionAmount
-      }),
       ...(member.contributionPeriod !== null && {
         period: member.contributionPeriod
       }),

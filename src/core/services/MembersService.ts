@@ -247,14 +247,9 @@ class MembersService {
     await this.updateMember(member, {
       contributionType: ContributionType.Automatic,
       contributionPeriod: paymentForm.period,
-      ...(startNow
-        ? {
-            contributionMonthlyAmount: paymentForm.monthlyAmount,
-            nextContributionMonthlyAmount: null
-          }
-        : {
-            nextContributionMonthlyAmount: paymentForm.monthlyAmount
-          })
+      ...(startNow && {
+        contributionMonthlyAmount: paymentForm.monthlyAmount
+      })
     });
 
     await this.extendMemberPermission(member, "member", expiryDate);
@@ -262,9 +257,6 @@ class MembersService {
 
   async cancelMemberContribution(member: Member): Promise<void> {
     await PaymentService.cancelContribution(member);
-    await this.updateMember(member, {
-      nextContributionMonthlyAmount: null
-    });
   }
 
   async permanentlyDeleteMember(member: Member): Promise<void> {

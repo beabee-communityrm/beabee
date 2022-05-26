@@ -10,6 +10,7 @@ export interface GCPaymentData {
   subscriptionId: string | null;
   cancelledAt: Date | null;
   payFee: boolean | null;
+  nextMonthlyAmount: number | null;
 }
 
 export interface ManualPaymentData {

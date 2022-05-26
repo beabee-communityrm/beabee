@@ -6,11 +6,6 @@ dl.dl-horizontal
 		dt Amount
 		dd
 			= member.contributionDescription
-			if member.nextContributionAmount
-				br
-				| Will change to
-				|
-				= currencySymbol + member.nextContributionAmount
 		case member.contributionType
 			when 'Automatic'
 				include automatic.pug

@@ -141,6 +141,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     this.data.payFee = paymentForm.payFee;
     this.data.cancelledAt = null;
+    this.data.nextMonthlyAmount = startNow ? null : paymentForm.monthlyAmount;
 
     await this.updateData();
 
@@ -154,6 +155,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     const mandateId = this.data.mandateId;
 
     // Do this before cancellation to avoid webhook race conditions
+    this.data.nextMonthlyAmount = null;
     this.data.subscriptionId = null;
     this.data.cancelledAt = new Date();
     if (!keepMandate) {
