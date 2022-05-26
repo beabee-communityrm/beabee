@@ -27,17 +27,41 @@ function getChargeableAmount(paymentForm: PaymentForm): number {
   return Math.round(chargeableAmount); // TODO: fix this properly
 }
 
+async function getNextPendingPayment(query: Record<string, unknown>) {
+  // We return the first pending payment we find, so there might be one with a
+  // different status that has an earlier charge date, but for our purposes that
+  // is fine and this can reduce API calls
+  for (const status of [
+    GCPaymentStatus.PendingSubmission,
+    GCPaymentStatus.Submitted,
+    // This one is unlikely so can go last to reduce API calls
+    GCPaymentStatus.PendingCustomerApproval
+  ]) {
+    const payments = await gocardless.payments.list({
+      status,
+      limit: 1,
+      sort_field: "charge_date",
+      sort_direction: "asc",
+      ...query
+    });
+    if (payments.length > 0) {
+      return payments[0];
+    }
+  }
+}
 export async function getNextChargeDate(subscriptionId: string): Promise<Date> {
   const subscription = await gocardless.subscriptions.get(subscriptionId);
-  const futurePayments = await gocardless.payments.list({
+  const pendingPayment = await getNextPendingPayment({
     subscription: subscription.id,
     "charge_date[gte]": moment.utc().format("YYYY-MM-DD")
   });
 
+  // Check for pending payments because subscription.upcoming_payments doesn't
+  // include pending payments
   return moment
     .utc(
-      futurePayments.length > 0
-        ? futurePayments.map((p) => p.charge_date).sort()[0]
+      pendingPayment
+        ? pendingPayment.charge_date
         : subscription.upcoming_payments[0].charge_date
     )
     .add(config.gracePeriod)
@@ -120,7 +144,7 @@ export async function prorateSubscription(
       return true;
     } else if (paymentForm.prorate) {
       await gocardless.payments.create({
-        amount: (prorateAmount * 100).toFixed(0),
+        amount: Math.floor(prorateAmount * 100).toFixed(0),
         currency: config.currencyCode.toUpperCase() as PaymentCurrency,
         // TODO: i18n description: "One-off payment to start new contribution",
         links: {
@@ -135,68 +159,8 @@ export async function prorateSubscription(
 }
 
 export async function hasPendingPayment(mandateId: string): Promise<boolean> {
-  for (const status of [
-    GCPaymentStatus.PendingCustomerApproval,
-    GCPaymentStatus.PendingSubmission,
-    GCPaymentStatus.Submitted
-  ]) {
-    const payments = await gocardless.payments.list({
-      limit: 1,
-      status,
-      mandate: mandateId
-    });
-    if (payments.length > 0) {
-      return true;
-    }
-  }
-
-  return false;
+  return !!(await getNextPendingPayment({ mandate: mandateId }));
 }
-
-// export async function calcSubscriptionExpiryDate(
-//   subscriptionId: string,
-//   fromDate: string
-// ): Promise<Date> {
-//   const subscription = await gocardless.subscriptions.get(subscriptionId);
-//   return subscription.upcoming_payments.length > 0
-//     ? moment
-//         .utc(subscription.upcoming_payments[0].charge_date)
-//         .add(config.gracePeriod)
-//         .toDate()
-//     : moment.utc(fromDate).add(getSubscriptionDuration(subscription)).toDate();
-// }
-
-// export function getSubscriptionDuration({
-//   interval,
-//   interval_unit
-// }: Subscription) {
-//   const unit =
-//     interval_unit === "weekly"
-//       ? "weeks"
-//       : interval_unit === "monthly"
-//       ? "months"
-//       : "years";
-//   return moment.duration({ [unit]: Number(interval) });
-// }
-
-// export function getSubscriptionPeriod(
-//   subscription: Subscription
-// ): ContributionPeriod | null {
-//   const interval = Number(subscription.interval);
-//   const intervalUnit = subscription.interval_unit;
-//   if (
-//     (interval === 12 && intervalUnit === SubscriptionIntervalUnit.Monthly) ||
-//     (interval === 1 && intervalUnit === SubscriptionIntervalUnit.Yearly)
-//   )
-//     return ContributionPeriod.Annually;
-//   if (interval === 1 && intervalUnit === "monthly")
-//     return ContributionPeriod.Monthly;
-
-//   log.error(
-//     `Unrecognised subscription period interval: ${interval} unit:${intervalUnit}`
-//   );
-//   return null;
-// }
 
 export function convertStatus(status: GCPaymentStatus): PaymentStatus {
   switch (status) {
