@@ -96,7 +96,7 @@ class PaymentService {
     return await this.provider(
       member,
       (p) => p.canChangeContribution(useExistingPaymentSource),
-      false
+      !useExistingPaymentSource
     );
   }
 
