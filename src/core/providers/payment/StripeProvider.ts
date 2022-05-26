@@ -33,7 +33,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     return !useExistingMandate || !!this.data.mandateId;
   }
 
-  async getContributionInfo(): Promise<Partial<ContributionInfo> | undefined> {
+  async getContributionInfo(): Promise<Partial<ContributionInfo>> {
     let paymentSource: PaymentSource | undefined;
 
     if (this.data.mandateId) {

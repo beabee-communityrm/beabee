@@ -32,9 +32,7 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
 
   abstract cancelContribution(keepMandate: boolean): Promise<void>;
 
-  abstract getContributionInfo(): Promise<
-    Partial<ContributionInfo> | undefined
-  >;
+  abstract getContributionInfo(): Promise<Partial<ContributionInfo>>;
 
   abstract updateMember(updates: Partial<Member>): Promise<void>;
 

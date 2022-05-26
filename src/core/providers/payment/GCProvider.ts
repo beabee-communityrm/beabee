@@ -2,6 +2,7 @@ import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
   ContributionInfo,
+  getActualAmount,
   PaymentForm,
   PaymentMethod,
   PaymentSource
@@ -28,7 +29,7 @@ import config from "@config";
 const log = mainLogger.child({ app: "gc-payment-provider" });
 
 export default class GCProvider extends PaymentProvider<GCPaymentData> {
-  async getContributionInfo(): Promise<Partial<ContributionInfo> | undefined> {
+  async getContributionInfo(): Promise<Partial<ContributionInfo>> {
     let paymentSource: PaymentSource | undefined;
     let pendingPayment = false;
 
@@ -57,6 +58,13 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     return {
       payFee: this.data.payFee || false,
       hasPendingPayment: pendingPayment,
+      ...(this.data.nextMonthlyAmount &&
+        this.member.contributionPeriod && {
+          nextAmount: getActualAmount(
+            this.data.nextMonthlyAmount,
+            this.member.contributionPeriod
+          )
+        }),
       ...(paymentSource && { paymentSource }),
       ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt })
     };
