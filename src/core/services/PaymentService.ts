@@ -209,6 +209,8 @@ class PaymentService {
 
   async permanentlyDeleteMember(member: Member): Promise<void> {
     await this.provider(member, (p) => p.permanentlyDeleteMember());
+    await getRepository(PaymentData).delete({ member });
+    await getRepository(Payment).delete({ member });
   }
 }
 
