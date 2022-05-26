@@ -7,11 +7,11 @@
     .col-md-6
       select(name='type' required).js-reveal-types.form-control
         option(value='' disabled selected) Select one
-        each t in ['None', 'Automatic', 'Manual']
+        each t in ['None', 'Manual']
           option(selected=member.contributionType === t)= t
 
 
-  .js-reveal-type(data-type='Manual|Automatic')
+  .js-reveal-type(data-type='Manual')
     +input( 'number', 'Monthly amount', 'amount', {
       left: 3, right: 4, before: currencySymbol,
       value: member.contributionMonthlyAmount
@@ -22,27 +22,6 @@
       value: member.contributionPeriod
     })
 
-  .js-reveal-type(data-type='Automatic')
-    +input( 'text', 'Customer ID', 'customerId', {
-      required: true, left: 3, right: 6, placeholder: 'CU...' ,
-      value: paymentData.customerId
-    } )
-    +input( 'text', 'Mandate ID', 'mandateId', {
-      required: true, left: 3, right: 6, placeholder: 'MD...',
-      value: paymentData.mandateId
-    } )
-    if !hideSubscriptionId
-      +input( 'text', 'Subscription ID', 'subscriptionId', {
-        required: true, left: 3, right: 6, placeholder: 'SB...',
-        value: paymentData.subscriptionId
-      } )
-    +input( 'checkbox', 'Paying fee', 'payFee', {
-      left: 3, right: 4,
-      options: {'true': 'Yes'},
-      value: paymentData.payFee
-    })
-
-  .js-reveal-type(data-type='Manual')
     .form-group
       label(for='source').control-label.col-md-3 Source
       .col-md-6

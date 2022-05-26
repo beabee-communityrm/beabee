@@ -6,13 +6,11 @@ import {
   ContributionPeriod,
   ContributionType,
   createDateTime,
-  PaymentMethod,
   wrapAsync
 } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
-import PaymentService from "@core/services/PaymentService";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
 
@@ -46,23 +44,11 @@ interface AddManualContactSchema extends BaseAddContactSchema {
   period?: ContributionPeriod;
 }
 
-interface AddGCContactSchema extends BaseAddContactSchema {
-  type: ContributionType.Automatic;
-  customerId: string;
-  mandateId: string;
-  amount?: number;
-  period?: ContributionPeriod;
-  payFee?: boolean;
-}
-
 interface AddNoneContactScema extends BaseAddContactSchema {
   type: ContributionType.None;
 }
 
-type AddContactSchema =
-  | AddManualContactSchema
-  | AddGCContactSchema
-  | AddNoneContactScema;
+type AddContactSchema = AddManualContactSchema | AddNoneContactScema;
 
 const app = express();
 
@@ -119,21 +105,7 @@ app.post(
       }
     }
 
-    if (data.type === ContributionType.Automatic) {
-      await PaymentService.updatePaymentSource(member, {
-        paymentMethod: PaymentMethod.DirectDebit,
-        customerId: data.customerId,
-        mandateId: data.mandateId
-      });
-      if (data.amount && data.period) {
-        await MembersService.updateMemberContribution(member, {
-          monthlyAmount: data.amount,
-          period: data.period,
-          payFee: !!data.payFee,
-          prorate: false
-        });
-      }
-    } else if (data.type === ContributionType.Manual) {
+    if (data.type === ContributionType.Manual) {
       const paymentData = getRepository(ManualPaymentData).create({
         member,
         source: data.source || "",

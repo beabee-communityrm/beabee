@@ -10,7 +10,6 @@ import MembersService from "@core/services/MembersService";
 
 import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
-import PaymentData from "@models/PaymentData";
 
 const app = express();
 
@@ -80,17 +79,8 @@ app.post(
             : null,
           contributionPeriod: req.body.period
         });
-        if (req.body.type === ContributionType.Automatic) {
-          await getRepository(PaymentData).save({
-            member,
-            data: {
-              customerId: req.body.customerId,
-              mandateId: req.body.mandateId,
-              subscriptionId: req.body.subscriptionId,
-              payFee: req.body.payFee === "true"
-            }
-          });
-        } else if (req.body.type === ContributionType.Manual) {
+
+        if (req.body.type === ContributionType.Manual) {
           await getRepository(ManualPaymentData).save({
             member,
             source: req.body.source || "",
