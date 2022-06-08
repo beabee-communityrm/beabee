@@ -54,6 +54,7 @@ import {
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
 import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
@@ -246,7 +247,7 @@ export class MemberController {
     const paymentMethod =
       data.paymentMethod || (await PaymentService.getData(target)).method;
     if (!paymentMethod) {
-      throw new BadRequestError();
+      throw new NoPaymentMethod();
     }
 
     return await this.handleStartUpdatePaymentSource(target, {

@@ -21,7 +21,7 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 import Member from "@models/Member";
 import { GCPaymentData } from "@models/PaymentData";
 
-import NoPaymentSource from "@api/errors/NoPaymentSource";
+import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
 import config from "@config";
 import { Subscription } from "gocardless-nodejs";
@@ -99,7 +99,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     });
 
     if (!this.data.mandateId) {
-      throw new NoPaymentSource();
+      throw new NoPaymentMethod();
     }
 
     let subscription: Subscription | undefined;

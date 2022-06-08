@@ -16,7 +16,7 @@ import {
 import Member from "@models/Member";
 import { StripePaymentData } from "@models/PaymentData";
 
-import NoPaymentSource from "@api/errors/NoPaymentSource";
+import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
 import config from "@config";
 
@@ -118,7 +118,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     paymentForm: PaymentForm
   ): Promise<UpdateContributionResult> {
     if (!this.data.customerId || !this.data.mandateId) {
-      throw new NoPaymentSource();
+      throw new NoPaymentMethod();
     }
 
     let subscription: Stripe.Subscription | undefined;
