@@ -10,12 +10,25 @@ import {
 } from ".";
 
 import JoinFlow from "@models/JoinFlow";
+import { PaymentMethod } from "@core/utils";
+
+function paymentMethodToType(method: PaymentMethod): string {
+  switch (method) {
+    case PaymentMethod.StripeCard:
+      return "card";
+    case PaymentMethod.StripeSEPA:
+      return "sepa_debit";
+    default:
+      throw new Error("Unexpected payment method");
+  }
+}
 
 class StripeProvider implements PaymentFlowProvider {
-  async createPaymentFlow(): Promise<PaymentFlow> {
-    // TODO: check joinFlow for correct payment method
+  async createPaymentFlow(joinFlow: JoinFlow): Promise<PaymentFlow> {
     const setupIntent = await stripe.setupIntents.create({
-      payment_method_types: ["card"]
+      payment_method_types: [
+        paymentMethodToType(joinFlow.joinForm.paymentMethod)
+      ]
     });
 
     return {

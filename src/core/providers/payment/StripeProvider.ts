@@ -6,12 +6,7 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import {
-  ContributionInfo,
-  PaymentForm,
-  PaymentMethod,
-  PaymentSource
-} from "@core/utils";
+import { ContributionInfo, PaymentForm, PaymentSource } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 import {
   createSubscription,
@@ -19,7 +14,6 @@ import {
 } from "@core/utils/payment/stripe";
 
 import Member from "@models/Member";
-import Payment from "@models/Payment";
 import { StripePaymentData } from "@models/PaymentData";
 
 import NoPaymentSource from "@api/errors/NoPaymentSource";
@@ -38,14 +32,26 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
 
     if (this.data.mandateId) {
       const paymentMethod = await stripe.paymentMethods.retrieve(
-        this.data.mandateId
+        this.data.mandateId,
+        { expand: ["customer"] }
       );
       if (paymentMethod.type === "card" && paymentMethod.card) {
         paymentSource = {
-          type: PaymentMethod.Card,
+          type: "card",
           last4: paymentMethod.card.last4,
           expiryMonth: paymentMethod.card.exp_month,
           expiryYear: paymentMethod.card.exp_year
+        };
+      } else if (
+        paymentMethod.type === "sepa_debit" &&
+        paymentMethod.sepa_debit
+      ) {
+        paymentSource = {
+          type: "direct-debit",
+          bankName: paymentMethod.sepa_debit.bank_code || "",
+          accountHolderName:
+            (paymentMethod.customer as Stripe.Customer).name || "",
+          accountNumberEnding: paymentMethod.sepa_debit.last4 || ""
         };
       }
     }

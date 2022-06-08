@@ -1,10 +1,6 @@
 import { getRepository } from "typeorm";
 
-import {
-  ContributionPeriod,
-  ContributionType,
-  PaymentMethod
-} from "@core/utils";
+import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
@@ -31,8 +27,9 @@ import { CompleteUrls } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 const paymentProviders = {
-  [PaymentMethod.Card]: StripeProvider,
-  [PaymentMethod.DirectDebit]: GCProvider
+  [PaymentMethod.StripeCard]: StripeProvider,
+  [PaymentMethod.StripeSEPA]: StripeProvider,
+  [PaymentMethod.GoGardlessDirectDebit]: GCProvider
 };
 
 class PaymentFlowService implements PaymentFlowProvider {
@@ -47,7 +44,7 @@ class PaymentFlowService implements PaymentFlowProvider {
       period: ContributionPeriod.Monthly,
       payFee: false,
       prorate: false,
-      paymentMethod: PaymentMethod.DirectDebit
+      paymentMethod: PaymentMethod.StripeCard
     };
     return await getRepository(JoinFlow).save({
       ...urls,

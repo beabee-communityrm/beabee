@@ -36,19 +36,20 @@ export interface PaymentForm {
 }
 
 export enum PaymentMethod {
-  Card = "card",
-  DirectDebit = "direct-debit"
+  StripeCard = "s_card",
+  StripeSEPA = "s_sepa",
+  GoGardlessDirectDebit = "gc_direct-debit"
 }
 
 export interface DirectDebitPaymentSource {
-  type: PaymentMethod.DirectDebit;
+  type: "direct-debit";
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;
 }
 
 export interface CardPaymentSource {
-  type: PaymentMethod.Card;
+  type: "card";
   last4: string;
   expiryMonth: number;
   expiryYear: number;

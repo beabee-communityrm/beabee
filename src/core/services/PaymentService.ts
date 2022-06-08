@@ -20,8 +20,9 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 const log = mainLogger.child({ app: "payment-service" });
 
 const PaymentProviders = {
-  [PaymentMethod.Card]: StripeProvider,
-  [PaymentMethod.DirectDebit]: GCProvider
+  [PaymentMethod.StripeCard]: StripeProvider,
+  [PaymentMethod.StripeSEPA]: StripeProvider,
+  [PaymentMethod.GoGardlessDirectDebit]: GCProvider
 };
 
 class PaymentService {
