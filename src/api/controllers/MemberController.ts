@@ -197,7 +197,7 @@ export class MemberController {
     @TargetUser() target: Member,
     @Body() data: StartContributionData
   ): Promise<PaymentFlowParams> {
-    return await this.handleStartUpdatePaymentSource(target, data);
+    return await this.handleStartUpdatePaymentMethod(target, data);
   }
 
   @OnUndefined(204)
@@ -215,7 +215,7 @@ export class MemberController {
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
-    const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
+    const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
     await MembersService.updateMemberContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
   }
@@ -239,8 +239,8 @@ export class MemberController {
     };
   }
 
-  @Put("/:id/payment-source")
-  async updatePaymentSource(
+  @Put("/:id/payment-method")
+  async updatePaymentMethod(
     @TargetUser() target: Member,
     @Body() data: StartJoinFlowData
   ): Promise<PaymentFlowParams> {
@@ -250,7 +250,7 @@ export class MemberController {
       throw new NoPaymentMethod();
     }
 
-    return await this.handleStartUpdatePaymentSource(target, {
+    return await this.handleStartUpdatePaymentMethod(target, {
       ...data,
       paymentMethod,
       // TODO: not needed, should be optional
@@ -262,16 +262,16 @@ export class MemberController {
     });
   }
 
-  @Post("/:id/payment-source/complete")
-  async completeUpdatePaymentSource(
+  @Post("/:id/payment-method/complete")
+  async completeUpdatePaymentMethod(
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
-    await this.handleCompleteUpdatePaymentSource(target, data);
+    await this.handleCompleteUpdatePaymentMethod(target, data);
     return await this.getContribution(target);
   }
 
-  private async handleStartUpdatePaymentSource(
+  private async handleStartUpdatePaymentMethod(
     target: Member,
     data: StartContributionData
   ) {
@@ -297,7 +297,7 @@ export class MemberController {
     );
   }
 
-  private async handleCompleteUpdatePaymentSource(
+  private async handleCompleteUpdatePaymentMethod(
     target: Member,
     data: CompleteJoinFlowData
   ): Promise<JoinFlow> {
@@ -313,7 +313,7 @@ export class MemberController {
     }
 
     const completedFlow = await PaymentFlowService.completeJoinFlow(joinFlow);
-    await PaymentService.updatePaymentSource(target, completedFlow);
+    await PaymentService.updatePaymentMethod(target, completedFlow);
 
     return joinFlow;
   }

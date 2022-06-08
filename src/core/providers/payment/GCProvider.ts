@@ -178,7 +178,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     }
   }
 
-  async updatePaymentSource(
+  async updatePaymentMethod(
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
     log.info("Update payment source for " + this.member.id, {

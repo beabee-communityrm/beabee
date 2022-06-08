@@ -157,7 +157,7 @@ class PaymentService {
     );
   }
 
-  async updatePaymentSource(
+  async updatePaymentMethod(
     member: Member,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
@@ -168,7 +168,7 @@ class PaymentService {
       method: newMethod
     });
     await this.provider(member, (p) =>
-      p.updatePaymentSource(completedPaymentFlow)
+      p.updatePaymentMethod(completedPaymentFlow)
     );
   }
 

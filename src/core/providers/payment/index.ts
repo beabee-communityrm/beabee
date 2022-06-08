@@ -40,7 +40,7 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
     paymentForm: PaymentForm
   ): Promise<UpdateContributionResult>;
 
-  abstract updatePaymentSource(
+  abstract updatePaymentMethod(
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void>;
 

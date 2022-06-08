@@ -78,7 +78,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     await this.updateData();
   }
 
-  async updatePaymentSource(
+  async updatePaymentMethod(
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
     if (this.data.customerId) {
