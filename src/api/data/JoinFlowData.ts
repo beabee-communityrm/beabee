@@ -1,13 +1,14 @@
 import IsUrl from "@api/validators/IsUrl";
 import { PaymentMethod } from "@core/utils";
-import { IsEnum, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class StartJoinFlowData {
   @IsUrl()
   completeUrl!: string;
 
   @IsEnum(PaymentMethod)
-  paymentMethod!: PaymentMethod;
+  @IsOptional()
+  paymentMethod?: PaymentMethod;
 }
 
 export class CompleteJoinFlowData {

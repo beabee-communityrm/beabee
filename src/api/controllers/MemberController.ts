@@ -1,6 +1,7 @@
 import { Request } from "express";
 import {
   Authorized,
+  BadRequestError,
   Body,
   createParamDecorator,
   CurrentUser,
@@ -242,8 +243,15 @@ export class MemberController {
     @TargetUser() target: Member,
     @Body() data: StartJoinFlowData
   ): Promise<PaymentFlowParams> {
+    const paymentMethod =
+      data.paymentMethod || (await PaymentService.getData(target)).method;
+    if (!paymentMethod) {
+      throw new BadRequestError();
+    }
+
     return await this.handleStartUpdatePaymentSource(target, {
       ...data,
+      paymentMethod,
       // TODO: not needed, should be optional
       amount: 0,
       period: ContributionPeriod.Annually,
