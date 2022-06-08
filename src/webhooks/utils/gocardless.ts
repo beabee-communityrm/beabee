@@ -1,24 +1,24 @@
 import {
   Payment as GCPayment,
-  PaymentStatus as GCPaymentStatus
+  PaymentStatus as GCPaymentStatus,
+  Subscription,
+  SubscriptionIntervalUnit
 } from "gocardless-nodejs/types/Types";
-import moment from "moment";
+import moment, { DurationInputObject } from "moment";
 import { getRepository } from "typeorm";
 
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
+import { convertStatus } from "@core/utils/payment/gocardless";
 
 import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
 import { GCPaymentData } from "@models/PaymentData";
-
 import Payment from "@models/Payment";
-import {
-  convertStatus,
-  getNextChargeDate
-} from "@core/utils/payment/gocardless";
+
+import config from "@config";
 
 const log = mainLogger.child({ app: "payment-webhook-utils" });
 
@@ -89,9 +89,42 @@ async function confirmPayment(
   await MembersService.extendMemberPermission(
     payment.member,
     "member",
-    await getNextChargeDate(payment.subscriptionId)
+    await getSubscriptionPeriodEnd(payment)
   );
   // TODO: resubscribe to newsletter
+}
+
+async function getSubscriptionPeriodEnd(payment: Payment): Promise<Date> {
+  const subscription = await gocardless.subscriptions.get(
+    payment.subscriptionId!
+  );
+
+  // If the subscription has been cancelled there won't be any upcoming payments
+  if (subscription.upcoming_payments.length > 0) {
+    return moment
+      .utc(subscription.upcoming_payments[0].charge_date)
+      .add(config.gracePeriod)
+      .toDate();
+  } else {
+    return moment
+      .utc(payment.chargeDate)
+      .add(getSubscriptionDuration(subscription))
+      .toDate();
+  }
+}
+
+function getSubscriptionDuration(
+  subscription: Subscription
+): DurationInputObject {
+  const unit =
+    subscription.interval_unit === SubscriptionIntervalUnit.Yearly
+      ? "year"
+      : subscription.interval_unit === SubscriptionIntervalUnit.Monthly
+      ? "month"
+      : "week";
+  return {
+    [unit]: Number(subscription.interval)
+  };
 }
 
 export async function updatePaymentStatus(

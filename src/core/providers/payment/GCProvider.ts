@@ -11,8 +11,8 @@ import {
   updateSubscription,
   createSubscription,
   prorateSubscription,
-  getNextChargeDate,
-  hasPendingPayment
+  hasPendingPayment,
+  getSubscriptionNextChargeDate
 } from "@core/utils/payment/gocardless";
 import { calcRenewalDate } from "@core/utils/payment";
 
@@ -25,6 +25,7 @@ import { GCPaymentData } from "@models/PaymentData";
 import NoPaymentSource from "@api/errors/NoPaymentSource";
 
 import config from "@config";
+import { Subscription } from "gocardless-nodejs";
 
 const log = mainLogger.child({ app: "gc-payment-provider" });
 
@@ -102,27 +103,25 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       throw new NoPaymentSource();
     }
 
+    let subscription: Subscription | undefined;
+
     if (this.data.subscriptionId) {
       if (this.member.membership?.isActive) {
-        if (
-          this.member.contributionMonthlyAmount !== paymentForm.monthlyAmount ||
-          this.data.payFee !== paymentForm.payFee
-        ) {
-          await updateSubscription(this.data.subscriptionId, paymentForm);
-        }
+        subscription = await updateSubscription(
+          this.data.subscriptionId,
+          paymentForm
+        );
       } else {
         // Cancel failed subscriptions, we'll try a new one
         await this.cancelContribution(true);
-        // This happens in cancelContribution anyway, just here for clarity
-        this.data.subscriptionId = null;
       }
     }
 
     const renewalDate = calcRenewalDate(this.member);
 
-    if (!this.data.subscriptionId) {
+    if (!subscription) {
       log.info("Creating new subscription");
-      this.data.subscriptionId = await createSubscription(
+      subscription = await createSubscription(
         this.data.mandateId,
         paymentForm,
         renewalDate
@@ -138,7 +137,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
         this.member.contributionMonthlyAmount || 0
       ));
 
-    const expiryDate = await getNextChargeDate(this.data.subscriptionId);
+    const expiryDate = await getSubscriptionNextChargeDate(subscription);
 
     log.info("Activate contribution for " + this.member.id, {
       userId: this.member.id,
@@ -147,8 +146,9 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       expiryDate
     });
 
-    this.data.payFee = paymentForm.payFee;
     this.data.cancelledAt = null;
+    this.data.subscriptionId = subscription.id;
+    this.data.payFee = paymentForm.payFee;
     this.data.nextMonthlyAmount = startNow ? null : paymentForm.monthlyAmount;
 
     await this.updateData();
@@ -162,13 +162,13 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     const subscriptionId = this.data.subscriptionId;
     const mandateId = this.data.mandateId;
 
-    // Do this before cancellation to avoid webhook race conditions
     this.data.nextMonthlyAmount = null;
     this.data.subscriptionId = null;
     this.data.cancelledAt = new Date();
     if (!keepMandate) {
       this.data.mandateId = null;
     }
+    // Save before cancelling to stop the webhook triggering a cancelled email
     await this.updateData();
 
     if (mandateId && !keepMandate) {
@@ -195,7 +195,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     this.data.customerId = completedPaymentFlow.customerId;
     this.data.mandateId = completedPaymentFlow.mandateId;
 
-    // Save before cancelling mandate to stop the webhook triggering a cancelled email
+    // Save before cancelling to stop the webhook triggering a cancelled email
     await this.updateData();
 
     if (mandateId) {

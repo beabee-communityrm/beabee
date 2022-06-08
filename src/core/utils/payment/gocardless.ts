@@ -1,10 +1,13 @@
 import { differenceInMonths, format } from "date-fns";
 import {
   SubscriptionIntervalUnit,
+  Payment as GCPayment,
   PaymentCurrency,
-  PaymentStatus as GCPaymentStatus
+  PaymentStatus as GCPaymentStatus,
+  Subscription,
+  SubscriptionStatus
 } from "gocardless-nodejs/types/Types";
-import moment from "moment";
+import moment, { DurationInputObject } from "moment";
 
 import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
@@ -16,7 +19,7 @@ import config from "@config";
 
 const log = mainLogger.child({ app: "gc-utils" });
 
-function getChargeableAmount(paymentForm: PaymentForm): number {
+function getChargeableAmount(paymentForm: PaymentForm): string {
   const actualAmount = getActualAmount(
     paymentForm.monthlyAmount,
     paymentForm.period
@@ -24,7 +27,8 @@ function getChargeableAmount(paymentForm: PaymentForm): number {
   const chargeableAmount = paymentForm.payFee
     ? Math.floor((actualAmount / 0.99) * 100) + 20
     : actualAmount * 100;
-  return Math.round(chargeableAmount); // TODO: fix this properly
+  // TODO: fix rounding properly
+  return Math.round(chargeableAmount).toString();
 }
 
 async function getNextPendingPayment(query: Record<string, unknown>) {
@@ -49,8 +53,10 @@ async function getNextPendingPayment(query: Record<string, unknown>) {
     }
   }
 }
-export async function getNextChargeDate(subscriptionId: string): Promise<Date> {
-  const subscription = await gocardless.subscriptions.get(subscriptionId);
+
+export async function getSubscriptionNextChargeDate(
+  subscription: Subscription
+): Promise<Date> {
   const pendingPayment = await getNextPendingPayment({
     subscription: subscription.id,
     "charge_date[gte]": moment.utc().format("YYYY-MM-DD")
@@ -58,21 +64,17 @@ export async function getNextChargeDate(subscriptionId: string): Promise<Date> {
 
   // Check for pending payments because subscription.upcoming_payments doesn't
   // include pending payments
-  return moment
-    .utc(
-      pendingPayment
-        ? pendingPayment.charge_date
-        : subscription.upcoming_payments[0].charge_date
-    )
-    .add(config.gracePeriod)
-    .toDate();
+  const date = pendingPayment
+    ? pendingPayment.charge_date
+    : subscription.upcoming_payments[0].charge_date;
+  return moment.utc(date).add(config.gracePeriod).toDate();
 }
 
 export async function createSubscription(
   mandateId: string,
   paymentForm: PaymentForm,
   _startDate?: Date
-): Promise<string> {
+): Promise<Subscription> {
   let startDate = _startDate && format(_startDate, "yyyy-MM-dd");
   const chargeableAmount = getChargeableAmount(paymentForm);
   log.info("Create subscription for " + mandateId, {
@@ -90,7 +92,7 @@ export async function createSubscription(
   }
 
   const subscription = await gocardless.subscriptions.create({
-    amount: chargeableAmount.toString(),
+    amount: chargeableAmount,
     currency: config.currencyCode.toUpperCase(),
     interval_unit:
       paymentForm.period === ContributionPeriod.Annually
@@ -103,22 +105,29 @@ export async function createSubscription(
     ...(startDate && { start_date: startDate })
   });
 
-  return subscription.id;
+  return subscription;
 }
 
 export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm
-) {
+): Promise<Subscription> {
   const chargeableAmount = getChargeableAmount(paymentForm);
+  const subscription = await gocardless.subscriptions.get(subscriptionId);
 
   log.info(
     `Update subscription amount for ${subscriptionId} to ${chargeableAmount}`
   );
 
-  await gocardless.subscriptions.update(subscriptionId, {
-    amount: chargeableAmount.toString()
-  });
+  // Don't update if it hasn't changed as GoCardless still counts this
+  // as one of the 10 updates
+  if (subscription.amount !== chargeableAmount) {
+    return await gocardless.subscriptions.update(subscriptionId, {
+      amount: chargeableAmount
+    });
+  } else {
+    return subscription;
+  }
 }
 
 export async function prorateSubscription(
