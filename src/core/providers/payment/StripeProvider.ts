@@ -135,8 +135,6 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
         startNow = result.startNow;
       } else {
         await this.cancelContribution(true);
-        // This happens in cancelContribution anyway but is here for clarity
-        this.data.subscriptionId = null;
       }
     }
 
