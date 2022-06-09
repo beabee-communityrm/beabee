@@ -6,20 +6,27 @@ import {
   isBefore,
   setYear,
   sub,
-  differenceInMonths
+  differenceInMonths,
+  add
 } from "date-fns";
 import { ContributionPeriod, ContributionType } from ".";
 
 export function calcRenewalDate(user: Member): Date | undefined {
   if (user.membership?.isActive) {
-    // Has an expiry date, just use that minus the grace period
-    if (user.membership.dateExpires) {
-      return sub(user.membership.dateExpires, config.gracePeriod);
-    }
+    const now = new Date();
 
-    // Some special rules for upgrading non-expiring manual contributions
-    if (user.contributionType === ContributionType.Manual) {
-      const now = new Date();
+    if (user.membership.dateExpires) {
+      const maxDate = add(now, {
+        months: user.contributionPeriod === ContributionPeriod.Annually ? 12 : 1
+      });
+      const targetDate = sub(user.membership.dateExpires, config.gracePeriod);
+
+      // Ensure date is no more than 1 period away from now, this could happen if
+      // manual contributors had their expiry date set arbritarily in the future
+      return maxDate < targetDate ? maxDate : targetDate;
+
+      // Some special rules for upgrading non-expiring manual contributions
+    } else if (user.contributionType === ContributionType.Manual) {
       // Annual contribution, calculate based on their start date
       if (user.contributionPeriod === ContributionPeriod.Annually) {
         const thisYear = getYear(now);
