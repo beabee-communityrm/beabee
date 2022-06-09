@@ -1,6 +1,5 @@
-import type Stripe from "stripe";
-
 import stripe from "@core/lib/stripe";
+import { paymentMethodToType } from "@core/utils/payment/stripe";
 
 import {
   CompletedPaymentFlow,
@@ -10,18 +9,6 @@ import {
 } from ".";
 
 import JoinFlow from "@models/JoinFlow";
-import { PaymentMethod } from "@core/utils";
-
-function paymentMethodToType(method: PaymentMethod): string {
-  switch (method) {
-    case PaymentMethod.StripeCard:
-      return "card";
-    case PaymentMethod.StripeSEPA:
-      return "sepa_debit";
-    default:
-      throw new Error("Unexpected payment method");
-  }
-}
 
 class StripeProvider implements PaymentFlowProvider {
   async createPaymentFlow(joinFlow: JoinFlow): Promise<PaymentFlow> {

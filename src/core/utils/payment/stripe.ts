@@ -3,7 +3,12 @@ import Stripe from "stripe";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
+import {
+  ContributionPeriod,
+  getActualAmount,
+  PaymentForm,
+  PaymentMethod
+} from "@core/utils";
 
 import config from "@config";
 
@@ -139,4 +144,17 @@ export async function updateSubscription(
   }
 
   return { subscription, startNow };
+}
+
+export function paymentMethodToType(
+  method: PaymentMethod
+): Stripe.PaymentMethod.Type {
+  switch (method) {
+    case PaymentMethod.StripeCard:
+      return "card";
+    case PaymentMethod.StripeSEPA:
+      return "sepa_debit";
+    default:
+      throw new Error("Unexpected payment method");
+  }
 }
