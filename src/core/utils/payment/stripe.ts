@@ -51,14 +51,15 @@ export async function createSubscription(
     startDate
   });
 
-  const subscription = await stripe.subscriptions.create({
+  return await stripe.subscriptions.create({
     customer: customerId,
     items: [{ price_data: getPriceData(paymentForm) }],
     off_session: true,
-    ...(startDate && { trial_end: Math.floor(+startDate / 1000) })
+    ...(startDate && {
+      billing_cycle_anchor: Math.floor(+startDate / 1000),
+      proration_behavior: "none"
+    })
   });
-
-  return subscription;
 }
 
 export async function updateSubscription(
