@@ -6,7 +6,12 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { ContributionInfo, PaymentForm, PaymentSource } from "@core/utils";
+import {
+  ContributionInfo,
+  getActualAmount,
+  PaymentForm,
+  PaymentSource
+} from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 import {
   createSubscription,
@@ -60,7 +65,14 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       payFee: !!this.data.payFee,
       // TODO hasPendingPayment: await this.hasPendingPayment(),
       ...(paymentSource && { paymentSource }),
-      ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt })
+      ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt }),
+      ...(this.data.nextMonthlyAmount &&
+        this.member.contributionPeriod && {
+          nextAmount: getActualAmount(
+            this.data.nextMonthlyAmount,
+            this.member.contributionPeriod
+          )
+        })
     };
   }
 
@@ -74,6 +86,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       this.data.subscriptionId = null;
     }
     this.data.cancelledAt = new Date();
+    this.data.nextMonthlyAmount = null;
 
     await this.updateData();
   }
@@ -150,6 +163,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     this.data.subscriptionId = subscription.id;
     this.data.payFee = paymentForm.payFee;
     this.data.cancelledAt = null;
+    this.data.nextMonthlyAmount = startNow ? null : paymentForm.monthlyAmount;
 
     await this.updateData();
 

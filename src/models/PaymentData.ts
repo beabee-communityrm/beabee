@@ -24,6 +24,7 @@ export interface StripePaymentData {
   subscriptionId: string | null;
   cancelledAt: Date | null;
   payFee: boolean | null;
+  nextMonthlyAmount: number | null;
 }
 
 export type PaymentProviderData =
