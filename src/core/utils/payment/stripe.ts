@@ -62,6 +62,8 @@ export async function createSubscription(
   });
 }
 
+const SECONDS_IN_A_YEAR = 365 * 24 * 60 * 60;
+
 export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm
@@ -72,8 +74,11 @@ export async function updateSubscription(
 
   const renewalDate = new Date(subscription.current_period_end * 1000);
   const monthsLeft = Math.max(0, differenceInMonths(renewalDate, new Date()));
-  const prorationDate = subMonths(renewalDate, monthsLeft);
-  const prorationTS = Math.floor(+prorationDate / 1000);
+  // Calculate exact number of seconds to remove (rather than just "one month")
+  // as this aligns with Stripe's calculations
+  const prorationTs = Math.floor(
+    +renewalDate / 1000 - SECONDS_IN_A_YEAR * (monthsLeft / 12)
+  );
 
   const priceData = getPriceData(paymentForm);
   const subscriptionItems = [
@@ -86,14 +91,14 @@ export async function updateSubscription(
   const invoice = await stripe.invoices.retrieveUpcoming({
     subscription: subscriptionId,
     subscription_items: subscriptionItems,
-    subscription_proration_date: prorationTS
+    subscription_proration_date: prorationTs
   });
 
   const wouldProrate = invoice.lines.data.some((item) => item.proration);
 
   log.info("Preparing update subscription for " + subscriptionId, {
     renewalDate,
-    prorationDate,
+    prorationDate: new Date(prorationTs * 1000),
     wouldProrate,
     paymentForm
   });
@@ -117,7 +122,7 @@ export async function updateSubscription(
       ...(paymentForm.prorate
         ? {
             proration_behavior: "always_invoice",
-            proration_date: prorationTS
+            proration_date: prorationTs
           }
         : {
             proration_behavior: "none"
