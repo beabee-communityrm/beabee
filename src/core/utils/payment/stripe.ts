@@ -3,32 +3,16 @@ import Stripe from "stripe";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import {
-  ContributionPeriod,
-  getActualAmount,
-  PaymentForm,
-  PaymentMethod
-} from "@core/utils";
+import { ContributionPeriod, PaymentForm, PaymentMethod } from "@core/utils";
+import { getChargeableAmount } from "@core/utils/payment";
 
 import config from "@config";
 
 const log = mainLogger.child({ app: "stripe-utils" });
 
-function getChargeableAmount(paymentForm: PaymentForm): number {
-  const actualAmount = getActualAmount(
-    paymentForm.monthlyAmount,
-    paymentForm.period
-  );
-
-  // TODO: calculate fee
-  const chargeableAmount = paymentForm.payFee
-    ? actualAmount * 100
-    : actualAmount * 100;
-  return Math.round(chargeableAmount);
-}
-
 function getPriceData(
-  paymentForm: PaymentForm
+  paymentForm: PaymentForm,
+  paymentMethod: PaymentMethod
 ): Stripe.SubscriptionCreateParams.Item.PriceData {
   return {
     currency: config.currencyCode,
@@ -37,13 +21,14 @@ function getPriceData(
       interval:
         paymentForm.period === ContributionPeriod.Monthly ? "month" : "year"
     },
-    unit_amount: getChargeableAmount(paymentForm)
+    unit_amount: getChargeableAmount(paymentForm, paymentMethod)
   };
 }
 
 export async function createSubscription(
   customerId: string,
   paymentForm: PaymentForm,
+  paymentMethod: PaymentMethod,
   startDate?: Date
 ): Promise<Stripe.Subscription> {
   log.info("Creating subscription on " + customerId, {
@@ -53,7 +38,7 @@ export async function createSubscription(
 
   return await stripe.subscriptions.create({
     customer: customerId,
-    items: [{ price_data: getPriceData(paymentForm) }],
+    items: [{ price_data: getPriceData(paymentForm, paymentMethod) }],
     off_session: true,
     ...(startDate && {
       billing_cycle_anchor: Math.floor(+startDate / 1000),
@@ -66,7 +51,8 @@ const SECONDS_IN_A_YEAR = 365 * 24 * 60 * 60;
 
 export async function updateSubscription(
   subscriptionId: string,
-  paymentForm: PaymentForm
+  paymentForm: PaymentForm,
+  paymentMethod: PaymentMethod
 ): Promise<{ subscription: Stripe.Subscription; startNow: boolean }> {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ["schedule"]
@@ -80,7 +66,7 @@ export async function updateSubscription(
     +renewalDate / 1000 - SECONDS_IN_A_YEAR * (monthsLeft / 12)
   );
 
-  const priceData = getPriceData(paymentForm);
+  const priceData = getPriceData(paymentForm, paymentMethod);
   const subscriptionItems = [
     {
       id: subscription.items.data[0].id,

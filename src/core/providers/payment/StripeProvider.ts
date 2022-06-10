@@ -142,7 +142,8 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
         log.info("Update subscription");
         const result = await updateSubscription(
           this.data.subscriptionId,
-          paymentForm
+          paymentForm,
+          this.method
         );
         subscription = result.subscription;
         startNow = result.startNow;
@@ -156,6 +157,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       subscription = await createSubscription(
         this.data.customerId,
         paymentForm,
+        this.method,
         calcRenewalDate(this.member)
       );
     }

@@ -9,7 +9,13 @@ import {
   differenceInMonths,
   add
 } from "date-fns";
-import { ContributionPeriod, ContributionType, PaymentMethod } from ".";
+import {
+  ContributionPeriod,
+  ContributionType,
+  getActualAmount,
+  PaymentForm,
+  PaymentMethod
+} from ".";
 
 export function calcRenewalDate(user: Member): Date | undefined {
   if (user.membership?.isActive) {
@@ -56,26 +62,36 @@ interface Feeable {
   paymentMethod: PaymentMethod;
 }
 
-const fees: Record<
-  typeof config.stripe.country,
-  Record<PaymentMethod, (a: number) => number>
-> = {
+const stripeFees = {
   gb: {
-    [PaymentMethod.StripeCard]: (amount) => 0.2 + 0.014 * amount,
-    [PaymentMethod.StripeSEPA]: () => 0.3,
-    [PaymentMethod.GoCardlessDirectDebit]: (amount) => 0.2 + amount / 100
+    [PaymentMethod.StripeCard]: (amount: number) => 0.2 + 0.014 * amount,
+    [PaymentMethod.StripeSEPA]: () => 0.3
   },
   eu: {
-    [PaymentMethod.StripeCard]: (amount) => 0.25 + 0.014 * amount,
-    [PaymentMethod.StripeSEPA]: () => 0.35,
-    [PaymentMethod.GoCardlessDirectDebit]: (amount) => 0.2 + amount / 100
+    [PaymentMethod.StripeCard]: (amount: number) => 0.25 + 0.014 * amount,
+    [PaymentMethod.StripeSEPA]: () => 0.35
   }
 } as const;
 
-function calcPaymentFee(feeable: Feeable): number {
+const fees = {
+  [PaymentMethod.GoCardlessDirectDebit]: (amount: number) =>
+    0.2 + 0.01 * amount,
+  ...stripeFees[config.stripe.country]
+} as const;
+
+export function calcPaymentFee(feeable: Feeable): number {
   return feeable.period === ContributionPeriod.Annually
     ? 0
-    : fees[config.stripe.country][feeable.paymentMethod](feeable.amount);
+    : fees[feeable.paymentMethod](feeable.amount);
 }
 
-export default calcPaymentFee;
+export function getChargeableAmount(
+  paymentForm: PaymentForm,
+  paymentMethod: PaymentMethod
+): number {
+  const amount = getActualAmount(paymentForm.monthlyAmount, paymentForm.period);
+  const fee = paymentForm.payFee
+    ? calcPaymentFee({ amount, period: paymentForm.period, paymentMethod })
+    : 0;
+  return Math.round((amount + fee) * 100);
+}

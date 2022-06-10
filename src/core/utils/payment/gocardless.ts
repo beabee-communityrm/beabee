@@ -1,17 +1,16 @@
 import { differenceInMonths, format } from "date-fns";
 import {
   SubscriptionIntervalUnit,
-  Payment as GCPayment,
   PaymentCurrency,
   PaymentStatus as GCPaymentStatus,
-  Subscription,
-  SubscriptionStatus
+  Subscription
 } from "gocardless-nodejs/types/Types";
-import moment, { DurationInputObject } from "moment";
+import moment from "moment";
 
 import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
-import { ContributionPeriod, getActualAmount, PaymentForm } from "@core/utils";
+import { ContributionPeriod, PaymentForm, PaymentMethod } from "@core/utils";
+import { getChargeableAmount } from "@core/utils/payment";
 
 import { PaymentStatus } from "@models/Payment";
 
@@ -19,16 +18,11 @@ import config from "@config";
 
 const log = mainLogger.child({ app: "gc-utils" });
 
-function getChargeableAmount(paymentForm: PaymentForm): string {
-  const actualAmount = getActualAmount(
-    paymentForm.monthlyAmount,
-    paymentForm.period
-  );
-  const chargeableAmount = paymentForm.payFee
-    ? Math.floor((actualAmount / 0.99) * 100) + 20
-    : actualAmount * 100;
-  // TODO: fix rounding properly
-  return Math.round(chargeableAmount).toString();
+function getGCChargeableAmount(paymentForm: PaymentForm): string {
+  return getChargeableAmount(
+    paymentForm,
+    PaymentMethod.GoCardlessDirectDebit
+  ).toString();
 }
 
 async function getNextPendingPayment(query: Record<string, unknown>) {
@@ -76,7 +70,7 @@ export async function createSubscription(
   _startDate?: Date
 ): Promise<Subscription> {
   let startDate = _startDate && format(_startDate, "yyyy-MM-dd");
-  const chargeableAmount = getChargeableAmount(paymentForm);
+  const chargeableAmount = getGCChargeableAmount(paymentForm);
   log.info("Create subscription for " + mandateId, {
     paymentForm,
     startDate,
@@ -112,7 +106,7 @@ export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm
 ): Promise<Subscription> {
-  const chargeableAmount = getChargeableAmount(paymentForm);
+  const chargeableAmount = getGCChargeableAmount(paymentForm);
   const subscription = await gocardless.subscriptions.get(subscriptionId);
 
   log.info(

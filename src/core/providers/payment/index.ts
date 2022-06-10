@@ -1,6 +1,6 @@
 import { getRepository } from "typeorm";
 
-import { ContributionInfo, PaymentForm } from "@core/utils";
+import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
@@ -16,10 +16,12 @@ export interface UpdateContributionResult {
 export abstract class PaymentProvider<T extends PaymentProviderData> {
   protected readonly data: T;
   protected readonly member: Member;
+  protected readonly method: PaymentMethod;
 
   constructor(data: PaymentData) {
     this.data = data.data as T;
     this.member = data.member;
+    this.method = data.method as PaymentMethod;
   }
 
   protected async updateData() {
