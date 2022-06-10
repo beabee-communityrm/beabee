@@ -22,6 +22,9 @@ export class MigratePaymentTables1653495059460 implements MigrationInterface {
         FROM "gc_payment_data"
       `
     );
+    await queryRunner.query(
+      `INSERT INTO "payment_data" ("memberId") SELECT "id" FROM "member" ON CONFLICT DO NOTHING`
+    );
     await queryRunner.query(`DROP TABLE "gc_payment"`);
     await queryRunner.query(`DROP TABLE "gc_payment_data"`);
   }
