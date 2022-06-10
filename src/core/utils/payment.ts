@@ -9,7 +9,7 @@ import {
   differenceInMonths,
   add
 } from "date-fns";
-import { ContributionPeriod, ContributionType } from ".";
+import { ContributionPeriod, ContributionType, PaymentMethod } from ".";
 
 export function calcRenewalDate(user: Member): Date | undefined {
   if (user.membership?.isActive) {
@@ -49,3 +49,33 @@ export function calcMonthsLeft(user: Member): number {
     ? Math.max(0, differenceInMonths(renewalDate, new Date()))
     : 0;
 }
+
+interface Feeable {
+  amount: number;
+  period: ContributionPeriod;
+  paymentMethod: PaymentMethod;
+}
+
+const fees: Record<
+  typeof config.stripe.country,
+  Record<PaymentMethod, (a: number) => number>
+> = {
+  gb: {
+    [PaymentMethod.StripeCard]: (amount) => 0.2 + 0.014 * amount,
+    [PaymentMethod.StripeSEPA]: () => 0.3,
+    [PaymentMethod.GoCardlessDirectDebit]: (amount) => 0.2 + amount / 100
+  },
+  eu: {
+    [PaymentMethod.StripeCard]: (amount) => 0.25 + 0.014 * amount,
+    [PaymentMethod.StripeSEPA]: () => 0.35,
+    [PaymentMethod.GoCardlessDirectDebit]: (amount) => 0.2 + amount / 100
+  }
+} as const;
+
+function calcPaymentFee(feeable: Feeable): number {
+  return feeable.period === ContributionPeriod.Annually
+    ? 0
+    : fees[config.stripe.country][feeable.paymentMethod](feeable.amount);
+}
+
+export default calcPaymentFee;

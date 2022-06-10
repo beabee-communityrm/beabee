@@ -29,7 +29,7 @@ import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 const paymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,
   [PaymentMethod.StripeSEPA]: StripeProvider,
-  [PaymentMethod.GoGardlessDirectDebit]: GCProvider
+  [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
 
 class PaymentFlowService implements PaymentFlowProvider {

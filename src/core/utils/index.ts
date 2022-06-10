@@ -38,7 +38,7 @@ export interface PaymentForm {
 export enum PaymentMethod {
   StripeCard = "s_card",
   StripeSEPA = "s_sepa",
-  GoGardlessDirectDebit = "gc_direct-debit"
+  GoCardlessDirectDebit = "gc_direct-debit"
 }
 
 export interface DirectDebitPaymentSource {

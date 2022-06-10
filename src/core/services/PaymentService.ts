@@ -22,7 +22,7 @@ const log = mainLogger.child({ app: "payment-service" });
 const PaymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,
   [PaymentMethod.StripeSEPA]: StripeProvider,
-  [PaymentMethod.GoGardlessDirectDebit]: GCProvider
+  [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
 
 class PaymentService {
