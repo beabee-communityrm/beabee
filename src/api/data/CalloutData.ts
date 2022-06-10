@@ -4,6 +4,7 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import ItemStatus from "@models/ItemStatus";
 import { PollFormSchema, PollAccess } from "@models/Poll";
@@ -147,7 +148,7 @@ export class CreateCalloutData
   extends UpdateCalloutData
   implements MoreCalloutData
 {
-  @IsString()
+  @IsSlug()
   slug!: string;
 }
 
