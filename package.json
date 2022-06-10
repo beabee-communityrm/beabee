@@ -61,6 +61,7 @@
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
     "routing-controllers": "^0.9.0",
+    "slugify": "^1.6.5",
     "stripe": "^8.186.1",
     "tar-stream": "^2.2.0",
     "typeorm": "^0.2.39",
