@@ -70,6 +70,9 @@ export default class Member {
   @Column({ type: "real", nullable: true })
   nextContributionMonthlyAmount!: number | null;
 
+  @Column({ type: Date, nullable: true })
+  contributionChanged!: Date | null;
+
   @Column({ type: String, unique: true, nullable: true })
   referralCode!: string | null;
 

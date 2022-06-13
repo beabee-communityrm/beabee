@@ -266,6 +266,7 @@ abstract class UpdateContributionPaymentService {
 
     await MembersService.updateMember(member, {
       contributionType: ContributionType.GoCardless,
+      contributionChanged: new Date(),
       ...(startNow
         ? {
             contributionMonthlyAmount: paymentForm.monthlyAmount,
