@@ -18,8 +18,6 @@ const app = express();
 interface MCProfileData {
   email: string;
   merges: {
-    FNAME?: string;
-    LNAME?: string;
     [key: string]: string | undefined;
   };
 }
@@ -170,8 +168,8 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
   if (member) {
     const nlMember = await NewsletterService.getNewsletterMember(email);
     await MembersService.updateMember(member, {
-      firstname: data.merges.FNAME || "",
-      lastname: data.merges.LNAME || ""
+      firstname: data.merges.FNAME || member.firstname,
+      lastname: data.merges.LNAME || member.lastname
     });
     await MembersService.updateMemberProfile(member, {
       newsletterGroups: nlMember?.groups || []
