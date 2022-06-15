@@ -22,10 +22,20 @@ import config from "@config";
 const log = mainLogger.child({ app: "payment-webhook-service" });
 
 export default class GCPaymentWebhookService {
-  static async updatePayment(gcPaymentId: string): Promise<GCPayment> {
+  static async updatePayment(
+    gcPaymentId: string
+  ): Promise<GCPayment | undefined> {
     log.info("Update payment " + gcPaymentId);
 
     const gcPayment = await gocardless.payments.get(gcPaymentId);
+    const gcData = await getRepository(GCPaymentData).findOne({
+      mandateId: gcPayment.links.mandate
+    });
+    if (!gcData) {
+      log.info("Ignoring unrelated payment " + gcPayment.id);
+      return;
+    }
+
     let payment = await getRepository(GCPayment).findOne({
       where: { paymentId: gcPayment.id },
       relations: ["member"]
