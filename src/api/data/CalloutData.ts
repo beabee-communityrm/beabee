@@ -122,9 +122,10 @@ export class UpdateCalloutData implements Omit<MoreCalloutData, "slug"> {
   @IsObject()
   formSchema!: PollFormSchema;
 
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  starts!: Date;
+  starts!: Date | null;
 
   @IsOptional()
   @Type(() => Date)
