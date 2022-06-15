@@ -31,16 +31,18 @@ export async function updatePayment(
   const gcPayment = await gocardless.payments.get(gcPaymentId);
   const payment = await findOrCreatePayment(gcPayment);
 
-  payment.status = convertStatus(gcPayment.status);
-  payment.description = gcPayment.description || "Unknown";
-  payment.amount = Number(gcPayment.amount) / 100;
-  payment.amountRefunded = Number(gcPayment.amount_refunded) / 100;
-  payment.chargeDate = moment.utc(gcPayment.charge_date).toDate();
+  if (payment) {
+    payment.status = convertStatus(gcPayment.status);
+    payment.description = gcPayment.description || "Unknown";
+    payment.amount = Number(gcPayment.amount) / 100;
+    payment.amountRefunded = Number(gcPayment.amount_refunded) / 100;
+    payment.chargeDate = moment.utc(gcPayment.charge_date).toDate();
 
-  await getRepository(Payment).save(payment);
+    await getRepository(Payment).save(payment);
 
-  if (isConfirmed) {
-    await confirmPayment(payment, gcPayment);
+    if (isConfirmed) {
+      await confirmPayment(payment, gcPayment);
+    }
   }
 }
 
@@ -167,32 +169,30 @@ export async function cancelMandate(mandateId: string): Promise<void> {
   }
 }
 
-async function findOrCreatePayment(gcPayment: GCPayment): Promise<Payment> {
+async function findOrCreatePayment(
+  gcPayment: GCPayment
+): Promise<Payment | undefined> {
   const payment = await getRepository(Payment).findOne(gcPayment.id);
   if (payment) {
     return payment;
   }
 
-  const newPayment = new Payment();
-  newPayment.id = gcPayment.id;
-
   const data = await PaymentService.getDataBy(
     "mandateId",
     gcPayment.links.mandate
   );
+
   if (data) {
     log.info("Create payment " + gcPayment.id, {
       memberId: data.member.id,
       gcPaymentId: gcPayment.id
     });
+    const newPayment = new Payment();
+    newPayment.id = gcPayment.id;
     newPayment.member = data.member;
-  } else {
-    log.info("Create unlinked payment " + gcPayment.id);
+    if (gcPayment.links.subscription) {
+      newPayment.subscriptionId = gcPayment.links.subscription;
+    }
+    return newPayment;
   }
-
-  if (gcPayment.links.subscription) {
-    newPayment.subscriptionId = gcPayment.links.subscription;
-  }
-
-  return newPayment;
 }
