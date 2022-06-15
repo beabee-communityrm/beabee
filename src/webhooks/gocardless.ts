@@ -81,7 +81,7 @@ async function handlePaymentResourceEvent(event: Event) {
     const payment = await GCPaymentWebhookService.updatePayment(
       event.links.payment
     );
-    if (event.action === "confirmed") {
+    if (payment && event.action === "confirmed") {
       await GCPaymentWebhookService.confirmPayment(payment);
     }
   }
