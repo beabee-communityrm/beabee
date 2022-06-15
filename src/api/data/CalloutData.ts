@@ -4,6 +4,7 @@ import {
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
+import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import ItemStatus from "@models/ItemStatus";
 import { PollFormSchema, PollAccess } from "@models/Poll";
@@ -121,9 +122,10 @@ export class UpdateCalloutData implements Omit<MoreCalloutData, "slug"> {
   @IsObject()
   formSchema!: PollFormSchema;
 
+  @IsOptional()
   @Type(() => Date)
   @IsDate()
-  starts!: Date;
+  starts!: Date | null;
 
   @IsOptional()
   @Type(() => Date)
@@ -147,7 +149,7 @@ export class CreateCalloutData
   extends UpdateCalloutData
   implements MoreCalloutData
 {
-  @IsString()
+  @IsSlug()
   slug!: string;
 }
 
