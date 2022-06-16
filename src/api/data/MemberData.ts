@@ -87,6 +87,7 @@ const memberFields = [
   "newsletterStatus",
   "activePermission",
   "activeMembership",
+  "membershipStarts",
   "membershipExpires",
   "tags"
 ] as const;
@@ -96,7 +97,9 @@ const memberSortFields = [
   "email",
   "joined",
   "lastSeen",
-  "contributionMonthlyAmount"
+  "contributionMonthlyAmount",
+  "membershipStarts",
+  "membershipExpires"
 ] as const;
 
 type MemberField = typeof memberFields[number];

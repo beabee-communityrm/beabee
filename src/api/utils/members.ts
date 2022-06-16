@@ -68,7 +68,27 @@ export function memberToData(
   };
 }
 
-function profileField<Field extends string>(field: string) {
+function membershipField<Field extends string>(field: keyof MemberPermission) {
+  return (
+    rule: Rule<Field>,
+    qb: WhereExpressionBuilder,
+    suffix: string,
+    namedWhere: string
+  ) => {
+    const table = "mp" + suffix;
+    const subQb = createQueryBuilder()
+      .subQuery()
+      .select(`${table}.memberId`)
+      .from(MemberPermission, table)
+      .where(
+        `${table}.permission = 'member' AND ${table}.${field} ${namedWhere}`
+      );
+
+    qb.where("id IN " + subQb.getQuery());
+  };
+}
+
+function profileField<Field extends string>(field: keyof MemberProfile) {
   return (
     rule: Rule<Field>,
     qb: WhereExpressionBuilder,
@@ -141,17 +161,8 @@ export async function fetchPaginatedMembers(
       },
       activePermission,
       activeMembership: activePermission,
-      membershipExpires: (rule, qb, suffix, namedWhere) => {
-        const table = "mp" + suffix;
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`${table}.memberId`)
-          .from(MemberPermission, table)
-          .where(
-            `${table}.permission = 'member' AND ${table}.dateExpires ${namedWhere}`
-          );
-        qb.where("id IN " + subQb.getQuery());
-      }
+      membershipStarts: membershipField("dateAdded"),
+      membershipExpires: membershipField("dateExpires")
     },
     (qb) => {
       if (query.with?.includes(GetMemberWith.Profile)) {
@@ -160,7 +171,26 @@ export async function fetchPaginatedMembers(
 
       // Put empty names at the bottom
       qb.addSelect("NULLIF(item.firstname, '')", "firstname");
-      if (query.sort === "firstname") {
+
+      if (
+        query.sort === "membershipStarts" ||
+        query.sort === "membershipExpires"
+      ) {
+        qb.leftJoin(
+          MemberPermission,
+          "mp",
+          "mp.memberId = item.id AND mp.permission = 'member'"
+        )
+          .addSelect(
+            "COALESCE(mp.dateAdded, '-infinity'::timestamp)",
+            "membershipStarts"
+          )
+          .addSelect(
+            "COALESCE(mp.dateExpires, '-infinity'::timestamp)",
+            "membershipExpires"
+          )
+          .orderBy(`"${query.sort}"`, query.order || "ASC");
+      } else if (query.sort === "firstname") {
         // Override "item.firstname"
         qb.orderBy("firstname", query.order || "ASC");
       } else {
