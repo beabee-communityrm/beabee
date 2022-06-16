@@ -171,7 +171,26 @@ export async function fetchPaginatedMembers(
 
       // Put empty names at the bottom
       qb.addSelect("NULLIF(item.firstname, '')", "firstname");
-      if (query.sort === "firstname") {
+
+      if (
+        query.sort === "membershipStarts" ||
+        query.sort === "membershipExpires"
+      ) {
+        qb.leftJoin(
+          MemberPermission,
+          "mp",
+          "mp.memberId = item.id AND mp.permission = 'member'"
+        )
+          .addSelect(
+            "COALESCE(mp.dateAdded, '-infinity'::timestamp)",
+            "membershipStarts"
+          )
+          .addSelect(
+            "COALESCE(mp.dateExpires, '-infinity'::timestamp)",
+            "membershipExpires"
+          )
+          .orderBy(`"${query.sort}"`, query.order || "ASC");
+      } else if (query.sort === "firstname") {
         // Override "item.firstname"
         qb.orderBy("firstname", query.order || "ASC");
       } else {

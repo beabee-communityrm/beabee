@@ -97,7 +97,9 @@ const memberSortFields = [
   "email",
   "joined",
   "lastSeen",
-  "contributionMonthlyAmount"
+  "contributionMonthlyAmount",
+  "membershipStarts",
+  "membershipExpires"
 ] as const;
 
 type MemberField = typeof memberFields[number];
