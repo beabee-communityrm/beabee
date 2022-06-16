@@ -181,6 +181,7 @@ export async function manadateToSource(
       method: PaymentMethod.StripeSEPA,
       country: method.sepa_debit.country || "",
       bankCode: method.sepa_debit.bank_code || "",
+      branchCode: method.sepa_debit.branch_code || "",
       last4: method.sepa_debit.last4 || ""
     };
   } else if (method.type === "bacs_debit" && method.bacs_debit) {
