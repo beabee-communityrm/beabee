@@ -14,12 +14,12 @@ import OptionsService from "@core/services/OptionsService";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
 
-import ManualPaymentData from "@models/ManualPaymentData";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import { addContactSchema } from "./schemas.json";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import PaymentService from "@core/services/PaymentService";
 
 interface BaseAddContactSchema {
   email: string;
@@ -106,12 +106,12 @@ app.post(
     }
 
     if (data.type === ContributionType.Manual) {
-      const paymentData = getRepository(ManualPaymentData).create({
+      await PaymentService.updateDataBy(member, "source", data.source || null);
+      await PaymentService.updateDataBy(
         member,
-        source: data.source || "",
-        reference: data.reference || ""
-      });
-      await getRepository(ManualPaymentData).save(paymentData);
+        "reference",
+        data.reference || null
+      );
       await MembersService.updateMember(member, {
         contributionPeriod: data.period || null,
         contributionMonthlyAmount: data.amount || null

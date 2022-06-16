@@ -13,7 +13,6 @@ import EmailMailing from "@models/EmailMailing";
 import Export from "@models/Export";
 import ExportItem from "@models/ExportItem";
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
-import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
 import MemberProfile from "@models/MemberProfile";
@@ -117,12 +116,6 @@ const giftFlowDrier = createDrier(GiftFlow, {
   giftee: memberId
 });
 
-export const manualPaymentDataDrier = createDrier(ManualPaymentData, {
-  member: memberId,
-  source: () => chance.pickone(["Standing order", "Cash in hand"]),
-  reference: () => chance.word()
-});
-
 export const memberDrier = createDrier(Member, {
   id: () => uuidv4(),
   email: () => chance.email({ domain: "fake.beabee.io", length: 10 }),
@@ -213,7 +206,6 @@ export default [
   emailMailingDrier,
   exportsDrier,
   giftFlowDrier,
-  manualPaymentDataDrier,
   noticesDrier,
   optionsDrier,
   paymentDataDrier,

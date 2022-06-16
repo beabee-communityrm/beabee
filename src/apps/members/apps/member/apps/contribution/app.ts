@@ -1,5 +1,4 @@
 import express from "express";
-import { getRepository } from "typeorm";
 
 import { ContributionType, wrapAsync } from "@core/utils";
 import { calcMonthsLeft } from "@core/utils/payment";
@@ -8,7 +7,6 @@ import EmailService from "@core/services/EmailService";
 import PaymentService from "@core/services/PaymentService";
 import MembersService from "@core/services/MembersService";
 
-import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
 
 const app = express();
@@ -81,11 +79,16 @@ app.post(
         });
 
         if (req.body.type === ContributionType.Manual) {
-          await getRepository(ManualPaymentData).save({
+          await PaymentService.updateDataBy(
             member,
-            source: req.body.source || "",
-            reference: req.body.reference || ""
-          });
+            "source",
+            req.body.source || null
+          );
+          await PaymentService.updateDataBy(
+            member,
+            "reference",
+            req.body.reference || null
+          );
         }
         req.flash("success", "contribution-updated");
         break;
