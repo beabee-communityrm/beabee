@@ -87,6 +87,7 @@ const memberFields = [
   "newsletterStatus",
   "activePermission",
   "activeMembership",
+  "membershipStarts",
   "membershipExpires",
   "tags"
 ] as const;

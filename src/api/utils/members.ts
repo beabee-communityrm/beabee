@@ -68,7 +68,27 @@ export function memberToData(
   };
 }
 
-function profileField<Field extends string>(field: string) {
+function membershipField<Field extends string>(field: keyof MemberPermission) {
+  return (
+    rule: Rule<Field>,
+    qb: WhereExpressionBuilder,
+    suffix: string,
+    namedWhere: string
+  ) => {
+    const table = "mp" + suffix;
+    const subQb = createQueryBuilder()
+      .subQuery()
+      .select(`${table}.memberId`)
+      .from(MemberPermission, table)
+      .where(
+        `${table}.permission = 'member' AND ${table}.${field} ${namedWhere}`
+      );
+
+    qb.where("id IN " + subQb.getQuery());
+  };
+}
+
+function profileField<Field extends string>(field: keyof MemberProfile) {
   return (
     rule: Rule<Field>,
     qb: WhereExpressionBuilder,
@@ -141,17 +161,8 @@ export async function fetchPaginatedMembers(
       },
       activePermission,
       activeMembership: activePermission,
-      membershipExpires: (rule, qb, suffix, namedWhere) => {
-        const table = "mp" + suffix;
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`${table}.memberId`)
-          .from(MemberPermission, table)
-          .where(
-            `${table}.permission = 'member' AND ${table}.dateExpires ${namedWhere}`
-          );
-        qb.where("id IN " + subQb.getQuery());
-      }
+      membershipStarts: membershipField("dateAdded"),
+      membershipExpires: membershipField("dateExpires")
     },
     (qb) => {
       if (query.with?.includes(GetMemberWith.Profile)) {
