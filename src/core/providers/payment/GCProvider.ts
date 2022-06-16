@@ -4,6 +4,7 @@ import {
   ContributionInfo,
   getActualAmount,
   PaymentForm,
+  PaymentMethod,
   PaymentSource
 } from "@core/utils";
 import {
@@ -41,7 +42,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
         );
 
         paymentSource = {
-          type: "direct-debit",
+          method: PaymentMethod.GoCardlessDirectDebit,
           bankName: bankAccount.bank_name,
           accountHolderName: bankAccount.account_holder_name,
           accountNumberEnding: bankAccount.account_number_ending

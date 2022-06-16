@@ -6,15 +6,11 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import {
-  ContributionInfo,
-  getActualAmount,
-  PaymentForm,
-  PaymentSource
-} from "@core/utils";
+import { ContributionInfo, getActualAmount, PaymentForm } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 import {
   createSubscription,
+  manadateToSource,
   updateSubscription
 } from "@core/utils/payment/stripe";
 
@@ -33,33 +29,9 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
   }
 
   async getContributionInfo(): Promise<Partial<ContributionInfo>> {
-    let paymentSource: PaymentSource | undefined;
-
-    if (this.data.mandateId) {
-      const paymentMethod = await stripe.paymentMethods.retrieve(
-        this.data.mandateId,
-        { expand: ["customer"] }
-      );
-      if (paymentMethod.type === "card" && paymentMethod.card) {
-        paymentSource = {
-          type: "card",
-          last4: paymentMethod.card.last4,
-          expiryMonth: paymentMethod.card.exp_month,
-          expiryYear: paymentMethod.card.exp_year
-        };
-      } else if (
-        paymentMethod.type === "sepa_debit" &&
-        paymentMethod.sepa_debit
-      ) {
-        paymentSource = {
-          type: "direct-debit",
-          bankName: paymentMethod.sepa_debit.bank_code || "",
-          accountHolderName:
-            (paymentMethod.customer as Stripe.Customer).name || "",
-          accountNumberEnding: paymentMethod.sepa_debit.last4 || ""
-        };
-      }
-    }
+    const paymentSource = this.data.mandateId
+      ? await manadateToSource(this.data.mandateId)
+      : undefined;
 
     return {
       payFee: !!this.data.payFee,

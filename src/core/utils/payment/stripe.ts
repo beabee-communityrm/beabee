@@ -3,7 +3,12 @@ import Stripe from "stripe";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { ContributionPeriod, PaymentForm, PaymentMethod } from "@core/utils";
+import {
+  ContributionPeriod,
+  PaymentForm,
+  PaymentMethod,
+  PaymentSource
+} from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
 
 import config from "@config";
@@ -152,7 +157,37 @@ export function paymentMethodToType(
       return "card";
     case PaymentMethod.StripeSEPA:
       return "sepa_debit";
+    case PaymentMethod.StripeBACS:
+      return "bacs_debit";
     default:
       throw new Error("Unexpected payment method");
+  }
+}
+
+export async function manadateToSource(
+  mandateId: string
+): Promise<PaymentSource | undefined> {
+  const method = await stripe.paymentMethods.retrieve(mandateId);
+
+  if (method.type === "card" && method.card) {
+    return {
+      method: PaymentMethod.StripeCard,
+      last4: method.card.last4,
+      expiryMonth: method.card.exp_month,
+      expiryYear: method.card.exp_year
+    };
+  } else if (method.type === "sepa_debit" && method.sepa_debit) {
+    return {
+      method: PaymentMethod.StripeSEPA,
+      country: method.sepa_debit.country || "",
+      bankCode: method.sepa_debit.bank_code || "",
+      last4: method.sepa_debit.last4 || ""
+    };
+  } else if (method.type === "bacs_debit" && method.bacs_debit) {
+    return {
+      method: PaymentMethod.StripeBACS,
+      sortCode: method.bacs_debit.sort_code || "",
+      last4: method.bacs_debit.last4 || ""
+    };
   }
 }
