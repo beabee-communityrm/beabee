@@ -138,8 +138,8 @@ export class MemberController {
     if (data.email || data.firstname || data.lastname || data.password) {
       await MembersService.updateMember(target, {
         ...(data.email && { email: data.email }),
-        ...(data.firstname && { firstname: data.firstname }),
-        ...(data.lastname && { lastname: data.lastname }),
+        ...(data.firstname !== undefined && { firstname: data.firstname }),
+        ...(data.lastname !== undefined && { lastname: data.lastname }),
         ...(data.password && {
           password: await generatePassword(data.password)
         })
