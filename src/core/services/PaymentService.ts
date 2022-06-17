@@ -39,6 +39,7 @@ class PaymentService {
   ): Promise<PaymentData | undefined> {
     const data = await createQueryBuilder(PaymentData, "pd")
       .innerJoinAndSelect("pd.member", "m")
+      .leftJoinAndSelect("m.permissions", "mp")
       .where(`data->>:key = :value`, { key, value })
       .getOne();
 
