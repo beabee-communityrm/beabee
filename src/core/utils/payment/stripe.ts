@@ -1,4 +1,4 @@
-import { differenceInMonths, subMonths } from "date-fns";
+import { differenceInMonths } from "date-fns";
 import Stripe from "stripe";
 
 import stripe from "@core/lib/stripe";
@@ -10,6 +10,8 @@ import {
   PaymentSource
 } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
+
+import { PaymentStatus } from "@models/Payment";
 
 import config from "@config";
 
@@ -190,5 +192,23 @@ export async function manadateToSource(
       sortCode: method.bacs_debit.sort_code || "",
       last4: method.bacs_debit.last4 || ""
     };
+  }
+}
+
+export function convertStatus(status: Stripe.Invoice.Status): PaymentStatus {
+  switch (status) {
+    case "draft":
+    case "open":
+      return PaymentStatus.Pending;
+
+    case "paid":
+      return PaymentStatus.Successful;
+
+    case "void":
+    case "deleted":
+      return PaymentStatus.Cancelled;
+
+    case "uncollectible":
+      return PaymentStatus.Failed;
   }
 }

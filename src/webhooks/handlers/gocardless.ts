@@ -83,7 +83,10 @@ async function handlePaymentResourceEvent(event: Event) {
   if (event.action === PaymentStatus.PaidOut) {
     await updatePaymentStatus(event.links.payment, PaymentStatus.PaidOut);
   } else {
-    await updatePayment(event.links.payment, event.action === "confirmed");
+    await updatePayment(
+      event.links.payment,
+      event.action === PaymentStatus.Confirmed
+    );
   }
 }
 
