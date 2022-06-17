@@ -49,6 +49,10 @@
 
   "tracking-code": "",
 
+  "switch-webhook-gc": "true",
+  "switch-webhook-mailchimp": "true",
+  "switch-webhook-stripe": "true",
+
   "flash-logged-in": "Login successful",
   "flash-logged-out": "Logged out",
   "flash-login-failed": "Login unsuccessful",

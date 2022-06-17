@@ -17,6 +17,8 @@ const textBodyParser = bodyParser.text({
   limit: "1mb"
 });
 
+app.get("/", (req, res) => res.sendStatus(200));
+
 app.post(
   "/",
   textBodyParser,
@@ -81,7 +83,7 @@ async function handlePaymentResourceEvent(event: Event) {
     const payment = await GCPaymentWebhookService.updatePayment(
       event.links.payment
     );
-    if (event.action === "confirmed") {
+    if (payment && event.action === "confirmed") {
       await GCPaymentWebhookService.confirmPayment(payment);
     }
   }

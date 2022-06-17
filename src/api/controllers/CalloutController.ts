@@ -2,6 +2,7 @@ import {
   Authorized,
   Body,
   CurrentUser,
+  Delete,
   Get,
   JsonController,
   NotFoundError,
@@ -166,6 +167,17 @@ export class CalloutController {
   ): Promise<GetMoreCalloutData | undefined> {
     await getRepository(Poll).update(slug, data);
     return this.getCallout(slug);
+  }
+
+  @Authorized("admin")
+  @OnUndefined(204)
+  @Delete("/:slug")
+  async deleteCallout(@Param("slug") slug: string): Promise<void> {
+    await getRepository(PollResponse).delete({ poll: { slug } });
+    const result = await getRepository(Poll).delete(slug);
+    if (result.affected === 0) {
+      throw new NotFoundError();
+    }
   }
 
   @Get("/:slug/responses")
