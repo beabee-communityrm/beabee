@@ -160,7 +160,7 @@ export async function cancelMandate(mandateId: string): Promise<void> {
   if (data) {
     log.info("Cancel mandate " + mandateId, {
       memberId: data.member.id,
-      mandateId: (data.data as GCPaymentData).mandateId
+      mandateId
     });
 
     await PaymentService.updateDataBy(data.member, "mandateId", null);
