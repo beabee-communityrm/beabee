@@ -17,7 +17,7 @@ function checkOpt(key: OptionKey): Handler {
     if (OptionsService.getBool(key)) {
       next();
     } else {
-      next("route");
+      next("router");
     }
   };
 }
