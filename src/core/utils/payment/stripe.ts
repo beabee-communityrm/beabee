@@ -88,13 +88,14 @@ export async function updateSubscription(
     subscription_proration_date: prorationTs
   });
 
+  const prorationAmount = invoice.lines.data
+    .filter((item) => item.proration)
+    .reduce((total, item) => total + item.amount, 0);
+
   // Only prorate amounts above 100 cents. This aligns with GoCardless's minimum
   // amount and is much simpler than trying to calculate the minimum payment per
   // payment method
-  const wouldProrate =
-    invoice.lines.data
-      .filter((item) => item.proration)
-      .reduce((total, item) => total + item.amount, 0) >= 100;
+  const wouldProrate = prorationAmount < 0 || prorationAmount >= 100;
 
   log.info("Preparing update subscription for " + subscriptionId, {
     renewalDate,
@@ -103,7 +104,8 @@ export async function updateSubscription(
     paymentForm
   });
 
-  const startNow = !wouldProrate || paymentForm.prorate;
+  const startNow =
+    prorationAmount >= 0 && (!wouldProrate || paymentForm.prorate);
 
   const oldSchedule =
     subscription.schedule as Stripe.SubscriptionSchedule | null;
