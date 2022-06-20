@@ -174,7 +174,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
   // Stripe docs say the subscription will always be the last line in the invoice
   const line = invoice.lines.data.slice(-1)[0];
-  if (line.subscription !== invoice.subscription || line.proration) {
+  if (line.subscription !== invoice.subscription) {
     log.error("Expected subscription to be last line on invoice" + invoice.id);
     return;
   }
