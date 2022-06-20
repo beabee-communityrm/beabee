@@ -47,10 +47,10 @@ class PaymentService {
   }
 
   async updateDataBy(member: Member, key: string, value: unknown) {
-    await createQueryBuilder(PaymentData, "pd")
-      .update()
-      .set({ data: () => "jsonb_set(pd.data, :key, :value)" })
-      .where("pd.member = :id")
+    await createQueryBuilder()
+      .update(PaymentData)
+      .set({ data: () => "jsonb_set(data, :key, :value)" })
+      .where("member = :id")
       .setParameters({
         key: `{${key}}`,
         value: JSON.stringify(value),
