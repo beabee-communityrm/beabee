@@ -46,6 +46,10 @@ app.post(
           );
           break;
 
+        case "customer.deleted":
+          handleCustomerDeleted(evt.data.object as Stripe.Customer);
+          break;
+
         case "customer.subscription.updated":
           await handleCustomerSubscriptionUpdated(
             evt.data.object as Stripe.Subscription
@@ -85,6 +89,18 @@ async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
 ) {
   await GiftService.completeGiftFlow(session.id);
+}
+
+// Customer has been deleted, remove any reference to it in our system
+async function handleCustomerDeleted(customer: Stripe.Customer) {
+  const data = await PaymentService.getDataBy("customerId", customer.id);
+  if (data) {
+    log.info("Delete customer from " + customer.id, {
+      customerId: customer.id,
+      memberId: data.member.id
+    });
+    await PaymentService.updateDataBy(data.member, "customerId", null);
+  }
 }
 
 // Checks if the subscription has become incomplete_expired, this means that the
