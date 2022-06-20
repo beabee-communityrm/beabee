@@ -10,6 +10,7 @@ import { ContributionInfo, getActualAmount, PaymentForm } from "@core/utils";
 import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
 import {
   createSubscription,
+  deleteSubscription,
   manadateToSource,
   updateSubscription
 } from "@core/utils/payment/stripe";
@@ -54,7 +55,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       this.data.mandateId = null;
     }
     if (this.data.subscriptionId) {
-      await stripe.subscriptions.del(this.data.subscriptionId);
+      await deleteSubscription(this.data.subscriptionId);
       this.data.subscriptionId = null;
     }
     this.data.cancelledAt = new Date();

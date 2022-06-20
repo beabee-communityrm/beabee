@@ -151,6 +151,22 @@ export async function updateSubscription(
   return { subscription, startNow };
 }
 
+export async function deleteSubscription(
+  subscriptionId: string
+): Promise<void> {
+  try {
+    await stripe.subscriptions.del(subscriptionId);
+  } catch (error) {
+    // Ignore resource missing errors, the subscription might have been already removed
+    if (
+      !(error instanceof Stripe.errors.StripeInvalidRequestError) ||
+      error.code !== "resource_missing"
+    ) {
+      throw error;
+    }
+  }
+}
+
 export function paymentMethodToType(
   method: PaymentMethod
 ): Stripe.PaymentMethod.Type {
