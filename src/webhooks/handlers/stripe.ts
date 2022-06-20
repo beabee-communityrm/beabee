@@ -1,4 +1,5 @@
 import bodyParser from "body-parser";
+import { add } from "date-fns";
 import express from "express";
 import Stripe from "stripe";
 import { getRepository } from "typeorm";
@@ -165,7 +166,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   await MembersService.extendMemberPermission(
     data.member,
     "member",
-    new Date(line.period.end * 1000)
+    add(new Date(line.period.end * 1000), config.gracePeriod)
   );
 
   const stripeData = data.data as StripePaymentData;
