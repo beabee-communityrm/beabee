@@ -14,6 +14,7 @@ import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
 import Payment, { PaymentStatus } from "@models/Payment";
+import PaymentData, { StripePaymentData } from "@models/PaymentData";
 
 import config from "@config";
 
@@ -126,71 +127,54 @@ async function handleCustomerSubscriptionDeleted(
 
 // Invoice created or updated, update our equivalent entry in the Payment table
 async function handleInvoiceUpdated(invoice: Stripe.Invoice) {
-  if (!invoice.customer) {
-    log.info("Ignoring invoice without customer " + invoice.id);
-    return;
+  const payment = await findOrCreatePayment(invoice);
+  if (payment) {
+    log.info("Updating payment for invoice " + invoice.id);
+
+    payment.status = invoice.status
+      ? convertStatus(invoice.status)
+      : PaymentStatus.Pending;
+    payment.description = invoice.description || "";
+    payment.amount = invoice.total / 100;
+    payment.chargeDate = new Date(invoice.created * 1000);
+
+    await getRepository(Payment).save(payment);
   }
-
-  const data = await PaymentService.getDataBy(
-    "customerId",
-    invoice.customer as string
-  );
-  if (!data) {
-    log.info("Ignoring invoice with unknown customer " + invoice.customer);
-    return;
-  }
-
-  let payment = await getRepository(Payment).findOne(invoice.id);
-
-  if (!payment) {
-    payment = new Payment();
-    payment.id = invoice.id;
-
-    log.info(
-      `Creating payment for ${data.member.id} with invoice ${invoice.id}`
-    );
-    payment.member = data.member;
-    payment.subscriptionId = invoice.subscription as string | null;
-  }
-
-  log.info("Updating payment for invoice " + invoice.id);
-
-  payment.status = invoice.status
-    ? convertStatus(invoice.status)
-    : PaymentStatus.Pending;
-  payment.description = invoice.description || "";
-  payment.amount = invoice.total / 100;
-  payment.chargeDate = new Date(invoice.created * 1000);
-
-  await getRepository(Payment).save(payment);
 }
 
 // Invoice has been paid, if this is related to a subscription then extend the
 // user's membership to the new end of the subscription
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  if (!invoice.customer || !invoice.subscription) {
+  const data = await getInvoiceData(invoice);
+  if (!data || !invoice.subscription) {
     return;
   }
 
-  const data = await PaymentService.getDataBy(
-    "customerId",
-    invoice.customer as string
-  );
-  if (!data) {
+  // Unlikely, just log for now
+  if (invoice.lines.has_more) {
+    log.error(`Invoice ${invoice.id} has too many lines`);
     return;
   }
-
-  const subscription = await stripe.subscriptions.retrieve(
-    invoice.subscription as string
-  );
+  // Stripe docs say the subscription will always be the last line in the invoice
+  const line = invoice.lines.data.slice(-1)[0];
+  if (line.subscription !== invoice.subscription || line.proration) {
+    log.error("Expected subscription to be last line on invoice" + invoice.id);
+    return;
+  }
 
   await MembersService.extendMemberPermission(
     data.member,
     "member",
-    new Date(subscription.current_period_end * 1000)
+    new Date(line.period.end * 1000)
   );
 
-  // TODO: handle nextMonthlyAmount
+  const stripeData = data.data as StripePaymentData;
+  if (line.amount === stripeData.nextAmount?.chargeable) {
+    await MembersService.updateMember(data.member, {
+      contributionMonthlyAmount: stripeData.nextAmount.monthly
+    });
+    await PaymentService.updateDataBy(data.member, "nextAmount", null);
+  }
 }
 
 // Payment method has been detached, remove any reference to it in our system
@@ -205,6 +189,47 @@ async function handlePaymentMethodDetached(
     });
     await PaymentService.updateDataBy(data.member, "mandateId", null);
   }
+}
+
+// A couple of helpers
+
+async function getInvoiceData(
+  invoice: Stripe.Invoice
+): Promise<PaymentData | undefined> {
+  if (invoice.customer) {
+    const data = await PaymentService.getDataBy(
+      "customerId",
+      invoice.customer as string
+    );
+    if (!data) {
+      log.info("Ignoring invoice with unknown customer " + invoice.id);
+    }
+    return data;
+  } else {
+    log.info("Ignoring invoice without customer " + invoice.id);
+  }
+}
+
+async function findOrCreatePayment(
+  invoice: Stripe.Invoice
+): Promise<Payment | undefined> {
+  const data = await getInvoiceData(invoice);
+  if (!data) {
+    return;
+  }
+
+  const payment = await getRepository(Payment).findOne(invoice.id);
+  if (payment) {
+    return payment;
+  }
+
+  const newPayment = new Payment();
+  newPayment.id = invoice.id;
+
+  log.info(`Creating payment for ${data.member.id} with invoice ${invoice.id}`);
+  newPayment.member = data.member;
+  newPayment.subscriptionId = invoice.subscription as string | null;
+  return newPayment;
 }
 
 export default app;
