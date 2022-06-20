@@ -47,10 +47,11 @@ export async function createSubscription(
     customer: customerId,
     items: [{ price_data: getPriceData(paymentForm, paymentMethod) }],
     off_session: true,
-    ...(startDate && {
-      billing_cycle_anchor: Math.floor(+startDate / 1000),
-      proration_behavior: "none"
-    })
+    ...(startDate &&
+      startDate > new Date() && {
+        billing_cycle_anchor: Math.floor(+startDate / 1000),
+        proration_behavior: "none"
+      })
   });
 }
 
