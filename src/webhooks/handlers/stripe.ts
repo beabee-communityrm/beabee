@@ -159,7 +159,7 @@ async function handleInvoiceUpdated(invoice: Stripe.Invoice) {
     ? convertStatus(invoice.status)
     : PaymentStatus.Pending;
   payment.description = invoice.description || "";
-  payment.amount = invoice.total;
+  payment.amount = invoice.total / 100;
   payment.chargeDate = new Date(invoice.created * 1000);
 
   await getRepository(Payment).save(payment);
