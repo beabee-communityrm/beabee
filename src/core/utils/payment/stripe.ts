@@ -36,20 +36,20 @@ export async function createSubscription(
   customerId: string,
   paymentForm: PaymentForm,
   paymentMethod: PaymentMethod,
-  startDate?: Date
+  renewalDate?: Date
 ): Promise<Stripe.Subscription> {
   log.info("Creating subscription on " + customerId, {
     paymentForm,
-    startDate
+    renewalDate
   });
 
   return await stripe.subscriptions.create({
     customer: customerId,
     items: [{ price_data: getPriceData(paymentForm, paymentMethod) }],
     off_session: true,
-    ...(startDate &&
-      startDate > new Date() && {
-        billing_cycle_anchor: Math.floor(+startDate / 1000),
+    ...(renewalDate &&
+      renewalDate > new Date() && {
+        billing_cycle_anchor: Math.floor(+renewalDate / 1000),
         proration_behavior: "none"
       })
   });

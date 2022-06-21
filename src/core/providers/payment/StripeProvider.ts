@@ -6,7 +6,13 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { ContributionInfo, getActualAmount, PaymentForm } from "@core/utils";
+import {
+  ContributionInfo,
+  ContributionPeriod,
+  ContributionType,
+  getActualAmount,
+  PaymentForm
+} from "@core/utils";
 import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
 import {
   createSubscription,
@@ -107,33 +113,28 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       throw new NoPaymentMethod();
     }
 
-    let subscription: Stripe.Subscription | undefined;
-    let startNow = true;
-
-    if (this.data.subscriptionId) {
-      if (this.member.membership?.isActive) {
-        log.info("Update subscription");
-        const result = await updateSubscription(
-          this.data.subscriptionId,
-          paymentForm,
-          this.method
-        );
-        subscription = result.subscription;
-        startNow = result.startNow;
-      } else {
-        await this.cancelContribution(true);
-      }
-    }
-
-    if (!subscription) {
-      log.info("Create subscription");
-      subscription = await createSubscription(
+    // Manual contributors don't have a real subscription yet, create one on
+    // their previous amount so Stripe can automatically handle any proration
+    if (
+      this.member.membership?.isActive &&
+      this.member.contributionType === ContributionType.Manual
+    ) {
+      log.info("Creating new subscription for manual contributor");
+      const newSubscription = await createSubscription(
         this.data.customerId,
-        paymentForm,
+        {
+          ...paymentForm,
+          monthlyAmount: this.member.contributionMonthlyAmount || 0
+        },
         this.method,
         calcRenewalDate(this.member)
       );
+      this.data.subscriptionId = newSubscription.id;
     }
+
+    const { subscription, startNow } = await this.updateOrCreateContribution(
+      paymentForm
+    );
 
     this.data.subscriptionId = subscription.id;
     this.data.payFee = paymentForm.payFee;
@@ -154,6 +155,31 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
         config.gracePeriod
       )
     };
+  }
+
+  private async updateOrCreateContribution(
+    paymentForm: PaymentForm
+  ): Promise<{ subscription: Stripe.Subscription; startNow: boolean }> {
+    if (this.data.subscriptionId && this.member.membership?.isActive) {
+      log.info("Update subscription " + this.data.subscriptionId);
+      return await updateSubscription(
+        this.data.subscriptionId,
+        paymentForm,
+        this.method
+      );
+    } else {
+      // Cancel any existing (failing) subscriptions
+      await this.cancelContribution(true);
+
+      log.info("Create subscription");
+      const subscription = await createSubscription(
+        this.data.customerId!, // customerId is asserted in updateContribution
+        paymentForm,
+        this.method,
+        calcRenewalDate(this.member)
+      );
+      return { subscription, startNow: true };
+    }
   }
 
   async updateMember(updates: Partial<Member>): Promise<void> {
