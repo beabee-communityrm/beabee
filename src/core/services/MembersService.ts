@@ -9,6 +9,7 @@ import {
 import { log as mainLogger } from "@core/logging";
 import {
   cleanEmailAddress,
+  ContributionPeriod,
   ContributionType,
   isDuplicateIndex,
   PaymentForm
@@ -25,6 +26,7 @@ import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 
 export type PartialMember = Pick<Member, "email" | "contributionType"> &
   Partial<Member>;
@@ -239,6 +241,21 @@ class MembersService {
     // At the moment the only possibility is to go from whatever contribution
     // type the user was before to an automatic contribution
     const wasManual = member.contributionType === ContributionType.Manual;
+
+    // Some period changes on active members aren't allowed at the moment to
+    // prevent proration problems
+    if (
+      member.membership?.isActive &&
+      // Manual annual contributors can't change their period
+      ((wasManual &&
+        member.contributionPeriod === ContributionPeriod.Annually &&
+        paymentForm.period !== ContributionPeriod.Annually) ||
+        // Automated contributors can't either
+        (member.contributionType === ContributionType.Automatic &&
+          member.contributionPeriod !== paymentForm.period))
+    ) {
+      throw new CantUpdateContribution();
+    }
 
     const { startNow, expiryDate } = await PaymentService.updateContribution(
       member,
