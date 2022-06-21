@@ -167,6 +167,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     return;
   }
 
+  log.info(`Invoice ${invoice.id} was paid`);
+
   // Unlikely, just log for now
   if (invoice.lines.has_more) {
     log.error(`Invoice ${invoice.id} has too many lines`);
