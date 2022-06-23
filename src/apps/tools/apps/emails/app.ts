@@ -19,8 +19,8 @@ const app = express();
 
 export interface EmailSchema {
   name: string;
-  fromName: string;
-  fromEmail: string;
+  fromName?: string;
+  fromEmail?: string;
   subject: string;
   body: string;
 }
@@ -28,8 +28,8 @@ export interface EmailSchema {
 export function schemaToEmail(data: EmailSchema): Email {
   const email = new Email();
   email.name = data.name;
-  email.fromName = data.fromName;
-  email.fromEmail = data.fromEmail;
+  email.fromName = data.fromName || null;
+  email.fromEmail = data.fromEmail || null;
   email.subject = data.subject;
   email.body = data.body;
 
