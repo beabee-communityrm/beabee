@@ -1,11 +1,8 @@
 import moment from "moment";
 
 import { log as mainLogger } from "@core/logging";
+
 import OptionsService from "@core/services/OptionsService";
-
-import Member from "@models/Member";
-
-import config from "@config";
 
 import {
   EmailMergeFields,
@@ -20,6 +17,9 @@ import SendGridProvider from "@core/providers/email/SendGridProvider";
 import SMTPProvider from "@core/providers/email/SMTPProvider";
 
 import Email from "@models/Email";
+import Member from "@models/Member";
+
+import config from "@config";
 
 const log = mainLogger.child({ app: "email-service" });
 
@@ -181,8 +181,23 @@ class EmailService implements EmailProvider {
     await this.sendTemplate(template, [recipient], opts);
   }
 
+  async getTemplateEmail(
+    template: EmailTemplateId | MemberEmailTemplateId
+  ): Promise<false | Email | null> {
+    const providerTemplate = this.providerTemplateMap[template];
+    return providerTemplate
+      ? await this.provider.getTemplateEmail(providerTemplate)
+      : null;
+  }
+
   async getTemplates(): Promise<EmailTemplate[]> {
     return await this.provider.getTemplates();
+  }
+
+  isTemplate(
+    template: string
+  ): template is EmailTemplateId | MemberEmailTemplateId {
+    return this.emailTemplateIds.includes(template as any);
   }
 
   get emailTemplateIds(): (EmailTemplateId | MemberEmailTemplateId)[] {

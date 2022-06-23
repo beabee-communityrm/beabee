@@ -39,5 +39,6 @@ export interface EmailProvider {
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void>;
+  getTemplateEmail(template: string): Promise<false | Email | null>;
   getTemplates(): Promise<EmailTemplate[]>;
 }

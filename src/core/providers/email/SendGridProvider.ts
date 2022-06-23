@@ -1,21 +1,22 @@
 import sgMail from "@sendgrid/mail";
-import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
 import Email from "@models/Email";
 
-import { EmailOptions, EmailProvider, EmailRecipient, EmailTemplate } from ".";
+import { EmailOptions, EmailRecipient } from ".";
+import LocalProvider from "./LocalProvider";
 
 import { SendGridEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "sendgrid-email-provider" });
 
-export default class SendGridProvider implements EmailProvider {
+export default class SendGridProvider extends LocalProvider {
   private readonly testMode: boolean;
 
   constructor(settings: SendGridEmailConfig["settings"]) {
+    super();
     sgMail.setApiKey(settings.apiKey);
     sgMail.setSubstitutionWrappers("*|", "|*");
     this.testMode = settings.testMode;
@@ -55,20 +56,5 @@ export default class SendGridProvider implements EmailProvider {
     });
 
     log.info("Sent email", { resp });
-  }
-  async sendTemplate(
-    template: string,
-    recipients: EmailRecipient[],
-    opts?: EmailOptions
-  ): Promise<void> {
-    log.info("Sending template " + template);
-    const email = await getRepository(Email).findOne(template);
-    if (email) {
-      await this.sendEmail(email, recipients, opts);
-    }
-  }
-  async getTemplates(): Promise<EmailTemplate[]> {
-    const emails = await getRepository(Email).find();
-    return emails.map((email) => ({ id: email.id, name: email.name }));
   }
 }
