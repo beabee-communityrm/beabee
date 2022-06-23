@@ -3,6 +3,8 @@ import sgMail from "@sendgrid/mail";
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
+import OptionsService from "@core/services/OptionsService";
+
 import Email from "@models/Email";
 
 import { EmailOptions, EmailRecipient } from ".";
@@ -29,8 +31,8 @@ export default class SendGridProvider extends LocalProvider {
   ): Promise<void> {
     const resp = await sgMail.sendMultiple({
       from: {
-        email: email.fromEmail,
-        name: email.fromName
+        email: email.fromEmail || OptionsService.getText("support-email"),
+        name: email.fromName || OptionsService.getText("support-email-from")
       },
       subject: email.subject,
       html: formatEmailBody(email.body),

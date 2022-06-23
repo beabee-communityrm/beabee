@@ -3,6 +3,8 @@ import mandrill from "mandrill-api/mandrill";
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
+import OptionsService from "@core/services/OptionsService";
+
 import Email from "@models/Email";
 
 import { EmailOptions, EmailRecipient, EmailTemplate } from ".";
@@ -44,8 +46,10 @@ export default class MandrillProvider extends LocalProvider {
         {
           message: {
             ...this.createMessageData(recipients, opts),
-            from_name: email.fromName,
-            from_email: email.fromEmail,
+            from_name:
+              email.fromName || OptionsService.getText("support-email-from"),
+            from_email:
+              email.fromEmail || OptionsService.getText("support-email"),
             subject: email.subject,
             html: formatEmailBody(email.body),
             auto_text: true

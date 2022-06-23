@@ -4,6 +4,8 @@ import Mail from "nodemailer/lib/mailer";
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
+import OptionsService from "@core/services/OptionsService";
+
 import Email from "@models/Email";
 
 import { EmailOptions, EmailRecipient } from ".";
@@ -45,7 +47,10 @@ export default class SMTPProvider extends LocalProvider {
       );
 
       await this.client.sendMail({
-        from: { name: email.fromName, address: email.fromEmail },
+        from: {
+          name: email.fromName || OptionsService.getText("support-email-from"),
+          address: email.fromEmail || OptionsService.getText("support-email")
+        },
         to: recipient.to.name
           ? { name: recipient.to.name, address: recipient.to.email }
           : recipient.to.email,
