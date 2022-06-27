@@ -25,6 +25,8 @@ const app = express();
 
 app.use(bodyParser.raw({ type: "application/json" }));
 
+app.get("/", (req, res) => res.sendStatus(200));
+
 app.post(
   "/",
   wrapAsync(async (req, res) => {

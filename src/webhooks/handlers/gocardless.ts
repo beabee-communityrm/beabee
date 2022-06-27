@@ -25,6 +25,8 @@ const textBodyParser = bodyParser.text({
   limit: "1mb"
 });
 
+app.get("/", (req, res) => res.sendStatus(200));
+
 app.post(
   "/",
   textBodyParser,
