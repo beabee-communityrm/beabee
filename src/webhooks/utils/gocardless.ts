@@ -172,7 +172,9 @@ export async function cancelMandate(mandateId: string): Promise<void> {
 async function findOrCreatePayment(
   gcPayment: GCPayment
 ): Promise<Payment | undefined> {
-  const payment = await getRepository(Payment).findOne(gcPayment.id);
+  const payment = await getRepository(Payment).findOne(gcPayment.id, {
+    relations: ["member"]
+  });
   if (payment) {
     return payment;
   }
