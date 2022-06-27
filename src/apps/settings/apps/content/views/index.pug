@@ -129,7 +129,7 @@ block contents
         
         +periodSchema(0, join.periods ? join.periods[0] : {'name': 'monthly', presetAmounts: []})
         +periodSchema(1, join.periods ? join.periods[1] : {'name': 'annually', presetAmounts: []})
-          
+
         .form-group.hidden
           .col-md-offset-3.col-md-9
             .checkbox
@@ -153,6 +153,11 @@ block contents
           label.control-label.col-md-3 Min monthly amount
           .col-md-9
             input(type='number' name="options[contribution-min-monthly-amount]" value=Options('contribution-min-monthly-amount') required).form-control
+
+        .form-group
+          label.control-label.col-md-3 Payment methods
+          .col-md-9
+            input(type='text' name="data[paymentMethods]" value=join.paymentMethods && join.paymentMethods.join(', ') required).form-control
 
         .form-group
           .col-md-offset-3.col-md-9

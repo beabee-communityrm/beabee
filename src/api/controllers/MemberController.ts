@@ -1,6 +1,7 @@
 import { Request } from "express";
 import {
   Authorized,
+  BadRequestError,
   Body,
   createParamDecorator,
   CurrentUser,
@@ -16,20 +17,20 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
+import { PaymentFlowParams } from "@core/providers/payment-flow";
+
 import EmailService from "@core/services/EmailService";
-import JoinFlowService from "@core/services/JoinFlowService";
+import PaymentFlowService from "@core/services/PaymentFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
-import {
-  ContributionInfo,
-  ContributionPeriod,
-  PaymentMethod
-} from "@core/utils";
+import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
+import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
+import Payment from "@models/Payment";
 
 import { UUIDParam } from "@api/data";
 import {
@@ -53,10 +54,10 @@ import {
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
 import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
-import GCPayment from "@models/GCPayment";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -195,8 +196,8 @@ export class MemberController {
   async startContribution(
     @TargetUser() target: Member,
     @Body() data: StartContributionData
-  ): Promise<{ redirectUrl: string }> {
-    return await this.handleStartUpdatePaymentSource(target, data);
+  ): Promise<PaymentFlowParams> {
+    return await this.handleStartUpdatePaymentMethod(target, data);
   }
 
   @OnUndefined(204)
@@ -214,7 +215,7 @@ export class MemberController {
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
-    const joinFlow = await this.handleCompleteUpdatePaymentSource(target, data);
+    const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
     await MembersService.updateMemberContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
   }
@@ -227,7 +228,7 @@ export class MemberController {
     const targetQuery = mergeRules(query, [
       { field: "member", operator: "equal", value: target.id }
     ]);
-    const data = await fetchPaginated(GCPayment, targetQuery);
+    const data = await fetchPaginated(Payment, targetQuery);
     return {
       ...data,
       items: data.items.map((item) => ({
@@ -238,13 +239,20 @@ export class MemberController {
     };
   }
 
-  @Put("/:id/payment-source")
-  async updatePaymentSource(
+  @Put("/:id/payment-method")
+  async updatePaymentMethod(
     @TargetUser() target: Member,
     @Body() data: StartJoinFlowData
-  ): Promise<{ redirectUrl: string }> {
-    return await this.handleStartUpdatePaymentSource(target, {
+  ): Promise<PaymentFlowParams> {
+    const paymentMethod =
+      data.paymentMethod || (await PaymentService.getData(target)).method;
+    if (!paymentMethod) {
+      throw new NoPaymentMethod();
+    }
+
+    return await this.handleStartUpdatePaymentMethod(target, {
       ...data,
+      paymentMethod,
       // TODO: not needed, should be optional
       amount: 0,
       period: ContributionPeriod.Annually,
@@ -254,16 +262,16 @@ export class MemberController {
     });
   }
 
-  @Post("/:id/payment-source/complete")
-  async completeUpdatePaymentSource(
+  @Post("/:id/payment-method/complete")
+  async completeUpdatePaymentMethod(
     @TargetUser() target: Member,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
-    await this.handleCompleteUpdatePaymentSource(target, data);
+    await this.handleCompleteUpdatePaymentMethod(target, data);
     return await this.getContribution(target);
   }
 
-  private async handleStartUpdatePaymentSource(
+  private async handleStartUpdatePaymentMethod(
     target: Member,
     data: StartContributionData
   ) {
@@ -271,44 +279,41 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    const { redirectUrl } = await JoinFlowService.createPaymentJoinFlow(
+    return await PaymentFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
         // TODO: unnecessary, should be optional
         password: await generatePassword(""),
-        email: "",
-        paymentMethod: PaymentMethod.DirectDebit
+        email: ""
+      },
+      {
+        confirmUrl: "",
+        loginUrl: "",
+        setPasswordUrl: ""
       },
       data.completeUrl,
       target
     );
-    return {
-      redirectUrl
-    };
   }
 
-  private async handleCompleteUpdatePaymentSource(
+  private async handleCompleteUpdatePaymentMethod(
     target: Member,
     data: CompleteJoinFlowData
-  ) {
+  ): Promise<JoinFlow> {
     if (!(await PaymentService.canChangeContribution(target, false))) {
       throw new CantUpdateContribution();
     }
 
-    const joinFlow = await JoinFlowService.getJoinFlow(data.paymentFlowId);
+    const joinFlow = await PaymentFlowService.getJoinFlowByPaymentId(
+      data.paymentFlowId
+    );
     if (!joinFlow) {
       throw new NotFoundError();
     }
 
-    const completedJoinFlow = await JoinFlowService.completeJoinFlow(joinFlow);
-    if (completedJoinFlow) {
-      await PaymentService.updatePaymentSource(
-        target,
-        completedJoinFlow.customerId,
-        completedJoinFlow.mandateId
-      );
-    }
+    const completedFlow = await PaymentFlowService.completeJoinFlow(joinFlow);
+    await PaymentService.updatePaymentMethod(target, completedFlow);
 
     return joinFlow;
   }

@@ -9,12 +9,14 @@ import {
 import { log as mainLogger } from "@core/logging";
 import {
   cleanEmailAddress,
+  ContributionPeriod,
   ContributionType,
   isDuplicateIndex,
   PaymentForm
 } from "@core/utils";
 import { generateMemberCode } from "@core/utils/member";
 
+import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
@@ -24,6 +26,7 @@ import MemberProfile from "@models/MemberProfile";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 
 export type PartialMember = Pick<Member, "email" | "contributionType"> &
   Partial<Member>;
@@ -66,10 +69,7 @@ class MembersService {
   }
 
   async createMember(
-    partialMember: Partial<Member> & {
-      email: string;
-      contributionType: ContributionType;
-    },
+    partialMember: Partial<Member> & Pick<Member, "email">,
     partialProfile: Partial<MemberProfile> = {},
     opts = { sync: true }
   ): Promise<Member> {
@@ -83,6 +83,7 @@ class MembersService {
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
         firstname: "",
         lastname: "",
+        contributionType: ContributionType.None,
         ...partialMember,
         email: cleanEmailAddress(partialMember.email)
       });
@@ -93,6 +94,8 @@ class MembersService {
         member
       });
       await getRepository(MemberProfile).save(member.profile);
+
+      await PaymentService.createMember(member);
 
       if (opts.sync) {
         await NewsletterService.upsertMember(member);
@@ -235,32 +238,49 @@ class MembersService {
     member: Member,
     paymentForm: PaymentForm
   ): Promise<void> {
+    // At the moment the only possibility is to go from whatever contribution
+    // type the user was before to an automatic contribution
+    const wasManual = member.contributionType === ContributionType.Manual;
+
+    // Some period changes on active members aren't allowed at the moment to
+    // prevent proration problems
+    if (
+      member.membership?.isActive &&
+      // Manual annual contributors can't change their period
+      ((wasManual &&
+        member.contributionPeriod === ContributionPeriod.Annually &&
+        paymentForm.period !== ContributionPeriod.Annually) ||
+        // Automated contributors can't either
+        (member.contributionType === ContributionType.Automatic &&
+          member.contributionPeriod !== paymentForm.period))
+    ) {
+      throw new CantUpdateContribution();
+    }
+
     const { startNow, expiryDate } = await PaymentService.updateContribution(
       member,
       paymentForm
     );
 
+    log.info("Updated contribution", { startNow, expiryDate });
+
     await this.updateMember(member, {
       contributionType: ContributionType.Automatic,
       contributionPeriod: paymentForm.period,
-      ...(startNow
-        ? {
-            contributionMonthlyAmount: paymentForm.monthlyAmount,
-            nextContributionMonthlyAmount: null
-          }
-        : {
-            nextContributionMonthlyAmount: paymentForm.monthlyAmount
-          })
+      ...(startNow && {
+        contributionMonthlyAmount: paymentForm.monthlyAmount
+      })
     });
 
     await this.extendMemberPermission(member, "member", expiryDate);
+
+    if (wasManual) {
+      await EmailService.sendTemplateToMember("manual-to-automatic", member);
+    }
   }
 
   async cancelMemberContribution(member: Member): Promise<void> {
     await PaymentService.cancelContribution(member);
-    await this.updateMember(member, {
-      nextContributionMonthlyAmount: null
-    });
   }
 
   async permanentlyDeleteMember(member: Member): Promise<void> {

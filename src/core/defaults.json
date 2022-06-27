@@ -140,7 +140,7 @@
   "flash-gifts-email-duplicate": "The giftee's email address is already registered",
   "flash-gifts-already-activated": "The gift has already been activated, please login to continue",
 
-  "flash-migration-manual-to-gc-sent": "Email sent to manual contributors",
+  "flash-migration-manual-to-auto-sent": "Email sent to manual contributors",
 
   "flash-notices-created": "Notice created",
   "flash-notices-updated": "Notice updated",

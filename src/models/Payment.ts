@@ -1,21 +1,33 @@
 import {
   Column,
   CreateDateColumn,
+  Entity,
   ManyToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn
 } from "typeorm";
 import type Member from "./Member";
 
-export default abstract class Payment {
-  @PrimaryGeneratedColumn("uuid")
+export enum PaymentStatus {
+  Pending = "pending",
+  Successful = "successful",
+  Failed = "failed",
+  Cancelled = "cancelled"
+}
+
+@Entity()
+export default class Payment {
+  @PrimaryColumn()
   id!: string;
+
+  @Column({ type: String, nullable: true })
+  subscriptionId!: string | null;
 
   @ManyToOne("Member", { nullable: true })
   member!: Member | null;
 
   @Column()
-  status!: string;
+  status!: PaymentStatus;
 
   @Column()
   description!: string;
@@ -35,6 +47,10 @@ export default abstract class Payment {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  abstract get isPending(): boolean;
-  abstract get isSuccessful(): boolean;
+  get isPending(): boolean {
+    return this.status === PaymentStatus.Pending;
+  }
+  get isSuccessful(): boolean {
+    return this.status === PaymentStatus.Successful;
+  }
 }

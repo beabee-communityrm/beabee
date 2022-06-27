@@ -26,6 +26,7 @@ block contents
 						value: member.contributionMonthlyAmount
 					})
 					if !!paymentData.subscriptionId
+						input(type='hidden' name='period' value=member.contributionPeriod)
 						.form-group
 							label.col-md-3.control-label Period
 							.col-md-4.form-control-static= member.contributionPeriod
@@ -69,27 +70,6 @@ block contents
 
 			hr
 
-			if access('superadmin')
-				h4 Manual update
-				.alert.alert-danger.
-					This could result in payments being taken but not recorded if done incorrectly,
-					proceed with caution
-
-				form( method="post" ).form-horizontal
-					+csrf
-					input( type='hidden' name='action' value='force-update' )
-					include ./partials/fields.pug
-
-					.form-group: .col-md-offset-3.col-md-9
-						.checkbox
-							label
-								input(type='checkbox' required)
-								| I confirm I understand the risks in updating this data
-
-					+form_button( 'Update', 'danger', { left: 3 } )
-
-				hr
-
 			h4 Payments
 			if payments.length > 0
 				.table-responsive
@@ -105,10 +85,8 @@ block contents
 						tbody
 							each payment, p in payments
 								tr
-									td
-										a( href="https://manage.gocardless.com/payments/" + payment.paymentId ) #{ payment.paymentId }
-									td 
-										a( href="https://manage.gocardless.com/subscriptions/" + payment.subscriptionId ) #{ payment.subscriptionId }
+									td= payment.id
+									td= payment.subscriptionId
 									td #{ moment( payment.chargeDate ).format( 'DD/MM/YYYY' ) }
 									td #{ payment.description }
 									td: +paymentStatus(payment)

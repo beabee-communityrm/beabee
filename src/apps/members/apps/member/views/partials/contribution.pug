@@ -6,13 +6,8 @@ dl.dl-horizontal
 		dt Amount
 		dd
 			= member.contributionDescription
-			if member.nextContributionAmount
-				br
-				| Will change to
-				|
-				= currencySymbol + member.nextContributionAmount
 		case member.contributionType
 			when 'Automatic'
-				include gocardless.pug
+				include automatic.pug
 			when 'Manual'
 				include manual.pug
