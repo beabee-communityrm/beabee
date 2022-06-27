@@ -114,7 +114,7 @@ class PaymentFlowService implements PaymentFlowProvider {
         "confirm-email",
         { email: joinFlow.joinForm.email },
         {
-          firstName: "", // We don't know this yet
+          firstName: joinFlow.joinForm.firstname || "",
           confirmLink: joinFlow.confirmUrl + "/" + joinFlow.id
         }
       );
@@ -139,8 +139,8 @@ class PaymentFlowService implements PaymentFlowProvider {
     const partialMember = {
       email: joinFlow.joinForm.email,
       password: joinFlow.joinForm.password,
-      firstname: paymentData.firstname || "",
-      lastname: paymentData.lastname || ""
+      firstname: joinFlow.joinForm.firstname || paymentData.firstname || "",
+      lastname: joinFlow.joinForm.lastname || paymentData.lastname || ""
     };
 
     if (member) {

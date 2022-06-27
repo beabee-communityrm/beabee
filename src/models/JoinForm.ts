@@ -14,6 +14,12 @@ export default class JoinForm implements PaymentForm, ReferralGiftForm {
   @Column(() => Password)
   password!: Password;
 
+  @Column({ type: String, nullable: true })
+  firstname?: string | null;
+
+  @Column({ type: String, nullable: true })
+  lastname?: string | null;
+
   @Column({ type: "real" })
   monthlyAmount!: number;
 

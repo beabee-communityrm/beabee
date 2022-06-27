@@ -63,6 +63,12 @@ export class SignupController {
       throw new NotFoundError();
     }
 
+    if (data.firstname || data.lastname) {
+      joinFlow.joinForm.firstname = data.firstname || null;
+      joinFlow.joinForm.lastname = data.lastname || null;
+      await getRepository(JoinFlow).save(joinFlow);
+    }
+
     await PaymentFlowService.sendConfirmEmail(joinFlow);
   }
 
