@@ -44,7 +44,7 @@ export class EmailController {
     );
   }
 
-  @Patch()
+  @Patch("/:id")
   async updateEmail(
     @Param("id") id: string,
     @Body() data: UpdateEmailData
