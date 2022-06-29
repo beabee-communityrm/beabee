@@ -36,7 +36,15 @@ export class SignupData extends CompleteUrls {
   contribution?: StartContributionData;
 }
 
-export class SignupCompleteData extends CompleteJoinFlowData {}
+export class SignupCompleteData extends CompleteJoinFlowData {
+  @IsOptional()
+  @IsString()
+  firstname?: string;
+
+  @IsOptional()
+  @IsString()
+  lastname?: string;
+}
 
 export class SignupConfirmEmailParam {
   @IsUUID("4")
