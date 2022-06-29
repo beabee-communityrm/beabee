@@ -4,11 +4,11 @@
 .form-group
   label(for='fromEmail').control-label.col-md-3 From email
   .col-md-6
-    input(type='text' name='fromEmail' required value=email.fromEmail || Options('support-email'))#fromEmail.form-control
+    input(type='text' name='fromEmail' value=email.fromEmail)#fromEmail.form-control
 .form-group
   label(for='fromName').control-label.col-md-3 From name
   .col-md-6
-    input(type='text' name='fromName' required value=email.fromName || Options('support-email-from'))#fromName.form-control
+    input(type='text' name='fromName' value=email.fromName)#fromName.form-control
 .form-group
   label(for='subject').control-label.col-md-3 Subject
   .col-md-6
