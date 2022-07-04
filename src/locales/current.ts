@@ -1,4 +1,4 @@
-import config from "@config";
+import OptionsService from "@core/services/OptionsService";
 
 import localeDe from "./de.json";
 import localeDeInformal from "./de@informal.json";
@@ -10,4 +10,6 @@ const locales = {
   en: localeEn
 } as const;
 
-export default locales[config.locale];
+export default function currentLocale() {
+  return locales[OptionsService.getText("locale") as keyof typeof locales];
+}
