@@ -18,7 +18,7 @@ export function getEmailFooter(): string {
 <p><br></p>
 <p style="color: #666;">${
     locale.footer.contactUs
-  } <a href="${OptionsService.getText(
+  } <a href="mailto:${OptionsService.getText(
     "support-email"
   )}">${OptionsService.getText("support-email")}</a>.</p>
 <p style="color: #666;">${[
