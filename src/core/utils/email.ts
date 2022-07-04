@@ -5,18 +5,14 @@ import OptionsService from "@core/services/OptionsService";
 import config from "@config";
 import locale from "@locale";
 
-export function formatEmailBody(body: string): string {
-  const header = `
-<style>p,ul,ol,h1,h2,h3,h4,h5,h6,pre,blockquote { margin: 0; }</style>
-  `;
-
-  const footer = `
+export function getEmailFooter(): string {
+  return `
 <p><br></p>
-<p>---</p>
+<hr>
 <p><br></p>
 <p><img src="${config.audience}${OptionsService.getText(
     "logo"
-  )}" style="vertical-align: middle" width="50" height="50"><span style="margin-left: 10px">${OptionsService.getText(
+  )}" style="display:inline-block; vertical-align: middle" width="50" height="50"><span style="margin-left: 10px">${OptionsService.getText(
     "organisation"
   )}</span></p>
 <p><br></p>
@@ -37,5 +33,11 @@ export function formatEmailBody(body: string): string {
     .map(([text, url]) => `<a href="${url}">${text}</a>`)
     .join(", ")}</p>
 `;
-  return juice(header + body + footer);
+}
+
+export function formatEmailBody(body: string): string {
+  const styles = `
+<style>p,ul,ol,h1,h2,h3,h4,h5,h6,pre,blockquote { margin: 0; }</style>
+  `;
+  return juice(styles + body + getEmailFooter());
 }

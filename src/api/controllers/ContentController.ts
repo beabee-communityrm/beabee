@@ -9,6 +9,7 @@ import {
 import { getRepository } from "typeorm";
 
 import OptionsService from "@core/services/OptionsService";
+import { getEmailFooter } from "@core/utils/email";
 
 import Content, { ContentId } from "@models/Content";
 import config from "@config";
@@ -87,6 +88,13 @@ const saveExtraContent = {
 
 @JsonController("/content")
 export class ContentController {
+  @Get("/email")
+  getEmail(): object {
+    return {
+      footer: getEmailFooter()
+    };
+  }
+
   @Get("/:id(*)")
   async get(@Param("id") id: ContentId): Promise<object | undefined> {
     const content = await getRepository(Content).findOne(id);
