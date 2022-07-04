@@ -53,6 +53,8 @@
   "switch-webhook-mailchimp": "true",
   "switch-webhook-stripe": "true",
 
+  "theme": "{}",
+
   "flash-logged-in": "Login successful",
   "flash-logged-out": "Logged out",
   "flash-login-failed": "Login unsuccessful",

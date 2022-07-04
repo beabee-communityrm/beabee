@@ -22,7 +22,8 @@ const getExtraContent = {
     privacyLink: OptionsService.getText("footer-privacy-link-url"),
     termsLink: OptionsService.getText("footer-terms-link-url"),
     impressumLink: OptionsService.getText("footer-impressum-link-url"),
-    currencyCode: config.currencyCode
+    currencyCode: config.currencyCode,
+    theme: OptionsService.getJSON("theme")
   }),
   join: () => ({
     minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
@@ -50,6 +51,7 @@ const saveExtraContent = {
       termsLink,
       impressumLink,
       currencyCode,
+      theme,
       ...data
     } = d;
     await OptionsService.set({
@@ -58,7 +60,8 @@ const saveExtraContent = {
       "support-email": supportEmail,
       "footer-privacy-link-url": privacyLink,
       "footer-terms-link-url": termsLink,
-      "footer-impressum-link-url": impressumLink
+      "footer-impressum-link-url": impressumLink,
+      theme: JSON.stringify(theme)
     });
     return data;
   },
