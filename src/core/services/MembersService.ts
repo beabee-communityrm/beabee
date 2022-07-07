@@ -101,6 +101,16 @@ class MembersService {
         await NewsletterService.upsertMember(member);
       }
 
+      if (EmailService.providerTemplateMap["new-member"]) {
+        await EmailService.sendTemplateTo(
+          "new-member",
+          {
+            email: OptionsService.getText("support-email")
+          },
+          { member }
+        );
+      }
+
       return member;
     } catch (error) {
       if (isDuplicateIndex(error, "email")) {
@@ -281,6 +291,16 @@ class MembersService {
 
   async cancelMemberContribution(member: Member): Promise<void> {
     await PaymentService.cancelContribution(member);
+
+    if (EmailService.providerTemplateMap["cancelled-member"]) {
+      await EmailService.sendTemplateTo(
+        "cancelled-member",
+        {
+          email: OptionsService.getText("support-email")
+        },
+        { member }
+      );
+    }
   }
 
   async permanentlyDeleteMember(member: Member): Promise<void> {

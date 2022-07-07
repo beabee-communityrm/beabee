@@ -43,6 +43,14 @@ const emailTemplates = {
   }) => ({
     FNAME: params.firstName,
     URL: params.newUrl
+  }),
+  "new-member": (params: { member: Member }) => ({
+    MEMBERID: params.member.id,
+    MEMBERNAME: params.member.fullname
+  }),
+  "cancelled-member": (params: { member: Member }) => ({
+    MEMBERID: params.member.id,
+    MEMBERNAME: params.member.fullname
   })
 } as const;
 
