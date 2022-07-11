@@ -8,9 +8,9 @@ import startServer from "@core/server";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 
-import gocardlessApp from "./gocardless";
-import mailchimpApp from "./mailchimp";
-import stripeApp from "./stripe";
+import gocardlessApp from "./handlers/gocardless";
+import mailchimpApp from "./handlers/mailchimp";
+import stripeApp from "./handlers/stripe";
 
 function checkOpt(key: OptionKey): Handler {
   return (req, res, next) => {

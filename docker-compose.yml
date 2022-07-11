@@ -38,6 +38,12 @@ services:
     <<: *base-app
     command: "node built/webhooks/app"
 
+  img_upload_app:
+    image: hascheksolutions/pictshare:72394f17
+    environment:
+      CONTENTCONTROLLERS: IMAGE,TEXT
+    init: true
+
   cron:
     <<: *base-app
     user: root

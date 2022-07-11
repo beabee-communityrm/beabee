@@ -36,16 +36,45 @@ export interface PaymentForm {
 }
 
 export enum PaymentMethod {
-  Card = "card",
-  DirectDebit = "direct-debit"
+  StripeCard = "s_card",
+  StripeSEPA = "s_sepa",
+  StripeBACS = "s_bacs",
+  GoCardlessDirectDebit = "gc_direct-debit"
 }
 
-export interface PaymentSource {
-  type: "direct-debit";
+export interface CardPaymentSource {
+  method: PaymentMethod.StripeCard;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+}
+
+export interface GoCardlessDirectDebitPaymentSource {
+  method: PaymentMethod.GoCardlessDirectDebit;
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;
 }
+
+export interface StripeBACSPaymentSource {
+  method: PaymentMethod.StripeBACS;
+  sortCode: string;
+  last4: string;
+}
+
+export interface StripeSEPAPaymentSource {
+  method: PaymentMethod.StripeSEPA;
+  country: string;
+  bankCode: string;
+  branchCode: string;
+  last4: string;
+}
+
+export type PaymentSource =
+  | CardPaymentSource
+  | GoCardlessDirectDebitPaymentSource
+  | StripeBACSPaymentSource
+  | StripeSEPAPaymentSource;
 
 export function getActualAmount(
   amount: number,

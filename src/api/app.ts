@@ -14,6 +14,7 @@ import {
 import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { ContentController } from "./controllers/ContentController";
+import { EmailController } from "./controllers/EmailController";
 import { MemberController } from "./controllers/MemberController";
 import { NoticeController } from "./controllers/NoticeController";
 import { SegmentController } from "./controllers/SegmentController";
@@ -56,6 +57,7 @@ db.connect().then(() => {
       AuthController,
       CalloutController,
       ContentController,
+      EmailController,
       MemberController,
       NoticeController,
       SegmentController,

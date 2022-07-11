@@ -18,11 +18,11 @@ export default class Email {
   @Column()
   name!: string;
 
-  @Column()
-  fromName!: string;
+  @Column({ type: String, nullable: true })
+  fromName!: string | null;
 
-  @Column()
-  fromEmail!: string;
+  @Column({ type: String, nullable: true })
+  fromEmail!: string | null;
 
   @Column()
   subject!: string;

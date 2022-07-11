@@ -18,6 +18,15 @@ export default class JoinFlow {
   @Column()
   paymentFlowId!: string;
 
+  @Column()
+  loginUrl!: string;
+
+  @Column()
+  setPasswordUrl!: string;
+
+  @Column()
+  confirmUrl!: string;
+
   @Column(() => JoinForm)
   joinForm!: JoinForm;
 }

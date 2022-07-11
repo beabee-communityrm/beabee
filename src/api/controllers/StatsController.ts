@@ -1,4 +1,4 @@
-import GCPayment from "@models/GCPayment";
+import Payment from "@models/Payment";
 import Member from "@models/Member";
 import { Type } from "class-transformer";
 import { IsDate } from "class-validator";
@@ -36,7 +36,7 @@ export class StatsController {
       .where("m.joined BETWEEN :from AND :to", query)
       .getCount();
 
-    const payments = await createQueryBuilder(GCPayment, "p")
+    const payments = await createQueryBuilder(Payment, "p")
       .select("SUM(p.amount)", "total")
       .addSelect("AVG(p.amount)", "average")
       .where("p.chargeDate BETWEEN :from AND :to", query)

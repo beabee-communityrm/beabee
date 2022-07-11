@@ -40,8 +40,8 @@ block contents
 										td: a( href="/members/" + payment.member.id ) #{ payment.member.fullname }
 									else
 										td –
-									td: a( href="https://manage.gocardless.com/payments/" + payment.paymentId, target="_blank" ) #{ payment.paymentId }
-									td: a( href="https://manage.gocardless.com/subscriptions/" + payment.subscriptionId, target="_blank" ) #{ payment.subscriptionId }
+									td= payment.id
+									td= payment.subscriptionId
 									td #{ moment( payment.chargeDate ).format( 'DD/MM/YYYY' ) }
 									td #{ payment.description }
 									td: +paymentStatus(payment)

@@ -1,6 +1,6 @@
 import { IsBoolean, IsEnum, IsNumber, Validate } from "class-validator";
 
-import { ContributionPeriod } from "@core/utils";
+import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
 import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
@@ -40,6 +40,9 @@ export class StartContributionData
 {
   @IsUrl()
   completeUrl!: string;
+
+  @IsEnum(PaymentMethod)
+  paymentMethod!: PaymentMethod;
 }
 
 export class UpdateContributionData implements ContributionData {

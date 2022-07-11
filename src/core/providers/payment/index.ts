@@ -1,58 +1,50 @@
-import { PaymentForm } from "@core/utils";
+import { getRepository } from "typeorm";
 
-import Address from "@models/Address";
-import JoinFlow from "@models/JoinFlow";
+import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
+
+import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+
 import Member from "@models/Member";
+import Payment from "@models/Payment";
+import PaymentData, { PaymentProviderData } from "@models/PaymentData";
 
-export interface PaymentFlow {
-  id: string;
-  url: string;
-}
-
-export interface PaymentFlowParams {
-  email: string;
-  firstname?: string;
-  lastname?: string;
-}
-
-export interface CompletedPaymentFlow {
-  customerId: string;
-  mandateId: string;
-}
-
-export interface UpdateContributionData {
+export interface UpdateContributionResult {
   startNow: boolean;
   expiryDate: Date;
 }
 
-export interface PaymentProvider {
-  customerToMember(customerId: string): Promise<{
-    partialMember: Partial<Member>;
-    billingAddress: Address;
-  }>;
+export abstract class PaymentProvider<T extends PaymentProviderData> {
+  protected readonly data: T;
+  protected readonly member: Member;
+  protected readonly method: PaymentMethod;
 
-  createPaymentFlow(
-    joinFlow: JoinFlow,
-    completeUrl: string,
-    params: PaymentFlowParams
-  ): Promise<PaymentFlow>;
+  constructor(data: PaymentData) {
+    this.data = data.data as T;
+    this.member = data.member;
+    this.method = data.method as PaymentMethod;
+  }
 
-  completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow>;
+  protected async updateData() {
+    await getRepository(PaymentData).update(this.member.id, {
+      data: this.data
+    });
+  }
 
-  hasPendingPayment(member: Member): Promise<boolean>;
+  abstract canChangeContribution(useExistingMandate: boolean): Promise<boolean>;
 
-  cancelContribution(member: Member): Promise<void>;
+  abstract cancelContribution(keepMandate: boolean): Promise<void>;
 
-  updateMember(member: Member, updates: Partial<Member>): Promise<void>;
+  abstract getContributionInfo(): Promise<Partial<ContributionInfo>>;
 
-  updateContribution(
-    member: Member,
+  abstract updateMember(updates: Partial<Member>): Promise<void>;
+
+  abstract updateContribution(
     paymentForm: PaymentForm
-  ): Promise<UpdateContributionData>;
+  ): Promise<UpdateContributionResult>;
 
-  updatePaymentSource(
-    member: Member,
-    customerId: string,
-    mandateId: string
+  abstract updatePaymentMethod(
+    completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void>;
+
+  abstract permanentlyDeleteMember(): Promise<void>;
 }

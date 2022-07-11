@@ -199,8 +199,7 @@ async function handleResync(
           email: nlMember.email,
           firstname: nlMember.firstname,
           lastname: nlMember.lastname,
-          joined: nlMember.joined,
-          contributionType: ContributionType.None
+          joined: nlMember.joined
         },
         {
           newsletterStatus: nlMember.status,

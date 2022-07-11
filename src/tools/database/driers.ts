@@ -12,16 +12,15 @@ import Email from "@models/Email";
 import EmailMailing from "@models/EmailMailing";
 import Export from "@models/Export";
 import ExportItem from "@models/ExportItem";
-import GCPayment from "@models/GCPayment";
-import GCPaymentData from "@models/GCPaymentData";
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
-import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
 import MemberProfile from "@models/MemberProfile";
 import Notice from "@models/Notice";
 import Option from "@models/Option";
 import PageSettings from "@models/PageSettings";
+import Payment from "@models/Payment";
+import PaymentData from "@models/PaymentData";
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 import Project from "@models/Project";
@@ -86,18 +85,20 @@ const exportItemsDrier = createDrier(ExportItem, {
   itemId: copy // These will be mapped to values that have already been seen
 });
 
-export const gcPaymentsDrier = createDrier(GCPayment, {
+export const paymentsDrier = createDrier(Payment, {
   id: () => uuidv4(),
-  paymentId: randomId(12, "PM"),
   subscriptionId: randomId(12, "SB"),
   member: memberId
 });
 
-export const gcPaymentDataDrier = createDrier(GCPaymentData, {
+export const paymentDataDrier = createDrier(PaymentData, {
   member: memberId,
-  customerId: randomId(12, "CU"),
-  mandateId: randomId(12, "MD"),
-  subscriptionId: randomId(12, "SB")
+  data: (data) => ({
+    ...data,
+    ...("customerId" in data && { customerId: randomId(12, "CU")() }),
+    ...("mandateId" in data && { customerId: randomId(12, "MD")() }),
+    ...("subscriptionId" in data && { customerId: randomId(12, "SB")() })
+  })
 });
 
 const giftFlowDrier = createDrier(GiftFlow, {
@@ -113,12 +114,6 @@ const giftFlowDrier = createDrier(GiftFlow, {
     fromEmail: () => chance.email({ domain: "fake.beabee.io", length: 10 })
   }),
   giftee: memberId
-});
-
-export const manualPaymentDataDrier = createDrier(ManualPaymentData, {
-  member: memberId,
-  source: () => chance.pickone(["Standing order", "Cash in hand"]),
-  reference: () => chance.word()
 });
 
 export const memberDrier = createDrier(Member, {
@@ -210,12 +205,11 @@ export default [
   emailDrier,
   emailMailingDrier,
   exportsDrier,
-  gcPaymentDataDrier,
   giftFlowDrier,
-  manualPaymentDataDrier,
   noticesDrier,
   optionsDrier,
-  gcPaymentsDrier,
+  paymentDataDrier,
+  paymentsDrier,
   pageSettingsDrier,
   pollsDrier, // Must be before pollResponsesDrier
   pollResponsesDrier,

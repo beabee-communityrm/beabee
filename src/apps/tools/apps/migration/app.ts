@@ -55,7 +55,7 @@ async function getManualMembers() {
 }
 
 app.get(
-  "/manual-to-gc",
+  "/manual-to-auto",
   wrapAsync(async (req, res) => {
     const {
       expiringMembers,
@@ -63,7 +63,7 @@ app.get(
       nonExpiringAnnualMembers
     } = await getManualMembers();
 
-    res.render("manual-to-gc", {
+    res.render("manual-to-auto", {
       expiringMembers: expiringMembers.length,
       nonExpiringMonthlyMembers: nonExpiringMonthlyMembers.length,
       nonExpiringAnnualMembers: nonExpiringAnnualMembers.length
@@ -72,7 +72,7 @@ app.get(
 );
 
 app.post(
-  "/manual-to-gc",
+  "/manual-to-auto",
   wrapAsync(async (req, res) => {
     const {
       expiringMembers,
@@ -111,8 +111,8 @@ app.post(
     const email = schemaToEmail({ ...req.body, name: "" });
     await EmailService.sendEmail(email, recipients);
 
-    req.flash("success", "migration-manual-to-gc-sent");
-    res.redirect("/tools/migration/manual-to-gc");
+    req.flash("success", "migration-manual-to-auto-sent");
+    res.redirect("/tools/migration/manual-to-auto");
   })
 );
 
