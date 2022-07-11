@@ -9,7 +9,6 @@ import stripe from "@core/lib/stripe";
 import { wrapAsync } from "@core/utils";
 import { convertStatus } from "@core/utils/payment/stripe";
 
-import EmailService from "@core/services/EmailService";
 import GiftService from "@core/services/GiftService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
@@ -136,10 +135,9 @@ async function handleCustomerSubscriptionDeleted(
     subscription.id
   );
   if (data) {
-    await MembersService.cancelMemberContribution(data.member);
-    await EmailService.sendTemplateToMember(
-      "cancelled-contribution",
-      data.member
+    await MembersService.cancelMemberContribution(
+      data.member,
+      "cancelled-contribution"
     );
   }
 }

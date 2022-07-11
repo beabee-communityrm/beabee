@@ -44,7 +44,9 @@ const assignableSystemEmails = {
   "confirm-email": "Confirm email",
   "manual-to-automatic": "Manual contributor converted to automatic",
   "email-exists-login": "Email exists - login",
-  "email-exists-set-password": "Email exists - set password"
+  "email-exists-set-password": "Email exists - set password",
+  "new-member": "New member notification",
+  "cancelled-member": "Cancelled member notification"
 };
 
 app.set("views", __dirname + "/views");
