@@ -53,6 +53,7 @@
   "switch-webhook-mailchimp": "true",
   "switch-webhook-stripe": "true",
 
+  "locale": "en",
   "theme": "{}",
 
   "flash-logged-in": "Login successful",

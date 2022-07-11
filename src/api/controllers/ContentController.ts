@@ -23,6 +23,7 @@ const getExtraContent = {
     termsLink: OptionsService.getText("footer-terms-link-url"),
     impressumLink: OptionsService.getText("footer-impressum-link-url"),
     currencyCode: config.currencyCode,
+    locale: OptionsService.getText("locale"),
     theme: OptionsService.getJSON("theme")
   }),
   join: () => ({
@@ -51,6 +52,7 @@ const saveExtraContent = {
       termsLink,
       impressumLink,
       currencyCode,
+      locale,
       theme,
       ...data
     } = d;
@@ -61,6 +63,7 @@ const saveExtraContent = {
       "footer-privacy-link-url": privacyLink,
       "footer-terms-link-url": termsLink,
       "footer-impressum-link-url": impressumLink,
+      locale,
       theme: JSON.stringify(theme)
     });
     return data;

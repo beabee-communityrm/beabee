@@ -140,7 +140,6 @@ export default {
     membershipProductId: env.s("BEABEE_STRIPE_MEMBERSHIPPRODUCTID", ""),
     country: env.e("BEABEE_STRIPE_COUNTRY", ["gb", "eu"] as const, "gb")
   },
-  locale: env.e("BEABEE_LOCALE", ["en", "de", "de@informal"] as const),
   countryCode: env.e("BEABEE_COUNTRYCODE", ["en", "de", "be"] as const),
   currencyCode: env.s("BEABEE_CURRENCYCODE"),
   currencySymbol: env.s("BEABEE_CURRENCYSYMBOL"),
