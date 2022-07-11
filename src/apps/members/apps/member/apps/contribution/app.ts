@@ -3,7 +3,6 @@ import express from "express";
 import { ContributionType, wrapAsync } from "@core/utils";
 import { calcMonthsLeft } from "@core/utils/payment";
 
-import EmailService from "@core/services/EmailService";
 import PaymentService from "@core/services/PaymentService";
 import MembersService from "@core/services/MembersService";
 
@@ -62,10 +61,9 @@ app.post(
         break;
 
       case "cancel-subscription":
-        await MembersService.cancelMemberContribution(member);
-        await EmailService.sendTemplateToMember(
-          "cancelled-contribution",
-          member
+        await MembersService.cancelMemberContribution(
+          member,
+          "cancelled-contribution"
         );
         break;
 

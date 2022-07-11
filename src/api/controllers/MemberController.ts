@@ -19,7 +19,6 @@ import { getRepository } from "typeorm";
 
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
-import EmailService from "@core/services/EmailService";
 import PaymentFlowService from "@core/services/PaymentFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
@@ -203,10 +202,9 @@ export class MemberController {
   @OnUndefined(204)
   @Post("/:id/contribution/cancel")
   async cancelContribution(@TargetUser() target: Member): Promise<void> {
-    await PaymentService.cancelContribution(target);
-    await EmailService.sendTemplateToMember(
-      "cancelled-contribution-no-survey",
-      target
+    await MembersService.cancelMemberContribution(
+      target,
+      "cancelled-contribution-no-survey"
     );
   }
 

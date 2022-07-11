@@ -289,8 +289,13 @@ class MembersService {
     }
   }
 
-  async cancelMemberContribution(member: Member): Promise<void> {
+  async cancelMemberContribution(
+    member: Member,
+    email: "cancelled-contribution" | "cancelled-contribution-no-survey"
+  ): Promise<void> {
     await PaymentService.cancelContribution(member);
+
+    await EmailService.sendTemplateToMember(email, member);
 
     if (EmailService.providerTemplateMap["cancelled-member"]) {
       await EmailService.sendTemplateTo(

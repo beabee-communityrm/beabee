@@ -11,7 +11,6 @@ import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import { convertStatus } from "@core/utils/payment/gocardless";
 
-import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
@@ -145,10 +144,9 @@ export async function cancelSubscription(
 
   const data = await PaymentService.getDataBy("subscriptionId", subscriptionId);
   if (data) {
-    await MembersService.cancelMemberContribution(data.member);
-    await EmailService.sendTemplateToMember(
-      "cancelled-contribution",
-      data.member
+    await MembersService.cancelMemberContribution(
+      data.member,
+      "cancelled-contribution"
     );
   } else {
     log.info("Unlink subscription " + subscriptionId);
