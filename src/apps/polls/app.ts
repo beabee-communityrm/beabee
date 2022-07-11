@@ -4,7 +4,7 @@ import { getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isLoggedIn } from "@core/middleware";
 import { setTrackingCookie } from "@core/sessions";
-import { isSocialScraper, wrapAsync } from "@core/utils";
+import { escapeRegExp, isSocialScraper, wrapAsync } from "@core/utils";
 import * as auth from "@core/utils/auth";
 
 import MembersService from "@core/services/MembersService";
@@ -42,11 +42,12 @@ app.get(
 app.get(
   "/_oembed",
   wrapAsync(async (req, res, next) => {
-    const url = req.query.url as string;
-    if (url && url.startsWith(config.audience + "/polls/")) {
-      const pollId = url
-        .replace(config.audience + "/polls/", "")
-        .replace(/\/embed\/?/, "");
+    const url = req.query.url as string | undefined;
+    const pathMatch = new RegExp(
+      `^${escapeRegExp(config.audience)}/(polls|callouts)/`
+    );
+    if (url && pathMatch.test(url)) {
+      const pollId = url.replace(pathMatch, "").replace(/\/embed\/?/, "");
       const poll = await getRepository(Poll).findOne(pollId);
       if (poll) {
         res.send({
