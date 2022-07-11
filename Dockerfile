@@ -2,12 +2,13 @@ FROM node:16.13-alpine as builder
 
 RUN apk add --no-cache make g++ git
 
-COPY . /opt/membership-system
-
 WORKDIR /opt/membership-system
+
+COPY package.json package-lock.json /opt/membership-system/
 RUN npm ci
+
+COPY . /opt/membership-system/
 RUN NODE_ENV=production npm run build
-RUN npm ci --only=production
 
 FROM nginx:1.18.0-alpine as router
 
@@ -18,8 +19,11 @@ FROM node:16.13-alpine as app
 
 ARG REVISION=DEV
 
-COPY --chown=node:node --from=builder /opt/membership-system/package.json /opt/membership-system/
-COPY --chown=node:node --from=builder /opt/membership-system/node_modules /opt/membership-system/node_modules
+WORKDIR /opt/membership-system
+
+COPY package.json package-lock.json /opt/membership-system/
+RUN npm ci --only=production
+
 COPY --chown=node:node --from=builder /opt/membership-system/built /opt/membership-system/built
 
 COPY crontab /etc/crontabs/root
@@ -31,6 +35,5 @@ ENV NODE_OPTIONS=--enable-source-maps
 ENV TYPEORM_MIGRATIONS=built/migrations/*.js
 ENV TYPEORM_ENTITIES=built/models/*.js
 
-WORKDIR /opt/membership-system
 USER node
 CMD [ "node", "built/app" ]
