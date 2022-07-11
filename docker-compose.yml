@@ -42,6 +42,7 @@ services:
     image: hascheksolutions/pictshare:72394f17
     environment:
       CONTENTCONTROLLERS: IMAGE,TEXT
+    init: true
 
   cron:
     <<: *base-app
