@@ -15,10 +15,7 @@ export default class PollsService {
     member: Member
   ): Promise<PollWithResponse[]> {
     const polls = await getRepository(Poll).find({
-      where: [
-        { starts: IsNull(), hidden: false },
-        { starts: LessThan(new Date()), hidden: false }
-      ],
+      where: { starts: LessThan(new Date()), hidden: false },
       order: {
         date: "DESC"
       }
