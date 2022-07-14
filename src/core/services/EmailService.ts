@@ -23,7 +23,7 @@ import config from "@config";
 
 const log = mainLogger.child({ app: "email-service" });
 
-const emailTemplates = {
+const generalEmailTemplates = {
   "purchased-gift": (params: {
     fromName: string;
     gifteeFirstName: string;
@@ -43,7 +43,10 @@ const emailTemplates = {
   }) => ({
     FNAME: params.firstName,
     URL: params.newUrl
-  }),
+  })
+} as const;
+
+const adminEmailTemplates = {
   "new-member": (params: { member: Member }) => ({
     MEMBERID: params.member.id,
     MEMBERNAME: params.member.fullname
@@ -51,6 +54,13 @@ const emailTemplates = {
   "cancelled-member": (params: { member: Member }) => ({
     MEMBERID: params.member.id,
     MEMBERNAME: params.member.fullname
+  }),
+  "new-callout-response": (params: {
+    pollSlug: string;
+    responderName: string;
+  }) => ({
+    CALLOUTSLUG: params.pollSlug,
+    RESPNAME: params.responderName
   })
 } as const;
 
@@ -103,13 +113,20 @@ const memberEmailTemplates = {
   })
 } as const;
 
-type EmailTemplates = typeof emailTemplates;
-type EmailTemplateId = keyof EmailTemplates;
+type GeneralEmailTemplates = typeof generalEmailTemplates;
+type GeneralEmailTemplateId = keyof GeneralEmailTemplates;
+type AdminEmailTemplates = typeof adminEmailTemplates;
+type AdminEmailTemplateId = keyof AdminEmailTemplates;
 type MemberEmailTemplates = typeof memberEmailTemplates;
 type MemberEmailTemplateId = keyof MemberEmailTemplates;
 type MemberEmailParams<T extends MemberEmailTemplateId> = Parameters<
   MemberEmailTemplates[T]
 >[1];
+
+type EmailTemplateId =
+  | GeneralEmailTemplateId
+  | AdminEmailTemplateId
+  | MemberEmailTemplateId;
 
 class EmailService implements EmailProvider {
   private readonly provider: EmailProvider =
@@ -129,7 +146,7 @@ class EmailService implements EmailProvider {
   }
 
   async sendTemplate(
-    template: EmailTemplateId | MemberEmailTemplateId,
+    template: EmailTemplateId,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
@@ -146,13 +163,13 @@ class EmailService implements EmailProvider {
     }
   }
 
-  async sendTemplateTo<T extends EmailTemplateId>(
+  async sendTemplateTo<T extends GeneralEmailTemplateId>(
     template: T,
     to: EmailPerson,
-    params: Parameters<EmailTemplates[T]>[0],
+    params: Parameters<GeneralEmailTemplates[T]>[0],
     opts?: EmailOptions
   ): Promise<void> {
-    const mergeFields = emailTemplates[template](params as any); // https://github.com/microsoft/TypeScript/issues/30581
+    const mergeFields = generalEmailTemplates[template](params as any); // https://github.com/microsoft/TypeScript/issues/30581
     await this.sendTemplate(template, [{ to, mergeFields }], opts);
   }
 
@@ -189,8 +206,31 @@ class EmailService implements EmailProvider {
     await this.sendTemplate(template, [recipient], opts);
   }
 
+  async sendTemplateToAdmin<T extends AdminEmailTemplateId>(
+    template: T,
+    params: Parameters<AdminEmailTemplates[T]>[0],
+    opts?: EmailOptions
+  ): Promise<void> {
+    // Admin emails don't need to be set
+    if (this.providerTemplateMap[template]) {
+      const mergeFields = adminEmailTemplates[template](params as any);
+      await this.sendTemplate(
+        template,
+        [
+          {
+            to: {
+              email: OptionsService.getText("support-email")
+            },
+            mergeFields
+          }
+        ],
+        opts
+      );
+    }
+  }
+
   async getTemplateEmail(
-    template: EmailTemplateId | MemberEmailTemplateId
+    template: EmailTemplateId
   ): Promise<false | Email | null> {
     const providerTemplate = this.providerTemplateMap[template];
     return providerTemplate
@@ -202,22 +242,19 @@ class EmailService implements EmailProvider {
     return await this.provider.getTemplates();
   }
 
-  isTemplate(
-    template: string
-  ): template is EmailTemplateId | MemberEmailTemplateId {
+  isTemplate(template: string): template is EmailTemplateId {
     return this.emailTemplateIds.includes(template as any);
   }
 
-  get emailTemplateIds(): (EmailTemplateId | MemberEmailTemplateId)[] {
+  get emailTemplateIds(): EmailTemplateId[] {
     return [
-      ...(Object.keys(emailTemplates) as EmailTemplateId[]),
+      ...(Object.keys(generalEmailTemplates) as GeneralEmailTemplateId[]),
+      ...(Object.keys(adminEmailTemplates) as AdminEmailTemplateId[]),
       ...(Object.keys(memberEmailTemplates) as MemberEmailTemplateId[])
     ];
   }
 
-  get providerTemplateMap(): Partial<
-    Record<EmailTemplateId | MemberEmailTemplateId, string>
-  > {
+  get providerTemplateMap(): Partial<Record<EmailTemplateId, string>> {
     return OptionsService.getJSON("email-templates");
   }
 
