@@ -46,7 +46,8 @@ const assignableSystemEmails = {
   "email-exists-login": "Email exists - login",
   "email-exists-set-password": "Email exists - set password",
   "new-member": "New member notification",
-  "cancelled-member": "Cancelled member notification"
+  "cancelled-member": "Cancelled member notification",
+  "new-callout-response": "New callout response notification"
 };
 
 app.set("views", __dirname + "/views");

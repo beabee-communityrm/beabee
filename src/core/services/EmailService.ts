@@ -18,6 +18,7 @@ import SMTPProvider from "@core/providers/email/SMTPProvider";
 
 import Email from "@models/Email";
 import Member from "@models/Member";
+import Poll from "@models/Poll";
 
 import config from "@config";
 
@@ -54,6 +55,11 @@ const adminEmailTemplates = {
   "cancelled-member": (params: { member: Member }) => ({
     MEMBERID: params.member.id,
     MEMBERNAME: params.member.fullname
+  }),
+  "new-callout-response": (params: { poll: Poll; responderName: string }) => ({
+    CALLOUTSLUG: params.poll.slug,
+    CALLOUTTITLE: params.poll.title,
+    RESPNAME: params.responderName
   })
 } as const;
 
