@@ -101,15 +101,7 @@ class MembersService {
         await NewsletterService.upsertMember(member);
       }
 
-      if (EmailService.providerTemplateMap["new-member"]) {
-        await EmailService.sendTemplateTo(
-          "new-member",
-          {
-            email: OptionsService.getText("support-email")
-          },
-          { member }
-        );
-      }
+      await EmailService.sendTemplateToAdmin("new-member", { member });
 
       return member;
     } catch (error) {
@@ -296,16 +288,7 @@ class MembersService {
     await PaymentService.cancelContribution(member);
 
     await EmailService.sendTemplateToMember(email, member);
-
-    if (EmailService.providerTemplateMap["cancelled-member"]) {
-      await EmailService.sendTemplateTo(
-        "cancelled-member",
-        {
-          email: OptionsService.getText("support-email")
-        },
-        { member }
-      );
-    }
+    await EmailService.sendTemplateToAdmin("cancelled-member", { member });
   }
 
   async permanentlyDeleteMember(member: Member): Promise<void> {
