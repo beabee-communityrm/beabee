@@ -54,6 +54,13 @@ const adminEmailTemplates = {
   "cancelled-member": (params: { member: Member }) => ({
     MEMBERID: params.member.id,
     MEMBERNAME: params.member.fullname
+  }),
+  "new-callout-response": (params: {
+    pollSlug: string;
+    responderName: string;
+  }) => ({
+    CALLOUTSLUG: params.pollSlug,
+    RESPNAME: params.responderName
   })
 } as const;
 
