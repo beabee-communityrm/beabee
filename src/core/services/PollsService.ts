@@ -97,7 +97,7 @@ export default class PollsService {
     await getRepository(PollResponse).save(pollResponse);
 
     await EmailService.sendTemplateToAdmin("new-callout-response", {
-      pollSlug: poll.slug,
+      poll,
       responderName: member.fullname
     });
 
@@ -135,7 +135,7 @@ export default class PollsService {
     await getRepository(PollResponse).save(pollResponse);
 
     await EmailService.sendTemplateToAdmin("new-callout-response", {
-      pollSlug: poll.slug,
+      poll,
       responderName: guestName || "Anonymous"
     });
   }
