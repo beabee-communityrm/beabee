@@ -2,9 +2,14 @@ import "module-alias/register";
 
 import gocardless from "@core/lib/gocardless";
 
-async function main() {
+async function main(
+  startDate: string | undefined,
+  endDate: string | undefined
+) {
   const webhooks = await gocardless.webhooks.all({
-    successful: false
+    successful: false,
+    ...(startDate && { "created_at[gte]": startDate }),
+    ...(endDate && { "created_at[lte]": endDate })
   });
 
   console.log(`Found ${webhooks.length} failed webhooks`);
@@ -12,12 +17,17 @@ async function main() {
     console.log(webhook.request_body);
   }
 
-  if (process.argv[2] === "--process") {
+  if (isRetry) {
+    console.log("here");
+    return;
     for (const webhook of webhooks) {
-      console.log("Reprocessing webhook " + webhook.id);
+      console.log("Retrying webhook " + webhook.id);
       await gocardless.webhooks.retry(webhook.id);
     }
   }
 }
 
-main().catch((err) => console.error(err));
+const isRetry = process.argv[2] === "--retry";
+const [startDate, endDate] = process.argv.slice(isRetry ? 3 : 2);
+
+main(startDate, endDate).catch((err) => console.error(err));
