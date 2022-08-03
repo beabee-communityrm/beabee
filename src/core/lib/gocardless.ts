@@ -9,7 +9,8 @@ import {
   RedirectFlow,
   RedirectFlowPrefilledCustomer,
   Refund,
-  Subscription
+  Subscription,
+  Webhook
 } from "gocardless-nodejs/types/Types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -72,7 +73,7 @@ gocardless.interceptors.response.use(
   }
 );
 
-const STANDARD_METHODS = ["create", "get", "update", "list", "all"];
+const STANDARD_METHODS = ["create", "get", "update", "list", "all"] as const;
 
 interface Methods<T, C> {
   create(data: DeepPartial<C>): Promise<T>;
@@ -81,72 +82,77 @@ interface Methods<T, C> {
   get(id: string, params?: Record<string, unknown>): Promise<T>;
   update(id: string, data: DeepPartial<T>): Promise<T>;
   remove(id: string): Promise<boolean>;
-  [key: string]: any;
 }
 
 interface Actions<T> {
   cancel(id: string): Promise<T>;
   complete(id: string, data?: Record<string, unknown>): Promise<T>;
+  retry(id: string): Promise<void>;
 }
 
-function createMethods<T, C = T>(
-  key: string,
-  allowedMethods: string[],
-  allowedActions: string[] = []
-): Methods<T, C> & Actions<T> {
-  const endpoint = `/${key}`;
+function createMethods<T, C = T>() {
+  return function <
+    Method extends keyof Methods<T, C>,
+    Action extends keyof Actions<T>
+  >(
+    key: string,
+    allowedMethods: readonly Method[],
+    allowedActions: readonly Action[] = []
+  ): Pick<Methods<T, C>, Method> & Pick<Actions<T>, Action> {
+    const endpoint = `/${key}`;
 
-  const methods: Methods<T, C> = {
-    async create(data) {
-      const response = await gocardless.post(endpoint, { [key]: data });
-      return <T>response.data[key];
-    },
-    async list(params) {
-      const response = await gocardless.get(endpoint, { params });
-      return <T[]>response.data[key];
-    },
-    async all(params) {
-      const {
-        data: { meta, [key]: resources }
-      } = await gocardless.get(endpoint, { params });
+    const methods: Methods<T, C> = {
+      async create(data) {
+        const response = await gocardless.post(endpoint, { [key]: data });
+        return <T>response.data[key];
+      },
+      async list(params) {
+        const response = await gocardless.get(endpoint, { params });
+        return <T[]>response.data[key];
+      },
+      async all(params) {
+        const {
+          data: { meta, [key]: resources }
+        } = await gocardless.get(endpoint, { params });
 
-      const moreResources = meta.cursors.after
-        ? await this.all({ ...params, after: meta.cursors.after })
-        : [];
+        const moreResources = meta.cursors.after
+          ? await this.all({ ...params, after: meta.cursors.after })
+          : [];
 
-      return <T[]>[...resources, ...moreResources];
-    },
-    async get(id, params) {
-      const response = await gocardless.get(`${endpoint}/${id}`, { params });
-      return <T>response.data[key];
-    },
-    async update(id, data) {
-      const response = await gocardless.put(`${endpoint}/${id}`, {
-        [key]: data
-      });
-      return <T>response.data[key];
-    },
-    async remove(id) {
-      const response = await gocardless.delete(`${endpoint}/${id}`);
-      return response.status < 300;
-    }
-  };
-
-  function actionMethod(action: string) {
-    return async (id: string, data?: Record<string, unknown>) => {
-      const response = await gocardless.post(
-        `${endpoint}/${id}/actions/${action}`,
-        { data }
-      );
-      return response.data[key];
+        return <T[]>[...resources, ...moreResources];
+      },
+      async get(id, params) {
+        const response = await gocardless.get(`${endpoint}/${id}`, { params });
+        return <T>response.data[key];
+      },
+      async update(id, data) {
+        const response = await gocardless.put(`${endpoint}/${id}`, {
+          [key]: data
+        });
+        return <T>response.data[key];
+      },
+      async remove(id) {
+        const response = await gocardless.delete(`${endpoint}/${id}`);
+        return response.status < 300;
+      }
     };
-  }
 
-  return Object.assign(
-    {},
-    ...allowedMethods.map((method) => ({ [method]: methods[method] })),
-    ...allowedActions.map((action) => ({ [action]: actionMethod(action) }))
-  );
+    function actionMethod(action: string) {
+      return async (id: string, data?: Record<string, unknown>) => {
+        const response = await gocardless.post(
+          `${endpoint}/${id}/actions/${action}`,
+          { data }
+        );
+        return response.data[key];
+      };
+    }
+
+    return Object.assign(
+      {},
+      ...allowedMethods.map((method) => ({ [method]: methods[method] })),
+      ...allowedActions.map((action) => ({ [action]: actionMethod(action) }))
+    );
+  };
 }
 
 interface CreateRedirectFlow extends RedirectFlow {
@@ -154,42 +160,29 @@ interface CreateRedirectFlow extends RedirectFlow {
 }
 
 export default {
-  //creditors: createMethods<Creditor>('creditors', STANDARD_METHODS),
-  //creditorBankAccounts: createMethods<CreditorBankAccount>('creditor_bank_accounts', ['create', 'get', 'list', 'all'], ['disable']),
-  customers: createMethods<Customer>("customers", [
+  customers: createMethods<Customer>()("customers", [
     ...STANDARD_METHODS,
     "remove"
   ]),
-  customerBankAccounts: createMethods<CustomerBankAccount>(
+  customerBankAccounts: createMethods<CustomerBankAccount>()(
     "customer_bank_accounts",
-    STANDARD_METHODS,
-    ["disable"]
+    STANDARD_METHODS
   ),
-  //events: createMethods<Event>('events', ['get', 'list', 'all']),
-  mandates: createMethods<Mandate>("mandates", STANDARD_METHODS, [
-    "cancel",
-    "reinstate"
-  ]),
-  //mandateImports: createMethods<MandateImport>('mandate_imports', ['create', 'get'], ['submit', 'cancel']),
-  //mandateImportEntries: createMethods<MandateImportEntry>('mandate_import_entries', ['create', 'list', 'all']),
-  payments: createMethods<Payment>("payments", STANDARD_METHODS, [
-    "cancel",
-    "retry"
-  ]),
-  //payouts: createMethods<Payout>('payouts', ['get', 'list', 'all']),
-  //payoutItems: createMethods<PayoutItem>('payout_items', ['list', 'all']),
-  redirectFlows: createMethods<RedirectFlow, CreateRedirectFlow>(
+  mandates: createMethods<Mandate>()("mandates", STANDARD_METHODS, ["cancel"]),
+  payments: createMethods<Payment>()("payments", STANDARD_METHODS, ["cancel"]),
+  redirectFlows: createMethods<RedirectFlow, CreateRedirectFlow>()(
     "redirect_flows",
     ["create", "get"],
     ["complete"]
   ),
-  refunds: createMethods<Refund>("refunds", STANDARD_METHODS),
-  subscriptions: createMethods<Subscription>(
+  refunds: createMethods<Refund>()("refunds", STANDARD_METHODS),
+  subscriptions: createMethods<Subscription>()(
     "subscriptions",
     STANDARD_METHODS,
     ["cancel"]
   ),
   webhooks: {
+    ...createMethods<Webhook>()("webhooks", ["get", "list", "all"], ["retry"]),
     validate(req: Request): boolean {
       return (
         req.body &&
