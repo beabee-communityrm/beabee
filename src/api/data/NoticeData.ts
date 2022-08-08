@@ -12,7 +12,7 @@ interface NoticeData {
   name: string;
   expires?: Date;
   text: string;
-  buttonText: string;
+  buttonText?: string;
   url?: string;
 }
 
@@ -71,7 +71,8 @@ export class CreateNoticeData implements NoticeData {
   text!: string;
 
   @IsString()
-  buttonText!: string;
+  @IsOptional()
+  buttonText?: string;
 
   @IsString()
   @IsOptional()
