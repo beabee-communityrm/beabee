@@ -38,7 +38,9 @@ export function getEmailFooter(): string {
 
 export function formatEmailBody(body: string): string {
   const styles = `
-<style>p,ul,ol,h1,h2,h3,h4,h5,h6,pre,blockquote { margin: 0; }</style>
+<style>p,ul,ol,h1,h2,h3,h4,h5,h6,pre,blockquote,hr { margin: 0; }</style>
   `;
+  // Make empty paragraph tags visible
+  body = body.replace(/<p><\/p>/g, "<p><br></p>");
   return juice(styles + body + getEmailFooter());
 }
