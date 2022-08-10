@@ -1,14 +1,11 @@
 import mandrill from "mandrill-api/mandrill";
 
 import { log as mainLogger } from "@core/logging";
-import { formatEmailBody } from "@core/utils/email";
-
-import OptionsService from "@core/services/OptionsService";
 
 import Email from "@models/Email";
 
-import { EmailOptions, EmailRecipient, EmailTemplate } from ".";
-import LocalProvider from "./LocalProvider";
+import { EmailOptions, EmailRecipient, EmailTemplate, PreparedEmail } from ".";
+import BaseProvider from "./BaseProvider";
 
 import { MandrillEmailConfig } from "@config";
 
@@ -28,7 +25,7 @@ interface MandrillMessage {
   attachments?: { type: string; name: string; content: string }[];
 }
 
-export default class MandrillProvider extends LocalProvider {
+export default class MandrillProvider extends BaseProvider {
   private readonly client: any;
 
   constructor(settings: MandrillEmailConfig["settings"]) {
@@ -36,8 +33,8 @@ export default class MandrillProvider extends LocalProvider {
     this.client = new mandrill.Mandrill(settings.apiKey);
   }
 
-  async sendEmail(
-    email: Email,
+  protected async doSendEmail(
+    email: PreparedEmail,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
@@ -46,12 +43,10 @@ export default class MandrillProvider extends LocalProvider {
         {
           message: {
             ...this.createMessageData(recipients, opts),
-            from_name:
-              email.fromName || OptionsService.getText("support-email-from"),
-            from_email:
-              email.fromEmail || OptionsService.getText("support-email"),
+            from_name: email.fromName,
+            from_email: email.fromEmail,
             subject: email.subject,
-            html: formatEmailBody(email.body),
+            html: email.body,
             auto_text: true
           },
           ...(opts?.sendAt && { send_at: opts.sendAt.toISOString() })

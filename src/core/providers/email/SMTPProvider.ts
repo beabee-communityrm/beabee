@@ -2,20 +2,17 @@ import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
 
 import { log as mainLogger } from "@core/logging";
-import { formatEmailBody } from "@core/utils/email";
 
 import OptionsService from "@core/services/OptionsService";
 
-import Email from "@models/Email";
-
-import { EmailOptions, EmailRecipient } from ".";
-import LocalProvider from "./LocalProvider";
+import { EmailOptions, EmailRecipient, PreparedEmail } from ".";
+import BaseProvider from "./BaseProvider";
 
 import { SMTPEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "smtp-email-provider" });
 
-export default class SMTPProvider extends LocalProvider {
+export default class SMTPProvider extends BaseProvider {
   private readonly client: Mail;
 
   constructor(settings: SMTPEmailConfig["settings"]) {
@@ -23,8 +20,8 @@ export default class SMTPProvider extends LocalProvider {
     this.client = nodemailer.createTransport(settings);
   }
 
-  async sendEmail(
-    email: Email,
+  protected async doSendEmail(
+    email: PreparedEmail,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
@@ -43,13 +40,13 @@ export default class SMTPProvider extends LocalProvider {
             "" + recipient.mergeFields![field]
           );
         },
-        formatEmailBody(email.body)
+        email.body
       );
 
       await this.client.sendMail({
         from: {
-          name: email.fromName || OptionsService.getText("support-email-from"),
-          address: email.fromEmail || OptionsService.getText("support-email")
+          name: email.fromName,
+          address: email.fromEmail
         },
         to: recipient.to.name
           ? { name: recipient.to.name, address: recipient.to.email }
