@@ -39,6 +39,12 @@ const getExtraContent = {
     manualPaymentSources: OptionsService.getList(
       "available-manual-payment-sources"
     )
+  }),
+  share: () => ({
+    title: OptionsService.getText("share-title"),
+    description: OptionsService.getText("share-description"),
+    image: OptionsService.getText("share-image"),
+    twitterHandle: OptionsService.getText("share-twitter-handle")
   })
 } as const;
 
@@ -89,6 +95,16 @@ const saveExtraContent = {
       "available-manual-payment-sources": manualPaymentSources.join(",")
     });
     return data;
+  },
+  share: async (d: any) => {
+    const { title, description, image, twitterHandle } = d;
+    await OptionsService.set({
+      "share-title": title,
+      "share-description": description,
+      "share-image": image,
+      "share-twitter-handle": twitterHandle
+    });
+    return {};
   }
 } as const;
 
