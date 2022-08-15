@@ -46,6 +46,11 @@ const getExtraContent = {
     description: OptionsService.getText("share-description"),
     image: OptionsService.getText("share-image"),
     twitterHandle: OptionsService.getText("share-twitter-handle")
+  }),
+  email: () => ({
+    footer: getEmailFooter(),
+    supportEmail: OptionsService.getText("support-email"),
+    supportEmailName: OptionsService.getText("support-email-from")
   })
 } as const;
 
@@ -108,18 +113,19 @@ const saveExtraContent = {
       "share-twitter-handle": twitterHandle
     });
     return {};
+  },
+  email: async (d: any) => {
+    const { supportEmail, supportEmailName } = d;
+    await OptionsService.set({
+      "support-email": supportEmail,
+      "support-email-from": supportEmailName
+    });
+    return {};
   }
 } as const;
 
 @JsonController("/content")
 export class ContentController {
-  @Get("/email")
-  getEmail(): object {
-    return {
-      footer: getEmailFooter()
-    };
-  }
-
   @Get("/:id(*)")
   async get(@Param("id") id: ContentId): Promise<object | undefined> {
     const content = await getRepository(Content).findOne(id);

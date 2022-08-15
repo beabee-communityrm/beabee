@@ -50,7 +50,8 @@ const parseData = {
   }),
   profile: (d: any) => d,
   contacts: (d: any) => d,
-  share: (d: any) => d
+  share: (d: any) => d,
+  email: (d: any) => d
 } as const;
 
 // urlencoding parser doesn't support overwriting if the same query param
