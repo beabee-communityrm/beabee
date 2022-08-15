@@ -6,7 +6,8 @@ export type ContentId =
   | "profile"
   | "general"
   | "contacts"
-  | "share";
+  | "share"
+  | "email";
 
 @Entity()
 export default class Content {
