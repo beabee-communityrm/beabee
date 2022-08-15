@@ -17,6 +17,7 @@ import config from "@config";
 const getExtraContent = {
   general: () => ({
     organisationName: OptionsService.getText("organisation"),
+    logo: OptionsService.getText("logo"),
     siteUrl: OptionsService.getText("home-link-url"),
     supportEmail: OptionsService.getText("support-email"),
     privacyLink: OptionsService.getText("footer-privacy-link-url"),
@@ -52,6 +53,7 @@ const saveExtraContent = {
   general: async (d: any) => {
     const {
       organisationName,
+      logo,
       siteUrl,
       supportEmail,
       privacyLink,
@@ -64,6 +66,7 @@ const saveExtraContent = {
     } = d;
     await OptionsService.set({
       organisation: organisationName,
+      logo,
       "home-link-url": siteUrl,
       "support-email": supportEmail,
       "footer-privacy-link-url": privacyLink,
