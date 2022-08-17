@@ -100,8 +100,10 @@ class OptionsService {
       return option;
     });
 
-    await getRepository(Option).save(options);
-    await this.notify();
+    if (options.length) {
+      await getRepository(Option).save(options);
+      await this.notify();
+    }
   }
 
   async setJSON(key: OptionKey, value: any): Promise<void> {
