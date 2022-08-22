@@ -1,20 +1,15 @@
 import sgMail from "@sendgrid/mail";
 
 import { log as mainLogger } from "@core/logging";
-import { formatEmailBody } from "@core/utils/email";
 
-import OptionsService from "@core/services/OptionsService";
-
-import Email from "@models/Email";
-
-import { EmailOptions, EmailRecipient } from ".";
-import LocalProvider from "./LocalProvider";
+import { EmailOptions, EmailRecipient, PreparedEmail } from ".";
+import BaseProvider from "./BaseProvider";
 
 import { SendGridEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "sendgrid-email-provider" });
 
-export default class SendGridProvider extends LocalProvider {
+export default class SendGridProvider extends BaseProvider {
   private readonly testMode: boolean;
 
   constructor(settings: SendGridEmailConfig["settings"]) {
@@ -24,18 +19,18 @@ export default class SendGridProvider extends LocalProvider {
     this.testMode = settings.testMode;
   }
 
-  async sendEmail(
-    email: Email,
+  protected async doSendEmail(
+    email: PreparedEmail,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
     const resp = await sgMail.sendMultiple({
       from: {
-        email: email.fromEmail || OptionsService.getText("support-email"),
-        name: email.fromName || OptionsService.getText("support-email-from")
+        email: email.fromEmail,
+        name: email.fromName
       },
       subject: email.subject,
-      html: formatEmailBody(email.body),
+      html: email.body,
       personalizations: recipients.map((recipient) => ({
         to: recipient.to,
         ...(recipient.mergeFields && { substitutions: recipient.mergeFields })

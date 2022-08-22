@@ -58,11 +58,14 @@ block contents
 							.form-group
 								label(for='mf_' + mergeField).control-label.col-md-3= `*|${mergeField}|*`
 								.col-md-9
-									+headers(
-										`mergeFields[${mergeField}]`,
-										'mf_' + mergeField,
-										mailing.mergeFields && mailing.mergeFields[mergeField]
-									)
+									if ['RPLINK', 'SPLINK', 'LOGINLINK'].includes(mergeField)
+										.form-control-static: i Generated on send
+									else
+										+headers(
+											`mergeFields[${mergeField}]`,
+											'mf_' + mergeField,
+											mailing.mergeFields && mailing.mergeFields[mergeField]
+										)
 
 				h5 Preview
 				.form-group.form-inline
