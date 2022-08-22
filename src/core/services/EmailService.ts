@@ -38,8 +38,13 @@ const generalEmailTemplates = {
     GIFTEE: params.gifteeFirstName,
     GIFTDATE: moment.utc(params.giftStartDate).format("MMMM Do")
   }),
-  "confirm-email": (params: { firstName: string; confirmLink: string }) => ({
+  "confirm-email": (params: {
+    firstName: string;
+    lastName: string;
+    confirmLink: string;
+  }) => ({
     FNAME: params.firstName,
+    LNAME: params.lastName,
     CONFIRMLINK: params.confirmLink
   }),
   "expired-special-url-resend": (params: {

@@ -115,6 +115,7 @@ class PaymentFlowService implements PaymentFlowProvider {
         { email: joinFlow.joinForm.email },
         {
           firstName: joinFlow.joinForm.firstname || "",
+          lastName: joinFlow.joinForm.lastname || "",
           confirmLink: joinFlow.confirmUrl + "/" + joinFlow.id
         }
       );
