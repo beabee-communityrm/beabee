@@ -1,0 +1,35 @@
+---
+subject: Bestätige Deine E-Mail-Adresse‌
+---
+
+<p>Hallo *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  vielen Dank, dass Du unsere Redaktion mit deinem Beitrag unterstützen willst.
+  Mit dieser Nachricht wollen wir sichergehen, dass Du Zugriff auf die
+  angegebene E-Mail-Adresse hast.
+</p>
+<p><br /></p>
+<p>
+  <b>
+    Um deine Anmeldung abzuschließen, bestätige bitte deine Email-Adresse mit
+    Klick auf den folgenden Link:
+  </b>
+</p>
+<p><br /></p>
+<p>
+  <a href="*|CONFIRMLINK|*"><b>E-Mail-Adresse bestätigen</b></a>
+</p>
+<p><br /></p>
+<p>
+  <b>Bitte beachte:</b> Wenn Du deine Email-Adresse nicht selbst eingegeben
+  hast, kannst Du diese Nachricht einfach ignorieren. Du musst nichts weiter
+  tun. Deine Email-Adresse wird von uns nicht gespeichert.
+</p>
+<p><br /></p>
+<p>
+  Du kannst deine Zustimmung zu all unseren Diensten jederzeit widerrufen, zum
+  Beispiel indem Du uns eine formlose E-Mail schreibst.
+</p>
+<p><br /></p>
+<p>Mit freundlichen Grüßen</p>
