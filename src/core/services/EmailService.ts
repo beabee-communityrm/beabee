@@ -151,8 +151,9 @@ class EmailService implements EmailProvider {
   constructor() {
     const emailDir = path.join(__dirname, "../data/email");
     const emailFiles = fs.readdirSync(emailDir);
+    log.info("Loading default emails");
+
     for (const emailFile of emailFiles) {
-      log.info("Loading email " + emailFile);
       const [id, locale] = path.basename(emailFile, ".yfm").split("_", 2);
       if (!this.isTemplate(id) || !isLocale(locale)) {
         log.error(`Unknown ID (${id}) or locale (${locale})`);
