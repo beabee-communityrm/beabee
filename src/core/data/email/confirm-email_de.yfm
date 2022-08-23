@@ -4,18 +4,7 @@ subject: Bestätigen Sie Ihre E-Mail-Adresse‌
 
 <p>Hallo *|FNAME|* *|LNAME|*,</p>
 <p><br /></p>
-<p>
-  vielen Dank, dass Sie uns mit Ihrem Beitrag unterstützen wollen.
-  Mit dieser Nachricht wollen wir sichergehen, dass Sie Zugriff auf die
-  angegebene E-Mail-Adresse haben.
-</p>
-<p><br /></p>
-<p>
-  <b>
-    Um Ihre Anmeldung abzuschließen, bestätigen Sie deshalb bitte Ihre
-    Email-Adresse mit Klick auf den folgenden Link:
-  </b>
-</p>
+<p>bitte bestätige Sie ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:</p>
 <p><br /></p>
 <p>
   <a href="*|CONFIRMLINK|*"><b>E-Mail-Adresse bestätigen</b></a>
