@@ -10,6 +10,12 @@ const locales = {
   en: localeEn
 } as const;
 
+export type Locale = keyof typeof locales;
+
+export function isLocale(s: string): s is Locale {
+  return s in locales;
+}
+
 export default function currentLocale() {
-  return locales[OptionsService.getText("locale") as keyof typeof locales];
+  return locales[OptionsService.getText("locale") as Locale];
 }

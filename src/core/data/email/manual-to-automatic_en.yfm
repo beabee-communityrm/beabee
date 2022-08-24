@@ -1,0 +1,22 @@
+---
+subject: Your payment was updated
+---
+
+<p>Hello *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Thank you for switching to an automatic payment directly through our
+  membership system.
+</p>
+<p><br /></p>
+<p>
+  <b>
+    We will start collecting your contribution in the next billing period.
+    However, please remember to stop your other payments yourself to avoid
+    paying twice.
+  </b>
+</p>
+<p><br /></p>
+<p>If you have any questions, don't hesitate to contact us.</p>
+<p><br /></p>
+<p>Best wishes</p>

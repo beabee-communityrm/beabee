@@ -1,4 +1,7 @@
+import fs from "fs";
 import moment from "moment";
+import path from "path";
+import { loadFront } from "yaml-front-matter";
 
 import { log as mainLogger } from "@core/logging";
 
@@ -21,6 +24,7 @@ import Member from "@models/Member";
 import Poll from "@models/Poll";
 
 import config from "@config";
+import { isLocale, Locale } from "@locale";
 
 const log = mainLogger.child({ app: "email-service" });
 
@@ -34,8 +38,13 @@ const generalEmailTemplates = {
     GIFTEE: params.gifteeFirstName,
     GIFTDATE: moment.utc(params.giftStartDate).format("MMMM Do")
   }),
-  "confirm-email": (params: { firstName: string; confirmLink: string }) => ({
+  "confirm-email": (params: {
+    firstName: string;
+    lastName: string;
+    confirmLink: string;
+  }) => ({
     FNAME: params.firstName,
+    LNAME: params.lastName,
     CONFIRMLINK: params.confirmLink
   }),
   "expired-special-url-resend": (params: {
@@ -135,6 +144,38 @@ class EmailService implements EmailProvider {
       ? new SendGridProvider(config.email.settings)
       : new SMTPProvider(config.email.settings);
 
+  private defaultEmails: Partial<
+    Record<Locale, Partial<Record<EmailTemplateId, Email>>>
+  > = {};
+
+  constructor() {
+    const emailDir = path.join(__dirname, "../data/email");
+    const emailFiles = fs.readdirSync(emailDir);
+    log.info("Loading default emails");
+
+    for (const emailFile of emailFiles) {
+      const [id, locale] = path.basename(emailFile, ".yfm").split("_", 2);
+      if (!this.isTemplate(id) || !isLocale(locale)) {
+        log.error(`Unknown ID (${id}) or locale (${locale})`);
+        continue;
+      }
+
+      const { __content: body, ...data } = loadFront(
+        fs.readFileSync(path.join(emailDir, emailFile))
+      );
+      // TODO: currently just spoofing an Email, could revisit
+      const email = new Email();
+      Object.assign(email, data);
+      email.id = emailFile;
+      email.body = body;
+
+      if (!this.defaultEmails[locale]) {
+        this.defaultEmails[locale] = {};
+      }
+      this.defaultEmails[locale]![id] = email;
+    }
+  }
+
   async sendEmail(
     email: Email,
     recipients: EmailRecipient[],
@@ -158,7 +199,14 @@ class EmailService implements EmailProvider {
       });
       await this.provider.sendTemplate(providerTemplate, recipients, opts);
     } else {
-      log.error(`Tried to send ${template} that has no provider template set`);
+      const defaultEmail = this.defaultEmailsForLocale[template];
+      if (defaultEmail) {
+        this.provider.sendEmail(defaultEmail, recipients, opts);
+      } else {
+        log.error(
+          `Tried to send ${template} that has no provider template or default`
+        );
+      }
     }
   }
 
@@ -210,21 +258,23 @@ class EmailService implements EmailProvider {
     params: Parameters<AdminEmailTemplates[T]>[0],
     opts?: EmailOptions
   ): Promise<void> {
+    const mergeFields = adminEmailTemplates[template](params as any);
+    const recipients = [
+      {
+        to: {
+          email: OptionsService.getText("support-email")
+        },
+        mergeFields
+      }
+    ];
     // Admin emails don't need to be set
     if (this.providerTemplateMap[template]) {
-      const mergeFields = adminEmailTemplates[template](params as any);
-      await this.sendTemplate(
-        template,
-        [
-          {
-            to: {
-              email: OptionsService.getText("support-email")
-            },
-            mergeFields
-          }
-        ],
-        opts
-      );
+      await this.sendTemplate(template, recipients, opts);
+    } else {
+      const defaultEmail = this.defaultEmailsForLocale[template];
+      if (defaultEmail) {
+        this.provider.sendEmail(defaultEmail, recipients, opts);
+      }
     }
   }
 
@@ -234,7 +284,7 @@ class EmailService implements EmailProvider {
     const providerTemplate = this.providerTemplateMap[template];
     return providerTemplate
       ? await this.provider.getTemplateEmail(providerTemplate)
-      : null;
+      : this.defaultEmailsForLocale[template] || null;
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {
@@ -255,6 +305,10 @@ class EmailService implements EmailProvider {
 
   get providerTemplateMap(): Partial<Record<EmailTemplateId, string>> {
     return OptionsService.getJSON("email-templates");
+  }
+
+  private get defaultEmailsForLocale() {
+    return this.defaultEmails[OptionsService.getText("locale") as Locale] || {};
   }
 
   memberToRecipient(
