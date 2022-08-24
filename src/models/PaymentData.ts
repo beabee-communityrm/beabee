@@ -33,7 +33,8 @@ export interface StripePaymentData {
 export type PaymentProviderData =
   | GCPaymentData
   | ManualPaymentData
-  | StripePaymentData;
+  | StripePaymentData
+  | {};
 
 @Entity()
 export default class PaymentData {
