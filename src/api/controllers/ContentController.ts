@@ -4,144 +4,128 @@ import {
   Get,
   JsonController,
   Param,
-  Put
+  Patch
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+import { createQueryBuilder, getRepository } from "typeorm";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import { getEmailFooter } from "@core/utils/email";
 
 import Content, { ContentId } from "@models/Content";
 import config from "@config";
 
-const getExtraContent = {
-  general: () => ({
-    organisationName: OptionsService.getText("organisation"),
-    logoUrl: OptionsService.getText("logo"),
-    siteUrl: OptionsService.getText("home-link-url"),
-    supportEmail: OptionsService.getText("support-email"),
-    privacyLink: OptionsService.getText("footer-privacy-link-url"),
-    termsLink: OptionsService.getText("footer-terms-link-url"),
-    impressumLink: OptionsService.getText("footer-impressum-link-url"),
-    currencyCode: config.currencyCode,
-    locale: OptionsService.getText("locale"),
-    theme: OptionsService.getJSON("theme")
-  }),
-  join: () => ({
-    minMonthlyAmount: OptionsService.getInt("contribution-min-monthly-amount"),
-    showAbsorbFee: OptionsService.getBool("show-absorb-fee")
-  }),
-  "join/setup": () => ({
-    showMailOptIn: OptionsService.getBool("show-mail-opt-in")
-  }),
-  profile: () => ({}),
-  contacts: () => ({
-    tags: OptionsService.getList("available-tags"),
-    manualPaymentSources: OptionsService.getList(
-      "available-manual-payment-sources"
-    )
-  }),
-  share: () => ({
-    title: OptionsService.getText("share-title"),
-    description: OptionsService.getText("share-description"),
-    image: OptionsService.getText("share-image"),
-    twitterHandle: OptionsService.getText("share-twitter-handle")
-  }),
-  email: () => ({
-    footer: getEmailFooter(),
-    supportEmail: OptionsService.getText("support-email"),
-    supportEmailName: OptionsService.getText("support-email-from")
-  })
+type OptionKeyType = "text" | "int" | "bool" | "list" | "json";
+
+const optTypeGetter = {
+  text: "getText",
+  int: "getInt",
+  bool: "getBool",
+  list: "getList",
+  json: "getJSON"
 } as const;
 
-const saveExtraContent = {
-  general: async (d: any) => {
-    const {
-      organisationName,
-      logoUrl,
-      siteUrl,
-      supportEmail,
-      privacyLink,
-      termsLink,
-      impressumLink,
-      currencyCode,
-      locale,
-      theme,
-      ...data
-    } = d;
-    await OptionsService.set({
-      organisation: organisationName,
-      logo: logoUrl,
-      "home-link-url": siteUrl,
-      "support-email": supportEmail,
-      "footer-privacy-link-url": privacyLink,
-      "footer-terms-link-url": termsLink,
-      "footer-impressum-link-url": impressumLink,
-      locale,
-      theme: JSON.stringify(theme)
-    });
-    return data;
-  },
-  join: async (d: any) => {
-    const { minMonthlyAmount, showAbsorbFee, ...data } = d;
-    await OptionsService.set({
-      "show-absorb-fee": showAbsorbFee,
-      "contribution-min-monthly-amount": minMonthlyAmount
-    });
-    return data;
-  },
-  "join/setup": async (d: any) => {
-    const { showMailOptIn, ...data } = d;
-    await OptionsService.set("show-mail-opt-in", showMailOptIn);
-    return data;
-  },
-  profile: (d: any) => d,
-  contacts: async (d: any) => {
-    const { tags, manualPaymentSources, ...data } = d;
-    await OptionsService.set({
-      "available-tags": tags.join(","),
-      "available-manual-payment-sources": manualPaymentSources.join(",")
-    });
-    return data;
-  },
-  share: async (d: any) => {
-    const { title, description, image, twitterHandle } = d;
-    await OptionsService.set({
-      "share-title": title,
-      "share-description": description,
-      "share-image": image,
-      "share-twitter-handle": twitterHandle
-    });
-    return {};
-  },
-  email: async (d: any) => {
-    const { supportEmail, supportEmailName } = d;
-    await OptionsService.set({
-      "support-email": supportEmail,
-      "support-email-from": supportEmailName
-    });
-    return {};
-  }
+const optTypeSetter = {
+  text: (s: any) => (typeof s === "string" ? s : undefined),
+  int: (s: any) => (typeof s === "number" ? s : undefined),
+  bool: (s: any) => (typeof s === "boolean" ? s : undefined),
+  list: (s: any) => (Array.isArray(s) ? s.join(",") : undefined),
+  json: (s: any) => JSON.stringify(s)
 } as const;
+
+type ContentMap<T extends any[]> = Partial<Record<ContentId, [string, ...T][]>>;
+
+const contentOptions: ContentMap<[OptionKey, OptionKeyType]> = {
+  general: [
+    ["organisationName", "organisation", "text"],
+    ["logoUrl", "logo", "text"],
+    ["siteUrl", "home-link-url", "text"],
+    ["supportEmail", "support-email", "text"],
+    ["privacyLink", "footer-privacy-link-url", "text"],
+    ["termsLink", "footer-terms-link-url", "text"],
+    ["impressumLink", "footer-impressum-link-url", "text"],
+    ["locale", "locale", "text"],
+    ["theme", "theme", "json"]
+  ],
+  join: [
+    ["minMonthlyAmount", "contribution-min-monthly-amount", "int"],
+    ["showAbsorbFee", "show-absorb-fee", "bool"]
+  ],
+  "join/setup": [["showMailOptIn", "show-mail-opt-in", "bool"]],
+  contacts: [
+    ["tags", "available-tags", "list"],
+    ["manualPaymentSources", "available-manual-payment-sources", "list"]
+  ],
+  share: [
+    ["title", "share-title", "text"],
+    ["description", "share-description", "text"],
+    ["image", "share-image", "text"],
+    ["twitterHandle", "share-twitter-handle", "text"]
+  ],
+  email: [
+    ["supportEmail", "support-email", "text"],
+    ["supportEmailName", "support-email-from", "text"]
+  ]
+};
+
+const contentReadOnly: ContentMap<[() => any]> = {
+  general: [["currencyCode", () => config.currencyCode]],
+  email: [["footer", getEmailFooter]]
+};
 
 @JsonController("/content")
 export class ContentController {
   @Get("/:id(*)")
   async get(@Param("id") id: ContentId): Promise<object | undefined> {
     const content = await getRepository(Content).findOne(id);
+
     if (content) {
-      return { ...content.data, ...getExtraContent[id]() };
+      const optsData = contentOptions[id]?.map(
+        ([contentKey, optKey, optType]) => [
+          contentKey,
+          OptionsService[optTypeGetter[optType]](optKey)
+        ]
+      );
+      const readOnlyData = contentReadOnly[id]?.map(
+        ([contentKey, contentFn]) => [contentKey, contentFn()]
+      );
+
+      return {
+        ...content.data,
+        ...(optsData && Object.fromEntries(optsData)),
+        ...(readOnlyData && Object.fromEntries(readOnlyData))
+      };
     }
   }
 
   @Authorized("admin")
-  @Put("/:id(*)")
+  @Patch("/:id(*)")
   async update(
     @Param("id") id: ContentId,
     @Body() data: any
   ): Promise<object | undefined> {
-    const actualData = await saveExtraContent[id](data);
-    await getRepository(Content).update(id, { data: actualData });
+    // Update options
+    const options = contentOptions[id];
+    if (options) {
+      const optData = options
+        .map(([contentKey, optKey, optType]) => {
+          const { [contentKey]: contentValue, ...restData } = data;
+          data = restData; // Remove entry from data
+          return [optKey, optTypeSetter[optType](contentValue)];
+        })
+        .filter(([optKey, optValue]) => optValue !== undefined);
+      await OptionsService.set(Object.fromEntries(optData));
+    }
+
+    // Save the rest
+    await createQueryBuilder()
+      .update(Content)
+      .set({
+        data: () => '"data" || :data::jsonb'
+      })
+      .where("id = :id")
+      .setParameters({ id, data })
+      .execute();
+
     return await this.get(id);
   }
 }
