@@ -2,7 +2,6 @@ import juice from "juice";
 
 import OptionsService from "@core/services/OptionsService";
 
-import config from "@config";
 import currentLocale from "@locale";
 
 export function getEmailFooter(): string {
@@ -11,7 +10,7 @@ export function getEmailFooter(): string {
 <p><br></p>
 <hr>
 <p><br></p>
-<p><img src="${config.audience}${OptionsService.getText(
+<p><img src="${OptionsService.getText(
     "logo"
   )}" style="display:inline-block; vertical-align: middle" width="50" height="50"><span style="margin-left: 10px">${OptionsService.getText(
     "organisation"

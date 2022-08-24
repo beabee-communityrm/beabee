@@ -69,6 +69,10 @@ app.use("/membership.js", (req, res) => {
   }
 });
 
+app.get("/favicon.png", (req, res) => {
+  res.redirect(OptionsService.getText("logo"));
+});
+
 // Log the rest
 app.use(requestLogger);
 
