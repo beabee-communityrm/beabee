@@ -28,6 +28,7 @@ const PaymentProviders = {
 
 class PaymentService {
   async getData(member: Member): Promise<PaymentData> {
+    log.info("Load data for " + member.id);
     const data = await getRepository(PaymentData).findOneOrFail(member.id);
     // Load full member into data
     return { ...data, member };
@@ -73,12 +74,18 @@ class PaymentService {
     fn: (provider: PaymentProvider<any>) => Promise<T>,
     def?: T
   ): Promise<T | void> {
-    const data = await this.getData(member);
+    return this.providerFromData(await this.getData(member), fn, def);
+  }
+
+  private async providerFromData<T>(
+    data: PaymentData,
+    fn: (provider: PaymentProvider<any>) => Promise<T>,
+    def?: T
+  ) {
     const Provider = data.method ? PaymentProviders[data.method] : undefined;
     if (Provider) {
       return await fn(new Provider(data));
     }
-
     return def;
   }
 
@@ -113,7 +120,7 @@ class PaymentService {
       {}
     );
 
-    const hsaCancelled = !!providerInfo?.cancellationDate;
+    const hsaCancelled = !!providerInfo.cancellationDate;
     const renewalDate = !hsaCancelled && calcRenewalDate(member);
 
     return {
@@ -164,12 +171,22 @@ class PaymentService {
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
     log.info("Update payment source for " + member.id);
+
+    const data = await this.getData(member);
     const newMethod = completedPaymentFlow.paymentMethod;
-    // TODO: how to transition between methods?
-    await getRepository(PaymentData).update(member.id, {
-      method: newMethod
-    });
-    await this.provider(member, (p) =>
+    if (data.method && data.method !== newMethod) {
+      log.info(
+        "Changing payment method, cancelling any previous contribution",
+        { oldMethod: data.method, data: data.data, newMethod }
+      );
+      await this.providerFromData(data, (p) => p.cancelContribution(false));
+
+      data.method = newMethod;
+      data.data = {};
+      await getRepository(PaymentData).save(data);
+    }
+
+    await this.providerFromData(data, (p) =>
       p.updatePaymentMethod(completedPaymentFlow)
     );
   }
