@@ -178,7 +178,7 @@ class PaymentService {
 
     const data = await this.getData(member);
     const newMethod = completedPaymentFlow.paymentMethod;
-    if (data.method && data.method !== newMethod) {
+    if (data.method !== newMethod) {
       log.info(
         "Changing payment method, cancelling any previous contribution",
         { oldMethod: data.method, data: data.data, newMethod }
