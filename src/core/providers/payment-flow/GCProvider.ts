@@ -1,4 +1,5 @@
 import gocardless from "@core/lib/gocardless";
+import { log as mainLogger } from "@core/logging";
 
 import JoinFlow from "@models/JoinFlow";
 
@@ -9,6 +10,8 @@ import {
   PaymentFlowData,
   PaymentFlowProvider
 } from ".";
+
+const log = mainLogger.child({ app: "gc-payment-flow-provider" });
 
 class GCProvider implements PaymentFlowProvider {
   async createPaymentFlow(
@@ -25,6 +28,7 @@ class GCProvider implements PaymentFlowProvider {
         ...(params.lastname && { family_name: params.lastname })
       }
     });
+    log.info("Created redirect flow " + redirectFlow.id);
 
     return {
       id: redirectFlow.id,
@@ -41,6 +45,8 @@ class GCProvider implements PaymentFlowProvider {
         session_token: joinFlow.id
       }
     );
+    log.info("Completed redirect flow " + redirectFlow.id);
+
     return {
       paymentMethod: joinFlow.joinForm.paymentMethod,
       customerId: redirectFlow.links.customer,

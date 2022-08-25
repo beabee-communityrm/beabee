@@ -28,8 +28,8 @@ const PaymentProviders = {
 
 class PaymentService {
   async getData(member: Member): Promise<PaymentData> {
-    log.info("Load data for " + member.id);
     const data = await getRepository(PaymentData).findOneOrFail(member.id);
+    log.info("Loaded data for " + member.id, { data });
     // Load full member into data
     return { ...data, member };
   }
@@ -93,11 +93,13 @@ class PaymentService {
     member: Member,
     useExistingPaymentSource: boolean
   ): Promise<boolean> {
-    return await this.provider(
+    const ret = await this.provider(
       member,
       (p) => p.canChangeContribution(useExistingPaymentSource),
       !useExistingPaymentSource
     );
+    log.info(`User ${member.id} ${ret ? "can" : "cannot"} change contribution`);
+    return ret;
   }
 
   async getContributionInfo(member: Member): Promise<ContributionInfo> {
@@ -170,11 +172,13 @@ class PaymentService {
     member: Member,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
-    log.info("Update payment source for " + member.id);
+    log.info("Update payment method for " + member.id, {
+      completedPaymentFlow
+    });
 
     const data = await this.getData(member);
     const newMethod = completedPaymentFlow.paymentMethod;
-    if (data.method && data.method !== newMethod) {
+    if (data.method !== newMethod) {
       log.info(
         "Changing payment method, cancelling any previous contribution",
         { oldMethod: data.method, data: data.data, newMethod }
