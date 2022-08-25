@@ -1,6 +1,7 @@
 import { getRepository } from "typeorm";
 
 import { ContributionPeriod, PaymentMethod } from "@core/utils";
+import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
@@ -32,6 +33,8 @@ const paymentProviders = {
   [PaymentMethod.StripeBACS]: StripeProvider,
   [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
+
+const log = mainLogger.child({ app: "payment-flow-service" });
 
 class PaymentFlowService implements PaymentFlowProvider {
   async createJoinFlow(
@@ -66,6 +69,8 @@ class PaymentFlowService implements PaymentFlowProvider {
       paymentFlowId: ""
     });
 
+    log.info("Creating payment join flow " + joinFlow.id, { joinForm });
+
     const paymentFlow = await this.createPaymentFlow(
       joinFlow,
       completeUrl,
@@ -84,12 +89,15 @@ class PaymentFlowService implements PaymentFlowProvider {
   }
 
   async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
+    log.info("Completing join flow " + joinFlow.id);
     const paymentFlow = await this.completePaymentFlow(joinFlow);
     await getRepository(JoinFlow).delete(joinFlow.id);
     return paymentFlow;
   }
 
   async sendConfirmEmail(joinFlow: JoinFlow): Promise<void> {
+    log.info("Send confirm email for " + joinFlow.id);
+
     const member = await MembersService.findOne({
       email: joinFlow.joinForm.email
     });
@@ -168,6 +176,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     completeUrl: string,
     data: PaymentFlowData
   ): Promise<PaymentFlow> {
+    log.info("Create payment flow for " + joinFlow.id);
     return paymentProviders[joinFlow.joinForm.paymentMethod].createPaymentFlow(
       joinFlow,
       completeUrl,
@@ -176,6 +185,7 @@ class PaymentFlowService implements PaymentFlowProvider {
   }
 
   async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
+    log.info("Complete payment flow for " + joinFlow.id);
     return paymentProviders[
       joinFlow.joinForm.paymentMethod
     ].completePaymentFlow(joinFlow);
