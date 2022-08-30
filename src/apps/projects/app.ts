@@ -164,7 +164,7 @@ app.post(
         await getRepository(ProjectMember).insert(
           data.memberIds.map((memberId) => ({
             project,
-            memberId
+            member: { id: memberId }
           }))
         );
         req.flash("success", "project-members-added");
