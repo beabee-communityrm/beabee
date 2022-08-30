@@ -5,7 +5,7 @@ mixin membersTable
 				a(href='/members/' + member.id).members-table-row-link
 				if addToProject
 					label.members-table-action
-						input(type='checkbox' name='memberIds[]' value=member._id)
+						input(type='checkbox' name='memberIds[]' value=member.id)
 				+membersTableBasicInfo(member)
 				span(style='flex: 0 1 120px')= member.contributionDescription
 
