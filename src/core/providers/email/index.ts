@@ -28,6 +28,11 @@ export interface EmailOptions {
   sendAt?: Date | undefined;
 }
 
+export interface PreparedEmail extends Email {
+  fromEmail: string;
+  fromName: string;
+}
+
 export interface EmailProvider {
   sendEmail(
     email: Email,
@@ -39,5 +44,6 @@ export interface EmailProvider {
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void>;
+  getTemplateEmail(template: string): Promise<false | Email | null>;
   getTemplates(): Promise<EmailTemplate[]>;
 }

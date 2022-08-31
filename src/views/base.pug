@@ -53,6 +53,10 @@ html
 						if !isEmbed
 							block navbar
 								include partials/navbar.pug
+							.alert.alert-info.
+								You've landed on beabee's old dashboard! We're working hard to
+								move everything to  a brand new interface.
+								#[a(href='/admin'): b See it here].
 							block flashes
 								include partials/flash.pug
 							block heading

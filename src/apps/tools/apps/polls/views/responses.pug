@@ -4,34 +4,32 @@ block prepend title
 	- title = poll.title
 
 block append css
-	if poll.template === 'builder'
-		link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
-		style.
-			.poll-response {
-				break-before: page;
-			}
+	link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
+	style.
+		.poll-response {
+			break-before: page;
+		}
 
 block append js
-	if poll.template === 'builder'
-		script(src='/static/js/lib/formio.full.min.js')
-		script(type='text/template').js-response-template
-			div.poll-response
-				hr
+	script(src='/static/js/lib/formio.full.min.js')
+	script(type='text/template').js-response-template
+		div.poll-response
+			hr
 
-				h4 Response {no}
+			h4 Response {no}
 
-				dl.dl-horizontal
-					dt {type}
-					dd {user}
-					dt Date
-					dd {date}
-				
-				div.js-response-form
+			dl.dl-horizontal
+				dt {type}
+				dd {user}
+				dt Date
+				dd {date}
+			
+			div.js-response-form
 
-		script.
-			var formResponses = !{JSON.stringify(responses)};
-			var formSchema = !{JSON.stringify(poll.templateSchema.formSchema)};
-		script(src='/static/js/poll-responses.js?v=' + git)
+	script.
+		var formResponses = !{JSON.stringify(responses)};
+		var formSchema = !{JSON.stringify(poll.formSchema)};
+	script(src='/static/js/poll-responses.js?v=' + git)
 
 block contents
 	.row
@@ -42,27 +40,28 @@ block contents
 		.col-md-offset-2.col-md-8
 			p There are #{responses.length} responses
 
-			if poll.template === 'builder'
-				.js-reveal
-					.checkbox
-						label
-							input(type='checkbox' name='showAll').js-show-all-responses.js-reveal-types
-							| Show all responses
+			form(method='POST' action='/tools/polls/' + poll.slug)
+				+csrf
+				p: button(name='action' value='export-responses').btn.btn-warning Export
 
-					.input-group.responses.js-reveal-type(data-type="showAll" data-inverse)
-						.input-group-btn
-							button(value=1).btn.btn-default.js-set-response
-								i.glyphicon.glyphicon-fast-backward
-							button(value=-1).btn.btn-default.js-step-response
-								i.glyphicon.glyphicon-step-backward
-							button(value=1).btn.btn-default.js-step-response
-								i.glyphicon.glyphicon-step-forward
-							button(value=responses.length).btn.btn-default.js-set-response
-								i.glyphicon.glyphicon-fast-forward
-						input(type='number' value=1 style='width:90px').form-control.js-set-response.js-response-no
+			.js-reveal
+				.checkbox
+					label
+						input(type='checkbox' name='showAll').js-show-all-responses.js-reveal-types
+						| Show all responses
+
+				.input-group.responses.js-reveal-type(data-type="showAll" data-inverse)
+					.input-group-btn
+						button(value=1).btn.btn-default.js-set-response
+							i.glyphicon.glyphicon-fast-backward
+						button(value=-1).btn.btn-default.js-step-response
+							i.glyphicon.glyphicon-step-backward
+						button(value=1).btn.btn-default.js-step-response
+							i.glyphicon.glyphicon-step-forward
+						button(value=responses.length).btn.btn-default.js-set-response
+							i.glyphicon.glyphicon-fast-forward
+					input(type='number' value=1 style='width:90px').form-control.js-set-response.js-response-no
 
 				.js-response-container
 
-				#form.hidden
-			else
-				.alert.alert-warning Poll response breakdown not supported for this poll
+			#form.hidden

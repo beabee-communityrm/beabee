@@ -1,7 +1,7 @@
 {
   "organisation": "UK Makerspace",
   "software-name": "Membership System",
-  "logo": "/static/svg/logo.svg",
+  "logo": "",
 
   "home-text": "Hello there Makers!",
   "home-link-text": "Find out more",
@@ -9,7 +9,7 @@
   "home-redirect-url": "/login",
 
   "user-home-url": "/profile",
-  "admin-home-url": "/members",
+  "admin-home-url": "/admin",
   "referral-short-url": "http://example.com/refer",
 
   "support-email": "membership@example.com",
@@ -48,6 +48,13 @@
   "newsletter-resync-data": "",
 
   "tracking-code": "",
+
+  "switch-webhook-gc": "true",
+  "switch-webhook-mailchimp": "true",
+  "switch-webhook-stripe": "true",
+
+  "locale": "en",
+  "theme": "{}",
 
   "flash-logged-in": "Login successful",
   "flash-logged-out": "Logged out",
@@ -136,7 +143,7 @@
   "flash-gifts-email-duplicate": "The giftee's email address is already registered",
   "flash-gifts-already-activated": "The gift has already been activated, please login to continue",
 
-  "flash-migration-manual-to-gc-sent": "Email sent to manual contributors",
+  "flash-migration-manual-to-auto-sent": "Email sent to manual contributors",
 
   "flash-notices-created": "Notice created",
   "flash-notices-updated": "Notice updated",

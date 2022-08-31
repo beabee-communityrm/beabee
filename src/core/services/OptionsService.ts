@@ -82,10 +82,10 @@ class OptionsService {
     return this.optionCache;
   }
 
-  async set(opts: Record<OptionKey, OptionValue>): Promise<void>;
+  async set(opts: Partial<Record<OptionKey, OptionValue>>): Promise<void>;
   async set(key: OptionKey, value: OptionValue): Promise<void>;
   async set(
-    optsOrKey: Record<OptionKey, OptionValue> | OptionKey,
+    optsOrKey: Partial<Record<OptionKey, OptionValue>> | OptionKey,
     value?: OptionValue
   ): Promise<void> {
     const opts =
@@ -100,8 +100,10 @@ class OptionsService {
       return option;
     });
 
-    await getRepository(Option).save(options);
-    await this.notify();
+    if (options.length) {
+      await getRepository(Option).save(options);
+      await this.notify();
+    }
   }
 
   async setJSON(key: OptionKey, value: any): Promise<void> {

@@ -7,6 +7,7 @@ import {
   Mandate,
   Payment,
   RedirectFlow,
+  RedirectFlowPrefilledCustomer,
   Refund,
   Subscription
 } from "gocardless-nodejs/types/Types";
@@ -73,8 +74,8 @@ gocardless.interceptors.response.use(
 
 const STANDARD_METHODS = ["create", "get", "update", "list", "all"];
 
-interface Methods<T> {
-  create(data: DeepPartial<T>): Promise<T>;
+interface Methods<T, C> {
+  create(data: DeepPartial<C>): Promise<T>;
   list(params?: Record<string, unknown>): Promise<T[]>;
   all(params?: Record<string, unknown>): Promise<T[]>;
   get(id: string, params?: Record<string, unknown>): Promise<T>;
@@ -88,14 +89,14 @@ interface Actions<T> {
   complete(id: string, data?: Record<string, unknown>): Promise<T>;
 }
 
-function createMethods<T>(
+function createMethods<T, C = T>(
   key: string,
   allowedMethods: string[],
   allowedActions: string[] = []
-): Methods<T> & Actions<T> {
+): Methods<T, C> & Actions<T> {
   const endpoint = `/${key}`;
 
-  const methods: Methods<T> = {
+  const methods: Methods<T, C> = {
     async create(data) {
       const response = await gocardless.post(endpoint, { [key]: data });
       return <T>response.data[key];
@@ -148,6 +149,10 @@ function createMethods<T>(
   );
 }
 
+interface CreateRedirectFlow extends RedirectFlow {
+  prefilled_customer: RedirectFlowPrefilledCustomer;
+}
+
 export default {
   //creditors: createMethods<Creditor>('creditors', STANDARD_METHODS),
   //creditorBankAccounts: createMethods<CreditorBankAccount>('creditor_bank_accounts', ['create', 'get', 'list', 'all'], ['disable']),
@@ -173,7 +178,7 @@ export default {
   ]),
   //payouts: createMethods<Payout>('payouts', ['get', 'list', 'all']),
   //payoutItems: createMethods<PayoutItem>('payout_items', ['list', 'all']),
-  redirectFlows: createMethods<RedirectFlow>(
+  redirectFlows: createMethods<RedirectFlow, CreateRedirectFlow>(
     "redirect_flows",
     ["create", "get"],
     ["complete"]

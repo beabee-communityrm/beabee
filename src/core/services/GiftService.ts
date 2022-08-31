@@ -17,6 +17,7 @@ import GiftFlow, { GiftForm } from "@models/GiftFlow";
 import MemberPermission from "@models/MemberPermission";
 
 import config from "@config";
+import { generateMemberCode } from "@core/utils/member";
 
 const log = mainLogger.child({ app: "gift-service" });
 
@@ -170,7 +171,7 @@ export default class GiftService {
     try {
       const giftFlow = new GiftFlow();
       giftFlow.sessionId = "UNKNOWN";
-      giftFlow.setupCode = MembersService.generateMemberCode(giftForm)!;
+      giftFlow.setupCode = generateMemberCode(giftForm)!;
       giftFlow.giftForm = giftForm;
       await getRepository(GiftFlow).insert(giftFlow);
       return giftFlow;

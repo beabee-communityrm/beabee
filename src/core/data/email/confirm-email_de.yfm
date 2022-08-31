@@ -1,0 +1,24 @@
+---
+subject: Bestätigen Sie Ihre E-Mail-Adresse‌
+---
+
+<p>Hallo *|FNAME|* *|LNAME|*,</p>
+<p><br /></p>
+<p>bitte bestätige Sie ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:</p>
+<p><br /></p>
+<p>
+  <a href="*|CONFIRMLINK|*"><b>E-Mail-Adresse bestätigen</b></a>
+</p>
+<p><br /></p>
+<p>
+  <b>Bitte beachten Sie:</b> Wenn Sie Ihre Email-Adresse nicht selbst eingegeben
+  haben, können Sie diese Nachricht einfach ignorieren. Sie müssen nichts weiter
+  tun. Ihre Email-Adresse wird von uns nicht gespeichert.
+</p>
+<p><br /></p>
+<p>
+  Sie können Ihre Zustimmung zu all unseren Diensten jederzeit widerrufen, zum
+  Beispiel indem Sie uns eine formlose E-Mail schreiben.
+</p>
+<p><br /></p>
+<p>Mit freundlichen Grüßen</p>

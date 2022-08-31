@@ -67,9 +67,6 @@ export default class Member {
   @Column({ type: "real", nullable: true })
   contributionMonthlyAmount!: number | null;
 
-  @Column({ type: "real", nullable: true })
-  nextContributionMonthlyAmount!: number | null;
-
   @Column({ type: Date, nullable: true })
   contributionChanged!: Date | null;
 
@@ -125,15 +122,6 @@ export default class Member {
         this.contributionPeriod === "monthly" ? "month" : "year"
       }`;
     }
-  }
-
-  get nextContributionAmount(): number | null {
-    return this.nextContributionMonthlyAmount === null
-      ? null
-      : getActualAmount(
-          this.nextContributionMonthlyAmount,
-          this.contributionPeriod!
-        );
   }
 
   get membership(): MemberPermission | undefined {

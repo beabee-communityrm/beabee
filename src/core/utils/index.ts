@@ -22,7 +22,7 @@ export enum ContributionPeriod {
 }
 
 export enum ContributionType {
-  GoCardless = "GoCardless",
+  Automatic = "Automatic",
   Manual = "Manual",
   Gift = "Gift",
   None = "None"
@@ -35,12 +35,46 @@ export interface PaymentForm {
   prorate: boolean;
 }
 
-export interface PaymentSource {
-  type: "direct-debit";
+export enum PaymentMethod {
+  StripeCard = "s_card",
+  StripeSEPA = "s_sepa",
+  StripeBACS = "s_bacs",
+  GoCardlessDirectDebit = "gc_direct-debit"
+}
+
+export interface CardPaymentSource {
+  method: PaymentMethod.StripeCard;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+}
+
+export interface GoCardlessDirectDebitPaymentSource {
+  method: PaymentMethod.GoCardlessDirectDebit;
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;
 }
+
+export interface StripeBACSPaymentSource {
+  method: PaymentMethod.StripeBACS;
+  sortCode: string;
+  last4: string;
+}
+
+export interface StripeSEPAPaymentSource {
+  method: PaymentMethod.StripeSEPA;
+  country: string;
+  bankCode: string;
+  branchCode: string;
+  last4: string;
+}
+
+export type PaymentSource =
+  | CardPaymentSource
+  | GoCardlessDirectDebitPaymentSource
+  | StripeBACSPaymentSource
+  | StripeSEPAPaymentSource;
 
 export function getActualAmount(
   amount: number,
@@ -136,4 +170,9 @@ export function isInvalidType(error: unknown): boolean {
     return pgError.code === "22P02";
   }
   return false;
+}
+
+// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
+export function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }

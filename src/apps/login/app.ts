@@ -3,6 +3,7 @@ import passport from "passport";
 import { getRepository } from "typeorm";
 
 import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
+import { loginAndRedirect } from "@core/utils/member";
 
 import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
@@ -51,7 +52,7 @@ app.get(
 
     if (loginOverride?.isValid && loginOverride.member.id === req.params.id) {
       await getRepository(LoginOverrideFlow).delete({ id: req.params.code });
-      MembersService.loginAndRedirect(
+      loginAndRedirect(
         req,
         res,
         loginOverride.member,
@@ -101,7 +102,7 @@ if (config.dev) {
       }
 
       if (member) {
-        MembersService.loginAndRedirect(req, res, member);
+        loginAndRedirect(req, res, member);
       } else {
         res.redirect("/login");
       }

@@ -8,8 +8,8 @@ import Member from "@models/Member";
 
 import {
   Drier,
-  gcPaymentDataDrier,
-  gcPaymentsDrier,
+  paymentDataDrier,
+  paymentsDrier,
   memberDrier,
   memberPermissionDrier,
   memberProfileDrier,
@@ -22,8 +22,8 @@ async function main() {
   for (const drier of [
     pollResponsesDrier,
     pollsDrier,
-    gcPaymentDataDrier,
-    gcPaymentsDrier,
+    paymentDataDrier,
+    paymentsDrier,
     memberProfileDrier,
     memberPermissionDrier,
     memberDrier
@@ -60,13 +60,13 @@ async function main() {
     valueMap
   );
   await runExport(
-    gcPaymentsDrier,
+    paymentsDrier,
     (qb) =>
       qb.where("item.memberId IN (:...ids)", { ids: memberIds }).orderBy("id"),
     valueMap
   );
   await runExport(
-    gcPaymentDataDrier,
+    paymentDataDrier,
     (qb) => qb.where("item.memberId IN (:...ids)", { ids: memberIds }),
     valueMap
   );

@@ -1,11 +1,14 @@
 import {
+  Authorized,
   Body,
   CurrentUser,
+  Delete,
   Get,
   JsonController,
   NotFoundError,
   OnUndefined,
   Param,
+  Patch,
   Post,
   QueryParams
 } from "routing-controllers";
@@ -19,12 +22,14 @@ import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
 
 import {
+  CreateCalloutData,
   CreateCalloutResponseData,
   GetBasicCalloutData,
   GetCalloutResponseData,
   GetCalloutResponsesQuery,
   GetCalloutsQuery,
-  GetMoreCalloutData
+  GetMoreCalloutData,
+  UpdateCalloutData
 } from "@api/data/CalloutData";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
@@ -34,13 +39,14 @@ function pollToBasicCallout(poll: Poll): GetBasicCalloutData {
     slug: poll.slug,
     title: poll.title,
     excerpt: poll.excerpt,
+    image: poll.image,
     allowUpdate: poll.allowUpdate,
     allowMultiple: poll.allowMultiple,
     access: poll.access,
     status: poll.status,
-    ...(poll.image && { image: poll.image }),
-    ...(poll.starts && { starts: poll.starts }),
-    ...(poll.expires && { expires: poll.expires }),
+    hidden: poll.hidden,
+    starts: poll.starts,
+    expires: poll.expires,
     ...(poll.hasAnswered !== undefined && {
       hasAnswered: poll.hasAnswered
     })
@@ -123,6 +129,15 @@ export class CalloutController {
     };
   }
 
+  @Authorized("admin")
+  @Post("/")
+  async createCallout(
+    @Body() data: CreateCalloutData
+  ): Promise<GetBasicCalloutData> {
+    const poll = await getRepository(Poll).save(data);
+    return pollToBasicCallout(poll);
+  }
+
   @Get("/:slug")
   async getCallout(
     @Param("slug") slug: string
@@ -131,8 +146,37 @@ export class CalloutController {
     if (poll) {
       return {
         ...pollToBasicCallout(poll),
-        templateSchema: poll.templateSchema
+        intro: poll.intro,
+        thanksText: poll.thanksText,
+        thanksTitle: poll.thanksTitle,
+        formSchema: poll.formSchema,
+        ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect }),
+        ...(poll.shareTitle && { shareTitle: poll.shareTitle }),
+        ...(poll.shareDescription && {
+          shareDescription: poll.shareDescription
+        })
       };
+    }
+  }
+
+  @Authorized("admin")
+  @Patch("/:slug")
+  async updateCallout(
+    @Param("slug") slug: string,
+    @Body() data: UpdateCalloutData
+  ): Promise<GetMoreCalloutData | undefined> {
+    await getRepository(Poll).update(slug, data);
+    return this.getCallout(slug);
+  }
+
+  @Authorized("admin")
+  @OnUndefined(204)
+  @Delete("/:slug")
+  async deleteCallout(@Param("slug") slug: string): Promise<void> {
+    await getRepository(PollResponse).delete({ poll: { slug } });
+    const result = await getRepository(Poll).delete(slug);
+    if (result.affected === 0) {
+      throw new NotFoundError();
     }
   }
 

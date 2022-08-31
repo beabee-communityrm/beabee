@@ -11,7 +11,7 @@ block append js
 	script(src='/static/js/delivery-address.js')
 	if joinPoll
 		script.
-			window.pollSchema = !{JSON.stringify(joinPoll.templateSchema.formSchema)};
+			window.pollSchema = !{JSON.stringify(joinPoll.formSchema)};
 		script(src='/static/js/lib/formio.full.min.js')
 		script(src='/static/js/embedded-poll.js?v' + git)
 
@@ -103,7 +103,7 @@ block body
 					if !isGift && joinPoll
 						.row.hidden-nojs
 							.col-md-12
-								!= joinPoll.templateSchema.intro
+								!= joinPoll.intro
 								.col-md-12
 									#pollFields
 

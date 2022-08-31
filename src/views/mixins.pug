@@ -118,25 +118,14 @@ mixin membersTableBasicInfo(member)
 
 mixin paymentStatus(payment)
 	case payment.status
-		when 'pending_submission'
-			span.label.label-default( title=payment.status ) Scheduled
-		when 'submitted'
-			span.label.label-info( title=payment.status ) Processing
-		when 'confirmed'
-		when 'paid_out'
-			span.label.label-primary( title=payment.status ) Collected
-		when 'cancelled'
-			span.label.label-danger( title=payment.status ) Cancelled
-		when 'pending_customer_approval'
-			span.label.label-danger( title=payment.status ) Approval needed
-		when 'customer_approval_denied'
-			span.label.label-danger( title=payment.status ) Approval denied
+		when 'pending'
+			span.label.label-default Pending
+		when 'successful'
+			span.label.label-primary Collected
 		when 'failed'
-			span.label.label-danger( title=payment.status ) Failed
-		when 'charged_back'
-			span.label.label-danger( title=payment.status ) Charged back
-		default
-			span.label.label-default( title=payment.status ) #{ payment.status }
+			span.label.label-danger Failed
+		when 'cancelled'
+			span.label.label-danger Cancelled
 
 mixin itemStatus(item)
 	case item.status

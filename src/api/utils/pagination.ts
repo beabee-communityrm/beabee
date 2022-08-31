@@ -113,7 +113,7 @@ export async function fetchPaginated<
     .offset(offset)
     .limit(limit);
   if (query.sort) {
-    qb.orderBy({ ["item." + query.sort]: query.order || "ASC" });
+    qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
   }
 
   if (queryCallback) {

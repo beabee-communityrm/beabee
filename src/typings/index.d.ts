@@ -8,6 +8,11 @@ declare global {
     [key in K]: string;
   };
 
+  type HTMLElement = never;
+  type BufferSource = never;
+  type FormData = never;
+  type URLSearchParams = never;
+
   namespace Express {
     export interface User extends Member {}
 

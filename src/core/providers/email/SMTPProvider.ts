@@ -1,26 +1,27 @@
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
-import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
-import { formatEmailBody } from "@core/utils/email";
 
-import Email from "@models/Email";
+import OptionsService from "@core/services/OptionsService";
 
-import { EmailOptions, EmailProvider, EmailRecipient, EmailTemplate } from ".";
+import { EmailOptions, EmailRecipient, PreparedEmail } from ".";
+import BaseProvider from "./BaseProvider";
+
 import { SMTPEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "smtp-email-provider" });
 
-export default class SMTPProvider implements EmailProvider {
+export default class SMTPProvider extends BaseProvider {
   private readonly client: Mail;
 
   constructor(settings: SMTPEmailConfig["settings"]) {
+    super();
     this.client = nodemailer.createTransport(settings);
   }
 
-  async sendEmail(
-    email: Email,
+  protected async doSendEmail(
+    email: PreparedEmail,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
@@ -39,11 +40,14 @@ export default class SMTPProvider implements EmailProvider {
             "" + recipient.mergeFields![field]
           );
         },
-        formatEmailBody(email.body)
+        email.body
       );
 
       await this.client.sendMail({
-        from: { name: email.fromName, address: email.fromEmail },
+        from: {
+          name: email.fromName,
+          address: email.fromEmail
+        },
         to: recipient.to.name
           ? { name: recipient.to.name, address: recipient.to.email }
           : recipient.to.email,
@@ -58,32 +62,5 @@ export default class SMTPProvider implements EmailProvider {
         })
       });
     }
-  }
-
-  async sendTemplate(
-    template: string,
-    recipients: EmailRecipient[],
-    opts?: EmailOptions
-  ): Promise<void> {
-    log.info("Sending template " + template);
-    const email = await getRepository(Email).findOne(template);
-    if (email) {
-      await this.sendEmail(email, recipients, opts);
-    }
-  }
-
-  async getTemplates(): Promise<EmailTemplate[]> {
-    const emails = await getRepository(Email).find();
-    return emails.map((email) => ({ id: email.id, name: email.name }));
-  }
-
-  async getTemplate(template: string): Promise<EmailTemplate | undefined> {
-    const email = await getRepository(Email).findOne(template);
-    return (
-      email && {
-        id: email.id,
-        name: email.name
-      }
-    );
   }
 }

@@ -7,7 +7,7 @@ interface PageSettingsCache extends PageSettings {
   patternRegex: RegExp;
 }
 
-type JustPageSettings = Omit<PageSettings, "id" | "pattern">;
+export type JustPageSettings = Omit<PageSettings, "id" | "pattern">;
 
 export default class PageSettingsService {
   private static pathCache: Record<string, JustPageSettings | "default"> = {};

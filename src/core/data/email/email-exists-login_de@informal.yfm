@@ -1,0 +1,33 @@
+---
+subject: Mitglieder-Account existiert bereits
+---
+
+<p>Hallo *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Du hast versucht, mit dieser Email-Adresse einen Account bei uns anzulegen.
+</p>
+<p><br /></p>
+<p>
+  <b>
+    Du hast bereits einen Account. Du kannst dich unter folgendem Link mit
+    deinem Passwort anmelden:
+  </b>
+</p>
+<p><br /></p>
+<p>
+  <a href="*|LOGINLINK|*"><b>Zum Login</b></a>
+</p>
+<p><br /></p>
+<p>
+  Solltest Du dein Passwort vergessen haben, kannst Du es dort auch
+  zurücksetzen.
+</p>
+<p><br /></p>
+<p>
+  Die Zahlungsdaten, die Du gerade eingegeben hast, wurden automatisch gelöscht
+  und nicht gespeichert. Du kannst deine Zahlungsdaten stattdessen direkt in
+  deinem Nutzer-Account hinterlegen oder anpassen.
+</p>
+<p><br /></p>
+<p>Mit freundlichen Grüßen</p>

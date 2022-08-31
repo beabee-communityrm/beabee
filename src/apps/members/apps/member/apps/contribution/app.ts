@@ -1,15 +1,11 @@
 import express from "express";
-import { getRepository } from "typeorm";
 
 import { ContributionType, wrapAsync } from "@core/utils";
 import { calcMonthsLeft } from "@core/utils/payment";
 
-import EmailService from "@core/services/EmailService";
-import GCPaymentService from "@core/services/GCPaymentService";
+import PaymentService from "@core/services/PaymentService";
 import MembersService from "@core/services/MembersService";
 
-import GCPaymentData from "@models/GCPaymentData";
-import ManualPaymentData from "@models/ManualPaymentData";
 import Member from "@models/Member";
 
 const app = express();
@@ -20,8 +16,8 @@ app.get(
   "/",
   wrapAsync(async (req, res) => {
     const member = req.model as Member;
-    if (member.contributionType === ContributionType.GoCardless) {
-      const payments = await GCPaymentService.getPayments(member);
+    if (member.contributionType === ContributionType.Automatic) {
+      const payments = await PaymentService.getPayments(member);
 
       const successfulPayments = payments
         .filter((p) => p.isSuccessful)
@@ -30,11 +26,11 @@ app.get(
 
       const total = successfulPayments.reduce((a, b) => a + b, 0);
 
-      res.render("gocardless", {
+      res.render("automatic", {
         member: req.model,
-        bankAccount: (await GCPaymentService.getContributionInfo(member))
-          ?.paymentSource,
-        canChange: await GCPaymentService.canChangeContribution(member, true),
+        bankAccount: (await PaymentService.getContributionInfo(member))
+          .paymentSource,
+        canChange: await PaymentService.canChangeContribution(member, true),
         monthsLeft: calcMonthsLeft(member),
         payments,
         total
@@ -57,7 +53,7 @@ app.post(
 
     switch (req.body.action) {
       case "update-subscription":
-        await GCPaymentService.updateContribution(member, {
+        await MembersService.updateMemberContribution(member, {
           monthlyAmount: Number(req.body.amount),
           period: req.body.period,
           prorate: req.body.prorate === "true",
@@ -67,10 +63,9 @@ app.post(
         break;
 
       case "cancel-subscription":
-        await GCPaymentService.cancelContribution(member);
-        await EmailService.sendTemplateToMember(
-          "cancelled-contribution",
-          member
+        await MembersService.cancelMemberContribution(
+          member,
+          "cancelled-contribution"
         );
         break;
 
@@ -82,20 +77,18 @@ app.post(
             : null,
           contributionPeriod: req.body.period
         });
-        if (req.body.type === ContributionType.GoCardless) {
-          await getRepository(GCPaymentData).save({
+
+        if (req.body.type === ContributionType.Manual) {
+          await PaymentService.updateDataBy(
             member,
-            customerId: req.body.customerId,
-            mandateId: req.body.mandateId,
-            subscriptionId: req.body.subscriptionId,
-            payFee: req.body.payFee === "true"
-          });
-        } else if (req.body.type === ContributionType.Manual) {
-          await getRepository(ManualPaymentData).save({
+            "source",
+            req.body.source || null
+          );
+          await PaymentService.updateDataBy(
             member,
-            source: req.body.source || "",
-            reference: req.body.reference || ""
-          });
+            "reference",
+            req.body.reference || null
+          );
         }
         req.flash("success", "contribution-updated");
         break;
