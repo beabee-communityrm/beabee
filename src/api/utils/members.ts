@@ -1,15 +1,20 @@
+import moment from "moment";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
+
+import { Rule } from "@core/utils/newRules";
+
 import {
   GetMemberData,
   GetMembersQuery,
   GetMemberWith
 } from "@api/data/MemberData";
+
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
-import { fetchPaginated, Paginated } from "./pagination";
 import MemberProfile from "@models/MemberProfile";
-import { Rule } from "@core/utils/newRules";
-import moment from "moment";
+import PaymentData from "@models/PaymentData";
+
+import { fetchPaginated, Paginated } from "./pagination";
 
 interface MemberToDataOpts {
   with?: GetMemberWith[] | undefined;
@@ -162,7 +167,17 @@ export async function fetchPaginatedMembers(
       activePermission,
       activeMembership: activePermission,
       membershipStarts: membershipField("dateAdded"),
-      membershipExpires: membershipField("dateExpires")
+      membershipExpires: membershipField("dateExpires"),
+      contributionCancelled: (rule, qb, suffix, namedWhere) => {
+        const table = "pd" + suffix;
+        const subQb = createQueryBuilder()
+          .subQuery()
+          .select(`${table}.memberId`)
+          .from(PaymentData, table)
+          .where(`${table}.data ->> 'cancelledAt' ${namedWhere}`);
+
+        qb.where("id IN " + subQb.getQuery());
+      }
     },
     (qb) => {
       if (query.with?.includes(GetMemberWith.Profile)) {

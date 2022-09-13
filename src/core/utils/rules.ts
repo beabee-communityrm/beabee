@@ -164,7 +164,7 @@ function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
           qb.where("id NOT IN " + subQb.getQuery());
         }
       } else if (rule.field === "contributionCancelled") {
-        const table = "gc" + suffix;
+        const table = "pd" + suffix;
         const subQb = createQueryBuilder()
           .subQuery()
           .select(`${table}.memberId`)

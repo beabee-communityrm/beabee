@@ -84,6 +84,7 @@ const memberFields = [
   "contributionMonthlyAmount",
   "contributionPeriod",
   // Special fields
+  "contributionCancelled",
   "deliveryOptIn",
   "newsletterStatus",
   "activePermission",
