@@ -81,9 +81,10 @@ function TargetUser() {
       } else if (!user.hasPermission("admin")) {
         throw new UnauthorizedError();
       } else {
-        const uuid = new UUIDParam();
-        uuid.id = id;
-        await validateOrReject(uuid);
+        // TODO: Fix invalid UUIDs
+        // const uuid = new UUIDParam();
+        // uuid.id = id;
+        // await validateOrReject(uuid);
 
         const target = await MembersService.findOne(id);
         if (target) {
