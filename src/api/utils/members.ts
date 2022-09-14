@@ -1,15 +1,20 @@
+import moment from "moment";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
+
+import { Rule } from "@core/utils/newRules";
+
 import {
   GetMemberData,
   GetMembersQuery,
   GetMemberWith
 } from "@api/data/MemberData";
+
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
-import { fetchPaginated, Paginated } from "./pagination";
 import MemberProfile from "@models/MemberProfile";
-import { Rule } from "@core/utils/newRules";
-import moment from "moment";
+import PaymentData from "@models/PaymentData";
+
+import { fetchPaginated, Paginated } from "./pagination";
 
 interface MemberToDataOpts {
   with?: GetMemberWith[] | undefined;
@@ -84,7 +89,7 @@ function membershipField<Field extends string>(field: keyof MemberPermission) {
         `${table}.permission = 'member' AND ${table}.${field} ${namedWhere}`
       );
 
-    qb.where("id IN " + subQb.getQuery());
+    qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
@@ -102,7 +107,7 @@ function profileField<Field extends string>(field: keyof MemberProfile) {
       .from(MemberProfile, table)
       .where(`${table}.${field} ${namedWhere}`);
 
-    qb.where("id IN " + subQb.getQuery());
+    qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
@@ -131,9 +136,9 @@ function activePermission<Field extends string>(
     );
 
   if (rule.field === "activePermission" || rule.value === true) {
-    qb.where("id IN " + subQb.getQuery());
+    qb.where("item.id IN " + subQb.getQuery());
   } else {
-    qb.where("id NOT IN " + subQb.getQuery());
+    qb.where("item.id NOT IN " + subQb.getQuery());
   }
 
   return {
@@ -162,7 +167,19 @@ export async function fetchPaginatedMembers(
       activePermission,
       activeMembership: activePermission,
       membershipStarts: membershipField("dateAdded"),
-      membershipExpires: membershipField("dateExpires")
+      membershipExpires: membershipField("dateExpires"),
+      manualPaymentSource: (rule, qb, suffix, namedWhere) => {
+        const table = "pd" + suffix;
+        const subQb = createQueryBuilder()
+          .subQuery()
+          .select(`${table}.memberId`)
+          .from(PaymentData, table)
+          .where(`${table}.data ->> 'source' ${namedWhere}`);
+
+        qb.where("item.id IN " + subQb.getQuery()).andWhere(
+          "item.contributionType = 'Manual'"
+        );
+      }
     },
     (qb) => {
       if (query.with?.includes(GetMemberWith.Profile)) {

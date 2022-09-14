@@ -90,6 +90,7 @@ const memberFields = [
   "activeMembership",
   "membershipStarts",
   "membershipExpires",
+  "manualPaymentSource",
   "tags"
 ] as const;
 const memberSortFields = [
