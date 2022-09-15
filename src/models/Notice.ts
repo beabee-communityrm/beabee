@@ -24,8 +24,8 @@ export default class Notice extends ItemWithStatus {
   @Column()
   text!: string;
 
-  @Column()
-  buttonText!: string;
+  @Column({ type: String, nullable: true })
+  buttonText!: string | null;
 
   @Column({ type: String, nullable: true })
   url!: string | null;

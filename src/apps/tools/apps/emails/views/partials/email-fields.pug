@@ -4,11 +4,11 @@
 .form-group
   label(for='fromEmail').control-label.col-md-3 From email
   .col-md-6
-    input(type='text' name='fromEmail' required value=email.fromEmail || Options('support-email'))#fromEmail.form-control
+    input(type='text' name='fromEmail' value=email.fromEmail)#fromEmail.form-control
 .form-group
   label(for='fromName').control-label.col-md-3 From name
   .col-md-6
-    input(type='text' name='fromName' required value=email.fromName || Options('support-email-from'))#fromName.form-control
+    input(type='text' name='fromName' value=email.fromName)#fromName.form-control
 .form-group
   label(for='subject').control-label.col-md-3 Subject
   .col-md-6
@@ -38,23 +38,20 @@
         tr
           td *|LNAME|*
           td Contact last name
-        if systemEmails.indexOf('reset-password') > -1
-          tr
-            td *|RPLINK|*
-            td Reset password link
+        tr
+          td *|RPLINK|*
+          td Reset password link
+        tr
+          td *|LOGINLINK|*
+          td Login link
+        tr
+          td *|SPLINK|*
+          td Set password link
         if systemEmails.indexOf('confirm-email') > -1
           tr
             td *|CONFIRMLINK|*
             td Confirm email address link
-        if systemEmails.indexOf('email-exists-login') > -1
-          tr
-            td *|LOGINLINK|*
-            td Login link
-        if systemEmails.indexOf('email-exists-set-password') > -1
-          tr
-            td *|SPLINK|*
-            td Set password link
-        if systemEmails.indexOf('convert-manual-to-gc') > -1
+        if systemEmails.indexOf('manual-to-automatic') > -1
           tr
             td *|CONVERTLINK|*
             td Convert payment link

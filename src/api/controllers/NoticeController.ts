@@ -98,8 +98,9 @@ export class NoticeController {
       updatedAt: notice.updatedAt,
       name: notice.name,
       text: notice.text,
-      buttonText: notice.buttonText,
+      ...(notice.starts !== null && { starts: notice.starts }),
       ...(notice.expires !== null && { expires: notice.expires }),
+      ...(notice.buttonText !== null && { buttonText: notice.buttonText }),
       ...(notice.url !== null && { url: notice.url }),
       status: notice.status
     };

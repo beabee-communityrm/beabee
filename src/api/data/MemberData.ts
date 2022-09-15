@@ -9,6 +9,7 @@ import { NewsletterStatus } from "@core/providers/newsletter";
 import { ContributionInfo, ContributionPeriod } from "@core/utils";
 import Address from "@models/Address";
 import { PermissionType } from "@models/MemberPermission";
+import { PaymentStatus } from "@models/Payment";
 import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
@@ -83,10 +84,12 @@ const memberFields = [
   "contributionMonthlyAmount",
   "contributionPeriod",
   // Special fields
+  "contributionCancelled",
   "deliveryOptIn",
   "newsletterStatus",
   "activePermission",
   "activeMembership",
+  "membershipStarts",
   "membershipExpires",
   "tags"
 ] as const;
@@ -96,7 +99,9 @@ const memberSortFields = [
   "email",
   "joined",
   "lastSeen",
-  "contributionMonthlyAmount"
+  "contributionMonthlyAmount",
+  "membershipStarts",
+  "membershipExpires"
 ] as const;
 
 type MemberField = typeof memberFields[number];
@@ -197,9 +202,9 @@ export class UpdateMemberData implements Partial<MemberData> {
 }
 
 export interface GetPaymentData {
-  status: string;
   amount: number;
   chargeDate: Date;
+  status: PaymentStatus;
 }
 
 const paymentFields = ["chargeDate", "member"] as const;

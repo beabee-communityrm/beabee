@@ -14,6 +14,7 @@ import {
 import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { ContentController } from "./controllers/ContentController";
+import { EmailController } from "./controllers/EmailController";
 import {
   MemberController,
   MemberStatsController
@@ -21,6 +22,7 @@ import {
 import { NoticeController } from "./controllers/NoticeController";
 import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
+import { StatsController } from "./controllers/StatsController";
 import { ResetPasswordController } from "./controllers/ResetPasswordController";
 
 import * as db from "@core/database";
@@ -58,11 +60,13 @@ db.connect().then(() => {
       AuthController,
       CalloutController,
       ContentController,
+      EmailController,
       MemberStatsController, // Must be before MemberController
       MemberController,
       NoticeController,
       SegmentController,
       SignupController,
+      StatsController,
       ResetPasswordController
     ],
     currentUserChecker,

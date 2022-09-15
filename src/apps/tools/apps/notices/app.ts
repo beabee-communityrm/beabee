@@ -18,7 +18,7 @@ interface NoticeSchema {
   expiresDate?: string;
   expiresTime?: string;
   text: string;
-  buttonText: string;
+  buttonText?: string;
   url?: string;
 }
 
@@ -28,7 +28,7 @@ function schemaToNotice(data: NoticeSchema): Notice {
   notice.starts = createDateTime(data.startsDate, data.startsTime);
   notice.expires = createDateTime(data.expiresDate, data.expiresTime);
   notice.text = data.text;
-  notice.buttonText = data.buttonText;
+  notice.buttonText = data.buttonText || null;
   notice.url = data.url || null;
 
   return notice;

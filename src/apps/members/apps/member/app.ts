@@ -7,7 +7,6 @@ import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 import { canSuperAdmin } from "@core/utils/auth";
 
-import GCPaymentService from "@core/services/GCPaymentService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
@@ -36,7 +35,9 @@ app.use(
     });
     if (member) {
       req.model = member;
-      res.locals.paymentData = await PaymentService.getPaymentData(member);
+      const { data, method } = await PaymentService.getData(member);
+      res.locals.paymentData = data;
+      res.locals.paymentMethod = method;
       next();
     } else {
       next("route");
@@ -120,7 +121,7 @@ app.post(
         //await PollAnswers.updateMany( { member }, { $set: { member: null } } );
 
         await ReferralsService.permanentlyDeleteMember(member);
-        await GCPaymentService.permanentlyDeleteMember(member);
+        await PaymentService.permanentlyDeleteMember(member);
 
         await MembersService.permanentlyDeleteMember(member);
 

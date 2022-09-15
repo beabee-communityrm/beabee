@@ -73,7 +73,34 @@ block contents
           .col-md-9
             input(type='text' name='options[home-link-url]' value=Options('home-link-url')).form-control
 
+        .form-group
+          .col-md-offset-3.col-md-9
+            .checkbox
+              label
+                input(type='checkbox' name="data[hideContribution]" value="true" checked=general.hideContribution)
+                | Hide contribution option
+
+        .row: .col-md-offset-3.col-md-9: h5 Share settings
+
+        .form-group
+          label.control-label.col-md-3 Twitter handle
+          .col-md-9
+            input(type='text' name='options[share-twitter-handle]' value=Options('share-twitter-handle')).form-control
+        .form-group
+          label.control-label.col-md-3 Share title
+          .col-md-9
+            input(type='text' name='options[share-title]' value=Options('share-title')).form-control
+        .form-group
+          label.control-label.col-md-3 Share description
+          .col-md-9
+            input(type='text' name='options[share-description]' value=Options('share-description')).form-control
+        .form-group
+          label.control-label.col-md-3 Share image URL
+          .col-md-9
+            input(type='text' name='options[share-image]' value=Options('share-image')).form-control
+
         .row: .col-md-offset-3.col-md-9: h5 Footer links
+
         ul(data-name="data[footerLinks]").no-list.js-repeater
           if general.footerLinks
             each link, i in general.footerLinks
@@ -102,7 +129,7 @@ block contents
         
         +periodSchema(0, join.periods ? join.periods[0] : {'name': 'monthly', presetAmounts: []})
         +periodSchema(1, join.periods ? join.periods[1] : {'name': 'annually', presetAmounts: []})
-          
+
         .form-group.hidden
           .col-md-offset-3.col-md-9
             .checkbox
@@ -126,6 +153,11 @@ block contents
           label.control-label.col-md-3 Min monthly amount
           .col-md-9
             input(type='number' name="options[contribution-min-monthly-amount]" value=Options('contribution-min-monthly-amount') required).form-control
+
+        .form-group
+          label.control-label.col-md-3 Payment methods
+          .col-md-9
+            input(type='text' name="data[paymentMethods]" value=join.paymentMethods && join.paymentMethods.join(', ') required).form-control
 
         .form-group
           .col-md-offset-3.col-md-9
@@ -213,5 +245,22 @@ block contents
           label.control-label.col-md-3 Intro message
           .col-md-9
             textarea(name="data[introMessage]" required).form-control.js-rte-textarea= profile.introMessage
+
+        .row: .col-md-offset-3.col-md-9: p: button(name='id' value='profile').btn.btn-primary Save
+
+      hr
+
+      h4 Contacts
+      form(method='POST').form-horizontal
+        +csrf
+
+        .form-group
+          label.control-label.col-md-3 Tags
+          .col-md-9
+            input(type='text' name="options[available-tags]" value=Options('available-tags') required).form-control
+        .form-group
+          label.control-label.col-md-3 Manual payment sources
+          .col-md-9
+            input(type='text' name="options[available-manual-payment-sources]" value=Options('available-manual-payment-sources') required).form-control
 
         .row: .col-md-offset-3.col-md-9: p: button(name='id' value='profile').btn.btn-primary Save

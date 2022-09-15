@@ -1,12 +1,12 @@
 import mandrill from "mandrill-api/mandrill";
-import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
-import { formatEmailBody } from "@core/utils/email";
 
 import Email from "@models/Email";
 
-import { EmailOptions, EmailProvider, EmailRecipient, EmailTemplate } from ".";
+import { EmailOptions, EmailRecipient, EmailTemplate, PreparedEmail } from ".";
+import BaseProvider from "./BaseProvider";
+
 import { MandrillEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "mandrill-email-provider" });
@@ -25,15 +25,16 @@ interface MandrillMessage {
   attachments?: { type: string; name: string; content: string }[];
 }
 
-export default class MandrillProvider implements EmailProvider {
+export default class MandrillProvider extends BaseProvider {
   private readonly client: any;
 
   constructor(settings: MandrillEmailConfig["settings"]) {
+    super();
     this.client = new mandrill.Mandrill(settings.apiKey);
   }
 
-  async sendEmail(
-    email: Email,
+  protected async doSendEmail(
+    email: PreparedEmail,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
@@ -45,7 +46,7 @@ export default class MandrillProvider implements EmailProvider {
             from_name: email.fromName,
             from_email: email.fromEmail,
             subject: email.subject,
-            html: formatEmailBody(email.body),
+            html: email.body,
             auto_text: true
           },
           ...(opts?.sendAt && { send_at: opts.sendAt.toISOString() })
@@ -82,11 +83,15 @@ export default class MandrillProvider implements EmailProvider {
       });
       log.info(`Sent template ${template}`, { resp });
     } else if (templateType === "local") {
-      const email = await getRepository(Email).findOne(templateId);
-      if (email) {
-        this.sendEmail(email, recipients, opts);
-      }
+      super.sendTemplate(templateId, recipients, opts);
     }
+  }
+
+  async getTemplateEmail(template: string): Promise<false | Email | null> {
+    const [templateType, templateId] = template.split("_", 2);
+    return templateType === "mandrill"
+      ? false
+      : await super.getTemplateEmail(templateId);
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {
@@ -96,11 +101,11 @@ export default class MandrillProvider implements EmailProvider {
       }
     );
 
-    const emails = await getRepository(Email).find();
+    const localEmailTemplates = await super.getTemplates();
 
     return [
-      ...emails.map((email) => ({
-        id: email.id,
+      ...localEmailTemplates.map((email) => ({
+        id: "local_" + email.id,
         name: "Local: " + email.name
       })),
       ...templates.map((template) => ({

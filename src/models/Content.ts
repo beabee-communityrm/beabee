@@ -1,6 +1,13 @@
 import { Column, Entity, PrimaryColumn, UpdateDateColumn } from "typeorm";
 
-export type ContentId = "join" | "join/setup" | "profile" | "general";
+export type ContentId =
+  | "join"
+  | "join/setup"
+  | "profile"
+  | "general"
+  | "contacts"
+  | "share"
+  | "email";
 
 @Entity()
 export default class Content {

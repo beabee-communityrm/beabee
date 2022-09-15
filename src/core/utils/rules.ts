@@ -9,7 +9,7 @@ import {
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission from "@models/MemberPermission";
-import GCPaymentData from "@models/GCPaymentData";
+import PaymentData from "@models/PaymentData";
 
 const operators = {
   equal: (v: RichRuleValue[]) => ["= :a", { a: v[0] }] as const,
@@ -164,12 +164,12 @@ function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
           qb.where("id NOT IN " + subQb.getQuery());
         }
       } else if (rule.field === "contributionCancelled") {
-        const table = "gc" + suffix;
+        const table = "pd" + suffix;
         const subQb = createQueryBuilder()
           .subQuery()
           .select(`${table}.memberId`)
-          .from(GCPaymentData, table)
-          .where(`${table}.cancelledAt ${namedWhere}`);
+          .from(PaymentData, table)
+          .where(`${table}.data ->> 'cancelledAt' ${namedWhere}`);
 
         qb.where("id IN " + subQb.getQuery());
       } else if (memberFields.indexOf(rule.field as any) > -1) {

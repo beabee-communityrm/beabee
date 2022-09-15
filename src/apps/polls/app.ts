@@ -4,7 +4,7 @@ import { getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isLoggedIn } from "@core/middleware";
 import { setTrackingCookie } from "@core/sessions";
-import { isSocialScraper, wrapAsync } from "@core/utils";
+import { escapeRegExp, isSocialScraper, wrapAsync } from "@core/utils";
 import * as auth from "@core/utils/auth";
 
 import MembersService from "@core/services/MembersService";
@@ -17,35 +17,9 @@ import schemas from "./schemas.json";
 
 import config from "@config";
 
-function getView(poll: Poll): string {
-  switch (poll.template) {
-    case "ballot":
-      return "ballot";
-    case "builder":
-      return "poll";
-    case "custom":
-      return `polls/${poll.slug}`;
-  }
-}
-
 function hasPollAnswers(req: Request, res: Response, next: NextFunction): void {
-  const poll = req.model as Poll;
-  const schema = (() => {
-    switch (poll.template) {
-      case "ballot":
-        return schemas.ballotSchema;
-      case "builder":
-        return schemas.builderSchema;
-      case "custom":
-        return (schemas.customSchemas as any)[poll.slug];
-    }
-  })();
-
-  hasSchema(schema).orFlash(req, res, () => {
-    req.answers =
-      poll.template === "builder"
-        ? JSON.parse(req.body.answers)
-        : req.body.answers;
+  hasSchema(schemas.builderSchema).orFlash(req, res, () => {
+    req.answers = JSON.parse(req.body.answers);
     // TODO: validate answers
     next();
   });
@@ -68,11 +42,12 @@ app.get(
 app.get(
   "/_oembed",
   wrapAsync(async (req, res, next) => {
-    const url = req.query.url as string;
-    if (url && url.startsWith(config.audience + "/polls/")) {
-      const pollId = url
-        .replace(config.audience + "/polls/", "")
-        .replace(/\/embed\/?/, "");
+    const url = req.query.url as string | undefined;
+    const pathMatch = new RegExp(
+      `^${escapeRegExp(config.audience)}/(polls|callouts)/`
+    );
+    if (url && pathMatch.test(url)) {
+      const pollId = url.replace(pathMatch, "").replace(/\/embed\/?/, "");
       const poll = await getRepository(Poll).findOne(pollId);
       if (poll) {
         res.send({
@@ -151,10 +126,10 @@ app.get(
     // Always fetch answers to clear session even on redirect
     const answers = await getUserAnswersAndClear(req);
 
-    if (poll.templateSchema.thanksRedirect) {
-      res.redirect(poll.templateSchema.thanksRedirect as string);
+    if (poll.thanksRedirect) {
+      res.redirect(poll.thanksRedirect);
     } else {
-      res.render(poll.template === "custom" ? getView(poll) : "thanks", {
+      res.render("thanks", {
         poll,
         answers,
         pollsCode: req.params.code,
@@ -209,7 +184,7 @@ app.get(
       }
       res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
     } else {
-      res.render(getView(poll), {
+      res.render("poll", {
         poll,
         answers: poll.allowMultiple ? {} : await getUserAnswersAndClear(req),
         isEmbed,

@@ -30,7 +30,10 @@ app.get(
 );
 
 const parseData = {
-  general: (d: any) => d,
+  general: (data: any) => ({
+    ...data,
+    hideContribution: data.hideContribution === "true"
+  }),
   join: (data: any) => ({
     ...data,
     initialAmount: Number(data.initialAmount),
@@ -38,13 +41,17 @@ const parseData = {
       name: p.name,
       presetAmounts: p.presetAmounts.split(",").map((s) => Number(s.trim()))
     })),
-    showNoContribution: data.showNoContribution === "true"
+    showNoContribution: data.showNoContribution === "true",
+    paymentMethods: data.paymentMethods.split(",").map((s: string) => s.trim())
   }),
   "join/setup": (data: any) => ({
     ...data,
     showNewsletterOptIn: data.showNewsletterOptIn === "true"
   }),
-  profile: (d: any) => d
+  profile: (d: any) => d,
+  contacts: (d: any) => d,
+  share: (d: any) => d,
+  email: (d: any) => d
 } as const;
 
 // urlencoding parser doesn't support overwriting if the same query param

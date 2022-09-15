@@ -1,5 +1,6 @@
 import { getRepository, IsNull, LessThan } from "typeorm";
 
+import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 
 import Member from "@models/Member";
@@ -92,6 +93,11 @@ export default class PollsService {
 
     await getRepository(PollResponse).save(pollResponse);
 
+    await EmailService.sendTemplateToAdmin("new-callout-response", {
+      poll,
+      responderName: member.fullname
+    });
+
     if (poll.mcMergeField && poll.pollMergeField) {
       await NewsletterService.updateMemberFields(member, {
         [poll.mcMergeField]: answers[poll.pollMergeField]?.toString() || ""
@@ -124,6 +130,11 @@ export default class PollsService {
     pollResponse.isPartial = false;
 
     await getRepository(PollResponse).save(pollResponse);
+
+    await EmailService.sendTemplateToAdmin("new-callout-response", {
+      poll,
+      responderName: guestName || "Anonymous"
+    });
   }
 
   static async getPoll(pollSlug: string): Promise<Poll | undefined> {

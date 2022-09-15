@@ -13,6 +13,7 @@ import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import quickflash from "@core/quickflash";
 import startServer from "@core/server";
 import sessions from "@core/sessions";
+import { isInvalidType } from "@core/utils";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import PageSettingsService from "@core/services/PageSettingsService";
@@ -70,6 +71,10 @@ app.use("/membership.js", (req, res) => {
   }
 });
 
+app.get("/favicon.png", (req, res) => {
+  res.redirect(OptionsService.getText("logo"));
+});
+
 // Log the rest
 app.use(requestLogger);
 
@@ -110,6 +115,11 @@ database.connect().then(async () => {
 
   // Hook to handle special URLs
   //app.use( '/s', specialUrlHandler );
+
+  // Ignore QueryFailedError for invalid type, probably just bad URL
+  app.use(function (err, req, res, next) {
+    next(isInvalidType(err) ? undefined : err);
+  } as ErrorRequestHandler);
 
   // Error 404
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

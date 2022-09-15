@@ -1,28 +1,26 @@
 import sgMail from "@sendgrid/mail";
-import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
-import { formatEmailBody } from "@core/utils/email";
 
-import Email from "@models/Email";
-
-import { EmailOptions, EmailProvider, EmailRecipient, EmailTemplate } from ".";
+import { EmailOptions, EmailRecipient, PreparedEmail } from ".";
+import BaseProvider from "./BaseProvider";
 
 import { SendGridEmailConfig } from "@config";
 
 const log = mainLogger.child({ app: "sendgrid-email-provider" });
 
-export default class SendGridProvider implements EmailProvider {
+export default class SendGridProvider extends BaseProvider {
   private readonly testMode: boolean;
 
   constructor(settings: SendGridEmailConfig["settings"]) {
+    super();
     sgMail.setApiKey(settings.apiKey);
     sgMail.setSubstitutionWrappers("*|", "|*");
     this.testMode = settings.testMode;
   }
 
-  async sendEmail(
-    email: Email,
+  protected async doSendEmail(
+    email: PreparedEmail,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
@@ -32,7 +30,7 @@ export default class SendGridProvider implements EmailProvider {
         name: email.fromName
       },
       subject: email.subject,
-      html: formatEmailBody(email.body),
+      html: email.body,
       personalizations: recipients.map((recipient) => ({
         to: recipient.to,
         ...(recipient.mergeFields && { substitutions: recipient.mergeFields })
@@ -55,20 +53,5 @@ export default class SendGridProvider implements EmailProvider {
     });
 
     log.info("Sent email", { resp });
-  }
-  async sendTemplate(
-    template: string,
-    recipients: EmailRecipient[],
-    opts?: EmailOptions
-  ): Promise<void> {
-    log.info("Sending template " + template);
-    const email = await getRepository(Email).findOne(template);
-    if (email) {
-      await this.sendEmail(email, recipients, opts);
-    }
-  }
-  async getTemplates(): Promise<EmailTemplate[]> {
-    const emails = await getRepository(Email).find();
-    return emails.map((email) => ({ id: email.id, name: email.name }));
   }
 }

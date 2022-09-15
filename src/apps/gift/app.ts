@@ -5,6 +5,7 @@ import config from "@config";
 
 import { hasNewModel, hasSchema } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
+import { loginAndRedirect } from "@core/utils/member";
 
 import GiftService from "@core/services/GiftService";
 import MembersService from "@core/services/MembersService";
@@ -127,12 +128,7 @@ app.get(
           req.flash("warning", "gifts-already-activated");
           res.redirect("/login");
         } else {
-          MembersService.loginAndRedirect(
-            req,
-            res,
-            giftFlow.giftee,
-            "/profile/complete"
-          );
+          loginAndRedirect(req, res, giftFlow.giftee, "/profile/complete");
         }
       } else {
         next("route");

@@ -73,7 +73,7 @@
         {
           "required": ["customerId", "mandateId"],
           "properties": {
-            "type": { "const": "GoCardless" },
+            "type": { "const": "Automatic" },
             "customerId": {
               "type": "string"
             },

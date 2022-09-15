@@ -19,8 +19,8 @@ const app = express();
 
 export interface EmailSchema {
   name: string;
-  fromName: string;
-  fromEmail: string;
+  fromName?: string;
+  fromEmail?: string;
   subject: string;
   body: string;
 }
@@ -28,8 +28,8 @@ export interface EmailSchema {
 export function schemaToEmail(data: EmailSchema): Email {
   const email = new Email();
   email.name = data.name;
-  email.fromName = data.fromName;
-  email.fromEmail = data.fromEmail;
+  email.fromName = data.fromName || null;
+  email.fromEmail = data.fromEmail || null;
   email.subject = data.subject;
   email.body = data.body;
 
@@ -42,9 +42,12 @@ const assignableSystemEmails = {
   "cancelled-contribution": "Cancelled contribution",
   "cancelled-contribution-no-survey": "Cancelled contribution - no survey",
   "confirm-email": "Confirm email",
-  "manual-to-gocardless": "Manual contributor converted to GoCardless",
+  "manual-to-automatic": "Manual contributor converted to automatic",
   "email-exists-login": "Email exists - login",
-  "email-exists-set-password": "Email exists - set password"
+  "email-exists-set-password": "Email exists - set password",
+  "new-member": "New member notification",
+  "cancelled-member": "Cancelled member notification",
+  "new-callout-response": "New callout response notification"
 };
 
 app.set("views", __dirname + "/views");

@@ -32,6 +32,12 @@ block contents
 					.col-md-6
 						input(type='text' name='name')#name.form-control
 				.form-group
+					label(for='starts').control-label.col-md-3 Starts (UTC)
+					.col-md-3
+						input(type='date', name='startsDate')#starts.form-control
+					.col-md-3
+						input(type='time', name='startsTime').form-control
+				.form-group
 					label(for='expires').control-label.col-md-3 Expires (UTC)
 					.col-md-3
 						input(type='date', name='expiresDate')#expires.form-control

@@ -9,18 +9,17 @@ import {
   wrapAsync
 } from "@core/utils";
 
-import GCPaymentService from "@core/services/GCPaymentService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 
 import { NewsletterStatus } from "@core/providers/newsletter";
 
-import ManualPaymentData from "@models/ManualPaymentData";
 import MemberPermission, { PermissionType } from "@models/MemberPermission";
 
 import { addContactSchema } from "./schemas.json";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import PaymentService from "@core/services/PaymentService";
 
 interface BaseAddContactSchema {
   email: string;
@@ -45,23 +44,11 @@ interface AddManualContactSchema extends BaseAddContactSchema {
   period?: ContributionPeriod;
 }
 
-interface AddGCContactSchema extends BaseAddContactSchema {
-  type: ContributionType.GoCardless;
-  customerId: string;
-  mandateId: string;
-  amount?: number;
-  period?: ContributionPeriod;
-  payFee?: boolean;
-}
-
 interface AddNoneContactScema extends BaseAddContactSchema {
   type: ContributionType.None;
 }
 
-type AddContactSchema =
-  | AddManualContactSchema
-  | AddGCContactSchema
-  | AddNoneContactScema;
+type AddContactSchema = AddManualContactSchema | AddNoneContactScema;
 
 const app = express();
 
@@ -118,27 +105,13 @@ app.post(
       }
     }
 
-    if (data.type === ContributionType.GoCardless) {
-      await GCPaymentService.updatePaymentSource(
+    if (data.type === ContributionType.Manual) {
+      await PaymentService.updateDataBy(member, "source", data.source || null);
+      await PaymentService.updateDataBy(
         member,
-        data.customerId,
-        data.mandateId
+        "reference",
+        data.reference || null
       );
-      if (data.amount && data.period) {
-        await GCPaymentService.updateContribution(member, {
-          monthlyAmount: data.amount,
-          period: data.period,
-          payFee: !!data.payFee,
-          prorate: false
-        });
-      }
-    } else if (data.type === ContributionType.Manual) {
-      const paymentData = getRepository(ManualPaymentData).create({
-        member,
-        source: data.source || "",
-        reference: data.reference || ""
-      });
-      await getRepository(ManualPaymentData).save(paymentData);
       await MembersService.updateMember(member, {
         contributionPeriod: data.period || null,
         contributionMonthlyAmount: data.amount || null

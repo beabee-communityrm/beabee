@@ -5,7 +5,7 @@ import { Between, getRepository } from "typeorm";
 import { isSuperAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import GCPayment from "@models/GCPayment";
+import Payment from "@models/Payment";
 
 const app = express();
 
@@ -33,7 +33,7 @@ app.get(
     const end = start.clone().add(1, "month");
     const previous = start.clone().subtract(1, "month");
 
-    const payments = await getRepository(GCPayment).find({
+    const payments = await getRepository(Payment).find({
       where: {
         createdAt: Between(start.toDate(), end.toDate())
       },
