@@ -9,6 +9,7 @@ import {
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import MemberPermission from "@models/MemberPermission";
+import PaymentData from "@models/PaymentData";
 
 const operators = {
   equal: (v: RichRuleValue[]) => ["= :a", { a: v[0] }] as const,
@@ -130,7 +131,17 @@ function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
           .where(
             `${table}.permission = 'member' AND ${table}.dateExpires ${namedWhere}`
           );
-        qb.where("id IN " + subQb.getQuery());
+        qb.where("m.id IN " + subQb.getQuery());
+      } else if (rule.field === "manualPaymentSource") {
+        const table = "pd" + suffix;
+        const subQb = createQueryBuilder()
+          .subQuery()
+          .select(`${table}.memberId`)
+          .from(PaymentData, table)
+          .where(`${table}.data ->> 'source' ${namedWhere}`);
+        qb.where("m.id IN " + subQb.getQuery()).andWhere(
+          "m.contributionType = 'Manual'"
+        );
       } else if (
         rule.field === "activeMembership" ||
         rule.field === "activePermission"
@@ -157,9 +168,9 @@ function buildRuleQuery(qb: SelectQueryBuilder<Member>, ruleGroup: RuleGroup) {
           );
 
         if (rule.field === "activePermission" || rule.value === true) {
-          qb.where("id IN " + subQb.getQuery());
+          qb.where("m.id IN " + subQb.getQuery());
         } else {
-          qb.where("id NOT IN " + subQb.getQuery());
+          qb.where("m.id NOT IN " + subQb.getQuery());
         }
       } else if (memberFields.indexOf(rule.field as any) > -1) {
         qb.where(`m.${rule.field} ${namedWhere}`);
