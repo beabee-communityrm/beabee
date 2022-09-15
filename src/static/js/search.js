@@ -100,6 +100,10 @@ $('#builder').queryBuilder({
 		label: 'Tags',
 		type: 'string',
 		operators: ['contains']
+	}, {
+		id: 'manualPaymentSource',
+		label: 'Manual payment source',
+		type: 'string'
 	}]
 });
 
