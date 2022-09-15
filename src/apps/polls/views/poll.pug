@@ -57,6 +57,8 @@ block contents
 				hr
 
 			if !isEmbed
+				if poll.image
+					img(src=poll.image style='width: 100%; margin-bottom: 2rem;')
 				!= poll.intro
 				hr#vote
 
