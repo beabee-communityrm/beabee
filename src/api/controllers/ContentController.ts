@@ -69,7 +69,11 @@ const contentOptions: ContentMap<[OptionKey, OptionKeyType]> = {
 
 const contentReadOnly: ContentMap<[() => any]> = {
   general: [["currencyCode", () => config.currencyCode]],
-  email: [["footer", getEmailFooter]]
+  email: [["footer", getEmailFooter]],
+  join: [
+    ["stripePublicKey", () => config.stripe.publicKey],
+    ["stripeCountry", () => config.stripe.country]
+  ]
 };
 
 @JsonController("/content")
