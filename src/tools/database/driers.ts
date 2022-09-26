@@ -9,6 +9,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { Chance } from "chance";
 
+import { log as mainLogger } from "@core/logging";
+
 import Email from "@models/Email";
 import EmailMailing from "@models/EmailMailing";
 import Export from "@models/Export";
@@ -32,6 +34,8 @@ import ReferralGift from "@models/ReferralGift";
 import Segment from "@models/Segment";
 import SegmentMember from "@models/SegmentMember";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
+
+const log = mainLogger.child({ app: "drier" });
 
 type DrierMap<T> = { [K in keyof T]?: ((prop: T[K]) => T[K]) | Drier<T[K]> };
 
