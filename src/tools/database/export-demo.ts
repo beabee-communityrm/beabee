@@ -7,7 +7,7 @@ import * as db from "@core/database";
 import Member from "@models/Member";
 
 import {
-  Drier,
+  ModelDrier,
   paymentDataDrier,
   paymentsDrier,
   memberDrier,
@@ -27,7 +27,7 @@ async function main() {
     memberProfileDrier,
     memberPermissionDrier,
     memberDrier
-  ] as Drier<any>[]) {
+  ] as ModelDrier<any>[]) {
     console.log(
       `DELETE FROM "${getRepository(drier.model).metadata.tableName}";`
     );
