@@ -3,10 +3,13 @@ import {
   createQueryBuilder,
   EntityTarget,
   getRepository,
+  OrderByCondition,
   SelectQueryBuilder
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 import { Chance } from "chance";
+
+import { log as mainLogger } from "@core/logging";
 
 import Email from "@models/Email";
 import EmailMailing from "@models/EmailMailing";
@@ -31,6 +34,8 @@ import ReferralGift from "@models/ReferralGift";
 import Segment from "@models/Segment";
 import SegmentMember from "@models/SegmentMember";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
+
+const log = mainLogger.child({ app: "drier" });
 
 type DrierMap<T> = { [K in keyof T]?: ((prop: T[K]) => T[K]) | Drier<T[K]> };
 
@@ -97,7 +102,11 @@ export const paymentDataDrier = createDrier(PaymentData, {
     ...data,
     ...("customerId" in data && { customerId: randomId(12, "CU")() }),
     ...("mandateId" in data && { customerId: randomId(12, "MD")() }),
-    ...("subscriptionId" in data && { customerId: randomId(12, "SB")() })
+    ...("subscriptionId" in data && { customerId: randomId(12, "SB")() }),
+    ...("source" in data && {
+      source: chance.pickone(["Direct Debit", "PayPal", "Other"])
+    }),
+    ...("reference" in data && { reference: chance.word() })
   })
 });
 
@@ -268,11 +277,17 @@ export async function runExport<T>(
   fn: (qb: SelectQueryBuilder<T>) => SelectQueryBuilder<T>,
   valueMap: Map<string, unknown>
 ): Promise<void> {
-  console.error(`Anonymising ${getRepository(drier.model).metadata.tableName}`);
+  const metadata = getRepository(drier.model).metadata;
+  log.info(`Anonymising ${metadata.tableName}`);
+
+  const orderBy: OrderByCondition = Object.fromEntries(
+    metadata.primaryColumns.map((col) => ["item." + col.databaseName, "ASC"])
+  );
 
   for (let i = 0; ; i += 1000) {
     const items = await fn(createQueryBuilder(drier.model, "item"))
       .loadAllRelationIds()
+      .orderBy(orderBy)
       .offset(i)
       .limit(1000)
       .getMany();
