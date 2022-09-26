@@ -98,7 +98,11 @@ export const paymentDataDrier = createDrier(PaymentData, {
     ...data,
     ...("customerId" in data && { customerId: randomId(12, "CU")() }),
     ...("mandateId" in data && { customerId: randomId(12, "MD")() }),
-    ...("subscriptionId" in data && { customerId: randomId(12, "SB")() })
+    ...("subscriptionId" in data && { customerId: randomId(12, "SB")() }),
+    ...("source" in data && {
+      source: chance.pickone(["Direct Debit", "PayPal", "Other"])
+    }),
+    ...("reference" in data && { reference: chance.word() })
   })
 });
 
