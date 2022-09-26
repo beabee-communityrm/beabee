@@ -1,3 +1,4 @@
+import { Chance } from "chance";
 import crypto from "crypto";
 import {
   createQueryBuilder,
@@ -6,8 +7,8 @@ import {
   OrderByCondition,
   SelectQueryBuilder
 } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { v4 as uuidv4 } from "uuid";
-import { Chance } from "chance";
 
 import { log as mainLogger } from "@core/logging";
 
@@ -15,7 +16,7 @@ import Email from "@models/Email";
 import EmailMailing from "@models/EmailMailing";
 import Export from "@models/Export";
 import ExportItem from "@models/ExportItem";
-import GiftFlow, { GiftForm } from "@models/GiftFlow";
+import GiftFlow from "@models/GiftFlow";
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
 import MemberProfile from "@models/MemberProfile";
@@ -37,18 +38,25 @@ import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
 const log = mainLogger.child({ app: "drier" });
 
-type DrierMap<T> = { [K in keyof T]?: ((prop: T[K]) => T[K]) | Drier<T[K]> };
-
 export interface Drier<T> {
-  model: EntityTarget<T>;
   propMap: DrierMap<T>;
 }
 
-function createDrier<T>(
+type DrierMap<T> = { [K in keyof T]?: ((prop: T[K]) => T[K]) | Drier<T[K]> };
+
+export interface ModelDrier<T> extends Drier<T> {
+  model: EntityTarget<T>;
+}
+
+function createModelDrier<T>(
   model: EntityTarget<T>,
   propMap: DrierMap<T> = {}
-): Drier<T> {
+): ModelDrier<T> {
   return { model, propMap };
+}
+
+function createDrier<T>(propMap: DrierMap<T> = {}): Drier<T> {
+  return { propMap };
 }
 
 // Property generators
@@ -78,43 +86,40 @@ const chance = new Chance();
 
 // Model driers
 
-const emailDrier = createDrier(Email);
+const emailDrier = createModelDrier(Email);
 
-const emailMailingDrier = createDrier(EmailMailing, {
+const emailMailingDrier = createModelDrier(EmailMailing, {
   recipients: () => []
 });
 
-const exportsDrier = createDrier(Export);
+const exportsDrier = createModelDrier(Export);
 
-const exportItemsDrier = createDrier(ExportItem, {
+const exportItemsDrier = createModelDrier(ExportItem, {
   itemId: copy // These will be mapped to values that have already been seen
 });
 
-export const paymentsDrier = createDrier(Payment, {
+export const paymentsDrier = createModelDrier(Payment, {
   id: () => uuidv4(),
   subscriptionId: randomId(12, "SB"),
   member: memberId
 });
 
-export const paymentDataDrier = createDrier(PaymentData, {
+export const paymentDataDrier = createModelDrier(PaymentData, {
   member: memberId,
-  data: (data) => ({
-    ...data,
-    ...("customerId" in data && { customerId: randomId(12, "CU")() }),
-    ...("mandateId" in data && { customerId: randomId(12, "MD")() }),
-    ...("subscriptionId" in data && { customerId: randomId(12, "SB")() }),
-    ...("source" in data && {
-      source: chance.pickone(["Direct Debit", "PayPal", "Other"])
-    }),
-    ...("reference" in data && { reference: chance.word() })
+  data: createDrier<PaymentData["data"]>({
+    customerId: randomId(12, "CU"),
+    mandateId: randomId(12, "MD"),
+    subscriptionId: randomId(12, "SB"),
+    source: () => chance.pickone(["Standing Order", "PayPal", "Cash in hand"]),
+    reference: () => chance.word()
   })
 });
 
-const giftFlowDrier = createDrier(GiftFlow, {
+const giftFlowDrier = createModelDrier(GiftFlow, {
   id: () => uuidv4(),
   setupCode: uniqueCode,
   sessionId: randomId(12),
-  giftForm: createDrier(GiftForm, {
+  giftForm: createDrier<GiftFlow["giftForm"]>({
     firstname: () => chance.first(),
     lastname: () => chance.last(),
     email: () => chance.email({ domain: "fake.beabee.io", length: 10 }),
@@ -125,7 +130,7 @@ const giftFlowDrier = createDrier(GiftFlow, {
   giftee: memberId
 });
 
-export const memberDrier = createDrier(Member, {
+export const memberDrier = createModelDrier(Member, {
   id: () => uuidv4(),
   email: () => chance.email({ domain: "fake.beabee.io", length: 10 }),
   firstname: () => chance.first(),
@@ -136,11 +141,11 @@ export const memberDrier = createDrier(Member, {
   referralCode: uniqueCode
 });
 
-export const memberPermissionDrier = createDrier(MemberPermission, {
+export const memberPermissionDrier = createModelDrier(MemberPermission, {
   member: memberId
 });
 
-export const memberProfileDrier = createDrier(MemberProfile, {
+export const memberProfileDrier = createModelDrier(MemberProfile, {
   member: memberId,
   description: () => chance.sentence(),
   bio: () => chance.paragraph(),
@@ -156,55 +161,55 @@ export const memberProfileDrier = createDrier(MemberProfile, {
   tags: (tags) => tags.map(() => chance.profession())
 });
 
-const noticesDrier = createDrier(Notice);
+const noticesDrier = createModelDrier(Notice);
 
-const optionsDrier = createDrier(Option);
+const optionsDrier = createModelDrier(Option);
 
-const pageSettingsDrier = createDrier(PageSettings);
+const pageSettingsDrier = createModelDrier(PageSettings);
 
-export const pollsDrier = createDrier(Poll);
+export const pollsDrier = createModelDrier(Poll);
 
-export const pollResponsesDrier = createDrier(PollResponse, {
+export const pollResponsesDrier = createModelDrier(PollResponse, {
   id: () => uuidv4(),
   member: memberId,
   guestName: () => chance.name(),
   guestEmail: () => chance.email({ domain: "example.com", length: 10 })
 });
 
-const projectsDrier = createDrier(Project, {
+const projectsDrier = createModelDrier(Project, {
   owner: memberId
 });
 
-const projectMembersDrier = createDrier(ProjectMember, {
+const projectMembersDrier = createModelDrier(ProjectMember, {
   id: () => uuidv4(),
   member: memberId,
   tag: () => chance.profession()
 });
 
-const projectEngagmentsDrier = createDrier(ProjectEngagement, {
+const projectEngagmentsDrier = createModelDrier(ProjectEngagement, {
   id: () => uuidv4(),
   byMember: memberId,
   toMember: memberId,
   notes: () => chance.sentence()
 });
 
-const referralsDrier = createDrier(Referral, {
+const referralsDrier = createModelDrier(Referral, {
   id: () => uuidv4(),
   referrer: memberId,
   referee: memberId
 });
 
-const referralsGiftDrier = createDrier(ReferralGift, {
+const referralsGiftDrier = createModelDrier(ReferralGift, {
   stock: copy // Add to map so it is serialised correctly
 });
 
-const segmentsDrier = createDrier(Segment);
+const segmentsDrier = createModelDrier(Segment);
 
-const segmentMembersDrier = createDrier(SegmentMember, {
+const segmentMembersDrier = createModelDrier(SegmentMember, {
   member: memberId
 });
 
-const segmentOngoingEmailsDrier = createDrier(SegmentOngoingEmail);
+const segmentOngoingEmailsDrier = createModelDrier(SegmentOngoingEmail);
 
 // Order these so they respect foreign key constraints
 export default [
@@ -231,12 +236,10 @@ export default [
   segmentMembersDrier,
   segmentOngoingEmailsDrier,
   exportItemsDrier // Must be after all exportable items
-] as Drier<any>[];
+] as ModelDrier<any>[];
 
-function isDrier<T>(
-  propMap: DrierMap<T>[keyof T]
-): propMap is Drier<T[keyof T]> {
-  return "propMap" in propMap;
+function isDrier<T>(obj: DrierMap<T>[keyof T]): obj is Drier<T[keyof T]> {
+  return obj && "propMap" in obj;
 }
 
 // Maps don't stringify well
@@ -265,7 +268,7 @@ function runDrier<T>(
         : valueMap.get(valueKey) || propMap(oldValue);
 
       valueMap.set(valueKey, newValue);
-      newItem[prop] = newValue as T[keyof T];
+      newItem[prop] = newValue as ({} & T)[keyof T];
     }
   }
 
@@ -273,7 +276,7 @@ function runDrier<T>(
 }
 
 export async function runExport<T>(
-  drier: Drier<T>,
+  drier: ModelDrier<T>,
   fn: (qb: SelectQueryBuilder<T>) => SelectQueryBuilder<T>,
   valueMap: Map<string, unknown>
 ): Promise<void> {
@@ -301,7 +304,7 @@ export async function runExport<T>(
     const [query, params] = createQueryBuilder()
       .insert()
       .into(drier.model)
-      .values(newItems)
+      .values(newItems as QueryDeepPartialEntity<T>)
       .getQueryAndParameters();
 
     console.log(query + ";");
