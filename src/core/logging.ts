@@ -20,7 +20,11 @@ const logFormats = {
 const logger = winston.createLogger({
   format: logFormats[config.logFormat],
   levels: winston.config.syslog.levels,
-  transports: [new winston.transports.Console()]
+  transports: [
+    new winston.transports.Console({
+      stderrLevels: ["error", "warn", "info", "debug"]
+    })
+  ]
 });
 
 export const log = logger;
