@@ -3,6 +3,7 @@ import {
   createQueryBuilder,
   EntityTarget,
   getRepository,
+  OrderByCondition,
   SelectQueryBuilder
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
@@ -268,11 +269,17 @@ export async function runExport<T>(
   fn: (qb: SelectQueryBuilder<T>) => SelectQueryBuilder<T>,
   valueMap: Map<string, unknown>
 ): Promise<void> {
-  console.error(`Anonymising ${getRepository(drier.model).metadata.tableName}`);
+  const metadata = getRepository(drier.model).metadata;
+  log.info(`Anonymising ${metadata.tableName}`);
+
+  const orderBy: OrderByCondition = Object.fromEntries(
+    metadata.primaryColumns.map((col) => ["item." + col.databaseName, "ASC"])
+  );
 
   for (let i = 0; ; i += 1000) {
     const items = await fn(createQueryBuilder(drier.model, "item"))
       .loadAllRelationIds()
+      .orderBy(orderBy)
       .offset(i)
       .limit(1000)
       .getMany();
