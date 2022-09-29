@@ -2,9 +2,9 @@ import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMembersQuery,
-  GetMembersRuleGroup
+  GetMembersRuleGroup,
+  fetchPaginatedMembers
 } from "@api/data/MemberData";
-import { fetchPaginatedMembers } from "@api/utils/members";
 import { Paginated } from "@api/utils/pagination";
 import SegmentService from "@core/services/SegmentService";
 import Segment from "@models/Segment";

@@ -39,7 +39,9 @@ import {
   GetMemberWith,
   GetPaymentData,
   GetPaymentsQuery,
-  UpdateMemberData
+  UpdateMemberData,
+  fetchPaginatedMembers,
+  convertMemberToData
 } from "@api/data/MemberData";
 import {
   CompleteJoinFlowData,
@@ -55,7 +57,6 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 
 // The target user can either be the current user or for admins
@@ -117,7 +118,7 @@ export class MemberController {
         member: target
       });
     }
-    const data = memberToData(target, {
+    const data = convertMemberToData(target, {
       with: query.with,
       withRestricted: member.hasPermission("admin")
     });
