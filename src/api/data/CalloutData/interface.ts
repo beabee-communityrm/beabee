@@ -21,6 +21,12 @@ import {
   IsString
 } from "class-validator";
 
+export enum GetCalloutWith {
+  Form = "form",
+  ResponseCount = "responseCount",
+  HasAnswered = "hasAnswered"
+}
+
 const fields = [
   "title",
   "status",
@@ -52,11 +58,11 @@ export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
   rules?: GetCalloutsRuleGroup;
 
   @IsOptional()
-  @IsString()
-  hasAnswered?: string;
+  @IsEnum(GetCalloutWith, { each: true })
+  with?: GetCalloutWith[];
 }
 
-interface BasicCalloutData {
+interface CalloutData {
   slug: string;
   title: string;
   excerpt: string;
@@ -67,28 +73,29 @@ interface BasicCalloutData {
   allowMultiple: boolean;
   access: PollAccess;
   hidden: boolean;
-}
 
-interface MoreCalloutData extends BasicCalloutData {
-  intro: string;
-  thanksTitle: string;
-  thanksText: string;
+  intro?: string;
+  thanksTitle?: string;
+  thanksText?: string;
   thanksRedirect?: string;
   shareTitle?: string;
   shareDescription?: string;
-  formSchema: PollFormSchema;
+  formSchema?: PollFormSchema;
 }
 
-export interface GetBasicCalloutData extends BasicCalloutData {
+export interface GetCalloutData extends CalloutData {
   status: ItemStatus;
   hasAnswered?: boolean;
+  responseCount?: number;
 }
 
-export interface GetMoreCalloutData
-  extends GetBasicCalloutData,
-    MoreCalloutData {}
+export class GetCalloutQuery {
+  @IsOptional()
+  @IsEnum(GetCalloutWith, { each: true })
+  with?: GetCalloutWith[];
+}
 
-export class UpdateCalloutData implements Omit<MoreCalloutData, "slug"> {
+export class UpdateCalloutData implements Omit<CalloutData, "slug"> {
   @IsString()
   title!: string;
 
@@ -147,7 +154,7 @@ export class UpdateCalloutData implements Omit<MoreCalloutData, "slug"> {
 
 export class CreateCalloutData
   extends UpdateCalloutData
-  implements MoreCalloutData
+  implements CalloutData
 {
   @IsSlug()
   slug!: string;

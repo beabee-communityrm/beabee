@@ -3,27 +3,23 @@ import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
 import { Rule } from "@core/utils/newRules";
 
-import {
-  GetMemberData,
-  GetMembersQuery,
-  GetMemberWith
-} from "@api/data/MemberData";
-
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
 import MemberProfile from "@models/MemberProfile";
 import PaymentData from "@models/PaymentData";
 
-import { fetchPaginated, Paginated } from "./pagination";
+import { fetchPaginated, Paginated } from "@api/utils/pagination";
 
-interface MemberToDataOpts {
+import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
+
+interface ConvertOpts {
   with?: GetMemberWith[] | undefined;
   withRestricted: boolean;
 }
 
-export function memberToData(
+export function convertMemberToData(
   member: Member,
-  opts: MemberToDataOpts
+  opts: ConvertOpts
 ): GetMemberData {
   const activeRoles = [...member.activePermissions];
   if (activeRoles.includes("superadmin")) {
@@ -148,7 +144,7 @@ function activePermission<Field extends string>(
 
 export async function fetchPaginatedMembers(
   query: GetMembersQuery,
-  opts: MemberToDataOpts
+  opts: ConvertOpts
 ): Promise<Paginated<GetMemberData>> {
   const results = await fetchPaginated(
     Member,
@@ -227,15 +223,17 @@ export async function fetchPaginatedMembers(
       })
       .loadAllRelationIds()
       .getMany();
-    for (const target of results.items) {
-      target.permissions = permissions.filter(
-        (p) => (p.member as any) === target.id
+    for (const item of results.items) {
+      item.permissions = permissions.filter(
+        (p) => (p.member as any) === item.id
       );
     }
   }
 
   return {
     ...results,
-    items: results.items.map((target) => memberToData(target, opts))
+    items: results.items.map((item) => convertMemberToData(item, opts))
   };
 }
+
+export * from "./interface";
