@@ -13,6 +13,7 @@ import { PaymentStatus } from "@models/Payment";
 import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
+  IsDate,
   IsDefined,
   IsEmail,
   IsEnum,
@@ -44,10 +45,19 @@ interface MemberProfileData {
   description?: string;
 }
 
-interface MemberRoleData {
+export class UpdateMemberRoleData {
+  @Type(() => Date)
+  @IsDate()
+  dateAdded!: Date;
+
+  @Type(() => Date)
+  @IsDate()
+  @IsOptional()
+  dateExpires!: Date | null;
+}
+
+export interface MemberRoleData extends UpdateMemberRoleData {
   role: PermissionType;
-  dateAdded: Date;
-  dateExpires: Date | null;
 }
 
 export interface GetMemberData extends MemberData {
