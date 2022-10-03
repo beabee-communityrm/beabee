@@ -1,7 +1,0 @@
-{
-  "title": "Migration",
-  "path": "migration",
-  "permissions": ["superadmin", "admin"],
-  "menu": "main",
-  "priority": 3
-}
