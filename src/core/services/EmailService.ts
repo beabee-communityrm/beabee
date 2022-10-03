@@ -289,7 +289,12 @@ class EmailService {
   async setTemplateEmail(
     template: EmailTemplateId,
     email: Email
-  ): Promise<void> {}
+  ): Promise<void> {
+    OptionsService.setJSON("email-templates", {
+      ...OptionsService.getJSON("email-templates"),
+      [template]: email.id
+    });
+  }
 
   isTemplateId(template: string): template is EmailTemplateId {
     return (
@@ -299,7 +304,7 @@ class EmailService {
     );
   }
 
-  private getProviderTemplate(template: EmailTemplateId): string {
+  private getProviderTemplate(template: EmailTemplateId): string | undefined {
     return OptionsService.getJSON("email-templates")[template];
   }
 
