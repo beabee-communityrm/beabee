@@ -50,6 +50,10 @@ const assignableSystemEmails = {
   "new-callout-response": "New callout response notification"
 };
 
+function providerTemplateMap() {
+  return OptionsService.getJSON("email-templates");
+}
+
 app.set("views", __dirname + "/views");
 
 app.use(isAdmin);
@@ -65,7 +69,7 @@ app.get(
     const segmentEmails = (await getRepository(SegmentOngoingEmail).find({
       loadRelationIds: true
     })) as unknown as WithRelationIds<SegmentOngoingEmail, "email">[];
-    const systemEmails = Object.values(EmailService.providerTemplateMap);
+    const systemEmails = Object.values(providerTemplateMap());
 
     const emailsWithFlags = emails.map((email) => ({
       ...email,
@@ -99,7 +103,7 @@ app.get(
       where: { email },
       relations: ["segment"]
     });
-    const systemEmails = Object.entries(EmailService.providerTemplateMap)
+    const systemEmails = Object.entries(providerTemplateMap())
       .filter(([systemId, emailId]) => emailId === email.id)
       .map(([systemId]) => systemId);
 
@@ -128,9 +132,9 @@ app.post(
       case "update-system-emails": {
         const newEmailTemplates = Object.assign(
           {},
-          EmailService.providerTemplateMap,
+          providerTemplateMap(),
           // Unassigned all triggers assigned to this email
-          ...Object.entries(EmailService.providerTemplateMap)
+          ...Object.entries(providerTemplateMap())
             .filter(([systemEmail, emailId]) => emailId === email.id)
             .map(([systemEmail]) => ({ [systemEmail]: undefined })),
           // (Re)assign the new trigger
