@@ -5,10 +5,12 @@ import {
   Body,
   createParamDecorator,
   CurrentUser,
+  Delete,
   Get,
   JsonController,
   NotFoundError,
   OnUndefined,
+  Param,
   Patch,
   Post,
   Put,
@@ -32,16 +34,24 @@ import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import Payment from "@models/Payment";
+import MemberPermission, {
+  PermissionType,
+  PermissionTypes
+} from "@models/MemberPermission";
 
 import { UUIDParam } from "@api/data";
 import {
+  convertMemberToData,
+  fetchPaginatedMembers,
   GetMemberData,
   GetMemberQuery,
   GetMembersQuery,
+  GetMemberRoleData,
   GetMemberWith,
   GetPaymentData,
   GetPaymentsQuery,
-  UpdateMemberData
+  UpdateMemberData,
+  UpdateMemberRoleData
 } from "@api/data/MemberData";
 import {
   CompleteJoinFlowData,
@@ -57,7 +67,6 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-import { fetchPaginatedMembers, memberToData } from "@api/utils/members";
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 
 import config from "@config";
@@ -152,7 +161,7 @@ export class MemberController {
         member: target
       });
     }
-    const data = memberToData(target, {
+    const data = convertMemberToData(target, {
       with: query.with,
       withRestricted: member.hasPermission("admin")
     });
@@ -349,5 +358,57 @@ export class MemberController {
     await PaymentService.updatePaymentMethod(target, completedFlow);
 
     return joinFlow;
+  }
+
+  @Authorized("admin")
+  @Put("/:id/role/:role")
+  async updateRole(
+    @CurrentUser() member: Member,
+    @TargetUser() target: Member,
+    @Param("role") role: string,
+    @Body() data: UpdateMemberRoleData
+  ): Promise<GetMemberRoleData | undefined> {
+    if (role === "superadmin" && !member.hasPermission("superadmin")) {
+      throw new UnauthorizedError();
+    }
+
+    if (data.dateExpires && data.dateAdded >= data.dateExpires) {
+      throw new BadRequestError();
+    }
+
+    if (PermissionTypes.includes(role as PermissionType)) {
+      const permission = await getRepository(MemberPermission).save({
+        member: target,
+        permission: role as PermissionType,
+        ...data
+      });
+      return {
+        role: permission.permission,
+        dateAdded: permission.dateAdded,
+        dateExpires: permission.dateExpires
+      };
+    }
+  }
+
+  @Authorized("admin")
+  @Delete("/:id/role/:role")
+  @OnUndefined(201)
+  async deleteRole(
+    @CurrentUser() member: Member,
+    @TargetUser() target: Member,
+    @Param("role") role: string
+  ): Promise<void> {
+    if (role === "superadmin" && !member.hasPermission("superadmin")) {
+      throw new UnauthorizedError();
+    }
+
+    const result = await getRepository(MemberPermission).delete({
+      member: target,
+      permission: role as PermissionType
+    });
+
+    if (result.affected === 0) {
+      throw new NotFoundError();
+    }
   }
 }
