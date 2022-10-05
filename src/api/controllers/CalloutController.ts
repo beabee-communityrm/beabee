@@ -80,7 +80,7 @@ abstract class CalloutAdminController {
 export class CalloutController extends CalloutAdminController {
   @Get("/")
   async getCallouts(
-    @CurrentUser() member: Member | undefined,
+    @CurrentUser({ required: false }) member: Member | undefined,
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetCalloutData>> {
     return fetchPaginatedCallouts(query, member, { with: query.with });
@@ -88,7 +88,7 @@ export class CalloutController extends CalloutAdminController {
 
   @Get("/:slug")
   async getCallout(
-    @CurrentUser() member: Member | undefined,
+    @CurrentUser({ required: false }) member: Member | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutQuery
   ): Promise<GetCalloutData | undefined> {
@@ -100,7 +100,7 @@ export class CalloutController extends CalloutAdminController {
 
   @Get("/:slug/responses")
   async getCalloutResponses(
-    @CurrentUser({ required: true }) member: Member,
+    @CurrentUser() member: Member,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
