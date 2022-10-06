@@ -64,16 +64,14 @@ export default class MandrillProvider extends BaseProvider {
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    const [templateType, templateId] = template.split("_", 2);
-
     log.info(`Sending template ${template}`);
 
-    if (templateType === "mandrill") {
+    if (template.startsWith("mandrill_")) {
       const resp = await new Promise((resolve, reject) => {
         this.client.messages.sendTemplate(
           {
             message: this.createMessageData(recipients, opts),
-            template_name: templateId,
+            template_name: template.substring(9), // Remove mandrill_
             template_content: [],
             ...(opts?.sendAt && { send_at: opts.sendAt })
           },
@@ -82,16 +80,15 @@ export default class MandrillProvider extends BaseProvider {
         );
       });
       log.info(`Sent template ${template}`, { resp });
-    } else if (templateType === "local") {
-      super.sendTemplate(templateId, recipients, opts);
+    } else {
+      super.sendTemplate(template, recipients, opts);
     }
   }
 
   async getTemplateEmail(template: string): Promise<false | Email | null> {
-    const [templateType, templateId] = template.split("_", 2);
-    return templateType === "mandrill"
+    return template.startsWith("mandrill_")
       ? false
-      : await super.getTemplateEmail(templateId);
+      : await super.getTemplateEmail(template);
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {
@@ -105,7 +102,7 @@ export default class MandrillProvider extends BaseProvider {
 
     return [
       ...localEmailTemplates.map((email) => ({
-        id: "local_" + email.id,
+        id: email.id,
         name: "Local: " + email.name
       })),
       ...templates.map((template) => ({

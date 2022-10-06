@@ -69,10 +69,7 @@ async function processSegment(segment: Segment) {
         ? newMembers
         : [];
     if (emailMembers.length > 0) {
-      const recipients = emailMembers.map((member) =>
-        EmailService.memberToRecipient(member)
-      );
-      await EmailService.sendEmail(outgoingEmail.email, recipients);
+      await EmailService.sendEmailToMembers(outgoingEmail.email, emailMembers);
     }
   }
 
