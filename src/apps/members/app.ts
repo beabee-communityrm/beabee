@@ -74,6 +74,22 @@ function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
   return search.rules.length > 0 ? search : undefined;
 }
 
+// Removes any extra properties on the group
+function cleanRuleGroup(group: RuleGroup): RuleGroup {
+  return {
+    condition: group.condition,
+    rules: group.rules.map((rule) =>
+      "condition" in rule
+        ? cleanRuleGroup(rule)
+        : {
+            field: rule.field,
+            operator: rule.operator,
+            value: rule.value
+          }
+    )
+  };
+}
+
 function getSearchRuleGroup(
   query: Request["query"],
   searchType?: string
@@ -81,7 +97,7 @@ function getSearchRuleGroup(
   return (searchType || query.type) === "basic"
     ? convertBasicSearch(query)
     : typeof query.rules === "string"
-    ? (JSON.parse(query.rules) as RuleGroup)
+    ? cleanRuleGroup(JSON.parse(query.rules))
     : undefined;
 }
 
