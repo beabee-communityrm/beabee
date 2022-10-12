@@ -1,6 +1,12 @@
-import Poll from "@models/Poll";
+import { BadRequestError, UnauthorizedError } from "routing-controllers";
+import { createQueryBuilder, getRepository } from "typeorm";
 
 import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
+
+import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
+import Member from "@models/Member";
+import Poll from "@models/Poll";
+import PollResponse from "@models/PollResponse";
 
 import {
   GetCalloutWith,
@@ -9,11 +15,6 @@ import {
   GetCalloutResponseData,
   GetCalloutData
 } from "./interface";
-import { createQueryBuilder, getRepository } from "typeorm";
-import PollResponse from "@models/PollResponse";
-import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
-import Member from "@models/Member";
-import { BadRequestError, UnauthorizedError } from "routing-controllers";
 
 interface ConvertOpts {
   with?: GetCalloutWith[] | undefined;
@@ -91,18 +92,19 @@ export async function fetchPaginatedCallouts(
     Poll,
     scopedQuery,
     {
-      // TODO: add validation errors
       status: ruleAsQuery,
       answeredBy: (rule, qb, suffix) => {
         if (rule.operator !== "equal" || !member) {
           throw new BadRequestError();
         }
 
+        const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
+
         const id =
-          rule.value === "me" || rule.value === member.id
+          value === "me" || value === member.id
             ? member.id
             : member.hasPermission("admin")
-            ? rule.value
+            ? value
             : undefined;
 
         if (!id) {
@@ -182,7 +184,8 @@ export async function fetchPaginatedCalloutResponses(
     {
       member: (rule, qb, suffix, namedWhere) => {
         qb.where(`item.member ${namedWhere}`);
-        if (rule.value === "me") {
+        const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
+        if (value === "me") {
           return { a: member.id };
         }
       }

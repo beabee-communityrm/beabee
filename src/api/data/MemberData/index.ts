@@ -1,4 +1,5 @@
 import moment from "moment";
+import { BadRequestError } from "routing-controllers";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
 import { Rule } from "@core/utils/newRules";
@@ -113,8 +114,9 @@ function activePermission<Field extends string>(
   suffix: string
 ) {
   const table = "mp" + suffix;
+  const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
 
-  const permission = rule.field === "activeMembership" ? "member" : rule.value;
+  const permission = rule.field === "activeMembership" ? "member" : value;
 
   const subQb = createQueryBuilder()
     .subQuery()
@@ -131,7 +133,7 @@ function activePermission<Field extends string>(
       })
     );
 
-  if (rule.field === "activePermission" || rule.value === true) {
+  if (rule.field === "activePermission" || value === true) {
     qb.where("item.id IN " + subQb.getQuery());
   } else {
     qb.where("item.id NOT IN " + subQb.getQuery());

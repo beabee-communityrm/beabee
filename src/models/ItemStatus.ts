@@ -43,8 +43,9 @@ export function ruleAsQuery<Field extends string>(
 ) {
   if (rule.operator !== "equal") return;
 
+  const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
   const now = "now" + suffix;
-  switch (rule.value) {
+  switch (value) {
     case ItemStatus.Draft:
       qb.andWhere(`item.starts IS NULL`);
       break;
