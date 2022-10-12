@@ -156,11 +156,22 @@ export async function fetchPaginatedMembers(
       newsletterStatus: profileField("newsletterStatus"),
       tags: (rule, qb, suffix) => {
         if (rule.operator === "contains") {
-          profileField("tags")(rule, qb, suffix, `? :value${suffix}`);
-          return {
-            value: rule.value
-          };
+          profileField("tags")(rule, qb, suffix, `? :v${suffix}`);
+        } else if (rule.operator === "not_contains") {
+          profileField("tags")(rule, qb, suffix, `? :v${suffix} = FALSE`);
+        } else if (rule.operator === "is_empty") {
+          profileField("tags")(rule, qb, suffix, `->> 0 IS NULL`);
+        } else if (rule.operator === "is_not_empty") {
+          profileField("tags")(rule, qb, suffix, `->> 0 IS NOT NULL`);
+        } else {
+          throw new BadRequestError(
+            "Invalid operator for tags: " + rule.operator
+          );
         }
+
+        return {
+          v: Array.isArray(rule.value) ? rule.value[0] : rule.value
+        };
       },
       activePermission,
       activeMembership: activePermission,
