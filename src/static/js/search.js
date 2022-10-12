@@ -103,6 +103,17 @@ $('#builder').queryBuilder({
 	}]
 });
 
+function ruleGroupToQB(ruleGroup) {
+	return {
+		condition: ruleGroup.condition,
+		rules: ruleGroup.rules.map(rule => (
+			rule.condition
+				? ruleGroupToQB(rule)
+				: { ...rule, id: rule.field }
+		))
+	};
+}
+
 if (window.searchRuleGroup) {
-	$('#builder').queryBuilder('setRules', window.searchRuleGroup);
+	$('#builder').queryBuilder('setRules', ruleGroupToQB(window.searchRuleGroup));
 }
