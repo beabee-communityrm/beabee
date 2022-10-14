@@ -68,7 +68,10 @@ const contentOptions: ContentMap<[OptionKey, OptionKeyType]> = {
 };
 
 const contentReadOnly: ContentMap<[() => any]> = {
-  general: [["currencyCode", () => config.currencyCode]],
+  general: [
+    ["currencyCode", () => config.currencyCode],
+    ["currencySymbol", () => config.currencySymbol]
+  ],
   email: [["footer", getEmailFooter]],
   join: [
     ["stripePublicKey", () => config.stripe.publicKey],

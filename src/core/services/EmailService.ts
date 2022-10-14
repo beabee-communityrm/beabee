@@ -12,8 +12,7 @@ import {
   EmailOptions,
   EmailPerson,
   EmailProvider,
-  EmailRecipient,
-  EmailTemplate
+  EmailRecipient
 } from "@core/providers/email";
 import MandrillProvider from "@core/providers/email/MandrillProvider";
 import SendGridProvider from "@core/providers/email/SendGridProvider";
@@ -133,6 +132,7 @@ type AdminEmailTemplates = typeof adminEmailTemplates;
 type AdminEmailTemplateId = keyof AdminEmailTemplates;
 type MemberEmailTemplates = typeof memberEmailTemplates;
 type MemberEmailTemplateId = keyof MemberEmailTemplates;
+
 type MemberEmailParams<T extends MemberEmailTemplateId> = Parameters<
   MemberEmailTemplates[T]
 >[1];
@@ -142,7 +142,7 @@ type EmailTemplateId =
   | AdminEmailTemplateId
   | MemberEmailTemplateId;
 
-class EmailService implements EmailProvider {
+class EmailService {
   private readonly provider: EmailProvider =
     config.email.provider === "mandrill"
       ? new MandrillProvider(config.email.settings)
@@ -161,7 +161,7 @@ class EmailService implements EmailProvider {
 
     for (const emailFile of emailFiles) {
       const [id, locale] = path.basename(emailFile, ".yfm").split("_", 2);
-      if (!this.isTemplate(id) || !isLocale(locale)) {
+      if (!this.isTemplateId(id) || !isLocale(locale)) {
         log.error(`Unknown ID (${id}) or locale (${locale})`);
         continue;
       }
@@ -191,29 +191,15 @@ class EmailService implements EmailProvider {
     await this.provider.sendEmail(email, recipients, opts);
   }
 
-  async sendTemplate(
-    template: EmailTemplateId,
-    recipients: EmailRecipient[],
+  async sendEmailToMembers(
+    email: Email,
+    members: Member[],
     opts?: EmailOptions
   ): Promise<void> {
-    const providerTemplate = this.providerTemplateMap[template];
-    if (providerTemplate) {
-      log.info("Sending template " + template, {
-        template,
-        providerTemplate,
-        recipients
-      });
-      await this.provider.sendTemplate(providerTemplate, recipients, opts);
-    } else {
-      const defaultEmail = this.defaultEmailsForLocale[template];
-      if (defaultEmail) {
-        this.provider.sendEmail(defaultEmail, recipients, opts);
-      } else {
-        log.error(
-          `Tried to send ${template} that has no provider template or default`
-        );
-      }
-    }
+    const recipients = members.map((member) =>
+      this.convertMemberToRecipient(member)
+    );
+    await this.sendEmail(email, recipients, opts);
   }
 
   async sendTemplateTo<T extends GeneralEmailTemplateId>(
@@ -223,7 +209,7 @@ class EmailService implements EmailProvider {
     opts?: EmailOptions
   ): Promise<void> {
     const mergeFields = generalEmailTemplates[template](params as any); // https://github.com/microsoft/TypeScript/issues/30581
-    await this.sendTemplate(template, [{ to, mergeFields }], opts);
+    await this.sendTemplate(template, [{ to, mergeFields }], opts, true);
   }
 
   async sendTemplateToMember<T extends MemberEmailTemplateId>(
@@ -242,7 +228,6 @@ class EmailService implements EmailProvider {
     params?: undefined,
     opts?: EmailOptions
   ): Promise<void>;
-
   async sendTemplateToMember<T extends MemberEmailTemplateId>(
     template: T,
     member: Member,
@@ -251,12 +236,12 @@ class EmailService implements EmailProvider {
   ): Promise<void> {
     log.info("Sending template to member " + member.id);
 
-    const recipient = this.memberToRecipient(
+    const recipient = this.convertMemberToRecipient(
       member,
       memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
     );
 
-    await this.sendTemplate(template, [recipient], opts);
+    await this.sendTemplate(template, [recipient], opts, true);
   }
 
   async sendTemplateToAdmin<T extends AdminEmailTemplateId>(
@@ -264,22 +249,36 @@ class EmailService implements EmailProvider {
     params: Parameters<AdminEmailTemplates[T]>[0],
     opts?: EmailOptions
   ): Promise<void> {
-    const mergeFields = adminEmailTemplates[template](params as any);
-    const recipients = [
-      {
-        to: {
-          email: OptionsService.getText("support-email")
-        },
-        mergeFields
-      }
-    ];
-    // Admin emails don't need to be set
-    if (this.providerTemplateMap[template]) {
-      await this.sendTemplate(template, recipients, opts);
+    const recipient = {
+      to: { email: OptionsService.getText("support-email") },
+      mergeFields: adminEmailTemplates[template](params as any)
+    };
+
+    await this.sendTemplate(template, [recipient], opts, false);
+  }
+
+  private async sendTemplate(
+    template: EmailTemplateId,
+    recipients: EmailRecipient[],
+    opts: EmailOptions | undefined,
+    required: boolean
+  ): Promise<void> {
+    const providerTemplate = this.getProviderTemplate(template);
+    if (providerTemplate) {
+      log.info("Sending template " + template, {
+        template,
+        providerTemplate,
+        recipients
+      });
+      await this.provider.sendTemplate(providerTemplate, recipients, opts);
     } else {
-      const defaultEmail = this.defaultEmailsForLocale[template];
+      const defaultEmail = this.getDefaultEmail(template);
       if (defaultEmail) {
-        this.provider.sendEmail(defaultEmail, recipients, opts);
+        this.sendEmail(defaultEmail, recipients, opts);
+      } else if (required) {
+        log.error(
+          `Tried to send ${template} that has no provider template or default`
+        );
       }
     }
   }
@@ -287,37 +286,41 @@ class EmailService implements EmailProvider {
   async getTemplateEmail(
     template: EmailTemplateId
   ): Promise<false | Email | null> {
-    const providerTemplate = this.providerTemplateMap[template];
+    const providerTemplate = this.getProviderTemplate(template);
     return providerTemplate
       ? await this.provider.getTemplateEmail(providerTemplate)
-      : this.defaultEmailsForLocale[template] || null;
+      : this.getDefaultEmail(template) || null;
   }
 
-  async getTemplates(): Promise<EmailTemplate[]> {
-    return await this.provider.getTemplates();
+  async setTemplateEmail(
+    template: EmailTemplateId,
+    email: Email
+  ): Promise<void> {
+    OptionsService.setJSON("email-templates", {
+      ...OptionsService.getJSON("email-templates"),
+      [template]: email.id
+    });
   }
 
-  isTemplate(template: string): template is EmailTemplateId {
-    return this.emailTemplateIds.includes(template as any);
+  isTemplateId(template: string): template is EmailTemplateId {
+    return (
+      template in generalEmailTemplates ||
+      template in adminEmailTemplates ||
+      template in memberEmailTemplates
+    );
   }
 
-  get emailTemplateIds(): EmailTemplateId[] {
-    return [
-      ...(Object.keys(generalEmailTemplates) as GeneralEmailTemplateId[]),
-      ...(Object.keys(adminEmailTemplates) as AdminEmailTemplateId[]),
-      ...(Object.keys(memberEmailTemplates) as MemberEmailTemplateId[])
+  private getProviderTemplate(template: EmailTemplateId): string | undefined {
+    return OptionsService.getJSON("email-templates")[template];
+  }
+
+  private getDefaultEmail(template: EmailTemplateId): Email | undefined {
+    return this.defaultEmails[OptionsService.getText("locale") as Locale]?.[
+      template
     ];
   }
 
-  get providerTemplateMap(): Partial<Record<EmailTemplateId, string>> {
-    return OptionsService.getJSON("email-templates");
-  }
-
-  private get defaultEmailsForLocale() {
-    return this.defaultEmails[OptionsService.getText("locale") as Locale] || {};
-  }
-
-  memberToRecipient(
+  private convertMemberToRecipient(
     member: Member,
     additionalMergeFields?: EmailMergeFields
   ): EmailRecipient {

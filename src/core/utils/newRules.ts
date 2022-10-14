@@ -33,8 +33,7 @@ const operators = {
   is_empty: () => ["= ''", {}] as const,
   is_not_empty: () => ["<> ''", {}] as const,
   is_null: () => ["IS NULL", {}] as const,
-  is_not_null: () => ["IS NOT NULL", {}] as const,
-  contains_jsonb: (v: RichRuleValue[]) => ["? :a", { a: v[0] }] as const
+  is_not_null: () => ["IS NOT NULL", {}] as const
 } as const;
 
 export type RuleValue = string | number | boolean;
