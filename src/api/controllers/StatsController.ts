@@ -33,13 +33,23 @@ export class StatsController {
   @Get("/")
   async getStats(@QueryParams() query: GetStatsQuery): Promise<GetStatsData> {
     const newMembers = await createQueryBuilder(Member, "m")
+      .innerJoin("m.permissions", "mp")
       .where("m.joined BETWEEN :from AND :to", query)
+      .andWhere(
+        "mp.permission = 'member' AND mp.dateAdded BETWEEN :from AND :to",
+        query
+      )
       .getCount();
 
     const payments = await createQueryBuilder(Payment, "p")
+      .innerJoin("p.member", "m")
       .select("SUM(p.amount)", "total")
-      .addSelect("AVG(p.amount)", "average")
+      .addSelect(
+        "AVG(p.amount / (CASE WHEN m.contributionPeriod = 'annually' THEN 12 ELSE 1 END))",
+        "average"
+      )
       .where("p.chargeDate BETWEEN :from AND :to", query)
+      .andWhere("p.subscriptionId IS NOT NULL")
       .getRawOne<{ total: number | null; average: number | null }>();
 
     if (!payments) {
