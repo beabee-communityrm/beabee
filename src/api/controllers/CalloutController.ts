@@ -16,6 +16,7 @@ import { getRepository } from "typeorm";
 
 import PollsService from "@core/services/PollsService";
 
+import ItemStatus from "@models/ItemStatus";
 import Member from "@models/Member";
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
@@ -93,7 +94,12 @@ export class CalloutController extends CalloutAdminController {
     @QueryParams() query: GetCalloutQuery
   ): Promise<GetCalloutData | undefined> {
     const poll = await getRepository(Poll).findOne(slug);
-    if (poll) {
+    if (
+      poll &&
+      (poll.status === ItemStatus.Open ||
+        poll.status === ItemStatus.Ended ||
+        member?.hasPermission("admin"))
+    ) {
       return convertCalloutToData(poll, member, { with: query.with });
     }
   }
