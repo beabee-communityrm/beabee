@@ -1,11 +1,12 @@
 import { getRepository } from "typeorm";
-
+import { buildQuery } from "@core/utils/rules";
 import Segment from "@models/Segment";
 
-import { RuleGroup, buildQuery } from "@core/utils/rules";
-
 class SegmentService {
-  async createSegment(name: string, ruleGroup: RuleGroup): Promise<Segment> {
+  async createSegment(
+    name: string,
+    ruleGroup: Segment["ruleGroup"]
+  ): Promise<Segment> {
     const segment = new Segment();
     segment.name = name;
     segment.ruleGroup = ruleGroup;

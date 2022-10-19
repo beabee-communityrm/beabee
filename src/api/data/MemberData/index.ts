@@ -12,6 +12,7 @@ import PaymentData from "@models/PaymentData";
 import { fetchPaginated, Paginated } from "@api/utils/pagination";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
+import { contactFilters } from "@beabee/beabee-common";
 
 interface ConvertOpts {
   with?: GetMemberWith[] | undefined;
@@ -150,6 +151,7 @@ export async function fetchPaginatedMembers(
 ): Promise<Paginated<GetMemberData>> {
   const results = await fetchPaginated(
     Member,
+    contactFilters,
     query,
     {
       deliveryOptIn: profileField("deliveryOptIn"),

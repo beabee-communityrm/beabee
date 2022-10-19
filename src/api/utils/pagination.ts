@@ -1,18 +1,13 @@
 import { IsType } from "@api/validators/IsType";
 import {
-  buildRuleQuery,
-  isRuleGroup,
-  Rule,
-  RuleGroup,
-  RuleOperator,
-  RuleValue,
-  SpecialFields
-} from "@core/utils/newRules";
-import {
-  ClassConstructor,
-  plainToClass,
-  TransformFnParams
-} from "class-transformer";
+  Filters,
+  GetPaginatedQueryRule,
+  GetPaginatedQueryRuleGroup,
+  GetPaginatedQueryRuleOperator,
+  GetPaginatedQueryRuleValue,
+  operators
+} from "@beabee/beabee-common";
+import { buildRuleQuery, RuleGroup, SpecialFields } from "@core/utils/newRules";
 import {
   IsArray,
   IsIn,
@@ -31,38 +26,31 @@ export interface Paginated<T> {
   total: number;
 }
 
-export abstract class GetPaginatedRule<Field extends string>
-  implements Rule<Field>
-{
-  field!: Field;
-
-  // TODO: operator validation
+export class GetPaginatedRule implements GetPaginatedQueryRule<string> {
   @IsString()
-  operator!: RuleOperator;
+  field!: string;
+
+  @IsIn(operators)
+  operator!: GetPaginatedQueryRuleOperator;
 
   @IsType(["string", "boolean", "number"], { each: true })
-  value!: RuleValue | RuleValue[];
+  value!: GetPaginatedQueryRuleValue | GetPaginatedQueryRuleValue[];
 }
 
-type GetPaginatedRuleGroupRule<Field extends string> =
-  | GetPaginatedRuleGroup<Field>
-  | GetPaginatedRule<Field>;
+type GetPaginatedRuleGroupRule = GetPaginatedRuleGroup | GetPaginatedRule;
 
-export abstract class GetPaginatedRuleGroup<Field extends string>
-  implements RuleGroup<Field>
+export class GetPaginatedRuleGroup
+  implements GetPaginatedQueryRuleGroup<string>
 {
   @IsIn(["AND", "OR"])
   condition!: "AND" | "OR";
 
   @IsArray()
   @ValidateNested()
-  rules!: GetPaginatedRuleGroupRule<Field>[];
+  rules!: GetPaginatedRuleGroupRule[];
 }
 
-export abstract class GetPaginatedQuery<
-  Field extends string,
-  SortField extends string
-> {
+export class GetPaginatedQuery {
   @IsOptional()
   @Min(1)
   @Max(100)
@@ -73,7 +61,8 @@ export abstract class GetPaginatedQuery<
   offset?: number;
 
   @IsOptional()
-  sort?: SortField;
+  @IsString()
+  sort?: string;
 
   @IsOptional()
   @IsIn(["ASC", "DESC"])
@@ -81,35 +70,23 @@ export abstract class GetPaginatedQuery<
 
   @IsOptional()
   @ValidateNested()
-  rules?: GetPaginatedRuleGroup<Field>;
+  rules?: GetPaginatedRuleGroup;
 }
 
-export function transformRules<
-  F extends string,
-  RG extends GetPaginatedRuleGroup<F>,
-  R extends GetPaginatedRule<F>
->(RuleGroup: ClassConstructor<RG>, Rule: ClassConstructor<R>) {
-  return ({ value }: TransformFnParams): RG | R => {
-    return value.map((v: RG | R) =>
-      plainToClass<RG | R, unknown>(isRuleGroup<F>(v) ? RuleGroup : Rule, v)
-    );
-  };
-}
-
-export async function fetchPaginated<
-  Entity,
-  Field extends string,
-  SortField extends string
->(
+export async function fetchPaginated<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
-  query: GetPaginatedQuery<Field, SortField>,
+  filters: Filters<Field>,
+  query: GetPaginatedQuery,
   specialFields?: SpecialFields<Field>,
   queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
 
-  const qb = buildRuleQuery(entity, query.rules, specialFields)
+  // TODO: validation!
+  const blah = query.rules as RuleGroup<Field>;
+
+  const qb = buildRuleQuery(entity, filters, blah, specialFields)
     .offset(offset)
     .limit(limit);
   if (query.sort) {
@@ -130,10 +107,10 @@ export async function fetchPaginated<
   };
 }
 
-export function mergeRules<Field extends string, SortField extends string>(
-  query: GetPaginatedQuery<Field, SortField>,
-  extraRules?: (GetPaginatedRuleGroupRule<Field> | undefined | false)[] | false
-): GetPaginatedQuery<Field, SortField> {
+export function mergeRules(
+  query: GetPaginatedQuery,
+  extraRules?: (GetPaginatedRuleGroupRule | undefined | false)[] | false
+): GetPaginatedQuery {
   if (!extraRules) return query;
 
   return {
@@ -141,9 +118,7 @@ export function mergeRules<Field extends string, SortField extends string>(
     rules: {
       condition: "AND",
       rules: [
-        ...(extraRules.filter(
-          (rule) => !!rule
-        ) as GetPaginatedRuleGroupRule<Field>[]),
+        ...(extraRules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]),
         ...(query.rules ? [query.rules] : [])
       ]
     }

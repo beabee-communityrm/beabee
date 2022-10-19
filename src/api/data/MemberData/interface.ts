@@ -4,28 +4,25 @@ import {
   PaymentStatus,
   PermissionType
 } from "@beabee/beabee-common";
-import {
-  GetPaginatedQuery,
-  GetPaginatedRule,
-  GetPaginatedRuleGroup,
-  transformRules
-} from "@api/utils/pagination";
-import IsPassword from "@api/validators/IsPassword";
-import { ContributionInfo } from "@core/utils";
-import Address from "@models/Address";
-import { Transform, Type } from "class-transformer";
+import { Type } from "class-transformer";
 import {
   IsBoolean,
   IsDate,
   IsDefined,
   IsEmail,
   IsEnum,
-  IsIn,
   IsOptional,
   IsString,
   Validate,
   ValidateNested
 } from "class-validator";
+
+import { ContributionInfo } from "@core/utils";
+
+import IsPassword from "@api/validators/IsPassword";
+
+import Address from "@models/Address";
+import { GetPaginatedQuery } from "@api/utils/pagination";
 
 interface MemberData {
   email: string;
@@ -87,26 +84,7 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
-const memberFields = [
-  "firstname",
-  "lastname",
-  "email",
-  "joined",
-  "lastSeen",
-  "contributionType",
-  "contributionMonthlyAmount",
-  "contributionPeriod",
-  // Special fields
-  "deliveryOptIn",
-  "newsletterStatus",
-  "activePermission",
-  "activeMembership",
-  "membershipStarts",
-  "membershipExpires",
-  "manualPaymentSource",
-  "tags"
-] as const;
-const memberSortFields = [
+export const memberSortFields = [
   "firstname",
   "lastname",
   "email",
@@ -117,29 +95,7 @@ const memberSortFields = [
   "membershipExpires"
 ] as const;
 
-type MemberField = typeof memberFields[number];
-type MemberSortField = typeof memberSortFields[number];
-
-class GetMembersRule extends GetPaginatedRule<MemberField> {
-  @IsIn(memberFields)
-  field!: MemberField;
-}
-
-export class GetMembersRuleGroup extends GetPaginatedRuleGroup<MemberField> {
-  @Transform(transformRules(GetMembersRuleGroup, GetMembersRule))
-  rules!: (GetMembersRuleGroup | GetMembersRule)[];
-}
-
-export class GetMembersQuery extends GetPaginatedQuery<
-  MemberField,
-  MemberSortField
-> {
-  @IsIn(memberSortFields)
-  sort?: MemberSortField;
-
-  @Type(() => GetMembersRuleGroup)
-  rules?: GetMembersRuleGroup;
-
+export class GetMembersQuery extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetMemberWith, { each: true })
   with?: GetMemberWith[];
@@ -220,29 +176,4 @@ export interface GetPaymentData {
   status: PaymentStatus;
 }
 
-const paymentFields = ["chargeDate", "member"] as const;
-const paymentSortFields = ["amount", "chargeDate"] as const;
-
-type PaymentField = typeof paymentFields[number];
-type PaymentSortField = typeof paymentSortFields[number];
-
-class GetPaymentsRule extends GetPaginatedRule<PaymentField> {
-  @IsIn(paymentFields)
-  field!: PaymentField;
-}
-
-class GetPaymentRuleGroup extends GetPaginatedRuleGroup<PaymentField> {
-  @Transform(transformRules(GetPaymentRuleGroup, GetPaymentsRule))
-  rules!: (GetPaymentRuleGroup | GetPaymentsRule)[];
-}
-
-export class GetPaymentsQuery extends GetPaginatedQuery<
-  PaymentField,
-  PaymentSortField
-> {
-  @IsIn(paymentSortFields)
-  sort?: PaymentSortField;
-
-  @Type(() => GetPaymentRuleGroup)
-  rules?: GetPaymentRuleGroup;
-}
+export const paymentSortFields = ["amount", "chargeDate"] as const;

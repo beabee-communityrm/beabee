@@ -1,7 +1,14 @@
+import { calloutFilters, calloutResponseFilters } from "@beabee/beabee-common";
+
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
 
-import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
+import {
+  fetchPaginated,
+  GetPaginatedQuery,
+  mergeRules,
+  Paginated
+} from "@api/utils/pagination";
 
 import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 import Member from "@models/Member";
@@ -11,7 +18,6 @@ import PollResponse from "@models/PollResponse";
 import {
   GetCalloutWith,
   GetCalloutsQuery,
-  GetCalloutResponsesQuery,
   GetCalloutResponseData,
   GetCalloutData
 } from "./interface";
@@ -90,6 +96,7 @@ export async function fetchPaginatedCallouts(
 
   const results = await fetchPaginated(
     Poll,
+    calloutFilters,
     scopedQuery,
     {
       status: ruleAsQuery,
@@ -165,7 +172,7 @@ export async function fetchPaginatedCallouts(
 
 export async function fetchPaginatedCalloutResponses(
   slug: string,
-  query: GetCalloutResponsesQuery,
+  query: GetPaginatedQuery,
   member: Member
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
@@ -180,6 +187,7 @@ export async function fetchPaginatedCalloutResponses(
 
   const results = await fetchPaginated(
     PollResponse,
+    calloutResponseFilters,
     scopedQuery,
     {
       member: (rule, qb, suffix, namedWhere) => {

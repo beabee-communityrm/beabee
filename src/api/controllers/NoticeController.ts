@@ -1,4 +1,4 @@
-import moment from "moment";
+import { noticeFilters } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -13,19 +13,20 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { Brackets, getRepository } from "typeorm";
+import { getRepository } from "typeorm";
 
 import Notice from "@models/Notice";
 import Member from "@models/Member";
 
 import { UUIDParam } from "@api/data";
-import {
-  CreateNoticeData,
-  GetNoticeData,
-  GetNoticesQuery
-} from "@api/data/NoticeData";
+import { CreateNoticeData, GetNoticeData } from "@api/data/NoticeData";
 import PartialBody from "@api/decorators/PartialBody";
-import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
+import {
+  fetchPaginated,
+  GetPaginatedQuery,
+  mergeRules,
+  Paginated
+} from "@api/utils/pagination";
 import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
 @JsonController("/notice")
@@ -34,7 +35,7 @@ export class NoticeController {
   @Get("/")
   async getNotices(
     @CurrentUser() member: Member,
-    @QueryParams() query: GetNoticesQuery
+    @QueryParams() query: GetPaginatedQuery
   ): Promise<Paginated<GetNoticeData>> {
     const authedQuery = mergeRules(query, [
       // Non-admins can only see open notices
@@ -44,7 +45,7 @@ export class NoticeController {
         value: ItemStatus.Open
       }
     ]);
-    const results = await fetchPaginated(Notice, authedQuery, {
+    const results = await fetchPaginated(Notice, noticeFilters, authedQuery, {
       status: ruleAsQuery
     });
 

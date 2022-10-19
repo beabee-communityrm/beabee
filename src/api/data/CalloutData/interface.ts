@@ -1,21 +1,15 @@
-import {
-  GetPaginatedQuery,
-  GetPaginatedRule,
-  GetPaginatedRuleGroup,
-  transformRules
-} from "@api/utils/pagination";
+import { GetPaginatedQuery } from "@api/utils/pagination";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import ItemStatus from "@models/ItemStatus";
 import { PollFormSchema, PollAccess } from "@models/Poll";
 import { PollResponseAnswers } from "@models/PollResponse";
-import { Transform, Type } from "class-transformer";
+import { Type } from "class-transformer";
 import {
   IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,
-  IsIn,
   IsObject,
   IsOptional,
   IsString
@@ -27,36 +21,9 @@ export enum GetCalloutWith {
   HasAnswered = "hasAnswered"
 }
 
-const fields = [
-  "title",
-  "status",
-  "answeredBy",
-  "starts",
-  "expires",
-  "hidden"
-] as const;
-const sortFields = ["title", "starts", "expires"] as const;
+export const sortFields = ["title", "starts", "expires"] as const;
 
-type Field = typeof fields[number];
-type SortField = typeof sortFields[number];
-
-class GetCalloutsRule extends GetPaginatedRule<Field> {
-  @IsIn(fields)
-  field!: Field;
-}
-
-class GetCalloutsRuleGroup extends GetPaginatedRuleGroup<Field> {
-  @Transform(transformRules(GetCalloutsRuleGroup, GetCalloutsRule))
-  rules!: (GetCalloutsRuleGroup | GetCalloutsRule)[];
-}
-
-export class GetCalloutsQuery extends GetPaginatedQuery<Field, SortField> {
-  @IsIn(sortFields)
-  sort?: SortField;
-
-  @Type(() => GetCalloutsRuleGroup)
-  rules?: GetCalloutsRuleGroup;
-
+export class GetCalloutsQuery extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
@@ -160,34 +127,7 @@ export class CreateCalloutData
   slug!: string;
 }
 
-const responseFields = ["member", "poll"] as const;
-const responseSortFields = ["createdAt", "updatedAt"] as const;
-
-type ResponseField = typeof responseFields[number];
-type ResponseSortField = typeof responseSortFields[number];
-
-class GetCalloutResponsesRule extends GetPaginatedRule<ResponseField> {
-  @IsIn(responseFields)
-  field!: ResponseField;
-}
-
-class GetCalloutResponsesRuleGroup extends GetPaginatedRuleGroup<ResponseField> {
-  @Transform(
-    transformRules(GetCalloutResponsesRuleGroup, GetCalloutResponsesRule)
-  )
-  rules!: (GetCalloutResponsesRuleGroup | GetCalloutResponsesRule)[];
-}
-
-export class GetCalloutResponsesQuery extends GetPaginatedQuery<
-  ResponseField,
-  ResponseSortField
-> {
-  @IsIn(responseSortFields)
-  sort?: ResponseSortField;
-
-  @Type(() => GetCalloutResponsesRuleGroup)
-  rules?: GetCalloutResponsesRuleGroup;
-}
+export const responseSortFields = ["createdAt", "updatedAt"] as const;
 
 export interface GetCalloutResponseData {
   member: string;

@@ -1,3 +1,10 @@
+import {
+  Filters,
+  GetPaginatedQueryRule,
+  GetPaginatedQueryRuleGroup,
+  GetPaginatedQueryRuleOperator,
+  GetPaginatedQueryRuleValue
+} from "@beabee/beabee-common";
 import moment, { DurationInputArg2 } from "moment";
 import {
   Brackets,
@@ -36,21 +43,13 @@ const operators = {
   is_not_null: () => ["IS NOT NULL", {}] as const
 } as const;
 
-export type RuleValue = string | number | boolean;
-export type RuleOperator = keyof typeof operators;
+export type RuleValue = GetPaginatedQueryRuleValue;
+export type RuleOperator = GetPaginatedQueryRuleOperator;
 
 type RichRuleValue = RuleValue | Date;
 
-export interface Rule<Field extends string> {
-  field: Field;
-  operator: RuleOperator;
-  value: RuleValue | RuleValue[];
-}
-
-export interface RuleGroup<Field extends string> {
-  condition: "AND" | "OR";
-  rules: (Rule<Field> | RuleGroup<Field>)[];
-}
+export type Rule<Field extends string> = GetPaginatedQueryRule<Field>;
+export type RuleGroup<Field extends string> = GetPaginatedQueryRuleGroup<Field>;
 
 export type SpecialFields<Field extends string> = Partial<
   Record<
@@ -90,6 +89,7 @@ function parseValue(value: RuleValue): RichRuleValue {
 
 export function buildRuleQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
+  filters: Filters<Field>,
   ruleGroup?: RuleGroup<Field>,
   specialFields?: SpecialFields<Field>
 ): SelectQueryBuilder<Entity> {

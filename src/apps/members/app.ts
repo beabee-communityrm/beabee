@@ -4,13 +4,15 @@ import { getRepository } from "typeorm";
 
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import { RuleGroup, buildQuery } from "@core/utils/rules";
+import { buildQuery } from "@core/utils/rules";
 
 import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";
 
 import Project from "@models/Project";
 import Member from "@models/Member";
+import { RuleGroup } from "@core/utils/newRules";
+import { ContactFilterName } from "@beabee/beabee-common";
 
 const app = express();
 
@@ -48,8 +50,10 @@ const sortOptions: Record<string, SortOption> = {
 
 type SortKey = keyof typeof sortOptions;
 
-function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
-  const search: RuleGroup = {
+function convertBasicSearch(
+  query: Request["query"]
+): RuleGroup<ContactFilterName> | undefined {
+  const search: RuleGroup<ContactFilterName> = {
     condition: "AND",
     rules: []
   };
@@ -75,7 +79,9 @@ function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
 }
 
 // Removes any extra properties on the group
-function cleanRuleGroup(group: RuleGroup): RuleGroup {
+function cleanRuleGroup(
+  group: RuleGroup<ContactFilterName>
+): RuleGroup<ContactFilterName> {
   return {
     condition: group.condition,
     rules: group.rules.map((rule) =>
@@ -93,7 +99,7 @@ function cleanRuleGroup(group: RuleGroup): RuleGroup {
 function getSearchRuleGroup(
   query: Request["query"],
   searchType?: string
-): RuleGroup | undefined {
+): RuleGroup<ContactFilterName> | undefined {
   return (searchType || query.type) === "basic"
     ? convertBasicSearch(query)
     : typeof query.rules === "string"
