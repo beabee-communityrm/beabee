@@ -51,7 +51,7 @@ app.get(
     });
 
     if (loginOverride?.isValid && loginOverride.member.id === req.params.id) {
-      await getRepository(LoginOverrideFlow).delete({ id: req.params.code });
+      // await getRepository(LoginOverrideFlow).delete({ id: req.params.code });
       loginAndRedirect(
         req,
         res,
