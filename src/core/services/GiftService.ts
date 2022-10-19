@@ -1,16 +1,15 @@
+import { ContributionType, NewsletterStatus } from "@beabee/beabee-common";
 import muhammara from "muhammara";
 import moment from "moment";
 import { getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
 import stripe from "@core/lib/stripe";
-import { ContributionType, isDuplicateIndex } from "@core/utils";
+import { isDuplicateIndex } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
-
-import { NewsletterStatus } from "@core/providers/newsletter";
 
 import Address from "@models/Address";
 import GiftFlow, { GiftForm } from "@models/GiftFlow";

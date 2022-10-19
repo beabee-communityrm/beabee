@@ -1,3 +1,4 @@
+import { PermissionType } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -6,9 +7,6 @@ import {
   PrimaryColumn
 } from "typeorm";
 import type Member from "./Member";
-
-export const PermissionTypes = ["member", "admin", "superadmin"] as const;
-export type PermissionType = typeof PermissionTypes[number];
 
 @Entity()
 export default class MemberPermission {

@@ -1,6 +1,7 @@
 import "module-alias/register";
 import "reflect-metadata";
 
+import { PermissionType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
 import {
@@ -28,7 +29,6 @@ import sessions from "@core/sessions";
 import startServer from "@core/server";
 
 import Member from "@models/Member";
-import { PermissionType } from "@models/MemberPermission";
 
 function currentUserChecker(action: Action): Member | undefined {
   return (action.request as Request).user;

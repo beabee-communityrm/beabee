@@ -1,5 +1,5 @@
+import { PaymentMethod } from "@beabee/beabee-common";
 import IsUrl from "@api/validators/IsUrl";
-import { PaymentMethod } from "@core/utils";
 import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class StartJoinFlowData {

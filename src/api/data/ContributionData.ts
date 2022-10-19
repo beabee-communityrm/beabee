@@ -1,6 +1,5 @@
+import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
 import { IsBoolean, IsEnum, IsNumber, Validate } from "class-validator";
-
-import { ContributionPeriod, PaymentMethod } from "@core/utils";
 
 import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";

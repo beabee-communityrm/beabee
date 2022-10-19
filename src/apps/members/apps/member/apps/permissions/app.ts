@@ -1,5 +1,5 @@
+import { PermissionType } from "@beabee/beabee-common";
 import express, { NextFunction, Request, Response } from "express";
-import { getRepository } from "typeorm";
 
 import { hasSchema } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
@@ -7,7 +7,6 @@ import { createDateTime, wrapAsync } from "@core/utils";
 import MembersService from "@core/services/MembersService";
 
 import Member from "@models/Member";
-import { PermissionType } from "@models/MemberPermission";
 
 import { createPermissionSchema, updatePermissionSchema } from "./schemas.json";
 

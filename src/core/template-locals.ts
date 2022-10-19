@@ -1,4 +1,4 @@
-import { PermissionType } from "@models/MemberPermission";
+import { PermissionType } from "@beabee/beabee-common";
 import { NextFunction, Request, Response } from "express";
 
 import { AppConfig } from "@config";

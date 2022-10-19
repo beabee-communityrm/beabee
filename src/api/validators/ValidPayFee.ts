@@ -1,10 +1,10 @@
+import { ContributionPeriod } from "@beabee/beabee-common";
 import {
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface
 } from "class-validator";
 
-import { ContributionPeriod } from "@core/utils";
 import OptionsService from "@core/services/OptionsService";
 
 @ValidatorConstraint({ name: "validPayFee" })

@@ -1,6 +1,7 @@
+import { ContributionType } from "@beabee/beabee-common";
 import express from "express";
 
-import { ContributionType, wrapAsync } from "@core/utils";
+import { wrapAsync } from "@core/utils";
 import { calcMonthsLeft } from "@core/utils/payment";
 
 import PaymentService from "@core/services/PaymentService";

@@ -1,4 +1,4 @@
-import { PaymentMethod } from "@core/utils";
+import { PaymentMethod } from "@beabee/beabee-common";
 
 import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";

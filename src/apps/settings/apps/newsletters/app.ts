@@ -1,15 +1,16 @@
+import { NewsletterStatus } from "@beabee/beabee-common";
 import express from "express";
 import moment from "moment";
 
 import { log as mainLogger } from "@core/logging";
 import { isSuperAdmin } from "@core/middleware";
-import { ContributionType, wrapAsync } from "@core/utils";
+import { wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
-import { NewsletterMember, NewsletterStatus } from "@core/providers/newsletter";
+import { NewsletterMember } from "@core/providers/newsletter";
 
 import Member from "@models/Member";
 

@@ -1,3 +1,4 @@
+import { PermissionTypes, PermissionType } from "@beabee/beabee-common";
 import { IsEmail, IsString, isUUID } from "class-validator";
 import { Request, Response } from "express";
 import {
@@ -19,10 +20,7 @@ import passport from "@core/lib/passport";
 import MembersService from "@core/services/MembersService";
 
 import Member from "@models/Member";
-import MemberPermission, {
-  PermissionType,
-  PermissionTypes
-} from "@models/MemberPermission";
+import MemberPermission from "@models/MemberPermission";
 
 import { login } from "@api/utils";
 
