@@ -1,6 +1,6 @@
+import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
 import { getRepository } from "typeorm";
 
-import { ContributionPeriod, PaymentMethod } from "@core/utils";
 import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";

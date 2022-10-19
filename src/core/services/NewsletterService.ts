@@ -1,9 +1,9 @@
+import { NewsletterStatus } from "@beabee/beabee-common";
 import { log as mainLogger } from "@core/logging";
 
 import {
   NewsletterMember,
   NewsletterProvider,
-  NewsletterStatus,
   UpdateNewsletterMember
 } from "@core/providers/newsletter";
 import MailchimpProvider from "@core/providers/newsletter/MailchimpProvider";

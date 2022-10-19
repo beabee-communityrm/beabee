@@ -1,13 +1,12 @@
+import { NewsletterStatus, ContributionType } from "@beabee/beabee-common";
 import bodyParser from "body-parser";
 import express from "express";
 
 import { log as mainLogger } from "@core/logging";
-import { cleanEmailAddress, ContributionType, wrapAsync } from "@core/utils";
+import { cleanEmailAddress, wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
 import NewsletterService from "@core/services/NewsletterService";
-
-import { NewsletterStatus } from "@core/providers/newsletter";
 
 import config from "@config";
 

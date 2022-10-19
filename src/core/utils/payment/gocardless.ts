@@ -1,3 +1,8 @@
+import {
+  ContributionPeriod,
+  PaymentMethod,
+  PaymentStatus
+} from "@beabee/beabee-common";
 import { differenceInMonths, format } from "date-fns";
 import {
   SubscriptionIntervalUnit,
@@ -9,10 +14,8 @@ import moment from "moment";
 
 import { log as mainLogger } from "@core/logging";
 import gocardless from "@core/lib/gocardless";
-import { ContributionPeriod, PaymentForm, PaymentMethod } from "@core/utils";
+import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
-
-import { PaymentStatus } from "@models/Payment";
 
 import config from "@config";
 

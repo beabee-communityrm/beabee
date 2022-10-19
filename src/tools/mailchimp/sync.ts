@@ -1,11 +1,10 @@
 import "module-alias/register";
 
+import { NewsletterStatus } from "@beabee/beabee-common";
 import moment from "moment";
 import { Between, getRepository } from "typeorm";
 
 import * as db from "@core/database";
-
-import { NewsletterStatus } from "@core/providers/newsletter";
 
 import MembersService from "@core/services/MembersService";
 import NewsletterService from "@core/services/NewsletterService";

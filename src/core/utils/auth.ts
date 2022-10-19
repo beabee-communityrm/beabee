@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import { getNextParam } from "@core/utils";
 
 import Member from "@models/Member";
-import { PermissionType } from "@models/MemberPermission";
 import Password from "@models/Password";
 
 import config from "@config";

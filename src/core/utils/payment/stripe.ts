@@ -1,17 +1,15 @@
+import {
+  ContributionPeriod,
+  PaymentMethod,
+  PaymentStatus
+} from "@beabee/beabee-common";
 import { differenceInMonths } from "date-fns";
 import Stripe from "stripe";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import {
-  ContributionPeriod,
-  PaymentForm,
-  PaymentMethod,
-  PaymentSource
-} from "@core/utils";
+import { PaymentForm, PaymentSource } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
-
-import { PaymentStatus } from "@models/Payment";
 
 import config from "@config";
 

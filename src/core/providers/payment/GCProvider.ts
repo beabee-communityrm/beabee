@@ -1,10 +1,12 @@
+import { PaymentMethod } from "@beabee/beabee-common";
+import { Subscription } from "gocardless-nodejs";
+
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import {
   ContributionInfo,
   getActualAmount,
   PaymentForm,
-  PaymentMethod,
   PaymentSource
 } from "@core/utils";
 import {
@@ -25,7 +27,6 @@ import { GCPaymentData } from "@models/PaymentData";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
 import config from "@config";
-import { Subscription } from "gocardless-nodejs";
 
 const log = mainLogger.child({ app: "gc-payment-provider" });
 

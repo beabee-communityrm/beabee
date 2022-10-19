@@ -1,18 +1,19 @@
 import "module-alias/register";
 
+import {
+  ContributionPeriod,
+  ContributionType,
+  PaymentStatus
+} from "@beabee/beabee-common";
 import moment from "moment";
 import { Brackets, createQueryBuilder } from "typeorm";
 
 import * as db from "@core/database";
-import {
-  ContributionPeriod,
-  ContributionType,
-  getActualAmount
-} from "@core/utils";
+import { getActualAmount } from "@core/utils";
 
 import config from "@config";
 
-import Payment, { PaymentStatus } from "@models/Payment";
+import Payment from "@models/Payment";
 import Member from "@models/Member";
 import PaymentData from "@models/PaymentData";
 

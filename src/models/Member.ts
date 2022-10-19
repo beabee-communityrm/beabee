@@ -1,4 +1,9 @@
 import {
+  ContributionType,
+  ContributionPeriod,
+  PermissionType
+} from "@beabee/beabee-common";
+import {
   Column,
   CreateDateColumn,
   Entity,
@@ -7,15 +12,10 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import {
-  ContributionPeriod,
-  ContributionType,
-  getActualAmount
-} from "@core/utils";
+import { getActualAmount } from "@core/utils";
 import config from "@config";
 
 import type MemberPermission from "./MemberPermission";
-import type { PermissionType } from "./MemberPermission";
 import type MemberProfile from "./MemberProfile";
 import Password from "./Password";
 

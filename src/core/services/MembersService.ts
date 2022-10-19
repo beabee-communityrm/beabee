@@ -1,4 +1,9 @@
 import {
+  ContributionType,
+  PermissionType,
+  ContributionPeriod
+} from "@beabee/beabee-common";
+import {
   createQueryBuilder,
   FindConditions,
   FindManyOptions,
@@ -7,13 +12,7 @@ import {
 } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
-import {
-  cleanEmailAddress,
-  ContributionPeriod,
-  ContributionType,
-  isDuplicateIndex,
-  PaymentForm
-} from "@core/utils";
+import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
 import { generateMemberCode } from "@core/utils/member";
 
 import EmailService from "@core/services/EmailService";
@@ -23,7 +22,7 @@ import PaymentService from "@core/services/PaymentService";
 
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
-import MemberPermission, { PermissionType } from "@models/MemberPermission";
+import MemberPermission from "@models/MemberPermission";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";

@@ -1,6 +1,7 @@
+import { PaymentMethod } from "@beabee/beabee-common";
 import { createQueryBuilder, getRepository } from "typeorm";
 
-import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
+import { ContributionInfo, PaymentForm } from "@core/utils";
 import { log as mainLogger } from "@core/logging";
 import { calcRenewalDate } from "@core/utils/payment";
 

@@ -1,3 +1,8 @@
+import {
+  ContributionType,
+  ContributionPeriod,
+  PaymentMethod
+} from "@beabee/beabee-common";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import moment from "moment";
 import { QueryFailedError } from "typeorm";
@@ -16,30 +21,11 @@ export interface ContributionInfo {
   membershipExpiryDate?: Date;
 }
 
-export enum ContributionPeriod {
-  Monthly = "monthly",
-  Annually = "annually"
-}
-
-export enum ContributionType {
-  Automatic = "Automatic",
-  Manual = "Manual",
-  Gift = "Gift",
-  None = "None"
-}
-
 export interface PaymentForm {
   monthlyAmount: number;
   period: ContributionPeriod;
   payFee: boolean;
   prorate: boolean;
-}
-
-export enum PaymentMethod {
-  StripeCard = "s_card",
-  StripeSEPA = "s_sepa",
-  StripeBACS = "s_bacs",
-  GoCardlessDirectDebit = "gc_direct-debit"
 }
 
 export interface CardPaymentSource {

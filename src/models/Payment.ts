@@ -1,3 +1,4 @@
+import { PaymentStatus } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -7,13 +8,6 @@ import {
   UpdateDateColumn
 } from "typeorm";
 import type Member from "./Member";
-
-export enum PaymentStatus {
-  Pending = "pending",
-  Successful = "successful",
-  Failed = "failed",
-  Cancelled = "cancelled"
-}
 
 @Entity()
 export default class Payment {

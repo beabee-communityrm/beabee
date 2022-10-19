@@ -1,15 +1,18 @@
 import {
+  ContributionPeriod,
+  NewsletterStatus,
+  PaymentStatus,
+  PermissionType
+} from "@beabee/beabee-common";
+import {
   GetPaginatedQuery,
   GetPaginatedRule,
   GetPaginatedRuleGroup,
   transformRules
 } from "@api/utils/pagination";
 import IsPassword from "@api/validators/IsPassword";
-import { NewsletterStatus } from "@core/providers/newsletter";
-import { ContributionInfo, ContributionPeriod } from "@core/utils";
+import { ContributionInfo } from "@core/utils";
 import Address from "@models/Address";
-import { PermissionType } from "@models/MemberPermission";
-import { PaymentStatus } from "@models/Payment";
 import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
