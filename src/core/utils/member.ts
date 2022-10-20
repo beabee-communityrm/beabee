@@ -32,8 +32,5 @@ export function generateMemberCode(member: Partial<Member>): string | null {
 export function buildQuery(
   ruleGroup?: RuleGroup<string>
 ): SelectQueryBuilder<Member> {
-  const qb = buildPaginatedQuery(Member, contactFilters, ruleGroup);
-  qb.leftJoinAndSelect("m.permissions", "mp");
-  qb.innerJoinAndSelect("m.profile", "profile");
-  return qb;
+  return buildPaginatedQuery(Member, contactFilters, ruleGroup);
 }

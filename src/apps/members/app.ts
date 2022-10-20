@@ -138,6 +138,8 @@ app.get(
     );
 
     const [members, total] = await buildQuery(searchRuleGroup)
+      .leftJoinAndSelect("item.permissions", "mp")
+      .innerJoinAndSelect("item.profile", "profile")
       .addSelect("NULLIF(lastname, '')", "lastname_n")
       .addSelect("NULLIF(firstname, '')", "firstname_n")
       .orderBy(orderBy)
