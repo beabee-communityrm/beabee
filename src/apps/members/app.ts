@@ -1,18 +1,17 @@
+import { ContactFilterName, RuleGroup } from "@beabee/beabee-common";
 import express, { Request } from "express";
 import queryString from "query-string";
 import { getRepository } from "typeorm";
 
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import { buildQuery } from "@core/utils/rules";
+import { buildQuery } from "@core/utils/member";
 
 import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";
 
 import Project from "@models/Project";
 import Member from "@models/Member";
-import { RuleGroup } from "@core/utils/newRules";
-import { ContactFilterName } from "@beabee/beabee-common";
 
 const app = express();
 

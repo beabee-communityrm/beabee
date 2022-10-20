@@ -2,17 +2,15 @@ import moment from "moment";
 import { BadRequestError } from "routing-controllers";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
-import { Rule } from "@core/utils/newRules";
-
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
 import MemberProfile from "@models/MemberProfile";
 import PaymentData from "@models/PaymentData";
 
-import { fetchPaginated, Paginated } from "@api/utils/pagination";
+import { fetchPaginated, Paginated } from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
-import { contactFilters } from "@beabee/beabee-common";
+import { contactFilters, Rule } from "@beabee/beabee-common";
 
 interface ConvertOpts {
   with?: GetMemberWith[] | undefined;
@@ -153,6 +151,7 @@ export async function fetchPaginatedMembers(
     Member,
     contactFilters,
     query,
+    undefined, // No contact rules in contactFilters
     {
       deliveryOptIn: profileField("deliveryOptIn"),
       newsletterStatus: profileField("newsletterStatus"),

@@ -1,8 +1,6 @@
-import { ItemStatus } from "@beabee/beabee-common";
+import { ItemStatus, Rule } from "@beabee/beabee-common";
 import moment from "moment";
 import { Brackets, Column, WhereExpressionBuilder } from "typeorm";
-
-import { Rule } from "@core/utils/newRules";
 
 export class ItemWithStatus {
   @Column({ type: Date, nullable: true })

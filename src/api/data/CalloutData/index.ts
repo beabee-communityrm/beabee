@@ -8,7 +8,7 @@ import {
   GetPaginatedQuery,
   mergeRules,
   Paginated
-} from "@api/utils/pagination";
+} from "@api/data/PaginatedData";
 
 import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 import Member from "@models/Member";
@@ -98,6 +98,7 @@ export async function fetchPaginatedCallouts(
     Poll,
     calloutFilters,
     scopedQuery,
+    member,
     {
       status: ruleAsQuery,
       answeredBy: (rule, qb, suffix) => {
@@ -189,6 +190,7 @@ export async function fetchPaginatedCalloutResponses(
     PollResponse,
     calloutResponseFilters,
     scopedQuery,
+    member,
     {
       member: (rule, qb, suffix, namedWhere) => {
         qb.where(`item.member ${namedWhere}`);

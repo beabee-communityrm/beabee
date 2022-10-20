@@ -22,7 +22,8 @@ import { ContributionInfo } from "@core/utils";
 import IsPassword from "@api/validators/IsPassword";
 
 import Address from "@models/Address";
-import { GetPaginatedQuery } from "@api/utils/pagination";
+
+import { GetPaginatedQuery } from "@api/data/PaginatedData";
 
 interface MemberData {
   email: string;

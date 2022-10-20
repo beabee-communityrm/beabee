@@ -1,5 +1,10 @@
+import { contactFilters, RuleGroup } from "@beabee/beabee-common";
 import { Request, Response } from "express";
+import { SelectQueryBuilder } from "typeorm";
+
 import Member from "@models/Member";
+
+import { buildPaginatedQuery } from "@api/data/PaginatedData";
 
 export function loginAndRedirect(
   req: Request,
@@ -22,4 +27,13 @@ export function generateMemberCode(member: Partial<Member>): string | null {
     return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
   }
   return null;
+}
+
+export function buildQuery(
+  ruleGroup?: RuleGroup<string>
+): SelectQueryBuilder<Member> {
+  const qb = buildPaginatedQuery(Member, contactFilters, ruleGroup);
+  qb.leftJoinAndSelect("m.permissions", "mp");
+  qb.innerJoinAndSelect("m.profile", "profile");
+  return qb;
 }

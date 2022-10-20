@@ -1,5 +1,5 @@
 import { getRepository } from "typeorm";
-import { buildQuery } from "@core/utils/rules";
+import { buildQuery } from "@core/utils/member";
 import Segment from "@models/Segment";
 
 class SegmentService {

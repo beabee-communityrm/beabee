@@ -1,12 +1,12 @@
 import {
   Filters,
-  GetPaginatedQueryRule,
-  GetPaginatedQueryRuleGroup,
-  GetPaginatedQueryRuleOperator,
-  GetPaginatedQueryRuleValue,
-  isRuleGroup
+  Rule,
+  RuleGroup,
+  RuleValue,
+  isRuleGroup,
+  validateRuleGroup
 } from "@beabee/beabee-common";
-import moment, { DurationInputArg2 } from "moment";
+import { BadRequestError } from "routing-controllers";
 import {
   Brackets,
   createQueryBuilder,
@@ -14,6 +14,17 @@ import {
   SelectQueryBuilder,
   WhereExpressionBuilder
 } from "typeorm";
+
+import Member from "@models/Member";
+
+import {
+  GetPaginatedQuery,
+  GetPaginatedRuleGroupRule,
+  Paginated,
+  SpecialFields
+} from "./interface";
+
+type RichRuleValue = RuleValue | Date;
 
 const operators = {
   equal: (v: RichRuleValue[]) => ["= :a", { a: v[0] }] as const,
@@ -44,45 +55,26 @@ const operators = {
   is_not_null: () => ["IS NOT NULL", {}] as const
 } as const;
 
-export type RuleValue = GetPaginatedQueryRuleValue;
-export type RuleOperator = GetPaginatedQueryRuleOperator;
-
-type RichRuleValue = RuleValue | Date;
-
-export type Rule<Field extends string> = GetPaginatedQueryRule<Field>;
-export type RuleGroup<Field extends string> = GetPaginatedQueryRuleGroup<Field>;
-
-export type SpecialFields<Field extends string> = Partial<
-  Record<
-    Field,
-    (
-      rule: Rule<Field>,
-      qb: WhereExpressionBuilder,
-      suffix: string,
-      namedWhere: string
-    ) => Record<string, unknown> | undefined | void
-  >
->;
-
-function parseValue(value: RuleValue): RichRuleValue {
-  if (typeof value === "string") {
-    if (value.startsWith("$now")) {
-      const date = moment.utc();
-      const match = /\$now(\((?:(?:y|M|d|h|m|s):(?:-?\d+),?)+\))?/.exec(value);
-      if (match && match[1]) {
-        for (const modifier of match[1].matchAll(/(y|M|d|h|m|s):(-?\d+)/g)) {
-          date.add(modifier[2], modifier[1] as DurationInputArg2);
-        }
-      }
-      return date.toDate();
-    }
-    return value;
-  } else {
-    return value;
-  }
+function parseValue<Field extends string>(rule: Rule<Field>): RichRuleValue {
+  // if (typeof value === "string") {
+  //   if (value.startsWith("$now")) {
+  //     const date = moment.utc();
+  //     const match = /\$now(\((?:(?:y|M|d|h|m|s):(?:-?\d+),?)+\))?/.exec(value);
+  //     if (match && match[1]) {
+  //       for (const modifier of match[1].matchAll(/(y|M|d|h|m|s):(-?\d+)/g)) {
+  //         date.add(modifier[2], modifier[1] as DurationInputArg2);
+  //       }
+  //     }
+  //     return date.toDate();
+  //   }
+  //   return value;
+  // } else {
+  //   return value;
+  // }
+  return rule.value[0];
 }
 
-export function buildRuleQuery<Entity, Field extends string>(
+export function buildPaginatedQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
   filters: Filters<Field>,
   ruleGroup?: RuleGroup<Field>,
@@ -145,3 +137,59 @@ export function buildRuleQuery<Entity, Field extends string>(
   }
   return qb;
 }
+
+export async function fetchPaginated<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  filters: Filters<Field>,
+  query: GetPaginatedQuery,
+  member?: Member,
+  specialFields?: SpecialFields<Field>,
+  queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
+): Promise<Paginated<Entity>> {
+  const limit = query.limit || 50;
+  const offset = query.offset || 0;
+
+  if (query.rules && !validateRuleGroup(filters, query.rules)) {
+    throw new BadRequestError();
+  }
+
+  const qb = buildPaginatedQuery(entity, filters, query.rules, specialFields)
+    .offset(offset)
+    .limit(limit);
+  if (query.sort) {
+    qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
+  }
+
+  if (queryCallback) {
+    queryCallback(qb);
+  }
+
+  const [items, total] = await qb.getManyAndCount();
+
+  return {
+    total,
+    offset,
+    count: items.length,
+    items
+  };
+}
+
+export function mergeRules(
+  query: GetPaginatedQuery,
+  extraRules?: (GetPaginatedRuleGroupRule | undefined | false)[] | false
+): GetPaginatedQuery {
+  if (!extraRules) return query;
+
+  return {
+    ...query,
+    rules: {
+      condition: "AND",
+      rules: [
+        ...(extraRules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]),
+        ...(query.rules ? [query.rules] : [])
+      ]
+    }
+  };
+}
+
+export * from "./interface";

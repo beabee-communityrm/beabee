@@ -15,19 +15,20 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import Notice from "@models/Notice";
+import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 import Member from "@models/Member";
+import Notice from "@models/Notice";
 
 import { UUIDParam } from "@api/data";
 import { CreateNoticeData, GetNoticeData } from "@api/data/NoticeData";
-import PartialBody from "@api/decorators/PartialBody";
 import {
   fetchPaginated,
   GetPaginatedQuery,
   mergeRules,
   Paginated
-} from "@api/utils/pagination";
-import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
+} from "@api/data/PaginatedData";
+
+import PartialBody from "@api/decorators/PartialBody";
 
 @JsonController("/notice")
 @Authorized()
@@ -45,9 +46,15 @@ export class NoticeController {
         value: [ItemStatus.Open]
       }
     ]);
-    const results = await fetchPaginated(Notice, noticeFilters, authedQuery, {
-      status: ruleAsQuery
-    });
+    const results = await fetchPaginated(
+      Notice,
+      noticeFilters,
+      authedQuery,
+      member,
+      {
+        status: ruleAsQuery
+      }
+    );
 
     return {
       ...results,

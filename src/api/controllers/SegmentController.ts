@@ -4,7 +4,7 @@ import {
   GetMembersQuery,
   fetchPaginatedMembers
 } from "@api/data/MemberData";
-import { Paginated } from "@api/utils/pagination";
+import { Paginated } from "@api/data/PaginatedData";
 import SegmentService from "@core/services/SegmentService";
 import Segment from "@models/Segment";
 import {

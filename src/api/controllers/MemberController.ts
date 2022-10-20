@@ -61,17 +61,17 @@ import {
   StartContributionData,
   UpdateContributionData
 } from "@api/data/ContributionData";
+import {
+  mergeRules,
+  fetchPaginated,
+  Paginated,
+  GetPaginatedQuery
+} from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-import {
-  fetchPaginated,
-  GetPaginatedQuery,
-  mergeRules,
-  Paginated
-} from "@api/utils/pagination";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target

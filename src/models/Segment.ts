@@ -1,5 +1,4 @@
-import { ContactFilterName } from "@beabee/beabee-common";
-import { RuleGroup } from "@core/utils/newRules";
+import { ContactFilterName, RuleGroup } from "@beabee/beabee-common";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import type SegmentMember from "./SegmentMember";
 

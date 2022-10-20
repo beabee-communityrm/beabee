@@ -1,4 +1,4 @@
-import { GetPaginatedQuery } from "@api/utils/pagination";
+import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import ItemStatus from "@models/ItemStatus";
