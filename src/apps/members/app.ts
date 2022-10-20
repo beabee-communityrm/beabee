@@ -63,7 +63,7 @@ function convertBasicSearch(
       search.rules.push({
         field,
         operator: "contains",
-        value: query[field] as string
+        value: [query[field] as string]
       });
     }
   }
@@ -71,7 +71,7 @@ function convertBasicSearch(
     search.rules.push({
       field: "tags",
       operator: "contains",
-      value: query.tag as string
+      value: [query.tag as string]
     });
   }
 

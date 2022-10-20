@@ -5,9 +5,10 @@ import {
   GetPaginatedQueryRuleGroup,
   GetPaginatedQueryRuleOperator,
   GetPaginatedQueryRuleValue,
-  operators
+  operators,
+  validateRuleGroup
 } from "@beabee/beabee-common";
-import { buildRuleQuery, RuleGroup, SpecialFields } from "@core/utils/newRules";
+import { buildRuleQuery, SpecialFields } from "@core/utils/newRules";
 import {
   IsArray,
   IsIn,
@@ -17,6 +18,7 @@ import {
   Min,
   ValidateNested
 } from "class-validator";
+import { BadRequestError } from "routing-controllers";
 import { EntityTarget, SelectQueryBuilder } from "typeorm";
 
 export interface Paginated<T> {
@@ -34,7 +36,7 @@ export class GetPaginatedRule implements GetPaginatedQueryRule<string> {
   operator!: GetPaginatedQueryRuleOperator;
 
   @IsType(["string", "boolean", "number"], { each: true })
-  value!: GetPaginatedQueryRuleValue | GetPaginatedQueryRuleValue[];
+  value!: GetPaginatedQueryRuleValue[];
 }
 
 type GetPaginatedRuleGroupRule = GetPaginatedRuleGroup | GetPaginatedRule;
@@ -83,10 +85,11 @@ export async function fetchPaginated<Entity, Field extends string>(
   const limit = query.limit || 50;
   const offset = query.offset || 0;
 
-  // TODO: validation!
-  const blah = query.rules as RuleGroup<Field>;
+  if (query.rules && !validateRuleGroup(filters, query.rules)) {
+    throw new BadRequestError();
+  }
 
-  const qb = buildRuleQuery(entity, filters, blah, specialFields)
+  const qb = buildRuleQuery(entity, filters, query.rules, specialFields)
     .offset(offset)
     .limit(limit);
   if (query.sort) {

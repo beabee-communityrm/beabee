@@ -86,11 +86,11 @@ export async function fetchPaginatedCallouts(
       {
         condition: "OR",
         rules: [
-          { field: "status", operator: "equal", value: ItemStatus.Open },
-          { field: "status", operator: "equal", value: ItemStatus.Ended }
+          { field: "status", operator: "equal", value: [ItemStatus.Open] },
+          { field: "status", operator: "equal", value: [ItemStatus.Ended] }
         ]
       },
-      { field: "hidden", operator: "equal", value: false }
+      { field: "hidden", operator: "equal", value: [false] }
     ]
   );
 
@@ -105,7 +105,7 @@ export async function fetchPaginatedCallouts(
           throw new BadRequestError();
         }
 
-        const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
+        const value = rule.value[0];
 
         const id =
           value === "me" || value === member.id
@@ -176,12 +176,12 @@ export async function fetchPaginatedCalloutResponses(
   member: Member
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
-    { field: "poll", operator: "equal", value: slug },
+    { field: "poll", operator: "equal", value: [slug] },
     // Member's can only see their own responses
     !member.hasPermission("admin") && {
       field: "member",
       operator: "equal",
-      value: member.id
+      value: [member.id]
     }
   ]);
 
@@ -192,8 +192,7 @@ export async function fetchPaginatedCalloutResponses(
     {
       member: (rule, qb, suffix, namedWhere) => {
         qb.where(`item.member ${namedWhere}`);
-        const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
-        if (value === "me") {
+        if (rule.value[0] === "me") {
           return { a: member.id };
         }
       }

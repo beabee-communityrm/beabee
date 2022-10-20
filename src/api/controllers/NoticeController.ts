@@ -42,7 +42,7 @@ export class NoticeController {
       !member.hasPermission("admin") && {
         field: "status",
         operator: "equal",
-        value: ItemStatus.Open
+        value: [ItemStatus.Open]
       }
     ]);
     const results = await fetchPaginated(Notice, noticeFilters, authedQuery, {

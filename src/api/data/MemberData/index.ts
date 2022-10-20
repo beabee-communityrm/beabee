@@ -115,7 +115,7 @@ function activePermission<Field extends string>(
   suffix: string
 ) {
   const table = "mp" + suffix;
-  const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
+  const value = rule.value[0];
 
   const permission = rule.field === "activeMembership" ? "member" : value;
 
@@ -171,9 +171,7 @@ export async function fetchPaginatedMembers(
           );
         }
 
-        return {
-          v: Array.isArray(rule.value) ? rule.value[0] : rule.value
-        };
+        return { v: rule.value[0] };
       },
       activePermission,
       activeMembership: activePermission,

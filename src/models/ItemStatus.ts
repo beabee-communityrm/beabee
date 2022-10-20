@@ -1,14 +1,8 @@
+import { ItemStatus } from "@beabee/beabee-common";
 import moment from "moment";
 import { Brackets, Column, WhereExpressionBuilder } from "typeorm";
 
 import { Rule } from "@core/utils/newRules";
-
-enum ItemStatus {
-  Draft = "draft",
-  Scheduled = "scheduled",
-  Open = "open",
-  Ended = "ended"
-}
 
 export class ItemWithStatus {
   @Column({ type: Date, nullable: true })
@@ -43,9 +37,8 @@ export function ruleAsQuery<Field extends string>(
 ) {
   if (rule.operator !== "equal") return;
 
-  const value = Array.isArray(rule.value) ? rule.value[0] : rule.value;
   const now = "now" + suffix;
-  switch (value) {
+  switch (rule.value[0]) {
     case ItemStatus.Draft:
       qb.andWhere(`item.starts IS NULL`);
       break;

@@ -3,7 +3,8 @@ import {
   GetPaginatedQueryRule,
   GetPaginatedQueryRuleGroup,
   GetPaginatedQueryRuleOperator,
-  GetPaginatedQueryRuleValue
+  GetPaginatedQueryRuleValue,
+  isRuleGroup
 } from "@beabee/beabee-common";
 import moment, { DurationInputArg2 } from "moment";
 import {
@@ -63,12 +64,6 @@ export type SpecialFields<Field extends string> = Partial<
   >
 >;
 
-export function isRuleGroup<Field extends string = string>(
-  a: Rule<Field> | RuleGroup<Field>
-): a is RuleGroup<Field> {
-  return "condition" in a;
-}
-
 function parseValue(value: RuleValue): RichRuleValue {
   if (typeof value === "string") {
     if (value.startsWith("$now")) {
@@ -98,8 +93,7 @@ export function buildRuleQuery<Entity, Field extends string>(
 
   function parseRule(rule: Rule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
-      const values = Array.isArray(rule.value) ? rule.value : [rule.value];
-      const parsedValues = values.map(parseValue);
+      const parsedValues = rule.value.map(parseValue);
 
       const [where, ruleParams] = operators[rule.operator](parsedValues);
 
