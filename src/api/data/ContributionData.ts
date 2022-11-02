@@ -73,17 +73,17 @@ export class UpdateManualContributionData {
 
   @IsOptional()
   @IsNumber()
-  amount?: number;
+  amount!: number | undefined | null;
 
   @IsOptional()
   @IsEnum(ContributionPeriod)
-  period?: ContributionPeriod;
+  period!: ContributionPeriod | undefined | null;
 
   @IsOptional()
   @IsString()
-  source?: string;
+  source!: string | undefined | null;
 
   @IsOptional()
   @IsString()
-  reference?: string;
+  reference!: string | undefined | null;
 }

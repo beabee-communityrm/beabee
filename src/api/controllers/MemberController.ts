@@ -1,8 +1,7 @@
 import {
   ContributionPeriod,
   PermissionTypes,
-  PermissionType,
-  ContributionType
+  PermissionType
 } from "@beabee/beabee-common";
 import { Request } from "express";
 import {
@@ -212,34 +211,6 @@ export class MemberController {
     return await this.handleStartUpdatePaymentMethod(target, data);
   }
 
-  @Authorized("admin")
-  @Patch("/:id/contribution/force")
-  // This is a temporary API endpoint until we rework the contribution/payment tables
-  // TODO: Remove this!
-  async forceUpdateContribution(
-    @TargetUser() target: Member,
-    @Body() data: UpdateManualContributionData
-  ): Promise<ContributionInfo> {
-    if (target.contributionType === ContributionType.Automatic) {
-      throw new BadRequestError("Only for none or manual contributions");
-    }
-
-    await MembersService.updateMember(target, {
-      contributionType: data.type,
-      contributionMonthlyAmount: data.amount || null,
-      contributionPeriod: data.period || null
-    });
-
-    await PaymentService.updateDataBy(target, "source", data.source || null);
-    await PaymentService.updateDataBy(
-      target,
-      "reference",
-      data.reference || null
-    );
-
-    return await this.getContribution(target);
-  }
-
   @OnUndefined(204)
   @Post("/:id/contribution/cancel")
   async cancelContribution(@TargetUser() target: Member): Promise<void> {
@@ -256,6 +227,18 @@ export class MemberController {
   ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
     await MembersService.updateMemberContribution(target, joinFlow.joinForm);
+    return await this.getContribution(target);
+  }
+
+  // This is a temporary API endpoint until we rework the contribution/payment tables
+  // TODO: Remove this!
+  @Authorized("admin")
+  @Patch("/:id/contribution/force")
+  async forceUpdateContribution(
+    @TargetUser() target: Member,
+    @Body() data: UpdateManualContributionData
+  ): Promise<ContributionInfo> {
+    await MembersService.forceUpdateMemberContribution(target, data);
     return await this.getContribution(target);
   }
 
