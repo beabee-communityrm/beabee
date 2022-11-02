@@ -4,7 +4,8 @@ import {
   ruleOperators,
   RuleOperator,
   RuleValue,
-  RuleGroup
+  RuleGroup,
+  ValidatedRule
 } from "@beabee/beabee-common";
 import {
   IsString,
@@ -21,7 +22,7 @@ import { IsType } from "@api/validators/IsType";
 
 export { Paginated } from "@beabee/beabee-common";
 
-export class GetPaginatedRule implements Rule<string> {
+export class GetPaginatedRule implements Rule {
   @IsString()
   field!: string;
 
@@ -36,7 +37,7 @@ export type GetPaginatedRuleGroupRule =
   | GetPaginatedRuleGroup
   | GetPaginatedRule;
 
-export class GetPaginatedRuleGroup implements RuleGroup<string> {
+export class GetPaginatedRuleGroup implements RuleGroup {
   @IsIn(["AND", "OR"])
   condition!: "AND" | "OR";
 
@@ -45,7 +46,7 @@ export class GetPaginatedRuleGroup implements RuleGroup<string> {
   rules!: GetPaginatedRuleGroupRule[];
 }
 
-export class GetPaginatedQuery implements PaginatedQuery<string> {
+export class GetPaginatedQuery implements PaginatedQuery {
   @IsOptional()
   @Min(1)
   @Max(100)
@@ -72,7 +73,7 @@ export type SpecialFields<Field extends string> = Partial<
   Record<
     Field,
     (
-      rule: Rule<Field>,
+      rule: ValidatedRule<Field>,
       qb: WhereExpressionBuilder,
       suffix: string,
       namedWhere: string

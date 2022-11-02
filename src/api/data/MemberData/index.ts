@@ -10,7 +10,7 @@ import PaymentData from "@models/PaymentData";
 import { fetchPaginated, Paginated } from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
-import { contactFilters, Rule } from "@beabee/beabee-common";
+import { contactFilters, ValidatedRule } from "@beabee/beabee-common";
 
 interface ConvertOpts {
   with?: GetMemberWith[] | undefined;
@@ -71,7 +71,7 @@ export function convertMemberToData(
 
 function membershipField<Field extends string>(field: keyof MemberPermission) {
   return (
-    rule: Rule<Field>,
+    rule: ValidatedRule<Field>,
     qb: WhereExpressionBuilder,
     suffix: string,
     namedWhere: string
@@ -91,7 +91,7 @@ function membershipField<Field extends string>(field: keyof MemberPermission) {
 
 function profileField<Field extends string>(field: keyof MemberProfile) {
   return (
-    rule: Rule<Field>,
+    rule: ValidatedRule<Field>,
     qb: WhereExpressionBuilder,
     suffix: string,
     namedWhere: string
@@ -108,7 +108,7 @@ function profileField<Field extends string>(field: keyof MemberProfile) {
 }
 
 function activePermission<Field extends string>(
-  rule: Rule<Field>,
+  rule: ValidatedRule<Field>,
   qb: WhereExpressionBuilder,
   suffix: string
 ) {

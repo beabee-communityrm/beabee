@@ -1,10 +1,10 @@
 import {
   Filters,
-  Rule,
-  RuleGroup,
   RuleValue,
   isRuleGroup,
-  validateRuleGroup
+  validateRuleGroup,
+  ValidatedRule,
+  ValidatedRuleGroup
 } from "@beabee/beabee-common";
 import { BadRequestError } from "routing-controllers";
 import {
@@ -23,6 +23,7 @@ import {
   Paginated,
   SpecialFields
 } from "./interface";
+import { parseISO, sub } from "date-fns";
 
 type RichRuleValue = RuleValue | Date;
 
@@ -55,39 +56,61 @@ const operators = {
   is_not_null: () => ["IS NOT NULL", {}] as const
 } as const;
 
-function parseValue<Field extends string>(rule: Rule<Field>): RichRuleValue {
-  // if (typeof value === "string") {
-  //   if (value.startsWith("$now")) {
-  //     const date = moment.utc();
-  //     const match = /\$now(\((?:(?:y|M|d|h|m|s):(?:-?\d+),?)+\))?/.exec(value);
-  //     if (match && match[1]) {
-  //       for (const modifier of match[1].matchAll(/(y|M|d|h|m|s):(-?\d+)/g)) {
-  //         date.add(modifier[2], modifier[1] as DurationInputArg2);
-  //       }
-  //     }
-  //     return date.toDate();
-  //   }
-  //   return value;
-  // } else {
-  //   return value;
-  // }
-  return rule.value[0];
+const durations = {
+  y: "years",
+  M: "months",
+  d: "days",
+  h: "hours",
+  m: "minutes",
+  s: "seconds"
+} as const;
+
+// Convert relative dates
+export function parseDate(value: string): Date {
+  if (value.startsWith("$now")) {
+    let date = new Date();
+    const match = /\$now(\((?:(?:y|M|d|h|m|s):(?:-?\d+),?)+\))?/.exec(value);
+    if (match && match[1]) {
+      for (const [period, delta] of match[1].matchAll(
+        /(y|M|d|h|m|s):(-?\d+)/g
+      )) {
+        date = sub(date, {
+          [durations[period as keyof typeof durations]]: Number(delta)
+        });
+      }
+    }
+    return date;
+  } else {
+    return parseISO(value);
+  }
 }
 
 export function buildPaginatedQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
   filters: Filters<Field>,
-  ruleGroup?: RuleGroup<Field>,
+  ruleGroup: ValidatedRuleGroup<Field> | undefined,
+  member?: Member,
   specialFields?: SpecialFields<Field>
 ): SelectQueryBuilder<Entity> {
   const params: Record<string, unknown> = {};
   let paramNo = 0;
 
-  function parseRule(rule: Rule<Field>) {
-    return (qb: WhereExpressionBuilder): void => {
-      const parsedValues = rule.value.map(parseValue);
+  function parseRuleValues(rule: ValidatedRule<Field>): RichRuleValue[] {
+    if (rule.type === "date") {
+      return rule.value.map(parseDate);
+    }
+    if (rule.type === "contact") {
+      // Map "me" to member id
+      return rule.value.map((v) => (v === "me" && member ? member.id : ""));
+    }
+    return rule.value;
+  }
 
-      const [where, ruleParams] = operators[rule.operator](parsedValues);
+  function parseRule(rule: ValidatedRule<Field>) {
+    return (qb: WhereExpressionBuilder): void => {
+      const values = parseRuleValues(rule);
+
+      const [where, ruleParams] = operators[rule.operator](values);
 
       // Horrible code to make sure param names are unique
       const suffix = "_" + paramNo;
@@ -113,7 +136,7 @@ export function buildPaginatedQuery<Entity, Field extends string>(
     };
   }
 
-  function parseRuleGroup(ruleGroup: RuleGroup<Field>) {
+  function parseRuleGroup(ruleGroup: ValidatedRuleGroup<Field>) {
     return (qb: WhereExpressionBuilder): void => {
       qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
       const conditionFn =
@@ -149,11 +172,18 @@ export async function fetchPaginated<Entity, Field extends string>(
   const limit = query.limit || 50;
   const offset = query.offset || 0;
 
-  if (query.rules && !validateRuleGroup(filters, query.rules)) {
+  const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
+  if (ruleGroup === false) {
     throw new BadRequestError();
   }
 
-  const qb = buildPaginatedQuery(entity, filters, query.rules, specialFields)
+  const qb = buildPaginatedQuery(
+    entity,
+    filters,
+    ruleGroup,
+    member,
+    specialFields
+  )
     .offset(offset)
     .limit(limit);
   if (query.sort) {
