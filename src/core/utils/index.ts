@@ -58,8 +58,8 @@ export interface StripeSEPAPaymentSource {
 
 export interface ManualPaymentSource {
   method: null;
-  source: string;
-  reference: string;
+  source?: string;
+  reference?: string;
 }
 
 export type PaymentSource =

@@ -4,7 +4,9 @@ import { ManualPaymentData } from "@models/PaymentData";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "../payment-flow";
 
-export default class ManualProvider extends PaymentProvider<ManualPaymentData> {
+export default class ManualProvider extends PaymentProvider<
+  ManualPaymentData | {}
+> {
   async canChangeContribution(useExistingMandate: boolean): Promise<boolean> {
     return !useExistingMandate;
   }
