@@ -69,26 +69,14 @@ app.post(
         break;
 
       case "force-update":
-        await MembersService.updateMember(member, {
-          contributionType: req.body.type,
-          contributionMonthlyAmount: req.body.amount
-            ? Number(req.body.amount)
-            : null,
-          contributionPeriod: req.body.period
+        await MembersService.forceUpdateMemberContribution(member, {
+          type: req.body.type,
+          amount: req.body.amount,
+          period: req.body.period,
+          source: req.body.source,
+          reference: req.body.reference
         });
 
-        if (req.body.type === ContributionType.Manual) {
-          await PaymentService.updateDataBy(
-            member,
-            "source",
-            req.body.source || null
-          );
-          await PaymentService.updateDataBy(
-            member,
-            "reference",
-            req.body.reference || null
-          );
-        }
         req.flash("success", "contribution-updated");
         break;
     }
