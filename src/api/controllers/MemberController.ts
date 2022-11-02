@@ -61,7 +61,7 @@ import {
   SetContributionData,
   StartContributionData,
   UpdateContributionData,
-  UpdateManualContributionData
+  ForceUpdateContributionData
 } from "@api/data/ContributionData";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -236,7 +236,7 @@ export class MemberController {
   @Patch("/:id/contribution/force")
   async forceUpdateContribution(
     @TargetUser() target: Member,
-    @Body() data: UpdateManualContributionData
+    @Body() data: ForceUpdateContributionData
   ): Promise<ContributionInfo> {
     await MembersService.forceUpdateMemberContribution(target, data);
     return await this.getContribution(target);

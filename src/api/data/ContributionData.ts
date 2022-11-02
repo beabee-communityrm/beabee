@@ -67,7 +67,7 @@ export class UpdateContributionData implements ContributionData {
   prorate!: boolean;
 }
 
-export class UpdateManualContributionData {
+export class ForceUpdateContributionData {
   @IsIn([ContributionType.Manual, ContributionType.None])
   type!: ContributionType.Manual | ContributionType.None;
 
