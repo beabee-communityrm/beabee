@@ -28,18 +28,18 @@ export interface PaymentForm {
   prorate: boolean;
 }
 
-export interface CardPaymentSource {
-  method: PaymentMethod.StripeCard;
-  last4: string;
-  expiryMonth: number;
-  expiryYear: number;
-}
-
 export interface GoCardlessDirectDebitPaymentSource {
   method: PaymentMethod.GoCardlessDirectDebit;
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;
+}
+
+export interface StripeCardPaymentSource {
+  method: PaymentMethod.StripeCard;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
 }
 
 export interface StripeBACSPaymentSource {
@@ -63,8 +63,8 @@ export interface ManualPaymentSource {
 }
 
 export type PaymentSource =
-  | CardPaymentSource
   | GoCardlessDirectDebitPaymentSource
+  | StripeCardPaymentSource
   | StripeBACSPaymentSource
   | StripeSEPAPaymentSource
   | ManualPaymentSource;
