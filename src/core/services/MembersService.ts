@@ -313,6 +313,7 @@ class MembersService {
       throw new CantUpdateContribution();
     }
 
+    const period = data.period && data.amount ? data.period : null;
     const monthlyAmount =
       data.period && data.amount
         ? data.amount / (data.period === ContributionPeriod.Annually ? 12 : 1)
@@ -320,7 +321,7 @@ class MembersService {
 
     await this.updateMember(member, {
       contributionType: data.type,
-      contributionPeriod: data.period || null,
+      contributionPeriod: period,
       contributionMonthlyAmount: monthlyAmount
     });
 
