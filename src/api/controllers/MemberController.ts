@@ -1,7 +1,8 @@
 import {
   ContributionPeriod,
   PermissionTypes,
-  PermissionType
+  PermissionType,
+  ContributionType
 } from "@beabee/beabee-common";
 import { Request } from "express";
 import {
@@ -60,7 +61,8 @@ import {
 import {
   SetContributionData,
   StartContributionData,
-  UpdateContributionData
+  UpdateContributionData,
+  UpdateManualContributionData
 } from "@api/data/ContributionData";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -208,6 +210,34 @@ export class MemberController {
     @Body() data: StartContributionData
   ): Promise<PaymentFlowParams> {
     return await this.handleStartUpdatePaymentMethod(target, data);
+  }
+
+  @Authorized("admin")
+  @Patch("/:id/contribution/force")
+  // This is a temporary API endpoint until we rework the contribution/payment tables
+  // TODO: Remove this!
+  async forceUpdateContribution(
+    @TargetUser() target: Member,
+    @Body() data: UpdateManualContributionData
+  ): Promise<ContributionInfo> {
+    if (target.contributionType === ContributionType.Automatic) {
+      throw new BadRequestError("Only for none or manual contributions");
+    }
+
+    await MembersService.updateMember(target, {
+      contributionType: data.type,
+      contributionMonthlyAmount: data.amount || null,
+      contributionPeriod: data.period || null
+    });
+
+    await PaymentService.updateDataBy(target, "source", data.source || null);
+    await PaymentService.updateDataBy(
+      target,
+      "reference",
+      data.reference || null
+    );
+
+    return await this.getContribution(target);
   }
 
   @OnUndefined(204)

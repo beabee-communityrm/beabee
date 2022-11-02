@@ -1,5 +1,17 @@
-import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
-import { IsBoolean, IsEnum, IsNumber, Validate } from "class-validator";
+import {
+  ContributionPeriod,
+  ContributionType,
+  PaymentMethod
+} from "@beabee/beabee-common";
+import {
+  IsBoolean,
+  IsEnum,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Validate
+} from "class-validator";
 
 import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
@@ -53,4 +65,25 @@ export class UpdateContributionData implements ContributionData {
 
   @IsBoolean()
   prorate!: boolean;
+}
+
+export class UpdateManualContributionData {
+  @IsIn([ContributionType.Manual, ContributionType.None])
+  type!: ContributionType.Manual | ContributionType.None;
+
+  @IsOptional()
+  @IsNumber()
+  amount?: number;
+
+  @IsOptional()
+  @IsEnum(ContributionPeriod)
+  period?: ContributionPeriod;
+
+  @IsOptional()
+  @IsString()
+  source?: string;
+
+  @IsOptional()
+  @IsString()
+  reference?: string;
 }
