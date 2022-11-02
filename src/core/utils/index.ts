@@ -56,11 +56,18 @@ export interface StripeSEPAPaymentSource {
   last4: string;
 }
 
+export interface ManualPaymentSource {
+  method: null;
+  source: string;
+  reference: string;
+}
+
 export type PaymentSource =
   | CardPaymentSource
   | GoCardlessDirectDebitPaymentSource
   | StripeBACSPaymentSource
-  | StripeSEPAPaymentSource;
+  | StripeSEPAPaymentSource
+  | ManualPaymentSource;
 
 export function getActualAmount(
   amount: number,
