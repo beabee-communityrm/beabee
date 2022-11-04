@@ -1,10 +1,11 @@
 import {
   Filters,
-  RuleValue,
   isRuleGroup,
   validateRuleGroup,
   ValidatedRule,
-  ValidatedRuleGroup
+  ValidatedRuleGroup,
+  ItemStatus,
+  RuleOperator
 } from "@beabee/beabee-common";
 import { BadRequestError } from "routing-controllers";
 import {
@@ -15,73 +16,57 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 
+import { parseDate } from "@core/utils/date";
+
 import Member from "@models/Member";
 
 import {
   GetPaginatedQuery,
   GetPaginatedRuleGroupRule,
   Paginated,
+  RichRuleValue,
   SpecialFields
 } from "./interface";
-import { parseISO, sub } from "date-fns";
 
-type RichRuleValue = RuleValue | Date;
+const operatorWhere: Record<RuleOperator, string> = {
+  equal: "= :a",
+  not_equal: "<> :a",
+  less: "< :a",
+  less_or_equal: "<= :a",
+  greater: "> :a",
+  greater_or_equal: ">= :a",
+  between: "BETWEEN :a AND :b",
+  not_between: "NOT BETWEEN :a AND :b",
+  begins_with: "ILIKE :a",
+  not_begins_with: "NOT ILIKE :a",
+  contains: "ILIKE :a",
+  not_contains: "NOT ILIKE :a",
+  ends_with: "ILIKE :a",
+  not_ends_with: "NOT ILIKE :a",
+  is_empty: "= ''",
+  is_not_empty: "<> ''"
+};
 
-const operators = {
-  equal: (v: RichRuleValue[]) => ["= :a", { a: v[0] }] as const,
-  not_equal: (v: RichRuleValue[]) => ["<> :a", { a: v[0] }] as const,
-  in: (v: RichRuleValue[]) => ["IN (:...v)", { v }] as const,
-  not_in: (v: RichRuleValue[]) => ["NOT IN (:...v)", { v }] as const,
-  less: (v: RichRuleValue[]) => ["< :a", { a: v[0] }] as const,
-  less_or_equal: (v: RichRuleValue[]) => ["<= :a", { a: v[0] }] as const,
-  greater: (v: RichRuleValue[]) => ["> :a", { a: v[0] }] as const,
-  greater_or_equal: (v: RichRuleValue[]) => [">= :a", { a: v[0] }] as const,
-  between: (v: RichRuleValue[]) =>
-    ["BETWEEN :a AND :b", { a: v[0], b: v[1] }] as const,
-  not_between: (v: RichRuleValue[]) =>
-    ["NOT BETWEEN :a AND :b", { a: v[0], b: v[1] }] as const,
-  begins_with: (v: RichRuleValue[]) => ["ILIKE :a", { a: v[0] + "%" }] as const,
-  not_begins_with: (v: RichRuleValue[]) =>
-    ["NOT ILIKE :a", { a: v[0] + "%" }] as const,
-  contains: (v: RichRuleValue[]) =>
-    ["ILIKE :a", { a: "%" + v[0] + "%" }] as const,
-  not_contains: (v: RichRuleValue[]) =>
-    ["NOT ILIKE :a", { a: "%" + v[0] + "%" }] as const,
-  ends_with: (v: RichRuleValue[]) => ["ILIKE :a", { a: "%" + v[0] }] as const,
-  not_ends_with: (v: RichRuleValue[]) =>
-    ["NOT ILIKE :a", { a: "%" + v[0] }] as const,
-  is_empty: () => ["= ''", {}] as const,
-  is_not_empty: () => ["<> ''", {}] as const,
-  is_null: () => ["IS NULL", {}] as const,
-  is_not_null: () => ["IS NOT NULL", {}] as const
-} as const;
+export function statusField(
+  qb: WhereExpressionBuilder,
+  args: { operator: RuleOperator; values: RichRuleValue[] }
+) {
+  // TODO: handle other operators or error
+  if (args.operator !== "equal") return;
 
-const durations = {
-  y: "years",
-  M: "months",
-  d: "days",
-  h: "hours",
-  m: "minutes",
-  s: "seconds"
-} as const;
-
-// Convert relative dates
-export function parseDate(value: string): Date {
-  if (value.startsWith("$now")) {
-    let date = new Date();
-    const match = /\$now(\((?:(?:y|M|d|h|m|s):(?:-?\d+),?)+\))?/.exec(value);
-    if (match && match[1]) {
-      for (const [period, delta] of match[1].matchAll(
-        /(y|M|d|h|m|s):(-?\d+)/g
-      )) {
-        date = sub(date, {
-          [durations[period as keyof typeof durations]]: Number(delta)
-        });
-      }
-    }
-    return date;
-  } else {
-    return parseISO(value);
+  switch (args.values[0]) {
+    case ItemStatus.Draft:
+      return qb.andWhere(`item.starts IS NULL`);
+    case ItemStatus.Scheduled:
+      return qb.andWhere(`item.starts > :now`);
+    case ItemStatus.Open:
+      return qb.andWhere(`item.starts < :now`).andWhere(
+        new Brackets((qb) => {
+          qb.where("item.expires IS NULL").orWhere(`item.expires > :now`);
+        })
+      );
+    case ItemStatus.Ended:
+      return qb.andWhere(`item.starts < :now`).andWhere(`item.expires < :now`);
   }
 }
 
@@ -92,8 +77,18 @@ export function buildPaginatedQuery<Entity, Field extends string>(
   member?: Member,
   specialFields?: SpecialFields<Field>
 ): SelectQueryBuilder<Entity> {
-  const params: Record<string, unknown> = {};
-  let paramNo = 0;
+  /*
+    The query builder doesn't support having the same parameter names for
+    different parts of the query and subqueries, so we have to ensure each query
+    parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
+    the end of each parameter for each rule.
+  */
+  const params: Record<string, unknown> = {
+    // Some queries need a current date parameter
+    now: new Date()
+  };
+
+  let ruleNo = 0;
 
   function parseRuleValues(rule: ValidatedRule<Field>): RichRuleValue[] {
     if (rule.type === "date") {
@@ -101,7 +96,7 @@ export function buildPaginatedQuery<Entity, Field extends string>(
     }
     if (rule.type === "contact") {
       // Map "me" to member id
-      return rule.value.map((v) => (v === "me" && member ? member.id : ""));
+      return rule.value.map((v) => (v === "me" && member?.id) || "");
     }
     return rule.value;
   }
@@ -109,30 +104,25 @@ export function buildPaginatedQuery<Entity, Field extends string>(
   function parseRule(rule: ValidatedRule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
       const values = parseRuleValues(rule);
+      const suffix = "_" + ruleNo;
 
-      const [where, ruleParams] = operators[rule.operator](values);
+      // Add values as params
+      params["a" + suffix] = values[0];
+      params["b" + suffix] = values[1];
 
-      // Horrible code to make sure param names are unique
-      const suffix = "_" + paramNo;
-      for (const paramKey in ruleParams) {
-        params[paramKey + suffix] =
-          ruleParams[paramKey as keyof typeof ruleParams];
-      }
-      const namedWhere = where.replace(/:((\.\.\.)?[a-z])/g, `:$1${suffix}`);
+      // Add suffix to placeholders
+      const where = operatorWhere[rule.operator]
+        .replace(":a", ":a" + suffix)
+        .replace(":b", ":b" + suffix);
 
-      const specialField = specialFields && specialFields[rule.field];
+      const specialField = specialFields?.[rule.field];
       if (specialField) {
-        const specialRuleParams = specialField(rule, qb, suffix, namedWhere);
-        if (specialRuleParams) {
-          for (const paramKey in specialRuleParams) {
-            params[paramKey + suffix] = specialRuleParams[paramKey];
-          }
-        }
+        specialField(qb, { ...rule, suffix, where, values });
       } else {
-        qb.where(`item.${rule.field} ${namedWhere}`);
+        qb.where(`item.${rule.field} ${where}`);
       }
 
-      paramNo++;
+      ruleNo++;
     };
   }
 
@@ -186,6 +176,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   )
     .offset(offset)
     .limit(limit);
+
   if (query.sort) {
     qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
   }

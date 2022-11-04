@@ -85,6 +85,12 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
+export class GetMembersQuery extends GetPaginatedQuery {
+  @IsOptional()
+  @IsEnum(GetMemberWith, { each: true })
+  with?: GetMemberWith[];
+}
+
 export const memberSortFields = [
   "firstname",
   "lastname",
@@ -95,12 +101,6 @@ export const memberSortFields = [
   "membershipStarts",
   "membershipExpires"
 ] as const;
-
-export class GetMembersQuery extends GetPaginatedQuery {
-  @IsOptional()
-  @IsEnum(GetMemberWith, { each: true })
-  with?: GetMemberWith[];
-}
 
 class UpdateAddressData implements Address {
   @IsDefined()

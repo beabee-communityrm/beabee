@@ -1,4 +1,4 @@
-import { ContactFilterName, RuleGroup } from "@beabee/beabee-common";
+import { ContactFilterName, ValidatedRuleGroup } from "@beabee/beabee-common";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import type SegmentMember from "./SegmentMember";
 
@@ -14,7 +14,7 @@ export default class Segment {
   description!: string;
 
   @Column({ type: "jsonb" })
-  ruleGroup!: RuleGroup<ContactFilterName>;
+  ruleGroup!: ValidatedRuleGroup<ContactFilterName>;
 
   @OneToMany("SegmentMember", "segment")
   members!: SegmentMember[];

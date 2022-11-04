@@ -47,6 +47,7 @@ import {
   GetMemberData,
   GetMemberQuery,
   GetMemberRoleData,
+  GetMembersQuery,
   GetMemberWith,
   GetPaymentData,
   UpdateMemberData,
@@ -113,7 +114,7 @@ export class MemberController {
   @Authorized("admin")
   @Get("/")
   async getMembers(
-    @QueryParams() query: GetMemberQuery
+    @QueryParams() query: GetMembersQuery
   ): Promise<Paginated<GetMemberData>> {
     return await fetchPaginatedMembers(query, {
       with: query.with,

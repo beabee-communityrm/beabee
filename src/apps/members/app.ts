@@ -1,4 +1,8 @@
-import { ContactFilterName, RuleGroup } from "@beabee/beabee-common";
+import {
+  ContactFilterName,
+  ValidatedRule,
+  ValidatedRuleGroup
+} from "@beabee/beabee-common";
 import express, { Request } from "express";
 import queryString from "query-string";
 import { getRepository } from "typeorm";
@@ -51,8 +55,8 @@ type SortKey = keyof typeof sortOptions;
 
 function convertBasicSearch(
   query: Request["query"]
-): RuleGroup<ContactFilterName> | undefined {
-  const search: RuleGroup<ContactFilterName> = {
+): ValidatedRuleGroup<ContactFilterName> | undefined {
+  const search: ValidatedRuleGroup<ContactFilterName> = {
     condition: "AND",
     rules: []
   };
@@ -63,7 +67,7 @@ function convertBasicSearch(
         field,
         operator: "contains",
         value: [query[field] as string]
-      });
+      } as ValidatedRule<ContactFilterName>);
     }
   }
   if (query.tag) {
@@ -71,7 +75,7 @@ function convertBasicSearch(
       field: "tags",
       operator: "contains",
       value: [query.tag as string]
-    });
+    } as ValidatedRule<ContactFilterName>);
   }
 
   return search.rules.length > 0 ? search : undefined;
@@ -79,18 +83,18 @@ function convertBasicSearch(
 
 // Removes any extra properties on the group
 function cleanRuleGroup(
-  group: RuleGroup<ContactFilterName>
-): RuleGroup<ContactFilterName> {
+  group: ValidatedRuleGroup<ContactFilterName>
+): ValidatedRuleGroup<ContactFilterName> {
   return {
     condition: group.condition,
     rules: group.rules.map((rule) =>
       "condition" in rule
         ? cleanRuleGroup(rule)
-        : {
+        : ({
             field: rule.field,
             operator: rule.operator,
             value: rule.value
-          }
+          } as ValidatedRule<ContactFilterName>)
     )
   };
 }
@@ -98,7 +102,7 @@ function cleanRuleGroup(
 function getSearchRuleGroup(
   query: Request["query"],
   searchType?: string
-): RuleGroup<ContactFilterName> | undefined {
+): ValidatedRuleGroup<ContactFilterName> | undefined {
   return (searchType || query.type) === "basic"
     ? convertBasicSearch(query)
     : typeof query.rules === "string"

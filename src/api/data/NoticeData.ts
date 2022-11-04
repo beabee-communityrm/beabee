@@ -1,7 +1,6 @@
+import { ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import { IsBoolean, IsDate, IsOptional, IsString } from "class-validator";
-
-import ItemStatus from "@models/ItemStatus";
 
 interface NoticeData {
   name: string;

@@ -1,9 +1,4 @@
-import { GetPaginatedQuery } from "@api/data/PaginatedData";
-import IsSlug from "@api/validators/IsSlug";
-import IsUrl from "@api/validators/IsUrl";
-import ItemStatus from "@models/ItemStatus";
-import { PollFormSchema, PollAccess } from "@models/Poll";
-import { PollResponseAnswers } from "@models/PollResponse";
+import { ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
@@ -14,6 +9,13 @@ import {
   IsOptional,
   IsString
 } from "class-validator";
+
+import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import IsSlug from "@api/validators/IsSlug";
+import IsUrl from "@api/validators/IsUrl";
+
+import { PollFormSchema, PollAccess } from "@models/Poll";
+import { PollResponseAnswers } from "@models/PollResponse";
 
 export enum GetCalloutWith {
   Form = "form",

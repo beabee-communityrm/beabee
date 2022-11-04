@@ -69,14 +69,20 @@ export class GetPaginatedQuery implements PaginatedQuery {
   rules?: GetPaginatedRuleGroup;
 }
 
+export type RichRuleValue = RuleValue | Date;
+
 export type SpecialFields<Field extends string> = Partial<
   Record<
     Field,
     (
-      rule: ValidatedRule<Field>,
       qb: WhereExpressionBuilder,
-      suffix: string,
-      namedWhere: string
-    ) => Record<string, unknown> | undefined | void
+      args: {
+        operator: RuleOperator;
+        field: Field;
+        suffix: string;
+        where: string;
+        values: RichRuleValue[];
+      }
+    ) => void
   >
 >;

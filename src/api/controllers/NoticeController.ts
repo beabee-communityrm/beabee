@@ -1,4 +1,4 @@
-import { noticeFilters } from "@beabee/beabee-common";
+import { ItemStatus, noticeFilters } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -15,7 +15,6 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 import Member from "@models/Member";
 import Notice from "@models/Notice";
 
@@ -25,7 +24,8 @@ import {
   fetchPaginated,
   GetPaginatedQuery,
   mergeRules,
-  Paginated
+  Paginated,
+  statusField
 } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -51,9 +51,7 @@ export class NoticeController {
       noticeFilters,
       authedQuery,
       member,
-      {
-        status: ruleAsQuery
-      }
+      { status: statusField }
     );
 
     return {

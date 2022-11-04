@@ -1,5 +1,3 @@
-import moment from "moment";
-import { BadRequestError } from "routing-controllers";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
 import Member from "@models/Member";
@@ -7,7 +5,11 @@ import MemberPermission from "@models/MemberPermission";
 import MemberProfile from "@models/MemberProfile";
 import PaymentData from "@models/PaymentData";
 
-import { fetchPaginated, Paginated } from "@api/data/PaginatedData";
+import {
+  fetchPaginated,
+  Paginated,
+  RichRuleValue
+} from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
 import { contactFilters, ValidatedRule } from "@beabee/beabee-common";
@@ -69,78 +71,79 @@ export function convertMemberToData(
   };
 }
 
-function membershipField<Field extends string>(field: keyof MemberPermission) {
+function membershipField(field: keyof MemberPermission) {
   return (
-    rule: ValidatedRule<Field>,
     qb: WhereExpressionBuilder,
-    suffix: string,
-    namedWhere: string
+    args: {
+      suffix: string;
+      where: string;
+    }
   ) => {
-    const table = "mp" + suffix;
+    const table = "mp" + args.suffix;
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`${table}.memberId`)
       .from(MemberPermission, table)
       .where(
-        `${table}.permission = 'member' AND ${table}.${field} ${namedWhere}`
+        `${table}.permission = 'member' AND ${table}.${field} ${args.where}`
       );
 
     qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
-function profileField<Field extends string>(field: keyof MemberProfile) {
+function profileField(field: keyof MemberProfile) {
   return (
-    rule: ValidatedRule<Field>,
     qb: WhereExpressionBuilder,
-    suffix: string,
-    namedWhere: string
+    args: {
+      suffix: string;
+      where: string;
+    }
   ) => {
-    const table = "profile" + suffix;
+    const table = "profile" + args.suffix;
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`${table}.memberId`)
       .from(MemberProfile, table)
-      .where(`${table}.${field} ${namedWhere}`);
+      .where(`${table}.${field} ${args.where}`);
 
     qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
-function activePermission<Field extends string>(
-  rule: ValidatedRule<Field>,
+function activePermission(
   qb: WhereExpressionBuilder,
-  suffix: string
+  args: {
+    field: string;
+    suffix: string;
+    values: RichRuleValue[];
+  }
 ) {
-  const table = "mp" + suffix;
-  const value = rule.value[0];
+  const table = "mp" + args.suffix;
 
-  const permission = rule.field === "activeMembership" ? "member" : value;
+  const permission =
+    args.field === "activeMembership" ? "member" : args.values[0];
 
   const subQb = createQueryBuilder()
     .subQuery()
     .select(`${table}.memberId`)
     .from(MemberPermission, table)
     .where(
-      `${table}.permission = '${permission}' AND ${table}.dateAdded <= :now${suffix}`
+      `${table}.permission = '${permission}' AND ${table}.dateAdded <= :now`
     )
     .andWhere(
       new Brackets((qb) => {
         qb.where(`${table}.dateExpires IS NULL`).orWhere(
-          `${table}.dateExpires > :now${suffix}`
+          `${table}.dateExpires > :now`
         );
       })
     );
 
-  if (rule.field === "activePermission" || value === true) {
+  if (args.field === "activePermission" || args.values[0] === true) {
     qb.where("item.id IN " + subQb.getQuery());
   } else {
     qb.where("item.id NOT IN " + subQb.getQuery());
   }
-
-  return {
-    now: moment.utc().toDate()
-  };
 }
 
 export async function fetchPaginatedMembers(
@@ -155,34 +158,36 @@ export async function fetchPaginatedMembers(
     {
       deliveryOptIn: profileField("deliveryOptIn"),
       newsletterStatus: profileField("newsletterStatus"),
-      tags: (rule, qb, suffix) => {
-        if (rule.operator === "contains") {
-          profileField("tags")(rule, qb, suffix, `? :v${suffix}`);
-        } else if (rule.operator === "not_contains") {
-          profileField("tags")(rule, qb, suffix, `? :v${suffix} = FALSE`);
-        } else if (rule.operator === "is_empty") {
-          profileField("tags")(rule, qb, suffix, `->> 0 IS NULL`);
-        } else if (rule.operator === "is_not_empty") {
-          profileField("tags")(rule, qb, suffix, `->> 0 IS NOT NULL`);
-        } else {
-          throw new BadRequestError(
-            "Invalid operator for tags: " + rule.operator
-          );
+      tags: (qb, { operator, suffix }) => {
+        /* TODO: support enums properly */
+        switch (operator) {
+          case "contains":
+            return profileField("tags")(qb, { suffix, where: `? :a${suffix}` });
+          case "not_contains":
+            return profileField("tags")(qb, {
+              suffix,
+              where: `? :a${suffix} = FALSE`
+            });
+          case "is_empty":
+            return profileField("tags")(qb, { suffix, where: `->> 0 IS NULL` });
+          case "is_not_empty":
+            return profileField("tags")(qb, {
+              suffix,
+              where: `->> 0 IS NOT NULL`
+            });
         }
-
-        return { v: rule.value[0] };
       },
       activePermission,
       activeMembership: activePermission,
       membershipStarts: membershipField("dateAdded"),
       membershipExpires: membershipField("dateExpires"),
-      manualPaymentSource: (rule, qb, suffix, namedWhere) => {
+      manualPaymentSource: (qb, { suffix, where }) => {
         const table = "pd" + suffix;
         const subQb = createQueryBuilder()
           .subQuery()
           .select(`${table}.memberId`)
           .from(PaymentData, table)
-          .where(`${table}.data ->> 'source' ${namedWhere}`);
+          .where(`${table}.data ->> 'source' ${where}`);
 
         qb.where("item.id IN " + subQb.getQuery()).andWhere(
           "item.contributionType = 'Manual'"

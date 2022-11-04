@@ -1,5 +1,8 @@
-import { calloutFilters, calloutResponseFilters } from "@beabee/beabee-common";
-
+import {
+  calloutFilters,
+  calloutResponseFilters,
+  ItemStatus
+} from "@beabee/beabee-common";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
 
@@ -7,10 +10,10 @@ import {
   fetchPaginated,
   GetPaginatedQuery,
   mergeRules,
-  Paginated
+  Paginated,
+  statusField
 } from "@api/data/PaginatedData";
 
-import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 import Member from "@models/Member";
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
@@ -100,22 +103,14 @@ export async function fetchPaginatedCallouts(
     scopedQuery,
     member,
     {
-      status: ruleAsQuery,
-      answeredBy: (rule, qb, suffix) => {
-        if (rule.operator !== "equal" || !member) {
+      status: statusField,
+      answeredBy: (qb, { operator, suffix, values }) => {
+        // TODO: support not_equal for admins
+        if (operator !== "equal" || !member) {
           throw new BadRequestError();
         }
 
-        const value = rule.value[0];
-
-        const id =
-          value === "me" || value === member.id
-            ? member.id
-            : member.hasPermission("admin")
-            ? value
-            : undefined;
-
-        if (!id) {
+        if (values[0] !== member.id && !member.hasPermission("admin")) {
           throw new UnauthorizedError();
         }
 
@@ -125,12 +120,10 @@ export async function fetchPaginatedCallouts(
           .select("pr.pollSlug", "slug")
           .distinctOn(["pr.pollSlug"])
           .from(PollResponse, "pr")
-          .where(`pr.memberId = :id${suffix}`)
+          .where(`pr.memberId = :a${suffix}`)
           .orderBy("pr.pollSlug");
 
         qb.where("item.slug IN " + subQb.getQuery());
-
-        return { id };
       }
     },
     (qb) => {
@@ -191,14 +184,7 @@ export async function fetchPaginatedCalloutResponses(
     calloutResponseFilters,
     scopedQuery,
     member,
-    {
-      member: (rule, qb, suffix, namedWhere) => {
-        qb.where(`item.member ${namedWhere}`);
-        if (rule.value[0] === "me") {
-          return { a: member.id };
-        }
-      }
-    },
+    undefined,
     (qb) => qb.loadAllRelationIds()
   );
 

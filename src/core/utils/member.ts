@@ -1,4 +1,8 @@
-import { contactFilters, RuleGroup } from "@beabee/beabee-common";
+import {
+  ContactFilterName,
+  contactFilters,
+  ValidatedRuleGroup
+} from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import { SelectQueryBuilder } from "typeorm";
 
@@ -30,7 +34,7 @@ export function generateMemberCode(member: Partial<Member>): string | null {
 }
 
 export function buildQuery(
-  ruleGroup?: RuleGroup<string>
+  ruleGroup?: ValidatedRuleGroup<ContactFilterName>
 ): SelectQueryBuilder<Member> {
   return buildPaginatedQuery(Member, contactFilters, ruleGroup);
 }
