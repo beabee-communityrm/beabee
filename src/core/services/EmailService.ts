@@ -265,6 +265,9 @@ class EmailService {
         recipients
       });
       await this.provider.sendTemplate(providerTemplate, recipients, opts);
+      // Fallback to cancelled contribution email if no no-survey variant
+    } else if (template === "cancelled-contribution-no-survey") {
+      this.sendTemplate("cancelled-contribution", recipients, opts, required);
     } else {
       const defaultEmail = this.getDefaultEmail(template);
       if (defaultEmail) {

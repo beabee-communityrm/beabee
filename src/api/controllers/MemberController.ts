@@ -60,7 +60,8 @@ import {
 import {
   SetContributionData,
   StartContributionData,
-  UpdateContributionData
+  UpdateContributionData,
+  ForceUpdateContributionData
 } from "@api/data/ContributionData";
 import {
   mergeRules,
@@ -231,6 +232,18 @@ export class MemberController {
   ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
     await MembersService.updateMemberContribution(target, joinFlow.joinForm);
+    return await this.getContribution(target);
+  }
+
+  // This is a temporary API endpoint until we rework the contribution/payment tables
+  // TODO: Remove this!
+  @Authorized("admin")
+  @Patch("/:id/contribution/force")
+  async forceUpdateContribution(
+    @TargetUser() target: Member,
+    @Body() data: ForceUpdateContributionData
+  ): Promise<ContributionInfo> {
+    await MembersService.forceUpdateMemberContribution(target, data);
     return await this.getContribution(target);
   }
 

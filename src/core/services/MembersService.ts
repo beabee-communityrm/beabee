@@ -30,6 +30,14 @@ import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 export type PartialMember = Pick<Member, "email" | "contributionType"> &
   Partial<Member>;
 
+interface ForceUpdateContribution {
+  type: ContributionType.Manual | ContributionType.None;
+  period: ContributionPeriod | undefined | null;
+  amount: number | undefined | null;
+  source: string | undefined | null;
+  reference: string | undefined | null;
+}
+
 const log = mainLogger.child({ app: "members-service" });
 
 class MembersService {
@@ -293,6 +301,36 @@ class MembersService {
   async permanentlyDeleteMember(member: Member): Promise<void> {
     await getRepository(Member).delete(member.id);
     await NewsletterService.deleteMembers([member]);
+  }
+
+  // This is a temporary method until we rework manual contribution updates
+  // TODO: Remove this!
+  async forceUpdateMemberContribution(
+    member: Member,
+    data: ForceUpdateContribution
+  ): Promise<void> {
+    if (member.contributionType === ContributionType.Automatic) {
+      throw new CantUpdateContribution();
+    }
+
+    const period = data.period && data.amount ? data.period : null;
+    const monthlyAmount =
+      data.period && data.amount
+        ? data.amount / (data.period === ContributionPeriod.Annually ? 12 : 1)
+        : null;
+
+    await this.updateMember(member, {
+      contributionType: data.type,
+      contributionPeriod: period,
+      contributionMonthlyAmount: monthlyAmount
+    });
+
+    await PaymentService.updateDataBy(member, "source", data.source || null);
+    await PaymentService.updateDataBy(
+      member,
+      "reference",
+      data.reference || null
+    );
   }
 }
 
