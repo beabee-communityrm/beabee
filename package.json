@@ -73,13 +73,13 @@
   "scripts": {
     "start": "npm run dev:app",
     "dev:app": "npm run build && docker-compose restart && concurrently -c red,green,blue npm:dev:app:*",
-    "dev:app:watch": "tsc-watch --noClear --onSuccess 'docker-compose restart app api_app webhook_app router'",
+    "dev:app:watch": "tsc-watch -p tsconfig.build.json --noClear --onSuccess 'docker-compose restart app api_app webhook_app router'",
     "dev:app:watch:assets": "gulp watch",
     "dev:app:logs": "while true; do docker-compose logs -f --tail=0 app api_app webhook_app; sleep 1; done",
     "dev:api": "npm run build && docker-compose restart && concurrently -c red,green,blue npm:dev:api:*",
-    "dev:api:watch": "tsc-watch --noClear --onSuccess 'docker-compose restart api_app router'",
+    "dev:api:watch": "tsc-watch -p tsconfig.build.json --noClear --onSuccess 'docker-compose restart api_app router'",
     "dev:api:logs": "while true; do docker-compose logs -f --tail=0 api_app; sleep 1; done",
-    "build": "rimraf built/ && gulp build && tsc",
+    "build": "rimraf built/ && gulp build && tsc -p ./tsconfig.build.json",
     "checkDependencies": "dpdm -T --exit-code circular:1 src/app.ts src/webhooks/app.ts src/api/app.ts",
     "typeorm": "node --require module-alias/register node_modules/.bin/typeorm",
     "test": "jest"
