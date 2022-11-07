@@ -19,10 +19,13 @@ import Member from "@models/Member";
 import Notice from "@models/Notice";
 
 import { UUIDParam } from "@api/data";
-import { CreateNoticeData, GetNoticeData } from "@api/data/NoticeData";
+import {
+  CreateNoticeData,
+  GetNoticeData,
+  GetNoticesQuery
+} from "@api/data/NoticeData";
 import {
   fetchPaginated,
-  GetPaginatedQuery,
   mergeRules,
   Paginated,
   statusField
@@ -36,7 +39,7 @@ export class NoticeController {
   @Get("/")
   async getNotices(
     @CurrentUser() member: Member,
-    @QueryParams() query: GetPaginatedQuery
+    @QueryParams() query: GetNoticesQuery
   ): Promise<Paginated<GetNoticeData>> {
     const authedQuery = mergeRules(query, [
       // Non-admins can only see open notices

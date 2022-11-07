@@ -88,7 +88,7 @@ export class GetMemberQuery {
   with?: GetMemberWith[];
 }
 
-export const memberSortFields = [
+const memberSortFields = [
   "firstname",
   "lastname",
   "email",
@@ -185,4 +185,8 @@ export interface GetPaymentData {
   status: PaymentStatus;
 }
 
-export const paymentSortFields = ["amount", "chargeDate"] as const;
+const paymentSortFields = ["amount", "chargeDate"] as const;
+export class GetPaymentsQuery extends GetPaginatedQuery {
+  @IsIn(paymentSortFields)
+  sort?: string;
+}

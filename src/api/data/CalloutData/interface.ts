@@ -5,6 +5,7 @@ import {
   IsDate,
   IsEmail,
   IsEnum,
+  IsIn,
   IsObject,
   IsOptional,
   IsString
@@ -23,12 +24,15 @@ export enum GetCalloutWith {
   HasAnswered = "hasAnswered"
 }
 
-export const sortFields = ["title", "starts", "expires"] as const;
+const sortFields = ["title", "starts", "expires"] as const;
 
 export class GetCalloutsQuery extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
+
+  @IsIn(sortFields)
+  sort?: string;
 }
 
 interface CalloutData {
@@ -130,6 +134,11 @@ export class CreateCalloutData
 }
 
 export const responseSortFields = ["createdAt", "updatedAt"] as const;
+
+export class GetCalloutResponsesQuery extends GetPaginatedQuery {
+  @IsIn(responseSortFields)
+  sort?: string;
+}
 
 export interface GetCalloutResponseData {
   member: string;

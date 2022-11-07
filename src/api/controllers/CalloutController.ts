@@ -29,10 +29,11 @@ import {
   GetCalloutData,
   GetCalloutQuery,
   GetCalloutResponseData,
+  GetCalloutResponsesQuery,
   GetCalloutsQuery,
   UpdateCalloutData
 } from "@api/data/CalloutData";
-import { GetPaginatedQuery, Paginated } from "@api/data/PaginatedData";
+import { Paginated } from "@api/data/PaginatedData";
 
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
@@ -102,7 +103,7 @@ export class CalloutController extends CalloutAdminController {
   async getCalloutResponses(
     @CurrentUser() member: Member,
     @Param("slug") slug: string,
-    @QueryParams() query: GetPaginatedQuery
+    @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
     return await fetchPaginatedCalloutResponses(slug, query, member);
   }

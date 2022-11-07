@@ -1,6 +1,7 @@
 import { ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
-import { IsBoolean, IsDate, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsDate, IsIn, IsOptional, IsString } from "class-validator";
+import { GetPaginatedQuery } from "./PaginatedData";
 
 interface NoticeData {
   name: string;
@@ -10,12 +11,12 @@ interface NoticeData {
   url?: string;
 }
 
-export const sortFields = [
-  "createdAt",
-  "updatedAt",
-  "name",
-  "expires"
-] as const;
+const sortFields = ["createdAt", "updatedAt", "name", "expires"] as const;
+
+export class GetNoticesQuery extends GetPaginatedQuery {
+  @IsIn(sortFields)
+  sort?: string;
+}
 
 export interface GetNoticeData extends NoticeData {
   id: string;

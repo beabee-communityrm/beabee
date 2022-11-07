@@ -8,7 +8,6 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import {
   fetchPaginated,
-  GetPaginatedQuery,
   mergeRules,
   Paginated,
   statusField
@@ -22,7 +21,8 @@ import {
   GetCalloutWith,
   GetCalloutsQuery,
   GetCalloutResponseData,
-  GetCalloutData
+  GetCalloutData,
+  GetCalloutResponsesQuery
 } from "./interface";
 
 interface ConvertOpts {
@@ -171,7 +171,7 @@ export async function fetchPaginatedCallouts(
 
 export async function fetchPaginatedCalloutResponses(
   slug: string,
-  query: GetPaginatedQuery,
+  query: GetCalloutResponsesQuery,
   member: Member
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [

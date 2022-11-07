@@ -50,6 +50,7 @@ import {
   GetMembersQuery,
   GetMemberWith,
   GetPaymentData,
+  GetPaymentsQuery,
   UpdateMemberData,
   UpdateMemberRoleData
 } from "@api/data/MemberData";
@@ -63,12 +64,7 @@ import {
   UpdateContributionData,
   ForceUpdateContributionData
 } from "@api/data/ContributionData";
-import {
-  mergeRules,
-  fetchPaginated,
-  Paginated,
-  GetPaginatedQuery
-} from "@api/data/PaginatedData";
+import { mergeRules, fetchPaginated, Paginated } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -250,7 +246,7 @@ export class MemberController {
   @Get("/:id/payment")
   async getPayments(
     @TargetUser() target: Member,
-    @QueryParams() query: GetPaginatedQuery
+    @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
     const targetQuery = mergeRules(query, [
       { field: "member", operator: "equal", value: [target.id] }
