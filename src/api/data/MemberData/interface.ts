@@ -6,11 +6,13 @@ import {
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
+  IsArray,
   IsBoolean,
   IsDate,
   IsDefined,
   IsEmail,
   IsEnum,
+  IsIn,
   IsOptional,
   IsString,
   Validate,
@@ -80,12 +82,7 @@ export enum GetMemberWith {
 }
 
 export class GetMemberQuery {
-  @IsOptional()
-  @IsEnum(GetMemberWith, { each: true })
-  with?: GetMemberWith[];
-}
-
-export class GetMembersQuery extends GetPaginatedQuery {
+  @IsArray()
   @IsOptional()
   @IsEnum(GetMemberWith, { each: true })
   with?: GetMemberWith[];
@@ -101,6 +98,17 @@ export const memberSortFields = [
   "membershipStarts",
   "membershipExpires"
 ] as const;
+
+// TODO: Use a mixin to inherit from GetMemberQuery?
+export class GetMembersQuery extends GetPaginatedQuery {
+  @IsArray()
+  @IsOptional()
+  @IsEnum(GetMemberWith, { each: true })
+  with?: GetMemberWith[];
+
+  @IsIn(memberSortFields)
+  sort!: string;
+}
 
 class UpdateAddressData implements Address {
   @IsDefined()

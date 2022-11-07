@@ -104,10 +104,15 @@ export async function fetchPaginatedCallouts(
     member,
     {
       status: statusField,
-      answeredBy: (qb, { operator, suffix, values }) => {
+      answeredBy: (qb, { operator, whereFn, values }) => {
         // TODO: support not_equal for admins
-        if (operator !== "equal" || !member) {
-          throw new BadRequestError();
+        if (operator !== "equal") {
+          throw new BadRequestError("answeredBy only supports equal");
+        }
+        if (!member) {
+          throw new BadRequestError(
+            "answeredBy can only be used with member scope"
+          );
         }
 
         if (values[0] !== member.id && !member.hasPermission("admin")) {
@@ -120,7 +125,7 @@ export async function fetchPaginatedCallouts(
           .select("pr.pollSlug", "slug")
           .distinctOn(["pr.pollSlug"])
           .from(PollResponse, "pr")
-          .where(`pr.memberId = :a${suffix}`)
+          .where(whereFn(`pr.memberId`))
           .orderBy("pr.pollSlug");
 
         qb.where("item.slug IN " + subQb.getQuery());

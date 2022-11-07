@@ -1,7 +1,7 @@
 import { describe, expect, test } from "@jest/globals";
 import { sub } from "date-fns";
 
-import { parseDate } from "@core/utils/date";
+import { getMinDateUnit, parseDate } from "@core/utils/date";
 
 describe("parseDate for absolute dates", () => {
   test("date with years has unit years", () => {
@@ -97,5 +97,11 @@ describe("parseDate for relative dates", () => {
   test("parseDate returns invalid date on bad input", () => {
     const [date] = parseDate("Not a date");
     expect(+date).toBeNaN();
+  });
+
+  test("getMinDateUnit returns minimum date unit", () => {
+    expect(getMinDateUnit(["d", "m"])).toBe("m");
+    expect(getMinDateUnit(["d", "y"])).toBe("d");
+    expect(getMinDateUnit(["d", "y", "h", "s"])).toBe("s");
   });
 });

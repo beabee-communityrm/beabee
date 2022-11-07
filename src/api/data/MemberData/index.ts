@@ -1,3 +1,4 @@
+import { contactFilters } from "@beabee/beabee-common";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
 import Member from "@models/Member";
@@ -12,7 +13,6 @@ import {
 } from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
-import { contactFilters, ValidatedRule } from "@beabee/beabee-common";
 
 interface ConvertOpts {
   with?: GetMemberWith[] | undefined;
@@ -74,19 +74,14 @@ export function convertMemberToData(
 function membershipField(field: keyof MemberPermission) {
   return (
     qb: WhereExpressionBuilder,
-    args: {
-      suffix: string;
-      where: string;
-    }
+    args: { whereFn: (field: string) => string }
   ) => {
-    const table = "mp" + args.suffix;
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`${table}.memberId`)
-      .from(MemberPermission, table)
-      .where(
-        `${table}.permission = 'member' AND ${table}.${field} ${args.where}`
-      );
+      .select(`mp.memberId`)
+      .from(MemberPermission, "mp")
+      .where(`mp.permission = 'member'`)
+      .andWhere(args.whereFn(`mp.${field}`));
 
     qb.where("item.id IN " + subQb.getQuery());
   };
@@ -95,17 +90,13 @@ function membershipField(field: keyof MemberPermission) {
 function profileField(field: keyof MemberProfile) {
   return (
     qb: WhereExpressionBuilder,
-    args: {
-      suffix: string;
-      where: string;
-    }
+    args: { whereFn: (field: string) => string }
   ) => {
-    const table = "profile" + args.suffix;
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`${table}.memberId`)
-      .from(MemberProfile, table)
-      .where(`${table}.${field} ${args.where}`);
+      .select(`profile.memberId`)
+      .from(MemberProfile, "profile")
+      .where(args.whereFn(`profile.${field}`));
 
     qb.where("item.id IN " + subQb.getQuery());
   };
@@ -113,29 +104,20 @@ function profileField(field: keyof MemberProfile) {
 
 function activePermission(
   qb: WhereExpressionBuilder,
-  args: {
-    field: string;
-    suffix: string;
-    values: RichRuleValue[];
-  }
+  args: { field: string; values: RichRuleValue[] }
 ) {
-  const table = "mp" + args.suffix;
-
   const permission =
     args.field === "activeMembership" ? "member" : args.values[0];
 
   const subQb = createQueryBuilder()
     .subQuery()
-    .select(`${table}.memberId`)
-    .from(MemberPermission, table)
-    .where(
-      `${table}.permission = '${permission}' AND ${table}.dateAdded <= :now`
-    )
+    .select(`mp.memberId`)
+    .from(MemberPermission, "mp")
+    .where(`mp.permission = '${permission}'`)
+    .andWhere(`mp.dateAdded <= :now`)
     .andWhere(
       new Brackets((qb) => {
-        qb.where(`${table}.dateExpires IS NULL`).orWhere(
-          `${table}.dateExpires > :now`
-        );
+        qb.where(`mp.dateExpires IS NULL`).orWhere(`mp.dateExpires > :now`);
       })
     );
 
@@ -158,36 +140,17 @@ export async function fetchPaginatedMembers(
     {
       deliveryOptIn: profileField("deliveryOptIn"),
       newsletterStatus: profileField("newsletterStatus"),
-      tags: (qb, { operator, suffix }) => {
-        /* TODO: support enums properly */
-        switch (operator) {
-          case "contains":
-            return profileField("tags")(qb, { suffix, where: `? :a${suffix}` });
-          case "not_contains":
-            return profileField("tags")(qb, {
-              suffix,
-              where: `? :a${suffix} = FALSE`
-            });
-          case "is_empty":
-            return profileField("tags")(qb, { suffix, where: `->> 0 IS NULL` });
-          case "is_not_empty":
-            return profileField("tags")(qb, {
-              suffix,
-              where: `->> 0 IS NOT NULL`
-            });
-        }
-      },
+      tags: profileField("tags"),
       activePermission,
       activeMembership: activePermission,
       membershipStarts: membershipField("dateAdded"),
       membershipExpires: membershipField("dateExpires"),
-      manualPaymentSource: (qb, { suffix, where }) => {
-        const table = "pd" + suffix;
+      manualPaymentSource: (qb, { whereFn }) => {
         const subQb = createQueryBuilder()
           .subQuery()
-          .select(`${table}.memberId`)
-          .from(PaymentData, table)
-          .where(`${table}.data ->> 'source' ${where}`);
+          .select(`pd.memberId`)
+          .from(PaymentData, "pd")
+          .where(whereFn(`pd.data ->> 'source'`));
 
         qb.where("item.id IN " + subQb.getQuery()).andWhere(
           "item.contributionType = 'Manual'"

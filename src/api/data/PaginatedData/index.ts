@@ -5,7 +5,10 @@ import {
   ValidatedRule,
   ValidatedRuleGroup,
   ItemStatus,
-  RuleOperator
+  RuleOperator,
+  FilterType,
+  operatorsByType,
+  FilterOperator
 } from "@beabee/beabee-common";
 import { BadRequestError } from "routing-controllers";
 import {
@@ -16,7 +19,7 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 
-import { parseDate } from "@core/utils/date";
+import { getMinDateUnit, parseDate } from "@core/utils/date";
 
 import Member from "@models/Member";
 
@@ -28,31 +31,84 @@ import {
   SpecialFields
 } from "./interface";
 
-const operatorWhere: Record<RuleOperator, string> = {
-  equal: "= :a",
-  not_equal: "<> :a",
-  less: "< :a",
-  less_or_equal: "<= :a",
-  greater: "> :a",
-  greater_or_equal: ">= :a",
-  between: "BETWEEN :a AND :b",
-  not_between: "NOT BETWEEN :a AND :b",
-  begins_with: "ILIKE :a",
-  not_begins_with: "NOT ILIKE :a",
-  contains: "ILIKE :a",
-  not_contains: "NOT ILIKE :a",
-  ends_with: "ILIKE :a",
-  not_ends_with: "NOT ILIKE :a",
-  is_empty: "= ''",
-  is_not_empty: "<> ''"
+const equalityOperatorsWhere = {
+  equal: (field: string) => `${field} = :a`,
+  not_equal: (field: string) => `${field} <> :a`
 };
+
+const nullableOperatorsWhere = {
+  is_empty: (field: string) => `${field} IS NULL`,
+  is_not_empty: (field: string) => `${field} IS NOT NULL`
+};
+
+const numericOperatorsWhere = {
+  ...equalityOperatorsWhere,
+  ...nullableOperatorsWhere,
+  less: (field: string) => `${field} < :a`,
+  less_or_equal: (field: string) => `${field} <= :a`,
+  greater: (field: string) => `${field} > :a`,
+  greater_or_equal: (field: string) => `${field} >= :a`,
+  between: (field: string) => `${field} BETWEEN :a AND :b`,
+  not_between: (field: string) => `${field} NOT BETWEEN :a AND :b`,
+  is_empty: (field: string) => `${field} IS NULL`,
+  is_not_empty: (field: string) => `${field} IS NOT NULL`
+};
+
+function withOperators<T extends FilterType>(
+  type: T,
+  operators: Record<
+    keyof typeof operatorsByType[T] | "is_empty" | "is_not_empty",
+    (field: string) => string
+  >
+) {
+  return operators;
+}
+
+const operatorsWhereByType: Record<
+  FilterType,
+  Partial<Record<FilterOperator, (field: string) => string>>
+> = {
+  text: withOperators("text", {
+    ...equalityOperatorsWhere,
+    begins_with: (field) => `${field} ILIKE :a || '%'`,
+    not_begins_with: (field) => `${field} NOT ILIKE :a || '%'`,
+    ends_with: (field) => `${field} ILIKE '%' || :a`,
+    not_ends_with: (field) => `${field} NOT ILIKE '%' || :a`,
+    contains: (field) => `${field} ILIKE '%' || :a, '%'`,
+    not_contains: (field) => `${field} NOT ILIKE '%' || :a || '%'`,
+    is_empty: (field) => `${field} = ''`,
+    is_not_empty: (field) => `${field} <> ''`
+  }),
+  date: withOperators("date", numericOperatorsWhere),
+  number: withOperators("number", numericOperatorsWhere),
+  boolean: withOperators("boolean", {
+    ...nullableOperatorsWhere,
+    equal: equalityOperatorsWhere.equal
+  }),
+  array: withOperators("array", {
+    contains: (field) => `${field} ? :a`,
+    not_contains: (field) => `${field} ? :a = FALSE`,
+    is_empty: (field) => `${field} ->> 0 IS NULL`,
+    is_not_empty: (field) => `${field} ->> 0 IS NOT NULL`
+  }),
+  enum: withOperators("enum", {
+    ...equalityOperatorsWhere,
+    ...nullableOperatorsWhere
+  }),
+  contact: withOperators("contact", {
+    ...equalityOperatorsWhere,
+    ...nullableOperatorsWhere
+  })
+} as const;
 
 export function statusField(
   qb: WhereExpressionBuilder,
   args: { operator: RuleOperator; values: RichRuleValue[] }
 ) {
-  // TODO: handle other operators or error
-  if (args.operator !== "equal") return;
+  // TODO: handle other operators
+  if (args.operator !== "equal") {
+    throw new BadRequestError("Status field only supports equal operator");
+  }
 
   switch (args.values[0]) {
     case ItemStatus.Draft:
@@ -68,6 +124,46 @@ export function statusField(
     case ItemStatus.Ended:
       return qb.andWhere(`item.starts < :now`).andWhere(`item.expires < :now`);
   }
+}
+
+const dateUnitSql = {
+  y: "year",
+  M: "month",
+  d: "day",
+  h: "hour",
+  m: "minute",
+  s: "second"
+} as const;
+
+function prepareRule(
+  rule: ValidatedRule<string>,
+  member: Member | undefined
+): [(field: string) => string, RichRuleValue[]] {
+  const whereFn = operatorsWhereByType[rule.type][rule.operator];
+  // This should never happen as a ValidatedRule can't have an invalid type/operator combo
+  if (!whereFn) {
+    throw new Error("Invalid ValidatedRule");
+  }
+
+  if (rule.type === "text") {
+    // Make NULL an empty string for comparison
+    return [(field) => whereFn(`COALESCE(${field}, '')`), rule.value];
+  } else if (rule.type === "date") {
+    // Compare dates using the lowest resolution date unit provided
+    const values = rule.value.map((v) => parseDate(v));
+    const minUnit = getMinDateUnit(values.map(([_, unit]) => unit)) || "d";
+    return [
+      (field) => whereFn(`DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`),
+      values.map(([date]) => date)
+    ];
+  }
+
+  return [
+    whereFn,
+    rule.type === "contact"
+      ? rule.value.map((v) => (v === "me" && member?.id) || "")
+      : rule.value
+  ];
 }
 
 export function buildPaginatedQuery<Entity, Field extends string>(
@@ -90,36 +186,25 @@ export function buildPaginatedQuery<Entity, Field extends string>(
 
   let ruleNo = 0;
 
-  function parseRuleValues(rule: ValidatedRule<Field>): RichRuleValue[] {
-    if (rule.type === "date") {
-      return rule.value.map(parseDate);
-    }
-    if (rule.type === "contact") {
-      // Map "me" to member id
-      return rule.value.map((v) => (v === "me" && member?.id) || "");
-    }
-    return rule.value;
-  }
-
   function parseRule(rule: ValidatedRule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
-      const values = parseRuleValues(rule);
+      const [whereFn, values] = prepareRule(rule, member);
       const suffix = "_" + ruleNo;
 
       // Add values as params
       params["a" + suffix] = values[0];
       params["b" + suffix] = values[1];
 
-      // Add suffix to placeholders
-      const where = operatorWhere[rule.operator]
-        .replace(":a", ":a" + suffix)
-        .replace(":b", ":b" + suffix);
+      const whereFnWithSuffix = (field: string) =>
+        whereFn(field)
+          .replace(":a", ":a" + suffix)
+          .replace(":b", ":b" + suffix);
 
       const specialField = specialFields?.[rule.field];
       if (specialField) {
-        specialField(qb, { ...rule, suffix, where, values });
+        specialField(qb, { ...rule, whereFn: whereFnWithSuffix, values });
       } else {
-        qb.where(`item.${rule.field} ${where}`);
+        qb.where(whereFnWithSuffix(`item.${rule.field}`));
       }
 
       ruleNo++;
@@ -164,7 +249,7 @@ export async function fetchPaginated<Entity, Field extends string>(
 
   const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
   if (ruleGroup === false) {
-    throw new BadRequestError();
+    throw new BadRequestError("Invalid rule group");
   }
 
   const qb = buildPaginatedQuery(

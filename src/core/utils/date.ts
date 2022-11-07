@@ -61,6 +61,9 @@ export function parseDate(value: string, now?: Date): [Date, DateUnit] {
       .map(([unit]) => unit) as DateUnit[];
   }
 
-  const minUnit = dateUnits.find((unit) => units.includes(unit));
-  return [date, minUnit || "s"];
+  return [date, getMinDateUnit(units) || "s"];
+}
+
+export function getMinDateUnit(units: DateUnit[]): DateUnit | undefined {
+  return dateUnits.find((unit) => units.includes(unit));
 }

@@ -5,8 +5,9 @@ import {
   RuleOperator,
   RuleValue,
   RuleGroup,
-  ValidatedRule
+  isRuleGroup
 } from "@beabee/beabee-common";
+import { plainToClass, Transform, TransformFnParams } from "class-transformer";
 import {
   IsString,
   IsIn,
@@ -22,6 +23,17 @@ import { IsType } from "@api/validators/IsType";
 
 export { Paginated } from "@beabee/beabee-common";
 
+function transformRules({
+  value
+}: TransformFnParams): GetPaginatedRuleGroupRule {
+  return value.map((v: GetPaginatedRuleGroupRule) =>
+    plainToClass<GetPaginatedRuleGroupRule, unknown>(
+      isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
+      v
+    )
+  );
+}
+
 export class GetPaginatedRule implements Rule {
   @IsString()
   field!: string;
@@ -29,6 +41,7 @@ export class GetPaginatedRule implements Rule {
   @IsIn(ruleOperators)
   operator!: RuleOperator;
 
+  @IsArray()
   @IsType(["string", "boolean", "number"], { each: true })
   value!: RuleValue[];
 }
@@ -42,7 +55,8 @@ export class GetPaginatedRuleGroup implements RuleGroup {
   condition!: "AND" | "OR";
 
   @IsArray()
-  @ValidateNested()
+  @ValidateNested({ each: true })
+  @Transform(transformRules)
   rules!: GetPaginatedRuleGroupRule[];
 }
 
@@ -79,8 +93,7 @@ export type SpecialFields<Field extends string> = Partial<
       args: {
         operator: RuleOperator;
         field: Field;
-        suffix: string;
-        where: string;
+        whereFn: (field: string) => string;
         values: RichRuleValue[];
       }
     ) => void
