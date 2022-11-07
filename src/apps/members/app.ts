@@ -1,8 +1,4 @@
-import {
-  ContactFilterName,
-  ValidatedRule,
-  ValidatedRuleGroup
-} from "@beabee/beabee-common";
+import { RuleGroup } from "@beabee/beabee-common";
 import express, { Request } from "express";
 import queryString from "query-string";
 import { getRepository } from "typeorm";
@@ -53,10 +49,8 @@ const sortOptions: Record<string, SortOption> = {
 
 type SortKey = keyof typeof sortOptions;
 
-function convertBasicSearch(
-  query: Request["query"]
-): ValidatedRuleGroup<ContactFilterName> | undefined {
-  const search: ValidatedRuleGroup<ContactFilterName> = {
+function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
+  const search: RuleGroup = {
     condition: "AND",
     rules: []
   };
@@ -67,7 +61,7 @@ function convertBasicSearch(
         field,
         operator: "contains",
         value: [query[field] as string]
-      } as ValidatedRule<ContactFilterName>);
+      });
     }
   }
   if (query.tag) {
@@ -75,26 +69,24 @@ function convertBasicSearch(
       field: "tags",
       operator: "contains",
       value: [query.tag as string]
-    } as ValidatedRule<ContactFilterName>);
+    });
   }
 
   return search.rules.length > 0 ? search : undefined;
 }
 
 // Removes any extra properties on the group
-function cleanRuleGroup(
-  group: ValidatedRuleGroup<ContactFilterName>
-): ValidatedRuleGroup<ContactFilterName> {
+function cleanRuleGroup(group: RuleGroup): RuleGroup {
   return {
     condition: group.condition,
     rules: group.rules.map((rule) =>
       "condition" in rule
         ? cleanRuleGroup(rule)
-        : ({
+        : {
             field: rule.field,
             operator: rule.operator,
             value: rule.value
-          } as ValidatedRule<ContactFilterName>)
+          }
     )
   };
 }
@@ -102,7 +94,7 @@ function cleanRuleGroup(
 function getSearchRuleGroup(
   query: Request["query"],
   searchType?: string
-): ValidatedRuleGroup<ContactFilterName> | undefined {
+): RuleGroup | undefined {
   return (searchType || query.type) === "basic"
     ? convertBasicSearch(query)
     : typeof query.rules === "string"

@@ -1,7 +1,7 @@
 import {
-  ContactFilterName,
   contactFilters,
-  ValidatedRuleGroup
+  RuleGroup,
+  validateRuleGroup
 } from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import { SelectQueryBuilder } from "typeorm";
@@ -33,8 +33,8 @@ export function generateMemberCode(member: Partial<Member>): string | null {
   return null;
 }
 
-export function buildQuery(
-  ruleGroup?: ValidatedRuleGroup<ContactFilterName>
-): SelectQueryBuilder<Member> {
-  return buildPaginatedQuery(Member, contactFilters, ruleGroup);
+export function buildQuery(ruleGroup?: RuleGroup): SelectQueryBuilder<Member> {
+  const validatedRuleGroup =
+    (ruleGroup && validateRuleGroup(contactFilters, ruleGroup)) || undefined;
+  return buildPaginatedQuery(Member, contactFilters, validatedRuleGroup);
 }
