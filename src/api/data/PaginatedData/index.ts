@@ -74,7 +74,7 @@ const operatorsWhereByType: Record<
     not_begins_with: (field) => `${field} NOT ILIKE :a || '%'`,
     ends_with: (field) => `${field} ILIKE '%' || :a`,
     not_ends_with: (field) => `${field} NOT ILIKE '%' || :a`,
-    contains: (field) => `${field} ILIKE '%' || :a, '%'`,
+    contains: (field) => `${field} ILIKE '%' || :a || '%'`,
     not_contains: (field) => `${field} NOT ILIKE '%' || :a || '%'`,
     is_empty: (field) => `${field} = ''`,
     is_not_empty: (field) => `${field} <> ''`
