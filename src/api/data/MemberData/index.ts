@@ -139,9 +139,7 @@ function paymentDataField(field: string) {
       .from(PaymentData, "pd")
       .where(args.whereFn(field));
 
-    qb.where("item.id IN " + subQb.getQuery()).andWhere(
-      "item.contributionType = 'Manual'"
-    );
+    qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
@@ -162,7 +160,9 @@ export async function fetchPaginatedMembers(
       activeMembership: activePermission,
       membershipStarts: membershipField("dateAdded"),
       membershipExpires: membershipField("dateExpires"),
-      contributionCancelled: paymentDataField("pd.data ->> 'cancelledAt'"),
+      contributionCancelled: paymentDataField(
+        "(pd.data ->> 'cancelledAt')::timestamp"
+      ),
       manualPaymentSource: (qb, { whereFn }) => {
         paymentDataField("pd.data ->> 'source'")(qb, { whereFn });
         qb.andWhere("item.contributionType = 'Manual'");
