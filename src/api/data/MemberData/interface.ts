@@ -107,7 +107,7 @@ export class GetMembersQuery extends GetPaginatedQuery {
   with?: GetMemberWith[];
 
   @IsIn(memberSortFields)
-  sort!: string;
+  sort?: string;
 }
 
 class UpdateAddressData implements Address {

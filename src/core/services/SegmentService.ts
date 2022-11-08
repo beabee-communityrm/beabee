@@ -1,6 +1,7 @@
 import { getRepository } from "typeorm";
-import { buildQuery } from "@core/utils/member";
+
 import Segment from "@models/Segment";
+import { fetchPaginatedMembers } from "@api/data/MemberData";
 
 class SegmentService {
   async createSegment(
@@ -24,7 +25,15 @@ class SegmentService {
   }
 
   async getSegmentMemberCount(segment: Segment): Promise<number> {
-    return await buildQuery(segment.ruleGroup).getCount();
+    return (
+      await fetchPaginatedMembers(
+        {
+          limit: 0,
+          rules: segment.ruleGroup
+        },
+        { withRestricted: false }
+      )
+    ).total;
   }
 
   async updateSegment(
