@@ -3,8 +3,7 @@ import moment from "moment";
 import { getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
-import { createDateTime } from "@core/utils/date";
+import { createDateTime, wrapAsync } from "@core/utils";
 
 import Notice from "@models/Notice";
 
