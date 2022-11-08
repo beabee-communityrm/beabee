@@ -214,17 +214,19 @@ export function buildPaginatedQuery<Entity, Field extends string>(
 
   function parseRuleGroup(ruleGroup: ValidatedRuleGroup<Field>) {
     return (qb: WhereExpressionBuilder): void => {
-      qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
-      const conditionFn =
-        ruleGroup.condition === "AND"
-          ? ("andWhere" as const)
-          : ("orWhere" as const);
-      for (const rule of ruleGroup.rules) {
-        qb[conditionFn](
-          new Brackets(
-            isRuleGroup(rule) ? parseRuleGroup(rule) : parseRule(rule)
-          )
-        );
+      if (ruleGroup.rules.length > 0) {
+        qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
+        const conditionFn =
+          ruleGroup.condition === "AND"
+            ? ("andWhere" as const)
+            : ("orWhere" as const);
+        for (const rule of ruleGroup.rules) {
+          qb[conditionFn](
+            new Brackets(
+              isRuleGroup(rule) ? parseRuleGroup(rule) : parseRule(rule)
+            )
+          );
+        }
       }
     };
   }
