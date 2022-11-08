@@ -167,9 +167,8 @@ function prepareRule(
   ];
 }
 
-export function buildPaginatedQuery<Entity, Field extends string>(
+export function buildQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
-  filters: Filters<Field>,
   ruleGroup: ValidatedRuleGroup<Field> | undefined,
   member?: Member,
   specialFields?: SpecialFields<Field>
@@ -253,13 +252,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = buildPaginatedQuery(
-      entity,
-      filters,
-      ruleGroup,
-      member,
-      specialFields
-    )
+    const qb = buildQuery(entity, ruleGroup, member, specialFields)
       .offset(offset)
       .limit(limit);
 

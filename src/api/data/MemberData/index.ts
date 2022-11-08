@@ -1,4 +1,4 @@
-import { contactFilters } from "@beabee/beabee-common";
+import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
 import Member from "@models/Member";
@@ -9,7 +9,8 @@ import PaymentData from "@models/PaymentData";
 import {
   fetchPaginated,
   Paginated,
-  RichRuleValue
+  RichRuleValue,
+  SpecialFields
 } from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
@@ -143,6 +144,23 @@ function paymentDataField(field: string) {
   };
 }
 
+export const specialMemberFields: SpecialFields<ContactFilterName> = {
+  deliveryOptIn: profileField("deliveryOptIn"),
+  newsletterStatus: profileField("newsletterStatus"),
+  tags: profileField("tags"),
+  activePermission,
+  activeMembership: activePermission,
+  membershipStarts: membershipField("dateAdded"),
+  membershipExpires: membershipField("dateExpires"),
+  contributionCancelled: paymentDataField(
+    "(pd.data ->> 'cancelledAt')::timestamp"
+  ),
+  manualPaymentSource: (qb, { whereFn }) => {
+    paymentDataField("pd.data ->> 'source'")(qb, { whereFn });
+    qb.andWhere("item.contributionType = 'Manual'");
+  }
+};
+
 export async function fetchPaginatedMembers(
   query: GetMembersQuery,
   opts: Omit<ConvertOpts, "with">
@@ -152,22 +170,7 @@ export async function fetchPaginatedMembers(
     contactFilters,
     query,
     undefined, // No contact rules in contactFilters
-    {
-      deliveryOptIn: profileField("deliveryOptIn"),
-      newsletterStatus: profileField("newsletterStatus"),
-      tags: profileField("tags"),
-      activePermission,
-      activeMembership: activePermission,
-      membershipStarts: membershipField("dateAdded"),
-      membershipExpires: membershipField("dateExpires"),
-      contributionCancelled: paymentDataField(
-        "(pd.data ->> 'cancelledAt')::timestamp"
-      ),
-      manualPaymentSource: (qb, { whereFn }) => {
-        paymentDataField("pd.data ->> 'source'")(qb, { whereFn });
-        qb.andWhere("item.contributionType = 'Manual'");
-      }
-    },
+    specialMemberFields,
     (qb) => {
       if (query.with?.includes(GetMemberWith.Profile)) {
         qb.innerJoinAndSelect("item.profile", "profile");

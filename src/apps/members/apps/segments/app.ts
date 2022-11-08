@@ -3,7 +3,6 @@ import { getRepository } from "typeorm";
 
 import { hasNewModel } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import { buildQuery } from "@core/utils/member";
 
 import SegmentService from "@core/services/SegmentService";
 
@@ -147,7 +146,7 @@ app.post(
     }
 
     if (data.type === "one-off" || data.sendNow) {
-      const members = await buildQuery(segment.ruleGroup).getMany();
+      const members = await SegmentService.getSegmentMembers(segment);
       const mailing = await getRepository(EmailMailing).save({
         email,
         emailField: "Email",

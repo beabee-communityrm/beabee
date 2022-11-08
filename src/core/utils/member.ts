@@ -1,14 +1,6 @@
-import {
-  contactFilters,
-  RuleGroup,
-  validateRuleGroup
-} from "@beabee/beabee-common";
 import { Request, Response } from "express";
-import { SelectQueryBuilder } from "typeorm";
 
 import Member from "@models/Member";
-
-import { buildPaginatedQuery } from "@api/data/PaginatedData";
 
 export function loginAndRedirect(
   req: Request,
@@ -31,10 +23,4 @@ export function generateMemberCode(member: Partial<Member>): string | null {
     return (member.firstname[0] + member.lastname[0] + no).toUpperCase();
   }
   return null;
-}
-
-export function buildQuery(ruleGroup?: RuleGroup): SelectQueryBuilder<Member> {
-  const validatedRuleGroup =
-    (ruleGroup && validateRuleGroup(contactFilters, ruleGroup)) || undefined;
-  return buildPaginatedQuery(Member, contactFilters, validatedRuleGroup);
 }
