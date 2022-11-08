@@ -9,13 +9,14 @@ import PaymentData from "@models/PaymentData";
 import {
   fetchPaginated,
   Paginated,
-  RichRuleValue
+  RichRuleValue,
+  SpecialFields
 } from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
 
 interface ConvertOpts {
-  with?: GetMemberWith[] | undefined;
+  with: GetMemberWith[] | undefined;
   withRestricted: boolean;
 }
 
@@ -145,7 +146,7 @@ function paymentDataField(field: string) {
 
 export async function fetchPaginatedMembers(
   query: GetMembersQuery,
-  opts: ConvertOpts
+  opts: Omit<ConvertOpts, "with">
 ): Promise<Paginated<GetMemberData>> {
   const results = await fetchPaginated(
     Member,
@@ -223,7 +224,9 @@ export async function fetchPaginatedMembers(
 
   return {
     ...results,
-    items: results.items.map((item) => convertMemberToData(item, opts))
+    items: results.items.map((item) =>
+      convertMemberToData(item, { ...opts, with: query.with })
+    )
   };
 }
 

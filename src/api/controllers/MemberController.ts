@@ -114,7 +114,6 @@ export class MemberController {
     @QueryParams() query: GetMembersQuery
   ): Promise<Paginated<GetMemberData>> {
     return await fetchPaginatedMembers(query, {
-      with: query.with,
       withRestricted: true
     });
   }
