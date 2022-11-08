@@ -9,8 +9,7 @@ import PaymentData from "@models/PaymentData";
 import {
   fetchPaginated,
   Paginated,
-  RichRuleValue,
-  SpecialFields
+  RichRuleValue
 } from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
@@ -176,6 +175,7 @@ export async function fetchPaginatedMembers(
 
       // Put empty names at the bottom
       qb.addSelect("NULLIF(item.firstname, '')", "firstname");
+      qb.addSelect("NULLIF(item.lastname, '')", "lastname");
 
       if (
         query.sort === "membershipStarts" ||
@@ -195,9 +195,9 @@ export async function fetchPaginatedMembers(
             "membershipExpires"
           )
           .orderBy(`"${query.sort}"`, query.order || "ASC");
-      } else if (query.sort === "firstname") {
-        // Override "item.firstname"
-        qb.orderBy("firstname", query.order || "ASC");
+      } else if (query.sort === "firstname" || query.sort === "lastname") {
+        // Override the sort order to use the NULLIF(...) variants
+        qb.orderBy(query.sort, query.order || "ASC");
       } else {
         qb.addOrderBy("firstname", "ASC");
       }

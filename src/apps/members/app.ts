@@ -5,13 +5,13 @@ import { getRepository } from "typeorm";
 
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import { buildQuery } from "@core/utils/member";
 
 import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";
 
 import Project from "@models/Project";
 import Member from "@models/Member";
+import { fetchPaginatedMembers, GetMemberWith } from "@api/data/MemberData";
 
 const app = express();
 
@@ -25,29 +25,27 @@ function getAvailableTags() {
 
 type SortOption = {
   label: string;
-  order: readonly string[];
+  sort: string;
 };
 
 const sortOptions: Record<string, SortOption> = {
-  lf: {
-    label: "Last name, first name",
-    order: ["lastname_n", "firstname_n", "email"]
+  lastname: {
+    label: "Last name",
+    sort: "lastname"
   },
-  fl: {
-    label: "First name, last name",
-    order: ["firstname_n", "lastname_n", "email"]
+  firstname: {
+    label: "First name",
+    sort: "firstname"
   },
-  e: {
+  email: {
     label: "Email",
-    order: ["email", "lastname_n", "firstname_n"]
+    sort: "email"
   },
-  j: {
+  joined: {
     label: "Joined",
-    order: ["joined", "lastname_n", "firstname_n"]
+    sort: "joined"
   }
 } as const;
-
-type SortKey = keyof typeof sortOptions;
 
 function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
   const search: RuleGroup = {
@@ -75,7 +73,7 @@ function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
   return search.rules.length > 0 ? search : undefined;
 }
 
-// Removes any extra properties on the group
+// Convert legacy app group queries to clean RuleGroups
 function cleanRuleGroup(group: RuleGroup): RuleGroup {
   return {
     condition: group.condition,
@@ -85,7 +83,7 @@ function cleanRuleGroup(group: RuleGroup): RuleGroup {
         : {
             field: rule.field,
             operator: rule.operator,
-            value: rule.value
+            value: Array.isArray(rule.value) ? rule.value : [rule.value]
           }
     )
   };
@@ -123,30 +121,29 @@ app.get(
     const page = query.page ? Number(query.page) : 1;
     const limit = query.limit ? Number(query.limit) : 50;
 
-    const sort = (query.sort as string) || "lf_ASC";
+    const sort = (query.sort as string) || "lastname_ASC";
     const [sortId, sortDir] = sort.split("_");
 
-    const orderBy = Object.assign(
-      {},
-      ...sortOptions[sortId as SortKey].order.map((col) => ({
-        [col]: sortDir
-      }))
+    const result = await fetchPaginatedMembers(
+      {
+        offset: limit * (page - 1),
+        limit,
+        sort: sortOptions[sortId].sort,
+        order: sortDir as "ASC" | "DESC",
+        with: [GetMemberWith.Profile, GetMemberWith.Roles],
+        ...(searchRuleGroup && { rules: searchRuleGroup })
+      },
+      {
+        withRestricted: true
+      }
     );
 
-    const [members, total] = await buildQuery(searchRuleGroup)
-      .leftJoinAndSelect("item.permissions", "mp")
-      .innerJoinAndSelect("item.profile", "profile")
-      .addSelect("NULLIF(lastname, '')", "lastname_n")
-      .addSelect("NULLIF(firstname, '')", "firstname_n")
-      .orderBy(orderBy)
-      .offset(limit * (page - 1))
-      .limit(limit)
-      .getManyAndCount();
-
-    const pages = [...Array(Math.ceil(total / limit))].map((v, page) => ({
-      number: page + 1,
-      path: "/members?" + queryString.stringify({ ...query, page: page + 1 })
-    }));
+    const pages = [...Array(Math.ceil(result.total / limit))].map(
+      (v, page) => ({
+        number: page + 1,
+        path: "/members?" + queryString.stringify({ ...query, page: page + 1 })
+      })
+    );
 
     const next = page + 1 <= pages.length ? pages[page] : null;
     const prev = page - 1 > 0 ? pages[page - 2] : null;
@@ -157,7 +154,7 @@ app.get(
       prev,
       next,
       start: (page - 1) * limit + 1,
-      end: Math.min(total, page * limit),
+      end: Math.min(result.total, page * limit),
       total: pages.length
     };
 
@@ -167,9 +164,9 @@ app.get(
 
     res.render("index", {
       availableTags,
-      members,
+      members: result.items,
       pagination,
-      total,
+      total: result.total,
       searchQuery: query,
       searchType,
       searchRuleGroup,

@@ -7,7 +7,11 @@ mixin membersTable
 					label.members-table-action
 						input(type='checkbox' name='memberIds[]' value=member._id)
 				+membersTableBasicInfo(member)
-				span(style='flex: 0 1 120px')= member.contributionDescription
+				span(style='flex: 0 1 120px')
+					= currencySymbol
+					= member.contributionAmount
+					| /
+					= member.contributionPeriod
 
 if addToProject
 	form(method='POST' action='/projects/' + addToProject.id)

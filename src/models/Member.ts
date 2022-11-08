@@ -86,6 +86,12 @@ export default class Member {
     return this.permissions.filter((p) => p.isActive).map((p) => p.permission);
   }
 
+  // Alias to match GetMemberData with Member for membersTableBasicInfo
+  // TODO: Remove once legacy app is gone
+  get activeRoles(): PermissionType[] {
+    return this.activePermissions;
+  }
+
   hasPermission(permission: PermissionType): boolean {
     return (
       this.activePermissions.includes("superadmin") ||

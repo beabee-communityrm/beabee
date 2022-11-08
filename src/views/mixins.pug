@@ -100,13 +100,13 @@ mixin membersTableBasicInfo(member)
 	span.members-table-action
 		a(href='/members/' + member.id).btn.btn-xs.btn-default
 			span(
-				style='color: ' + (member.membership && member.membership.isActive ? 'green' : 'red')
-				title=member.membership && member.membership.isActive ? 'Active' : 'Expired'
+				style='color: ' + (member.activeRoles.includes('member') ? 'green' : 'red')
+				title=member.activeRoles.includes('member') ? 'Active' : 'Expired'
 			).glyphicon.glyphicon-user
 	span.members-table-row-main
 		div.members-table-row-info
-			if member.fullname
-				span(style='flex: 0 1 250px')= member.fullname
+			if member.firstname || member.lastname
+				span(style='flex: 0 1 250px')= member.firstname + ' ' + member.lastname
 			span= member.email
 		small= member.profile.description
 	span
