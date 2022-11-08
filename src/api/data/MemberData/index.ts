@@ -128,6 +128,23 @@ function activePermission(
   }
 }
 
+function paymentDataField(field: string) {
+  return (
+    qb: WhereExpressionBuilder,
+    args: { whereFn: (field: string) => string }
+  ) => {
+    const subQb = createQueryBuilder()
+      .subQuery()
+      .select(`pd.memberId`)
+      .from(PaymentData, "pd")
+      .where(args.whereFn(field));
+
+    qb.where("item.id IN " + subQb.getQuery()).andWhere(
+      "item.contributionType = 'Manual'"
+    );
+  };
+}
+
 export async function fetchPaginatedMembers(
   query: GetMembersQuery,
   opts: ConvertOpts
@@ -145,16 +162,10 @@ export async function fetchPaginatedMembers(
       activeMembership: activePermission,
       membershipStarts: membershipField("dateAdded"),
       membershipExpires: membershipField("dateExpires"),
+      contributionCancelled: paymentDataField("pd.data ->> 'cancelledAt'"),
       manualPaymentSource: (qb, { whereFn }) => {
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`pd.memberId`)
-          .from(PaymentData, "pd")
-          .where(whereFn(`pd.data ->> 'source'`));
-
-        qb.where("item.id IN " + subQb.getQuery()).andWhere(
-          "item.contributionType = 'Manual'"
-        );
+        paymentDataField("pd.data ->> 'source'")(qb, { whereFn });
+        qb.andWhere("item.contributionType = 'Manual'");
       }
     },
     (qb) => {
