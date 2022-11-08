@@ -8,7 +8,8 @@ import {
   RuleOperator,
   FilterType,
   operatorsByType,
-  FilterOperator
+  FilterOperator,
+  InvalidRule
 } from "@beabee/beabee-common";
 import { BadRequestError } from "routing-controllers";
 import {
@@ -247,37 +248,44 @@ export async function fetchPaginated<Entity, Field extends string>(
   const limit = query.limit || 50;
   const offset = query.offset || 0;
 
-  const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
-  if (ruleGroup === false) {
-    throw new BadRequestError("Invalid rule group");
+  try {
+    const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
+
+    const qb = buildPaginatedQuery(
+      entity,
+      filters,
+      ruleGroup,
+      member,
+      specialFields
+    )
+      .offset(offset)
+      .limit(limit);
+
+    if (query.sort) {
+      qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
+    }
+
+    if (queryCallback) {
+      queryCallback(qb);
+    }
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return {
+      total,
+      offset,
+      count: items.length,
+      items
+    };
+  } catch (err) {
+    if (err instanceof InvalidRule) {
+      const err2: any = new BadRequestError(err.message);
+      err2.rule = err.rule;
+      throw err2;
+    } else {
+      throw err;
+    }
   }
-
-  const qb = buildPaginatedQuery(
-    entity,
-    filters,
-    ruleGroup,
-    member,
-    specialFields
-  )
-    .offset(offset)
-    .limit(limit);
-
-  if (query.sort) {
-    qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
-  }
-
-  if (queryCallback) {
-    queryCallback(qb);
-  }
-
-  const [items, total] = await qb.getManyAndCount();
-
-  return {
-    total,
-    offset,
-    count: items.length,
-    items
-  };
 }
 
 export function mergeRules(
