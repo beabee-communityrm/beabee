@@ -7,7 +7,12 @@ import {
   RuleGroup,
   isRuleGroup
 } from "@beabee/beabee-common";
-import { plainToClass, Transform, TransformFnParams } from "class-transformer";
+import {
+  plainToClass,
+  Transform,
+  TransformFnParams,
+  Type
+} from "class-transformer";
 import {
   IsString,
   IsIn,
@@ -80,6 +85,7 @@ export class GetPaginatedQuery implements PaginatedQuery {
 
   @IsOptional()
   @ValidateNested()
+  @Type(() => GetPaginatedRuleGroup)
   rules?: GetPaginatedRuleGroup;
 }
 
