@@ -1,19 +1,26 @@
-import moment from "moment";
+import {
+  ContactFilterName,
+  contactFilters,
+  RuleOperator
+} from "@beabee/beabee-common";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
-
-import { Rule } from "@core/utils/newRules";
 
 import Member from "@models/Member";
 import MemberPermission from "@models/MemberPermission";
 import MemberProfile from "@models/MemberProfile";
 import PaymentData from "@models/PaymentData";
 
-import { fetchPaginated, Paginated } from "@api/utils/pagination";
+import {
+  fetchPaginated,
+  Paginated,
+  RichRuleValue,
+  SpecialFields
+} from "@api/data/PaginatedData";
 
 import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
 
 interface ConvertOpts {
-  with?: GetMemberWith[] | undefined;
+  with: GetMemberWith[] | undefined;
   withRestricted: boolean;
 }
 
@@ -69,114 +76,110 @@ export function convertMemberToData(
   };
 }
 
-function membershipField<Field extends string>(field: keyof MemberPermission) {
+function membershipField(field: keyof MemberPermission) {
   return (
-    rule: Rule<Field>,
     qb: WhereExpressionBuilder,
-    suffix: string,
-    namedWhere: string
+    args: { whereFn: (field: string) => string }
   ) => {
-    const table = "mp" + suffix;
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`${table}.memberId`)
-      .from(MemberPermission, table)
-      .where(
-        `${table}.permission = 'member' AND ${table}.${field} ${namedWhere}`
-      );
+      .select(`mp.memberId`)
+      .from(MemberPermission, "mp")
+      .where(`mp.permission = 'member'`)
+      .andWhere(args.whereFn(`mp.${field}`));
 
     qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
-function profileField<Field extends string>(field: keyof MemberProfile) {
+function profileField(field: keyof MemberProfile) {
   return (
-    rule: Rule<Field>,
     qb: WhereExpressionBuilder,
-    suffix: string,
-    namedWhere: string
+    args: { whereFn: (field: string) => string }
   ) => {
-    const table = "profile" + suffix;
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`${table}.memberId`)
-      .from(MemberProfile, table)
-      .where(`${table}.${field} ${namedWhere}`);
+      .select(`profile.memberId`)
+      .from(MemberProfile, "profile")
+      .where(args.whereFn(`profile.${field}`));
 
     qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
-function activePermission<Field extends string>(
-  rule: Rule<Field>,
+function activePermission(
   qb: WhereExpressionBuilder,
-  suffix: string
+  args: { operator: RuleOperator; field: string; values: RichRuleValue[] }
 ) {
-  const table = "mp" + suffix;
+  const permission =
+    args.field === "activeMembership" ? "member" : args.values[0];
 
-  const permission = rule.field === "activeMembership" ? "member" : rule.value;
+  const isIn =
+    args.field === "activeMembership"
+      ? (args.values[0] as boolean)
+      : args.operator === "equal";
 
   const subQb = createQueryBuilder()
     .subQuery()
-    .select(`${table}.memberId`)
-    .from(MemberPermission, table)
-    .where(
-      `${table}.permission = '${permission}' AND ${table}.dateAdded <= :now${suffix}`
-    )
+    .select(`mp.memberId`)
+    .from(MemberPermission, "mp")
+    .where(`mp.permission = '${permission}'`)
+    .andWhere(`mp.dateAdded <= :now`)
     .andWhere(
       new Brackets((qb) => {
-        qb.where(`${table}.dateExpires IS NULL`).orWhere(
-          `${table}.dateExpires > :now${suffix}`
-        );
+        qb.where(`mp.dateExpires IS NULL`).orWhere(`mp.dateExpires > :now`);
       })
     );
 
-  if (rule.field === "activePermission" || rule.value === true) {
+  if (isIn) {
     qb.where("item.id IN " + subQb.getQuery());
   } else {
     qb.where("item.id NOT IN " + subQb.getQuery());
   }
+}
 
-  return {
-    now: moment.utc().toDate()
+function paymentDataField(field: string) {
+  return (
+    qb: WhereExpressionBuilder,
+    args: { whereFn: (field: string) => string }
+  ) => {
+    const subQb = createQueryBuilder()
+      .subQuery()
+      .select(`pd.memberId`)
+      .from(PaymentData, "pd")
+      .where(args.whereFn(field));
+
+    qb.where("item.id IN " + subQb.getQuery());
   };
 }
 
+export const specialMemberFields: SpecialFields<ContactFilterName> = {
+  deliveryOptIn: profileField("deliveryOptIn"),
+  newsletterStatus: profileField("newsletterStatus"),
+  tags: profileField("tags"),
+  activePermission,
+  activeMembership: activePermission,
+  membershipStarts: membershipField("dateAdded"),
+  membershipExpires: membershipField("dateExpires"),
+  contributionCancelled: paymentDataField(
+    "(pd.data ->> 'cancelledAt')::timestamp"
+  ),
+  manualPaymentSource: (qb, { whereFn }) => {
+    paymentDataField("pd.data ->> 'source'")(qb, { whereFn });
+    qb.andWhere("item.contributionType = 'Manual'");
+  }
+};
+
 export async function fetchPaginatedMembers(
   query: GetMembersQuery,
-  opts: ConvertOpts
+  opts: Omit<ConvertOpts, "with">
 ): Promise<Paginated<GetMemberData>> {
   const results = await fetchPaginated(
     Member,
+    contactFilters,
     query,
-    {
-      deliveryOptIn: profileField("deliveryOptIn"),
-      newsletterStatus: profileField("newsletterStatus"),
-      tags: (rule, qb, suffix) => {
-        if (rule.operator === "contains") {
-          profileField("tags")(rule, qb, suffix, `? :value${suffix}`);
-          return {
-            value: rule.value
-          };
-        }
-      },
-      activePermission,
-      activeMembership: activePermission,
-      membershipStarts: membershipField("dateAdded"),
-      membershipExpires: membershipField("dateExpires"),
-      manualPaymentSource: (rule, qb, suffix, namedWhere) => {
-        const table = "pd" + suffix;
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select(`${table}.memberId`)
-          .from(PaymentData, table)
-          .where(`${table}.data ->> 'source' ${namedWhere}`);
-
-        qb.where("item.id IN " + subQb.getQuery()).andWhere(
-          "item.contributionType = 'Manual'"
-        );
-      }
-    },
+    undefined, // No contact rules in contactFilters
+    specialMemberFields,
     (qb) => {
       if (query.with?.includes(GetMemberWith.Profile)) {
         qb.innerJoinAndSelect("item.profile", "profile");
@@ -184,6 +187,7 @@ export async function fetchPaginatedMembers(
 
       // Put empty names at the bottom
       qb.addSelect("NULLIF(item.firstname, '')", "firstname");
+      qb.addSelect("NULLIF(item.lastname, '')", "lastname");
 
       if (
         query.sort === "membershipStarts" ||
@@ -203,9 +207,9 @@ export async function fetchPaginatedMembers(
             "membershipExpires"
           )
           .orderBy(`"${query.sort}"`, query.order || "ASC");
-      } else if (query.sort === "firstname") {
-        // Override "item.firstname"
-        qb.orderBy("firstname", query.order || "ASC");
+      } else if (query.sort === "firstname" || query.sort === "lastname") {
+        // Override the sort order to use the NULLIF(...) variants
+        qb.orderBy(query.sort, query.order || "ASC");
       } else {
         qb.addOrderBy("firstname", "ASC");
       }
@@ -232,7 +236,9 @@ export async function fetchPaginatedMembers(
 
   return {
     ...results,
-    items: results.items.map((item) => convertMemberToData(item, opts))
+    items: results.items.map((item) =>
+      convertMemberToData(item, { ...opts, with: query.with })
+    )
   };
 }
 

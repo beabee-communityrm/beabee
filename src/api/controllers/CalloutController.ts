@@ -33,8 +33,9 @@ import {
   GetCalloutsQuery,
   UpdateCalloutData
 } from "@api/data/CalloutData";
+import { Paginated } from "@api/data/PaginatedData";
+
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
-import { Paginated } from "@api/utils/pagination";
 
 abstract class CalloutAdminController {
   @Authorized("admin")

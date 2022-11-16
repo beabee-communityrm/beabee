@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import Member from "@models/Member";
 
 export function loginAndRedirect(

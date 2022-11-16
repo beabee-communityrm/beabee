@@ -4,7 +4,6 @@ import {
   PaymentMethod
 } from "@beabee/beabee-common";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import moment from "moment";
 import { QueryFailedError } from "typeorm";
 
 export interface ContributionInfo {
@@ -138,7 +137,7 @@ export function createDateTime(
   date: string | undefined,
   time: string | undefined
 ): Date | null {
-  return date && time ? moment.utc(date + "T" + time).toDate() : null;
+  return date && time ? new Date(date + "T" + time) : null;
 }
 
 interface PgError {

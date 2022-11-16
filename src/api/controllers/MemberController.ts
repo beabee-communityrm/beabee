@@ -1,7 +1,8 @@
 import {
   ContributionPeriod,
   PermissionTypes,
-  PermissionType
+  PermissionType,
+  paymentFilters
 } from "@beabee/beabee-common";
 import { Request } from "express";
 import {
@@ -45,8 +46,8 @@ import {
   fetchPaginatedMembers,
   GetMemberData,
   GetMemberQuery,
-  GetMembersQuery,
   GetMemberRoleData,
+  GetMembersQuery,
   GetMemberWith,
   GetPaymentData,
   GetPaymentsQuery,
@@ -63,12 +64,12 @@ import {
   UpdateContributionData,
   ForceUpdateContributionData
 } from "@api/data/ContributionData";
+import { mergeRules, fetchPaginated, Paginated } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -113,7 +114,6 @@ export class MemberController {
     @QueryParams() query: GetMembersQuery
   ): Promise<Paginated<GetMemberData>> {
     return await fetchPaginatedMembers(query, {
-      with: query.with,
       withRestricted: true
     });
   }
@@ -248,9 +248,9 @@ export class MemberController {
     @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
     const targetQuery = mergeRules(query, [
-      { field: "member", operator: "equal", value: target.id }
+      { field: "member", operator: "equal", value: [target.id] }
     ]);
-    const data = await fetchPaginated(Payment, targetQuery);
+    const data = await fetchPaginated(Payment, paymentFilters, targetQuery);
     return {
       ...data,
       items: data.items.map((item) => ({
