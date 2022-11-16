@@ -1,4 +1,8 @@
-import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
+import {
+  ContactFilterName,
+  contactFilters,
+  RuleOperator
+} from "@beabee/beabee-common";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
 import Member from "@models/Member";
@@ -105,10 +109,15 @@ function profileField(field: keyof MemberProfile) {
 
 function activePermission(
   qb: WhereExpressionBuilder,
-  args: { field: string; values: RichRuleValue[] }
+  args: { operator: RuleOperator; field: string; values: RichRuleValue[] }
 ) {
   const permission =
     args.field === "activeMembership" ? "member" : args.values[0];
+
+  const isIn =
+    args.field === "activeMembership"
+      ? (args.values[0] as boolean)
+      : args.operator === "equal";
 
   const subQb = createQueryBuilder()
     .subQuery()
@@ -122,7 +131,7 @@ function activePermission(
       })
     );
 
-  if (args.field === "activePermission" || args.values[0] === true) {
+  if (isIn) {
     qb.where("item.id IN " + subQb.getQuery());
   } else {
     qb.where("item.id NOT IN " + subQb.getQuery());
