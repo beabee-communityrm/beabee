@@ -1,39 +1,91 @@
+import {
+  Authorized,
+  Body,
+  Delete,
+  Get,
+  JsonController,
+  NotFoundError,
+  OnUndefined,
+  Params,
+  Patch,
+  Post,
+  QueryParams
+} from "routing-controllers";
+import { getRepository } from "typeorm";
+
 import { UUIDParam } from "@api/data";
 import {
   GetMemberData,
   GetMembersQuery,
   fetchPaginatedMembers
 } from "@api/data/MemberData";
-import { Paginated } from "@api/data/PaginatedData";
-import SegmentService from "@core/services/SegmentService";
-import Segment from "@models/Segment";
 import {
-  Authorized,
-  Get,
-  JsonController,
-  Params,
-  QueryParams
-} from "routing-controllers";
-import { getRepository } from "typeorm";
+  GetSegmentData,
+  GetSegmentQuery,
+  CreateSegmentData,
+  convertSegmentToData
+} from "@api/data/SegmentData";
+import { Paginated } from "@api/data/PaginatedData";
 
-interface GetSegmentData extends Segment {}
+import PartialBody from "@api/decorators/PartialBody";
+
+import Segment from "@models/Segment";
+import SegmentMember from "@models/SegmentMember";
+import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
 @JsonController("/segments")
 @Authorized("admin")
 export class SegmentController {
   @Get("/")
-  async getSegments(): Promise<GetSegmentData[]> {
-    return await SegmentService.getSegmentsWithCount();
+  async getSegments(
+    @QueryParams() query: GetSegmentQuery
+  ): Promise<GetSegmentData[]> {
+    const segments = await getRepository(Segment).find({
+      order: { order: "ASC" }
+    });
+    const out: GetSegmentData[] = [];
+    for (const segment of segments) {
+      out.push(await convertSegmentToData(segment, query));
+    }
+    return out;
+  }
+
+  @Post("/")
+  async createSegment(
+    @Body() data: CreateSegmentData
+  ): Promise<GetSegmentData> {
+    const segment = await getRepository(Segment).save(data);
+    return convertSegmentToData(segment, {});
   }
 
   @Get("/:id")
   async getSegment(
-    @Params() { id }: UUIDParam
+    @Params() { id }: UUIDParam,
+    @QueryParams() query: GetSegmentQuery
   ): Promise<GetSegmentData | undefined> {
     const segment = await getRepository(Segment).findOne(id);
     if (segment) {
-      segment.memberCount = await SegmentService.getSegmentMemberCount(segment);
-      return segment;
+      return convertSegmentToData(segment, query);
+    }
+  }
+
+  @Patch("/:id")
+  async updateSegment(
+    @Params() { id }: UUIDParam,
+    @PartialBody() data: CreateSegmentData
+  ): Promise<GetSegmentData | undefined> {
+    await getRepository(Segment).update(id, data);
+    return await this.getSegment({ id }, {});
+  }
+
+  @Delete("/:id")
+  @OnUndefined(204)
+  async deleteSegment(@Params() { id }: UUIDParam): Promise<void> {
+    await getRepository(SegmentMember).delete({ segment: { id } });
+    await getRepository(SegmentOngoingEmail).delete({ segment: { id } });
+    const result = await getRepository(Segment).delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundError();
     }
   }
 
