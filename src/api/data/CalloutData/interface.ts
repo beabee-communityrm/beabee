@@ -47,6 +47,7 @@ interface CalloutData {
   access: PollAccess;
   hidden: boolean;
 
+  // With "form"
   intro?: string;
   thanksTitle?: string;
   thanksText?: string;
@@ -58,7 +59,9 @@ interface CalloutData {
 
 export interface GetCalloutData extends CalloutData {
   status: ItemStatus;
+  // With "hasAnswered"
   hasAnswered?: boolean;
+  // With "responseCount"
   responseCount?: number;
 }
 
@@ -68,7 +71,10 @@ export class GetCalloutQuery {
   with?: GetCalloutWith[];
 }
 
-export class UpdateCalloutData implements Omit<CalloutData, "slug"> {
+export class CreateCalloutData implements CalloutData {
+  @IsString()
+  slug!: string;
+
   @IsString()
   title!: string;
 
@@ -123,14 +129,6 @@ export class UpdateCalloutData implements Omit<CalloutData, "slug"> {
 
   @IsBoolean()
   hidden!: boolean;
-}
-
-export class CreateCalloutData
-  extends UpdateCalloutData
-  implements CalloutData
-{
-  @IsSlug()
-  slug!: string;
 }
 
 export const responseSortFields = ["createdAt", "updatedAt"] as const;
