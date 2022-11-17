@@ -149,9 +149,9 @@ function prepareRule(
     // Make NULL an empty string for comparison
     return [(field) => whereFn(`COALESCE(${field}, '')`), rule.value];
   } else if (rule.type === "date") {
-    // Compare dates using the lowest resolution date unit provided
+    // Compare dates by at least day, but more specific if H/m/s are provided
     const values = rule.value.map((v) => parseDate(v));
-    const minUnit = getMinDateUnit(values.map(([_, unit]) => unit)) || "d";
+    const minUnit = getMinDateUnit(["d", ...values.map(([_, unit]) => unit)]);
     return [
       (field) => whereFn(`DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`),
       values.map(([date]) => date)
