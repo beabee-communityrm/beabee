@@ -31,8 +31,9 @@ export class CreateSegmentData {
   @Type(() => GetPaginatedRuleGroup)
   ruleGroup!: GetPaginatedRuleGroup;
 
+  @IsOptional()
   @IsNumber()
-  order!: number;
+  order?: number;
 }
 export interface GetSegmentData extends CreateSegmentData {
   id: string;

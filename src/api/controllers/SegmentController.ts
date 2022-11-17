@@ -23,7 +23,8 @@ import {
   GetSegmentData,
   GetSegmentQuery,
   CreateSegmentData,
-  convertSegmentToData
+  convertSegmentToData,
+  GetSegmentWith
 } from "@api/data/SegmentData";
 import { Paginated } from "@api/data/PaginatedData";
 
@@ -54,8 +55,17 @@ export class SegmentController {
   async createSegment(
     @Body() data: CreateSegmentData
   ): Promise<GetSegmentData> {
+    // Default to inserting new segment at the bottom
+    if (data.order === undefined) {
+      const bottomSegment = await getRepository(Segment).findOne({
+        order: { order: "DESC" }
+      });
+      data.order = bottomSegment ? bottomSegment.order + 1 : 0;
+    }
     const segment = await getRepository(Segment).save(data);
-    return convertSegmentToData(segment, {});
+    return convertSegmentToData(segment, {
+      with: [GetSegmentWith.contactCount]
+    });
   }
 
   @Get("/:id")
@@ -75,7 +85,10 @@ export class SegmentController {
     @PartialBody() data: CreateSegmentData
   ): Promise<GetSegmentData | undefined> {
     await getRepository(Segment).update(id, data);
-    return await this.getSegment({ id }, {});
+    return await this.getSegment(
+      { id },
+      { with: [GetSegmentWith.contactCount] }
+    );
   }
 
   @Delete("/:id")
