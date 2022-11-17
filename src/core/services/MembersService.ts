@@ -32,10 +32,10 @@ export type PartialMember = Pick<Member, "email" | "contributionType"> &
 
 interface ForceUpdateContribution {
   type: ContributionType.Manual | ContributionType.None;
-  period: ContributionPeriod | undefined | null;
-  amount: number | undefined | null;
-  source: string | undefined | null;
-  reference: string | undefined | null;
+  period?: ContributionPeriod;
+  amount?: number;
+  source?: string;
+  reference?: string;
 }
 
 const log = mainLogger.child({ app: "members-service" });
