@@ -8,7 +8,6 @@ import {
   RuleOperator,
   FilterType,
   operatorsByType,
-  FilterOperator,
   InvalidRule,
   parseDate,
   getMinDateUnit
@@ -67,7 +66,7 @@ function withOperators<T extends FilterType>(
 
 const operatorsWhereByType: Record<
   FilterType,
-  Partial<Record<FilterOperator, (field: string) => string>>
+  Partial<Record<RuleOperator, (field: string) => string>>
 > = {
   text: withOperators("text", {
     ...equalityOperatorsWhere,
