@@ -55,6 +55,13 @@ export class SegmentController {
   async createSegment(
     @Body() data: CreateSegmentData
   ): Promise<GetSegmentData> {
+    // Default to inserting new segment at the bottom
+    if (data.order === undefined) {
+      const bottomSegment = await getRepository(Segment).findOne({
+        order: { order: "DESC" }
+      });
+      data.order = bottomSegment ? bottomSegment.order + 1 : 0;
+    }
     const segment = await getRepository(Segment).save(data);
     return convertSegmentToData(segment, {
       with: [GetSegmentWith.contactCount]
