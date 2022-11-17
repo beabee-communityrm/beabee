@@ -73,17 +73,17 @@ export class ForceUpdateContributionData {
 
   @IsOptional()
   @IsNumber()
-  amount!: number | undefined | null;
+  amount?: number;
 
   @IsOptional()
   @IsEnum(ContributionPeriod)
-  period!: ContributionPeriod | undefined | null;
+  period?: ContributionPeriod;
 
   @IsOptional()
   @IsString()
-  source!: string | undefined | null;
+  source?: string;
 
   @IsOptional()
   @IsString()
-  reference!: string | undefined | null;
+  reference?: string;
 }
