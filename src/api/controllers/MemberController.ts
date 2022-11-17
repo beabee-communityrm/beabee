@@ -250,7 +250,12 @@ export class MemberController {
     const targetQuery = mergeRules(query, [
       { field: "member", operator: "equal", value: [target.id] }
     ]);
-    const data = await fetchPaginated(Payment, paymentFilters, targetQuery);
+    const data = await fetchPaginated(
+      Payment,
+      paymentFilters,
+      targetQuery,
+      target
+    );
     return {
       ...data,
       items: data.items.map((item) => ({

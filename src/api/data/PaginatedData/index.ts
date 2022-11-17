@@ -161,7 +161,7 @@ function prepareRule(
   return [
     whereFn,
     rule.type === "contact"
-      ? rule.value.map((v) => (v === "me" && member?.id) || "")
+      ? rule.value.map((v) => (v === "me" ? member?.id || "" : v))
       : rule.value
   ];
 }
