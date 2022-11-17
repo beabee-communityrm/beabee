@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/thebristolcable/membership-system#readme",
   "dependencies": {
-    "@beabee/beabee-common": "^1.9.1",
+    "@beabee/beabee-common": "^1.9.2",
     "@sendgrid/mail": "^7.6.0",
     "ajv": "^8.7.1",
     "ajv-formats": "^2.1.1",
