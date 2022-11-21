@@ -7,6 +7,7 @@ import { cleanEmailAddress, wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
 import NewsletterService from "@core/services/NewsletterService";
+import OptionsService from "@core/services/OptionsService";
 
 import config from "@config";
 
@@ -27,7 +28,7 @@ interface MCUpdateEmailData {
 }
 
 interface MCProfileWebhook {
-  type: "subscribe" | "unsubscribe" | "profile";
+  type: "subscribe" | "unsubscribe" | "profile" | "cleaned";
   data: MCProfileData;
 }
 
@@ -81,6 +82,10 @@ app.post(
         await handleUnsubscribe(body.data);
         break;
 
+      case "cleaned":
+        log.error("Unhandled cleaned", { data: body.data });
+        break;
+
       case "profile":
         // Make MailChimp resend the webhook if we don't find a member
         // it's probably because the upemail and profile webhooks
@@ -128,6 +133,12 @@ async function handleSubscribe(data: MCProfileData) {
     await MembersService.updateMemberProfile(member, {
       newsletterStatus: NewsletterStatus.Subscribed
     });
+    if (member.membership?.isActive) {
+      await NewsletterService.addTagToMembers(
+        [member],
+        OptionsService.getText("newsletter-active-member-tag")
+      );
+    }
   } else {
     const nlMember = await NewsletterService.getNewsletterMember(email);
     await MembersService.createMember(
