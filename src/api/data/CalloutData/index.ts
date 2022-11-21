@@ -1,19 +1,29 @@
-import Poll from "@models/Poll";
+import {
+  calloutFilters,
+  calloutResponseFilters,
+  ItemStatus
+} from "@beabee/beabee-common";
+import { BadRequestError, UnauthorizedError } from "routing-controllers";
+import { createQueryBuilder, getRepository } from "typeorm";
 
-import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
+import {
+  fetchPaginated,
+  mergeRules,
+  Paginated,
+  statusField
+} from "@api/data/PaginatedData";
+
+import Member from "@models/Member";
+import Poll from "@models/Poll";
+import PollResponse from "@models/PollResponse";
 
 import {
   GetCalloutWith,
   GetCalloutsQuery,
-  GetCalloutResponsesQuery,
   GetCalloutResponseData,
-  GetCalloutData
+  GetCalloutData,
+  GetCalloutResponsesQuery
 } from "./interface";
-import { createQueryBuilder, getRepository } from "typeorm";
-import PollResponse from "@models/PollResponse";
-import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
-import Member from "@models/Member";
-import { BadRequestError, UnauthorizedError } from "routing-controllers";
 
 interface ConvertOpts {
   with?: GetCalloutWith[] | undefined;
@@ -79,33 +89,33 @@ export async function fetchPaginatedCallouts(
       {
         condition: "OR",
         rules: [
-          { field: "status", operator: "equal", value: ItemStatus.Open },
-          { field: "status", operator: "equal", value: ItemStatus.Ended }
+          { field: "status", operator: "equal", value: [ItemStatus.Open] },
+          { field: "status", operator: "equal", value: [ItemStatus.Ended] }
         ]
       },
-      { field: "hidden", operator: "equal", value: false }
+      { field: "hidden", operator: "equal", value: [false] }
     ]
   );
 
   const results = await fetchPaginated(
     Poll,
+    calloutFilters,
     scopedQuery,
+    member,
     {
-      // TODO: add validation errors
-      status: ruleAsQuery,
-      answeredBy: (rule, qb, suffix) => {
-        if (rule.operator !== "equal" || !member) {
-          throw new BadRequestError();
+      status: statusField,
+      answeredBy: (qb, { operator, whereFn, values }) => {
+        // TODO: support not_equal for admins
+        if (operator !== "equal") {
+          throw new BadRequestError("answeredBy only supports equal");
+        }
+        if (!member) {
+          throw new BadRequestError(
+            "answeredBy can only be used with member scope"
+          );
         }
 
-        const id =
-          rule.value === "me" || rule.value === member.id
-            ? member.id
-            : member.hasPermission("admin")
-            ? rule.value
-            : undefined;
-
-        if (!id) {
+        if (values[0] !== member.id && !member.hasPermission("admin")) {
           throw new UnauthorizedError();
         }
 
@@ -115,12 +125,10 @@ export async function fetchPaginatedCallouts(
           .select("pr.pollSlug", "slug")
           .distinctOn(["pr.pollSlug"])
           .from(PollResponse, "pr")
-          .where(`pr.memberId = :id${suffix}`)
+          .where(whereFn(`pr.memberId`))
           .orderBy("pr.pollSlug");
 
         qb.where("item.slug IN " + subQb.getQuery());
-
-        return { id };
       }
     },
     (qb) => {
@@ -167,26 +175,21 @@ export async function fetchPaginatedCalloutResponses(
   member: Member
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
-    { field: "poll", operator: "equal", value: slug },
+    { field: "poll", operator: "equal", value: [slug] },
     // Member's can only see their own responses
     !member.hasPermission("admin") && {
       field: "member",
       operator: "equal",
-      value: member.id
+      value: [member.id]
     }
   ]);
 
   const results = await fetchPaginated(
     PollResponse,
+    calloutResponseFilters,
     scopedQuery,
-    {
-      member: (rule, qb, suffix, namedWhere) => {
-        qb.where(`item.member ${namedWhere}`);
-        if (rule.value === "me") {
-          return { a: member.id };
-        }
-      }
-    },
+    member,
+    undefined,
     (qb) => qb.loadAllRelationIds()
   );
 

@@ -1,8 +1,9 @@
+import { ContributionType } from "@beabee/beabee-common";
 import express from "express";
 import { getRepository } from "typeorm";
 
 import { hasSchema, isLoggedIn } from "@core/middleware";
-import { ContributionType, hasUser, wrapAsync } from "@core/utils";
+import { hasUser, wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";

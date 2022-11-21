@@ -10,11 +10,11 @@ import { cleanEmailAddress } from "@core/utils";
 import {
   NewsletterMember,
   NewsletterProvider,
-  NewsletterStatus,
   UpdateNewsletterMember
 } from ".";
 
 import { MailchimpNewsletterConfig } from "@config";
+import { NewsletterStatus } from "@beabee/beabee-common";
 
 const log = mainLogger.child({ app: "mailchimp-provider" });
 

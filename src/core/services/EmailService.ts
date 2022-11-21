@@ -188,7 +188,11 @@ class EmailService {
     opts?: EmailOptions
   ): Promise<void> {
     log.info("Sending email", { email: email.id, recipients });
-    await this.provider.sendEmail(email, recipients, opts);
+    try {
+      await this.provider.sendEmail(email, recipients, opts);
+    } catch (error) {
+      log.error("Unable to send email " + email.id, error);
+    }
   }
 
   async sendEmailToMembers(
@@ -270,7 +274,14 @@ class EmailService {
         providerTemplate,
         recipients
       });
-      await this.provider.sendTemplate(providerTemplate, recipients, opts);
+      try {
+        await this.provider.sendTemplate(providerTemplate, recipients, opts);
+      } catch (error) {
+        log.error("Unable to send template " + template, error);
+      }
+      // Fallback to cancelled contribution email if no no-survey variant
+    } else if (template === "cancelled-contribution-no-survey") {
+      this.sendTemplate("cancelled-contribution", recipients, opts, required);
     } else {
       const defaultEmail = this.getDefaultEmail(template);
       if (defaultEmail) {

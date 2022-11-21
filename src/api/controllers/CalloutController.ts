@@ -1,3 +1,4 @@
+import { ItemStatus } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -16,7 +17,6 @@ import { getRepository } from "typeorm";
 
 import PollsService from "@core/services/PollsService";
 
-import ItemStatus from "@models/ItemStatus";
 import Member from "@models/Member";
 import Poll from "@models/Poll";
 import PollResponse from "@models/PollResponse";
@@ -34,8 +34,9 @@ import {
   GetCalloutsQuery,
   UpdateCalloutData
 } from "@api/data/CalloutData";
+import { Paginated } from "@api/data/PaginatedData";
+
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
-import { Paginated } from "@api/utils/pagination";
 
 abstract class CalloutAdminController {
   @Authorized("admin")

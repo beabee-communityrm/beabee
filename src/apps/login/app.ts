@@ -1,3 +1,4 @@
+import { PermissionTypes, PermissionType } from "@beabee/beabee-common";
 import express from "express";
 import passport from "passport";
 import { getRepository } from "typeorm";
@@ -9,10 +10,7 @@ import EmailService from "@core/services/EmailService";
 import MembersService from "@core/services/MembersService";
 
 import LoginOverrideFlow from "@models/LoginOverrideFlow";
-import MemberPermission, {
-  PermissionType,
-  PermissionTypes
-} from "@models/MemberPermission";
+import MemberPermission from "@models/MemberPermission";
 
 import config from "@config";
 

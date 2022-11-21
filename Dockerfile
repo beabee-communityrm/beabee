@@ -7,7 +7,7 @@ WORKDIR /opt/membership-system
 COPY package.json package-lock.json /opt/membership-system/
 RUN npm ci
 
-COPY gulpfile.js tsconfig.json /opt/membership-system/
+COPY gulpfile.js tsconfig.json tsconfig.build.json /opt/membership-system/
 COPY ./src /opt/membership-system/src/
 RUN NODE_ENV=production npm run build
 

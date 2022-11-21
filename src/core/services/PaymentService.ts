@@ -1,6 +1,7 @@
+import { PaymentMethod } from "@beabee/beabee-common";
 import { createQueryBuilder, getRepository } from "typeorm";
 
-import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
+import { ContributionInfo, PaymentForm } from "@core/utils";
 import { log as mainLogger } from "@core/logging";
 import { calcRenewalDate } from "@core/utils/payment";
 
@@ -13,6 +14,7 @@ import {
   UpdateContributionResult
 } from "@core/providers/payment";
 import GCProvider from "@core/providers/payment/GCProvider";
+import ManualProvider from "@core/providers/payment/ManualProvider";
 import StripeProvider from "@core/providers/payment/StripeProvider";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
@@ -60,43 +62,37 @@ class PaymentService {
       .execute();
   }
 
-  private async provider<T>(
+  private async provider(
     member: Member,
     fn: (provider: PaymentProvider<any>) => Promise<void>
   ): Promise<void>;
   private async provider<T>(
     member: Member,
-    fn: (provider: PaymentProvider<any>) => Promise<T>,
-    def: T
+    fn: (provider: PaymentProvider<any>) => Promise<T>
   ): Promise<T>;
   private async provider<T>(
     member: Member,
-    fn: (provider: PaymentProvider<any>) => Promise<T>,
-    def?: T
-  ): Promise<T | void> {
-    return this.providerFromData(await this.getData(member), fn, def);
+    fn: (provider: PaymentProvider<any>) => Promise<T>
+  ): Promise<T> {
+    return this.providerFromData(await this.getData(member), fn);
   }
 
   private async providerFromData<T>(
     data: PaymentData,
-    fn: (provider: PaymentProvider<any>) => Promise<T>,
-    def?: T
-  ) {
-    const Provider = data.method ? PaymentProviders[data.method] : undefined;
-    if (Provider) {
-      return await fn(new Provider(data));
-    }
-    return def;
+    fn: (provider: PaymentProvider<any>) => Promise<T>
+  ): Promise<T> {
+    const Provider = data.method
+      ? PaymentProviders[data.method]
+      : ManualProvider;
+    return await fn(new Provider(data));
   }
 
   async canChangeContribution(
     member: Member,
     useExistingPaymentSource: boolean
   ): Promise<boolean> {
-    const ret = await this.provider(
-      member,
-      (p) => p.canChangeContribution(useExistingPaymentSource),
-      !useExistingPaymentSource
+    const ret = await this.provider(member, (p) =>
+      p.canChangeContribution(useExistingPaymentSource)
     );
     log.info(`User ${member.id} ${ret ? "can" : "cannot"} change contribution`);
     return ret;
@@ -116,10 +112,8 @@ class PaymentService {
       })
     };
 
-    const providerInfo = await this.provider(
-      member,
-      (p) => p.getContributionInfo(),
-      {}
+    const providerInfo = await this.provider(member, (p) =>
+      p.getContributionInfo()
     );
 
     const hsaCancelled = !!providerInfo.cancellationDate;
@@ -158,13 +152,8 @@ class PaymentService {
     paymentForm: PaymentForm
   ): Promise<UpdateContributionResult> {
     log.info("Update contribution for " + member.id);
-    return await this.provider(
-      member,
-      (p) => p.updateContribution(paymentForm),
-      {
-        startNow: true,
-        expiryDate: new Date()
-      }
+    return await this.provider(member, (p) =>
+      p.updateContribution(paymentForm)
     );
   }
 

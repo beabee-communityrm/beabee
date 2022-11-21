@@ -1,11 +1,11 @@
+import { PaymentMethod } from "@beabee/beabee-common";
 import { getRepository } from "typeorm";
 
-import { ContributionInfo, PaymentForm, PaymentMethod } from "@core/utils";
+import { ContributionInfo, PaymentForm } from "@core/utils";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import Member from "@models/Member";
-import Payment from "@models/Payment";
 import PaymentData, { PaymentProviderData } from "@models/PaymentData";
 
 export interface UpdateContributionResult {

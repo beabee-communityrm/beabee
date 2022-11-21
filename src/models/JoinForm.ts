@@ -1,5 +1,6 @@
+import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
 import { Column } from "typeorm";
-import { ContributionPeriod, PaymentForm, PaymentMethod } from "@core/utils";
+import { PaymentForm } from "@core/utils";
 import Password from "./Password";
 
 export interface ReferralGiftForm {

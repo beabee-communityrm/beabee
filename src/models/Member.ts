@@ -1,4 +1,9 @@
 import {
+  ContributionType,
+  ContributionPeriod,
+  PermissionType
+} from "@beabee/beabee-common";
+import {
   Column,
   CreateDateColumn,
   Entity,
@@ -7,15 +12,10 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import {
-  ContributionPeriod,
-  ContributionType,
-  getActualAmount
-} from "@core/utils";
+import { getActualAmount } from "@core/utils";
 import config from "@config";
 
 import type MemberPermission from "./MemberPermission";
-import type { PermissionType } from "./MemberPermission";
 import type MemberProfile from "./MemberProfile";
 import Password from "./Password";
 
@@ -84,6 +84,12 @@ export default class Member {
 
   get activePermissions(): PermissionType[] {
     return this.permissions.filter((p) => p.isActive).map((p) => p.permission);
+  }
+
+  // Alias to match GetMemberData with Member for membersTableBasicInfo
+  // TODO: Remove once legacy app is gone
+  get activeRoles(): PermissionType[] {
+    return this.activePermissions;
   }
 
   hasPermission(permission: PermissionType): boolean {

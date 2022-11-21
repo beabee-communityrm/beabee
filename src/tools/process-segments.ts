@@ -4,23 +4,23 @@ import { getRepository, In } from "typeorm";
 
 import * as db from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import { buildQuery } from "@core/utils/rules";
 
 import EmailService from "@core/services/EmailService";
+import NewsletterService from "@core/services/NewsletterService";
+import MembersService from "@core/services/MembersService";
+import SegmentService from "@core/services/SegmentService";
 
 import Member from "@models/Member";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import SegmentMember from "@models/SegmentMember";
-import NewsletterService from "@core/services/NewsletterService";
-import MembersService from "@core/services/MembersService";
 
 const log = mainLogger.child({ app: "process-segments" });
 
 async function processSegment(segment: Segment) {
   log.info("Process segment " + segment.name);
 
-  const matchedMembers = await buildQuery(segment.ruleGroup).getMany();
+  const matchedMembers = await SegmentService.getSegmentMembers(segment);
 
   const segmentMembers = (await getRepository(SegmentMember).find({
     where: { segment },
