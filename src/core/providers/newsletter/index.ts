@@ -1,10 +1,4 @@
-export enum NewsletterStatus {
-  Subscribed = "subscribed",
-  Unsubscribed = "unsubscribed",
-  Pending = "pending",
-  Cleaned = "cleaned",
-  None = "none"
-}
+import { NewsletterStatus } from "@beabee/beabee-common";
 
 export interface UpdateNewsletterMember {
   email: string;

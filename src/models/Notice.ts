@@ -5,7 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from "typeorm";
-import { ItemWithStatus } from "./ItemStatus";
+import ItemWithStatus from "./ItemWithStatus";
 
 @Entity()
 export default class Notice extends ItemWithStatus {

@@ -1,3 +1,8 @@
+import {
+  ContributionPeriod,
+  ContributionType,
+  PaymentMethod
+} from "@beabee/beabee-common";
 import config from "@config";
 import Member from "@models/Member";
 import {
@@ -9,13 +14,7 @@ import {
   differenceInMonths,
   add
 } from "date-fns";
-import {
-  ContributionPeriod,
-  ContributionType,
-  getActualAmount,
-  PaymentForm,
-  PaymentMethod
-} from ".";
+import { getActualAmount, PaymentForm } from ".";
 
 export function calcRenewalDate(user: Member): Date | undefined {
   if (user.membership?.isActive) {

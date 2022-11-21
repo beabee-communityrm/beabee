@@ -1,4 +1,9 @@
 import {
+  ContributionType,
+  PermissionType,
+  ContributionPeriod
+} from "@beabee/beabee-common";
+import {
   createQueryBuilder,
   FindConditions,
   FindManyOptions,
@@ -7,13 +12,7 @@ import {
 } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
-import {
-  cleanEmailAddress,
-  ContributionPeriod,
-  ContributionType,
-  isDuplicateIndex,
-  PaymentForm
-} from "@core/utils";
+import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
 import { generateMemberCode } from "@core/utils/member";
 
 import EmailService from "@core/services/EmailService";
@@ -23,13 +22,21 @@ import PaymentService from "@core/services/PaymentService";
 
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
-import MemberPermission, { PermissionType } from "@models/MemberPermission";
+import MemberPermission from "@models/MemberPermission";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 
 export type PartialMember = Pick<Member, "email" | "contributionType"> &
   Partial<Member>;
+
+interface ForceUpdateContribution {
+  type: ContributionType.Manual | ContributionType.None;
+  period?: ContributionPeriod;
+  amount?: number;
+  source?: string;
+  reference?: string;
+}
 
 const log = mainLogger.child({ app: "members-service" });
 
@@ -288,6 +295,36 @@ class MembersService {
   async permanentlyDeleteMember(member: Member): Promise<void> {
     await getRepository(Member).delete(member.id);
     await NewsletterService.deleteMembers([member]);
+  }
+
+  // This is a temporary method until we rework manual contribution updates
+  // TODO: Remove this!
+  async forceUpdateMemberContribution(
+    member: Member,
+    data: ForceUpdateContribution
+  ): Promise<void> {
+    if (member.contributionType === ContributionType.Automatic) {
+      throw new CantUpdateContribution();
+    }
+
+    const period = data.period && data.amount ? data.period : null;
+    const monthlyAmount =
+      data.period && data.amount
+        ? data.amount / (data.period === ContributionPeriod.Annually ? 12 : 1)
+        : null;
+
+    await this.updateMember(member, {
+      contributionType: data.type,
+      contributionPeriod: period,
+      contributionMonthlyAmount: monthlyAmount
+    });
+
+    await PaymentService.updateDataBy(member, "source", data.source || null);
+    await PaymentService.updateDataBy(
+      member,
+      "reference",
+      data.reference || null
+    );
   }
 }
 

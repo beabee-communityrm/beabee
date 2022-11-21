@@ -1,4 +1,4 @@
-import { RuleGroup } from "@core/utils/rules";
+import { RuleGroup } from "@beabee/beabee-common";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import type SegmentMember from "./SegmentMember";
 

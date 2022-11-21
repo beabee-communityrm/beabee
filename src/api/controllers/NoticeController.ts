@@ -1,4 +1,4 @@
-import moment from "moment";
+import { ItemStatus, noticeFilters } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -13,10 +13,10 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { Brackets, getRepository } from "typeorm";
+import { getRepository } from "typeorm";
 
-import Notice from "@models/Notice";
 import Member from "@models/Member";
+import Notice from "@models/Notice";
 
 import { UUIDParam } from "@api/data";
 import {
@@ -24,9 +24,14 @@ import {
   GetNoticeData,
   GetNoticesQuery
 } from "@api/data/NoticeData";
+import {
+  fetchPaginated,
+  mergeRules,
+  Paginated,
+  statusField
+} from "@api/data/PaginatedData";
+
 import PartialBody from "@api/decorators/PartialBody";
-import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
-import ItemStatus, { ruleAsQuery } from "@models/ItemStatus";
 
 @JsonController("/notice")
 @Authorized()
@@ -41,12 +46,16 @@ export class NoticeController {
       !member.hasPermission("admin") && {
         field: "status",
         operator: "equal",
-        value: ItemStatus.Open
+        value: [ItemStatus.Open]
       }
     ]);
-    const results = await fetchPaginated(Notice, authedQuery, {
-      status: ruleAsQuery
-    });
+    const results = await fetchPaginated(
+      Notice,
+      noticeFilters,
+      authedQuery,
+      member,
+      { status: statusField }
+    );
 
     return {
       ...results,

@@ -1,6 +1,5 @@
+import { PaymentMethod } from "@beabee/beabee-common";
 import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
-
-import { PaymentMethod } from "@core/utils";
 
 import type Member from "@models/Member";
 

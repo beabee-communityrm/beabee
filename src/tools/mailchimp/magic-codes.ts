@@ -1,10 +1,10 @@
 import "module-alias/register";
 
+import { NewsletterStatus } from "@beabee/beabee-common";
 import { createQueryBuilder, getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
-import { NewsletterStatus } from "@core/providers/newsletter";
 import NewsletterService from "@core/services/NewsletterService";
 
 import LoginOverrideFlow from "@models/LoginOverrideFlow";

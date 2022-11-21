@@ -1,5 +1,9 @@
+import {
+  ContributionType,
+  ContributionPeriod,
+  PaymentMethod
+} from "@beabee/beabee-common";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import moment from "moment";
 import { QueryFailedError } from "typeorm";
 
 export interface ContributionInfo {
@@ -16,18 +20,6 @@ export interface ContributionInfo {
   membershipExpiryDate?: Date;
 }
 
-export enum ContributionPeriod {
-  Monthly = "monthly",
-  Annually = "annually"
-}
-
-export enum ContributionType {
-  Automatic = "Automatic",
-  Manual = "Manual",
-  Gift = "Gift",
-  None = "None"
-}
-
 export interface PaymentForm {
   monthlyAmount: number;
   period: ContributionPeriod;
@@ -35,25 +27,18 @@ export interface PaymentForm {
   prorate: boolean;
 }
 
-export enum PaymentMethod {
-  StripeCard = "s_card",
-  StripeSEPA = "s_sepa",
-  StripeBACS = "s_bacs",
-  GoCardlessDirectDebit = "gc_direct-debit"
-}
-
-export interface CardPaymentSource {
-  method: PaymentMethod.StripeCard;
-  last4: string;
-  expiryMonth: number;
-  expiryYear: number;
-}
-
 export interface GoCardlessDirectDebitPaymentSource {
   method: PaymentMethod.GoCardlessDirectDebit;
   bankName: string;
   accountHolderName: string;
   accountNumberEnding: string;
+}
+
+export interface StripeCardPaymentSource {
+  method: PaymentMethod.StripeCard;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
 }
 
 export interface StripeBACSPaymentSource {
@@ -70,11 +55,18 @@ export interface StripeSEPAPaymentSource {
   last4: string;
 }
 
+export interface ManualPaymentSource {
+  method: null;
+  source?: string;
+  reference?: string;
+}
+
 export type PaymentSource =
-  | CardPaymentSource
   | GoCardlessDirectDebitPaymentSource
+  | StripeCardPaymentSource
   | StripeBACSPaymentSource
-  | StripeSEPAPaymentSource;
+  | StripeSEPAPaymentSource
+  | ManualPaymentSource;
 
 export function getActualAmount(
   amount: number,
@@ -145,7 +137,7 @@ export function createDateTime(
   date: string | undefined,
   time: string | undefined
 ): Date | null {
-  return date && time ? moment.utc(date + "T" + time).toDate() : null;
+  return date && time ? new Date(date + "T" + time) : null;
 }
 
 interface PgError {

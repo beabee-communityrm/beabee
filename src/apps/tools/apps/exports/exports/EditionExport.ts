@@ -1,7 +1,7 @@
+import { ContributionType } from "@beabee/beabee-common";
 import _ from "lodash";
 import { createQueryBuilder, getRepository, SelectQueryBuilder } from "typeorm";
 
-import { ContributionType } from "@core/utils";
 import { Param } from "@core/utils/params";
 import { convertAnswers } from "@core/utils/polls";
 

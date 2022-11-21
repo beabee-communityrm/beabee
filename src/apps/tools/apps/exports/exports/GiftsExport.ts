@@ -1,6 +1,5 @@
+import { ContributionType } from "@beabee/beabee-common";
 import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
-
-import { ContributionType } from "@core/utils";
 
 import Address from "@models/Address";
 import GiftFlow from "@models/GiftFlow";

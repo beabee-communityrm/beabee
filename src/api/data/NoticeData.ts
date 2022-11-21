@@ -1,12 +1,7 @@
-import {
-  GetPaginatedQuery,
-  GetPaginatedRule,
-  GetPaginatedRuleGroup,
-  transformRules
-} from "@api/utils/pagination";
-import ItemStatus from "@models/ItemStatus";
-import { Transform, Type } from "class-transformer";
+import { ItemStatus } from "@beabee/beabee-common";
+import { Type } from "class-transformer";
 import { IsBoolean, IsDate, IsIn, IsOptional, IsString } from "class-validator";
+import { GetPaginatedQuery } from "./PaginatedData";
 
 interface NoticeData {
   name: string;
@@ -16,36 +11,11 @@ interface NoticeData {
   url?: string;
 }
 
-const fields = [
-  "createdAt",
-  "updatedAt",
-  "name",
-  "expires",
-  "enabled",
-  "text",
-  "status"
-] as const;
-const sortFields = ["createdAt", "updatedAt", "name", "expires"];
+const sortFields = ["createdAt", "updatedAt", "name", "expires"] as const;
 
-type Field = typeof fields[number];
-type SortField = typeof sortFields[number];
-
-class GetNoticesRule extends GetPaginatedRule<Field> {
-  @IsIn(fields)
-  field!: Field;
-}
-
-class GetNoticesRuleGroup extends GetPaginatedRuleGroup<Field> {
-  @Transform(transformRules(GetNoticesRuleGroup, GetNoticesRule))
-  rules!: (GetNoticesRuleGroup | GetNoticesRule)[];
-}
-
-export class GetNoticesQuery extends GetPaginatedQuery<Field, SortField> {
+export class GetNoticesQuery extends GetPaginatedQuery {
   @IsIn(sortFields)
-  sort?: SortField;
-
-  @Type(() => GetNoticesRuleGroup)
-  rules?: GetNoticesRuleGroup;
+  sort?: string;
 }
 
 export interface GetNoticeData extends NoticeData {

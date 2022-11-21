@@ -1,3 +1,9 @@
+import {
+  ContributionPeriod,
+  PermissionTypes,
+  PermissionType,
+  paymentFilters
+} from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import {
   Authorized,
@@ -27,17 +33,14 @@ import PaymentFlowService from "@core/services/PaymentFlowService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
-import { ContributionInfo, ContributionPeriod } from "@core/utils";
+import { ContributionInfo } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import JoinFlow from "@models/JoinFlow";
 import Member from "@models/Member";
 import MemberProfile from "@models/MemberProfile";
 import Payment from "@models/Payment";
-import MemberPermission, {
-  PermissionType,
-  PermissionTypes
-} from "@models/MemberPermission";
+import MemberPermission from "@models/MemberPermission";
 
 import { UUIDParam } from "@api/data";
 import {
@@ -45,8 +48,8 @@ import {
   fetchPaginatedMembers,
   GetMemberData,
   GetMemberQuery,
-  GetMembersQuery,
   GetMemberRoleData,
+  GetMembersQuery,
   GetMemberWith,
   GetPaymentData,
   GetPaymentsQuery,
@@ -60,14 +63,15 @@ import {
 import {
   SetContributionData,
   StartContributionData,
-  UpdateContributionData
+  UpdateContributionData,
+  ForceUpdateContributionData
 } from "@api/data/ContributionData";
+import { mergeRules, fetchPaginated, Paginated } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-import { fetchPaginated, mergeRules, Paginated } from "@api/utils/pagination";
 
 import config from "@config";
 
@@ -145,7 +149,6 @@ export class MemberController {
     @QueryParams() query: GetMembersQuery
   ): Promise<Paginated<GetMemberData>> {
     return await fetchPaginatedMembers(query, {
-      with: query.with,
       withRestricted: true
     });
   }
@@ -262,15 +265,32 @@ export class MemberController {
     return await this.getContribution(target);
   }
 
+  // This is a temporary API endpoint until we rework the contribution/payment tables
+  // TODO: Remove this!
+  @Authorized("admin")
+  @Patch("/:id/contribution/force")
+  async forceUpdateContribution(
+    @TargetUser() target: Member,
+    @Body() data: ForceUpdateContributionData
+  ): Promise<ContributionInfo> {
+    await MembersService.forceUpdateMemberContribution(target, data);
+    return await this.getContribution(target);
+  }
+
   @Get("/:id/payment")
   async getPayments(
     @TargetUser() target: Member,
     @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
     const targetQuery = mergeRules(query, [
-      { field: "member", operator: "equal", value: target.id }
+      { field: "member", operator: "equal", value: [target.id] }
     ]);
-    const data = await fetchPaginated(Payment, targetQuery);
+    const data = await fetchPaginated(
+      Payment,
+      paymentFilters,
+      targetQuery,
+      target
+    );
     return {
       ...data,
       items: data.items.map((item) => ({

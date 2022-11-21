@@ -1,3 +1,4 @@
+import { PaymentStatus } from "@beabee/beabee-common";
 import bodyParser from "body-parser";
 import { add } from "date-fns";
 import express from "express";
@@ -13,7 +14,7 @@ import GiftService from "@core/services/GiftService";
 import MembersService from "@core/services/MembersService";
 import PaymentService from "@core/services/PaymentService";
 
-import Payment, { PaymentStatus } from "@models/Payment";
+import Payment from "@models/Payment";
 import PaymentData, { StripePaymentData } from "@models/PaymentData";
 
 import config from "@config";

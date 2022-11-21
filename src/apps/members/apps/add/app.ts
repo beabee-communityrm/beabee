@@ -1,20 +1,19 @@
+import {
+  ContributionPeriod,
+  ContributionType,
+  NewsletterStatus,
+  PermissionType
+} from "@beabee/beabee-common";
 import express from "express";
 import { getRepository } from "typeorm";
 
 import { hasSchema, isSuperAdmin } from "@core/middleware";
-import {
-  ContributionPeriod,
-  ContributionType,
-  createDateTime,
-  wrapAsync
-} from "@core/utils";
+import { createDateTime, wrapAsync } from "@core/utils";
 
 import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 
-import { NewsletterStatus } from "@core/providers/newsletter";
-
-import MemberPermission, { PermissionType } from "@models/MemberPermission";
+import MemberPermission from "@models/MemberPermission";
 
 import { addContactSchema } from "./schemas.json";
 

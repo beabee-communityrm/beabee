@@ -1,11 +1,11 @@
 import "module-alias/register";
 
+import { ContributionType } from "@beabee/beabee-common";
 import inquirer, { QuestionCollection } from "inquirer";
 import moment from "moment";
 import { getRepository } from "typeorm";
 
 import * as db from "@core/database";
-import { ContributionType } from "@core/utils";
 import { generatePassword, passwordRequirements } from "@core/utils/auth";
 
 import MembersService from "@core/services/MembersService";

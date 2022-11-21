@@ -1,6 +1,10 @@
+import {
+  ContributionPeriod,
+  NewsletterStatus,
+  PaymentMethod
+} from "@beabee/beabee-common";
 import { getRepository } from "typeorm";
 
-import { ContributionPeriod, PaymentMethod } from "@core/utils";
 import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
@@ -8,6 +12,7 @@ import MembersService from "@core/services/MembersService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
+import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Member from "@models/Member";
@@ -24,7 +29,6 @@ import {
 } from "@core/providers/payment-flow";
 import StripeProvider from "@core/providers/payment-flow/StripeProvider";
 import GCProvider from "@core/providers/payment-flow/GCProvider";
-import { NewsletterStatus } from "@core/providers/newsletter";
 
 import { CompleteUrls } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
@@ -45,8 +49,8 @@ class PaymentFlowService implements PaymentFlowProvider {
   ): Promise<JoinFlow> {
     const joinForm: JoinForm = {
       ...form,
+      monthlyAmount: 0, // Currently used below to flag a no contribution join flow
       // TODO: stubbed here, should be optional
-      monthlyAmount: 0,
       period: ContributionPeriod.Monthly,
       payFee: false,
       prorate: false,
@@ -144,19 +148,35 @@ class PaymentFlowService implements PaymentFlowProvider {
       throw new DuplicateEmailError();
     }
 
-    const completedFlow = await this.completeJoinFlow(joinFlow);
-    const paymentData = await this.getCompletedPaymentFlowData(completedFlow);
-
     const partialMember = {
       email: joinFlow.joinForm.email,
       password: joinFlow.joinForm.password,
-      firstname: joinFlow.joinForm.firstname || paymentData.firstname || "",
-      lastname: joinFlow.joinForm.lastname || paymentData.lastname || ""
+      firstname: joinFlow.joinForm.firstname || "",
+      lastname: joinFlow.joinForm.lastname || ""
     };
     const partialProfile = {
       newsletterStatus: NewsletterStatus.Subscribed,
       newsletterGroups: OptionsService.getList("newsletter-default-groups")
     };
+
+    let completedPaymentFlow: CompletedPaymentFlow | undefined;
+    let deliveryAddress: Address | undefined;
+
+    // Only complete join flow for those with a contribution
+    // TODO: rework join flow to properly accommodate no contributions
+    if (joinFlow.joinForm.monthlyAmount !== 0) {
+      completedPaymentFlow = await this.completeJoinFlow(joinFlow);
+      const paymentData = await this.getCompletedPaymentFlowData(
+        completedPaymentFlow
+      );
+
+      // Prefill member data from payment provider if possible
+      partialMember.firstname ||= paymentData.firstname || "";
+      partialMember.lastname ||= paymentData.lastname || "";
+      deliveryAddress = OptionsService.getBool("show-mail-opt-in")
+        ? paymentData.billingAddress
+        : undefined;
+    }
 
     if (member) {
       await MembersService.updateMember(member, partialMember);
@@ -164,17 +184,14 @@ class PaymentFlowService implements PaymentFlowProvider {
     } else {
       member = await MembersService.createMember(partialMember, {
         ...partialProfile,
-        ...(OptionsService.getBool("show-mail-opt-in") &&
-        paymentData.billingAddress
-          ? {
-              deliveryAddress: paymentData.billingAddress
-            }
-          : undefined)
+        ...(deliveryAddress ? { deliveryAddress } : undefined)
       });
     }
 
-    await PaymentService.updatePaymentMethod(member, completedFlow);
-    await MembersService.updateMemberContribution(member, joinFlow.joinForm);
+    if (completedPaymentFlow) {
+      await PaymentService.updatePaymentMethod(member, completedPaymentFlow);
+      await MembersService.updateMemberContribution(member, joinFlow.joinForm);
+    }
 
     await EmailService.sendTemplateToMember("welcome", member);
 
