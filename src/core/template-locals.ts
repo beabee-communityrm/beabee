@@ -1,4 +1,3 @@
-import { PermissionType } from "@beabee/beabee-common";
 import { NextFunction, Request, Response } from "express";
 
 import { AppConfig } from "@config";
@@ -42,11 +41,6 @@ export default (appConfigs: AppConfig[]) =>
         });
       }
     }
-
-    // Permissions
-    res.locals.isLoggedIn = !!req.user;
-    res.locals.access = (permission: PermissionType) =>
-      req.user?.hasPermission(permission);
 
     // Prepare a CSRF token if available
     if (req.csrfToken) res.locals.csrf = req.csrfToken();
