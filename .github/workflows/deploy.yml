@@ -15,24 +15,24 @@ jobs:
         run: |
           case "${{ github.ref }}" in
             refs/heads/master)
-              echo "::set-output name=stage::live"
-              echo "::set-output name=tag::latest"
+              echo "stage=latest" >> $GITHUB_OUTPUT
+              echo "tag=latest" >> $GITHUB_OUTPUT
               ;;
             refs/heads/dev)
-              echo "::set-output name=stage::dev"
-              echo "::set-output name=tag::dev"
+              echo "stage=dev" >> $GITHUB_OUTPUT
+              echo "tag=dev" >> $GITHUB_OUTPUT
               ;;
             refs/heads/release)
-              echo "::set-output name=stage::release"
-              echo "::set-output name=tag::stable"
+              echo "stage=release" >> $GITHUB_OUTPUT
+              echo "tag=stable" >> $GITHUB_OUTPUT
               ;;
           esac
 
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 16.13
       - run: npm install dpdm
