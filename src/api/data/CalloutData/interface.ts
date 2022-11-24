@@ -12,7 +12,6 @@ import {
 } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
-import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
 import { PollFormSchema, PollAccess } from "@models/Poll";
@@ -36,7 +35,7 @@ export class GetCalloutsQuery extends GetPaginatedQuery {
 }
 
 interface CalloutData {
-  slug: string;
+  slug?: string;
   title: string;
   excerpt: string;
   image: string;
@@ -58,6 +57,7 @@ interface CalloutData {
 }
 
 export interface GetCalloutData extends CalloutData {
+  slug: string;
   status: ItemStatus;
   // With "hasAnswered"
   hasAnswered?: boolean;
@@ -72,8 +72,9 @@ export class GetCalloutQuery {
 }
 
 export class CreateCalloutData implements CalloutData {
+  @IsOptional()
   @IsString()
-  slug!: string;
+  slug?: string;
 
   @IsString()
   title!: string;
@@ -81,7 +82,8 @@ export class CreateCalloutData implements CalloutData {
   @IsString()
   excerpt!: string;
 
-  @IsUrl()
+  // TODO: Should be IsUrl but validation fails for draft callouts
+  @IsString()
   image!: string;
 
   @IsString()

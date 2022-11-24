@@ -12,9 +12,12 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
+import slugify from "slugify";
 import { getRepository } from "typeorm";
 
 import PollsService from "@core/services/PollsService";
+
+import { isDuplicateIndex } from "@core/utils";
 
 import Member from "@models/Member";
 import Poll from "@models/Poll";
@@ -33,9 +36,30 @@ import {
   GetCalloutsQuery
 } from "@api/data/CalloutData";
 import { Paginated } from "@api/data/PaginatedData";
-
-import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import PartialBody from "@api/decorators/PartialBody";
+import DuplicateId from "@api/errors/DuplicateId";
+import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+
+async function createCallout(
+  data: CreateCalloutData & { slug: string },
+  autoSlug: number | false
+): Promise<Poll> {
+  const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
+  try {
+    await getRepository(Poll).insert({ ...data, slug });
+    return await getRepository(Poll).findOneOrFail(slug);
+  } catch (err) {
+    if (isDuplicateIndex(err, "slug")) {
+      if (autoSlug === false) {
+        throw new DuplicateId(slug);
+      } else {
+        return await createCallout(data, autoSlug + 1);
+      }
+    } else {
+      throw err;
+    }
+  }
+}
 
 abstract class CalloutAdminController {
   @Authorized("admin")
@@ -44,12 +68,13 @@ abstract class CalloutAdminController {
     @CurrentUser({ required: true }) member: Member,
     @Body() data: CreateCalloutData
   ): Promise<GetCalloutData> {
-    await getRepository(Poll).insert(data);
-    const poll = await getRepository(Poll).findOne(data.slug);
-    // Should be impossible
-    if (!poll) {
-      throw new Error("Callout just inserted but not found");
-    }
+    const poll = await createCallout(
+      {
+        ...data,
+        slug: data.slug || slugify(data.title, { lower: true })
+      },
+      data.slug ? false : 0
+    );
     return convertCalloutToData(poll, member, {});
   }
 
@@ -60,11 +85,14 @@ abstract class CalloutAdminController {
     @Param("slug") slug: string,
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
+    const newSlug = data.slug || slug;
     await getRepository(Poll).update(slug, data);
-    const poll = await getRepository(Poll).findOne(
-      data.slug ? data.slug : slug
-    );
-    return poll && convertCalloutToData(poll, member, {});
+    try {
+      const poll = await getRepository(Poll).findOne(newSlug);
+      return poll && convertCalloutToData(poll, member, {});
+    } catch (err) {
+      throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
+    }
   }
 
   @Authorized("admin")
