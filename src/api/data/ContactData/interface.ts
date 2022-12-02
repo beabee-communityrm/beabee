@@ -28,13 +28,13 @@ import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
 
-interface MemberData {
+interface ContactData {
   email: string;
   firstname: string;
   lastname: string;
 }
 
-interface MemberProfileData {
+interface ContactProfileData {
   telephone: string;
   twitter: string;
   preferredContact: string;
@@ -49,7 +49,7 @@ interface MemberProfileData {
   description?: string;
 }
 
-export class UpdateMemberRoleData {
+export class UpdateContactRoleData {
   @Type(() => Date)
   @IsDate()
   dateAdded!: Date;
@@ -60,44 +60,44 @@ export class UpdateMemberRoleData {
   dateExpires!: Date | null;
 }
 
-export interface GetMemberRoleData extends UpdateMemberRoleData {
+export interface GetContactRoleData extends UpdateContactRoleData {
   role: PermissionType;
 }
 
-export class CreateMemberRoleData
-  extends UpdateMemberRoleData
-  implements GetMemberRoleData
+export class CreateContactRoleData
+  extends UpdateContactRoleData
+  implements GetContactRoleData
 {
   @IsIn(PermissionTypes)
   role!: PermissionType;
 }
 
-export interface GetMemberData extends MemberData {
+export interface GetContactData extends ContactData {
   id: string;
   joined: Date;
   lastSeen?: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
   activeRoles: PermissionType[];
-  profile?: MemberProfileData;
-  roles?: GetMemberRoleData[];
+  profile?: ContactProfileData;
+  roles?: GetContactRoleData[];
   contribution?: ContributionInfo;
 }
 
-export enum GetMemberWith {
+export enum GetContactWith {
   Contribution = "contribution",
   Profile = "profile",
   Roles = "roles"
 }
 
-export class GetMemberQuery {
+export class GetContactQuery {
   @IsArray()
   @IsOptional()
-  @IsEnum(GetMemberWith, { each: true })
-  with?: GetMemberWith[];
+  @IsEnum(GetContactWith, { each: true })
+  with?: GetContactWith[];
 }
 
-const memberSortFields = [
+const contactSortFields = [
   "firstname",
   "lastname",
   "email",
@@ -108,14 +108,14 @@ const memberSortFields = [
   "membershipExpires"
 ] as const;
 
-// TODO: Use a mixin to inherit from GetMemberQuery?
-export class GetMembersQuery extends GetPaginatedQuery {
+// TODO: Use a mixin to inherit from GetContactQuery?
+export class GetContactsQuery extends GetPaginatedQuery {
   @IsArray()
   @IsOptional()
-  @IsEnum(GetMemberWith, { each: true })
-  with?: GetMemberWith[];
+  @IsEnum(GetContactWith, { each: true })
+  with?: GetContactWith[];
 
-  @IsIn(memberSortFields)
+  @IsIn(contactSortFields)
   sort?: string;
 }
 
@@ -136,7 +136,7 @@ class UpdateAddressData implements Address {
   postcode!: string;
 }
 
-class UpdateMemberProfileData implements Partial<MemberProfileData> {
+class UpdateContactProfileData implements Partial<ContactProfileData> {
   @IsString()
   telephone?: string;
 
@@ -170,7 +170,7 @@ class UpdateMemberProfileData implements Partial<MemberProfileData> {
   description?: string;
 }
 
-export class CreateMemberData implements MemberData {
+export class CreateContactData implements ContactData {
   @IsEmail()
   email!: string;
 
@@ -186,13 +186,13 @@ export class CreateMemberData implements MemberData {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => UpdateMemberProfileData)
-  profile?: UpdateMemberProfileData;
+  @Type(() => UpdateContactProfileData)
+  profile?: UpdateContactProfileData;
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => CreateMemberRoleData)
-  roles?: CreateMemberRoleData[];
+  @Type(() => CreateContactRoleData)
+  roles?: CreateContactRoleData[];
 }
 
 export interface GetPaymentData {

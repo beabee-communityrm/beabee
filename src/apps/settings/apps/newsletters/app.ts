@@ -6,13 +6,13 @@ import { log as mainLogger } from "@core/logging";
 import { isSuperAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
 import { NewsletterMember } from "@core/providers/newsletter";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import config from "@config";
 
@@ -43,7 +43,7 @@ function groupsList(groups: string[]) {
     .join(",");
 }
 
-function isMismatchedMember(member: Member, nlMember: NewsletterMember) {
+function isMismatchedMember(member: Contact, nlMember: NewsletterMember) {
   return (
     member.profile.newsletterStatus !== nlMember.status ||
     groupsList(member.profile.newsletterGroups) !==
@@ -78,13 +78,13 @@ async function handleResync(
   try {
     await setResyncStatus("In progress: Fetching contact lists");
 
-    const members = await MembersService.find({ relations: ["profile"] });
+    const members = await ContactsService.find({ relations: ["profile"] });
     const newsletterMembers = await NewsletterService.getNewsletterMembers();
 
-    const newMembersToUpload: Member[] = [],
-      existingMembers: Member[] = [],
-      existingMembersToArchive: Member[] = [],
-      mismatchedMembers: [Member, NewsletterMember][] = [];
+    const newMembersToUpload: Contact[] = [],
+      existingMembers: Contact[] = [],
+      existingMembersToArchive: Contact[] = [],
+      mismatchedMembers: [Contact, NewsletterMember][] = [];
     for (const member of members) {
       const nlMember = newsletterMembers.find(
         (nm) => nm.email === member.email
@@ -142,7 +142,7 @@ async function handleResync(
     await setResyncStatus(
       `In progress: Uploading ${newMembersToUpload.length} new contacts to the newsletter list`
     );
-    await NewsletterService.upsertMembers(newMembersToUpload);
+    await NewsletterService.upsertContacts(newMembersToUpload);
 
     // Must fix status before mass update to avoid overwriting in the wrong direction
     if (statusSource === "theirs") {
@@ -151,7 +151,7 @@ async function handleResync(
       );
 
       for (const [member, nlMember] of mismatchedMembers) {
-        await MembersService.updateMemberProfile(
+        await ContactsService.updateContactProfile(
           member,
           {
             newsletterStatus: nlMember.status,
@@ -165,18 +165,18 @@ async function handleResync(
     await setResyncStatus(
       `In progress: Updating ${existingMembers.length} contacts in newsletter list`
     );
-    await NewsletterService.upsertMembers(existingMembers);
+    await NewsletterService.upsertContacts(existingMembers);
 
     // Sync tags before archiving
     await setResyncStatus(
       `In progress: Updating active member tag for ${mismatchedMembers.length} contacts in newsletter list`
     );
 
-    await NewsletterService.addTagToMembers(
+    await NewsletterService.addTagToContacts(
       mismatchedMembers.filter(([m]) => m.membership?.isActive).map(([m]) => m),
       OptionsService.getText("newsletter-active-member-tag")
     );
-    await NewsletterService.removeTagFromMembers(
+    await NewsletterService.removeTagFromContacts(
       mismatchedMembers
         .filter(([m]) => !m.membership?.isActive)
         .map(([m]) => m),
@@ -188,14 +188,14 @@ async function handleResync(
     await setResyncStatus(
       `In progress: Archiving ${existingMembersToArchive.length} contacts from newsletter list`
     );
-    await NewsletterService.archiveMembers(existingMembersToArchive);
+    await NewsletterService.archiveContacts(existingMembersToArchive);
 
     await setResyncStatus(
       `In progress: Importing ${newsletterMembersToImport.length} contacts from newsletter list`
     );
 
     for (const nlMember of newsletterMembersToImport) {
-      await MembersService.createMember(
+      await ContactsService.createContact(
         {
           email: nlMember.email,
           firstname: nlMember.firstname,
@@ -240,8 +240,8 @@ app.get(
   "/report",
   wrapAsync(async (req, res) => {
     const data = OptionsService.getJSON("newsletter-resync-data") as ReportData;
-    const newMembersToUpload = await MembersService.findByIds(data.uploadIds);
-    const mismatchedMembers = await MembersService.findByIds(
+    const newMembersToUpload = await ContactsService.findByIds(data.uploadIds);
+    const mismatchedMembers = await ContactsService.findByIds(
       data.mismatched.map((m) => m.id),
       { relations: ["profile"] }
     );

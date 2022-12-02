@@ -16,7 +16,7 @@ import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { ContentController } from "./controllers/ContentController";
 import { EmailController } from "./controllers/EmailController";
-import { MemberController } from "./controllers/MemberController";
+import { ContactController } from "./controllers/ContactController";
 import { NoticeController } from "./controllers/NoticeController";
 import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
@@ -28,9 +28,9 @@ import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
-function currentUserChecker(action: Action): Member | undefined {
+function currentUserChecker(action: Action): Contact | undefined {
   return (action.request as Request).user;
 }
 
@@ -58,7 +58,7 @@ db.connect().then(() => {
       CalloutController,
       ContentController,
       EmailController,
-      MemberController,
+      ContactController,
       NoticeController,
       SegmentController,
       SignupController,

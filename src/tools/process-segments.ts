@@ -7,25 +7,25 @@ import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import SegmentService from "@core/services/SegmentService";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
-import SegmentMember from "@models/SegmentMember";
+import SegmentContact from "@models/SegmentContact";
 
 const log = mainLogger.child({ app: "process-segments" });
 
 async function processSegment(segment: Segment) {
   log.info("Process segment " + segment.name);
 
-  const matchedMembers = await SegmentService.getSegmentMembers(segment);
+  const matchedMembers = await SegmentService.getSegmentContacts(segment);
 
-  const segmentMembers = (await getRepository(SegmentMember).find({
+  const segmentMembers = (await getRepository(SegmentContact).find({
     where: { segment },
     loadRelationIds: true
-  })) as unknown as WithRelationIds<SegmentMember, "member">[];
+  })) as unknown as WithRelationIds<SegmentContact, "member">[];
 
   const newMembers = matchedMembers.filter((m) =>
     segmentMembers.every((sm) => sm.member !== m.id)
@@ -38,11 +38,11 @@ async function processSegment(segment: Segment) {
     `Segment ${segment.name} has ${segmentMembers.length} existing members, ${newMembers.length} new members and ${oldSegmentMembers.length} old members`
   );
 
-  await getRepository(SegmentMember).delete({
+  await getRepository(SegmentContact).delete({
     segment,
-    member: In(oldSegmentMembers.map((sm) => sm.member as unknown as Member)) // Types seem strange here
+    member: In(oldSegmentMembers.map((sm) => sm.member as unknown as Contact)) // Types seem strange here
   });
-  await getRepository(SegmentMember).insert(
+  await getRepository(SegmentContact).insert(
     newMembers.map((member) => ({
       segment,
       member
@@ -58,7 +58,9 @@ async function processSegment(segment: Segment) {
   const oldMembers =
     segment.newsletterTag ||
     outgoingEmails.some((oe) => oe.trigger === "onLeave")
-      ? await MembersService.findByIds(oldSegmentMembers.map((sm) => sm.member))
+      ? await ContactsService.findByIds(
+          oldSegmentMembers.map((sm) => sm.member)
+        )
       : [];
 
   for (const outgoingEmail of outgoingEmails) {
@@ -69,13 +71,13 @@ async function processSegment(segment: Segment) {
         ? newMembers
         : [];
     if (emailMembers.length > 0) {
-      await EmailService.sendEmailToMembers(outgoingEmail.email, emailMembers);
+      await EmailService.sendEmailToContact(outgoingEmail.email, emailMembers);
     }
   }
 
   if (segment.newsletterTag) {
-    await NewsletterService.addTagToMembers(newMembers, segment.newsletterTag);
-    await NewsletterService.removeTagFromMembers(
+    await NewsletterService.addTagToContacts(newMembers, segment.newsletterTag);
+    await NewsletterService.removeTagFromContacts(
       oldMembers,
       segment.newsletterTag
     );

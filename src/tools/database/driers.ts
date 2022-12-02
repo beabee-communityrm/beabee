@@ -17,23 +17,23 @@ import EmailMailing from "@models/EmailMailing";
 import Export from "@models/Export";
 import ExportItem from "@models/ExportItem";
 import GiftFlow from "@models/GiftFlow";
-import Member from "@models/Member";
-import MemberPermission from "@models/MemberPermission";
-import MemberProfile from "@models/MemberProfile";
+import Contact from "@models/Contact";
+import ContactRole from "@models/ContactRole";
+import ContactProfile from "@models/ContactProfile";
 import Notice from "@models/Notice";
 import Option from "@models/Option";
 import PageSettings from "@models/PageSettings";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
-import Poll from "@models/Poll";
-import PollResponse from "@models/PollResponse";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 import Project from "@models/Project";
-import ProjectMember from "@models/ProjectMember";
+import ProjectContact from "@models/ProjectContact";
 import ProjectEngagement from "@models/ProjectEngagement";
 import Referral from "@models/Referral";
 import ReferralGift from "@models/ReferralGift";
 import Segment from "@models/Segment";
-import SegmentMember from "@models/SegmentMember";
+import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
 const log = mainLogger.child({ app: "drier" });
@@ -80,7 +80,7 @@ function uniqueCode(): string {
 }
 
 // Relations are loaded with loadRelationIds
-const memberId = () => uuidv4() as unknown as Member;
+const memberId = () => uuidv4() as unknown as Contact;
 
 const chance = new Chance();
 
@@ -130,7 +130,7 @@ const giftFlowDrier = createModelDrier(GiftFlow, {
   giftee: memberId
 });
 
-export const memberDrier = createModelDrier(Member, {
+export const memberDrier = createModelDrier(Contact, {
   id: () => uuidv4(),
   email: () => chance.email({ domain: "fake.beabee.io", length: 10 }),
   firstname: () => chance.first(),
@@ -141,11 +141,11 @@ export const memberDrier = createModelDrier(Member, {
   referralCode: uniqueCode
 });
 
-export const memberPermissionDrier = createModelDrier(MemberPermission, {
+export const memberPermissionDrier = createModelDrier(ContactRole, {
   member: memberId
 });
 
-export const memberProfileDrier = createModelDrier(MemberProfile, {
+export const memberProfileDrier = createModelDrier(ContactProfile, {
   member: memberId,
   description: () => chance.sentence(),
   bio: () => chance.paragraph(),
@@ -167,9 +167,9 @@ const optionsDrier = createModelDrier(Option);
 
 const pageSettingsDrier = createModelDrier(PageSettings);
 
-export const pollsDrier = createModelDrier(Poll);
+export const pollsDrier = createModelDrier(Callout);
 
-export const pollResponsesDrier = createModelDrier(PollResponse, {
+export const pollResponsesDrier = createModelDrier(CalloutResponse, {
   id: () => uuidv4(),
   member: memberId,
   guestName: () => chance.name(),
@@ -180,7 +180,7 @@ const projectsDrier = createModelDrier(Project, {
   owner: memberId
 });
 
-const projectMembersDrier = createModelDrier(ProjectMember, {
+const projectMembersDrier = createModelDrier(ProjectContact, {
   id: () => uuidv4(),
   member: memberId,
   tag: () => chance.profession()
@@ -205,7 +205,7 @@ const referralsGiftDrier = createModelDrier(ReferralGift, {
 
 const segmentsDrier = createModelDrier(Segment);
 
-const segmentMembersDrier = createModelDrier(SegmentMember, {
+const segmentMembersDrier = createModelDrier(SegmentContact, {
   member: memberId
 });
 

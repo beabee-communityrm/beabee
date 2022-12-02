@@ -7,8 +7,8 @@ import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 import { convertAnswers } from "@core/utils/polls";
 
-import Poll, { PollAccess, PollTemplate } from "@models/Poll";
-import PollResponse from "@models/PollResponse";
+import Callout, { CalloutAccess } from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 
 import { createPollSchema } from "./schemas.json";
 
@@ -26,12 +26,12 @@ interface CreatePollSchema {
   startsTime?: string;
   expiresDate?: string;
   expiresTime?: string;
-  access: PollAccess;
+  access: CalloutAccess;
   hidden?: boolean;
 }
 
-function schemaToPoll(data: CreatePollSchema): Poll {
-  const poll = new Poll();
+function schemaToPoll(data: CreatePollSchema): Callout {
+  const poll = new Callout();
   poll.title = data.title;
   poll.slug = data.slug;
   poll.excerpt = data.excerpt;
@@ -57,7 +57,7 @@ app.use(isAdmin);
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const polls = await createQueryBuilder(Poll, "p")
+    const polls = await createQueryBuilder(Callout, "p")
       .loadRelationCountAndMap("p.responseCount", "p.responses")
       .orderBy({ date: "DESC" })
       .getMany();
@@ -70,7 +70,7 @@ app.post(
   "/",
   hasSchema(createPollSchema).orFlash,
   wrapAsync(async (req, res) => {
-    const poll = await getRepository(Poll).save({
+    const poll = await getRepository(Callout).save({
       ...schemaToPoll(req.body),
       intro: "",
       thanksText: "",
@@ -84,9 +84,9 @@ app.post(
 
 app.get(
   "/:slug",
-  hasNewModel(Poll, "slug"),
+  hasNewModel(Callout, "slug"),
   wrapAsync(async (req, res) => {
-    const responsesCount = await getRepository(PollResponse).count({
+    const responsesCount = await getRepository(CalloutResponse).count({
       where: { poll: req.model }
     });
     res.render("poll", { poll: req.model, responsesCount });
@@ -95,14 +95,14 @@ app.get(
 
 app.get(
   "/:slug/responses",
-  hasNewModel(Poll, "slug"),
+  hasNewModel(Callout, "slug"),
   wrapAsync(async (req, res, next) => {
-    const poll = req.model as Poll;
+    const poll = req.model as Callout;
     if (poll.responsePassword && req.query.password !== poll.responsePassword) {
       req.flash("error", "polls-responses-password-protected");
       next("route");
     } else {
-      const responses = await getRepository(PollResponse).find({
+      const responses = await getRepository(CalloutResponse).find({
         where: { poll: req.model },
         order: {
           createdAt: "ASC"
@@ -123,19 +123,19 @@ app.get(
 
 app.post(
   "/:slug",
-  hasNewModel(Poll, "slug"),
+  hasNewModel(Callout, "slug"),
   wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
+    const poll = req.model as Callout;
 
     switch (req.body.action) {
       case "update":
-        await getRepository(Poll).update(poll.slug, schemaToPoll(req.body));
+        await getRepository(Callout).update(poll.slug, schemaToPoll(req.body));
         req.flash("success", "polls-updated");
         res.redirect(req.originalUrl);
         break;
 
       case "edit-form": {
-        await getRepository(Poll).update(poll.slug, {
+        await getRepository(Callout).update(poll.slug, {
           formSchema: JSON.parse(req.body.formSchema),
           intro: req.body.intro,
           thanksText: req.body.thanksText,
@@ -147,7 +147,7 @@ app.post(
         break;
       }
       case "replicate": {
-        const newPoll = getRepository(Poll).create({
+        const newPoll = getRepository(Callout).create({
           ...poll,
           date: new Date(),
           title: req.body.title,
@@ -155,12 +155,12 @@ app.post(
           starts: null,
           expires: null
         });
-        await getRepository(Poll).save(newPoll);
+        await getRepository(Callout).save(newPoll);
         res.redirect("/tools/polls/" + newPoll.slug);
         break;
       }
       case "delete":
-        await getRepository(Poll).delete(poll.slug);
+        await getRepository(Callout).delete(poll.slug);
         req.flash("success", "polls-deleted");
         res.redirect("/tools/polls");
         break;
@@ -173,7 +173,7 @@ app.post(
           res.redirect(req.originalUrl);
         } else {
           const exportName = `responses-${poll.title}_${moment().format()}.csv`;
-          const responses = await getRepository(PollResponse).find({
+          const responses = await getRepository(CalloutResponse).find({
             where: { poll },
             order: { createdAt: "ASC" },
             relations: ["member"]
@@ -203,7 +203,9 @@ app.post(
         break;
       }
       case "delete-responses":
-        await getRepository(PollResponse).delete({ poll: { slug: poll.slug } });
+        await getRepository(CalloutResponse).delete({
+          poll: { slug: poll.slug }
+        });
         req.flash("success", "polls-responses-deleted");
         res.redirect("/tools/polls/" + poll.slug);
         break;

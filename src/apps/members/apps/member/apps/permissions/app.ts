@@ -4,9 +4,9 @@ import express, { NextFunction, Request, Response } from "express";
 import { hasSchema } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import { createPermissionSchema, updatePermissionSchema } from "./schemas.json";
 
@@ -18,7 +18,7 @@ interface CreatePermissionSchema {
   expiryTime?: string;
 }
 
-function hasPermission(member: Member, permission: PermissionType) {
+function hasPermission(member: Contact, permission: PermissionType) {
   return permission !== "superadmin" || member.hasPermission("superadmin");
 }
 
@@ -48,7 +48,7 @@ app.post(
   wrapAsync(async (req, res) => {
     const { permission, startTime, startDate, expiryDate, expiryTime } =
       req.body as CreatePermissionSchema;
-    const member = req.model as Member;
+    const member = req.model as Contact;
 
     if (!hasPermission(req.user!, permission)) {
       req.flash("danger", "403");
@@ -71,7 +71,7 @@ app.post(
       return;
     }
 
-    await MembersService.updateMemberPermission(member, permission, {
+    await ContactsService.updateContactRole(member, permission, {
       dateAdded,
       dateExpires
     });
@@ -84,7 +84,7 @@ app.get(
   "/:id/modify",
   canUpdatePermission,
   wrapAsync(async (req, res) => {
-    const member = req.model as Member;
+    const member = req.model as Contact;
 
     const permission = member.permissions.find(
       (p) => p.permission === req.params.id
@@ -106,7 +106,7 @@ app.post(
     const {
       body: { startDate, startTime, expiryDate, expiryTime }
     } = req;
-    const member = req.model as Member;
+    const member = req.model as Contact;
     const permission = req.params.id as PermissionType;
 
     const dateAdded = createDateTime(startDate, startTime);
@@ -118,7 +118,7 @@ app.post(
       return;
     }
 
-    await MembersService.updateMemberPermission(member, permission, {
+    await ContactsService.updateContactRole(member, permission, {
       dateAdded,
       dateExpires
     });
@@ -132,8 +132,8 @@ app.post(
   "/:id/revoke",
   canUpdatePermission,
   wrapAsync(async (req, res) => {
-    await MembersService.revokeMemberPermission(
-      req.model as Member,
+    await ContactsService.revokeContactRole(
+      req.model as Contact,
       req.params.id as PermissionType
     );
 

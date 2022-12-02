@@ -5,9 +5,9 @@ import {
 } from "@beabee/beabee-common";
 import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
 
-import Member from "@models/Member";
-import MemberPermission from "@models/MemberPermission";
-import MemberProfile from "@models/MemberProfile";
+import Contact from "@models/Contact";
+import ContactRole from "@models/ContactRole";
+import ContactProfile from "@models/ContactProfile";
 import PaymentData from "@models/PaymentData";
 
 import {
@@ -17,57 +17,57 @@ import {
   SpecialFields
 } from "@api/data/PaginatedData";
 
-import { GetMemberData, GetMembersQuery, GetMemberWith } from "./interface";
+import { GetContactData, GetContactsQuery, GetContactWith } from "./interface";
 
 interface ConvertOpts {
-  with: GetMemberWith[] | undefined;
+  with: GetContactWith[] | undefined;
   withRestricted: boolean;
 }
 
-export function convertMemberToData(
-  member: Member,
+export function convertContactToData(
+  contact: Contact,
   opts: ConvertOpts
-): GetMemberData {
-  const activeRoles = [...member.activePermissions];
+): GetContactData {
+  const activeRoles = [...contact.activePermissions];
   if (activeRoles.includes("superadmin")) {
     activeRoles.push("admin");
   }
 
   return {
-    id: member.id,
-    email: member.email,
-    firstname: member.firstname,
-    lastname: member.lastname,
-    joined: member.joined,
-    ...(member.lastSeen && {
-      lastSeen: member.lastSeen
+    id: contact.id,
+    email: contact.email,
+    firstname: contact.firstname,
+    lastname: contact.lastname,
+    joined: contact.joined,
+    ...(contact.lastSeen && {
+      lastSeen: contact.lastSeen
     }),
-    ...(member.contributionAmount && {
-      contributionAmount: member.contributionAmount
+    ...(contact.contributionAmount && {
+      contributionAmount: contact.contributionAmount
     }),
-    ...(member.contributionPeriod && {
-      contributionPeriod: member.contributionPeriod
+    ...(contact.contributionPeriod && {
+      contributionPeriod: contact.contributionPeriod
     }),
     activeRoles,
-    ...(opts.with?.includes(GetMemberWith.Profile) &&
-      member.profile && {
+    ...(opts.with?.includes(GetContactWith.Profile) &&
+      contact.profile && {
         profile: {
-          telephone: member.profile.telephone,
-          twitter: member.profile.twitter,
-          preferredContact: member.profile.preferredContact,
-          deliveryOptIn: member.profile.deliveryOptIn,
-          deliveryAddress: member.profile.deliveryAddress,
-          newsletterStatus: member.profile.newsletterStatus,
-          newsletterGroups: member.profile.newsletterGroups,
+          telephone: contact.profile.telephone,
+          twitter: contact.profile.twitter,
+          preferredContact: contact.profile.preferredContact,
+          deliveryOptIn: contact.profile.deliveryOptIn,
+          deliveryAddress: contact.profile.deliveryAddress,
+          newsletterStatus: contact.profile.newsletterStatus,
+          newsletterGroups: contact.profile.newsletterGroups,
           ...(opts.withRestricted && {
-            tags: member.profile.tags,
-            notes: member.profile.notes,
-            description: member.profile.description
+            tags: contact.profile.tags,
+            notes: contact.profile.notes,
+            description: contact.profile.description
           })
         }
       }),
-    ...(opts.with?.includes(GetMemberWith.Roles) && {
-      roles: member.permissions.map((p) => ({
+    ...(opts.with?.includes(GetContactWith.Roles) && {
+      roles: contact.permissions.map((p) => ({
         role: p.permission,
         dateAdded: p.dateAdded,
         dateExpires: p.dateExpires
@@ -76,7 +76,7 @@ export function convertMemberToData(
   };
 }
 
-function membershipField(field: keyof MemberPermission) {
+function membershipField(field: keyof ContactRole) {
   return (
     qb: WhereExpressionBuilder,
     args: { whereFn: (field: string) => string }
@@ -84,7 +84,7 @@ function membershipField(field: keyof MemberPermission) {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`mp.memberId`)
-      .from(MemberPermission, "mp")
+      .from(ContactRole, "mp")
       .where(`mp.permission = 'member'`)
       .andWhere(args.whereFn(`mp.${field}`));
 
@@ -92,7 +92,7 @@ function membershipField(field: keyof MemberPermission) {
   };
 }
 
-function profileField(field: keyof MemberProfile) {
+function profileField(field: keyof ContactProfile) {
   return (
     qb: WhereExpressionBuilder,
     args: { whereFn: (field: string) => string }
@@ -100,7 +100,7 @@ function profileField(field: keyof MemberProfile) {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`profile.memberId`)
-      .from(MemberProfile, "profile")
+      .from(ContactProfile, "profile")
       .where(args.whereFn(`profile.${field}`));
 
     qb.where("item.id IN " + subQb.getQuery());
@@ -122,7 +122,7 @@ function activePermission(
   const subQb = createQueryBuilder()
     .subQuery()
     .select(`mp.memberId`)
-    .from(MemberPermission, "mp")
+    .from(ContactRole, "mp")
     .where(`mp.permission = '${permission}'`)
     .andWhere(`mp.dateAdded <= :now`)
     .andWhere(
@@ -153,7 +153,7 @@ function paymentDataField(field: string) {
   };
 }
 
-export const specialMemberFields: SpecialFields<ContactFilterName> = {
+export const specialContactFields: SpecialFields<ContactFilterName> = {
   deliveryOptIn: profileField("deliveryOptIn"),
   newsletterStatus: profileField("newsletterStatus"),
   tags: profileField("tags"),
@@ -170,18 +170,18 @@ export const specialMemberFields: SpecialFields<ContactFilterName> = {
   }
 };
 
-export async function fetchPaginatedMembers(
-  query: GetMembersQuery,
+export async function fetchPaginatedContacts(
+  query: GetContactsQuery,
   opts: Omit<ConvertOpts, "with">
-): Promise<Paginated<GetMemberData>> {
+): Promise<Paginated<GetContactData>> {
   const results = await fetchPaginated(
-    Member,
+    Contact,
     contactFilters,
     query,
     undefined, // No contact rules in contactFilters
-    specialMemberFields,
+    specialContactFields,
     (qb) => {
-      if (query.with?.includes(GetMemberWith.Profile)) {
+      if (query.with?.includes(GetContactWith.Profile)) {
         qb.innerJoinAndSelect("item.profile", "profile");
       }
 
@@ -194,7 +194,7 @@ export async function fetchPaginatedMembers(
         query.sort === "membershipExpires"
       ) {
         qb.leftJoin(
-          MemberPermission,
+          ContactRole,
           "mp",
           "mp.memberId = item.id AND mp.permission = 'member'"
         )
@@ -221,7 +221,7 @@ export async function fetchPaginatedMembers(
 
   if (results.items.length > 0) {
     // Load permissions after to ensure offset/limit work
-    const permissions = await createQueryBuilder(MemberPermission, "mp")
+    const permissions = await createQueryBuilder(ContactRole, "mp")
       .where("mp.memberId IN (:...ids)", {
         ids: results.items.map((t) => t.id)
       })
@@ -237,7 +237,7 @@ export async function fetchPaginatedMembers(
   return {
     ...results,
     items: results.items.map((item) =>
-      convertMemberToData(item, { ...opts, with: query.with })
+      convertContactToData(item, { ...opts, with: query.with })
     )
   };
 }

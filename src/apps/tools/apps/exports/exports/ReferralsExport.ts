@@ -1,11 +1,11 @@
 import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Referral from "@models/Referral";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 
-function memberDetails(member: Member | null) {
+function memberDetails(member: Contact | null) {
   return member
     ? [
         member.email,

@@ -7,7 +7,7 @@ import PageSettingsService, {
   JustPageSettings
 } from "@core/services/PageSettingsService";
 
-import Poll from "@models/Poll";
+import Callout from "@models/Callout";
 
 import config from "@config";
 
@@ -20,7 +20,7 @@ async function getCalloutShareSettings(
 ): Promise<JustPageSettings | undefined> {
   const [slug, ...rest] = uri.substring("/callouts/".length).split("/", 1);
 
-  const callout = await getRepository(Poll).findOne(slug);
+  const callout = await getRepository(Callout).findOne(slug);
   if (callout) {
     return {
       shareTitle: callout.shareTitle || callout.title,

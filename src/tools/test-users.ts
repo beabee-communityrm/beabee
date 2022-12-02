@@ -14,11 +14,11 @@ import { getActualAmount } from "@core/utils";
 import config from "@config";
 
 import Payment from "@models/Payment";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import PaymentData from "@models/PaymentData";
 
 async function logMember(type: string, conditions: Brackets[]) {
-  const qb = createQueryBuilder(Member, "m")
+  const qb = createQueryBuilder(Contact, "m")
     .innerJoinAndSelect("m.permissions", "mp")
     .where("TRUE");
 

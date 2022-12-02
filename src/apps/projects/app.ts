@@ -6,9 +6,9 @@ import { createQueryBuilder, getRepository } from "typeorm";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Project from "@models/Project";
-import ProjectMember from "@models/ProjectMember";
+import ProjectContact from "@models/ProjectContact";
 import ProjectEngagement from "@models/ProjectEngagement";
 
 import { createProjectSchema } from "./schemas.json";
@@ -79,7 +79,7 @@ function schemaToEngagement(
     type,
     notes,
     date: moment(`${date}T${time}`).toDate(),
-    toMember: { id: data.memberId } as Member
+    toMember: { id: data.memberId } as Contact
   };
 }
 
@@ -119,7 +119,7 @@ app.get(
   wrapAsync(async (req, res) => {
     const project = req.model as Project;
 
-    const projectMembers = await getRepository(ProjectMember).find({
+    const projectMembers = await getRepository(ProjectContact).find({
       where: { project },
       relations: ["member", "member.profile"]
     });
@@ -161,7 +161,7 @@ app.post(
         res.redirect(req.originalUrl);
         break;
       case "add-members":
-        await getRepository(ProjectMember).insert(
+        await getRepository(ProjectContact).insert(
           data.memberIds.map((memberId) => ({
             project,
             memberId
@@ -171,7 +171,7 @@ app.post(
         res.redirect(req.originalUrl);
         break;
       case "update-member-tag":
-        await getRepository(ProjectMember).update(data.projectMemberId, {
+        await getRepository(ProjectContact).update(data.projectMemberId, {
           tag: data.tag
         });
         res.redirect(req.originalUrl + "#members");
@@ -190,7 +190,7 @@ app.post(
         break;
       case "delete":
         await getRepository(ProjectEngagement).delete({ project });
-        await getRepository(ProjectMember).delete({ project });
+        await getRepository(ProjectContact).delete({ project });
         await getRepository(Project).delete(project.id);
         req.flash("success", "project-deleted");
         res.redirect("/projects");

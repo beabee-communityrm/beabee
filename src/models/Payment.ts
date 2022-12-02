@@ -7,7 +7,7 @@ import {
   PrimaryColumn,
   UpdateDateColumn
 } from "typeorm";
-import type Member from "./Member";
+import type Contact from "./Contact";
 
 @Entity()
 export default class Payment {
@@ -17,8 +17,8 @@ export default class Payment {
   @Column({ type: String, nullable: true })
   subscriptionId!: string | null;
 
-  @ManyToOne("Member", { nullable: true })
-  member!: Member | null;
+  @ManyToOne("Contact", { nullable: true })
+  member!: Contact | null;
 
   @Column()
   status!: PaymentStatus;

@@ -1,5 +1,5 @@
 import Payment from "@models/Payment";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import { Type } from "class-transformer";
 import { IsDate } from "class-validator";
 import {
@@ -32,7 +32,7 @@ export class StatsController {
   @Authorized("admin")
   @Get("/")
   async getStats(@QueryParams() query: GetStatsQuery): Promise<GetStatsData> {
-    const newMembers = await createQueryBuilder(Member, "m")
+    const newMembers = await createQueryBuilder(Contact, "m")
       .where("m.joined BETWEEN :from AND :to", query)
       .getCount();
 

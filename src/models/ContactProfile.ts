@@ -2,13 +2,13 @@ import { NewsletterStatus } from "@beabee/beabee-common";
 import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
 
 import type Address from "./Address";
-import type Member from "./Member";
+import type Contact from "./Contact";
 
 @Entity()
-export default class MemberProfile {
-  @OneToOne("Member", "profile", { primary: true })
+export default class ContactProfile {
+  @OneToOne("Contact", "profile", { primary: true })
   @JoinColumn()
-  member!: Member;
+  member!: Contact;
 
   @Column({ default: "" })
   description!: string;

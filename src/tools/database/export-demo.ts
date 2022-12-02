@@ -4,7 +4,7 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import {
   ModelDrier,
@@ -34,7 +34,7 @@ async function main() {
     console.log();
   }
 
-  const members = await createQueryBuilder(Member, "m")
+  const members = await createQueryBuilder(Contact, "m")
     .select("m.id")
     .orderBy("random()")
     .limit(400)

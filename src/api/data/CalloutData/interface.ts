@@ -15,8 +15,8 @@ import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
-import { PollFormSchema, PollAccess } from "@models/Poll";
-import { PollResponseAnswers } from "@models/PollResponse";
+import { CalloutFormSchema, CalloutAccess } from "@models/Callout";
+import { CalloutResponseAnswers } from "@models/CalloutResponse";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -44,7 +44,7 @@ interface CalloutData {
   expires: Date | null;
   allowUpdate: boolean;
   allowMultiple: boolean;
-  access: PollAccess;
+  access: CalloutAccess;
   hidden: boolean;
 
   // With "form"
@@ -54,7 +54,7 @@ interface CalloutData {
   thanksRedirect?: string;
   shareTitle?: string;
   shareDescription?: string;
-  formSchema?: PollFormSchema;
+  formSchema?: CalloutFormSchema;
 }
 
 export interface GetCalloutData extends CalloutData {
@@ -106,7 +106,7 @@ export class CreateCalloutData implements CalloutData {
   shareDescription?: string;
 
   @IsObject()
-  formSchema!: PollFormSchema;
+  formSchema!: CalloutFormSchema;
 
   @IsOptional()
   @Type(() => Date)
@@ -124,8 +124,8 @@ export class CreateCalloutData implements CalloutData {
   @IsBoolean()
   allowMultiple!: boolean;
 
-  @IsEnum(PollAccess)
-  access!: PollAccess;
+  @IsEnum(CalloutAccess)
+  access!: CalloutAccess;
 
   @IsBoolean()
   hidden!: boolean;
@@ -140,14 +140,14 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
 
 export interface GetCalloutResponseData {
   member: string;
-  answers: PollResponseAnswers;
+  answers: CalloutResponseAnswers;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export class CreateCalloutResponseData {
   @IsObject()
-  answers!: PollResponseAnswers;
+  answers!: CalloutResponseAnswers;
 
   @IsOptional()
   @IsString()

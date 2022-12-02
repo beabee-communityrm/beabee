@@ -11,7 +11,7 @@ import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import { convertStatus } from "@core/utils/payment/gocardless";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import PaymentService from "@core/services/PaymentService";
 
 import { GCPaymentData } from "@models/PaymentData";
@@ -82,12 +82,12 @@ async function confirmPayment(
       "nextMonthlyAmount",
       null
     );
-    await MembersService.updateMember(payment.member, {
+    await ContactsService.updateContact(payment.member, {
       contributionMonthlyAmount: gcData.nextMonthlyAmount
     });
   }
 
-  await MembersService.extendMemberPermission(
+  await ContactsService.extendContactRole(
     payment.member,
     "member",
     await getSubscriptionPeriodEnd(payment)
@@ -144,7 +144,7 @@ export async function cancelSubscription(
 
   const data = await PaymentService.getDataBy("subscriptionId", subscriptionId);
   if (data) {
-    await MembersService.cancelMemberContribution(
+    await ContactsService.cancelContactContribution(
       data.member,
       "cancelled-contribution"
     );

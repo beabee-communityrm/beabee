@@ -5,7 +5,7 @@ import { ContributionInfo, PaymentForm } from "@core/utils";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import PaymentData, { PaymentProviderData } from "@models/PaymentData";
 
 export interface UpdateContributionResult {
@@ -15,17 +15,17 @@ export interface UpdateContributionResult {
 
 export abstract class PaymentProvider<T extends PaymentProviderData> {
   protected readonly data: T;
-  protected readonly member: Member;
+  protected readonly contact: Contact;
   protected readonly method: PaymentMethod;
 
   constructor(data: PaymentData) {
     this.data = data.data as T;
-    this.member = data.member;
+    this.contact = data.member;
     this.method = data.method as PaymentMethod;
   }
 
   protected async updateData() {
-    await getRepository(PaymentData).update(this.member.id, {
+    await getRepository(PaymentData).update(this.contact.id, {
       data: this.data
     });
   }
@@ -36,7 +36,7 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
 
   abstract getContributionInfo(): Promise<Partial<ContributionInfo>>;
 
-  abstract updateMember(updates: Partial<Member>): Promise<void>;
+  abstract updateContact(updates: Partial<Contact>): Promise<void>;
 
   abstract updateContribution(
     paymentForm: PaymentForm
@@ -46,5 +46,5 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void>;
 
-  abstract permanentlyDeleteMember(): Promise<void>;
+  abstract permanentlyDeleteContact(): Promise<void>;
 }

@@ -1,22 +1,31 @@
-import Poll, { PollComponentSchema, PollFormSchema } from "@models/Poll";
-import { PollResponseAnswer, PollResponseAnswers } from "@models/PollResponse";
+import Callout, {
+  CalloutComponentSchema,
+  CalloutFormSchema
+} from "@models/Callout";
+import {
+  CalloutResponseAnswer,
+  CalloutResponseAnswers
+} from "@models/CalloutResponse";
 
 function flattenComponents(
-  components: PollComponentSchema[]
-): PollComponentSchema[] {
+  components: CalloutComponentSchema[]
+): CalloutComponentSchema[] {
   return components.flatMap((component) => [
     component,
     ...flattenComponents(component.components || [])
   ]);
 }
 
-function getNiceAnswer(component: PollComponentSchema, value: string): string {
+function getNiceAnswer(
+  component: CalloutComponentSchema,
+  value: string
+): string {
   return component.values?.find((v) => v.value === value)?.label || value;
 }
 
 function convertAnswer(
-  component: PollComponentSchema,
-  answer: PollResponseAnswer
+  component: CalloutComponentSchema,
+  answer: CalloutResponseAnswer
 ): string {
   if (!answer) {
     return "";
@@ -33,10 +42,10 @@ function convertAnswer(
 }
 
 export function convertAnswers(
-  poll: Poll,
-  answers: PollResponseAnswers
+  callout: Callout,
+  answers: CalloutResponseAnswers
 ): Record<string, unknown> {
-  const formSchema = poll.formSchema;
+  const formSchema = callout.formSchema;
 
   return Object.assign(
     {},

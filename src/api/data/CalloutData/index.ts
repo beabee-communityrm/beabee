@@ -13,9 +13,9 @@ import {
   statusField
 } from "@api/data/PaginatedData";
 
-import Member from "@models/Member";
-import Poll from "@models/Poll";
-import PollResponse from "@models/PollResponse";
+import Contact from "@models/Contact";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 
 import {
   GetCalloutWith,
@@ -30,48 +30,51 @@ interface ConvertOpts {
 }
 
 export async function convertCalloutToData(
-  poll: Poll,
-  member: Member | undefined,
+  callout: Callout,
+  contact: Contact | undefined,
   opts: ConvertOpts
 ): Promise<GetCalloutData> {
   // fetchPaginatedCallouts prefetches these to reduce the number of queries
   const hasAnswered =
-    opts.with?.includes(GetCalloutWith.HasAnswered) && member
-      ? poll.hasAnswered !== undefined
-        ? poll.hasAnswered
-        : (await getRepository(PollResponse).count({ poll, member })) > 0
+    opts.with?.includes(GetCalloutWith.HasAnswered) && contact
+      ? callout.hasAnswered !== undefined
+        ? callout.hasAnswered
+        : (await getRepository(CalloutResponse).count({
+            poll: callout,
+            member: contact
+          })) > 0
       : undefined;
 
   const responseCount =
-    opts.with?.includes(GetCalloutWith.ResponseCount) && member
-      ? poll.responseCount !== undefined
-        ? poll.responseCount
-        : await getRepository(PollResponse).count({ poll })
+    opts.with?.includes(GetCalloutWith.ResponseCount) && contact
+      ? callout.responseCount !== undefined
+        ? callout.responseCount
+        : await getRepository(CalloutResponse).count({ poll: callout })
       : undefined;
 
   return {
-    slug: poll.slug,
-    title: poll.title,
-    excerpt: poll.excerpt,
-    image: poll.image,
-    allowUpdate: poll.allowUpdate,
-    allowMultiple: poll.allowMultiple,
-    access: poll.access,
-    status: poll.status,
-    hidden: poll.hidden,
-    starts: poll.starts,
-    expires: poll.expires,
+    slug: callout.slug,
+    title: callout.title,
+    excerpt: callout.excerpt,
+    image: callout.image,
+    allowUpdate: callout.allowUpdate,
+    allowMultiple: callout.allowMultiple,
+    access: callout.access,
+    status: callout.status,
+    hidden: callout.hidden,
+    starts: callout.starts,
+    expires: callout.expires,
     ...(hasAnswered !== undefined && { hasAnswered }),
     ...(responseCount !== undefined && { responseCount }),
     ...(opts.with?.includes(GetCalloutWith.Form) && {
-      intro: poll.intro,
-      thanksText: poll.thanksText,
-      thanksTitle: poll.thanksTitle,
-      formSchema: poll.formSchema,
-      ...(poll.thanksRedirect && { thanksRedirect: poll.thanksRedirect }),
-      ...(poll.shareTitle && { shareTitle: poll.shareTitle }),
-      ...(poll.shareDescription && {
-        shareDescription: poll.shareDescription
+      intro: callout.intro,
+      thanksText: callout.thanksText,
+      thanksTitle: callout.thanksTitle,
+      formSchema: callout.formSchema,
+      ...(callout.thanksRedirect && { thanksRedirect: callout.thanksRedirect }),
+      ...(callout.shareTitle && { shareTitle: callout.shareTitle }),
+      ...(callout.shareDescription && {
+        shareDescription: callout.shareDescription
       })
     })
   };
@@ -79,12 +82,12 @@ export async function convertCalloutToData(
 
 export async function fetchPaginatedCallouts(
   query: GetCalloutsQuery,
-  member: Member | undefined,
+  contact: Contact | undefined,
   opts: ConvertOpts
 ): Promise<Paginated<GetCalloutData>> {
   const scopedQuery = mergeRules(
     query,
-    !member?.hasPermission("admin") && [
+    !contact?.hasPermission("admin") && [
       // Non-admins can only query for open or ended non-hidden callouts
       {
         condition: "OR",
@@ -98,10 +101,10 @@ export async function fetchPaginatedCallouts(
   );
 
   const results = await fetchPaginated(
-    Poll,
+    Callout,
     calloutFilters,
     scopedQuery,
-    member,
+    contact,
     {
       status: statusField,
       answeredBy: (qb, { operator, whereFn, values }) => {
@@ -109,13 +112,13 @@ export async function fetchPaginatedCallouts(
         if (operator !== "equal") {
           throw new BadRequestError("answeredBy only supports equal");
         }
-        if (!member) {
+        if (!contact) {
           throw new BadRequestError(
-            "answeredBy can only be used with member scope"
+            "answeredBy can only be used with contact scope"
           );
         }
 
-        if (values[0] !== member.id && !member.hasPermission("admin")) {
+        if (values[0] !== contact.id && !contact.hasPermission("admin")) {
           throw new UnauthorizedError();
         }
 
@@ -124,7 +127,7 @@ export async function fetchPaginatedCallouts(
           .subQuery()
           .select("pr.pollSlug", "slug")
           .distinctOn(["pr.pollSlug"])
-          .from(PollResponse, "pr")
+          .from(CalloutResponse, "pr")
           .where(whereFn(`pr.memberId`))
           .orderBy("pr.pollSlug");
 
@@ -132,7 +135,7 @@ export async function fetchPaginatedCallouts(
       }
     },
     (qb) => {
-      if (member && opts.with?.includes(GetCalloutWith.ResponseCount)) {
+      if (contact && opts.with?.includes(GetCalloutWith.ResponseCount)) {
         qb.loadRelationCountAndMap("item.responseCount", "item.responses");
       }
     }
@@ -140,21 +143,21 @@ export async function fetchPaginatedCallouts(
 
   // TODO: this should probably be a LEFT JOIN instead
   if (
-    member &&
+    contact &&
     results.items.length > 0 &&
     opts.with?.includes(GetCalloutWith.HasAnswered)
   ) {
-    const answeredPolls = await createQueryBuilder(PollResponse, "pr")
+    const answeredCallouts = await createQueryBuilder(CalloutResponse, "pr")
       .select("pr.pollSlug", "slug")
       .distinctOn(["pr.pollSlug"])
       .where("pr.pollSlug IN (:...slugs) AND pr.memberId = :id", {
         slugs: results.items.map((item) => item.slug),
-        id: member.id
+        id: contact.id
       })
       .orderBy("pr.pollSlug")
       .getRawMany<{ slug: string }>();
 
-    const answeredSlugs = answeredPolls.map((p) => p.slug);
+    const answeredSlugs = answeredCallouts.map((p) => p.slug);
 
     for (const item of results.items) {
       item.hasAnswered = answeredSlugs.includes(item.slug);
@@ -164,7 +167,7 @@ export async function fetchPaginatedCallouts(
   return {
     ...results,
     items: await Promise.all(
-      results.items.map((item) => convertCalloutToData(item, member, opts))
+      results.items.map((item) => convertCalloutToData(item, contact, opts))
     )
   };
 }
@@ -172,23 +175,23 @@ export async function fetchPaginatedCallouts(
 export async function fetchPaginatedCalloutResponses(
   slug: string,
   query: GetCalloutResponsesQuery,
-  member: Member
+  contact: Contact
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
     { field: "poll", operator: "equal", value: [slug] },
-    // Member's can only see their own responses
-    !member.hasPermission("admin") && {
+    // Contact's can only see their own responses
+    !contact.hasPermission("admin") && {
       field: "member",
       operator: "equal",
-      value: [member.id]
+      value: [contact.id]
     }
   ]);
 
   const results = await fetchPaginated(
-    PollResponse,
+    CalloutResponse,
     calloutResponseFilters,
     scopedQuery,
-    member,
+    contact,
     undefined,
     (qb) => qb.loadAllRelationIds()
   );

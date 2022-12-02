@@ -6,32 +6,32 @@ import {
   PrimaryColumn
 } from "typeorm";
 import ItemWithStatus from "./ItemWithStatus";
-import PollResponse from "./PollResponse";
+import CalloutResponse from "./CalloutResponse";
 
-export type PollTemplate = "custom" | "builder" | "ballot";
+export type CalloutTemplate = "custom" | "builder" | "ballot";
 
-export enum PollAccess {
+export enum CalloutAccess {
   Member = "member",
   Guest = "guest",
   Anonymous = "anonymous",
   OnlyAnonymous = "only-anonymous"
 }
 
-export interface PollComponentSchema {
+export interface CalloutComponentSchema {
   key: string;
   type: string;
   label?: string;
   input?: boolean;
   values?: { label: string; value: string }[];
-  components?: PollComponentSchema[];
+  components?: CalloutComponentSchema[];
 }
 
-export interface PollFormSchema {
-  components: PollComponentSchema[];
+export interface CalloutFormSchema {
+  components: CalloutComponentSchema[];
 }
 
 @Entity()
-export default class Poll extends ItemWithStatus {
+export default class Callout extends ItemWithStatus {
   @PrimaryColumn()
   slug!: string;
 
@@ -66,7 +66,7 @@ export default class Poll extends ItemWithStatus {
   shareDescription!: string | null;
 
   @Column({ type: "jsonb", default: "{}" })
-  formSchema!: PollFormSchema;
+  formSchema!: CalloutFormSchema;
 
   @Column({ type: String, nullable: true })
   mcMergeField!: string | null;
@@ -86,14 +86,14 @@ export default class Poll extends ItemWithStatus {
   @Column({ default: false })
   allowMultiple!: boolean;
 
-  @Column({ default: PollAccess.Member })
-  access!: PollAccess;
+  @Column({ default: CalloutAccess.Member })
+  access!: CalloutAccess;
 
   @Column({ default: false })
   hidden!: boolean;
 
-  @OneToMany(() => PollResponse, (r) => r.poll)
-  responses!: PollResponse[];
+  @OneToMany(() => CalloutResponse, (r) => r.poll)
+  responses!: CalloutResponse[];
 
   @Column({ nullable: true })
   responsePassword?: string;

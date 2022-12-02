@@ -6,17 +6,17 @@ import { Between, getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
-import Member from "@models/Member";
-import MemberPermission from "@models/MemberPermission";
+import Contact from "@models/Contact";
+import ContactRole from "@models/ContactRole";
 
 async function fetchMembers(
   startDate: string | undefined,
   endDate: string | undefined
-): Promise<Member[]> {
+): Promise<Contact[]> {
   const actualStartDate = startDate
     ? moment(startDate).toDate()
     : moment().subtract({ d: 1, h: 2 }).toDate();
@@ -27,7 +27,7 @@ async function fetchMembers(
 
   console.log("# Fetching members");
 
-  const memberships = await getRepository(MemberPermission).find({
+  const memberships = await getRepository(ContactRole).find({
     where: {
       permission: "member",
       dateExpires: Between(actualStartDate, actualEndDate)
@@ -41,7 +41,7 @@ async function fetchMembers(
   });
 }
 
-async function processMembers(members: Member[]) {
+async function processMembers(members: Contact[]) {
   const membersToArchive = members.filter(
     (m) =>
       m.profile.newsletterStatus !== NewsletterStatus.None &&
@@ -51,7 +51,7 @@ async function processMembers(members: Member[]) {
   console.log(
     `Removing active member tag from ${membersToArchive.length} members`
   );
-  await NewsletterService.removeTagFromMembers(
+  await NewsletterService.removeTagFromContacts(
     membersToArchive,
     OptionsService.getText("newsletter-active-member-tag")
   );
@@ -59,7 +59,7 @@ async function processMembers(members: Member[]) {
   if (OptionsService.getBool("newsletter-archive-on-expired")) {
     console.log(`Archiving ${membersToArchive.length} members`);
     for (const member of membersToArchive) {
-      await MembersService.updateMemberProfile(
+      await ContactsService.updateContactProfile(
         member,
         {
           newsletterStatus: NewsletterStatus.Unsubscribed
@@ -70,8 +70,8 @@ async function processMembers(members: Member[]) {
         }
       );
     }
-    await NewsletterService.upsertMembers(membersToArchive);
-    await NewsletterService.archiveMembers(membersToArchive);
+    await NewsletterService.upsertContacts(membersToArchive);
+    await NewsletterService.archiveContacts(membersToArchive);
   }
 }
 

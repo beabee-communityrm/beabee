@@ -1,12 +1,12 @@
 import { Request } from "express";
 import { BadRequestError } from "routing-controllers";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import { validate } from "class-validator";
 
-export function login(req: Request, member: Member): Promise<void> {
+export function login(req: Request, contact: Contact): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    req.login(member, (error) => {
+    req.login(contact, (error) => {
       if (error) reject(error);
       else resolve();
     });

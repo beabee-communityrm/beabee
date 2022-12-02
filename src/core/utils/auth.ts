@@ -3,13 +3,13 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { getNextParam } from "@core/utils";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Password from "@models/Password";
 
 import config from "@config";
 
-export function generateJWTToken(member: Member): string {
-  return jwt.sign({ memberId: member.id }, config.secret);
+export function generateJWTToken(contact: Contact): string {
+  return jwt.sign({ memberId: contact.id }, config.secret);
 }
 
 export function parseJWTToken(token: string): string {

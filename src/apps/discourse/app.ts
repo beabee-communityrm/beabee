@@ -7,7 +7,7 @@ import config from "@config";
 import { isLoggedIn } from "@core/middleware";
 import { hasUser, wrapAsync } from "@core/utils";
 
-import ProjectMember from "@models/ProjectMember";
+import ProjectContact from "@models/ProjectContact";
 
 const sso = new DiscourseSSO(config.discourse.ssoSecret);
 
@@ -22,12 +22,12 @@ app.get(
       const { sso: payload, sig } = req.query;
 
       if (payload && sig && sso.validate(payload as string, sig as string)) {
-        const projectMemberships = await getRepository(ProjectMember).find({
+        const projectContacts = await getRepository(ProjectContact).find({
           where: { member: req.user },
           relations: ["project"]
         });
 
-        const groups = projectMemberships
+        const groups = projectContacts
           .map((pm) => pm.project.groupName)
           .filter((g): g is string => !!g);
 

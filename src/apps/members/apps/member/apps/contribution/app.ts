@@ -5,9 +5,9 @@ import { wrapAsync } from "@core/utils";
 import { calcMonthsLeft } from "@core/utils/payment";
 
 import PaymentService from "@core/services/PaymentService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const member = req.model as Member;
+    const member = req.model as Contact;
     if (member.contributionType === ContributionType.Automatic) {
       const payments = await PaymentService.getPayments(member);
 
@@ -48,11 +48,11 @@ app.get(
 app.post(
   "/",
   wrapAsync(async (req, res) => {
-    const member = req.model as Member;
+    const member = req.model as Contact;
 
     switch (req.body.action) {
       case "update-subscription":
-        await MembersService.updateMemberContribution(member, {
+        await ContactsService.updateContactContribution(member, {
           monthlyAmount: Number(req.body.amount),
           period: req.body.period,
           prorate: req.body.prorate === "true",
@@ -62,14 +62,14 @@ app.post(
         break;
 
       case "cancel-subscription":
-        await MembersService.cancelMemberContribution(
+        await ContactsService.cancelContactContribution(
           member,
           "cancelled-contribution"
         );
         break;
 
       case "force-update":
-        await MembersService.forceUpdateMemberContribution(member, {
+        await ContactsService.forceUpdateContactContribution(member, {
           type: req.body.type,
           amount: req.body.amount,
           period: req.body.period,

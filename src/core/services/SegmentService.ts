@@ -1,13 +1,13 @@
 import { contactFilters, validateRuleGroup } from "@beabee/beabee-common";
 import { getRepository } from "typeorm";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 
 import {
-  fetchPaginatedMembers,
-  specialMemberFields
-} from "@api/data/MemberData";
+  fetchPaginatedContacts,
+  specialContactFields
+} from "@api/data/ContactData";
 import { buildQuery } from "@api/data/PaginatedData";
 
 class SegmentService {
@@ -26,14 +26,14 @@ class SegmentService {
       order: { order: "ASC" }
     });
     for (const segment of segments) {
-      segment.memberCount = await this.getSegmentMemberCount(segment);
+      segment.memberCount = await this.getSegmentContactCount(segment);
     }
     return segments;
   }
 
-  async getSegmentMemberCount(segment: Segment): Promise<number> {
+  async getSegmentContactCount(segment: Segment): Promise<number> {
     return (
-      await fetchPaginatedMembers(
+      await fetchPaginatedContacts(
         {
           limit: 0,
           rules: segment.ruleGroup
@@ -43,16 +43,16 @@ class SegmentService {
     ).total;
   }
 
-  async getSegmentMembers(segment: Segment): Promise<Member[]> {
+  async getSegmentContacts(segment: Segment): Promise<Contact[]> {
     const validatedRuleGroup = validateRuleGroup(
       contactFilters,
       segment.ruleGroup
     );
     const qb = buildQuery(
-      Member,
+      Contact,
       validatedRuleGroup,
       undefined,
-      specialMemberFields
+      specialContactFields
     );
 
     qb.leftJoinAndSelect("item.profile", "profile").leftJoinAndSelect(

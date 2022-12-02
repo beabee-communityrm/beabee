@@ -3,11 +3,11 @@ import { Brackets, createQueryBuilder, SelectQueryBuilder } from "typeorm";
 import { Param } from "@core/utils/params";
 
 import PaymentData from "@models/PaymentData";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 
-export default class ActiveMembersExport extends BaseExport<Member> {
+export default class ActiveMembersExport extends BaseExport<Contact> {
   exportName = "Active members export";
   itemStatuses = ["added", "seeen"];
   itemName = "active members";
@@ -23,14 +23,14 @@ export default class ActiveMembersExport extends BaseExport<Member> {
     ];
   }
 
-  protected get query(): SelectQueryBuilder<Member> {
-    return createQueryBuilder(Member, "m").orderBy({
+  protected get query(): SelectQueryBuilder<Contact> {
+    return createQueryBuilder(Contact, "m").orderBy({
       firstname: "ASC",
       lastname: "ASC"
     });
   }
 
-  protected getNewItemsQuery(): SelectQueryBuilder<Member> {
+  protected getNewItemsQuery(): SelectQueryBuilder<Contact> {
     const query = super
       .getNewItemsQuery()
       .innerJoin("m.permissions", "mp")
@@ -51,7 +51,7 @@ export default class ActiveMembersExport extends BaseExport<Member> {
     return query;
   }
 
-  async getExport(members: Member[]): Promise<ExportResult> {
+  async getExport(members: Contact[]): Promise<ExportResult> {
     return members.map((member) => ({
       Id: member.id,
       EmailAddress: member.email,

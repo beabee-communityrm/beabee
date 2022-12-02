@@ -5,10 +5,10 @@ import config from "@config";
 
 import { hasNewModel, hasSchema } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
-import { loginAndRedirect } from "@core/utils/member";
+import { loginAndRedirect } from "@core/utils/contact";
 
 import GiftService from "@core/services/GiftService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
 import Address from "@models/Address";
@@ -91,8 +91,8 @@ app.post(
     if (moment(giftForm.startDate).isBefore(undefined, "day")) {
       error = "flash-gifts-date-in-the-past" as const;
     } else {
-      const member = await MembersService.findOne({ email: giftForm.email });
-      if (member) {
+      const contact = await ContactsService.findOne({ email: giftForm.email });
+      if (contact) {
         error = "flash-gifts-email-duplicate" as const;
       }
     }

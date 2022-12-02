@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 
 import type Address from "./Address";
-import type Member from "./Member";
+import type Contact from "./Contact";
 
 export class GiftForm {
   @Column()
@@ -64,6 +64,6 @@ export default class GiftFlow {
   @Column({ default: false })
   processed!: boolean;
 
-  @ManyToOne("Member")
-  giftee?: Member;
+  @ManyToOne("Contact")
+  giftee?: Contact;
 }

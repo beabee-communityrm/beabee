@@ -4,7 +4,7 @@ import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
 
 import { Param } from "@core/utils/params";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import { ExportResult } from "./BaseExport";
 import ActiveMembersExport from "./ActiveMembersExport";
@@ -30,8 +30,8 @@ export default class EditionExport extends ActiveMembersExport {
     ];
   }
 
-  protected get query(): SelectQueryBuilder<Member> {
-    return createQueryBuilder(Member, "m")
+  protected get query(): SelectQueryBuilder<Contact> {
+    return createQueryBuilder(Contact, "m")
       .innerJoinAndSelect("m.profile", "profile")
       .orderBy({
         firstname: "ASC",
@@ -39,7 +39,7 @@ export default class EditionExport extends ActiveMembersExport {
       });
   }
 
-  protected getNewItemsQuery(): SelectQueryBuilder<Member> {
+  protected getNewItemsQuery(): SelectQueryBuilder<Contact> {
     const query = super
       .getNewItemsQuery()
       .andWhere("m.contributionMonthlyAmount >= :amount")
@@ -55,7 +55,7 @@ export default class EditionExport extends ActiveMembersExport {
     return query;
   }
 
-  async getExport(members: Member[]): Promise<ExportResult> {
+  async getExport(members: Contact[]): Promise<ExportResult> {
     return members.map((member) => {
       const deliveryAddress = member.profile.deliveryAddress || {
         line1: "",

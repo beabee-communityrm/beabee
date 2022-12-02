@@ -7,28 +7,28 @@ import {
   UpdateDateColumn
 } from "typeorm";
 
-import type Member from "./Member";
-import type Poll from "./Poll";
+import type Contact from "./Contact";
+import type Callout from "./Callout";
 
-export type PollResponseAnswer =
+export type CalloutResponseAnswer =
   | string
   | boolean
   | number
   | null
   | undefined
   | Record<string, boolean>;
-export type PollResponseAnswers = Record<string, PollResponseAnswer>;
+export type CalloutResponseAnswers = Record<string, CalloutResponseAnswer>;
 
 @Entity()
-export default class PollResponse {
+export default class CalloutResponse {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne("Poll", "responses")
-  poll!: Poll;
+  @ManyToOne("Callout", "responses")
+  poll!: Callout;
 
-  @ManyToOne("Member", { nullable: true })
-  member!: Member | null;
+  @ManyToOne("Contact", { nullable: true })
+  member!: Contact | null;
 
   @Column({ type: String, nullable: true })
   guestName!: string | null;
@@ -37,7 +37,7 @@ export default class PollResponse {
   guestEmail!: string | null;
 
   @Column({ type: "jsonb" })
-  answers!: PollResponseAnswers;
+  answers!: CalloutResponseAnswers;
 
   @Column()
   isPartial!: boolean;

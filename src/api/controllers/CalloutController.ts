@@ -14,11 +14,11 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import PollsService from "@core/services/PollsService";
+import CalloutsService from "@core/services/CalloutsService";
 
-import Member from "@models/Member";
-import Poll from "@models/Poll";
-import PollResponse from "@models/PollResponse";
+import Contact from "@models/Contact";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 
 import {
   convertCalloutToData,
@@ -41,38 +41,38 @@ abstract class CalloutAdminController {
   @Authorized("admin")
   @Post("/")
   async createCallout(
-    @CurrentUser({ required: true }) member: Member,
+    @CurrentUser({ required: true }) contact: Contact,
     @Body() data: CreateCalloutData
   ): Promise<GetCalloutData> {
-    await getRepository(Poll).insert(data);
-    const poll = await getRepository(Poll).findOne(data.slug);
+    await getRepository(Callout).insert(data);
+    const callout = await getRepository(Callout).findOne(data.slug);
     // Should be impossible
-    if (!poll) {
+    if (!callout) {
       throw new Error("Callout just inserted but not found");
     }
-    return convertCalloutToData(poll, member, {});
+    return convertCalloutToData(callout, contact, {});
   }
 
   @Authorized("admin")
   @Patch("/:slug")
   async updateCallout(
-    @CurrentUser({ required: true }) member: Member,
+    @CurrentUser({ required: true }) contact: Contact,
     @Param("slug") slug: string,
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
-    await getRepository(Poll).update(slug, data);
-    const poll = await getRepository(Poll).findOne(
+    await getRepository(Callout).update(slug, data);
+    const callout = await getRepository(Callout).findOne(
       data.slug ? data.slug : slug
     );
-    return poll && convertCalloutToData(poll, member, {});
+    return callout && convertCalloutToData(callout, contact, {});
   }
 
   @Authorized("admin")
   @OnUndefined(204)
   @Delete("/:slug")
   async deleteCallout(@Param("slug") slug: string): Promise<void> {
-    await getRepository(PollResponse).delete({ poll: { slug } });
-    const result = await getRepository(Poll).delete(slug);
+    await getRepository(CalloutResponse).delete({ poll: { slug } });
+    const result = await getRepository(Callout).delete(slug);
     if (result.affected === 0) {
       throw new NotFoundError();
     }
@@ -83,53 +83,53 @@ abstract class CalloutAdminController {
 export class CalloutController extends CalloutAdminController {
   @Get("/")
   async getCallouts(
-    @CurrentUser({ required: false }) member: Member | undefined,
+    @CurrentUser({ required: false }) contact: Contact | undefined,
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetCalloutData>> {
-    return fetchPaginatedCallouts(query, member, { with: query.with });
+    return fetchPaginatedCallouts(query, contact, { with: query.with });
   }
 
   @Get("/:slug")
   async getCallout(
-    @CurrentUser({ required: false }) member: Member | undefined,
+    @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutQuery
   ): Promise<GetCalloutData | undefined> {
-    const poll = await getRepository(Poll).findOne(slug);
-    if (poll) {
-      return convertCalloutToData(poll, member, { with: query.with });
+    const callout = await getRepository(Callout).findOne(slug);
+    if (callout) {
+      return convertCalloutToData(callout, contact, { with: query.with });
     }
   }
 
   @Get("/:slug/responses")
   async getCalloutResponses(
-    @CurrentUser() member: Member,
+    @CurrentUser() contact: Contact,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    return await fetchPaginatedCalloutResponses(slug, query, member);
+    return await fetchPaginatedCalloutResponses(slug, query, contact);
   }
 
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
-    @CurrentUser({ required: false }) member: Member | undefined,
+    @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseData
   ) {
-    const poll = await getRepository(Poll).findOne(slug);
-    if (!poll) {
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
       throw new NotFoundError();
     }
 
-    if (member && (data.guestEmail || data.guestName)) {
+    if (contact && (data.guestEmail || data.guestName)) {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
     }
 
-    const error = member
-      ? await PollsService.setResponse(poll, member, data.answers)
-      : await PollsService.setGuestResponse(
-          poll,
+    const error = contact
+      ? await CalloutsService.setResponse(callout, contact, data.answers)
+      : await CalloutsService.setGuestResponse(
+          callout,
           data.guestName,
           data.guestEmail,
           data.answers

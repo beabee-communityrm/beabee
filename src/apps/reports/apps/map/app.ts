@@ -6,8 +6,8 @@ import { log } from "@core/logging";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import MemberPermission from "@models/MemberPermission";
-import MemberProfile from "@models/MemberProfile";
+import ContactRole from "@models/ContactRole";
+import ContactProfile from "@models/ContactProfile";
 
 const app = express();
 
@@ -84,8 +84,8 @@ app.get(
   "/locations",
   wrapAsync(async (req, res) => {
     const now = new Date();
-    const profiles = await createQueryBuilder(MemberProfile, "profile")
-      .innerJoin(MemberPermission, "mp", "profile.memberId = mp.memberId")
+    const profiles = await createQueryBuilder(ContactProfile, "profile")
+      .innerJoin(ContactRole, "mp", "profile.memberId = mp.memberId")
       .where("profile.deliveryOptIn = true")
       .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now", { now })
       .andWhere(

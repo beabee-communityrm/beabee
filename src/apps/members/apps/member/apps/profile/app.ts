@@ -3,9 +3,9 @@ import express from "express";
 import { hasSchema } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import { updateProfileSchema } from "./schemas.json";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
@@ -34,15 +34,15 @@ app.post(
         delivery_postcode
       }
     } = req;
-    const member = req.model as Member;
+    const member = req.model as Contact;
 
     try {
-      await MembersService.updateMember(member, {
+      await ContactsService.updateContact(member, {
         email,
         firstname,
         lastname
       });
-      await MembersService.updateMemberProfile(member, {
+      await ContactsService.updateContactProfile(member, {
         deliveryOptIn: delivery_optin,
         deliveryAddress: delivery_optin
           ? {

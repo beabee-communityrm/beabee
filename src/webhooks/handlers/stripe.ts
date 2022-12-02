@@ -11,7 +11,7 @@ import { wrapAsync } from "@core/utils";
 import { convertStatus } from "@core/utils/payment/stripe";
 
 import GiftService from "@core/services/GiftService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Payment from "@models/Payment";
@@ -120,7 +120,7 @@ async function handleCustomerSubscriptionUpdated(
       log.info(
         `Subscription ${subscription.id} never started, revoking membership from ${data.member.id}`
       );
-      await MembersService.revokeMemberPermission(data.member, "member");
+      await ContactsService.revokeContactRole(data.member, "member");
       await PaymentService.updateDataBy(data.member, "subscriptionId", null);
     }
   }
@@ -136,7 +136,7 @@ async function handleCustomerSubscriptionDeleted(
     subscription.id
   );
   if (data) {
-    await MembersService.cancelMemberContribution(
+    await ContactsService.cancelContactContribution(
       data.member,
       "cancelled-contribution"
     );
@@ -182,7 +182,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     return;
   }
 
-  await MembersService.extendMemberPermission(
+  await ContactsService.extendContactRole(
     data.member,
     "member",
     add(new Date(line.period.end * 1000), config.gracePeriod)
@@ -190,7 +190,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 
   const stripeData = data.data as StripePaymentData;
   if (line.amount === stripeData.nextAmount?.chargeable) {
-    await MembersService.updateMember(data.member, {
+    await ContactsService.updateContact(data.member, {
       contributionMonthlyAmount: stripeData.nextAmount.monthly
     });
     await PaymentService.updateDataBy(data.member, "nextAmount", null);

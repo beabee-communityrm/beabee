@@ -4,15 +4,15 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from "typeorm";
-import type Member from "./Member";
+import type Contact from "./Contact";
 
 @Entity()
 export default class ResetPasswordFlow {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne("Member")
-  member!: Member;
+  @ManyToOne("Contact")
+  member!: Contact;
 
   @CreateDateColumn()
   date!: Date;

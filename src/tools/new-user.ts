@@ -8,9 +8,9 @@ import { getRepository } from "typeorm";
 import * as db from "@core/database";
 import { generatePassword, passwordRequirements } from "@core/utils/auth";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import MemberPermission from "@models/MemberPermission";
+import ContactRole from "@models/ContactRole";
 
 const questions: QuestionCollection[] = [];
 
@@ -98,7 +98,7 @@ db.connect().then(async () => {
         break;
     }
 
-    const membership = getRepository(MemberPermission).create({
+    const membership = getRepository(ContactRole).create({
       permission: "member",
       ...(dateAdded && { dateAdded }),
       dateExpires
@@ -107,13 +107,13 @@ db.connect().then(async () => {
   }
 
   if (answers.permission != "None") {
-    const admin = getRepository(MemberPermission).create({
+    const admin = getRepository(ContactRole).create({
       permission: answers.permission === "Admin" ? "admin" : "superadmin"
     });
     permissions.push(admin);
   }
 
-  await MembersService.createMember({
+  await ContactsService.createContact({
     firstname: answers.firstname,
     lastname: answers.lastname,
     email: answers.email,

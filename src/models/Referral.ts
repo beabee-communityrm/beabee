@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import type Member from "./Member";
+import type Contact from "./Contact";
 import ReferralGift from "./ReferralGift";
 
 @Entity()
@@ -17,11 +17,11 @@ export default class Referral {
   @CreateDateColumn()
   date!: Date;
 
-  @ManyToOne("Member", { nullable: true })
-  referrer!: Member | null;
+  @ManyToOne("Contact", { nullable: true })
+  referrer!: Contact | null;
 
-  @ManyToOne("Member")
-  referee!: Member;
+  @ManyToOne("Contact")
+  referee!: Contact;
 
   @Column()
   refereeAmount!: number;
