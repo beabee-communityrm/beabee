@@ -2,7 +2,8 @@ import {
   ContributionPeriod,
   PermissionTypes,
   PermissionType,
-  paymentFilters
+  paymentFilters,
+  NewsletterStatus
 } from "@beabee/beabee-common";
 import { Request } from "express";
 import {
@@ -29,6 +30,7 @@ import { PaymentFlowParams } from "@core/providers/payment-flow";
 
 import PaymentFlowService from "@core/services/PaymentFlowService";
 import MembersService from "@core/services/MembersService";
+import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import { ContributionInfo } from "@core/utils";
@@ -43,6 +45,7 @@ import MemberPermission from "@models/MemberPermission";
 import { UUIDParam } from "@api/data";
 import {
   convertMemberToData,
+  CreateMemberData,
   fetchPaginatedMembers,
   GetMemberData,
   GetMemberQuery,
@@ -51,7 +54,6 @@ import {
   GetMemberWith,
   GetPaymentData,
   GetPaymentsQuery,
-  UpdateMemberData,
   UpdateMemberRoleData
 } from "@api/data/MemberData";
 import {
@@ -109,6 +111,43 @@ function TargetUser() {
 @Authorized()
 export class MemberController {
   @Authorized("admin")
+  @Post("/")
+  async createMember(@Body() data: CreateMemberData) {
+    const member = await MembersService.createMember(
+      {
+        email: data.email,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        ...(data.password && {
+          password: await generatePassword(data.password)
+        })
+      },
+      data.profile && {
+        ...data.profile,
+        ...(data.profile.newsletterStatus === NewsletterStatus.Subscribed && {
+          // Automatically add default groups for now, this should be revisited
+          // once groups are exposed to the frontend
+          newsletterGroups: OptionsService.getList("newsletter-default-groups")
+        })
+      }
+    );
+
+    if (data.roles) {
+      for (const role of data.roles) {
+        await MembersService.updateMemberPermission(member, role.role, role);
+      }
+    }
+
+    return convertMemberToData(member, {
+      with: [
+        ...(data.profile ? [GetMemberWith.Profile] : []),
+        ...(data.roles ? [GetMemberWith.Roles] : [])
+      ],
+      withRestricted: true
+    });
+  }
+
+  @Authorized("admin")
   @Get("/")
   async getMembers(
     @QueryParams() query: GetMembersQuery
@@ -145,7 +184,7 @@ export class MemberController {
   async updateMember(
     @CurrentUser() member: Member,
     @TargetUser() target: Member,
-    @PartialBody() data: UpdateMemberData
+    @PartialBody() data: CreateMemberData // Should be Partial<CreateMemberData>
   ): Promise<GetMemberData> {
     if (data.email || data.firstname || data.lastname || data.password) {
       await MembersService.updateMember(target, {

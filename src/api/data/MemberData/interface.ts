@@ -2,7 +2,8 @@ import {
   ContributionPeriod,
   NewsletterStatus,
   PaymentStatus,
-  PermissionType
+  PermissionType,
+  PermissionTypes
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
@@ -61,6 +62,14 @@ export class UpdateMemberRoleData {
 
 export interface GetMemberRoleData extends UpdateMemberRoleData {
   role: PermissionType;
+}
+
+export class CreateMemberRoleData
+  extends UpdateMemberRoleData
+  implements GetMemberRoleData
+{
+  @IsIn(PermissionTypes)
+  role!: PermissionType;
 }
 
 export interface GetMemberData extends MemberData {
@@ -161,22 +170,29 @@ class UpdateMemberProfileData implements Partial<MemberProfileData> {
   description?: string;
 }
 
-export class UpdateMemberData implements Partial<MemberData> {
+export class CreateMemberData implements MemberData {
   @IsEmail()
-  email?: string;
+  email!: string;
 
   @IsString()
-  firstname?: string;
+  firstname!: string;
 
   @IsString()
-  lastname?: string;
+  lastname!: string;
 
+  @IsOptional()
   @Validate(IsPassword)
   password?: string;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => UpdateMemberProfileData)
   profile?: UpdateMemberProfileData;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateMemberRoleData)
+  roles?: CreateMemberRoleData[];
 }
 
 export interface GetPaymentData {
