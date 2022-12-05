@@ -16,9 +16,9 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const member = req.model as Contact;
-    if (member.contributionType === ContributionType.Automatic) {
-      const payments = await PaymentService.getPayments(member);
+    const contact = req.model as Contact;
+    if (contact.contributionType === ContributionType.Automatic) {
+      const payments = await PaymentService.getPayments(contact);
 
       const successfulPayments = payments
         .filter((p) => p.isSuccessful)
@@ -28,19 +28,19 @@ app.get(
       const total = successfulPayments.reduce((a, b) => a + b, 0);
 
       res.render("automatic", {
-        member: req.model,
-        canChange: await PaymentService.canChangeContribution(member, true),
-        monthsLeft: calcMonthsLeft(member),
+        member: contact,
+        canChange: await PaymentService.canChangeContribution(contact, true),
+        monthsLeft: calcMonthsLeft(contact),
         payments,
         total
       });
     } else if (
-      member.contributionType === ContributionType.Manual ||
-      member.contributionType === ContributionType.None
+      contact.contributionType === ContributionType.Manual ||
+      contact.contributionType === ContributionType.None
     ) {
-      res.render("manual", { member: req.model });
+      res.render("manual", { member: contact });
     } else {
-      res.render("none", { member: req.model });
+      res.render("none", { member: contact });
     }
   })
 );
@@ -48,11 +48,11 @@ app.get(
 app.post(
   "/",
   wrapAsync(async (req, res) => {
-    const member = req.model as Contact;
+    const contact = req.model as Contact;
 
     switch (req.body.action) {
       case "update-subscription":
-        await ContactsService.updateContactContribution(member, {
+        await ContactsService.updateContactContribution(contact, {
           monthlyAmount: Number(req.body.amount),
           period: req.body.period,
           prorate: req.body.prorate === "true",
@@ -63,13 +63,13 @@ app.post(
 
       case "cancel-subscription":
         await ContactsService.cancelContactContribution(
-          member,
+          contact,
           "cancelled-contribution"
         );
         break;
 
       case "force-update":
-        await ContactsService.forceUpdateContactContribution(member, {
+        await ContactsService.forceUpdateContactContribution(contact, {
           type: req.body.type,
           amount: req.body.amount,
           period: req.body.period,

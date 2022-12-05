@@ -43,7 +43,7 @@ export class NoticeController {
   ): Promise<Paginated<GetNoticeData>> {
     const authedQuery = mergeRules(query, [
       // Non-admins can only see open notices
-      !contact.hasPermission("admin") && {
+      !contact.hasRole("admin") && {
         field: "status",
         operator: "equal",
         value: [ItemStatus.Open]
@@ -69,7 +69,7 @@ export class NoticeController {
     @Params() { id }: UUIDParam
   ): Promise<GetNoticeData | undefined> {
     const notice = await getRepository(Notice).findOne(id);
-    if (notice && (notice.active || contact.hasPermission("admin"))) {
+    if (notice && (notice.active || contact.hasRole("admin"))) {
       return this.noticeToData(notice);
     }
   }

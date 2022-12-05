@@ -53,8 +53,8 @@ export default (app: express.Express): void => {
 
     // User template locals
     res.locals.isLoggedIn = !!req.user;
-    res.locals.access = (permission: PermissionType) =>
-      req.user?.hasPermission(permission);
+    res.locals.access = (roleType: PermissionType) =>
+      req.user?.hasRole(roleType);
 
     next();
   });

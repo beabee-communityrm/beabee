@@ -70,11 +70,11 @@ export class AuthController {
 
     let contact: Contact | undefined;
     if (PermissionTypes.indexOf(id as PermissionType) > -1) {
-      const permission = await getRepository(ContactRole).findOne({
-        where: { permission: id },
-        relations: ["member"]
+      const role = await getRepository(ContactRole).findOne({
+        where: { type: id },
+        relations: ["contact"]
       });
-      contact = permission?.member;
+      contact = role?.contact;
     } else if (isUUID(id, "4")) {
       contact = await ContactsService.findOne(id);
     }

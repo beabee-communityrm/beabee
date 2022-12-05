@@ -13,8 +13,8 @@ block contents
 			.row
 				.col-md-7
 					.list-group
-						if member.permissions.length > 0
-							each permission, p in member.permissions
+						if member.roles.length > 0
+							each permission, p in member.roles
 								include /views/partials/permission.pug
 						else
 							p This member has no permissions.

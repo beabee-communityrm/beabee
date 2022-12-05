@@ -55,9 +55,9 @@ export default class EditionExport extends ActiveMembersExport {
     return query;
   }
 
-  async getExport(members: Contact[]): Promise<ExportResult> {
-    return members.map((member) => {
-      const deliveryAddress = member.profile.deliveryAddress || {
+  async getExport(contacts: Contact[]): Promise<ExportResult> {
+    return contacts.map((contact) => {
+      const deliveryAddress = contact.profile.deliveryAddress || {
         line1: "",
         line2: "",
         city: "",
@@ -65,17 +65,16 @@ export default class EditionExport extends ActiveMembersExport {
       };
 
       return {
-        EmailAddress: member.email,
-        FirstName: member.firstname,
-        LastName: member.lastname,
+        EmailAddress: contact.email,
+        FirstName: contact.firstname,
+        LastName: contact.lastname,
         Address1: deliveryAddress.line1,
         Address2: deliveryAddress.line2,
         City: deliveryAddress.city,
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
-        ReferralCode: member.referralCode,
-        IsGift: member.contributionType === ContributionType.Gift,
-        //NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
-        ContributionMonthlyAmount: member.contributionMonthlyAmount
+        ReferralCode: contact.referralCode,
+        IsGift: contact.contributionType === ContributionType.Gift,
+        ContributionMonthlyAmount: contact.contributionMonthlyAmount
       };
     });
   }

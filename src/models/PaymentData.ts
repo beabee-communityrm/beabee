@@ -39,7 +39,7 @@ export type PaymentProviderData =
 export default class PaymentData {
   @OneToOne("Contact", "profile", { primary: true })
   @JoinColumn()
-  member!: Contact;
+  contact!: Contact;
 
   @Column({ type: String, nullable: true })
   method!: PaymentMethod | null;

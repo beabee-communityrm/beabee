@@ -28,7 +28,7 @@ export function convertContactToData(
   contact: Contact,
   opts: ConvertOpts
 ): GetContactData {
-  const activeRoles = [...contact.activePermissions];
+  const activeRoles = [...contact.activeRoles];
   if (activeRoles.includes("superadmin")) {
     activeRoles.push("admin");
   }
@@ -67,8 +67,8 @@ export function convertContactToData(
         }
       }),
     ...(opts.with?.includes(GetContactWith.Roles) && {
-      roles: contact.permissions.map((p) => ({
-        role: p.permission,
+      roles: contact.roles.map((p) => ({
+        role: p.type,
         dateAdded: p.dateAdded,
         dateExpires: p.dateExpires
       }))
@@ -83,9 +83,9 @@ function membershipField(field: keyof ContactRole) {
   ) => {
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`mp.memberId`)
+      .select(`mp.contactId`)
       .from(ContactRole, "mp")
-      .where(`mp.permission = 'member'`)
+      .where(`mp.type = 'member'`)
       .andWhere(args.whereFn(`mp.${field}`));
 
     qb.where("item.id IN " + subQb.getQuery());
@@ -99,7 +99,7 @@ function profileField(field: keyof ContactProfile) {
   ) => {
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`profile.memberId`)
+      .select(`profile.contactId`)
       .from(ContactProfile, "profile")
       .where(args.whereFn(`profile.${field}`));
 
@@ -111,7 +111,7 @@ function activePermission(
   qb: WhereExpressionBuilder,
   args: { operator: RuleOperator; field: string; values: RichRuleValue[] }
 ) {
-  const permission =
+  const roleType =
     args.field === "activeMembership" ? "member" : args.values[0];
 
   const isIn =
@@ -121,9 +121,9 @@ function activePermission(
 
   const subQb = createQueryBuilder()
     .subQuery()
-    .select(`mp.memberId`)
+    .select(`mp.contactId`)
     .from(ContactRole, "mp")
-    .where(`mp.permission = '${permission}'`)
+    .where(`mp.type = '${roleType}'`)
     .andWhere(`mp.dateAdded <= :now`)
     .andWhere(
       new Brackets((qb) => {
@@ -145,7 +145,7 @@ function paymentDataField(field: string) {
   ) => {
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`pd.memberId`)
+      .select(`pd.contactId`)
       .from(PaymentData, "pd")
       .where(args.whereFn(field));
 
@@ -196,7 +196,7 @@ export async function fetchPaginatedContacts(
         qb.leftJoin(
           ContactRole,
           "mp",
-          "mp.memberId = item.id AND mp.permission = 'member'"
+          "mp.contactId = item.id AND mp.type = 'member'"
         )
           .addSelect(
             "COALESCE(mp.dateAdded, '-infinity'::timestamp)",
@@ -220,17 +220,15 @@ export async function fetchPaginatedContacts(
   );
 
   if (results.items.length > 0) {
-    // Load permissions after to ensure offset/limit work
-    const permissions = await createQueryBuilder(ContactRole, "mp")
-      .where("mp.memberId IN (:...ids)", {
+    // Load roles after to ensure offset/limit work
+    const roles = await createQueryBuilder(ContactRole, "mp")
+      .where("mp.contactId IN (:...ids)", {
         ids: results.items.map((t) => t.id)
       })
       .loadAllRelationIds()
       .getMany();
     for (const item of results.items) {
-      item.permissions = permissions.filter(
-        (p) => (p.member as any) === item.id
-      );
+      item.roles = roles.filter((p) => (p.contact as any) === item.id);
     }
   }
 

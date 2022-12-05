@@ -18,10 +18,10 @@ export default class ProjectEngagement {
   project!: Project;
 
   @ManyToOne("Contact")
-  byMember!: Contact;
+  byContact!: Contact;
 
   @ManyToOne("Contact")
-  toMember!: Contact;
+  toContact!: Contact;
 
   @CreateDateColumn()
   date!: Date;

@@ -18,8 +18,8 @@ interface CreatePermissionSchema {
   expiryTime?: string;
 }
 
-function hasPermission(member: Contact, permission: PermissionType) {
-  return permission !== "superadmin" || member.hasPermission("superadmin");
+function hasPermission(contact: Contact, type: PermissionType) {
+  return type !== "superadmin" || contact.hasRole("superadmin");
 }
 
 function canUpdatePermission(req: Request, res: Response, next: NextFunction) {
@@ -48,14 +48,14 @@ app.post(
   wrapAsync(async (req, res) => {
     const { permission, startTime, startDate, expiryDate, expiryTime } =
       req.body as CreatePermissionSchema;
-    const member = req.model as Contact;
+    const contact = req.model as Contact;
 
     if (!hasPermission(req.user!, permission)) {
       req.flash("danger", "403");
       return res.redirect(req.originalUrl);
     }
 
-    const dupe = member.permissions.find((p) => p.permission === permission);
+    const dupe = contact.roles.find((p) => p.type === permission);
     if (dupe) {
       req.flash("danger", "permission-duplicate");
       res.redirect(req.originalUrl);
@@ -71,7 +71,7 @@ app.post(
       return;
     }
 
-    await ContactsService.updateContactRole(member, permission, {
+    await ContactsService.updateContactRole(contact, permission, {
       dateAdded,
       dateExpires
     });
@@ -84,13 +84,11 @@ app.get(
   "/:id/modify",
   canUpdatePermission,
   wrapAsync(async (req, res) => {
-    const member = req.model as Contact;
+    const contact = req.model as Contact;
 
-    const permission = member.permissions.find(
-      (p) => p.permission === req.params.id
-    );
-    if (permission) {
-      res.render("permission", { member, current: permission });
+    const role = contact.roles.find((p) => p.type === req.params.id);
+    if (role) {
+      res.render("permission", { member: contact, current: role });
     } else {
       req.flash("warning", "permission-404");
       res.redirect(req.baseUrl);
@@ -106,7 +104,7 @@ app.post(
     const {
       body: { startDate, startTime, expiryDate, expiryTime }
     } = req;
-    const member = req.model as Contact;
+    const contact = req.model as Contact;
     const permission = req.params.id as PermissionType;
 
     const dateAdded = createDateTime(startDate, startTime);
@@ -118,7 +116,7 @@ app.post(
       return;
     }
 
-    await ContactsService.updateContactRole(member, permission, {
+    await ContactsService.updateContactRole(contact, permission, {
       dateAdded,
       dateExpires
     });

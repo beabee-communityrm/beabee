@@ -76,26 +76,20 @@ export default class Contact {
   @Column({ type: String, unique: true, nullable: true })
   pollsCode!: string | null;
 
-  @OneToMany("ContactRole", "member", { eager: true, cascade: true })
-  permissions!: ContactRole[];
+  @OneToMany("ContactRole", "contact", { eager: true, cascade: true })
+  roles!: ContactRole[];
 
-  @OneToOne("ContactProfile", "member")
+  @OneToOne("ContactProfile", "contact")
   profile!: ContactProfile;
 
-  get activePermissions(): PermissionType[] {
-    return this.permissions.filter((p) => p.isActive).map((p) => p.permission);
-  }
-
-  // Alias to match GetContactData with Contact for membersTableBasicInfo
-  // TODO: Remove once legacy app is gone
   get activeRoles(): PermissionType[] {
-    return this.activePermissions;
+    return this.roles.filter((p) => p.isActive).map((p) => p.type);
   }
 
-  hasPermission(permission: PermissionType): boolean {
+  hasRole(roleType: PermissionType): boolean {
     return (
-      this.activePermissions.includes("superadmin") ||
-      this.activePermissions.includes(permission)
+      this.activeRoles.includes("superadmin") ||
+      this.activeRoles.includes(roleType)
     );
   }
 
@@ -131,7 +125,7 @@ export default class Contact {
   }
 
   get membership(): ContactRole | undefined {
-    return this.permissions.find((p) => p.permission === "member");
+    return this.roles.find((p) => p.type === "member");
   }
 
   get setupComplete(): boolean {

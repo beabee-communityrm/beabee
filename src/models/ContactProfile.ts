@@ -8,7 +8,7 @@ import type Contact from "./Contact";
 export default class ContactProfile {
   @OneToOne("Contact", "profile", { primary: true })
   @JoinColumn()
-  member!: Contact;
+  contact!: Contact;
 
   @Column({ default: "" })
   description!: string;

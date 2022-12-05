@@ -20,7 +20,7 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
 
   constructor(data: PaymentData) {
     this.data = data.data as T;
-    this.contact = data.member;
+    this.contact = data.contact;
     this.method = data.method as PaymentMethod;
   }
 

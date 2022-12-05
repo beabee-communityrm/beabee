@@ -17,7 +17,7 @@ export default class Segment {
   ruleGroup!: RuleGroup;
 
   @OneToMany("SegmentContact", "segment")
-  members!: SegmentContact[];
+  contacts!: SegmentContact[];
 
   @Column({ type: "int", default: 0 })
   order!: number;
@@ -25,5 +25,5 @@ export default class Segment {
   @Column({ type: String, nullable: true })
   newsletterTag!: string | null;
 
-  memberCount?: number;
+  contactCount?: number;
 }

@@ -26,7 +26,7 @@ class SegmentService {
       order: { order: "ASC" }
     });
     for (const segment of segments) {
-      segment.memberCount = await this.getSegmentContactCount(segment);
+      segment.contactCount = await this.getSegmentContactCount(segment);
     }
     return segments;
   }
@@ -56,7 +56,7 @@ class SegmentService {
     );
 
     qb.leftJoinAndSelect("item.profile", "profile").leftJoinAndSelect(
-      "item.permissions",
+      "item.roles",
       "mp"
     );
 

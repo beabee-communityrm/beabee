@@ -2,9 +2,9 @@ import { NewsletterStatus } from "@beabee/beabee-common";
 import { log as mainLogger } from "@core/logging";
 
 import {
-  NewsletterMember,
+  NewsletterContact,
   NewsletterProvider,
-  UpdateNewsletterMember
+  UpdateNewsletterContact
 } from "@core/providers/newsletter";
 import MailchimpProvider from "@core/providers/newsletter/MailchimpProvider";
 import NoneProvider from "@core/providers/newsletter/NoneProvider";
@@ -31,11 +31,11 @@ function shouldUpdate(updates: Partial<Contact>): boolean {
 
 async function contactToNlUpdate(
   contact: Contact
-): Promise<UpdateNewsletterMember | undefined> {
+): Promise<UpdateNewsletterContact | undefined> {
   // TODO: Fix that it relies on contact.profile being loaded
   if (!contact.profile) {
     contact.profile = await getRepository(ContactProfile).findOneOrFail({
-      member: contact
+      contact: contact
     });
   }
 
@@ -59,7 +59,7 @@ async function contactToNlUpdate(
 
 async function getValidNlUpdates(
   contacts: Contact[]
-): Promise<UpdateNewsletterMember[]> {
+): Promise<UpdateNewsletterContact[]> {
   const nlUpdates = [];
   for (const contact of contacts) {
     const nlUpdate = await contactToNlUpdate(contact);
@@ -78,7 +78,7 @@ class NewsletterService {
 
   async addTagToContacts(contacts: Contact[], tag: string): Promise<void> {
     log.info(`Add tag ${tag} to ${contacts.length} contacts`);
-    await this.provider.addTagToMembers(
+    await this.provider.addTagToContacts(
       (await getValidNlUpdates(contacts)).map((m) => m.email),
       tag
     );
@@ -86,7 +86,7 @@ class NewsletterService {
 
   async removeTagFromContacts(contacts: Contact[], tag: string): Promise<void> {
     log.info(`Remove tag ${tag} from ${contacts.length} contacts`);
-    await this.provider.removeTagFromMembers(
+    await this.provider.removeTagFromContacts(
       (await getValidNlUpdates(contacts)).map((m) => m.email),
       tag
     );
@@ -103,7 +103,7 @@ class NewsletterService {
       const nlUpdate = await contactToNlUpdate(contact);
       if (nlUpdate) {
         log.info("Upsert contact " + contact.id);
-        await this.provider.updateMember(nlUpdate, oldEmail);
+        await this.provider.updateContact(nlUpdate, oldEmail);
       } else {
         log.info("Ignoring contact update for " + contact.id);
       }
@@ -112,7 +112,7 @@ class NewsletterService {
 
   async upsertContacts(contacts: Contact[]): Promise<void> {
     log.info(`Upsert ${contacts.length} contacts`);
-    await this.provider.upsertMembers(await getValidNlUpdates(contacts));
+    await this.provider.upsertContacts(await getValidNlUpdates(contacts));
   }
 
   async updateContactFields(
@@ -120,11 +120,11 @@ class NewsletterService {
     fields: Record<string, string>
   ): Promise<void> {
     log.info(`Update contact fields for ${contact.id}`, fields);
-    const nlMember = await contactToNlUpdate(contact);
-    if (nlMember) {
-      await this.provider.updateMember({
-        email: nlMember.email,
-        status: nlMember.status,
+    const nlUpdate = await contactToNlUpdate(contact);
+    if (nlUpdate) {
+      await this.provider.updateContact({
+        email: nlUpdate.email,
+        status: nlUpdate.status,
         fields
       });
     } else {
@@ -134,26 +134,26 @@ class NewsletterService {
 
   async archiveContacts(contacts: Contact[]): Promise<void> {
     log.info(`Archive ${contacts.length} contacts`);
-    await this.provider.archiveMembers(
+    await this.provider.archiveContacts(
       (await getValidNlUpdates(contacts)).map((m) => m.email)
     );
   }
 
   async deleteContacts(contacts: Contact[]): Promise<void> {
     log.info(`Delete ${contacts.length} contacts`);
-    await this.provider.deleteMembers(
+    await this.provider.deleteContacts(
       (await getValidNlUpdates(contacts)).map((m) => m.email)
     );
   }
 
-  async getNewsletterMember(
+  async getNewsletterContact(
     email: string
-  ): Promise<NewsletterMember | undefined> {
-    return await this.provider.getMember(email);
+  ): Promise<NewsletterContact | undefined> {
+    return await this.provider.getContact(email);
   }
 
-  async getNewsletterMembers(): Promise<NewsletterMember[]> {
-    return await this.provider.getMembers();
+  async getNewsletterContacts(): Promise<NewsletterContact[]> {
+    return await this.provider.getContacts();
   }
 }
 

@@ -5,11 +5,11 @@ import type Segment from "./Segment";
 
 @Entity()
 export default class SegmentContact {
-  @ManyToOne("Segment", "members", { primary: true })
+  @ManyToOne("Segment", "contacts", { primary: true })
   segment!: Segment;
 
   @ManyToOne("Contact", { primary: true })
-  member!: Contact;
+  contact!: Contact;
 
   @CreateDateColumn()
   date!: Date;

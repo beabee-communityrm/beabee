@@ -10,11 +10,11 @@ import type Contact from "./Contact";
 
 @Entity()
 export default class ContactRole {
-  @ManyToOne("Contact", "permissions", { primary: true })
-  member!: Contact;
+  @ManyToOne("Contact", "roles", { primary: true })
+  contact!: Contact;
 
   @PrimaryColumn()
-  permission!: PermissionType;
+  type!: PermissionType;
 
   @CreateDateColumn()
   dateAdded!: Date;

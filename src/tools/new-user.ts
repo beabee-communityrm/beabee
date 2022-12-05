@@ -82,7 +82,7 @@ db.connect().then(async () => {
 
   const password = await generatePassword(answers.password);
 
-  const permissions = [];
+  const roles = [];
 
   if (answers.membership != "No") {
     const now = moment();
@@ -99,18 +99,18 @@ db.connect().then(async () => {
     }
 
     const membership = getRepository(ContactRole).create({
-      permission: "member",
+      type: "member",
       ...(dateAdded && { dateAdded }),
       dateExpires
     });
-    permissions.push(membership);
+    roles.push(membership);
   }
 
   if (answers.permission != "None") {
     const admin = getRepository(ContactRole).create({
-      permission: answers.permission === "Admin" ? "admin" : "superadmin"
+      type: answers.permission === "Admin" ? "admin" : "superadmin"
     });
-    permissions.push(admin);
+    roles.push(admin);
   }
 
   await ContactsService.createContact({
@@ -118,7 +118,7 @@ db.connect().then(async () => {
     lastname: answers.lastname,
     email: answers.email,
     contributionType: ContributionType.None,
-    permissions,
+    roles: roles,
     password
   });
 

@@ -22,7 +22,7 @@ import config from "@config";
 const log = mainLogger.child({ app: "base-email-provider" });
 
 interface InsertResetPasswordResult extends InsertResult {
-  raw: { id: string; memberId: string }[] | undefined;
+  raw: { id: string; contactId: string }[] | undefined;
 }
 
 function generateResetPasswordLinks(type: "set" | "reset") {
@@ -43,7 +43,7 @@ function generateResetPasswordLinks(type: "set" | "reset") {
 
     log.info(`Creating ${emails.length} links for ${mergeField}`);
 
-    // Get list of members who match the recipients
+    // Get list of contacts who match the recipients
     const contacts = await createQueryBuilder(Contact)
       .select(["id", "email"])
       .where("email IN (:...emails)", { emails })
@@ -53,18 +53,18 @@ function generateResetPasswordLinks(type: "set" | "reset") {
       contacts.map((m) => [m.email, m.id])
     );
 
-    // Create reset password flows for matching members
+    // Create reset password flows for matching contacts
     const rpInsertResult: InsertResetPasswordResult = await createQueryBuilder()
       .insert()
       .into(ResetPasswordFlow)
       .values(
-        Object.values(contactIdsByEmail).map((id) => ({ member: { id } }))
+        Object.values(contactIdsByEmail).map((id) => ({ contact: { id } }))
       )
-      .returning(["id", "member"])
+      .returning(["id", "contact"])
       .execute();
 
-    const rpFlowIdsByMemberId = Object.fromEntries(
-      (rpInsertResult.raw || []).map((rpFlow) => [rpFlow.memberId, rpFlow.id])
+    const rpFlowIdsByContactId = Object.fromEntries(
+      (rpInsertResult.raw || []).map((rpFlow) => [rpFlow.contactId, rpFlow.id])
     );
 
     return recipients.map((recipient) => {
@@ -73,7 +73,7 @@ function generateResetPasswordLinks(type: "set" | "reset") {
         return recipient;
       } else {
         const rpFlowId =
-          rpFlowIdsByMemberId[contactIdsByEmail[recipient.to.email]];
+          rpFlowIdsByContactId[contactIdsByEmail[recipient.to.email]];
         return {
           ...recipient,
           mergeFields: {

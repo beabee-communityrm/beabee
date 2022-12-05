@@ -18,7 +18,7 @@ export default class Payment {
   subscriptionId!: string | null;
 
   @ManyToOne("Contact", { nullable: true })
-  member!: Contact | null;
+  contact!: Contact | null;
 
   @Column()
   status!: PaymentStatus;

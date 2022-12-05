@@ -111,8 +111,8 @@ export default class GiftService {
 
     await getRepository(GiftFlow).update(giftFlow.id, { processed: true });
 
-    const permission = getRepository(ContactRole).create({
-      permission: "member",
+    const role = getRepository(ContactRole).create({
+      type: "member",
       dateExpires: now.clone().add(months, "months").toDate()
     });
 
@@ -123,7 +123,7 @@ export default class GiftService {
         email,
         contributionType: ContributionType.Gift,
         contributionMonthlyAmount: GiftService.giftMonthlyAmount,
-        permissions: [permission]
+        roles: [role]
       },
       {
         deliveryOptIn: !!deliveryAddress?.line1,

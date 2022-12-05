@@ -39,7 +39,7 @@ function authorizationChecker(
   roles: PermissionType[]
 ): boolean {
   const user = currentUserChecker(action);
-  return !!user && roles.every((role) => user.hasPermission(role));
+  return !!user && roles.every((role) => user.hasRole(role));
 }
 
 const app = express();

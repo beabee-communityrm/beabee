@@ -29,7 +29,7 @@ export default class CalloutsService {
 
     const responses = await getRepository(CalloutResponse).find({
       loadRelationIds: true,
-      where: { member: contact }
+      where: { contact: contact }
     });
 
     const calloutsWithResponses = callouts.map((callout) => {
@@ -51,7 +51,7 @@ export default class CalloutsService {
     return await getRepository(CalloutResponse).findOne({
       where: {
         poll: { slug: callout.slug },
-        member: contact
+        contact: contact
       },
       // Get most recent response for polls with allowMultiple
       order: { createdAt: "DESC" }
@@ -90,7 +90,7 @@ export default class CalloutsService {
     } else {
       response = new CalloutResponse();
       response.poll = callout;
-      response.member = contact;
+      response.contact = contact;
     }
 
     response.answers = answers;

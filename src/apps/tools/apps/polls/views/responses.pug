@@ -25,12 +25,12 @@ block append js
 				$('.js-response-i').text(responseNo + 1);
 				$('.js-response-no').val(responseNo + 1);
 				$('.js-response-date').text(response.updatedAtText);
-				$('.js-response-user-type').text(response.member ? 'Member' : 'Guest')
-				if (response.member) {
+				$('.js-response-user-type').text(response.contact ? 'Member' : 'Guest')
+				if (response.contact) {
 					$('.js-response-user')
 						.html(
-							'<a href="/members/' + response.member.id + '">' +
-								response.member.firstname + ' ' + response.member.lastname +
+							'<a href="/members/' + response.contact.id + '">' +
+								response.contact.firstname + ' ' + response.contact.lastname +
 							'</a>');
 				} else {
 					$('.js-response-user')

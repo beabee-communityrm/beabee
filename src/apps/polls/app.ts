@@ -155,7 +155,7 @@ app.get(
     const poll = req.model as Callout;
     const pollsCode = req.params.code?.toUpperCase();
     const isEmbed = !!req.params.embed;
-    const isPreview = req.query.preview && req.user?.hasPermission("admin");
+    const isPreview = req.query.preview && req.user?.hasRole("admin");
     const isGuest = isEmbed || !(pollsCode || req.user);
 
     if (isEmbed) {
@@ -176,11 +176,11 @@ app.get(
     const answers = req.query.answers as CalloutResponseAnswers;
     // We don't support allowMultiple polls at the moment
     if (!isEmbed && answers && !poll.allowMultiple) {
-      const member = pollsCode
+      const contact = pollsCode
         ? await ContactsService.findOne({ pollsCode })
         : req.user;
-      if (member) {
-        await CalloutsService.setResponse(poll, member, answers, true);
+      if (contact) {
+        await CalloutsService.setResponse(poll, contact, answers, true);
       }
       if (!req.user) {
         req.session.answers = answers;
@@ -214,14 +214,14 @@ app.post(
     const pollsCode = req.params.code?.toUpperCase();
     const isEmbed = !!req.params.embed;
 
-    const member =
+    const contact =
       isEmbed || poll.access === CalloutAccess.OnlyAnonymous
         ? undefined
         : pollsCode
         ? await ContactsService.findOne({ pollsCode })
         : req.user;
 
-    if (poll.access === CalloutAccess.Member && !member) {
+    if (poll.access === CalloutAccess.Member && !contact) {
       return auth.handleNotAuthed(
         auth.AuthenticationStatus.NOT_LOGGED_IN,
         req,
@@ -230,10 +230,10 @@ app.post(
     }
 
     const error =
-      pollsCode && !member
+      pollsCode && !contact
         ? "unknown-user"
-        : member
-        ? await CalloutsService.setResponse(poll, member, req.answers!)
+        : contact
+        ? await CalloutsService.setResponse(poll, contact, req.answers!)
         : await CalloutsService.setGuestResponse(
             poll,
             req.body.guestName,
@@ -241,8 +241,8 @@ app.post(
             req.answers!
           );
 
-    if (member) {
-      setTrackingCookie(member.id, res);
+    if (contact) {
+      setTrackingCookie(contact.id, res);
     }
 
     if (error) {

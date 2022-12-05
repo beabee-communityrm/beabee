@@ -23,7 +23,7 @@ app.get(
 
       if (payload && sig && sso.validate(payload as string, sig as string)) {
         const projectContacts = await getRepository(ProjectContact).find({
-          where: { member: req.user },
+          where: { contact: req.user },
           relations: ["project"]
         });
 

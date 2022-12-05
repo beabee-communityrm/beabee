@@ -80,7 +80,7 @@ function uniqueCode(): string {
 }
 
 // Relations are loaded with loadRelationIds
-const memberId = () => uuidv4() as unknown as Contact;
+const contactId = () => uuidv4() as unknown as Contact;
 
 const chance = new Chance();
 
@@ -101,11 +101,11 @@ const exportItemsDrier = createModelDrier(ExportItem, {
 export const paymentsDrier = createModelDrier(Payment, {
   id: () => uuidv4(),
   subscriptionId: randomId(12, "SB"),
-  member: memberId
+  contact: contactId
 });
 
 export const paymentDataDrier = createModelDrier(PaymentData, {
-  member: memberId,
+  contact: contactId,
   data: createDrier<PaymentData["data"]>({
     customerId: randomId(12, "CU"),
     mandateId: randomId(12, "MD"),
@@ -127,10 +127,10 @@ const giftFlowDrier = createModelDrier(GiftFlow, {
     fromName: () => chance.name(),
     fromEmail: () => chance.email({ domain: "fake.beabee.io", length: 10 })
   }),
-  giftee: memberId
+  giftee: contactId
 });
 
-export const memberDrier = createModelDrier(Contact, {
+export const contactDrier = createModelDrier(Contact, {
   id: () => uuidv4(),
   email: () => chance.email({ domain: "fake.beabee.io", length: 10 }),
   firstname: () => chance.first(),
@@ -141,12 +141,12 @@ export const memberDrier = createModelDrier(Contact, {
   referralCode: uniqueCode
 });
 
-export const memberPermissionDrier = createModelDrier(ContactRole, {
-  member: memberId
+export const contactRoleDrier = createModelDrier(ContactRole, {
+  contact: contactId
 });
 
-export const memberProfileDrier = createModelDrier(ContactProfile, {
-  member: memberId,
+export const contacrProfileDrier = createModelDrier(ContactProfile, {
+  contact: contactId,
   description: () => chance.sentence(),
   bio: () => chance.paragraph(),
   notes: () => chance.sentence(),
@@ -171,32 +171,32 @@ export const pollsDrier = createModelDrier(Callout);
 
 export const pollResponsesDrier = createModelDrier(CalloutResponse, {
   id: () => uuidv4(),
-  member: memberId,
+  contact: contactId,
   guestName: () => chance.name(),
   guestEmail: () => chance.email({ domain: "example.com", length: 10 })
 });
 
 const projectsDrier = createModelDrier(Project, {
-  owner: memberId
+  owner: contactId
 });
 
-const projectMembersDrier = createModelDrier(ProjectContact, {
+const projectContactsDrier = createModelDrier(ProjectContact, {
   id: () => uuidv4(),
-  member: memberId,
+  contact: contactId,
   tag: () => chance.profession()
 });
 
 const projectEngagmentsDrier = createModelDrier(ProjectEngagement, {
   id: () => uuidv4(),
-  byMember: memberId,
-  toMember: memberId,
+  byContact: contactId,
+  toContact: contactId,
   notes: () => chance.sentence()
 });
 
 const referralsDrier = createModelDrier(Referral, {
   id: () => uuidv4(),
-  referrer: memberId,
-  referee: memberId
+  referrer: contactId,
+  referee: contactId
 });
 
 const referralsGiftDrier = createModelDrier(ReferralGift, {
@@ -205,17 +205,17 @@ const referralsGiftDrier = createModelDrier(ReferralGift, {
 
 const segmentsDrier = createModelDrier(Segment);
 
-const segmentMembersDrier = createModelDrier(SegmentContact, {
-  member: memberId
+const segmentContactsDrier = createModelDrier(SegmentContact, {
+  contact: contactId
 });
 
 const segmentOngoingEmailsDrier = createModelDrier(SegmentOngoingEmail);
 
 // Order these so they respect foreign key constraints
 export default [
-  memberDrier, // A lot of relations depend on members so leave it first
-  memberPermissionDrier,
-  memberProfileDrier,
+  contactDrier, // A lot of relations depend on contacts so leave it first
+  contactRoleDrier,
+  contacrProfileDrier,
   emailDrier,
   emailMailingDrier,
   exportsDrier,
@@ -228,12 +228,12 @@ export default [
   pollsDrier, // Must be before pollResponsesDrier
   pollResponsesDrier,
   projectsDrier,
-  projectMembersDrier,
+  projectContactsDrier,
   projectEngagmentsDrier,
   referralsGiftDrier, // Must be before referralsDrier
   referralsDrier,
   segmentsDrier,
-  segmentMembersDrier,
+  segmentContactsDrier,
   segmentOngoingEmailsDrier,
   exportItemsDrier // Must be after all exportable items
 ] as ModelDrier<any>[];

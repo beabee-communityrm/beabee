@@ -56,7 +56,7 @@ const generalEmailTemplates = {
 } as const;
 
 const adminEmailTemplates = {
-  "new-member": (params: { contact: Contact }) => ({
+  "new-contact": (params: { contact: Contact }) => ({
     MEMBERID: params.contact.id,
     MEMBERNAME: params.contact.fullname
   }),

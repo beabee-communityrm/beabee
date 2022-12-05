@@ -139,7 +139,7 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
 }
 
 export interface GetCalloutResponseData {
-  member: string;
+  contact: string;
   answers: CalloutResponseAnswers;
   createdAt: Date;
   updatedAt: Date;

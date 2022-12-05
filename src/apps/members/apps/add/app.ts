@@ -69,7 +69,7 @@ app.post(
       data.permissions?.map((p) => {
         const dateAdded = createDateTime(p.startDate, p.startTime);
         return getRepository(ContactRole).create({
-          permission: p.permission,
+          type: p.permission,
           ...(dateAdded && { dateAdded }),
           dateExpires: createDateTime(p.expiryDate, p.expiryTime)
         });
@@ -83,7 +83,7 @@ app.post(
           contributionType: data.type,
           firstname: data.firstname || "",
           lastname: data.lastname || "",
-          permissions
+          roles: permissions
         },
         data.addToNewsletter
           ? {

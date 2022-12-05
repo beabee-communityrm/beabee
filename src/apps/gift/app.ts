@@ -118,7 +118,7 @@ app.get(
       }
 
       if (giftFlow.giftee) {
-        // Effectively expire this link once the member is set up
+        // Effectively expire this link once the contact is set up
         if (giftFlow.giftee.setupComplete) {
           req.flash("warning", "gifts-already-activated");
           res.redirect("/login");

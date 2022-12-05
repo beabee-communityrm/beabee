@@ -107,7 +107,7 @@ app.get(
         order: {
           createdAt: "ASC"
         },
-        relations: ["member"]
+        relations: ["contact"]
       });
       const responsesWithText = responses.map((response) => ({
         ...response,
@@ -176,17 +176,17 @@ app.post(
           const responses = await getRepository(CalloutResponse).find({
             where: { poll },
             order: { createdAt: "ASC" },
-            relations: ["member"]
+            relations: ["contact"]
           });
           const exportData = responses.map((response) => {
             return {
               Date: response.createdAt,
-              ...(response.member
+              ...(response.contact
                 ? {
-                    FirstName: response.member.firstname,
-                    LastName: response.member.lastname,
-                    FullName: response.member.fullname,
-                    EmailAddress: response.member.email
+                    FirstName: response.contact.firstname,
+                    LastName: response.contact.lastname,
+                    FullName: response.contact.fullname,
+                    EmailAddress: response.contact.email
                   }
                 : {
                     FirstName: "",
@@ -194,7 +194,7 @@ app.post(
                     FullName: response.guestName,
                     EmailAddress: response.guestEmail
                   }),
-              IsMember: !!response.member,
+              IsMember: !!response.contact,
               ...convertAnswers(poll, response.answers)
             };
           });

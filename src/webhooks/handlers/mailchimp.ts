@@ -140,7 +140,7 @@ async function handleSubscribe(data: MCProfileData) {
       );
     }
   } else {
-    const nlMember = await NewsletterService.getNewsletterMember(email);
+    const nlContact = await NewsletterService.getNewsletterContact(email);
     await ContactsService.createContact(
       {
         email,
@@ -150,7 +150,7 @@ async function handleSubscribe(data: MCProfileData) {
       },
       {
         newsletterStatus: NewsletterStatus.Subscribed,
-        newsletterGroups: nlMember?.groups || []
+        newsletterGroups: nlContact?.groups || []
       }
     );
   }
@@ -176,13 +176,13 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 
   const contact = await ContactsService.findOne({ email });
   if (contact) {
-    const nlMember = await NewsletterService.getNewsletterMember(email);
+    const nlContact = await NewsletterService.getNewsletterContact(email);
     await ContactsService.updateContact(contact, {
       firstname: data.merges.FNAME || contact.firstname,
       lastname: data.merges.LNAME || contact.lastname
     });
     await ContactsService.updateContactProfile(contact, {
-      newsletterGroups: nlMember?.groups || []
+      newsletterGroups: nlContact?.groups || []
     });
     return true;
   } else {

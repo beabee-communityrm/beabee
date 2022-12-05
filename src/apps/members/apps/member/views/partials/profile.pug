@@ -57,9 +57,9 @@ script(type='text/template').js-edit-member-tag-template
 .row
 	.col-md-6
 		h4 Roles
-		if member.permissions.length > 0
+		if member.roles.length > 0
 			.list-group
-				each permission in member.permissions
+				each permission in member.roles
 					include /views/partials/permission.pug
 		else
 			p Contact has no roles

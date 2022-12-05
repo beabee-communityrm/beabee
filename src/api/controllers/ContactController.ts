@@ -75,7 +75,7 @@ import { validateOrReject } from "@api/utils";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
-// and also ensures the user has the correct permissions
+// and also ensures the user has the correct roles
 function TargetUser() {
   return createParamDecorator({
     required: true,
@@ -89,7 +89,7 @@ function TargetUser() {
       const id = request.params.id;
       if (id === "me" || id === user.id) {
         return user;
-      } else if (!user.hasPermission("admin")) {
+      } else if (!user.hasRole("admin")) {
         throw new UnauthorizedError();
       } else {
         const uuid = new UUIDParam();
@@ -107,7 +107,7 @@ function TargetUser() {
   });
 }
 
-@JsonController("/member")
+@JsonController("/contact")
 @Authorized()
 export class ContactController {
   @Authorized("admin")
@@ -165,12 +165,12 @@ export class ContactController {
   ): Promise<GetContactData> {
     if (query.with?.includes(GetContactWith.Profile)) {
       target.profile = await getRepository(ContactProfile).findOneOrFail({
-        member: target
+        contact: target
       });
     }
     const data = convertContactToData(target, {
       with: query.with,
-      withRestricted: caller.hasPermission("admin")
+      withRestricted: caller.hasRole("admin")
     });
     return {
       ...data,
@@ -199,7 +199,7 @@ export class ContactController {
 
     if (data.profile) {
       if (
-        !caller.hasPermission("admin") &&
+        !caller.hasRole("admin") &&
         (data.profile.tags || data.profile.notes || data.profile.description)
       ) {
         throw new UnauthorizedError();
@@ -287,7 +287,7 @@ export class ContactController {
     @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
     const targetQuery = mergeRules(query, [
-      { field: "member", operator: "equal", value: [target.id] }
+      { field: "contact", operator: "equal", value: [target.id] }
     ]);
     const data = await fetchPaginated(
       Payment,
@@ -389,10 +389,10 @@ export class ContactController {
   async updateRole(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @Param("role") role: string,
+    @Param("role") roleType: string,
     @Body() data: UpdateContactRoleData
   ): Promise<GetContactRoleData | undefined> {
-    if (role === "superadmin" && !caller.hasPermission("superadmin")) {
+    if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
       throw new UnauthorizedError();
     }
 
@@ -400,16 +400,16 @@ export class ContactController {
       throw new BadRequestError();
     }
 
-    if (PermissionTypes.includes(role as PermissionType)) {
-      const permission = await getRepository(ContactRole).save({
-        member: target,
-        permission: role as PermissionType,
+    if (PermissionTypes.includes(roleType as PermissionType)) {
+      const role = await getRepository(ContactRole).save({
+        contact: target,
+        type: roleType as PermissionType,
         ...data
       });
       return {
-        role: permission.permission,
-        dateAdded: permission.dateAdded,
-        dateExpires: permission.dateExpires
+        role: role.type,
+        dateAdded: role.dateAdded,
+        dateExpires: role.dateExpires
       };
     }
   }
@@ -422,13 +422,13 @@ export class ContactController {
     @TargetUser() target: Contact,
     @Param("role") role: string
   ): Promise<void> {
-    if (role === "superadmin" && !caller.hasPermission("superadmin")) {
+    if (role === "superadmin" && !caller.hasRole("superadmin")) {
       throw new UnauthorizedError();
     }
 
     const result = await getRepository(ContactRole).delete({
-      member: target,
-      permission: role as PermissionType
+      contact: target,
+      type: role as PermissionType
     });
 
     if (result.affected === 0) {

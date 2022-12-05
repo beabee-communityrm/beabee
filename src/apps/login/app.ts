@@ -31,13 +31,13 @@ if (config.dev) {
     wrapAsync(async (req, res) => {
       let contact;
       if (PermissionTypes.indexOf(req.params.id as PermissionType) > -1) {
-        const permission = await getRepository(ContactRole).findOne({
+        const role = await getRepository(ContactRole).findOne({
           where: {
-            permission: req.params.id as PermissionType
+            type: req.params.id as PermissionType
           },
-          relations: ["member"]
+          relations: ["contact"]
         });
-        contact = permission?.member;
+        contact = role?.contact;
       } else {
         contact = await ContactsService.findOne(req.params.id);
       }

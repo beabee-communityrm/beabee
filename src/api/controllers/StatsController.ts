@@ -22,7 +22,7 @@ class GetStatsQuery {
 }
 
 interface GetStatsData {
-  newMembers: number;
+  newContacts: number;
   averageContribution: number | null;
   totalRevenue: number | null;
 }
@@ -32,7 +32,7 @@ export class StatsController {
   @Authorized("admin")
   @Get("/")
   async getStats(@QueryParams() query: GetStatsQuery): Promise<GetStatsData> {
-    const newMembers = await createQueryBuilder(Contact, "m")
+    const newContacts = await createQueryBuilder(Contact, "m")
       .where("m.joined BETWEEN :from AND :to", query)
       .getCount();
 
@@ -47,7 +47,7 @@ export class StatsController {
     }
 
     return {
-      newMembers,
+      newContacts,
       averageContribution: payments.average,
       totalRevenue: payments.total
     };

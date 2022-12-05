@@ -32,8 +32,8 @@ class PaymentService {
   async getData(contact: Contact): Promise<PaymentData> {
     const data = await getRepository(PaymentData).findOneOrFail(contact.id);
     log.info("Loaded data for " + contact.id, { data });
-    // Load full member into data
-    return { ...data, member: contact };
+    // Load full contact into data
+    return { ...data, contact: contact };
   }
 
   async getDataBy(
@@ -41,8 +41,8 @@ class PaymentService {
     value: string
   ): Promise<PaymentData | undefined> {
     const data = await createQueryBuilder(PaymentData, "pd")
-      .innerJoinAndSelect("pd.member", "m")
-      .leftJoinAndSelect("m.permissions", "mp")
+      .innerJoinAndSelect("pd.contact", "m")
+      .leftJoinAndSelect("m.roles", "mp")
       .where(`data->>:key = :value`, { key, value })
       .getOne();
 
@@ -53,7 +53,7 @@ class PaymentService {
     await createQueryBuilder()
       .update(PaymentData)
       .set({ data: () => "jsonb_set(data, :key, :value)" })
-      .where("member = :id")
+      .where("contact = :id")
       .setParameters({
         key: `{${key}}`,
         value: JSON.stringify(value),
@@ -136,19 +136,19 @@ class PaymentService {
   }
 
   async getPayments(contact: Contact): Promise<Payment[]> {
-    return await getRepository(Payment).find({ member: contact });
+    return await getRepository(Payment).find({ contact: contact });
   }
 
   async createContact(contact: Contact): Promise<void> {
     log.info("Create contact for " + contact.id);
-    await getRepository(PaymentData).save({ member: contact });
+    await getRepository(PaymentData).save({ contact });
   }
 
   async updateContact(
     contact: Contact,
     updates: Partial<Contact>
   ): Promise<void> {
-    log.info("Update member for " + contact.id);
+    log.info("Update contact for " + contact.id);
     await this.provider(contact, (p) => p.updateContact(updates));
   }
 
@@ -199,8 +199,8 @@ class PaymentService {
 
   async permanentlyDeleteContact(contact: Contact): Promise<void> {
     await this.provider(contact, (p) => p.permanentlyDeleteContact());
-    await getRepository(PaymentData).delete({ member: contact });
-    await getRepository(Payment).delete({ member: contact });
+    await getRepository(PaymentData).delete({ contact: contact });
+    await getRepository(Payment).delete({ contact: contact });
   }
 }
 

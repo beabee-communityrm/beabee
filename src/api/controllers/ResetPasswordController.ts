@@ -32,9 +32,7 @@ export class ResetPasswordController {
   async create(@Body() data: CreateResetPasswordData): Promise<void> {
     const contact = await ContactsService.findOne({ email: data.email });
     if (contact) {
-      const rpFlow = await getRepository(ResetPasswordFlow).save({
-        member: contact
-      });
+      const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
       await EmailService.sendTemplateToContact("reset-password", contact, {
         rpLink: data.resetUrl + "/" + rpFlow.id
       });
@@ -50,15 +48,15 @@ export class ResetPasswordController {
   ): Promise<void> {
     const rpFlow = await getRepository(ResetPasswordFlow).findOne({
       where: { id },
-      relations: ["member"]
+      relations: ["contact"]
     });
     if (rpFlow) {
-      await ContactsService.updateContact(rpFlow.member, {
+      await ContactsService.updateContact(rpFlow.contact, {
         password: await generatePassword(data.password)
       });
       await getRepository(ResetPasswordFlow).delete(id);
 
-      await login(req, rpFlow.member);
+      await login(req, rpFlow.contact);
     } else {
       throw new NotFoundError();
     }

@@ -85,9 +85,9 @@ app.get(
   wrapAsync(async (req, res) => {
     const now = new Date();
     const profiles = await createQueryBuilder(ContactProfile, "profile")
-      .innerJoin(ContactRole, "mp", "profile.memberId = mp.memberId")
+      .innerJoin(ContactRole, "mp", "profile.contactId = mp.contactId")
       .where("profile.deliveryOptIn = true")
-      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now", { now })
+      .andWhere("mp.type = 'member' AND mp.dateAdded <= :now", { now })
       .andWhere(
         new Brackets((qb) =>
           qb
@@ -97,10 +97,10 @@ app.get(
       )
       .getMany();
 
-    const memberPostcodes = profiles
+    const contactPostcodes = profiles
       .map((p) => p.deliveryAddress?.postcode)
       .filter((p): p is string => !!p);
-    const postcodes = await getPostcodes(memberPostcodes);
+    const postcodes = await getPostcodes(contactPostcodes);
     res.send({ postcodes });
   })
 );

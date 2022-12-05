@@ -28,7 +28,7 @@ export default class CalloutResponse {
   poll!: Callout;
 
   @ManyToOne("Contact", { nullable: true })
-  member!: Contact | null;
+  contact!: Contact | null;
 
   @Column({ type: String, nullable: true })
   guestName!: string | null;

@@ -45,7 +45,7 @@ const assignableSystemEmails = {
   "manual-to-automatic": "Manual contributor converted to automatic",
   "email-exists-login": "Email exists - login",
   "email-exists-set-password": "Email exists - set password",
-  "new-member": "New member notification",
+  "new-contact": "New contact notification",
   "cancelled-member": "Cancelled member notification",
   "new-callout-response": "New callout response notification"
 };

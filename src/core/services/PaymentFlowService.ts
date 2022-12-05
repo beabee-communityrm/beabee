@@ -113,9 +113,7 @@ class PaymentFlowService implements PaymentFlowProvider {
           }
         );
       } else {
-        const rpFlow = await getRepository(ResetPasswordFlow).save({
-          member: contact
-        });
+        const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
         await EmailService.sendTemplateToContact(
           "email-exists-set-password",
           contact,

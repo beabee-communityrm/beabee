@@ -17,27 +17,27 @@ import Payment from "@models/Payment";
 import Contact from "@models/Contact";
 import PaymentData from "@models/PaymentData";
 
-async function logMember(type: string, conditions: Brackets[]) {
+async function logContact(type: string, conditions: Brackets[]) {
   const qb = createQueryBuilder(Contact, "m")
-    .innerJoinAndSelect("m.permissions", "mp")
+    .innerJoinAndSelect("m.roles", "mp")
     .where("TRUE");
 
   for (const condition of conditions) {
     qb.andWhere(condition);
   }
 
-  const member = await qb.getOne();
+  const contact = await qb.getOne();
   console.log("# " + type);
-  if (member) {
-    console.log(member.fullname + ", " + member.email);
-    console.log(config.audience + "/login/as/" + member.id);
+  if (contact) {
+    console.log(contact.fullname + ", " + contact.email);
+    console.log(config.audience + "/login/as/" + contact.id);
   } else {
-    console.log("No member found");
+    console.log("No contact found");
   }
   console.log();
 }
 
-async function logMemberVaryContributions(
+async function logContactVaryContributions(
   type: string,
   conditions: Brackets[]
 ) {
@@ -47,7 +47,7 @@ async function logMemberVaryContributions(
       ContributionPeriod.Monthly,
       ContributionPeriod.Annually
     ]) {
-      await logMember(
+      await logContact(
         `${type}, £${getActualAmount(amount, period)}/${period}`,
         [
           ...conditions,
@@ -71,40 +71,38 @@ async function getFilters() {
 
   const hasScheduledPayments = createQueryBuilder()
     .subQuery()
-    .select("p.memberId")
+    .select("p.contactId")
     .from(Payment, "p")
     .where("p.status = :status", { status: PaymentStatus.Pending });
   const hasFailedPayments = createQueryBuilder()
     .subQuery()
-    .select("p.memberId")
+    .select("p.contactId")
     .from(Payment, "p")
     .where("p.status = 'failed'", { status: PaymentStatus.Failed });
   const hasSubscription = createQueryBuilder()
     .subQuery()
-    .select("pd.memberId")
+    .select("pd.contactId")
     .from(PaymentData, "p")
     .where("pd.subscriptionId IS NOT NULL");
   const hasCancelled = createQueryBuilder()
     .subQuery()
-    .select("pd.memberId")
+    .select("pd.contactId")
     .from(PaymentData, "md")
     .where("md.cancelledAt IS NOT NULL");
   const isPayingFee = createQueryBuilder()
     .subQuery()
-    .select("md.memberId")
+    .select("md.contactId")
     .from(PaymentData, "md")
     .where("md.payFee = TRUE");
 
   return {
     isActive: new Brackets((qb) =>
-      qb.where("mp.permission = 'member' AND mp.dateExpires > :now", { now })
+      qb.where("mp.type = 'member' AND mp.dateExpires > :now", { now })
     ),
     isInactive: new Brackets((qb) =>
-      qb.where("mp.permission = 'member' AND mp.dateExpires < :now", { now })
+      qb.where("mp.type = 'member' AND mp.dateExpires < :now", { now })
     ),
-    isSuperAdmin: new Brackets((qb) =>
-      qb.where("mp.permission = 'superadmin'")
-    ),
+    isSuperAdmin: new Brackets((qb) => qb.where("mp.type = 'superadmin'")),
     isGift: new Brackets((qb) =>
       qb.where("m.contributionType = :gift", { gift: ContributionType.Gift })
     ),
@@ -135,23 +133,23 @@ async function getFilters() {
 async function main() {
   const filters = await getFilters();
 
-  await logMemberVaryContributions("Active, no scheduled payments", [
+  await logContactVaryContributions("Active, no scheduled payments", [
     filters.isActive,
     filters.noScheduledPayments
   ]);
 
-  await logMemberVaryContributions("Active, has scheduled payments", [
+  await logContactVaryContributions("Active, has scheduled payments", [
     filters.isActive,
     filters.hasScheduledPayments
   ]);
 
-  await logMemberVaryContributions("Inactive due to failed payment", [
+  await logContactVaryContributions("Inactive due to failed payment", [
     filters.hasSubscription,
     filters.isInactive,
     filters.hasFailedPayments
   ]);
 
-  await logMemberVaryContributions(
+  await logContactVaryContributions(
     "Inactive due to failed payment, has scheduled payments",
     [
       filters.hasSubscription,
@@ -160,32 +158,32 @@ async function main() {
       filters.hasScheduledPayments
     ]
   );
-  await logMemberVaryContributions("Cancelled active member", [
+  await logContactVaryContributions("Cancelled active member", [
     filters.isActive,
     filters.hasCancelled
   ]);
 
-  await logMemberVaryContributions("Cancelled inactive member", [
+  await logContactVaryContributions("Cancelled inactive member", [
     filters.isInactive,
     filters.hasCancelled
   ]);
 
-  await logMember("Active, gift membership", [
+  await logContact("Active, gift membership", [
     filters.isActive,
     filters.isGift
   ]);
 
-  await logMember("Inactive, gift membership", [
+  await logContact("Inactive, gift membership", [
     filters.isInactive,
     filters.isGift
   ]);
 
-  await logMember("Active, paying fee", [
+  await logContact("Active, paying fee", [
     filters.isActive,
     filters.isPayingFee
   ]);
 
-  await logMember("Super admin account", [filters.isSuperAdmin]);
+  await logContact("Super admin account", [filters.isSuperAdmin]);
 }
 
 db.connect().then(async () => {

@@ -33,7 +33,7 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
   protected getNewItemsQuery(): SelectQueryBuilder<Contact> {
     const query = super
       .getNewItemsQuery()
-      .innerJoin("m.permissions", "mp")
+      .innerJoin("m.roles", "mp")
       .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
       .andWhere(
         new Brackets((qb) => {
@@ -44,25 +44,25 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
 
     if (this.ex!.params?.hasActiveSubscription) {
       query
-        .innerJoin(PaymentData, "pd", "pd.memberId = m.memberId")
+        .innerJoin(PaymentData, "pd", "pd.contactId = m.contactId")
         .andWhere("pd.data ->> 'subscriptionId' IS NOT NULL");
     }
 
     return query;
   }
 
-  async getExport(members: Contact[]): Promise<ExportResult> {
-    return members.map((member) => ({
-      Id: member.id,
-      EmailAddress: member.email,
-      FirstName: member.firstname,
-      LastName: member.lastname,
-      ReferralCode: member.referralCode,
-      PollsCode: member.pollsCode,
-      ContributionType: member.contributionType,
-      ContributionMonthlyAmount: member.contributionMonthlyAmount,
-      ContributionPeriod: member.contributionPeriod,
-      ContributionDescription: member.contributionDescription
+  async getExport(contacts: Contact[]): Promise<ExportResult> {
+    return contacts.map((contact) => ({
+      Id: contact.id,
+      EmailAddress: contact.email,
+      FirstName: contact.firstname,
+      LastName: contact.lastname,
+      ReferralCode: contact.referralCode,
+      PollsCode: contact.pollsCode,
+      ContributionType: contact.contributionType,
+      ContributionMonthlyAmount: contact.contributionMonthlyAmount,
+      ContributionPeriod: contact.contributionPeriod,
+      ContributionDescription: contact.contributionDescription
     }));
   }
 }

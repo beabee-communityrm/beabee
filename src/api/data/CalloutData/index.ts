@@ -41,7 +41,7 @@ export async function convertCalloutToData(
         ? callout.hasAnswered
         : (await getRepository(CalloutResponse).count({
             poll: callout,
-            member: contact
+            contact: contact
           })) > 0
       : undefined;
 
@@ -87,7 +87,7 @@ export async function fetchPaginatedCallouts(
 ): Promise<Paginated<GetCalloutData>> {
   const scopedQuery = mergeRules(
     query,
-    !contact?.hasPermission("admin") && [
+    !contact?.hasRole("admin") && [
       // Non-admins can only query for open or ended non-hidden callouts
       {
         condition: "OR",
@@ -118,7 +118,7 @@ export async function fetchPaginatedCallouts(
           );
         }
 
-        if (values[0] !== contact.id && !contact.hasPermission("admin")) {
+        if (values[0] !== contact.id && !contact.hasRole("admin")) {
           throw new UnauthorizedError();
         }
 
@@ -128,7 +128,7 @@ export async function fetchPaginatedCallouts(
           .select("pr.pollSlug", "slug")
           .distinctOn(["pr.pollSlug"])
           .from(CalloutResponse, "pr")
-          .where(whereFn(`pr.memberId`))
+          .where(whereFn(`pr.contactId`))
           .orderBy("pr.pollSlug");
 
         qb.where("item.slug IN " + subQb.getQuery());
@@ -150,7 +150,7 @@ export async function fetchPaginatedCallouts(
     const answeredCallouts = await createQueryBuilder(CalloutResponse, "pr")
       .select("pr.pollSlug", "slug")
       .distinctOn(["pr.pollSlug"])
-      .where("pr.pollSlug IN (:...slugs) AND pr.memberId = :id", {
+      .where("pr.pollSlug IN (:...slugs) AND pr.contactId = :id", {
         slugs: results.items.map((item) => item.slug),
         id: contact.id
       })
@@ -180,8 +180,8 @@ export async function fetchPaginatedCalloutResponses(
   const scopedQuery = mergeRules(query, [
     { field: "poll", operator: "equal", value: [slug] },
     // Contact's can only see their own responses
-    !contact.hasPermission("admin") && {
-      field: "member",
+    !contact.hasRole("admin") && {
+      field: "contact",
       operator: "equal",
       value: [contact.id]
     }
@@ -199,7 +199,7 @@ export async function fetchPaginatedCalloutResponses(
   return {
     ...results,
     items: results.items.map((item) => ({
-      member: item.member as unknown as string, // TODO: fix typing
+      contact: item.contact as unknown as string, // TODO: fix typing
       answers: item.answers,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt

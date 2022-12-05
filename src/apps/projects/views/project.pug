@@ -19,16 +19,16 @@ block contents
 				dd= moment(project.date).format('DD/MM/YYYY [at] HH:mm')
 				dt Owner
 				dd: a(href='/members/' + project.owner.id)= project.owner.fullname
-				dt Members
-				dd= projectMembers.length
+				dt Contacts
+				dd= projectContacts.length
 	
 	.row
 		.col-md-12
 			hr
 
-	.row#members
+	.row#contacts
 		.col-md-6
-			h4 Members
+			h4 Contacts
 		.col-md-6.text-right
 			a(href='/members?addToProject=' + project.id).btn.btn-sm.btn-primary
 				span.glyphicon.glyphicon-plus
@@ -38,14 +38,14 @@ block contents
 
 	.row
 		.col-md-12
-			if projectMembers.length > 0
+			if projectContacts.length > 0
 				.members-table
-					each pm in projectMembers
+					each pm in projectContacts
 						- pmId = 'pm_' + pm.id
 						.members-table-row
 							a(href='#' + pmId data-toggle='collapse').members-table-row-link.collapsed
 							span.projects-member-caret: span.caret
-							+membersTableBasicInfo(pm.member)
+							+membersTableBasicInfo(pm.contact)
 							if pm.tag
 								span
 									.label.label-primary= pm.tag
@@ -62,34 +62,34 @@ block contents
 									.col-md-3
 										form(method='POST')
 											+csrf
-											input(type='hidden' name='projectMemberId' value=pm.id)
+											input(type='hidden' name='projectContactId' value=pm.id)
 											.form-group
 												.input-group
 													input(type='text' name='tag' placeholder='Project tag' value=pm.tag).form-control
 													.input-group-btn
-														button(name='action' value='update-member-tag').btn.btn-success
+														button(name='action' value='update-contact-tag').btn.btn-success
 															span.glyphicon.glyphicon-ok
 									.col-md-9
 										.projects-member-contact
 											.input-group
 												span.input-group-addon
 													span.glyphicon.glyphicon-envelope
-												input(type='text' value=pm.member.email readonly).form-control
+												input(type='text' value=pm.contact.email readonly).form-control
 											.input-group
 												span.input-group-addon
 													span.glyphicon.glyphicon-earphone
-												input(type='text' name='telephone' value=pm.member.profile.telephone readonly).form-control
+												input(type='text' name='telephone' value=pm.contact.profile.telephone readonly).form-control
 											.input-group
 												span.input-group-addon
 													img(src='/static/imgs/twitter.png')
-												input(type='text' name='twitter' value=pm.member.profile.twitter readonly).form-control
-										p Preferred contact: #{pm.member.profile.preferredContact || '-'}
+												input(type='text' name='twitter' value=pm.contact.profile.twitter readonly).form-control
+										p Preferred contact: #{pm.contact.profile.preferredContact || '-'}
 								.row
 									.col-md-6
 										h5 Add engagement
 										form(method='POST')
 											+csrf
-											input(type='hidden' name='memberId' value=pm.member.id)
+											input(type='hidden' name='contactId' value=pm.contact.id)
 											.form-group
 												label(for=pmId + '_engagement_type').control-label Type
 												select(name='type' id=pmId + '_engagement_type' required).form-control
@@ -107,7 +107,7 @@ block contents
 												label(for=pmId + '_engagement_notes').control-label Notes
 												textarea(name='notes' id=pmId + '_engagement_notes').form-control
 											.form-group
-												button(name='action' value='add-member-engagement').btn.btn-primary Add
+												button(name='action' value='add-contact-engagement').btn.btn-primary Add
 									.col-md-6
 										h5 Previous engagements
 										if pm.engagementsByDate.length > 0
@@ -117,13 +117,13 @@ block contents
 														form(method='POST').pull-right
 															+csrf
 															input(type='hidden' name='projectEngagementId' value=e.id)
-															button(name='action' value='delete-member-engagement').btn.btn-xs.btn-danger
+															button(name='action' value='delete-contact-engagement').btn.btn-xs.btn-danger
 																span.glyphicon.glyphicon-trash
 														= e.type
 														|
 														| by
 														|
-														a(href='/members/' + e.byMember.id)= e.byMember.firstname
+														a(href='/members/' + e.byContact.id)= e.byContact.firstname
 														|
 														| at
 														|
@@ -136,7 +136,7 @@ block contents
 
 
 			else
-				.alert.alert-info No members
+				.alert.alert-info No contacts
 
 			hr
 

@@ -12,7 +12,7 @@ export default class ResetPasswordFlow {
   id!: string;
 
   @ManyToOne("Contact")
-  member!: Contact;
+  contact!: Contact;
 
   @CreateDateColumn()
   date!: Date;

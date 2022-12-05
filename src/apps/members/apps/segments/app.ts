@@ -93,7 +93,7 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    segment.memberCount = await SegmentService.getSegmentContactCount(segment);
+    segment.contactCount = await SegmentService.getSegmentContactCount(segment);
     res.render("email", {
       segment,
       emails: await getRepository(Email).find()
@@ -146,7 +146,7 @@ app.post(
     }
 
     if (data.type === "one-off" || data.sendNow) {
-      const members = await SegmentService.getSegmentContacts(segment);
+      const contacts = await SegmentService.getSegmentContacts(segment);
       const mailing = await getRepository(EmailMailing).save({
         email,
         emailField: "Email",
@@ -157,11 +157,11 @@ app.post(
           FNAME: "FirstName",
           LNAME: "LastName"
         },
-        recipients: members.map((member) => ({
-          Email: member.email,
-          Name: member.fullname,
-          FirstName: member.firstname,
-          LastName: member.lastname
+        recipients: contacts.map((contact) => ({
+          Email: contact.email,
+          Name: contact.fullname,
+          FirstName: contact.firstname,
+          LastName: contact.lastname
         }))
       });
 

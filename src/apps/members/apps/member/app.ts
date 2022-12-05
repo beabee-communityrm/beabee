@@ -52,7 +52,7 @@ app.get(
     const availableTags = await getAvailableTags();
 
     const rpFlow = await getRepository(ResetPasswordFlow).findOne({
-      where: { member: contact },
+      where: { contact: contact },
       order: { date: "DESC" }
     });
 
@@ -113,12 +113,11 @@ app.post(
         req.flash("success", "member-login-override-generated");
         break;
       case "password-reset":
-        await getRepository(ResetPasswordFlow).save({ member: contact });
+        await getRepository(ResetPasswordFlow).save({ contact });
         req.flash("success", "member-password-reset-generated");
         break;
       case "permanently-delete":
-        // TODO: anonymise other data in poll answers
-        //await PollAnswers.updateMany( { member }, { $set: { member: null } } );
+        // TODO: anonymise data in poll answers
 
         await ReferralsService.permanentlyDeleteContact(contact);
         await PaymentService.permanentlyDeleteContact(contact);

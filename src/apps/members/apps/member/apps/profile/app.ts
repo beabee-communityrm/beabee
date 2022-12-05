@@ -34,15 +34,15 @@ app.post(
         delivery_postcode
       }
     } = req;
-    const member = req.model as Contact;
+    const contact = req.model as Contact;
 
     try {
-      await ContactsService.updateContact(member, {
+      await ContactsService.updateContact(contact, {
         email,
         firstname,
         lastname
       });
-      await ContactsService.updateContactProfile(member, {
+      await ContactsService.updateContactProfile(contact, {
         deliveryOptIn: delivery_optin,
         deliveryAddress: delivery_optin
           ? {

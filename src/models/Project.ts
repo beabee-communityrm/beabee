@@ -34,7 +34,7 @@ export default class Project {
   groupName!: string | null;
 
   @OneToMany("ProjectContact", "project")
-  members!: ProjectContact[];
+  contacts!: ProjectContact[];
 
-  memberCount?: number;
+  contactCount?: number;
 }

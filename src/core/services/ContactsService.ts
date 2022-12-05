@@ -88,7 +88,7 @@ class ContactsService {
       const contact = getRepository(Contact).create({
         referralCode: generateContactCode(partialContact),
         pollsCode: generateContactCode(partialContact),
-        permissions: [],
+        roles: [],
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
         firstname: "",
         lastname: "",
@@ -100,7 +100,7 @@ class ContactsService {
 
       contact.profile = getRepository(ContactProfile).create({
         ...partialProfile,
-        member: contact
+        contact: contact
       });
       await getRepository(ContactProfile).save(contact.profile);
 
@@ -110,9 +110,7 @@ class ContactsService {
         await NewsletterService.upsertContact(contact);
       }
 
-      await EmailService.sendTemplateToAdmin("new-member", {
-        contact: contact
-      });
+      await EmailService.sendTemplateToAdmin("new-contact", { contact });
 
       return contact;
     } catch (error) {
@@ -160,25 +158,23 @@ class ContactsService {
 
   async updateContactRole(
     contact: Contact,
-    role: PermissionType,
-    updates?: Partial<Omit<ContactRole, "member" | "permission">>
+    roleType: PermissionType,
+    updates?: Partial<Omit<ContactRole, "member" | "type">>
   ): Promise<void> {
-    log.info(`Update permission ${role} for ${contact.id}`, updates);
+    log.info(`Update role ${roleType} for ${contact.id}`, updates);
 
     const wasActive = contact.membership?.isActive;
 
-    const existingPermission = contact.permissions.find(
-      (p) => p.permission === role
-    );
+    const existingPermission = contact.roles.find((p) => p.type === roleType);
     if (existingPermission && updates) {
       Object.assign(existingPermission, updates);
     } else {
       const newPermission = getRepository(ContactRole).create({
-        member: contact,
-        permission: role,
+        contact: contact,
+        type: roleType,
         ...updates
       });
-      contact.permissions.push(newPermission);
+      contact.roles.push(newPermission);
     }
     await getRepository(Contact).save(contact);
 
@@ -197,32 +193,30 @@ class ContactsService {
 
   async extendContactRole(
     contact: Contact,
-    role: PermissionType,
+    roleType: PermissionType,
     dateExpires: Date
   ): Promise<void> {
-    const p = contact.permissions.find((p) => p.permission === role);
-    log.info(`Extend permission ${role} for ${contact.id}`, {
+    const p = contact.roles.find((p) => p.type === roleType);
+    log.info(`Extend role ${roleType} for ${contact.id}`, {
       contactId: contact.id,
-      role,
+      role: roleType,
       prevDate: p?.dateExpires,
       newDate: dateExpires
     });
     if (!p?.dateExpires || dateExpires > p.dateExpires) {
-      await this.updateContactRole(contact, role, { dateExpires });
+      await this.updateContactRole(contact, roleType, { dateExpires });
     }
   }
 
   async revokeContactRole(
     contact: Contact,
-    role: PermissionType
+    roleType: PermissionType
   ): Promise<void> {
-    log.info(`Revoke permission ${role} for ${contact.id}`);
-    contact.permissions = contact.permissions.filter(
-      (p) => p.permission !== role
-    );
+    log.info(`Revoke role ${roleType} for ${contact.id}`);
+    contact.roles = contact.roles.filter((p) => p.type !== roleType);
     await getRepository(ContactRole).delete({
-      member: contact,
-      permission: role
+      contact: contact,
+      type: roleType
     });
 
     if (!contact.membership?.isActive) {

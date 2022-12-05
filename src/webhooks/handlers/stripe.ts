@@ -99,9 +99,9 @@ async function handleCustomerDeleted(customer: Stripe.Customer) {
   if (data) {
     log.info("Delete customer from " + customer.id, {
       customerId: customer.id,
-      memberId: data.member.id
+      contactId: data.contact.id
     });
-    await PaymentService.updateDataBy(data.member, "customerId", null);
+    await PaymentService.updateDataBy(data.contact, "customerId", null);
   }
 }
 
@@ -118,10 +118,10 @@ async function handleCustomerSubscriptionUpdated(
     );
     if (data) {
       log.info(
-        `Subscription ${subscription.id} never started, revoking membership from ${data.member.id}`
+        `Subscription ${subscription.id} never started, revoking membership from ${data.contact.id}`
       );
-      await ContactsService.revokeContactRole(data.member, "member");
-      await PaymentService.updateDataBy(data.member, "subscriptionId", null);
+      await ContactsService.revokeContactRole(data.contact, "member");
+      await PaymentService.updateDataBy(data.contact, "subscriptionId", null);
     }
   }
 }
@@ -137,7 +137,7 @@ async function handleCustomerSubscriptionDeleted(
   );
   if (data) {
     await ContactsService.cancelContactContribution(
-      data.member,
+      data.contact,
       "cancelled-contribution"
     );
   }
@@ -183,17 +183,17 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
 
   await ContactsService.extendContactRole(
-    data.member,
+    data.contact,
     "member",
     add(new Date(line.period.end * 1000), config.gracePeriod)
   );
 
   const stripeData = data.data as StripePaymentData;
   if (line.amount === stripeData.nextAmount?.chargeable) {
-    await ContactsService.updateContact(data.member, {
+    await ContactsService.updateContact(data.contact, {
       contributionMonthlyAmount: stripeData.nextAmount.monthly
     });
-    await PaymentService.updateDataBy(data.member, "nextAmount", null);
+    await PaymentService.updateDataBy(data.contact, "nextAmount", null);
   }
 }
 
@@ -205,9 +205,9 @@ async function handlePaymentMethodDetached(
   if (data) {
     log.info("Detached payment method " + paymentMethod.id, {
       mandateId: paymentMethod.id,
-      memberId: data.member.id
+      contactId: data.contact.id
     });
-    await PaymentService.updateDataBy(data.member, "mandateId", null);
+    await PaymentService.updateDataBy(data.contact, "mandateId", null);
   }
 }
 
@@ -246,8 +246,10 @@ async function findOrCreatePayment(
   const newPayment = new Payment();
   newPayment.id = invoice.id;
 
-  log.info(`Creating payment for ${data.member.id} with invoice ${invoice.id}`);
-  newPayment.member = data.member;
+  log.info(
+    `Creating payment for ${data.contact.id} with invoice ${invoice.id}`
+  );
+  newPayment.contact = data.contact;
   newPayment.subscriptionId = invoice.subscription as string | null;
   return newPayment;
 }

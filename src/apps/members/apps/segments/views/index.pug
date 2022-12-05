@@ -10,14 +10,14 @@ block contents
 					tr
 						th Name
 						th Description
-						th Members
+						th Contacts
 						th
 				tbody
 					each segment in segments
 						tr
 							td(style='white-space: nowrap'): a(href='/members/?segment=' + segment.id)= segment.name
 							td(width='100%')= segment.description
-							td= segment.memberCount
+							td= segment.contactCount
 							td
 								a(href='/members/segments/' + segment.id).btn.btn-xs.btn-default
 									i.glyphicon.glyphicon-pencil

@@ -102,8 +102,8 @@ export class SegmentController {
     }
   }
 
-  @Get("/:id/members")
-  async getSegmentMembers(
+  @Get("/:id/contacts")
+  async getSegmentContacts(
     @Params() { id }: UUIDParam,
     @QueryParams() query: GetContactsQuery
   ): Promise<Paginated<GetContactData> | undefined> {
