@@ -5,7 +5,7 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
-import { convertAnswers } from "@core/utils/polls";
+import { convertAnswers } from "@core/utils/callouts";
 
 import Callout, { CalloutAccess } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -87,7 +87,7 @@ app.get(
   hasNewModel(Callout, "slug"),
   wrapAsync(async (req, res) => {
     const responsesCount = await getRepository(CalloutResponse).count({
-      where: { poll: req.model }
+      where: { callout: req.model }
     });
     res.render("poll", { poll: req.model, responsesCount });
   })
@@ -103,7 +103,7 @@ app.get(
       next("route");
     } else {
       const responses = await getRepository(CalloutResponse).find({
-        where: { poll: req.model },
+        where: { callout: req.model },
         order: {
           createdAt: "ASC"
         },
@@ -125,17 +125,20 @@ app.post(
   "/:slug",
   hasNewModel(Callout, "slug"),
   wrapAsync(async (req, res) => {
-    const poll = req.model as Callout;
+    const callout = req.model as Callout;
 
     switch (req.body.action) {
       case "update":
-        await getRepository(Callout).update(poll.slug, schemaToPoll(req.body));
+        await getRepository(Callout).update(
+          callout.slug,
+          schemaToPoll(req.body)
+        );
         req.flash("success", "polls-updated");
         res.redirect(req.originalUrl);
         break;
 
       case "edit-form": {
-        await getRepository(Callout).update(poll.slug, {
+        await getRepository(Callout).update(callout.slug, {
           formSchema: JSON.parse(req.body.formSchema),
           intro: req.body.intro,
           thanksText: req.body.thanksText,
@@ -147,34 +150,36 @@ app.post(
         break;
       }
       case "replicate": {
-        const newPoll = getRepository(Callout).create({
-          ...poll,
+        const newCallout = getRepository(Callout).create({
+          ...callout,
           date: new Date(),
           title: req.body.title,
           slug: req.body.slug,
           starts: null,
           expires: null
         });
-        await getRepository(Callout).save(newPoll);
-        res.redirect("/tools/polls/" + newPoll.slug);
+        await getRepository(Callout).save(newCallout);
+        res.redirect("/tools/polls/" + newCallout.slug);
         break;
       }
       case "delete":
-        await getRepository(Callout).delete(poll.slug);
+        await getRepository(Callout).delete(callout.slug);
         req.flash("success", "polls-deleted");
         res.redirect("/tools/polls");
         break;
       case "export-responses": {
         if (
-          poll.responsePassword &&
-          req.query.password !== poll.responsePassword
+          callout.responsePassword &&
+          req.query.password !== callout.responsePassword
         ) {
           req.flash("error", "polls-responses-password-protected");
           res.redirect(req.originalUrl);
         } else {
-          const exportName = `responses-${poll.title}_${moment().format()}.csv`;
+          const exportName = `responses-${
+            callout.title
+          }_${moment().format()}.csv`;
           const responses = await getRepository(CalloutResponse).find({
-            where: { poll },
+            where: { callout: callout },
             order: { createdAt: "ASC" },
             relations: ["contact"]
           });
@@ -195,7 +200,7 @@ app.post(
                     EmailAddress: response.guestEmail
                   }),
               IsMember: !!response.contact,
-              ...convertAnswers(poll, response.answers)
+              ...convertAnswers(callout, response.answers)
             };
           });
           res.attachment(exportName).send(Papa.unparse(exportData));
@@ -204,10 +209,10 @@ app.post(
       }
       case "delete-responses":
         await getRepository(CalloutResponse).delete({
-          poll: { slug: poll.slug }
+          callout: { slug: callout.slug }
         });
         req.flash("success", "polls-responses-deleted");
-        res.redirect("/tools/polls/" + poll.slug);
+        res.redirect("/tools/polls/" + callout.slug);
         break;
     }
   })

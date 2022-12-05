@@ -36,7 +36,7 @@ export default class CalloutsService {
       const pwr = new CalloutWithResponse();
       Object.assign(pwr, callout);
       pwr.response = responses.find(
-        (r) => (r.poll as unknown as string) === callout.slug
+        (r) => (r.callout as unknown as string) === callout.slug
       )!;
       return pwr;
     });
@@ -50,10 +50,10 @@ export default class CalloutsService {
   ): Promise<CalloutResponse | undefined> {
     return await getRepository(CalloutResponse).findOne({
       where: {
-        poll: { slug: callout.slug },
+        callout: { slug: callout.slug },
         contact: contact
       },
-      // Get most recent response for polls with allowMultiple
+      // Get most recent response for callouts with allowMultiple
       order: { createdAt: "DESC" }
     });
   }
@@ -77,7 +77,7 @@ export default class CalloutsService {
       return "closed";
     }
 
-    // Don't allow partial answers for multiple answer polls
+    // Don't allow partial answers for multiple answer callouts
     if (callout.allowMultiple && isPartial) {
       return;
     }
@@ -89,7 +89,7 @@ export default class CalloutsService {
       }
     } else {
       response = new CalloutResponse();
-      response.poll = callout;
+      response.callout = callout;
       response.contact = contact;
     }
 
@@ -129,7 +129,7 @@ export default class CalloutsService {
     }
 
     const response = new CalloutResponse();
-    response.poll = callout;
+    response.callout = callout;
     response.guestName = guestName || null;
     response.guestEmail = guestEmail || null;
     response.answers = answers;

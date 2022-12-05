@@ -40,7 +40,7 @@ export async function convertCalloutToData(
       ? callout.hasAnswered !== undefined
         ? callout.hasAnswered
         : (await getRepository(CalloutResponse).count({
-            poll: callout,
+            callout: callout,
             contact: contact
           })) > 0
       : undefined;
@@ -49,7 +49,7 @@ export async function convertCalloutToData(
     opts.with?.includes(GetCalloutWith.ResponseCount) && contact
       ? callout.responseCount !== undefined
         ? callout.responseCount
-        : await getRepository(CalloutResponse).count({ poll: callout })
+        : await getRepository(CalloutResponse).count({ callout: callout })
       : undefined;
 
   return {
@@ -125,11 +125,11 @@ export async function fetchPaginatedCallouts(
         // TODO: deduplicate with hasAnswered
         const subQb = createQueryBuilder()
           .subQuery()
-          .select("pr.pollSlug", "slug")
-          .distinctOn(["pr.pollSlug"])
+          .select("pr.calloutSlug", "slug")
+          .distinctOn(["pr.calloutSlug"])
           .from(CalloutResponse, "pr")
           .where(whereFn(`pr.contactId`))
-          .orderBy("pr.pollSlug");
+          .orderBy("pr.calloutSlug");
 
         qb.where("item.slug IN " + subQb.getQuery());
       }
@@ -148,13 +148,13 @@ export async function fetchPaginatedCallouts(
     opts.with?.includes(GetCalloutWith.HasAnswered)
   ) {
     const answeredCallouts = await createQueryBuilder(CalloutResponse, "pr")
-      .select("pr.pollSlug", "slug")
-      .distinctOn(["pr.pollSlug"])
-      .where("pr.pollSlug IN (:...slugs) AND pr.contactId = :id", {
+      .select("pr.calloutSlug", "slug")
+      .distinctOn(["pr.calloutSlug"])
+      .where("pr.calloutSlug IN (:...slugs) AND pr.contactId = :id", {
         slugs: results.items.map((item) => item.slug),
         id: contact.id
       })
-      .orderBy("pr.pollSlug")
+      .orderBy("pr.calloutSlug")
       .getRawMany<{ slug: string }>();
 
     const answeredSlugs = answeredCallouts.map((p) => p.slug);
@@ -178,7 +178,7 @@ export async function fetchPaginatedCalloutResponses(
   contact: Contact
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
-    { field: "poll", operator: "equal", value: [slug] },
+    { field: "callout", operator: "equal", value: [slug] },
     // Contact's can only see their own responses
     !contact.hasRole("admin") && {
       field: "contact",

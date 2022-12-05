@@ -13,15 +13,15 @@ import {
   contactDrier,
   contactRoleDrier,
   contacrProfileDrier,
-  pollResponsesDrier,
-  pollsDrier,
+  calloutResponsesDrier,
+  calloutsDrier,
   runExport
 } from "./driers";
 
 async function main() {
   for (const drier of [
-    pollResponsesDrier,
-    pollsDrier,
+    calloutResponsesDrier,
+    calloutsDrier,
     paymentDataDrier,
     paymentsDrier,
     contacrProfileDrier,
@@ -73,7 +73,7 @@ async function main() {
     valueMap
   );
   await runExport(
-    pollsDrier,
+    calloutsDrier,
     (qb) => qb.orderBy({ date: "DESC" }).limit(2),
     valueMap
   );

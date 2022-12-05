@@ -1,7 +1,4 @@
-import Callout, {
-  CalloutComponentSchema,
-  CalloutFormSchema
-} from "@models/Callout";
+import Callout, { CalloutComponentSchema } from "@models/Callout";
 import {
   CalloutResponseAnswer,
   CalloutResponseAnswers

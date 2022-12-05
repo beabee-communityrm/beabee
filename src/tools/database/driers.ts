@@ -167,9 +167,9 @@ const optionsDrier = createModelDrier(Option);
 
 const pageSettingsDrier = createModelDrier(PageSettings);
 
-export const pollsDrier = createModelDrier(Callout);
+export const calloutsDrier = createModelDrier(Callout);
 
-export const pollResponsesDrier = createModelDrier(CalloutResponse, {
+export const calloutResponsesDrier = createModelDrier(CalloutResponse, {
   id: () => uuidv4(),
   contact: contactId,
   guestName: () => chance.name(),
@@ -225,8 +225,8 @@ export default [
   paymentDataDrier,
   paymentsDrier,
   pageSettingsDrier,
-  pollsDrier, // Must be before pollResponsesDrier
-  pollResponsesDrier,
+  calloutsDrier, // Must be before calloutResponsesDrier
+  calloutResponsesDrier,
   projectsDrier,
   projectContactsDrier,
   projectEngagmentsDrier,

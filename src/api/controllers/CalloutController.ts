@@ -71,7 +71,7 @@ abstract class CalloutAdminController {
   @OnUndefined(204)
   @Delete("/:slug")
   async deleteCallout(@Param("slug") slug: string): Promise<void> {
-    await getRepository(CalloutResponse).delete({ poll: { slug } });
+    await getRepository(CalloutResponse).delete({ callout: { slug } });
     const result = await getRepository(Callout).delete(slug);
     if (result.affected === 0) {
       throw new NotFoundError();

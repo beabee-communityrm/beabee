@@ -25,7 +25,7 @@ export default class CalloutResponse {
   id!: string;
 
   @ManyToOne("Callout", "responses")
-  poll!: Callout;
+  callout!: Callout;
 
   @ManyToOne("Contact", { nullable: true })
   contact!: Contact | null;

@@ -92,7 +92,7 @@ export default class Callout extends ItemWithStatus {
   @Column({ default: false })
   hidden!: boolean;
 
-  @OneToMany(() => CalloutResponse, (r) => r.poll)
+  @OneToMany(() => CalloutResponse, (r) => r.callout)
   responses!: CalloutResponse[];
 
   @Column({ nullable: true })
