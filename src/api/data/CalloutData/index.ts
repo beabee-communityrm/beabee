@@ -39,17 +39,14 @@ export async function convertCalloutToData(
     opts.with?.includes(GetCalloutWith.HasAnswered) && contact
       ? callout.hasAnswered !== undefined
         ? callout.hasAnswered
-        : (await getRepository(CalloutResponse).count({
-            callout: callout,
-            contact: contact
-          })) > 0
+        : (await getRepository(CalloutResponse).count({ callout, contact })) > 0
       : undefined;
 
   const responseCount =
     opts.with?.includes(GetCalloutWith.ResponseCount) && contact
       ? callout.responseCount !== undefined
         ? callout.responseCount
-        : await getRepository(CalloutResponse).count({ callout: callout })
+        : await getRepository(CalloutResponse).count({ callout })
       : undefined;
 
   return {
