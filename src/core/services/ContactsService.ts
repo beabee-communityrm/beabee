@@ -110,7 +110,7 @@ class ContactsService {
         await NewsletterService.upsertContact(contact);
       }
 
-      await EmailService.sendTemplateToAdmin("new-contact", { contact });
+      await EmailService.sendTemplateToAdmin("new-member", { contact });
 
       return contact;
     } catch (error) {
