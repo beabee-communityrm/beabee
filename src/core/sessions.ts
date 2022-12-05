@@ -1,4 +1,4 @@
-import { PermissionType } from "@beabee/beabee-common";
+import { RoleType } from "@beabee/beabee-common";
 import _pgSession from "connect-pg-simple";
 import express, { Response } from "express";
 import session from "express-session";
@@ -53,8 +53,7 @@ export default (app: express.Express): void => {
 
     // User template locals
     res.locals.isLoggedIn = !!req.user;
-    res.locals.access = (roleType: PermissionType) =>
-      req.user?.hasRole(roleType);
+    res.locals.access = (roleType: RoleType) => req.user?.hasRole(roleType);
 
     next();
   });

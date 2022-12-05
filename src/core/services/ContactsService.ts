@@ -1,6 +1,6 @@
 import {
   ContributionType,
-  PermissionType,
+  RoleType,
   ContributionPeriod
 } from "@beabee/beabee-common";
 import {
@@ -158,7 +158,7 @@ class ContactsService {
 
   async updateContactRole(
     contact: Contact,
-    roleType: PermissionType,
+    roleType: RoleType,
     updates?: Partial<Omit<ContactRole, "member" | "type">>
   ): Promise<void> {
     log.info(`Update role ${roleType} for ${contact.id}`, updates);
@@ -193,7 +193,7 @@ class ContactsService {
 
   async extendContactRole(
     contact: Contact,
-    roleType: PermissionType,
+    roleType: RoleType,
     dateExpires: Date
   ): Promise<void> {
     const p = contact.roles.find((p) => p.type === roleType);
@@ -208,10 +208,7 @@ class ContactsService {
     }
   }
 
-  async revokeContactRole(
-    contact: Contact,
-    roleType: PermissionType
-  ): Promise<void> {
+  async revokeContactRole(contact: Contact, roleType: RoleType): Promise<void> {
     log.info(`Revoke role ${roleType} for ${contact.id}`);
     contact.roles = contact.roles.filter((p) => p.type !== roleType);
     await getRepository(ContactRole).delete({

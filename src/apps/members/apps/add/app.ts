@@ -2,7 +2,7 @@ import {
   ContributionPeriod,
   ContributionType,
   NewsletterStatus,
-  PermissionType
+  RoleType
 } from "@beabee/beabee-common";
 import express from "express";
 import { getRepository } from "typeorm";
@@ -25,7 +25,7 @@ interface BaseAddContactSchema {
   firstname?: string;
   lastname?: string;
   permissions?: {
-    permission: PermissionType;
+    permission: RoleType;
     startDate?: string;
     startTime?: string;
     expiryDate?: string;

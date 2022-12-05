@@ -1,4 +1,4 @@
-import { PermissionTypes, PermissionType } from "@beabee/beabee-common";
+import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import express from "express";
 import passport from "passport";
 import { getRepository } from "typeorm";
@@ -30,10 +30,10 @@ if (config.dev) {
     "/as/:id",
     wrapAsync(async (req, res) => {
       let contact;
-      if (PermissionTypes.indexOf(req.params.id as PermissionType) > -1) {
+      if (RoleTypes.indexOf(req.params.id as RoleType) > -1) {
         const role = await getRepository(ContactRole).findOne({
           where: {
-            type: req.params.id as PermissionType
+            type: req.params.id as RoleType
           },
           relations: ["contact"]
         });

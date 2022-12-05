@@ -1,4 +1,4 @@
-import { PermissionTypes, PermissionType } from "@beabee/beabee-common";
+import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import { IsEmail, IsString, isUUID } from "class-validator";
 import { Request, Response } from "express";
 import {
@@ -69,7 +69,7 @@ export class AuthController {
     }
 
     let contact: Contact | undefined;
-    if (PermissionTypes.indexOf(id as PermissionType) > -1) {
+    if (RoleTypes.indexOf(id as RoleType) > -1) {
       const role = await getRepository(ContactRole).findOne({
         where: { type: id },
         relations: ["contact"]

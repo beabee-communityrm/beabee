@@ -1,7 +1,7 @@
 import {
   ContributionPeriod,
-  PermissionTypes,
-  PermissionType,
+  RoleTypes,
+  RoleType,
   paymentFilters,
   NewsletterStatus
 } from "@beabee/beabee-common";
@@ -400,10 +400,10 @@ export class ContactController {
       throw new BadRequestError();
     }
 
-    if (PermissionTypes.includes(roleType as PermissionType)) {
+    if (RoleTypes.includes(roleType as RoleType)) {
       const role = await getRepository(ContactRole).save({
         contact: target,
-        type: roleType as PermissionType,
+        type: roleType as RoleType,
         ...data
       });
       return {
@@ -428,7 +428,7 @@ export class ContactController {
 
     const result = await getRepository(ContactRole).delete({
       contact: target,
-      type: role as PermissionType
+      type: role as RoleType
     });
 
     if (result.affected === 0) {

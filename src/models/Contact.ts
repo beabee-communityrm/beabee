@@ -1,7 +1,7 @@
 import {
   ContributionType,
   ContributionPeriod,
-  PermissionType
+  RoleType
 } from "@beabee/beabee-common";
 import {
   Column,
@@ -82,11 +82,11 @@ export default class Contact {
   @OneToOne("ContactProfile", "contact")
   profile!: ContactProfile;
 
-  get activeRoles(): PermissionType[] {
+  get activeRoles(): RoleType[] {
     return this.roles.filter((p) => p.isActive).map((p) => p.type);
   }
 
-  hasRole(roleType: PermissionType): boolean {
+  hasRole(roleType: RoleType): boolean {
     return (
       this.activeRoles.includes("superadmin") ||
       this.activeRoles.includes(roleType)

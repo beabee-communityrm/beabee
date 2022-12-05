@@ -1,4 +1,4 @@
-import { PermissionType } from "@beabee/beabee-common";
+import { RoleType } from "@beabee/beabee-common";
 import express, { NextFunction, Request, Response } from "express";
 
 import { hasSchema } from "@core/middleware";
@@ -11,19 +11,19 @@ import Contact from "@models/Contact";
 import { createPermissionSchema, updatePermissionSchema } from "./schemas.json";
 
 interface CreatePermissionSchema {
-  permission: PermissionType;
+  permission: RoleType;
   startTime: string;
   startDate: string;
   expiryDate?: string;
   expiryTime?: string;
 }
 
-function hasPermission(contact: Contact, type: PermissionType) {
+function hasPermission(contact: Contact, type: RoleType) {
   return type !== "superadmin" || contact.hasRole("superadmin");
 }
 
 function canUpdatePermission(req: Request, res: Response, next: NextFunction) {
-  if (hasPermission(req.user!, req.params.id as PermissionType)) {
+  if (hasPermission(req.user!, req.params.id as RoleType)) {
     next();
   } else {
     req.flash("danger", "403");
@@ -105,7 +105,7 @@ app.post(
       body: { startDate, startTime, expiryDate, expiryTime }
     } = req;
     const contact = req.model as Contact;
-    const permission = req.params.id as PermissionType;
+    const permission = req.params.id as RoleType;
 
     const dateAdded = createDateTime(startDate, startTime);
     const dateExpires = createDateTime(expiryDate, expiryTime);
@@ -132,7 +132,7 @@ app.post(
   wrapAsync(async (req, res) => {
     await ContactsService.revokeContactRole(
       req.model as Contact,
-      req.params.id as PermissionType
+      req.params.id as RoleType
     );
 
     req.flash("success", "permission-removed");

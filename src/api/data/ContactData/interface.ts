@@ -2,8 +2,8 @@ import {
   ContributionPeriod,
   NewsletterStatus,
   PaymentStatus,
-  PermissionType,
-  PermissionTypes
+  RoleType,
+  RoleTypes
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
@@ -61,15 +61,15 @@ export class UpdateContactRoleData {
 }
 
 export interface GetContactRoleData extends UpdateContactRoleData {
-  role: PermissionType;
+  role: RoleType;
 }
 
 export class CreateContactRoleData
   extends UpdateContactRoleData
   implements GetContactRoleData
 {
-  @IsIn(PermissionTypes)
-  role!: PermissionType;
+  @IsIn(RoleTypes)
+  role!: RoleType;
 }
 
 export interface GetContactData extends ContactData {
@@ -78,7 +78,7 @@ export interface GetContactData extends ContactData {
   lastSeen?: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
-  activeRoles: PermissionType[];
+  activeRoles: RoleType[];
   profile?: ContactProfileData;
   roles?: GetContactRoleData[];
   contribution?: ContributionInfo;

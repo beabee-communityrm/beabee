@@ -1,4 +1,4 @@
-import { PermissionType } from "@beabee/beabee-common";
+import { RoleType } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -14,7 +14,7 @@ export default class ContactRole {
   contact!: Contact;
 
   @PrimaryColumn()
-  type!: PermissionType;
+  type!: RoleType;
 
   @CreateDateColumn()
   dateAdded!: Date;

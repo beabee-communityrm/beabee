@@ -1,7 +1,7 @@
 import "module-alias/register";
 import "reflect-metadata";
 
-import { PermissionType } from "@beabee/beabee-common";
+import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
 import {
@@ -34,10 +34,7 @@ function currentUserChecker(action: Action): Contact | undefined {
   return (action.request as Request).user;
 }
 
-function authorizationChecker(
-  action: Action,
-  roles: PermissionType[]
-): boolean {
+function authorizationChecker(action: Action, roles: RoleType[]): boolean {
   const user = currentUserChecker(action);
   return !!user && roles.every((role) => user.hasRole(role));
 }
