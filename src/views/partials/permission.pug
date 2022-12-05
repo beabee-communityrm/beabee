@@ -1,21 +1,21 @@
-span.list-group-item( class=( permission.dateAdded > moment() || permission.dateExpires != undefined && permission.dateExpires < moment() ? 'disabled' : '' ) )
+span.list-group-item( class=role.isActive ? '' : 'disabled' )
 	h5.list-group-item-heading
-		= permission.type[0].toUpperCase()
-		= permission.type.slice(1)
+		= role.type[0].toUpperCase()
+		= role.type.slice(1)
 	p.list-group-item-text Valid&nbsp;
-		time( datetime=moment( permission.dateAdded, moment.ISO_8601 ), title=moment( permission.dateAdded ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( permission.dateAdded ).format( 'DD/MM/Y' ) }
-		if permission.dateExpires
+		time( datetime=moment( role.dateAdded, moment.ISO_8601 ), title=moment( role.dateAdded ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( role.dateAdded ).format( 'DD/MM/Y' ) }
+		if role.dateExpires
 			|  &mdash;
-			time( datetime=moment( permission.dateExpires, moment.ISO_8601 ), title=moment( permission.dateExpires ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( permission.dateExpires ).format( 'DD/MM/Y' ) }
+			time( datetime=moment( role.dateExpires, moment.ISO_8601 ), title=moment( role.dateExpires ).format( 'HH:mm:ss DD/MM/Y' ) ) #{ moment( role.dateExpires ).format( 'DD/MM/Y' ) }
 
 		else
 			|  onwards
-	if access('admin') && (permission.type !== 'superadmin' || access('superadmin'))
+	if access('admin') && (role.type !== 'superadmin' || access('superadmin'))
 		span( style="position: absolute; top: 1em; right: 1em;" )
-			a( href="/members/" + member.id + "/permissions/" + permission.type + "/modify", style="margin-right: 1em;" )
+			a( href="/members/" + member.id + "/permissions/" + role.type + "/modify", style="margin-right: 1em;" )
 				span.glyphicon.glyphicon-pencil
 			form(
-				action="/members/" + member.id + "/permissions/" + permission.type + "/revoke",
+				action="/members/" + member.id + "/permissions/" + role.type + "/revoke",
 				method="post",
 				style="display:inline;"
 				onclick="return confirm('Are you sure?')"

@@ -34,7 +34,7 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
     const query = super
       .getNewItemsQuery()
       .innerJoin("m.roles", "mp")
-      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
+      .andWhere("mp.type = 'member' AND mp.dateAdded <= :now")
       .andWhere(
         new Brackets((qb) => {
           qb.where("mp.dateExpires IS NULL").orWhere("mp.dateExpires > :now");

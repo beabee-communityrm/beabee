@@ -1,6 +1,6 @@
 mixin contactsTable
 	.members-table
-		each contact in contacts
+		each contact in members
 			.members-table-row
 				a(href='/members/' + contact.id).members-table-row-link
 				if addToProject

@@ -2,9 +2,9 @@
   "createPermissionSchema": {
     "body": {
       "type": "object",
-      "required": ["permission", "startTime", "startDate"],
+      "required": ["type", "startTime", "startDate"],
       "properties": {
-        "permission": {
+        "type": {
           "type": "string",
           "enum": ["member", "admin", "superadmin"]
         },

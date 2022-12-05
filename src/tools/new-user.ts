@@ -71,7 +71,7 @@ questions.push({
 // Level question
 questions.push({
   type: "list",
-  name: "permission",
+  name: "role",
   message: "What level of access do you wish to grant this new user?",
   choices: ["None", "Admin", "Super Admin"],
   default: "Super Admin"
@@ -106,9 +106,9 @@ db.connect().then(async () => {
     roles.push(membership);
   }
 
-  if (answers.permission != "None") {
+  if (answers.role != "None") {
     const admin = getRepository(ContactRole).create({
-      type: answers.permission === "Admin" ? "admin" : "superadmin"
+      type: answers.role === "Admin" ? "admin" : "superadmin"
     });
     roles.push(admin);
   }

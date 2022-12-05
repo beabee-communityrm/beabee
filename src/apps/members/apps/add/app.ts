@@ -24,8 +24,8 @@ interface BaseAddContactSchema {
   email: string;
   firstname?: string;
   lastname?: string;
-  permissions?: {
-    permission: RoleType;
+  roles?: {
+    type: RoleType;
     startDate?: string;
     startTime?: string;
     expiryDate?: string;
@@ -65,15 +65,14 @@ app.post(
   wrapAsync(async (req, res) => {
     const data = req.body as AddContactSchema;
 
-    const permissions =
-      data.permissions?.map((p) => {
-        const dateAdded = createDateTime(p.startDate, p.startTime);
-        return getRepository(ContactRole).create({
-          type: p.permission,
-          ...(dateAdded && { dateAdded }),
-          dateExpires: createDateTime(p.expiryDate, p.expiryTime)
-        });
-      }) || [];
+    const roles = data.roles?.map((p) => {
+      const dateAdded = createDateTime(p.startDate, p.startTime);
+      return getRepository(ContactRole).create({
+        type: p.type,
+        ...(dateAdded && { dateAdded }),
+        dateExpires: createDateTime(p.expiryDate, p.expiryTime)
+      });
+    });
 
     let contact;
     try {
@@ -83,7 +82,7 @@ app.post(
           contributionType: data.type,
           firstname: data.firstname || "",
           lastname: data.lastname || "",
-          roles: permissions
+          roles: roles || []
         },
         data.addToNewsletter
           ? {

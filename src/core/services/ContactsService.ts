@@ -165,16 +165,16 @@ class ContactsService {
 
     const wasActive = contact.membership?.isActive;
 
-    const existingPermission = contact.roles.find((p) => p.type === roleType);
-    if (existingPermission && updates) {
-      Object.assign(existingPermission, updates);
+    const existingRole = contact.roles.find((p) => p.type === roleType);
+    if (existingRole && updates) {
+      Object.assign(existingRole, updates);
     } else {
-      const newPermission = getRepository(ContactRole).create({
+      const newRole = getRepository(ContactRole).create({
         contact: contact,
         type: roleType,
         ...updates
       });
-      contact.roles.push(newPermission);
+      contact.roles.push(newRole);
     }
     await getRepository(Contact).save(contact);
 
