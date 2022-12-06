@@ -1,3 +1,4 @@
+import { PermissionType } from "@beabee/beabee-common";
 import _pgSession from "connect-pg-simple";
 import express, { Response } from "express";
 import session from "express-session";
@@ -43,12 +44,17 @@ export default (app: express.Express): void => {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Tracking cookie
   app.use((req, res, next) => {
+    // User tracking cookie
     const memberId = req.user?.id || req.cookies.memberId;
     if (memberId) {
       setTrackingCookie(memberId, res);
     }
+
+    // User template locals
+    res.locals.isLoggedIn = !!req.user;
+    res.locals.access = (permission: PermissionType) =>
+      req.user?.hasPermission(permission);
 
     next();
   });

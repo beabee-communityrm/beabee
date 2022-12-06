@@ -31,12 +31,12 @@ import {
   GetCalloutQuery,
   GetCalloutResponseData,
   GetCalloutResponsesQuery,
-  GetCalloutsQuery,
-  UpdateCalloutData
+  GetCalloutsQuery
 } from "@api/data/CalloutData";
 import { Paginated } from "@api/data/PaginatedData";
 
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+import PartialBody from "@api/decorators/PartialBody";
 
 abstract class CalloutAdminController {
   @Authorized("admin")
@@ -59,10 +59,12 @@ abstract class CalloutAdminController {
   async updateCallout(
     @CurrentUser({ required: true }) member: Member,
     @Param("slug") slug: string,
-    @Body() data: UpdateCalloutData
+    @PartialBody() data: CreateCalloutData
   ): Promise<GetCalloutData | undefined> {
     await getRepository(Poll).update(slug, data);
-    const poll = await getRepository(Poll).findOne(slug);
+    const poll = await getRepository(Poll).findOne(
+      data.slug ? data.slug : slug
+    );
     return poll && convertCalloutToData(poll, member, {});
   }
 
