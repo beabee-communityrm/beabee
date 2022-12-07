@@ -58,7 +58,7 @@ abstract class CalloutAdminController {
   async updateCallout(
     @CurrentUser({ required: true }) member: Member,
     @Param("slug") slug: string,
-    @PartialBody() data: CreateCalloutData
+    @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
     await getRepository(Poll).update(slug, data);
     const poll = await getRepository(Poll).findOne(
