@@ -12,6 +12,7 @@ import {
 } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
 import { PollFormSchema, PollAccess } from "@models/Poll";
@@ -73,7 +74,7 @@ export class GetCalloutQuery {
 
 export class CreateCalloutData implements CalloutData {
   @IsOptional()
-  @IsString()
+  @IsSlug()
   slug?: string;
 
   @IsString()
