@@ -54,6 +54,7 @@ import {
   GetMemberWith,
   GetPaymentData,
   GetPaymentsQuery,
+  UpdateMemberData,
   UpdateMemberRoleData
 } from "@api/data/MemberData";
 import {
@@ -138,6 +139,13 @@ export class MemberController {
       }
     }
 
+    if (data.contribution) {
+      await MembersService.forceUpdateMemberContribution(
+        member,
+        data.contribution
+      );
+    }
+
     return convertMemberToData(member, {
       with: [
         ...(data.profile ? [GetMemberWith.Profile] : []),
@@ -184,7 +192,7 @@ export class MemberController {
   async updateMember(
     @CurrentUser() member: Member,
     @TargetUser() target: Member,
-    @PartialBody() data: CreateMemberData // Should be Partial<CreateMemberData>
+    @PartialBody() data: UpdateMemberData // Should be Partial<UpdateMemberData>
   ): Promise<GetMemberData> {
     if (data.email || data.firstname || data.lastname || data.password) {
       await MembersService.updateMember(target, {

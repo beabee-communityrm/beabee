@@ -27,6 +27,7 @@ import IsPassword from "@api/validators/IsPassword";
 import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import { ForceUpdateContributionData } from "../ContributionData";
 
 interface MemberData {
   email: string;
@@ -170,7 +171,7 @@ class UpdateMemberProfileData implements Partial<MemberProfileData> {
   description?: string;
 }
 
-export class CreateMemberData implements MemberData {
+export class UpdateMemberData implements MemberData {
   @IsEmail()
   email!: string;
 
@@ -188,6 +189,13 @@ export class CreateMemberData implements MemberData {
   @ValidateNested()
   @Type(() => UpdateMemberProfileData)
   profile?: UpdateMemberProfileData;
+}
+
+export class CreateMemberData extends UpdateMemberData {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ForceUpdateContributionData)
+  contribution?: ForceUpdateContributionData;
 
   @IsOptional()
   @ValidateNested({ each: true })
