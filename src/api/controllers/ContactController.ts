@@ -54,7 +54,8 @@ import {
   GetContactWith,
   GetPaymentData,
   GetPaymentsQuery,
-  UpdateContactRoleData
+  UpdateContactRoleData,
+  UpdateContactData
 } from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
@@ -138,6 +139,13 @@ export class ContactController {
       }
     }
 
+    if (data.contribution) {
+      await ContactsService.forceUpdateContactContribution(
+        contact,
+        data.contribution
+      );
+    }
+
     return convertContactToData(contact, {
       with: [
         ...(data.profile ? [GetContactWith.Profile] : []),
@@ -184,7 +192,7 @@ export class ContactController {
   async updateContact(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @PartialBody() data: CreateContactData // Should be Partial<CreateContactData>
+    @PartialBody() data: UpdateContactData // Should be Partial<UpdateContactData>
   ): Promise<GetContactData> {
     if (data.email || data.firstname || data.lastname || data.password) {
       await ContactsService.updateContact(target, {

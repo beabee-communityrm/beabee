@@ -27,6 +27,7 @@ import IsPassword from "@api/validators/IsPassword";
 import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import { ForceUpdateContributionData } from "../ContributionData";
 
 interface ContactData {
   email: string;
@@ -137,40 +138,51 @@ class UpdateAddressData implements Address {
 }
 
 class UpdateContactProfileData implements Partial<ContactProfileData> {
+  @IsOptional()
   @IsString()
   telephone?: string;
 
+  @IsOptional()
   @IsString()
   twitter?: string;
 
+  @IsOptional()
   @IsString()
   preferredContact?: string;
 
+  @IsOptional()
   @IsString({ each: true })
   newsletterGroups?: string[];
 
+  @IsOptional()
   @IsBoolean()
   deliveryOptIn?: boolean;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => UpdateAddressData)
   deliveryAddress?: UpdateAddressData;
 
+  @IsOptional()
   @IsEnum(NewsletterStatus)
   newsletterStatus?: NewsletterStatus;
 
   // Admin only
+
+  @IsOptional()
   @IsString({ each: true })
   tags?: string[];
 
+  @IsOptional()
   @IsString()
   notes?: string;
 
+  @IsOptional()
   @IsString()
   description?: string;
 }
 
-export class CreateContactData implements ContactData {
+export class UpdateContactData implements ContactData {
   @IsEmail()
   email!: string;
 
@@ -188,6 +200,13 @@ export class CreateContactData implements ContactData {
   @ValidateNested()
   @Type(() => UpdateContactProfileData)
   profile?: UpdateContactProfileData;
+}
+
+export class CreateContactData extends UpdateContactData {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ForceUpdateContributionData)
+  contribution?: ForceUpdateContributionData;
 
   @IsOptional()
   @ValidateNested({ each: true })

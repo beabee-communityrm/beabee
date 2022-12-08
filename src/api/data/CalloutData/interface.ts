@@ -36,7 +36,7 @@ export class GetCalloutsQuery extends GetPaginatedQuery {
 }
 
 interface CalloutData {
-  slug: string;
+  slug?: string;
   title: string;
   excerpt: string;
   image: string;
@@ -58,6 +58,7 @@ interface CalloutData {
 }
 
 export interface GetCalloutData extends CalloutData {
+  slug: string;
   status: ItemStatus;
   // With "hasAnswered"
   hasAnswered?: boolean;
@@ -72,8 +73,9 @@ export class GetCalloutQuery {
 }
 
 export class CreateCalloutData implements CalloutData {
-  @IsString()
-  slug!: string;
+  @IsOptional()
+  @IsSlug()
+  slug?: string;
 
   @IsString()
   title!: string;
@@ -81,7 +83,8 @@ export class CreateCalloutData implements CalloutData {
   @IsString()
   excerpt!: string;
 
-  @IsUrl()
+  // TODO: Should be IsUrl but validation fails for draft callouts
+  @IsString()
   image!: string;
 
   @IsString()

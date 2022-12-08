@@ -12,9 +12,12 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
+import slugify from "slugify";
 import { getRepository } from "typeorm";
 
 import CalloutsService from "@core/services/CalloutsService";
+
+import { isDuplicateIndex } from "@core/utils";
 
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
@@ -33,9 +36,30 @@ import {
   GetCalloutsQuery
 } from "@api/data/CalloutData";
 import { Paginated } from "@api/data/PaginatedData";
-
-import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import PartialBody from "@api/decorators/PartialBody";
+import DuplicateId from "@api/errors/DuplicateId";
+import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+
+async function createCallout(
+  data: CreateCalloutData & { slug: string },
+  autoSlug: number | false
+): Promise<Callout> {
+  const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
+  try {
+    await getRepository(Callout).insert({ ...data, slug });
+    return await getRepository(Callout).findOneOrFail(slug);
+  } catch (err) {
+    if (isDuplicateIndex(err, "slug")) {
+      if (autoSlug === false) {
+        throw new DuplicateId(slug);
+      } else {
+        return await createCallout(data, autoSlug + 1);
+      }
+    } else {
+      throw err;
+    }
+  }
+}
 
 abstract class CalloutAdminController {
   @Authorized("admin")
@@ -44,12 +68,13 @@ abstract class CalloutAdminController {
     @CurrentUser({ required: true }) contact: Contact,
     @Body() data: CreateCalloutData
   ): Promise<GetCalloutData> {
-    await getRepository(Callout).insert(data);
-    const callout = await getRepository(Callout).findOne(data.slug);
-    // Should be impossible
-    if (!callout) {
-      throw new Error("Callout just inserted but not found");
-    }
+    const callout = await createCallout(
+      {
+        ...data,
+        slug: data.slug || slugify(data.title, { lower: true })
+      },
+      data.slug ? false : 0
+    );
     return convertCalloutToData(callout, contact, {});
   }
 
@@ -60,11 +85,14 @@ abstract class CalloutAdminController {
     @Param("slug") slug: string,
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
+    const newSlug = data.slug || slug;
     await getRepository(Callout).update(slug, data);
-    const callout = await getRepository(Callout).findOne(
-      data.slug ? data.slug : slug
-    );
-    return callout && convertCalloutToData(callout, contact, {});
+    try {
+      const callout = await getRepository(Callout).findOne(newSlug);
+      return callout && convertCalloutToData(callout, contact, {});
+    } catch (err) {
+      throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
+    }
   }
 
   @Authorized("admin")
