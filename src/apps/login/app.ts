@@ -1,14 +1,14 @@
-import { PermissionTypes, PermissionType } from "@beabee/beabee-common";
+import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import express from "express";
 import passport from "passport";
 import { getRepository } from "typeorm";
 
 import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
-import { loginAndRedirect } from "@core/utils/member";
+import { loginAndRedirect } from "@core/utils/contact";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import MemberPermission from "@models/MemberPermission";
+import ContactRole from "@models/ContactRole";
 
 import config from "@config";
 
@@ -29,21 +29,21 @@ if (config.dev) {
   app.get(
     "/as/:id",
     wrapAsync(async (req, res) => {
-      let member;
-      if (PermissionTypes.indexOf(req.params.id as PermissionType) > -1) {
-        const permission = await getRepository(MemberPermission).findOne({
+      let contact;
+      if (RoleTypes.indexOf(req.params.id as RoleType) > -1) {
+        const role = await getRepository(ContactRole).findOne({
           where: {
-            permission: req.params.id as PermissionType
+            type: req.params.id as RoleType
           },
-          relations: ["member"]
+          relations: ["contact"]
         });
-        member = permission?.member;
+        contact = role?.contact;
       } else {
-        member = await MembersService.findOne(req.params.id);
+        contact = await ContactsService.findOne(req.params.id);
       }
 
-      if (member) {
-        loginAndRedirect(req, res, member);
+      if (contact) {
+        loginAndRedirect(req, res, contact);
       } else {
         res.redirect("/login");
       }
@@ -55,13 +55,13 @@ app.get(
   "/:code",
   wrapAsync(async function (req, res) {
     const nextParam = req.query.next as string;
-    const member = await MembersService.findByLoginOverride(req.params.code);
-    if (member) {
-      await MembersService.updateMember(member, { loginOverride: null });
+    const contact = await ContactsService.findByLoginOverride(req.params.code);
+    if (contact) {
+      await ContactsService.updateContact(contact, { loginOverride: null });
       loginAndRedirect(
         req,
         res,
-        member,
+        contact,
         isValidNextUrl(nextParam) ? nextParam : "/"
       );
     } else {

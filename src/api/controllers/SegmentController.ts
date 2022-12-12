@@ -15,10 +15,10 @@ import { getRepository } from "typeorm";
 
 import { UUIDParam } from "@api/data";
 import {
-  GetMemberData,
-  GetMembersQuery,
-  fetchPaginatedMembers
-} from "@api/data/MemberData";
+  GetContactData,
+  GetContactsQuery,
+  fetchPaginatedContacts
+} from "@api/data/ContactData";
 import {
   GetSegmentData,
   GetSegmentQuery,
@@ -31,7 +31,7 @@ import { Paginated } from "@api/data/PaginatedData";
 import PartialBody from "@api/decorators/PartialBody";
 
 import Segment from "@models/Segment";
-import SegmentMember from "@models/SegmentMember";
+import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
 @JsonController("/segments")
@@ -94,7 +94,7 @@ export class SegmentController {
   @Delete("/:id")
   @OnUndefined(204)
   async deleteSegment(@Params() { id }: UUIDParam): Promise<void> {
-    await getRepository(SegmentMember).delete({ segment: { id } });
+    await getRepository(SegmentContact).delete({ segment: { id } });
     await getRepository(SegmentOngoingEmail).delete({ segment: { id } });
     const result = await getRepository(Segment).delete(id);
     if (result.affected === 0) {
@@ -102,14 +102,14 @@ export class SegmentController {
     }
   }
 
-  @Get("/:id/members")
-  async getSegmentMembers(
+  @Get("/:id/contacts")
+  async getSegmentContacts(
     @Params() { id }: UUIDParam,
-    @QueryParams() query: GetMembersQuery
-  ): Promise<Paginated<GetMemberData> | undefined> {
+    @QueryParams() query: GetContactsQuery
+  ): Promise<Paginated<GetContactData> | undefined> {
     const segment = await getRepository(Segment).findOne(id);
     if (segment) {
-      return await fetchPaginatedMembers(
+      return await fetchPaginatedContacts(
         {
           ...query,
           rules: query.rules

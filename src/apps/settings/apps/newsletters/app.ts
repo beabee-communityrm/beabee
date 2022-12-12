@@ -6,13 +6,13 @@ import { log as mainLogger } from "@core/logging";
 import { isSuperAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
-import { NewsletterMember } from "@core/providers/newsletter";
+import { NewsletterContact } from "@core/providers/newsletter";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import config from "@config";
 
@@ -43,13 +43,13 @@ function groupsList(groups: string[]) {
     .join(",");
 }
 
-function isMismatchedMember(member: Member, nlMember: NewsletterMember) {
+function isMismatchedContact(contact: Contact, nlContact: NewsletterContact) {
   return (
-    member.profile.newsletterStatus !== nlMember.status ||
-    groupsList(member.profile.newsletterGroups) !==
-      groupsList(nlMember.groups) ||
-    !!member.membership?.isActive !==
-      nlMember.tags.includes(
+    contact.profile.newsletterStatus !== nlContact.status ||
+    groupsList(contact.profile.newsletterGroups) !==
+      groupsList(nlContact.groups) ||
+    !!contact.membership?.isActive !==
+      nlContact.tags.includes(
         OptionsService.getText("newsletter-active-member-tag")
       )
   );
@@ -78,52 +78,50 @@ async function handleResync(
   try {
     await setResyncStatus("In progress: Fetching contact lists");
 
-    const members = await MembersService.find({ relations: ["profile"] });
-    const newsletterMembers = await NewsletterService.getNewsletterMembers();
+    const contacts = await ContactsService.find({ relations: ["profile"] });
+    const nlContacts = await NewsletterService.getNewsletterContacts();
 
-    const newMembersToUpload: Member[] = [],
-      existingMembers: Member[] = [],
-      existingMembersToArchive: Member[] = [],
-      mismatchedMembers: [Member, NewsletterMember][] = [];
-    for (const member of members) {
-      const nlMember = newsletterMembers.find(
-        (nm) => nm.email === member.email
-      );
-      if (nlMember) {
-        existingMembers.push(member);
+    const newContactsToUpload: Contact[] = [],
+      existingContacts: Contact[] = [],
+      existingContactsToArchive: Contact[] = [],
+      mismatchedContacts: [Contact, NewsletterContact][] = [];
+    for (const contact of contacts) {
+      const nlContact = nlContacts.find((nm) => nm.email === contact.email);
+      if (nlContact) {
+        existingContacts.push(contact);
 
         const status =
           statusSource === "ours"
-            ? member.profile.newsletterStatus
-            : nlMember.status;
+            ? contact.profile.newsletterStatus
+            : nlContact.status;
         if (status === NewsletterStatus.Unsubscribed && removeUnsubscribed) {
-          existingMembersToArchive.push(member);
+          existingContactsToArchive.push(contact);
         }
 
-        if (isMismatchedMember(member, nlMember)) {
-          mismatchedMembers.push([member, nlMember]);
+        if (isMismatchedContact(contact, nlContact)) {
+          mismatchedContacts.push([contact, nlContact]);
         }
       } else if (
-        member.profile.newsletterStatus === NewsletterStatus.Subscribed
+        contact.profile.newsletterStatus === NewsletterStatus.Subscribed
       ) {
-        newMembersToUpload.push(member);
+        newContactsToUpload.push(contact);
       }
     }
 
-    const newsletterMembersToImport = newsletterMembers.filter((nm) =>
-      members.every((m) => m.email !== nm.email)
+    const nlContactsToImport = nlContacts.filter((nm) =>
+      contacts.every((m) => m.email !== nm.email)
     );
 
     await OptionsService.set(
       "newsletter-resync-data",
       JSON.stringify({
-        uploadIds: newMembersToUpload.map((m) => m.id),
-        imports: newsletterMembersToImport.map((m) => ({
+        uploadIds: newContactsToUpload.map((m) => m.id),
+        imports: nlContactsToImport.map((m) => ({
           email: m.email,
           status: m.status,
           groups: m.groups
         })),
-        mismatched: mismatchedMembers.map(([m, nlm]) => ({
+        mismatched: mismatchedContacts.map(([m, nlm]) => ({
           id: m.id,
           status: nlm.status,
           groups: nlm.groups,
@@ -134,28 +132,28 @@ async function handleResync(
 
     if (dryRun) {
       await setResyncStatus(
-        `DRY RUN: Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed, ${existingMembersToArchive.length} archived and ${newMembersToUpload.length} newly uploaded`
+        `DRY RUN: Successfully synced all contacts. ${nlContactsToImport.length} imported, ${mismatchedContacts.length} fixed, ${existingContactsToArchive.length} archived and ${newContactsToUpload.length} newly uploaded`
       );
       return;
     }
 
     await setResyncStatus(
-      `In progress: Uploading ${newMembersToUpload.length} new contacts to the newsletter list`
+      `In progress: Uploading ${newContactsToUpload.length} new contacts to the newsletter list`
     );
-    await NewsletterService.upsertMembers(newMembersToUpload);
+    await NewsletterService.upsertContacts(newContactsToUpload);
 
     // Must fix status before mass update to avoid overwriting in the wrong direction
     if (statusSource === "theirs") {
       await setResyncStatus(
-        `In progress: Fixing ${mismatchedMembers.length} mismatched contacts`
+        `In progress: Fixing ${mismatchedContacts.length} mismatched contacts`
       );
 
-      for (const [member, nlMember] of mismatchedMembers) {
-        await MembersService.updateMemberProfile(
-          member,
+      for (const [contact, nlContact] of mismatchedContacts) {
+        await ContactsService.updateContactProfile(
+          contact,
           {
-            newsletterStatus: nlMember.status,
-            newsletterGroups: nlMember.groups
+            newsletterStatus: nlContact.status,
+            newsletterGroups: nlContact.groups
           },
           { sync: false }
         );
@@ -163,21 +161,23 @@ async function handleResync(
     }
 
     await setResyncStatus(
-      `In progress: Updating ${existingMembers.length} contacts in newsletter list`
+      `In progress: Updating ${existingContacts.length} contacts in newsletter list`
     );
-    await NewsletterService.upsertMembers(existingMembers);
+    await NewsletterService.upsertContacts(existingContacts);
 
     // Sync tags before archiving
     await setResyncStatus(
-      `In progress: Updating active member tag for ${mismatchedMembers.length} contacts in newsletter list`
+      `In progress: Updating active member tag for ${mismatchedContacts.length} contacts in newsletter list`
     );
 
-    await NewsletterService.addTagToMembers(
-      mismatchedMembers.filter(([m]) => m.membership?.isActive).map(([m]) => m),
+    await NewsletterService.addTagToContacts(
+      mismatchedContacts
+        .filter(([m]) => m.membership?.isActive)
+        .map(([m]) => m),
       OptionsService.getText("newsletter-active-member-tag")
     );
-    await NewsletterService.removeTagFromMembers(
-      mismatchedMembers
+    await NewsletterService.removeTagFromContacts(
+      mismatchedContacts
         .filter(([m]) => !m.membership?.isActive)
         .map(([m]) => m),
       OptionsService.getText("newsletter-active-member-tag")
@@ -186,32 +186,32 @@ async function handleResync(
     // TODO: Check other tags
 
     await setResyncStatus(
-      `In progress: Archiving ${existingMembersToArchive.length} contacts from newsletter list`
+      `In progress: Archiving ${existingContactsToArchive.length} contacts from newsletter list`
     );
-    await NewsletterService.archiveMembers(existingMembersToArchive);
+    await NewsletterService.archiveContacts(existingContactsToArchive);
 
     await setResyncStatus(
-      `In progress: Importing ${newsletterMembersToImport.length} contacts from newsletter list`
+      `In progress: Importing ${nlContactsToImport.length} contacts from newsletter list`
     );
 
-    for (const nlMember of newsletterMembersToImport) {
-      await MembersService.createMember(
+    for (const nlContact of nlContactsToImport) {
+      await ContactsService.createContact(
         {
-          email: nlMember.email,
-          firstname: nlMember.firstname,
-          lastname: nlMember.lastname,
-          joined: nlMember.joined
+          email: nlContact.email,
+          firstname: nlContact.firstname,
+          lastname: nlContact.lastname,
+          joined: nlContact.joined
         },
         {
-          newsletterStatus: nlMember.status,
-          newsletterGroups: nlMember.groups
+          newsletterStatus: nlContact.status,
+          newsletterGroups: nlContact.groups
         },
         { sync: false }
       );
     }
 
     await setResyncStatus(
-      `Successfully synced all contacts. ${newsletterMembersToImport.length} imported, ${mismatchedMembers.length} fixed, ${existingMembersToArchive.length} archived and ${newMembersToUpload.length} newly uploaded`
+      `Successfully synced all contacts. ${nlContactsToImport.length} imported, ${mismatchedContacts.length} fixed, ${existingContactsToArchive.length} archived and ${newContactsToUpload.length} newly uploaded`
     );
   } catch (error: any) {
     log.error("Newsletter sync failed", error);
@@ -240,18 +240,18 @@ app.get(
   "/report",
   wrapAsync(async (req, res) => {
     const data = OptionsService.getJSON("newsletter-resync-data") as ReportData;
-    const newMembersToUpload = await MembersService.findByIds(data.uploadIds);
-    const mismatchedMembers = await MembersService.findByIds(
+    const newContactsToUpload = await ContactsService.findByIds(data.uploadIds);
+    const mismatchedContacts = await ContactsService.findByIds(
       data.mismatched.map((m) => m.id),
       { relations: ["profile"] }
     );
 
     res.render("report", {
       contactsToImport: data.imports,
-      newMembersToUpload,
-      mismatchedMembers: data.mismatched.map((m) => ({
+      newContactsToUpload,
+      mismatchedContacts: data.mismatched.map((m) => ({
         ...m,
-        member: mismatchedMembers.find((m2) => m.id === m2.id)
+        contact: mismatchedContacts.find((m2) => m.id === m2.id)
       }))
     });
   })

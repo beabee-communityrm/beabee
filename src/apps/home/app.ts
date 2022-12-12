@@ -7,7 +7,7 @@ app.set("views", __dirname + "/views");
 
 app.get("/", (req, res, next) => {
   const redirectUrlOpt: OptionKey = req.user
-    ? req.user.hasPermission("admin")
+    ? req.user.hasRole("admin")
       ? "admin-home-url"
       : "user-home-url"
     : "home-redirect-url";

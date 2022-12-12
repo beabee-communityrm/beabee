@@ -4,29 +4,29 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import {
   ModelDrier,
   paymentDataDrier,
   paymentsDrier,
-  memberDrier,
-  memberPermissionDrier,
-  memberProfileDrier,
-  pollResponsesDrier,
-  pollsDrier,
+  contactDrier,
+  contactRoleDrier,
+  contacrProfileDrier,
+  calloutResponsesDrier,
+  calloutsDrier,
   runExport
 } from "./driers";
 
 async function main() {
   for (const drier of [
-    pollResponsesDrier,
-    pollsDrier,
+    calloutResponsesDrier,
+    calloutsDrier,
     paymentDataDrier,
     paymentsDrier,
-    memberProfileDrier,
-    memberPermissionDrier,
-    memberDrier
+    contacrProfileDrier,
+    contactRoleDrier,
+    contactDrier
   ] as ModelDrier<any>[]) {
     console.log(
       `DELETE FROM "${getRepository(drier.model).metadata.tableName}";`
@@ -34,44 +34,46 @@ async function main() {
     console.log();
   }
 
-  const members = await createQueryBuilder(Member, "m")
+  const contacts = await createQueryBuilder(Contact, "m")
     .select("m.id")
     .orderBy("random()")
     .limit(400)
     .getMany();
 
-  const memberIds = members.map((m) => m.id);
+  const contactIds = contacts.map((m) => m.id);
 
   const valueMap = new Map<string, unknown>();
 
   await runExport(
-    memberDrier,
-    (qb) => qb.where("item.id IN (:...ids)", { ids: memberIds }),
+    contactDrier,
+    (qb) => qb.where("item.id IN (:...ids)", { ids: contactIds }),
     valueMap
   );
   await runExport(
-    memberPermissionDrier,
-    (qb) => qb.where("item.memberId IN (:...ids)", { ids: memberIds }),
+    contactRoleDrier,
+    (qb) => qb.where("item.contactId IN (:...ids)", { ids: contactIds }),
     valueMap
   );
   await runExport(
-    memberProfileDrier,
-    (qb) => qb.where("item.memberId IN (:...ids)", { ids: memberIds }),
+    contacrProfileDrier,
+    (qb) => qb.where("item.contactId IN (:...ids)", { ids: contactIds }),
     valueMap
   );
   await runExport(
     paymentsDrier,
     (qb) =>
-      qb.where("item.memberId IN (:...ids)", { ids: memberIds }).orderBy("id"),
+      qb
+        .where("item.contactId IN (:...ids)", { ids: contactIds })
+        .orderBy("id"),
     valueMap
   );
   await runExport(
     paymentDataDrier,
-    (qb) => qb.where("item.memberId IN (:...ids)", { ids: memberIds }),
+    (qb) => qb.where("item.contactId IN (:...ids)", { ids: contactIds }),
     valueMap
   );
   await runExport(
-    pollsDrier,
+    calloutsDrier,
     (qb) => qb.orderBy({ date: "DESC" }).limit(2),
     valueMap
   );

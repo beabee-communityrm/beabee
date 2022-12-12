@@ -1,7 +1,7 @@
 import { PaymentMethod } from "@beabee/beabee-common";
 import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
 
-import type Member from "@models/Member";
+import type Contact from "./Contact";
 
 export interface GCPaymentData {
   customerId: string | null;
@@ -37,9 +37,9 @@ export type PaymentProviderData =
 
 @Entity()
 export default class PaymentData {
-  @OneToOne("Member", "profile", { primary: true })
+  @OneToOne("Contact", "profile", { primary: true })
   @JoinColumn()
-  member!: Member;
+  contact!: Contact;
 
   @Column({ type: String, nullable: true })
   method!: PaymentMethod | null;

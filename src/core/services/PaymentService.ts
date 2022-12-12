@@ -5,7 +5,7 @@ import { ContributionInfo, PaymentForm } from "@core/utils";
 import { log as mainLogger } from "@core/logging";
 import { calcRenewalDate } from "@core/utils/payment";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
 
@@ -29,11 +29,11 @@ const PaymentProviders = {
 };
 
 class PaymentService {
-  async getData(member: Member): Promise<PaymentData> {
-    const data = await getRepository(PaymentData).findOneOrFail(member.id);
-    log.info("Loaded data for " + member.id, { data });
-    // Load full member into data
-    return { ...data, member };
+  async getData(contact: Contact): Promise<PaymentData> {
+    const data = await getRepository(PaymentData).findOneOrFail(contact.id);
+    log.info("Loaded data for " + contact.id, { data });
+    // Load full contact into data
+    return { ...data, contact: contact };
   }
 
   async getDataBy(
@@ -41,40 +41,40 @@ class PaymentService {
     value: string
   ): Promise<PaymentData | undefined> {
     const data = await createQueryBuilder(PaymentData, "pd")
-      .innerJoinAndSelect("pd.member", "m")
-      .leftJoinAndSelect("m.permissions", "mp")
+      .innerJoinAndSelect("pd.contact", "m")
+      .leftJoinAndSelect("m.roles", "mp")
       .where(`data->>:key = :value`, { key, value })
       .getOne();
 
     return data;
   }
 
-  async updateDataBy(member: Member, key: string, value: unknown) {
+  async updateDataBy(contact: Contact, key: string, value: unknown) {
     await createQueryBuilder()
       .update(PaymentData)
       .set({ data: () => "jsonb_set(data, :key, :value)" })
-      .where("member = :id")
+      .where("contact = :id")
       .setParameters({
         key: `{${key}}`,
         value: JSON.stringify(value),
-        id: member.id
+        id: contact.id
       })
       .execute();
   }
 
   private async provider(
-    member: Member,
+    contact: Contact,
     fn: (provider: PaymentProvider<any>) => Promise<void>
   ): Promise<void>;
   private async provider<T>(
-    member: Member,
+    contact: Contact,
     fn: (provider: PaymentProvider<any>) => Promise<T>
   ): Promise<T>;
   private async provider<T>(
-    member: Member,
+    contact: Contact,
     fn: (provider: PaymentProvider<any>) => Promise<T>
   ): Promise<T> {
-    return this.providerFromData(await this.getData(member), fn);
+    return this.providerFromData(await this.getData(contact), fn);
   }
 
   private async providerFromData<T>(
@@ -88,43 +88,45 @@ class PaymentService {
   }
 
   async canChangeContribution(
-    member: Member,
+    contact: Contact,
     useExistingPaymentSource: boolean
   ): Promise<boolean> {
-    const ret = await this.provider(member, (p) =>
+    const ret = await this.provider(contact, (p) =>
       p.canChangeContribution(useExistingPaymentSource)
     );
-    log.info(`User ${member.id} ${ret ? "can" : "cannot"} change contribution`);
+    log.info(
+      `User ${contact.id} ${ret ? "can" : "cannot"} change contribution`
+    );
     return ret;
   }
 
-  async getContributionInfo(member: Member): Promise<ContributionInfo> {
+  async getContributionInfo(contact: Contact): Promise<ContributionInfo> {
     const basicInfo = {
-      type: member.contributionType,
-      ...(member.contributionAmount !== null && {
-        amount: member.contributionAmount
+      type: contact.contributionType,
+      ...(contact.contributionAmount !== null && {
+        amount: contact.contributionAmount
       }),
-      ...(member.contributionPeriod !== null && {
-        period: member.contributionPeriod
+      ...(contact.contributionPeriod !== null && {
+        period: contact.contributionPeriod
       }),
-      ...(member.membership?.dateExpires && {
-        membershipExpiryDate: member.membership.dateExpires
+      ...(contact.membership?.dateExpires && {
+        membershipExpiryDate: contact.membership.dateExpires
       })
     };
 
-    const providerInfo = await this.provider(member, (p) =>
+    const providerInfo = await this.provider(contact, (p) =>
       p.getContributionInfo()
     );
 
     const hsaCancelled = !!providerInfo.cancellationDate;
-    const renewalDate = !hsaCancelled && calcRenewalDate(member);
+    const renewalDate = !hsaCancelled && calcRenewalDate(contact);
 
     return {
       ...basicInfo,
       ...providerInfo,
       ...(renewalDate && { renewalDate }),
-      membershipStatus: member.membership
-        ? member.membership.isActive
+      membershipStatus: contact.membership
+        ? contact.membership.isActive
           ? hsaCancelled
             ? "expiring"
             : "active"
@@ -133,39 +135,42 @@ class PaymentService {
     };
   }
 
-  async getPayments(member: Member): Promise<Payment[]> {
-    return await getRepository(Payment).find({ member });
+  async getPayments(contact: Contact): Promise<Payment[]> {
+    return await getRepository(Payment).find({ contact: contact });
   }
 
-  async createMember(member: Member): Promise<void> {
-    log.info("Create member for " + member.id);
-    await getRepository(PaymentData).save({ member });
+  async createContact(contact: Contact): Promise<void> {
+    log.info("Create contact for " + contact.id);
+    await getRepository(PaymentData).save({ contact });
   }
 
-  async updateMember(member: Member, updates: Partial<Member>): Promise<void> {
-    log.info("Update member for " + member.id);
-    await this.provider(member, (p) => p.updateMember(updates));
+  async updateContact(
+    contact: Contact,
+    updates: Partial<Contact>
+  ): Promise<void> {
+    log.info("Update contact for " + contact.id);
+    await this.provider(contact, (p) => p.updateContact(updates));
   }
 
   async updateContribution(
-    member: Member,
+    contact: Contact,
     paymentForm: PaymentForm
   ): Promise<UpdateContributionResult> {
-    log.info("Update contribution for " + member.id);
-    return await this.provider(member, (p) =>
+    log.info("Update contribution for " + contact.id);
+    return await this.provider(contact, (p) =>
       p.updateContribution(paymentForm)
     );
   }
 
   async updatePaymentMethod(
-    member: Member,
+    contact: Contact,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
-    log.info("Update payment method for " + member.id, {
+    log.info("Update payment method for " + contact.id, {
       completedPaymentFlow
     });
 
-    const data = await this.getData(member);
+    const data = await this.getData(contact);
     const newMethod = completedPaymentFlow.paymentMethod;
     if (data.method !== newMethod) {
       log.info(
@@ -184,15 +189,18 @@ class PaymentService {
     );
   }
 
-  async cancelContribution(member: Member, keepMandate = false): Promise<void> {
-    log.info("Cancel contribution for " + member.id);
-    await this.provider(member, (p) => p.cancelContribution(keepMandate));
+  async cancelContribution(
+    contact: Contact,
+    keepMandate = false
+  ): Promise<void> {
+    log.info("Cancel contribution for " + contact.id);
+    await this.provider(contact, (p) => p.cancelContribution(keepMandate));
   }
 
-  async permanentlyDeleteMember(member: Member): Promise<void> {
-    await this.provider(member, (p) => p.permanentlyDeleteMember());
-    await getRepository(PaymentData).delete({ member });
-    await getRepository(Payment).delete({ member });
+  async permanentlyDeleteContact(contact: Contact): Promise<void> {
+    await this.provider(contact, (p) => p.permanentlyDeleteContact());
+    await getRepository(PaymentData).delete({ contact: contact });
+    await getRepository(Payment).delete({ contact: contact });
   }
 }
 

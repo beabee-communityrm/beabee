@@ -8,17 +8,17 @@ block contents
 
 	.row
 		.col-md-12 
-			h4 New members to upload
+			h4 New contacts to upload
 			table.table.table-striped
 				thead
 					tr
-						th Member
+						th Contact
 						th Email
 				tbody
-					each member in newMembersToUpload
+					each contact in newContactsToUpload
 						tr
-							td: a(href='/members/' + member.id)= member.fullname
-							td= member.email
+							td: a(href='/members/' + contact.id)= contact.fullname
+							td= contact.email
 		
 			h4 Contacts to import
 			table.table.table-striped
@@ -32,27 +32,27 @@ block contents
 							td= contact.email
 							td= contact.status
 			
-			h4 Mismatched members
+			h4 Mismatched contacts
 			table.table.table-striped
 				thead
 					tr
-						th Member
+						th Contact
 						th Status
 						th Groups
 						th Active?
 				tbody
-					each m in mismatchedMembers
+					each m in mismatchedContacts
 						tr
-							td: a(href='/members/' + m.member.id)= m.member.fullname
+							td: a(href='/members/' + m.contact.id)= m.contact.fullname
 							td
-								= m.member.profile.newsletterStatus
+								= m.contact.profile.newsletterStatus
 								| <>
 								= m.status
 							td
-								= m.member.profile.newsletterGroups
+								= m.contact.profile.newsletterGroups
 								| <>
 								= m.groups
 							td
-								= m.member.membership && m.member.membership.isActive ? 'Yes' : 'No'
+								= m.contact.membership && m.contact.membership.isActive ? 'Yes' : 'No'
 								| <>
 								= m.tags.includes(Options('newsletter-active-member-tag')) ? 'Yes' : 'No'

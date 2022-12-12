@@ -4,7 +4,7 @@ import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
 
 import { Param } from "@core/utils/params";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import { ExportResult } from "./BaseExport";
 import ActiveMembersExport from "./ActiveMembersExport";
@@ -30,8 +30,8 @@ export default class EditionExport extends ActiveMembersExport {
     ];
   }
 
-  protected get query(): SelectQueryBuilder<Member> {
-    return createQueryBuilder(Member, "m")
+  protected get query(): SelectQueryBuilder<Contact> {
+    return createQueryBuilder(Contact, "m")
       .innerJoinAndSelect("m.profile", "profile")
       .orderBy({
         firstname: "ASC",
@@ -39,7 +39,7 @@ export default class EditionExport extends ActiveMembersExport {
       });
   }
 
-  protected getNewItemsQuery(): SelectQueryBuilder<Member> {
+  protected getNewItemsQuery(): SelectQueryBuilder<Contact> {
     const query = super
       .getNewItemsQuery()
       .andWhere("m.contributionMonthlyAmount >= :amount")
@@ -55,9 +55,9 @@ export default class EditionExport extends ActiveMembersExport {
     return query;
   }
 
-  async getExport(members: Member[]): Promise<ExportResult> {
-    return members.map((member) => {
-      const deliveryAddress = member.profile.deliveryAddress || {
+  async getExport(contacts: Contact[]): Promise<ExportResult> {
+    return contacts.map((contact) => {
+      const deliveryAddress = contact.profile.deliveryAddress || {
         line1: "",
         line2: "",
         city: "",
@@ -65,17 +65,16 @@ export default class EditionExport extends ActiveMembersExport {
       };
 
       return {
-        EmailAddress: member.email,
-        FirstName: member.firstname,
-        LastName: member.lastname,
+        EmailAddress: contact.email,
+        FirstName: contact.firstname,
+        LastName: contact.lastname,
         Address1: deliveryAddress.line1,
         Address2: deliveryAddress.line2,
         City: deliveryAddress.city,
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
-        ReferralCode: member.referralCode,
-        IsGift: member.contributionType === ContributionType.Gift,
-        //NumCopies: member.delivery_copies === undefined ? 2 : member.delivery_copies,
-        ContributionMonthlyAmount: member.contributionMonthlyAmount
+        ReferralCode: contact.referralCode,
+        IsGift: contact.contributionType === ContributionType.Gift,
+        ContributionMonthlyAmount: contact.contributionMonthlyAmount
       };
     });
   }

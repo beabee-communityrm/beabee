@@ -8,9 +8,9 @@ import { log as mainLogger } from "@core/logging";
 import { cleanEmailAddress } from "@core/utils";
 
 import {
-  NewsletterMember,
+  NewsletterContact,
   NewsletterProvider,
-  UpdateNewsletterMember
+  UpdateNewsletterContact
 } from ".";
 
 import { MailchimpNewsletterConfig } from "@config";
@@ -119,31 +119,33 @@ function mcStatusToStatus(mcStatus: MCStatus): NewsletterStatus {
   }
 }
 
-function memberToMCMember(member: UpdateNewsletterMember): Partial<MCMember> {
-  if (member.status === NewsletterStatus.None) {
-    throw new Error("NewsletterStatus = None for " + member.email);
+function nlContactToMCMember(
+  nlContact: UpdateNewsletterContact
+): Partial<MCMember> {
+  if (nlContact.status === NewsletterStatus.None) {
+    throw new Error("NewsletterStatus = None for " + nlContact.email);
   }
 
   return {
-    email_address: member.email,
-    status: member.status,
-    ...((member.firstname || member.lastname || member.fields) && {
+    email_address: nlContact.email,
+    status: nlContact.status,
+    ...((nlContact.firstname || nlContact.lastname || nlContact.fields) && {
       merge_fields: {
-        ...(member.firstname && { FNAME: member.firstname }),
-        ...(member.lastname && { LNAME: member.lastname }),
-        ...member.fields
+        ...(nlContact.firstname && { FNAME: nlContact.firstname }),
+        ...(nlContact.lastname && { LNAME: nlContact.lastname }),
+        ...nlContact.fields
       }
     }),
-    ...(member.groups && {
+    ...(nlContact.groups && {
       interests: Object.assign(
         {},
-        ...member.groups.map((group) => ({ [group]: true }))
+        ...nlContact.groups.map((group) => ({ [group]: true }))
       )
     })
   };
 }
 
-function mcMemberToMember(member: MCMember): NewsletterMember {
+function mcMemberToNlContact(member: MCMember): NewsletterContact {
   const { FNAME, LNAME, ...fields } = member.merge_fields;
   return {
     email: cleanEmailAddress(member.email_address),
@@ -181,7 +183,7 @@ export default class MailchimpProvider implements NewsletterProvider {
     this.listId = settings.listId;
   }
 
-  async addTagToMembers(emails: string[], tag: string): Promise<void> {
+  async addTagToContacts(emails: string[], tag: string): Promise<void> {
     const operations: Operation[] = emails.map((email) => ({
       path: this.emailUrl(email) + "/tags",
       method: "POST",
@@ -193,7 +195,7 @@ export default class MailchimpProvider implements NewsletterProvider {
     await this.dispatchOperations(operations);
   }
 
-  async removeTagFromMembers(emails: string[], tag: string): Promise<void> {
+  async removeTagFromContacts(emails: string[], tag: string): Promise<void> {
     const operations: Operation[] = emails.map((email) => ({
       path: this.emailUrl(email) + "/tags",
       method: "POST",
@@ -205,14 +207,14 @@ export default class MailchimpProvider implements NewsletterProvider {
     await this.dispatchOperations(operations);
   }
 
-  async getMember(email: string): Promise<NewsletterMember | undefined> {
+  async getContact(email: string): Promise<NewsletterContact | undefined> {
     try {
       const resp = await this.instance.get(this.emailUrl(email));
-      return mcMemberToMember(resp.data);
+      return mcMemberToNlContact(resp.data);
     } catch (err) {}
   }
 
-  async getMembers(): Promise<NewsletterMember[]> {
+  async getContacts(): Promise<NewsletterContact[]> {
     const operation: Operation = {
       path: `lists/${this.listId}/members`,
       method: "GET",
@@ -225,31 +227,34 @@ export default class MailchimpProvider implements NewsletterProvider {
       finishedBatch
     )) as GetMembersResponse[];
 
-    return responses.flatMap((r) => r.members).map(mcMemberToMember);
+    return responses.flatMap((r) => r.members).map(mcMemberToNlContact);
   }
 
-  async updateMember(
-    member: UpdateNewsletterMember,
+  async updateContact(
+    member: UpdateNewsletterContact,
     oldEmail = member.email
   ): Promise<void> {
-    await this.instance.put(this.emailUrl(oldEmail), memberToMCMember(member));
+    await this.instance.put(
+      this.emailUrl(oldEmail),
+      nlContactToMCMember(member)
+    );
   }
 
-  async upsertMembers(members: UpdateNewsletterMember[]): Promise<void> {
-    const operations: Operation[] = members.map((member) => {
-      const mcMember = memberToMCMember(member);
+  async upsertContacts(nlContacts: UpdateNewsletterContact[]): Promise<void> {
+    const operations: Operation[] = nlContacts.map((contact) => {
+      const mcMember = nlContactToMCMember(contact);
       return {
-        path: this.emailUrl(member.email),
+        path: this.emailUrl(contact.email),
         method: "PUT",
         body: JSON.stringify({ ...mcMember, status_if_new: mcMember.status }),
-        operation_id: `update_${member.email}`
+        operation_id: `update_${contact.email}`
       };
     });
 
     await this.dispatchOperations(operations);
   }
 
-  async archiveMembers(emails: string[]): Promise<void> {
+  async archiveContacts(emails: string[]): Promise<void> {
     const operations: Operation[] = emails.map((email) => ({
       path: this.emailUrl(email),
       method: "DELETE",
@@ -258,7 +263,7 @@ export default class MailchimpProvider implements NewsletterProvider {
     await this.dispatchOperations(operations);
   }
 
-  async deleteMembers(emails: string[]): Promise<void> {
+  async deleteContacts(emails: string[]): Promise<void> {
     const operations: Operation[] = emails.map((email) => ({
       path: this.emailUrl(email) + "/actions/permanently-delete",
       method: "POST",

@@ -1,5 +1,5 @@
 import { ContributionInfo, PaymentForm } from "@core/utils";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import { ManualPaymentData } from "@models/PaymentData";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "../payment-flow";
@@ -20,7 +20,7 @@ export default class ManualProvider extends PaymentProvider<
   }
 
   async cancelContribution(keepMandate: boolean): Promise<void> {}
-  async updateMember(updates: Partial<Member>): Promise<void> {}
+  async updateContact(updates: Partial<Contact>): Promise<void> {}
 
   async updateContribution(
     paymentForm: PaymentForm
@@ -32,7 +32,7 @@ export default class ManualProvider extends PaymentProvider<
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  async permanentlyDeleteMember(): Promise<void> {
+  async permanentlyDeleteContact(): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

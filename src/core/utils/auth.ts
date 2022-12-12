@@ -3,18 +3,20 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { getNextParam } from "@core/utils";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Password from "@models/Password";
 
 import config from "@config";
 
-export function generateJWTToken(member: Member): string {
-  return jwt.sign({ memberId: member.id }, config.secret);
+export function generateJWTToken(contact: Contact): string {
+  return jwt.sign({ contactId: contact.id }, config.secret);
 }
 
 export function parseJWTToken(token: string): string {
-  const { memberId } = jwt.verify(token, config.secret) as { memberId: string };
-  return memberId;
+  const { contactId } = jwt.verify(token, config.secret) as {
+    contactId: string;
+  };
+  return contactId;
 }
 
 export enum AuthenticationStatus {
@@ -107,7 +109,7 @@ export function canAdmin(req: Request): AuthenticationStatus {
   const status = loggedIn(req);
   if (status != AuthenticationStatus.LOGGED_IN) {
     return status;
-  } else if (req.user?.hasPermission("admin")) {
+  } else if (req.user?.hasRole("admin")) {
     return AuthenticationStatus.LOGGED_IN;
   }
   return AuthenticationStatus.NOT_ADMIN;
@@ -119,7 +121,7 @@ export function canSuperAdmin(req: Request): AuthenticationStatus {
   const status = loggedIn(req);
   if (status != AuthenticationStatus.LOGGED_IN) {
     return status;
-  } else if (req.user?.hasPermission("superadmin")) {
+  } else if (req.user?.hasRole("superadmin")) {
     return AuthenticationStatus.LOGGED_IN;
   }
   return AuthenticationStatus.NOT_ADMIN;

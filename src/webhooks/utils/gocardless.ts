@@ -11,7 +11,7 @@ import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import { convertStatus } from "@core/utils/payment/gocardless";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import PaymentService from "@core/services/PaymentService";
 
 import { GCPaymentData } from "@models/PaymentData";
@@ -51,18 +51,18 @@ async function confirmPayment(
 ): Promise<void> {
   log.info("Confirm payment " + payment.id, {
     paymentId: payment.id,
-    memberId: payment.member?.id,
+    contactId: payment.contact?.id,
     subscriptionId: payment.subscriptionId
   });
 
-  if (!payment.member || !payment.subscriptionId) {
+  if (!payment.contact || !payment.subscriptionId) {
     log.info(
       `Ignore confirm payment for ${payment.id}, not subscription related`
     );
     return;
   }
 
-  const gcData = (await PaymentService.getData(payment.member))
+  const gcData = (await PaymentService.getData(payment.contact))
     .data as GCPaymentData;
 
   if (payment.subscriptionId !== gcData.subscriptionId) {
@@ -78,17 +78,17 @@ async function confirmPayment(
   // be a pending payment for the previous amount
   if (gcData.nextMonthlyAmount) {
     await PaymentService.updateDataBy(
-      payment.member,
+      payment.contact,
       "nextMonthlyAmount",
       null
     );
-    await MembersService.updateMember(payment.member, {
+    await ContactsService.updateContact(payment.contact, {
       contributionMonthlyAmount: gcData.nextMonthlyAmount
     });
   }
 
-  await MembersService.extendMemberPermission(
-    payment.member,
+  await ContactsService.extendContactRole(
+    payment.contact,
     "member",
     await getSubscriptionPeriodEnd(payment)
   );
@@ -144,8 +144,8 @@ export async function cancelSubscription(
 
   const data = await PaymentService.getDataBy("subscriptionId", subscriptionId);
   if (data) {
-    await MembersService.cancelMemberContribution(
-      data.member,
+    await ContactsService.cancelContactContribution(
+      data.contact,
       "cancelled-contribution"
     );
   } else {
@@ -157,11 +157,11 @@ export async function cancelMandate(mandateId: string): Promise<void> {
   const data = await PaymentService.getDataBy("mandateId", mandateId);
   if (data) {
     log.info("Cancel mandate " + mandateId, {
-      memberId: data.member.id,
+      contactId: data.contact.id,
       mandateId
     });
 
-    await PaymentService.updateDataBy(data.member, "mandateId", null);
+    await PaymentService.updateDataBy(data.contact, "mandateId", null);
   } else {
     log.info("Unlinked mandate " + mandateId);
   }
@@ -171,7 +171,7 @@ async function findOrCreatePayment(
   gcPayment: GCPayment
 ): Promise<Payment | undefined> {
   const payment = await getRepository(Payment).findOne(gcPayment.id, {
-    relations: ["member"]
+    relations: ["contact"]
   });
   if (payment) {
     return payment;
@@ -184,12 +184,12 @@ async function findOrCreatePayment(
 
   if (data) {
     log.info("Create payment " + gcPayment.id, {
-      memberId: data.member.id,
+      contactId: data.contact.id,
       gcPaymentId: gcPayment.id
     });
     const newPayment = new Payment();
     newPayment.id = gcPayment.id;
-    newPayment.member = data.member;
+    newPayment.contact = data.contact;
     if (gcPayment.links.subscription) {
       newPayment.subscriptionId = gcPayment.links.subscription;
     }

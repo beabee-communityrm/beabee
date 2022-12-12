@@ -7,8 +7,8 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import type Member from "./Member";
-import type ProjectMember from "./ProjectMember";
+import type Contact from "./Contact";
+import type ProjectContact from "./ProjectContact";
 
 @Entity()
 export default class Project {
@@ -18,8 +18,8 @@ export default class Project {
   @CreateDateColumn()
   date!: Date;
 
-  @ManyToOne("Member")
-  owner!: Member;
+  @ManyToOne("Contact")
+  owner!: Contact;
 
   @Column()
   title!: string;
@@ -33,8 +33,8 @@ export default class Project {
   @Column({ type: String, nullable: true })
   groupName!: string | null;
 
-  @OneToMany("ProjectMember", "project")
-  members!: ProjectMember[];
+  @OneToMany("ProjectContact", "project")
+  contacts!: ProjectContact[];
 
-  memberCount?: number;
+  contactCount?: number;
 }

@@ -10,8 +10,8 @@ import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";
 
 import Project from "@models/Project";
-import Member from "@models/Member";
-import { fetchPaginatedMembers, GetMemberWith } from "@api/data/MemberData";
+import Contact from "@models/Contact";
+import { fetchPaginatedContacts, GetContactWith } from "@api/data/ContactData";
 
 const app = express();
 
@@ -106,7 +106,7 @@ app.get(
     const { query } = req;
     const availableTags = await getAvailableTags();
 
-    const totalMembers = await getRepository(Member).count();
+    const totalMembers = await getRepository(Contact).count();
     const segments = await SegmentService.getSegmentsWithCount();
     const activeSegment = query.segment
       ? segments.find((s) => s.id === query.segment)
@@ -124,13 +124,13 @@ app.get(
     const sort = (query.sort as string) || "lastname_ASC";
     const [sortId, sortDir] = sort.split("_");
 
-    const result = await fetchPaginatedMembers(
+    const result = await fetchPaginatedContacts(
       {
         offset: limit * (page - 1),
         limit,
         sort: sortOptions[sortId].sort,
         order: sortDir as "ASC" | "DESC",
-        with: [GetMemberWith.Profile, GetMemberWith.Roles],
+        with: [GetContactWith.Profile, GetContactWith.Roles],
         ...(searchRuleGroup && { rules: searchRuleGroup })
       },
       {

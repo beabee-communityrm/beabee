@@ -1,7 +1,7 @@
 import { ParamsDictionary } from "express-serve-static-core";
 
-import Member from "@models/Member";
-import { PollResponseAnswers } from "@models/PollResponse";
+import Contact from "@models/Contact";
+import { CalloutResponseAnswers } from "@models/CalloutResponse";
 
 declare global {
   type WithRelationIds<E, K extends keyof E> = Omit<E, K> & {
@@ -14,7 +14,7 @@ declare global {
   type URLSearchParams = never;
 
   namespace Express {
-    export interface User extends Member {}
+    export interface User extends Contact {}
 
     export interface Request {
       flash(
@@ -23,7 +23,7 @@ declare global {
       ): void;
       model: unknown;
       allParams: ParamsDictionary;
-      answers?: PollResponseAnswers;
+      answers?: CalloutResponseAnswers;
     }
   }
 }
@@ -36,6 +36,6 @@ declare module "papaparse" {
 declare module "express-session" {
   interface SessionData {
     method?: "plain" | "totp";
-    answers: PollResponseAnswers | undefined;
+    answers: CalloutResponseAnswers | undefined;
   }
 }

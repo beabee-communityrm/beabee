@@ -15,13 +15,13 @@ import {
 import slugify from "slugify";
 import { getRepository } from "typeorm";
 
-import PollsService from "@core/services/PollsService";
+import CalloutsService from "@core/services/CalloutsService";
 
 import { isDuplicateIndex } from "@core/utils";
 
-import Member from "@models/Member";
-import Poll from "@models/Poll";
-import PollResponse from "@models/PollResponse";
+import Contact from "@models/Contact";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 
 import {
   convertCalloutToData,
@@ -43,11 +43,11 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 async function createCallout(
   data: CreateCalloutData & { slug: string },
   autoSlug: number | false
-): Promise<Poll> {
+): Promise<Callout> {
   const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
   try {
-    await getRepository(Poll).insert({ ...data, slug });
-    return await getRepository(Poll).findOneOrFail(slug);
+    await getRepository(Callout).insert({ ...data, slug });
+    return await getRepository(Callout).findOneOrFail(slug);
   } catch (err) {
     if (isDuplicateIndex(err, "slug")) {
       if (autoSlug === false) {
@@ -65,31 +65,31 @@ abstract class CalloutAdminController {
   @Authorized("admin")
   @Post("/")
   async createCallout(
-    @CurrentUser({ required: true }) member: Member,
+    @CurrentUser({ required: true }) contact: Contact,
     @Body() data: CreateCalloutData
   ): Promise<GetCalloutData> {
-    const poll = await createCallout(
+    const callout = await createCallout(
       {
         ...data,
         slug: data.slug || slugify(data.title, { lower: true })
       },
       data.slug ? false : 0
     );
-    return convertCalloutToData(poll, member, {});
+    return convertCalloutToData(callout, contact, {});
   }
 
   @Authorized("admin")
   @Patch("/:slug")
   async updateCallout(
-    @CurrentUser({ required: true }) member: Member,
+    @CurrentUser({ required: true }) contact: Contact,
     @Param("slug") slug: string,
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
     const newSlug = data.slug || slug;
-    await getRepository(Poll).update(slug, data);
+    await getRepository(Callout).update(slug, data);
     try {
-      const poll = await getRepository(Poll).findOne(newSlug);
-      return poll && convertCalloutToData(poll, member, {});
+      const callout = await getRepository(Callout).findOne(newSlug);
+      return callout && convertCalloutToData(callout, contact, {});
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }
@@ -99,8 +99,8 @@ abstract class CalloutAdminController {
   @OnUndefined(204)
   @Delete("/:slug")
   async deleteCallout(@Param("slug") slug: string): Promise<void> {
-    await getRepository(PollResponse).delete({ poll: { slug } });
-    const result = await getRepository(Poll).delete(slug);
+    await getRepository(CalloutResponse).delete({ callout: { slug } });
+    const result = await getRepository(Callout).delete(slug);
     if (result.affected === 0) {
       throw new NotFoundError();
     }
@@ -111,53 +111,53 @@ abstract class CalloutAdminController {
 export class CalloutController extends CalloutAdminController {
   @Get("/")
   async getCallouts(
-    @CurrentUser({ required: false }) member: Member | undefined,
+    @CurrentUser({ required: false }) contact: Contact | undefined,
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetCalloutData>> {
-    return fetchPaginatedCallouts(query, member, { with: query.with });
+    return fetchPaginatedCallouts(query, contact, { with: query.with });
   }
 
   @Get("/:slug")
   async getCallout(
-    @CurrentUser({ required: false }) member: Member | undefined,
+    @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutQuery
   ): Promise<GetCalloutData | undefined> {
-    const poll = await getRepository(Poll).findOne(slug);
-    if (poll) {
-      return convertCalloutToData(poll, member, { with: query.with });
+    const callout = await getRepository(Callout).findOne(slug);
+    if (callout) {
+      return convertCalloutToData(callout, contact, { with: query.with });
     }
   }
 
   @Get("/:slug/responses")
   async getCalloutResponses(
-    @CurrentUser() member: Member,
+    @CurrentUser() contact: Contact,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    return await fetchPaginatedCalloutResponses(slug, query, member);
+    return await fetchPaginatedCalloutResponses(slug, query, contact);
   }
 
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
-    @CurrentUser({ required: false }) member: Member | undefined,
+    @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseData
   ) {
-    const poll = await getRepository(Poll).findOne(slug);
-    if (!poll) {
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
       throw new NotFoundError();
     }
 
-    if (member && (data.guestEmail || data.guestName)) {
+    if (contact && (data.guestEmail || data.guestName)) {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
     }
 
-    const error = member
-      ? await PollsService.setResponse(poll, member, data.answers)
-      : await PollsService.setGuestResponse(
-          poll,
+    const error = contact
+      ? await CalloutsService.setResponse(callout, contact, data.answers)
+      : await CalloutsService.setGuestResponse(
+          callout,
           data.guestName,
           data.guestEmail,
           data.answers

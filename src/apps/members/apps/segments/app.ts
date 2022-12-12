@@ -10,7 +10,7 @@ import Email from "@models/Email";
 import EmailMailing from "@models/EmailMailing";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
-import SegmentMember from "@models/SegmentMember";
+import SegmentContact from "@models/SegmentContact";
 
 import { EmailSchema, schemaToEmail } from "@apps/tools/apps/emails/app";
 
@@ -77,7 +77,7 @@ app.post(
         res.redirect("/members/segments/" + segment.id + "#ongoingemails");
         break;
       case "delete":
-        await getRepository(SegmentMember).delete({ segment });
+        await getRepository(SegmentContact).delete({ segment });
         await getRepository(SegmentOngoingEmail).delete({ segment });
         await getRepository(Segment).delete(segment.id);
 
@@ -93,7 +93,7 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    segment.memberCount = await SegmentService.getSegmentMemberCount(segment);
+    segment.contactCount = await SegmentService.getSegmentContactCount(segment);
     res.render("email", {
       segment,
       emails: await getRepository(Email).find()
@@ -146,7 +146,7 @@ app.post(
     }
 
     if (data.type === "one-off" || data.sendNow) {
-      const members = await SegmentService.getSegmentMembers(segment);
+      const contacts = await SegmentService.getSegmentContacts(segment);
       const mailing = await getRepository(EmailMailing).save({
         email,
         emailField: "Email",
@@ -157,11 +157,11 @@ app.post(
           FNAME: "FirstName",
           LNAME: "LastName"
         },
-        recipients: members.map((member) => ({
-          Email: member.email,
-          Name: member.fullname,
-          FirstName: member.firstname,
-          LastName: member.lastname
+        recipients: contacts.map((contact) => ({
+          Email: contact.email,
+          Name: contact.fullname,
+          FirstName: contact.firstname,
+          LastName: contact.lastname
         }))
       });
 

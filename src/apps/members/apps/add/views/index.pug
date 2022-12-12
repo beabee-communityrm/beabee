@@ -23,7 +23,7 @@ block contents
 
 				.row: .col-md-offset-3.col-md-9: h5 Roles
 
-				ul(data-name='permissions').no-list.js-repeater
+				ul(data-name='roles').no-list.js-repeater
 
 				.row: .col-md-offset-3.col-md-9
 					p: button(type='button').btn.btn-xs.btn-info.js-repeater-add-item Add role
@@ -45,7 +45,7 @@ block prepend js
 			.form-group
 				label.col-md-3.control-label Role
 				.col-md-6
-					select(name='permissions[0][permission]' required).form-control
+					select(name='roles[0][type]' required).form-control
 						option( disabled selected ) –
 						option(value='member') Member
 						option(value='admin') Admin
@@ -53,15 +53,15 @@ block prepend js
 			.form-group
 				label.col-md-3.control-label Start
 				.col-md-6
-					input( type="time", name="permissions[0][startTime]", value=moment().format( 'HH:mm' ), style="display: inline; width: auto;" ).form-control
+					input( type="time", name="roles[0][startTime]", value=moment().format( 'HH:mm' ), style="display: inline; width: auto;" ).form-control
 					| &nbsp;
-					input( type="date", name="permissions[0][startDate]", value=moment().format( 'YYYY-MM-DD' ), style="display: inline; width: auto;" ).form-control
+					input( type="date", name="roles[0][startDate]", value=moment().format( 'YYYY-MM-DD' ), style="display: inline; width: auto;" ).form-control
 			.form-group
 				label.col-md-3.control-label Expires
 				.col-md-6
-					input( type="time", name="permissions[0][expiryTime]", style="display: inline; width: auto;" ).form-control
+					input( type="time", name="roles[0][expiryTime]", style="display: inline; width: auto;" ).form-control
 					| &nbsp;
-					input( type="date", name="permissions[0][expiryDate]", style="display: inline; width: auto;" ).form-control
+					input( type="date", name="roles[0][expiryDate]", style="display: inline; width: auto;" ).form-control
 			.form-group
 				.col-md-offset-3.col-md-6
 					button(type='button').btn.btn-xs.btn-danger.js-repeater-remove-item Remove

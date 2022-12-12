@@ -5,7 +5,7 @@ import express from "express";
 import { log as mainLogger } from "@core/logging";
 import { cleanEmailAddress, wrapAsync } from "@core/utils";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
@@ -87,7 +87,7 @@ app.post(
         break;
 
       case "profile":
-        // Make MailChimp resend the webhook if we don't find a member
+        // Make MailChimp resend the webhook if we don't find a contact
         // it's probably because the upemail and profile webhooks
         // arrived out of order
         // TODO: add checks for repeated failure
@@ -107,10 +107,10 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
   log.info(`Update email from ${oldEmail} to ${newEmail}`);
 
-  const member = await MembersService.findOne({ email: oldEmail });
-  if (member) {
-    await MembersService.updateMember(
-      member,
+  const contact = await ContactsService.findOne({ email: oldEmail });
+  if (contact) {
+    await ContactsService.updateContact(
+      contact,
       { email: newEmail },
       // Don't try to sync to old email address
       { sync: false }
@@ -128,20 +128,20 @@ async function handleSubscribe(data: MCProfileData) {
     data: { email }
   });
 
-  const member = await MembersService.findOne({ email });
-  if (member) {
-    await MembersService.updateMemberProfile(member, {
+  const contact = await ContactsService.findOne({ email });
+  if (contact) {
+    await ContactsService.updateContactProfile(contact, {
       newsletterStatus: NewsletterStatus.Subscribed
     });
-    if (member.membership?.isActive) {
-      await NewsletterService.addTagToMembers(
-        [member],
+    if (contact.membership?.isActive) {
+      await NewsletterService.addTagToContacts(
+        [contact],
         OptionsService.getText("newsletter-active-member-tag")
       );
     }
   } else {
-    const nlMember = await NewsletterService.getNewsletterMember(email);
-    await MembersService.createMember(
+    const nlContact = await NewsletterService.getNewsletterContact(email);
+    await ContactsService.createContact(
       {
         email,
         contributionType: ContributionType.None,
@@ -150,7 +150,7 @@ async function handleSubscribe(data: MCProfileData) {
       },
       {
         newsletterStatus: NewsletterStatus.Subscribed,
-        newsletterGroups: nlMember?.groups || []
+        newsletterGroups: nlContact?.groups || []
       }
     );
   }
@@ -161,9 +161,9 @@ async function handleUnsubscribe(data: MCProfileData) {
 
   log.info("Unsubscribe " + email);
 
-  const member = await MembersService.findOne({ email });
-  if (member) {
-    await MembersService.updateMemberProfile(member, {
+  const contact = await ContactsService.findOne({ email });
+  if (contact) {
+    await ContactsService.updateContactProfile(contact, {
       newsletterStatus: NewsletterStatus.Unsubscribed
     });
   }
@@ -174,19 +174,19 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 
   log.info("Update profile for " + email);
 
-  const member = await MembersService.findOne({ email });
-  if (member) {
-    const nlMember = await NewsletterService.getNewsletterMember(email);
-    await MembersService.updateMember(member, {
-      firstname: data.merges.FNAME || member.firstname,
-      lastname: data.merges.LNAME || member.lastname
+  const contact = await ContactsService.findOne({ email });
+  if (contact) {
+    const nlContact = await NewsletterService.getNewsletterContact(email);
+    await ContactsService.updateContact(contact, {
+      firstname: data.merges.FNAME || contact.firstname,
+      lastname: data.merges.LNAME || contact.lastname
     });
-    await MembersService.updateMemberProfile(member, {
-      newsletterGroups: nlMember?.groups || []
+    await ContactsService.updateContactProfile(contact, {
+      newsletterGroups: nlContact?.groups || []
     });
     return true;
   } else {
-    log.info("Member not found for " + email);
+    log.info("Contact not found for " + email);
     return false;
   }
 }

@@ -21,7 +21,7 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import {
   GetPaginatedQuery,
@@ -137,7 +137,7 @@ const dateUnitSql = {
 
 function prepareRule(
   rule: ValidatedRule<string>,
-  member: Member | undefined
+  contact: Contact | undefined
 ): [(field: string) => string, RichRuleValue[]] {
   const whereFn = operatorsWhereByType[rule.type][rule.operator];
   // This should never happen as a ValidatedRule can't have an invalid type/operator combo
@@ -161,7 +161,7 @@ function prepareRule(
   return [
     whereFn,
     rule.type === "contact"
-      ? rule.value.map((v) => (v === "me" ? member?.id || "" : v))
+      ? rule.value.map((v) => (v === "me" ? contact?.id || "" : v))
       : rule.value
   ];
 }
@@ -169,7 +169,7 @@ function prepareRule(
 export function buildQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
   ruleGroup: ValidatedRuleGroup<Field> | undefined,
-  member?: Member,
+  contact?: Contact,
   specialFields?: SpecialFields<Field>
 ): SelectQueryBuilder<Entity> {
   /*
@@ -187,7 +187,7 @@ export function buildQuery<Entity, Field extends string>(
 
   function parseRule(rule: ValidatedRule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
-      const [whereFn, values] = prepareRule(rule, member);
+      const [whereFn, values] = prepareRule(rule, contact);
       const suffix = "_" + ruleNo;
 
       // Add values as params
@@ -241,7 +241,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
   filters: Filters<Field>,
   query: GetPaginatedQuery,
-  member?: Member,
+  contact?: Contact,
   specialFields?: SpecialFields<Field>,
   queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
 ): Promise<Paginated<Entity>> {
@@ -251,7 +251,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = buildQuery(entity, ruleGroup, member, specialFields)
+    const qb = buildQuery(entity, ruleGroup, contact, specialFields)
       .offset(offset)
       .limit(limit);
 
