@@ -32,10 +32,12 @@ export class CreateNoticeData implements NoticeData {
   @Type(() => Date)
   @IsDate()
   @IsOptional()
-  expires?: Date;
+  starts?: Date;
 
-  @IsBoolean()
-  enabled!: boolean;
+  @Type(() => Date)
+  @IsDate()
+  @IsOptional()
+  expires?: Date;
 
   @IsString()
   text!: string;
