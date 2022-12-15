@@ -5,6 +5,7 @@ import { GetPaginatedQuery } from "./PaginatedData";
 
 interface NoticeData {
   name: string;
+  starts?: Date;
   expires?: Date;
   text: string;
   buttonText?: string;
