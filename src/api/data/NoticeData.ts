@@ -5,6 +5,7 @@ import { GetPaginatedQuery } from "./PaginatedData";
 
 interface NoticeData {
   name: string;
+  starts?: Date;
   expires?: Date;
   text: string;
   buttonText?: string;
@@ -32,10 +33,12 @@ export class CreateNoticeData implements NoticeData {
   @Type(() => Date)
   @IsDate()
   @IsOptional()
-  expires?: Date;
+  starts?: Date;
 
-  @IsBoolean()
-  enabled!: boolean;
+  @Type(() => Date)
+  @IsDate()
+  @IsOptional()
+  expires?: Date;
 
   @IsString()
   text!: string;
