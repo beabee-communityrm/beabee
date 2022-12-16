@@ -6,7 +6,7 @@ import { formatEmailBody } from "@core/utils/email";
 import OptionsService from "@core/services/OptionsService";
 
 import Email from "@models/Email";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import {
@@ -22,7 +22,7 @@ import config from "@config";
 const log = mainLogger.child({ app: "base-email-provider" });
 
 interface InsertResetPasswordResult extends InsertResult {
-  raw: { id: string; memberId: string }[] | undefined;
+  raw: { id: string; contactId: string }[] | undefined;
 }
 
 function generateResetPasswordLinks(type: "set" | "reset") {
@@ -43,26 +43,28 @@ function generateResetPasswordLinks(type: "set" | "reset") {
 
     log.info(`Creating ${emails.length} links for ${mergeField}`);
 
-    // Get list of members who match the recipients
-    const members = await createQueryBuilder(Member)
+    // Get list of contacts who match the recipients
+    const contacts = await createQueryBuilder(Contact)
       .select(["id", "email"])
       .where("email IN (:...emails)", { emails })
       .getRawMany<{ id: string; email: string }>();
 
-    const memberIdsByEmail = Object.fromEntries(
-      members.map((m) => [m.email, m.id])
+    const contactIdsByEmail = Object.fromEntries(
+      contacts.map((m) => [m.email, m.id])
     );
 
-    // Create reset password flows for matching members
+    // Create reset password flows for matching contacts
     const rpInsertResult: InsertResetPasswordResult = await createQueryBuilder()
       .insert()
       .into(ResetPasswordFlow)
-      .values(Object.values(memberIdsByEmail).map((id) => ({ member: { id } })))
-      .returning(["id", "member"])
+      .values(
+        Object.values(contactIdsByEmail).map((id) => ({ contact: { id } }))
+      )
+      .returning(["id", "contact"])
       .execute();
 
-    const rpFlowIdsByMemberId = Object.fromEntries(
-      (rpInsertResult.raw || []).map((rpFlow) => [rpFlow.memberId, rpFlow.id])
+    const rpFlowIdsByContactId = Object.fromEntries(
+      (rpInsertResult.raw || []).map((rpFlow) => [rpFlow.contactId, rpFlow.id])
     );
 
     return recipients.map((recipient) => {
@@ -71,7 +73,7 @@ function generateResetPasswordLinks(type: "set" | "reset") {
         return recipient;
       } else {
         const rpFlowId =
-          rpFlowIdsByMemberId[memberIdsByEmail[recipient.to.email]];
+          rpFlowIdsByContactId[contactIdsByEmail[recipient.to.email]];
         return {
           ...recipient,
           mergeFields: {

@@ -38,7 +38,7 @@ app.get(
   "/",
   wrapAsync(
     hasUser(async (req, res) => {
-      const referrals = await ReferralsService.getMemberReferrals(req.user);
+      const referrals = await ReferralsService.getContactReferrals(req.user);
       res.render("index", { referralCode: req.user.referralCode, referrals });
     })
   )

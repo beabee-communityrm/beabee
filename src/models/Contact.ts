@@ -1,7 +1,7 @@
 import {
   ContributionType,
   ContributionPeriod,
-  PermissionType
+  RoleType
 } from "@beabee/beabee-common";
 import {
   Column,
@@ -15,8 +15,8 @@ import {
 import { getActualAmount } from "@core/utils";
 import config from "@config";
 
-import type MemberPermission from "./MemberPermission";
-import type MemberProfile from "./MemberProfile";
+import type ContactRole from "./ContactRole";
+import type ContactProfile from "./ContactProfile";
 import Password from "./Password";
 
 interface LoginOverride {
@@ -33,7 +33,7 @@ class OneTimePassword {
 }
 
 @Entity()
-export default class Member {
+export default class Contact {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
@@ -76,26 +76,20 @@ export default class Member {
   @Column({ type: String, unique: true, nullable: true })
   pollsCode!: string | null;
 
-  @OneToMany("MemberPermission", "member", { eager: true, cascade: true })
-  permissions!: MemberPermission[];
+  @OneToMany("ContactRole", "contact", { eager: true, cascade: true })
+  roles!: ContactRole[];
 
-  @OneToOne("MemberProfile", "member")
-  profile!: MemberProfile;
+  @OneToOne("ContactProfile", "contact")
+  profile!: ContactProfile;
 
-  get activePermissions(): PermissionType[] {
-    return this.permissions.filter((p) => p.isActive).map((p) => p.permission);
+  get activeRoles(): RoleType[] {
+    return this.roles.filter((p) => p.isActive).map((p) => p.type);
   }
 
-  // Alias to match GetMemberData with Member for membersTableBasicInfo
-  // TODO: Remove once legacy app is gone
-  get activeRoles(): PermissionType[] {
-    return this.activePermissions;
-  }
-
-  hasPermission(permission: PermissionType): boolean {
+  hasRole(roleType: RoleType): boolean {
     return (
-      this.activePermissions.includes("superadmin") ||
-      this.activePermissions.includes(permission)
+      this.activeRoles.includes("superadmin") ||
+      this.activeRoles.includes(roleType)
     );
   }
 
@@ -130,8 +124,8 @@ export default class Member {
     }
   }
 
-  get membership(): MemberPermission | undefined {
-    return this.permissions.find((p) => p.permission === "member");
+  get membership(): ContactRole | undefined {
+    return this.roles.find((p) => p.type === "member");
   }
 
   get setupComplete(): boolean {

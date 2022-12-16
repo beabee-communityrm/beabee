@@ -1,6 +1,6 @@
 import { RuleGroup } from "@beabee/beabee-common";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import type SegmentMember from "./SegmentMember";
+import type SegmentContact from "./SegmentContact";
 
 @Entity()
 export default class Segment {
@@ -16,8 +16,8 @@ export default class Segment {
   @Column({ type: "jsonb" })
   ruleGroup!: RuleGroup;
 
-  @OneToMany("SegmentMember", "segment")
-  members!: SegmentMember[];
+  @OneToMany("SegmentContact", "segment")
+  contacts!: SegmentContact[];
 
   @Column({ type: "int", default: 0 })
   order!: number;
@@ -25,5 +25,5 @@ export default class Segment {
   @Column({ type: String, nullable: true })
   newsletterTag!: string | null;
 
-  memberCount?: number;
+  contactCount?: number;
 }

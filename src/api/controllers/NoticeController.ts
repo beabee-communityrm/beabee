@@ -15,7 +15,7 @@ import {
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Notice from "@models/Notice";
 
 import { UUIDParam } from "@api/data";
@@ -38,12 +38,12 @@ import PartialBody from "@api/decorators/PartialBody";
 export class NoticeController {
   @Get("/")
   async getNotices(
-    @CurrentUser() member: Member,
+    @CurrentUser() contact: Contact,
     @QueryParams() query: GetNoticesQuery
   ): Promise<Paginated<GetNoticeData>> {
     const authedQuery = mergeRules(query, [
       // Non-admins can only see open notices
-      !member.hasPermission("admin") && {
+      !contact.hasRole("admin") && {
         field: "status",
         operator: "equal",
         value: [ItemStatus.Open]
@@ -53,7 +53,7 @@ export class NoticeController {
       Notice,
       noticeFilters,
       authedQuery,
-      member,
+      contact,
       { status: statusField }
     );
 
@@ -65,11 +65,11 @@ export class NoticeController {
 
   @Get("/:id")
   async getNotice(
-    @CurrentUser() member: Member,
+    @CurrentUser() contact: Contact,
     @Params() { id }: UUIDParam
   ): Promise<GetNoticeData | undefined> {
     const notice = await getRepository(Notice).findOne(id);
-    if (notice && (notice.active || member.hasPermission("admin"))) {
+    if (notice && (notice.active || contact.hasRole("admin"))) {
       return this.noticeToData(notice);
     }
   }
@@ -84,12 +84,12 @@ export class NoticeController {
   @Patch("/:id")
   @Authorized("admin")
   async updateNotice(
-    @CurrentUser() member: Member,
+    @CurrentUser() contact: Contact,
     @Params() { id }: UUIDParam,
     @PartialBody() data: CreateNoticeData
   ): Promise<GetNoticeData | undefined> {
     await getRepository(Notice).update(id, data);
-    return this.getNotice(member, { id });
+    return this.getNotice(contact, { id });
   }
 
   @OnUndefined(204)

@@ -14,10 +14,10 @@
         const context = {
             no: responseNo + 1,
             date: response.updatedAtText,
-            type: response.member ? 'Member' : 'Guest',
-            user: response.member
-              ? '<a href="/members/' + response.member.id + '">' +
-                response.member.firstname + ' ' + response.member.lastname +
+            type: response.contact ? 'Contact' : 'Guest',
+            user: response.contact
+              ? '<a href="/members/' + response.contact.id + '">' +
+                response.contact.firstname + ' ' + response.contact.lastname +
                 '</a>'
               : response.guestName + ' (' + response.guestEmail + ')'
         };

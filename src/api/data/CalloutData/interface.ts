@@ -15,8 +15,8 @@ import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
-import { PollFormSchema, PollAccess } from "@models/Poll";
-import { PollResponseAnswers } from "@models/PollResponse";
+import { CalloutFormSchema, CalloutAccess } from "@models/Callout";
+import { CalloutResponseAnswers } from "@models/CalloutResponse";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -36,7 +36,7 @@ export class GetCalloutsQuery extends GetPaginatedQuery {
 }
 
 interface CalloutData {
-  slug: string;
+  slug?: string;
   title: string;
   excerpt: string;
   image: string;
@@ -44,7 +44,7 @@ interface CalloutData {
   expires: Date | null;
   allowUpdate: boolean;
   allowMultiple: boolean;
-  access: PollAccess;
+  access: CalloutAccess;
   hidden: boolean;
 
   // With "form"
@@ -54,10 +54,11 @@ interface CalloutData {
   thanksRedirect?: string;
   shareTitle?: string;
   shareDescription?: string;
-  formSchema?: PollFormSchema;
+  formSchema?: CalloutFormSchema;
 }
 
 export interface GetCalloutData extends CalloutData {
+  slug: string;
   status: ItemStatus;
   // With "hasAnswered"
   hasAnswered?: boolean;
@@ -72,8 +73,9 @@ export class GetCalloutQuery {
 }
 
 export class CreateCalloutData implements CalloutData {
-  @IsString()
-  slug!: string;
+  @IsOptional()
+  @IsSlug()
+  slug?: string;
 
   @IsString()
   title!: string;
@@ -81,7 +83,8 @@ export class CreateCalloutData implements CalloutData {
   @IsString()
   excerpt!: string;
 
-  @IsUrl()
+  // TODO: Should be IsUrl but validation fails for draft callouts
+  @IsString()
   image!: string;
 
   @IsString()
@@ -106,7 +109,7 @@ export class CreateCalloutData implements CalloutData {
   shareDescription?: string;
 
   @IsObject()
-  formSchema!: PollFormSchema;
+  formSchema!: CalloutFormSchema;
 
   @IsOptional()
   @Type(() => Date)
@@ -124,8 +127,8 @@ export class CreateCalloutData implements CalloutData {
   @IsBoolean()
   allowMultiple!: boolean;
 
-  @IsEnum(PollAccess)
-  access!: PollAccess;
+  @IsEnum(CalloutAccess)
+  access!: CalloutAccess;
 
   @IsBoolean()
   hidden!: boolean;
@@ -139,15 +142,15 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
 }
 
 export interface GetCalloutResponseData {
-  member: string;
-  answers: PollResponseAnswers;
+  contact: string;
+  answers: CalloutResponseAnswers;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export class CreateCalloutResponseData {
   @IsObject()
-  answers!: PollResponseAnswers;
+  answers!: CalloutResponseAnswers;
 
   @IsOptional()
   @IsString()

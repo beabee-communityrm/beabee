@@ -1,6 +1,6 @@
 import { NewsletterStatus } from "@beabee/beabee-common";
 
-export interface UpdateNewsletterMember {
+export interface UpdateNewsletterContact {
   email: string;
   status: NewsletterStatus;
   firstname?: string;
@@ -9,7 +9,7 @@ export interface UpdateNewsletterMember {
   fields?: Record<string, string>;
 }
 
-export interface NewsletterMember extends UpdateNewsletterMember {
+export interface NewsletterContact extends UpdateNewsletterContact {
   firstname: string;
   lastname: string;
   joined: Date;
@@ -20,15 +20,15 @@ export interface NewsletterMember extends UpdateNewsletterMember {
 }
 
 export interface NewsletterProvider {
-  addTagToMembers(emails: string[], tag: string): Promise<void>;
-  removeTagFromMembers(emails: string[], tag: string): Promise<void>;
-  getMember(email: string): Promise<NewsletterMember | undefined>;
-  getMembers(): Promise<NewsletterMember[]>;
-  updateMember(
-    member: UpdateNewsletterMember,
+  addTagToContacts(emails: string[], tag: string): Promise<void>;
+  removeTagFromContacts(emails: string[], tag: string): Promise<void>;
+  getContact(email: string): Promise<NewsletterContact | undefined>;
+  getContacts(): Promise<NewsletterContact[]>;
+  updateContact(
+    contact: UpdateNewsletterContact,
     oldEmail?: string
   ): Promise<void>;
-  upsertMembers(members: UpdateNewsletterMember[]): Promise<void>;
-  archiveMembers(emails: string[]): Promise<void>;
-  deleteMembers(emails: string[]): Promise<void>;
+  upsertContacts(contacts: UpdateNewsletterContact[]): Promise<void>;
+  archiveContacts(emails: string[]): Promise<void>;
+  deleteContacts(emails: string[]): Promise<void>;
 }

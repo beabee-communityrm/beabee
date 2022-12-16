@@ -36,8 +36,8 @@ block contents
 						tbody
 							each payment, p in payments
 								tr
-									if payment.member
-										td: a( href="/members/" + payment.member.id ) #{ payment.member.fullname }
+									if payment.contact
+										td: a( href="/members/" + payment.contact.id ) #{ payment.contact.fullname }
 									else
 										td –
 									td= payment.id

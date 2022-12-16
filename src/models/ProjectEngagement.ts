@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import type Member from "./Member";
+import type Contact from "./Contact";
 import type Project from "./Project";
 
 @Entity()
@@ -17,11 +17,11 @@ export default class ProjectEngagement {
   @ManyToOne("Project")
   project!: Project;
 
-  @ManyToOne("Member")
-  byMember!: Member;
+  @ManyToOne("Contact")
+  byContact!: Contact;
 
-  @ManyToOne("Member")
-  toMember!: Member;
+  @ManyToOne("Contact")
+  toContact!: Contact;
 
   @CreateDateColumn()
   date!: Date;

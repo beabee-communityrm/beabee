@@ -2,14 +2,14 @@ form( method="post" )
 	+csrf
 	if ! partial
 		.form-group
-			label( for="permission" ) Role:
-			select( name="permission" )#permission.form-control
+			label( for="type" ) Role:
+			select( name="type" )#type.form-control
 				option( disabled selected ) –
-				each permission in ['member', 'admin', 'superadmin']
+				each roleType in ['member', 'admin', 'superadmin']
 					option(
-						selected=( current != undefined && permission == current.permission.slug ),
-						value=permission
-					)= permission
+						selected=( current != undefined && roleType == current.type ),
+						value=roleType
+					)= roleType
 	.form-group
 		label: b Start
 		br

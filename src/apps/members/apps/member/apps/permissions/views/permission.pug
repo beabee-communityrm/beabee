@@ -1,7 +1,7 @@
 extends /views/notrack.pug
 
 block prepend title
-	- title = 'Edit Member Permission'
+	- title = 'Edit Member Roles'
 	- page = 'permissions'
 
 block contents
@@ -11,5 +11,5 @@ block contents
 		.col-md-3
 			include /apps/members/apps/member/views/partials/sidebar.pug
 		.col-md-9
-			+page_header( 'Update "' + current.permission + '" Permission' )
-			include partials/permission-form.pug
+			+page_header( 'Update "' + current.type + '" Role' )
+			include partials/role-form.pug

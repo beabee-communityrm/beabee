@@ -3,14 +3,14 @@ import _ from "lodash";
 import { createQueryBuilder, getRepository, SelectQueryBuilder } from "typeorm";
 
 import { Param } from "@core/utils/params";
-import { convertAnswers } from "@core/utils/polls";
+import { convertAnswers } from "@core/utils/callouts";
 
-import Member from "@models/Member";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
+import Contact from "@models/Contact";
 
 import { ExportResult } from "./BaseExport";
 import ActiveMembersExport from "./ActiveMembersExport";
-import Poll from "@models/Poll";
-import PollResponse from "@models/PollResponse";
 
 export default class EditionExport extends ActiveMembersExport {
   exportName = "Edition export";
@@ -19,9 +19,9 @@ export default class EditionExport extends ActiveMembersExport {
   idColumn = "m.id";
 
   async getParams(): Promise<Param[]> {
-    const polls: [string, string][] = (
-      await getRepository(Poll).find({ order: { date: "DESC" } })
-    ).map((poll) => [poll.slug, poll.title]);
+    const callouts: [string, string][] = (
+      await getRepository(Callout).find({ order: { date: "DESC" } })
+    ).map((callout) => [callout.slug, callout.title]);
 
     return [
       {
@@ -38,13 +38,13 @@ export default class EditionExport extends ActiveMembersExport {
         name: "pollSlug",
         label: "Include answers from a poll?",
         type: "select",
-        values: [["", ""], ...polls]
+        values: [["", ""], ...callouts]
       }
     ];
   }
 
-  protected get query(): SelectQueryBuilder<Member> {
-    return createQueryBuilder(Member, "m")
+  protected get query(): SelectQueryBuilder<Contact> {
+    return createQueryBuilder(Contact, "m")
       .innerJoinAndSelect("m.profile", "profile")
       .orderBy({
         firstname: "ASC",
@@ -52,7 +52,7 @@ export default class EditionExport extends ActiveMembersExport {
       });
   }
 
-  protected getNewItemsQuery(): SelectQueryBuilder<Member> {
+  protected getNewItemsQuery(): SelectQueryBuilder<Contact> {
     const query = super
       .getNewItemsQuery()
       .andWhere("m.contributionMonthlyAmount >= :amount")
@@ -68,47 +68,45 @@ export default class EditionExport extends ActiveMembersExport {
     return query;
   }
 
-  async getExport(members: Member[]): Promise<ExportResult> {
-    let latestResponseByMember: Record<
+  async getExport(contacts: Contact[]): Promise<ExportResult> {
+    let latestResponseByContact: Record<
       string,
-      WithRelationIds<PollResponse, "member">
+      WithRelationIds<CalloutResponse, "contact">
     > = {};
     if (this.ex?.params?.pollSlug) {
-      const responses = (await createQueryBuilder(PollResponse, "pr")
-        .where("pr.pollSlug = :pollSlug", {
-          pollSlug: this.ex.params.pollSlug
+      const responses = (await createQueryBuilder(CalloutResponse, "pr")
+        .where("pr.calloutSlug = :calloutSlug", {
+          calloutSlug: this.ex.params.pollSlug
         })
-        .innerJoinAndSelect("pr.poll", "poll")
-        .loadAllRelationIds({ relations: ["member"] })
+        .innerJoinAndSelect("pr.callout", "c")
+        .loadAllRelationIds({ relations: ["contact"] })
         .orderBy("pr.updatedAt")
-        .getMany()) as unknown as WithRelationIds<PollResponse, "member">[];
+        .getMany()) as unknown as WithRelationIds<CalloutResponse, "contact">[];
 
       for (const response of responses) {
-        latestResponseByMember[response.member] = response;
+        latestResponseByContact[response.contact] = response;
       }
     }
 
-    return members.map((member) => {
-      const deliveryAddress = member.profile.deliveryAddress || {
+    return contacts.map((contact) => {
+      const deliveryAddress = contact.profile.deliveryAddress || {
         line1: "",
         line2: "",
         city: "",
         postcode: ""
       };
-      const response = latestResponseByMember[member.id];
+      const response = latestResponseByContact[contact.id];
 
       return {
-        EmailAddress: member.email,
-        FirstName: member.firstname,
-        LastName: member.lastname,
+        EmailAddress: contact.email,
+        FirstName: contact.firstname,
+        LastName: contact.lastname,
         Address1: deliveryAddress.line1,
         Address2: deliveryAddress.line2,
         City: deliveryAddress.city,
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
-        ReferralCode: member.referralCode,
-        IsGift: member.contributionType === ContributionType.Gift,
-        ContributionMonthlyAmount: member.contributionMonthlyAmount,
-        ...(response && convertAnswers(response.poll, response.answers))
+        ContributionMonthlyAmount: contact.contributionMonthlyAmount,
+        ...(response && convertAnswers(response.callout, response.answers))
       };
     });
   }

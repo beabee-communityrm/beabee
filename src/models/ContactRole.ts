@@ -1,4 +1,4 @@
-import { PermissionType } from "@beabee/beabee-common";
+import { RoleType } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -6,15 +6,15 @@ import {
   ManyToOne,
   PrimaryColumn
 } from "typeorm";
-import type Member from "./Member";
+import type Contact from "./Contact";
 
 @Entity()
-export default class MemberPermission {
-  @ManyToOne("Member", "permissions", { primary: true })
-  member!: Member;
+export default class ContactRole {
+  @ManyToOne("Contact", "roles", { primary: true })
+  contact!: Contact;
 
   @PrimaryColumn()
-  permission!: PermissionType;
+  type!: RoleType;
 
   @CreateDateColumn()
   dateAdded!: Date;

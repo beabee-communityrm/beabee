@@ -5,9 +5,9 @@ import { wrapAsync } from "@core/utils";
 import { calcMonthsLeft } from "@core/utils/payment";
 
 import PaymentService from "@core/services/PaymentService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 const app = express();
 
@@ -16,9 +16,9 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const member = req.model as Member;
-    if (member.contributionType === ContributionType.Automatic) {
-      const payments = await PaymentService.getPayments(member);
+    const contact = req.model as Contact;
+    if (contact.contributionType === ContributionType.Automatic) {
+      const payments = await PaymentService.getPayments(contact);
 
       const successfulPayments = payments
         .filter((p) => p.isSuccessful)
@@ -28,21 +28,21 @@ app.get(
       const total = successfulPayments.reduce((a, b) => a + b, 0);
 
       res.render("automatic", {
-        member: req.model,
-        bankAccount: (await PaymentService.getContributionInfo(member))
+        member: contact,
+        bankAccount: (await PaymentService.getContributionInfo(contact))
           .paymentSource,
-        canChange: await PaymentService.canChangeContribution(member, true),
-        monthsLeft: calcMonthsLeft(member),
+        canChange: await PaymentService.canChangeContribution(contact, true),
+        monthsLeft: calcMonthsLeft(contact),
         payments,
         total
       });
     } else if (
-      member.contributionType === ContributionType.Manual ||
-      member.contributionType === ContributionType.None
+      contact.contributionType === ContributionType.Manual ||
+      contact.contributionType === ContributionType.None
     ) {
-      res.render("manual", { member: req.model });
+      res.render("manual", { member: contact });
     } else {
-      res.render("none", { member: req.model });
+      res.render("none", { member: contact });
     }
   })
 );
@@ -50,11 +50,11 @@ app.get(
 app.post(
   "/",
   wrapAsync(async (req, res) => {
-    const member = req.model as Member;
+    const contact = req.model as Contact;
 
     switch (req.body.action) {
       case "update-subscription":
-        await MembersService.updateMemberContribution(member, {
+        await ContactsService.updateContactContribution(contact, {
           monthlyAmount: Number(req.body.amount),
           period: req.body.period,
           prorate: req.body.prorate === "true",
@@ -64,14 +64,14 @@ app.post(
         break;
 
       case "cancel-subscription":
-        await MembersService.cancelMemberContribution(
-          member,
+        await ContactsService.cancelContactContribution(
+          contact,
           "cancelled-contribution"
         );
         break;
 
       case "force-update":
-        await MembersService.forceUpdateMemberContribution(member, {
+        await ContactsService.forceUpdateContactContribution(contact, {
           type: req.body.type,
           amount: req.body.amount,
           period: req.body.period,

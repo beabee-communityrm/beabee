@@ -1,8 +1,9 @@
 import {
   ContributionPeriod,
-  PermissionTypes,
-  PermissionType,
-  paymentFilters
+  RoleTypes,
+  RoleType,
+  paymentFilters,
+  NewsletterStatus
 } from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import {
@@ -30,32 +31,34 @@ import { Brackets, createQueryBuilder, getRepository } from "typeorm";
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
 import PaymentFlowService from "@core/services/PaymentFlowService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
+import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import { ContributionInfo } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import JoinFlow from "@models/JoinFlow";
-import Member from "@models/Member";
-import MemberProfile from "@models/MemberProfile";
+import Contact from "@models/Contact";
+import ContactProfile from "@models/ContactProfile";
 import Payment from "@models/Payment";
-import MemberPermission from "@models/MemberPermission";
+import ContactRole from "@models/ContactRole";
 
 import { UUIDParam } from "@api/data";
 import {
-  convertMemberToData,
-  fetchPaginatedMembers,
-  GetMemberData,
-  GetMemberQuery,
-  GetMemberRoleData,
-  GetMembersQuery,
-  GetMemberWith,
+  convertContactToData,
+  CreateContactData,
+  fetchPaginatedContacts,
+  GetContactData,
+  GetContactQuery,
+  GetContactRoleData,
+  GetContactsQuery,
+  GetContactWith,
   GetPaymentData,
   GetPaymentsQuery,
-  UpdateMemberData,
-  UpdateMemberRoleData
-} from "@api/data/MemberData";
+  UpdateContactRoleData,
+  UpdateContactData
+} from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
   StartJoinFlowData
@@ -77,11 +80,11 @@ import config from "@config";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
-// and also ensures the user has the correct permissions
+// and also ensures the user has the correct roles
 function TargetUser() {
   return createParamDecorator({
     required: true,
-    value: async (action): Promise<Member> => {
+    value: async (action): Promise<Contact> => {
       const request: Request = action.request;
       const user = request.user;
       if (!user) {
@@ -91,7 +94,7 @@ function TargetUser() {
       const id = request.params.id;
       if (id === "me" || id === user.id) {
         return user;
-      } else if (!user.hasPermission("admin")) {
+      } else if (!user.hasRole("admin")) {
         throw new UnauthorizedError();
       } else {
         // TODO: Fix invalid UUIDs
@@ -99,7 +102,7 @@ function TargetUser() {
         // uuid.id = id;
         // await validateOrReject(uuid);
 
-        const target = await MembersService.findOne(id);
+        const target = await ContactsService.findOne(id);
         if (target) {
           return target;
         } else {
@@ -110,80 +113,94 @@ function TargetUser() {
   });
 }
 
-@JsonController("/member/stats")
-export class MemberStatsController {
-  @Get("/")
-  async stats(
-    @Req() req: Request,
-    @Res() res: Response
-  ): Promise<{ total: number }> {
-    if (req.headers.origin) {
-      if (config.trackDomains.indexOf(req.headers.origin) === -1) {
-        throw new UnauthorizedError();
-      } else {
-        res.set("Access-Control-Allow-Origin", req.headers.origin);
+@JsonController("/contact")
+@Authorized()
+export class ContactController {
+  @Authorized("admin")
+  @Post("/")
+  async createContact(@Body() data: CreateContactData) {
+    const contact = await ContactsService.createContact(
+      {
+        email: data.email,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        ...(data.password && {
+          password: await generatePassword(data.password)
+        })
+      },
+      data.profile && {
+        ...data.profile,
+        ...(data.profile.newsletterStatus === NewsletterStatus.Subscribed && {
+          // Automatically add default groups for now, this should be revisited
+          // once groups are exposed to the frontend
+          newsletterGroups: OptionsService.getList("newsletter-default-groups")
+        })
+      }
+    );
+
+    if (data.roles) {
+      for (const role of data.roles) {
+        await ContactsService.updateContactRole(contact, role.role, role);
       }
     }
 
-    const total = await createQueryBuilder(Member, "m")
-      .innerJoin("m.permissions", "mp")
-      .andWhere("mp.permission = 'member' AND mp.dateAdded <= :now")
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where("mp.dateExpires IS NULL").orWhere("mp.dateExpires > :now");
-        })
-      )
-      .setParameters({ now: new Date() })
-      .getCount();
+    if (data.contribution) {
+      await ContactsService.forceUpdateContactContribution(
+        contact,
+        data.contribution
+      );
+    }
 
-    return { total };
+    return convertContactToData(contact, {
+      with: [
+        ...(data.profile ? [GetContactWith.Profile] : []),
+        ...(data.roles ? [GetContactWith.Roles] : [])
+      ],
+      withRestricted: true
+    });
   }
-}
 
-@JsonController("/member")
-@Authorized()
-export class MemberController {
   @Authorized("admin")
   @Get("/")
-  async getMembers(
-    @QueryParams() query: GetMembersQuery
-  ): Promise<Paginated<GetMemberData>> {
-    return await fetchPaginatedMembers(query, {
+  async getContacts(
+    @QueryParams() query: GetContactsQuery
+  ): Promise<Paginated<GetContactData>> {
+    return await fetchPaginatedContacts(query, {
       withRestricted: true
     });
   }
 
   @Get("/:id")
-  async getMember(
-    @CurrentUser() member: Member,
-    @TargetUser() target: Member,
-    @QueryParams() query: GetMemberQuery
-  ): Promise<GetMemberData> {
-    if (query.with?.includes(GetMemberWith.Profile)) {
-      target.profile = await getRepository(MemberProfile).findOneOrFail({
-        member: target
+  async getContact(
+    @CurrentUser() caller: Contact,
+    @TargetUser() target: Contact,
+    @QueryParams() query: GetContactQuery
+  ): Promise<GetContactData> {
+    if (query.with?.includes(GetContactWith.Profile)) {
+      target.profile = await getRepository(ContactProfile).findOneOrFail({
+        contact: target
       });
     }
-    const data = convertMemberToData(target, {
+    const data = convertContactToData(target, {
       with: query.with,
-      withRestricted: member.hasPermission("admin")
+      withRestricted: caller.hasRole("admin")
     });
     return {
       ...data,
-      ...(query.with?.includes(GetMemberWith.Contribution) && {
+      ...(query.with?.includes(GetContactWith.Contribution) && {
         contribution: await PaymentService.getContributionInfo(target)
       })
     };
   }
 
   @Patch("/:id")
-  async updateMember(
-    @CurrentUser() member: Member,
-    @TargetUser() target: Member,
-    @PartialBody() data: UpdateMemberData
-  ): Promise<GetMemberData> {
+  async updateContact(
+    @CurrentUser() caller: Contact,
+    @TargetUser() target: Contact,
+    @PartialBody() data: UpdateContactData // Should be Partial<UpdateContactData>
+  ): Promise<GetContactData> {
     if (data.email || data.firstname || data.lastname || data.password) {
-      await MembersService.updateMember(target, {
+      await ContactsService.updateContact(target, {
         ...(data.email && { email: data.email }),
         ...(data.firstname !== undefined && { firstname: data.firstname }),
         ...(data.lastname !== undefined && { lastname: data.lastname }),
@@ -195,30 +212,30 @@ export class MemberController {
 
     if (data.profile) {
       if (
-        !member.hasPermission("admin") &&
+        !caller.hasRole("admin") &&
         (data.profile.tags || data.profile.notes || data.profile.description)
       ) {
         throw new UnauthorizedError();
       }
 
-      await MembersService.updateMemberProfile(target, data.profile);
+      await ContactsService.updateContactProfile(target, data.profile);
     }
 
-    return await this.getMember(member, target, {
-      with: data.profile ? [GetMemberWith.Profile] : []
+    return await this.getContact(caller, target, {
+      with: data.profile ? [GetContactWith.Profile] : []
     });
   }
 
   @Get("/:id/contribution")
   async getContribution(
-    @TargetUser() target: Member
+    @TargetUser() target: Contact
   ): Promise<ContributionInfo> {
     return await PaymentService.getContributionInfo(target);
   }
 
   @Patch("/:id/contribution")
   async updateContribution(
-    @TargetUser() target: Member,
+    @TargetUser() target: Contact,
     @Body() data: UpdateContributionData
   ): Promise<ContributionInfo> {
     // TODO: can we move this into validators?
@@ -233,14 +250,14 @@ export class MemberController {
       throw new CantUpdateContribution();
     }
 
-    await MembersService.updateMemberContribution(target, contributionData);
+    await ContactsService.updateContactContribution(target, contributionData);
 
     return await this.getContribution(target);
   }
 
   @Post("/:id/contribution")
   async startContribution(
-    @TargetUser() target: Member,
+    @TargetUser() target: Contact,
     @Body() data: StartContributionData
   ): Promise<PaymentFlowParams> {
     return await this.handleStartUpdatePaymentMethod(target, data);
@@ -248,8 +265,8 @@ export class MemberController {
 
   @OnUndefined(204)
   @Post("/:id/contribution/cancel")
-  async cancelContribution(@TargetUser() target: Member): Promise<void> {
-    await MembersService.cancelMemberContribution(
+  async cancelContribution(@TargetUser() target: Contact): Promise<void> {
+    await ContactsService.cancelContactContribution(
       target,
       "cancelled-contribution-no-survey"
     );
@@ -257,11 +274,11 @@ export class MemberController {
 
   @Post("/:id/contribution/complete")
   async completeStartContribution(
-    @TargetUser() target: Member,
+    @TargetUser() target: Contact,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
-    await MembersService.updateMemberContribution(target, joinFlow.joinForm);
+    await ContactsService.updateContactContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
   }
 
@@ -270,20 +287,20 @@ export class MemberController {
   @Authorized("admin")
   @Patch("/:id/contribution/force")
   async forceUpdateContribution(
-    @TargetUser() target: Member,
+    @TargetUser() target: Contact,
     @Body() data: ForceUpdateContributionData
   ): Promise<ContributionInfo> {
-    await MembersService.forceUpdateMemberContribution(target, data);
+    await ContactsService.forceUpdateContactContribution(target, data);
     return await this.getContribution(target);
   }
 
   @Get("/:id/payment")
   async getPayments(
-    @TargetUser() target: Member,
+    @TargetUser() target: Contact,
     @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
     const targetQuery = mergeRules(query, [
-      { field: "member", operator: "equal", value: [target.id] }
+      { field: "contact", operator: "equal", value: [target.id] }
     ]);
     const data = await fetchPaginated(
       Payment,
@@ -303,7 +320,7 @@ export class MemberController {
 
   @Put("/:id/payment-method")
   async updatePaymentMethod(
-    @TargetUser() target: Member,
+    @TargetUser() target: Contact,
     @Body() data: StartJoinFlowData
   ): Promise<PaymentFlowParams> {
     const paymentMethod =
@@ -326,7 +343,7 @@ export class MemberController {
 
   @Post("/:id/payment-method/complete")
   async completeUpdatePaymentMethod(
-    @TargetUser() target: Member,
+    @TargetUser() target: Contact,
     @Body() data: CompleteJoinFlowData
   ): Promise<ContributionInfo> {
     await this.handleCompleteUpdatePaymentMethod(target, data);
@@ -334,7 +351,7 @@ export class MemberController {
   }
 
   private async handleStartUpdatePaymentMethod(
-    target: Member,
+    target: Contact,
     data: StartContributionData
   ) {
     if (!(await PaymentService.canChangeContribution(target, false))) {
@@ -360,7 +377,7 @@ export class MemberController {
   }
 
   private async handleCompleteUpdatePaymentMethod(
-    target: Member,
+    target: Contact,
     data: CompleteJoinFlowData
   ): Promise<JoinFlow> {
     if (!(await PaymentService.canChangeContribution(target, false))) {
@@ -383,12 +400,12 @@ export class MemberController {
   @Authorized("admin")
   @Put("/:id/role/:role")
   async updateRole(
-    @CurrentUser() member: Member,
-    @TargetUser() target: Member,
-    @Param("role") role: string,
-    @Body() data: UpdateMemberRoleData
-  ): Promise<GetMemberRoleData | undefined> {
-    if (role === "superadmin" && !member.hasPermission("superadmin")) {
+    @CurrentUser() caller: Contact,
+    @TargetUser() target: Contact,
+    @Param("role") roleType: string,
+    @Body() data: UpdateContactRoleData
+  ): Promise<GetContactRoleData | undefined> {
+    if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
       throw new UnauthorizedError();
     }
 
@@ -396,16 +413,16 @@ export class MemberController {
       throw new BadRequestError();
     }
 
-    if (PermissionTypes.includes(role as PermissionType)) {
-      const permission = await getRepository(MemberPermission).save({
-        member: target,
-        permission: role as PermissionType,
+    if (RoleTypes.includes(roleType as RoleType)) {
+      const role = await getRepository(ContactRole).save({
+        contact: target,
+        type: roleType as RoleType,
         ...data
       });
       return {
-        role: permission.permission,
-        dateAdded: permission.dateAdded,
-        dateExpires: permission.dateExpires
+        role: role.type,
+        dateAdded: role.dateAdded,
+        dateExpires: role.dateExpires
       };
     }
   }
@@ -414,17 +431,17 @@ export class MemberController {
   @Delete("/:id/role/:role")
   @OnUndefined(201)
   async deleteRole(
-    @CurrentUser() member: Member,
-    @TargetUser() target: Member,
+    @CurrentUser() caller: Contact,
+    @TargetUser() target: Contact,
     @Param("role") role: string
   ): Promise<void> {
-    if (role === "superadmin" && !member.hasPermission("superadmin")) {
+    if (role === "superadmin" && !caller.hasRole("superadmin")) {
       throw new UnauthorizedError();
     }
 
-    const result = await getRepository(MemberPermission).delete({
-      member: target,
-      permission: role as PermissionType
+    const result = await getRepository(ContactRole).delete({
+      contact: target,
+      type: role as RoleType
     });
 
     if (result.affected === 0) {

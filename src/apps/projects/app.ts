@@ -6,9 +6,9 @@ import { createQueryBuilder, getRepository } from "typeorm";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Project from "@models/Project";
-import ProjectMember from "@models/ProjectMember";
+import ProjectContact from "@models/ProjectContact";
 import ProjectEngagement from "@models/ProjectEngagement";
 
 import { createProjectSchema } from "./schemas.json";
@@ -25,30 +25,30 @@ interface CreateEngagementSchema {
   date: string;
   time: string;
   notes: string;
-  memberId: string;
+  contactId: string;
 }
 
 interface UpdateProjectAction extends CreateProjectSchema {
   action: "update";
 }
 
-interface AddMembersAction {
-  action: "add-members";
-  memberIds: string[];
+interface AddContactsAction {
+  action: "add-contacts";
+  contactIds: string[];
 }
 
-interface UpdateMemberTagAction {
-  action: "update-member-tag";
-  projectMemberId: string;
+interface UpdateContactTagAction {
+  action: "update-contact-tag";
+  projectContactId: string;
   tag: string;
 }
 
-interface AddMemberEngagementAction extends CreateEngagementSchema {
-  action: "add-member-engagement";
+interface AddContactEngagementAction extends CreateEngagementSchema {
+  action: "add-contact-engagement";
 }
 
-interface DeleteMemberEngagementAction {
-  action: "delete-member-engagement";
+interface DeleteContactEngagementAction {
+  action: "delete-contact-engagement";
   projectEngagementId: string;
 }
 
@@ -58,10 +58,10 @@ interface DeleteProjectAction {
 
 type UpdateAction =
   | UpdateProjectAction
-  | AddMembersAction
-  | UpdateMemberTagAction
-  | AddMemberEngagementAction
-  | DeleteMemberEngagementAction
+  | AddContactsAction
+  | UpdateContactTagAction
+  | AddContactEngagementAction
+  | DeleteContactEngagementAction
   | DeleteProjectAction;
 
 function schemaToProject(
@@ -73,13 +73,13 @@ function schemaToProject(
 
 function schemaToEngagement(
   data: CreateEngagementSchema
-): Pick<ProjectEngagement, "type" | "notes" | "date" | "toMember"> {
+): Pick<ProjectEngagement, "type" | "notes" | "date" | "toContact"> {
   const { type, date, time, notes } = data;
   return {
     type,
     notes,
     date: moment(`${date}T${time}`).toDate(),
-    toMember: { id: data.memberId } as Member
+    toContact: { id: data.contactId } as Contact
   };
 }
 
@@ -93,7 +93,7 @@ app.get(
   "/",
   wrapAsync(async (req, res) => {
     const projects = await createQueryBuilder(Project, "p")
-      .loadRelationCountAndMap("p.memberCount", "p.members")
+      .loadRelationCountAndMap("p.contactCount", "p.contacts")
       .getMany();
 
     res.render("index", { projects });
@@ -119,30 +119,30 @@ app.get(
   wrapAsync(async (req, res) => {
     const project = req.model as Project;
 
-    const projectMembers = await getRepository(ProjectMember).find({
+    const projectContacts = await getRepository(ProjectContact).find({
       where: { project },
-      relations: ["member", "member.profile"]
+      relations: ["contact", "contact.profile"]
     });
     const engagements = await getRepository(ProjectEngagement).find({
       where: { project },
-      relations: ["byMember", "toMember"]
+      relations: ["byContact", "toContact"]
     });
 
-    const projectMembersWithEngagement = projectMembers.map((pm) => {
-      const memberEngagements = engagements.filter(
-        (e) => pm.member.id === e.toMember.id
+    const projectContactsWithEngagement = projectContacts.map((pm) => {
+      const contactEngagements = engagements.filter(
+        (e) => pm.contact.id === e.toContact.id
       );
       return {
         ...pm,
-        engagements: memberEngagements,
-        engagementsByDate: _.sortBy(memberEngagements, "date"),
-        latestEngagement: memberEngagements[memberEngagements.length - 1]
+        engagements: contactEngagements,
+        engagementsByDate: _.sortBy(contactEngagements, "date"),
+        latestEngagement: contactEngagements[contactEngagements.length - 1]
       };
     });
 
     res.render("project", {
       project,
-      projectMembers: projectMembersWithEngagement
+      projectContacts: projectContactsWithEngagement
     });
   })
 );
@@ -160,37 +160,37 @@ app.post(
         req.flash("success", "project-updated");
         res.redirect(req.originalUrl);
         break;
-      case "add-members":
-        await getRepository(ProjectMember).insert(
-          data.memberIds.map((memberId) => ({
+      case "add-contacts":
+        await getRepository(ProjectContact).insert(
+          data.contactIds.map((contactId) => ({
             project,
-            member: { id: memberId }
+            contact: { id: contactId }
           }))
         );
         req.flash("success", "project-members-added");
         res.redirect(req.originalUrl);
         break;
-      case "update-member-tag":
-        await getRepository(ProjectMember).update(data.projectMemberId, {
+      case "update-contact-tag":
+        await getRepository(ProjectContact).update(data.projectContactId, {
           tag: data.tag
         });
-        res.redirect(req.originalUrl + "#members");
+        res.redirect(req.originalUrl + "#contacts");
         break;
-      case "add-member-engagement":
+      case "add-contact-engagement":
         await getRepository(ProjectEngagement).insert({
           ...schemaToEngagement(data),
           project,
-          byMember: req.user!
+          byContact: req.user!
         });
-        res.redirect(req.originalUrl + "#members");
+        res.redirect(req.originalUrl + "#contacts");
         break;
-      case "delete-member-engagement":
+      case "delete-contact-engagement":
         await getRepository(ProjectEngagement).delete(data.projectEngagementId);
-        res.redirect(req.originalUrl + "#members");
+        res.redirect(req.originalUrl + "#contacts");
         break;
       case "delete":
         await getRepository(ProjectEngagement).delete({ project });
-        await getRepository(ProjectMember).delete({ project });
+        await getRepository(ProjectContact).delete({ project });
         await getRepository(Project).delete(project.id);
         req.flash("success", "project-deleted");
         res.redirect("/projects");

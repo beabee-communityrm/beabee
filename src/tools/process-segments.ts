@@ -7,46 +7,45 @@ import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import SegmentService from "@core/services/SegmentService";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
-import SegmentMember from "@models/SegmentMember";
+import SegmentContact from "@models/SegmentContact";
 
 const log = mainLogger.child({ app: "process-segments" });
 
 async function processSegment(segment: Segment) {
   log.info("Process segment " + segment.name);
 
-  const matchedMembers = await SegmentService.getSegmentMembers(segment);
+  const matchedContacts = await SegmentService.getSegmentContacts(segment);
 
-  const segmentMembers = (await getRepository(SegmentMember).find({
+  const segmentContacts = (await getRepository(SegmentContact).find({
     where: { segment },
     loadRelationIds: true
-  })) as unknown as WithRelationIds<SegmentMember, "member">[];
+  })) as unknown as WithRelationIds<SegmentContact, "contact">[];
 
-  const newMembers = matchedMembers.filter((m) =>
-    segmentMembers.every((sm) => sm.member !== m.id)
+  const newContacts = matchedContacts.filter((m) =>
+    segmentContacts.every((sm) => sm.contact !== m.id)
   );
-  const oldSegmentMembers = segmentMembers.filter((sm) =>
-    matchedMembers.every((m) => m.id !== sm.member)
+  const oldSegmentContacts = segmentContacts.filter((sm) =>
+    matchedContacts.every((m) => m.id !== sm.contact)
   );
 
   log.info(
-    `Segment ${segment.name} has ${segmentMembers.length} existing members, ${newMembers.length} new members and ${oldSegmentMembers.length} old members`
+    `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContacts.length} old contacts`
   );
 
-  await getRepository(SegmentMember).delete({
+  await getRepository(SegmentContact).delete({
     segment,
-    member: In(oldSegmentMembers.map((sm) => sm.member as unknown as Member)) // Types seem strange here
+    contact: In(
+      oldSegmentContacts.map((sm) => sm.contact as unknown as Contact)
+    ) // Types seem strange here
   });
-  await getRepository(SegmentMember).insert(
-    newMembers.map((member) => ({
-      segment,
-      member
-    }))
+  await getRepository(SegmentContact).insert(
+    newContacts.map((contact) => ({ segment, contact }))
   );
 
   const outgoingEmails = await getRepository(SegmentOngoingEmail).find({
@@ -54,29 +53,34 @@ async function processSegment(segment: Segment) {
     relations: ["email"]
   });
 
-  // Only fetch old members if we need to
-  const oldMembers =
+  // Only fetch old contacts if we need to
+  const oldContacts =
     segment.newsletterTag ||
     outgoingEmails.some((oe) => oe.trigger === "onLeave")
-      ? await MembersService.findByIds(oldSegmentMembers.map((sm) => sm.member))
+      ? await ContactsService.findByIds(
+          oldSegmentContacts.map((sm) => sm.contact)
+        )
       : [];
 
   for (const outgoingEmail of outgoingEmails) {
-    const emailMembers =
+    const emailContacts =
       outgoingEmail.trigger === "onLeave"
-        ? oldMembers
+        ? oldContacts
         : outgoingEmail.trigger === "onJoin"
-        ? newMembers
+        ? newContacts
         : [];
-    if (emailMembers.length > 0) {
-      await EmailService.sendEmailToMembers(outgoingEmail.email, emailMembers);
+    if (emailContacts.length > 0) {
+      await EmailService.sendEmailToContact(outgoingEmail.email, emailContacts);
     }
   }
 
   if (segment.newsletterTag) {
-    await NewsletterService.addTagToMembers(newMembers, segment.newsletterTag);
-    await NewsletterService.removeTagFromMembers(
-      oldMembers,
+    await NewsletterService.addTagToContacts(
+      newContacts,
+      segment.newsletterTag
+    );
+    await NewsletterService.removeTagFromContacts(
+      oldContacts,
       segment.newsletterTag
     );
   }

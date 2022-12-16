@@ -2,7 +2,8 @@ import {
   ContributionPeriod,
   NewsletterStatus,
   PaymentStatus,
-  PermissionType
+  RoleType,
+  RoleTypes
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
@@ -26,14 +27,15 @@ import IsPassword from "@api/validators/IsPassword";
 import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import { ForceUpdateContributionData } from "../ContributionData";
 
-interface MemberData {
+interface ContactData {
   email: string;
   firstname: string;
   lastname: string;
 }
 
-interface MemberProfileData {
+interface ContactProfileData {
   telephone: string;
   twitter: string;
   preferredContact: string;
@@ -48,7 +50,7 @@ interface MemberProfileData {
   description?: string;
 }
 
-export class UpdateMemberRoleData {
+export class UpdateContactRoleData {
   @Type(() => Date)
   @IsDate()
   dateAdded!: Date;
@@ -59,36 +61,44 @@ export class UpdateMemberRoleData {
   dateExpires!: Date | null;
 }
 
-export interface GetMemberRoleData extends UpdateMemberRoleData {
-  role: PermissionType;
+export interface GetContactRoleData extends UpdateContactRoleData {
+  role: RoleType;
 }
 
-export interface GetMemberData extends MemberData {
+export class CreateContactRoleData
+  extends UpdateContactRoleData
+  implements GetContactRoleData
+{
+  @IsIn(RoleTypes)
+  role!: RoleType;
+}
+
+export interface GetContactData extends ContactData {
   id: string;
   joined: Date;
   lastSeen?: Date;
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
-  activeRoles: PermissionType[];
-  profile?: MemberProfileData;
-  roles?: GetMemberRoleData[];
+  activeRoles: RoleType[];
+  profile?: ContactProfileData;
+  roles?: GetContactRoleData[];
   contribution?: ContributionInfo;
 }
 
-export enum GetMemberWith {
+export enum GetContactWith {
   Contribution = "contribution",
   Profile = "profile",
   Roles = "roles"
 }
 
-export class GetMemberQuery {
+export class GetContactQuery {
   @IsArray()
   @IsOptional()
-  @IsEnum(GetMemberWith, { each: true })
-  with?: GetMemberWith[];
+  @IsEnum(GetContactWith, { each: true })
+  with?: GetContactWith[];
 }
 
-const memberSortFields = [
+const contactSortFields = [
   "firstname",
   "lastname",
   "email",
@@ -99,14 +109,14 @@ const memberSortFields = [
   "membershipExpires"
 ] as const;
 
-// TODO: Use a mixin to inherit from GetMemberQuery?
-export class GetMembersQuery extends GetPaginatedQuery {
+// TODO: Use a mixin to inherit from GetContactQuery?
+export class GetContactsQuery extends GetPaginatedQuery {
   @IsArray()
   @IsOptional()
-  @IsEnum(GetMemberWith, { each: true })
-  with?: GetMemberWith[];
+  @IsEnum(GetContactWith, { each: true })
+  with?: GetContactWith[];
 
-  @IsIn(memberSortFields)
+  @IsIn(contactSortFields)
   sort?: string;
 }
 
@@ -127,56 +137,81 @@ class UpdateAddressData implements Address {
   postcode!: string;
 }
 
-class UpdateMemberProfileData implements Partial<MemberProfileData> {
+class UpdateContactProfileData implements Partial<ContactProfileData> {
+  @IsOptional()
   @IsString()
   telephone?: string;
 
+  @IsOptional()
   @IsString()
   twitter?: string;
 
+  @IsOptional()
   @IsString()
   preferredContact?: string;
 
+  @IsOptional()
   @IsString({ each: true })
   newsletterGroups?: string[];
 
+  @IsOptional()
   @IsBoolean()
   deliveryOptIn?: boolean;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => UpdateAddressData)
   deliveryAddress?: UpdateAddressData;
 
+  @IsOptional()
   @IsEnum(NewsletterStatus)
   newsletterStatus?: NewsletterStatus;
 
   // Admin only
+
+  @IsOptional()
   @IsString({ each: true })
   tags?: string[];
 
+  @IsOptional()
   @IsString()
   notes?: string;
 
+  @IsOptional()
   @IsString()
   description?: string;
 }
 
-export class UpdateMemberData implements Partial<MemberData> {
+export class UpdateContactData implements ContactData {
   @IsEmail()
-  email?: string;
+  email!: string;
 
   @IsString()
-  firstname?: string;
+  firstname!: string;
 
   @IsString()
-  lastname?: string;
+  lastname!: string;
 
+  @IsOptional()
   @Validate(IsPassword)
   password?: string;
 
+  @IsOptional()
   @ValidateNested()
-  @Type(() => UpdateMemberProfileData)
-  profile?: UpdateMemberProfileData;
+  @Type(() => UpdateContactProfileData)
+  profile?: UpdateContactProfileData;
+}
+
+export class CreateContactData extends UpdateContactData {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ForceUpdateContributionData)
+  contribution?: ForceUpdateContributionData;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreateContactRoleData)
+  roles?: CreateContactRoleData[];
 }
 
 export interface GetPaymentData {
