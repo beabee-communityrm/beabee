@@ -24,7 +24,7 @@ export default class GiftService {
   private static readonly giftMonthlyAmount = 3;
 
   static async createGiftFlow(giftForm: GiftForm): Promise<string> {
-    log.info("Create gift flow", giftForm);
+    log.info("Create gift flow", { giftForm });
 
     const giftFlow = await GiftService.createGiftFlowWithCode(giftForm);
 
@@ -53,13 +53,15 @@ export default class GiftService {
   }
 
   static async completeGiftFlow(sessionId: string): Promise<void> {
-    const giftFlowRepository = getRepository(GiftFlow);
-    const giftFlow = await giftFlowRepository.findOne({ where: { sessionId } });
+    const giftFlow = await getRepository(GiftFlow).findOne({
+      where: { sessionId }
+    });
 
     log.info("Complete gift flow", { sessionId, giftFlowId: giftFlow?.id });
 
     if (giftFlow) {
-      await giftFlowRepository.update(giftFlow.id, { completed: true });
+      giftFlow.completed = true;
+      await getRepository(GiftFlow).update(giftFlow.id, { completed: true });
 
       const { fromName, fromEmail, firstname, startDate } = giftFlow.giftForm;
       const now = moment.utc();
@@ -109,8 +111,6 @@ export default class GiftService {
 
     if (giftFlow.processed) return;
 
-    await getRepository(GiftFlow).update(giftFlow.id, { processed: true });
-
     const role = getRepository(ContactRole).create({
       type: "member",
       dateExpires: now.clone().add(months, "months").toDate()
@@ -133,6 +133,7 @@ export default class GiftService {
       }
     );
 
+    giftFlow.processed = true;
     giftFlow.giftee = contact;
     await getRepository(GiftFlow).save(giftFlow);
 
