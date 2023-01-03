@@ -36,7 +36,7 @@ export class StatsController {
       .innerJoin("m.roles", "mp")
       .where("m.joined BETWEEN :from AND :to", query)
       .andWhere(
-        "mp.role = 'member' AND mp.dateAdded BETWEEN :from AND :to",
+        "mp.type = 'member' AND mp.dateAdded BETWEEN :from AND :to",
         query
       )
       .getCount();
