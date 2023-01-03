@@ -24,7 +24,7 @@ export default class GiftService {
   private static readonly giftMonthlyAmount = 3;
 
   static async createGiftFlow(giftForm: GiftForm): Promise<string> {
-    log.info("Create gift flow", giftForm);
+    log.info("Create gift flow", { giftForm });
 
     const giftFlow = await GiftService.createGiftFlowWithCode(giftForm);
 
