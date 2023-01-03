@@ -8,15 +8,15 @@ import stripe from "@core/lib/stripe";
 import { isDuplicateIndex } from "@core/utils";
 
 import EmailService from "@core/services/EmailService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
 import Address from "@models/Address";
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
-import MemberPermission from "@models/MemberPermission";
+import ContactRole from "@models/ContactRole";
 
 import config from "@config";
-import { generateMemberCode } from "@core/utils/member";
+import { generateContactCode } from "@core/utils/contact";
 
 const log = mainLogger.child({ app: "gift-service" });
 
@@ -111,19 +111,19 @@ export default class GiftService {
 
     await getRepository(GiftFlow).update(giftFlow.id, { processed: true });
 
-    const permission = getRepository(MemberPermission).create({
-      permission: "member",
+    const role = getRepository(ContactRole).create({
+      type: "member",
       dateExpires: now.clone().add(months, "months").toDate()
     });
 
-    const member = await MembersService.createMember(
+    const contact = await ContactsService.createContact(
       {
         firstname,
         lastname,
         email,
         contributionType: ContributionType.Gift,
         contributionMonthlyAmount: GiftService.giftMonthlyAmount,
-        permissions: [permission]
+        roles: [role]
       },
       {
         deliveryOptIn: !!deliveryAddress?.line1,
@@ -133,15 +133,15 @@ export default class GiftService {
       }
     );
 
-    giftFlow.giftee = member;
+    giftFlow.giftee = contact;
     await getRepository(GiftFlow).save(giftFlow);
 
     const sendAt = sendImmediately
       ? undefined
       : now.clone().startOf("day").add({ h: 9 }).toDate();
-    await EmailService.sendTemplateToMember(
+    await EmailService.sendTemplateToContact(
       "giftee-success",
-      member,
+      contact,
       { fromName, message: message || "", giftCode: giftFlow.setupCode },
       { sendAt }
     );
@@ -170,7 +170,7 @@ export default class GiftService {
     try {
       const giftFlow = new GiftFlow();
       giftFlow.sessionId = "UNKNOWN";
-      giftFlow.setupCode = generateMemberCode(giftForm)!;
+      giftFlow.setupCode = generateContactCode(giftForm)!;
       giftFlow.giftForm = giftForm;
       await getRepository(GiftFlow).insert(giftFlow);
       return giftFlow;

@@ -83,7 +83,7 @@ export class SignupController {
       throw new NotFoundError();
     }
 
-    const member = await PaymentFlowService.completeConfirmEmail(joinFlow);
-    await login(req, member);
+    const contact = await PaymentFlowService.completeConfirmEmail(joinFlow);
+    await login(req, contact);
   }
 }

@@ -7,7 +7,7 @@ export async function convertSegmentToData(
   opts: { with?: GetSegmentWith[] }
 ): Promise<GetSegmentData> {
   const contactCount = opts.with?.includes(GetSegmentWith.contactCount)
-    ? await SegmentService.getSegmentMemberCount(segment)
+    ? await SegmentService.getSegmentContactCount(segment)
     : undefined;
 
   return {

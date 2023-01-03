@@ -1,16 +1,16 @@
-import { PermissionTypes, PermissionType } from "@beabee/beabee-common";
+import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import express from "express";
 import passport from "passport";
 import { getRepository } from "typeorm";
 
 import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
-import { loginAndRedirect } from "@core/utils/member";
+import { loginAndRedirect } from "@core/utils/contact";
 
 import EmailService from "@core/services/EmailService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
+import ContactRole from "@models/ContactRole";
 import LoginOverrideFlow from "@models/LoginOverrideFlow";
-import MemberPermission from "@models/MemberPermission";
 
 import config from "@config";
 
@@ -45,30 +45,30 @@ app.get(
 
     const loginOverride = await getRepository(LoginOverrideFlow).findOne({
       where: { id: req.params.code },
-      relations: ["member"]
+      relations: ["contact"]
     });
 
-    if (loginOverride?.isValid && loginOverride.member.id === req.params.id) {
+    if (loginOverride?.isValid && loginOverride.contact.id === req.params.id) {
       // await getRepository(LoginOverrideFlow).delete({ id: req.params.code });
       loginAndRedirect(
         req,
         res,
-        loginOverride.member,
+        loginOverride.contact,
         isValidNextUrl(nextParam) ? nextParam : "/"
       );
     } else {
-      const member = await MembersService.findOne(req.params.id);
-      if (member) {
+      const contact = await ContactsService.findOne(req.params.id);
+      if (contact) {
         // Generate a new link and email the user
         const newLoginOverride = await getRepository(LoginOverrideFlow).save({
-          member
+          contact
         });
 
-        await EmailService.sendTemplateToMember(
+        await EmailService.sendTemplateToContact(
           "login-override-resend",
-          member,
+          contact,
           {
-            loginOverrideLink: `${config.audience}/login/code/${member.id}/${
+            loginOverrideLink: `${config.audience}/login/code/${contact.id}/${
               newLoginOverride.id
             }${getNextParam(nextParam)}`
           }
@@ -86,21 +86,21 @@ if (config.dev) {
   app.get(
     "/as/:id",
     wrapAsync(async (req, res) => {
-      let member;
-      if (PermissionTypes.indexOf(req.params.id as PermissionType) > -1) {
-        const permission = await getRepository(MemberPermission).findOne({
+      let contact;
+      if (RoleTypes.indexOf(req.params.id as RoleType) > -1) {
+        const role = await getRepository(ContactRole).findOne({
           where: {
-            permission: req.params.id as PermissionType
+            type: req.params.id as RoleType
           },
-          relations: ["member"]
+          relations: ["contact"]
         });
-        member = permission?.member;
+        contact = role?.contact;
       } else {
-        member = await MembersService.findOne(req.params.id);
+        contact = await ContactsService.findOne(req.params.id);
       }
 
-      if (member) {
-        loginAndRedirect(req, res, member);
+      if (contact) {
+        loginAndRedirect(req, res, contact);
       } else {
         res.redirect("/login");
       }

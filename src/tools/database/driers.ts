@@ -17,23 +17,23 @@ import EmailMailing from "@models/EmailMailing";
 import Export from "@models/Export";
 import ExportItem from "@models/ExportItem";
 import GiftFlow from "@models/GiftFlow";
-import Member from "@models/Member";
-import MemberPermission from "@models/MemberPermission";
-import MemberProfile from "@models/MemberProfile";
+import Contact from "@models/Contact";
+import ContactRole from "@models/ContactRole";
+import ContactProfile from "@models/ContactProfile";
 import Notice from "@models/Notice";
 import Option from "@models/Option";
 import PageSettings from "@models/PageSettings";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
-import Poll from "@models/Poll";
-import PollResponse from "@models/PollResponse";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 import Project from "@models/Project";
-import ProjectMember from "@models/ProjectMember";
+import ProjectContact from "@models/ProjectContact";
 import ProjectEngagement from "@models/ProjectEngagement";
 import Referral from "@models/Referral";
 import ReferralGift from "@models/ReferralGift";
 import Segment from "@models/Segment";
-import SegmentMember from "@models/SegmentMember";
+import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
 const log = mainLogger.child({ app: "drier" });
@@ -80,7 +80,7 @@ function uniqueCode(): string {
 }
 
 // Relations are loaded with loadRelationIds
-const memberId = () => uuidv4() as unknown as Member;
+const contactId = () => uuidv4() as unknown as Contact;
 
 const chance = new Chance();
 
@@ -101,11 +101,11 @@ const exportItemsDrier = createModelDrier(ExportItem, {
 export const paymentsDrier = createModelDrier(Payment, {
   id: () => uuidv4(),
   subscriptionId: randomId(12, "SB"),
-  member: memberId
+  contact: contactId
 });
 
 export const paymentDataDrier = createModelDrier(PaymentData, {
-  member: memberId,
+  contact: contactId,
   data: createDrier<PaymentData["data"]>({
     customerId: randomId(12, "CU"),
     mandateId: randomId(12, "MD"),
@@ -127,10 +127,10 @@ const giftFlowDrier = createModelDrier(GiftFlow, {
     fromName: () => chance.name(),
     fromEmail: () => chance.email({ domain: "fake.beabee.io", length: 10 })
   }),
-  giftee: memberId
+  giftee: contactId
 });
 
-export const memberDrier = createModelDrier(Member, {
+export const contactDrier = createModelDrier(Contact, {
   id: () => uuidv4(),
   email: () => chance.email({ domain: "fake.beabee.io", length: 10 }),
   firstname: () => chance.first(),
@@ -141,12 +141,12 @@ export const memberDrier = createModelDrier(Member, {
   referralCode: uniqueCode
 });
 
-export const memberPermissionDrier = createModelDrier(MemberPermission, {
-  member: memberId
+export const contactRoleDrier = createModelDrier(ContactRole, {
+  contact: contactId
 });
 
-export const memberProfileDrier = createModelDrier(MemberProfile, {
-  member: memberId,
+export const contacrProfileDrier = createModelDrier(ContactProfile, {
+  contact: contactId,
   description: () => chance.sentence(),
   bio: () => chance.paragraph(),
   notes: () => chance.sentence(),
@@ -167,36 +167,36 @@ const optionsDrier = createModelDrier(Option);
 
 const pageSettingsDrier = createModelDrier(PageSettings);
 
-export const pollsDrier = createModelDrier(Poll);
+export const calloutsDrier = createModelDrier(Callout);
 
-export const pollResponsesDrier = createModelDrier(PollResponse, {
+export const calloutResponsesDrier = createModelDrier(CalloutResponse, {
   id: () => uuidv4(),
-  member: memberId,
+  contact: contactId,
   guestName: () => chance.name(),
   guestEmail: () => chance.email({ domain: "example.com", length: 10 })
 });
 
 const projectsDrier = createModelDrier(Project, {
-  owner: memberId
+  owner: contactId
 });
 
-const projectMembersDrier = createModelDrier(ProjectMember, {
+const projectContactsDrier = createModelDrier(ProjectContact, {
   id: () => uuidv4(),
-  member: memberId,
+  contact: contactId,
   tag: () => chance.profession()
 });
 
 const projectEngagmentsDrier = createModelDrier(ProjectEngagement, {
   id: () => uuidv4(),
-  byMember: memberId,
-  toMember: memberId,
+  byContact: contactId,
+  toContact: contactId,
   notes: () => chance.sentence()
 });
 
 const referralsDrier = createModelDrier(Referral, {
   id: () => uuidv4(),
-  referrer: memberId,
-  referee: memberId
+  referrer: contactId,
+  referee: contactId
 });
 
 const referralsGiftDrier = createModelDrier(ReferralGift, {
@@ -205,17 +205,17 @@ const referralsGiftDrier = createModelDrier(ReferralGift, {
 
 const segmentsDrier = createModelDrier(Segment);
 
-const segmentMembersDrier = createModelDrier(SegmentMember, {
-  member: memberId
+const segmentContactsDrier = createModelDrier(SegmentContact, {
+  contact: contactId
 });
 
 const segmentOngoingEmailsDrier = createModelDrier(SegmentOngoingEmail);
 
 // Order these so they respect foreign key constraints
 export default [
-  memberDrier, // A lot of relations depend on members so leave it first
-  memberPermissionDrier,
-  memberProfileDrier,
+  contactDrier, // A lot of relations depend on contacts so leave it first
+  contactRoleDrier,
+  contacrProfileDrier,
   emailDrier,
   emailMailingDrier,
   exportsDrier,
@@ -225,15 +225,15 @@ export default [
   paymentDataDrier,
   paymentsDrier,
   pageSettingsDrier,
-  pollsDrier, // Must be before pollResponsesDrier
-  pollResponsesDrier,
+  calloutsDrier, // Must be before calloutResponsesDrier
+  calloutResponsesDrier,
   projectsDrier,
-  projectMembersDrier,
+  projectContactsDrier,
   projectEngagmentsDrier,
   referralsGiftDrier, // Must be before referralsDrier
   referralsDrier,
   segmentsDrier,
-  segmentMembersDrier,
+  segmentContactsDrier,
   segmentOngoingEmailsDrier,
   exportItemsDrier // Must be after all exportable items
 ] as ModelDrier<any>[];

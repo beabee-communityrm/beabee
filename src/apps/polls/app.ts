@@ -7,17 +7,21 @@ import { setTrackingCookie } from "@core/sessions";
 import { escapeRegExp, isSocialScraper, wrapAsync } from "@core/utils";
 import * as auth from "@core/utils/auth";
 
-import MembersService from "@core/services/MembersService";
-import PollsService from "@core/services/PollsService";
+import ContactsService from "@core/services/ContactsService";
+import CalloutsService from "@core/services/CalloutsService";
 
-import Poll, { PollAccess } from "@models/Poll";
-import { PollResponseAnswers } from "@models/PollResponse";
+import Callout, { CalloutAccess } from "@models/Callout";
+import { CalloutResponseAnswers } from "@models/CalloutResponse";
 
 import schemas from "./schemas.json";
 
 import config from "@config";
 
-function hasPollAnswers(req: Request, res: Response, next: NextFunction): void {
+function hasCalloutAnswers(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   hasSchema(schemas.builderSchema).orFlash(req, res, () => {
     req.answers = JSON.parse(req.body.answers);
     // TODO: validate answers
@@ -33,8 +37,10 @@ app.get(
   "/",
   isLoggedIn,
   wrapAsync(async (req, res) => {
-    const polls = await PollsService.getVisiblePollsWithResponses(req.user!);
-    const [activePolls, inactivePolls] = _.partition(polls, (p) => p.active);
+    const callouts = await CalloutsService.getVisibleCalloutsWithResponses(
+      req.user!
+    );
+    const [activePolls, inactivePolls] = _.partition(callouts, (p) => p.active);
     res.render("index", { activePolls, inactivePolls });
   })
 );
@@ -47,13 +53,13 @@ app.get(
       `^${escapeRegExp(config.audience)}/(polls|callouts)/`
     );
     if (url && pathMatch.test(url)) {
-      const pollId = url.replace(pathMatch, "").replace(/\/embed\/?/, "");
-      const poll = await getRepository(Poll).findOne(pollId);
-      if (poll) {
+      const calloutId = url.replace(pathMatch, "").replace(/\/embed\/?/, "");
+      const callout = await getRepository(Callout).findOne(calloutId);
+      if (callout) {
         res.send({
           type: "rich",
-          title: poll.title,
-          html: `<iframe src="${config.audience}/polls/${pollId}/embed" frameborder="0" style="display: block; width: 100%"></iframe>`
+          title: callout.title,
+          html: `<iframe src="${config.audience}/polls/${calloutId}/embed" frameborder="0" style="display: block; width: 100%"></iframe>`
         });
         return;
       }
@@ -67,7 +73,7 @@ app.get(
 app.get(
   "/campaign2019",
   wrapAsync(async (req, res, next) => {
-    const poll = await getRepository(Poll).findOne({ slug: "campaign2019" });
+    const poll = await getRepository(Callout).findOne({ slug: "campaign2019" });
     if (auth.loggedIn(req) === auth.AuthenticationStatus.NOT_LOGGED_IN) {
       res.render("polls/campaign2019-landing", { poll });
     } else {
@@ -76,7 +82,7 @@ app.get(
   })
 );
 
-app.get("/:slug", hasNewModel(Poll, "slug"), (req, res, next) => {
+app.get("/:slug", hasNewModel(Callout, "slug"), (req, res, next) => {
   if (isSocialScraper(req)) {
     res.render("share");
   } else {
@@ -86,24 +92,25 @@ app.get("/:slug", hasNewModel(Poll, "slug"), (req, res, next) => {
 
 async function getUserAnswersAndClear(
   req: Request
-): Promise<PollResponseAnswers> {
+): Promise<CalloutResponseAnswers> {
   const answers = req.session.answers;
   delete req.session.answers;
 
   return (
     answers ||
     (req.user &&
-      (await PollsService.getResponse(req.model as Poll, req.user))?.answers) ||
+      (await CalloutsService.getResponse(req.model as Callout, req.user))
+        ?.answers) ||
     {}
   );
 }
 
-function pollUrl(
-  poll: Poll,
+function calloutUrl(
+  callout: Callout,
   opts: { pollsCode?: string; isEmbed?: boolean }
 ): string {
   return [
-    "/polls/" + poll.slug,
+    "/polls/" + callout.slug,
     ...(opts.pollsCode ? ["/" + opts.pollsCode] : []),
     ...(opts.isEmbed ? ["/embed"] : [])
   ].join("");
@@ -120,22 +127,22 @@ function fixParams(req: Request, res: Response, next: NextFunction) {
 
 app.get(
   "/:slug/:code?/thanks",
-  hasNewModel(Poll, "slug"),
+  hasNewModel(Callout, "slug"),
   wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
+    const callout = req.model as Callout;
     // Always fetch answers to clear session even on redirect
     const answers = await getUserAnswersAndClear(req);
 
-    if (poll.thanksRedirect) {
-      res.redirect(poll.thanksRedirect);
+    if (callout.thanksRedirect) {
+      res.redirect(callout.thanksRedirect);
     } else {
       res.render("thanks", {
-        poll,
+        poll: callout,
         answers,
         pollsCode: req.params.code,
 
         // TODO: remove this hack
-        ...(poll.access === PollAccess.OnlyAnonymous && {
+        ...(callout.access === CalloutAccess.OnlyAnonymous && {
           isLoggedIn: false,
           menu: { main: [] }
         })
@@ -146,53 +153,53 @@ app.get(
 
 app.get(
   "/:slug/:code?:embed(/embed)?",
-  hasNewModel(Poll, "slug"),
+  hasNewModel(Callout, "slug"),
   fixParams,
   wrapAsync(async (req, res, next) => {
-    const poll = req.model as Poll;
+    const callout = req.model as Callout;
     const pollsCode = req.params.code?.toUpperCase();
     const isEmbed = !!req.params.embed;
-    const isPreview = req.query.preview && req.user?.hasPermission("admin");
+    const isPreview = req.query.preview && req.user?.hasRole("admin");
     const isGuest = isEmbed || !(pollsCode || req.user);
 
     if (isEmbed) {
       res.removeHeader("X-Frame-Options");
     }
 
-    // Anonymous polls can't be accessed with polls code
-    if (poll.access === PollAccess.OnlyAnonymous && pollsCode) {
+    // Anonymous callouts can't be accessed with polls code
+    if (callout.access === CalloutAccess.OnlyAnonymous && pollsCode) {
       return next("route");
     }
 
-    // Member only polls need a member
-    if (poll.access === PollAccess.Member && isGuest) {
-      return res.render("login", { poll, isEmbed });
+    // Member only callouts need a member
+    if (callout.access === CalloutAccess.Member && isGuest) {
+      return res.render("login", { poll: callout, isEmbed });
     }
 
     // Handle partial answers from URL
-    const answers = req.query.answers as PollResponseAnswers;
-    // We don't support allowMultiple polls at the moment
-    if (!isEmbed && answers && !poll.allowMultiple) {
-      const member = pollsCode
-        ? await MembersService.findOne({ pollsCode })
+    const answers = req.query.answers as CalloutResponseAnswers;
+    // We don't support allowMultiple callouts at the moment
+    if (!isEmbed && answers && !callout.allowMultiple) {
+      const contact = pollsCode
+        ? await ContactsService.findOne({ pollsCode })
         : req.user;
-      if (member) {
-        await PollsService.setResponse(poll, member, answers, true);
+      if (contact) {
+        await CalloutsService.setResponse(callout, contact, answers, true);
       }
       if (!req.user) {
         req.session.answers = answers;
       }
-      res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
+      res.redirect(calloutUrl(callout, { isEmbed, pollsCode }) + "#vote");
     } else {
       res.render("poll", {
-        poll,
-        answers: poll.allowMultiple ? {} : await getUserAnswersAndClear(req),
+        poll: callout,
+        answers: callout.allowMultiple ? {} : await getUserAnswersAndClear(req),
         isEmbed,
         isGuest,
         preview: isPreview,
 
         // TODO: remove this hack
-        ...(poll.access === PollAccess.OnlyAnonymous && {
+        ...(callout.access === CalloutAccess.OnlyAnonymous && {
           isLoggedIn: false,
           menu: { main: [] }
         })
@@ -203,22 +210,22 @@ app.get(
 
 app.post(
   "/:slug/:code?:embed(/embed)?",
-  hasNewModel(Poll, "slug"),
-  hasPollAnswers,
+  hasNewModel(Callout, "slug"),
+  hasCalloutAnswers,
   fixParams,
   wrapAsync(async (req, res) => {
-    const poll = req.model as Poll;
+    const callout = req.model as Callout;
     const pollsCode = req.params.code?.toUpperCase();
     const isEmbed = !!req.params.embed;
 
-    const member =
-      isEmbed || poll.access === PollAccess.OnlyAnonymous
+    const contact =
+      isEmbed || callout.access === CalloutAccess.OnlyAnonymous
         ? undefined
         : pollsCode
-        ? await MembersService.findOne({ pollsCode })
+        ? await ContactsService.findOne({ pollsCode })
         : req.user;
 
-    if (poll.access === PollAccess.Member && !member) {
+    if (callout.access === CalloutAccess.Member && !contact) {
       return auth.handleNotAuthed(
         auth.AuthenticationStatus.NOT_LOGGED_IN,
         req,
@@ -227,29 +234,29 @@ app.post(
     }
 
     const error =
-      pollsCode && !member
+      pollsCode && !contact
         ? "unknown-user"
-        : member
-        ? await PollsService.setResponse(poll, member, req.answers!)
-        : await PollsService.setGuestResponse(
-            poll,
+        : contact
+        ? await CalloutsService.setResponse(callout, contact, req.answers!)
+        : await CalloutsService.setGuestResponse(
+            callout,
             req.body.guestName,
             req.body.guestEmail,
             req.answers!
           );
 
-    if (member) {
-      setTrackingCookie(member.id, res);
+    if (contact) {
+      setTrackingCookie(contact.id, res);
     }
 
     if (error) {
       req.flash("error", "polls-" + error);
-      res.redirect(pollUrl(poll, { isEmbed, pollsCode }) + "#vote");
+      res.redirect(calloutUrl(callout, { isEmbed, pollsCode }) + "#vote");
     } else {
       if (!req.user) {
         req.session.answers = req.answers;
       }
-      res.redirect(pollUrl(poll, { pollsCode }) + "/thanks");
+      res.redirect(calloutUrl(callout, { pollsCode }) + "/thanks");
     }
   })
 );

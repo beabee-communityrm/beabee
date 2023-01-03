@@ -6,7 +6,7 @@ import { log as mainLogger } from "@core/logging";
 import EmailService from "@core/services/EmailService";
 
 import { ReferralGiftForm } from "@models/JoinForm";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import ReferralGift from "@models/ReferralGift";
 import Referral from "@models/Referral";
 
@@ -63,8 +63,8 @@ export default class ReferralsService {
   }
 
   static async createReferral(
-    referrer: Member | undefined,
-    referee: Member,
+    referrer: Contact | undefined,
+    referee: Contact,
     giftForm: ReferralGiftForm
   ): Promise<void> {
     log.info("Create referral", {
@@ -88,16 +88,20 @@ export default class ReferralsService {
     await ReferralsService.updateGiftStock(giftForm);
 
     if (referrer) {
-      await EmailService.sendTemplateToMember("successful-referral", referrer, {
-        refereeName: referee.firstname,
-        isEligible:
-          !!referee.contributionMonthlyAmount &&
-          referee.contributionMonthlyAmount >= 3
-      });
+      await EmailService.sendTemplateToContact(
+        "successful-referral",
+        referrer,
+        {
+          refereeName: referee.firstname,
+          isEligible:
+            !!referee.contributionMonthlyAmount &&
+            referee.contributionMonthlyAmount >= 3
+        }
+      );
     }
   }
 
-  static async getMemberReferrals(referrer: Member): Promise<Referral[]> {
+  static async getContactReferrals(referrer: Contact): Promise<Referral[]> {
     return await getRepository(Referral).find({
       relations: ["referrerGift", "referee"],
       where: { referrer }
@@ -110,7 +114,7 @@ export default class ReferralsService {
   ): Promise<boolean> {
     if (
       !referral.referrerHasSelected &&
-      ReferralsService.isGiftAvailable(giftForm, referral.refereeAmount)
+      (await ReferralsService.isGiftAvailable(giftForm, referral.refereeAmount))
     ) {
       await getRepository(Referral).update(referral.id, {
         referrerGift:
@@ -128,9 +132,9 @@ export default class ReferralsService {
     return false;
   }
 
-  static async permanentlyDeleteMember(member: Member): Promise<void> {
+  static async permanentlyDeleteContact(contact: Contact): Promise<void> {
     await getRepository(Referral).update(
-      { referrer: member },
+      { referrer: contact },
       { referrer: null }
     );
   }

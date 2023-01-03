@@ -24,7 +24,7 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
   protected get query(): SelectQueryBuilder<GiftFlow> {
     return createQueryBuilder(GiftFlow, "g")
       .leftJoinAndSelect("g.giftee", "giftee")
-      .leftJoinAndSelect("giftee.permissions", "permissions")
+      .leftJoinAndSelect("giftee.roles", "roles")
       .leftJoinAndSelect("giftee.profile", "profile")
       .orderBy("g.date");
   }
@@ -40,8 +40,8 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
             GifteeName: giftee.fullname,
             GifteeFirstName: giftee.firstname,
             GifteeEmail: giftee.email,
-            GifteeExpiryDate: giftee.permissions
-              .find((p) => p.permission === "member")
+            GifteeExpiryDate: giftee.roles
+              .find((p) => p.type === "member")
               ?.dateExpires?.toISOString(),
             GifteeHasActivated: !giftee.password.hash,
             GifteeHasConverted:

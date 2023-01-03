@@ -19,8 +19,8 @@ import SendGridProvider from "@core/providers/email/SendGridProvider";
 import SMTPProvider from "@core/providers/email/SMTPProvider";
 
 import Email from "@models/Email";
-import Member from "@models/Member";
-import Poll from "@models/Poll";
+import Contact from "@models/Contact";
+import Callout from "@models/Callout";
 
 import config from "@config";
 import { isLocale, Locale } from "@locale";
@@ -56,52 +56,55 @@ const generalEmailTemplates = {
 } as const;
 
 const adminEmailTemplates = {
-  "new-member": (params: { member: Member }) => ({
-    MEMBERID: params.member.id,
-    MEMBERNAME: params.member.fullname
+  "new-member": (params: { contact: Contact }) => ({
+    MEMBERID: params.contact.id,
+    MEMBERNAME: params.contact.fullname
   }),
-  "cancelled-member": (params: { member: Member }) => ({
-    MEMBERID: params.member.id,
-    MEMBERNAME: params.member.fullname
+  "cancelled-member": (params: { contact: Contact }) => ({
+    MEMBERID: params.contact.id,
+    MEMBERNAME: params.contact.fullname
   }),
-  "new-callout-response": (params: { poll: Poll; responderName: string }) => ({
-    CALLOUTSLUG: params.poll.slug,
-    CALLOUTTITLE: params.poll.title,
+  "new-callout-response": (params: {
+    callout: Callout;
+    responderName: string;
+  }) => ({
+    CALLOUTSLUG: params.callout.slug,
+    CALLOUTTITLE: params.callout.title,
     RESPNAME: params.responderName
   })
 } as const;
 
-const memberEmailTemplates = {
-  welcome: (member: Member) => ({
-    REFCODE: member.referralCode
+const contactEmailTemplates = {
+  welcome: (contact: Contact) => ({
+    REFCODE: contact.referralCode
   }),
   "welcome-post-gift": () => ({}),
-  "reset-password": (member: Member, params: { rpLink: string }) => ({
+  "reset-password": (_: Contact, params: { rpLink: string }) => ({
     RPLINK: params.rpLink
   }),
-  "cancelled-contribution": (member: Member) => ({
-    EXPIRES: member.membership?.dateExpires
-      ? moment.utc(member.membership.dateExpires).format("dddd Do MMMM")
+  "cancelled-contribution": (contact: Contact) => ({
+    EXPIRES: contact.membership?.dateExpires
+      ? moment.utc(contact.membership.dateExpires).format("dddd Do MMMM")
       : "-",
-    MEMBERSHIPID: member.id
+    MEMBERSHIPID: contact.id
   }),
-  "cancelled-contribution-no-survey": (member: Member) => {
+  "cancelled-contribution-no-survey": (contact: Contact) => {
     return {
-      EXPIRES: member.membership?.dateExpires
-        ? moment.utc(member.membership.dateExpires).format("dddd Do MMMM")
+      EXPIRES: contact.membership?.dateExpires
+        ? moment.utc(contact.membership.dateExpires).format("dddd Do MMMM")
         : "-"
     };
   },
   "successful-referral": (
-    member: Member,
+    contact: Contact,
     params: { refereeName: string; isEligible: boolean }
   ) => ({
-    REFCODE: member.referralCode,
+    REFCODE: contact.referralCode,
     REFEREENAME: params.refereeName,
     ISELIGIBLE: params.isEligible
   }),
   "giftee-success": (
-    member: Member,
+    _: Contact,
     params: { fromName: string; message: string; giftCode: string }
   ) => ({
     PURCHASER: params.fromName,
@@ -109,17 +112,14 @@ const memberEmailTemplates = {
     ACTIVATELINK: config.audience + "/gift/" + params.giftCode
   }),
   "manual-to-automatic": () => ({}),
-  "email-exists-login": (member: Member, params: { loginLink: string }) => ({
+  "email-exists-login": (_: Contact, params: { loginLink: string }) => ({
     LOGINLINK: params.loginLink
   }),
-  "email-exists-set-password": (
-    member: Member,
-    params: { spLink: string }
-  ) => ({
+  "email-exists-set-password": (_: Contact, params: { spLink: string }) => ({
     SPLINK: params.spLink
   }),
   "login-override-resend": (
-    member: Member,
+    _: Contact,
     params: { loginOverrideLink: string }
   ) => ({
     LOLINK: params.loginOverrideLink
@@ -130,17 +130,17 @@ type GeneralEmailTemplates = typeof generalEmailTemplates;
 type GeneralEmailTemplateId = keyof GeneralEmailTemplates;
 type AdminEmailTemplates = typeof adminEmailTemplates;
 type AdminEmailTemplateId = keyof AdminEmailTemplates;
-type MemberEmailTemplates = typeof memberEmailTemplates;
-type MemberEmailTemplateId = keyof MemberEmailTemplates;
+type ContactEmailTemplates = typeof contactEmailTemplates;
+type ContactEmailTemplateId = keyof ContactEmailTemplates;
 
-type MemberEmailParams<T extends MemberEmailTemplateId> = Parameters<
-  MemberEmailTemplates[T]
+type ContactEmailParams<T extends ContactEmailTemplateId> = Parameters<
+  ContactEmailTemplates[T]
 >[1];
 
 type EmailTemplateId =
   | GeneralEmailTemplateId
   | AdminEmailTemplateId
-  | MemberEmailTemplateId;
+  | ContactEmailTemplateId;
 
 class EmailService {
   private readonly provider: EmailProvider =
@@ -195,13 +195,13 @@ class EmailService {
     }
   }
 
-  async sendEmailToMembers(
+  async sendEmailToContact(
     email: Email,
-    members: Member[],
+    contacts: Contact[],
     opts?: EmailOptions
   ): Promise<void> {
-    const recipients = members.map((member) =>
-      this.convertMemberToRecipient(member)
+    const recipients = contacts.map((contact) =>
+      this.convertContactToRecipient(contact)
     );
     await this.sendEmail(email, recipients, opts);
   }
@@ -216,33 +216,33 @@ class EmailService {
     await this.sendTemplate(template, [{ to, mergeFields }], opts, true);
   }
 
-  async sendTemplateToMember<T extends MemberEmailTemplateId>(
+  async sendTemplateToContact<T extends ContactEmailTemplateId>(
     template: T,
-    member: Member,
-    params: MemberEmailParams<T>,
+    contact: Contact,
+    params: ContactEmailParams<T>,
     opts?: EmailOptions
   ): Promise<void>;
-  async sendTemplateToMember<
-    T extends MemberEmailParams<T> extends undefined
-      ? MemberEmailTemplateId
+  async sendTemplateToContact<
+    T extends ContactEmailParams<T> extends undefined
+      ? ContactEmailTemplateId
       : never
   >(
     template: T,
-    member: Member,
+    contact: Contact,
     params?: undefined,
     opts?: EmailOptions
   ): Promise<void>;
-  async sendTemplateToMember<T extends MemberEmailTemplateId>(
+  async sendTemplateToContact<T extends ContactEmailTemplateId>(
     template: T,
-    member: Member,
-    params: MemberEmailParams<T>,
+    contact: Contact,
+    params: ContactEmailParams<T>,
     opts?: EmailOptions
   ): Promise<void> {
-    log.info("Sending template to member " + member.id);
+    log.info("Sending template to contact " + contact.id);
 
-    const recipient = this.convertMemberToRecipient(
-      member,
-      memberEmailTemplates[template](member, params as any) // https://github.com/microsoft/TypeScript/issues/30581
+    const recipient = this.convertContactToRecipient(
+      contact,
+      contactEmailTemplates[template](contact, params as any) // https://github.com/microsoft/TypeScript/issues/30581
     );
 
     await this.sendTemplate(template, [recipient], opts, true);
@@ -317,7 +317,7 @@ class EmailService {
     return (
       template in generalEmailTemplates ||
       template in adminEmailTemplates ||
-      template in memberEmailTemplates
+      template in contactEmailTemplates
     );
   }
 
@@ -331,17 +331,17 @@ class EmailService {
     ];
   }
 
-  private convertMemberToRecipient(
-    member: Member,
+  private convertContactToRecipient(
+    contact: Contact,
     additionalMergeFields?: EmailMergeFields
   ): EmailRecipient {
     return {
-      to: { email: member.email, name: member.fullname },
+      to: { email: contact.email, name: contact.fullname },
       mergeFields: {
-        EMAIL: member.email,
-        NAME: member.fullname,
-        FNAME: member.firstname,
-        LNAME: member.lastname,
+        EMAIL: contact.email,
+        NAME: contact.fullname,
+        FNAME: contact.firstname,
+        LNAME: contact.lastname,
         ...additionalMergeFields
       }
     };

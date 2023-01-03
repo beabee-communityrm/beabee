@@ -8,15 +8,14 @@ import { getRepository } from "typeorm";
 import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
-import Member from "@models/Member";
-import MemberProfile from "@models/MemberProfile";
+import Contact from "@models/Contact";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import {
@@ -104,20 +103,24 @@ class PaymentFlowService implements PaymentFlowProvider {
   async sendConfirmEmail(joinFlow: JoinFlow): Promise<void> {
     log.info("Send confirm email for " + joinFlow.id);
 
-    const member = await MembersService.findOne({
+    const contact = await ContactsService.findOne({
       email: joinFlow.joinForm.email
     });
 
-    if (member?.membership?.isActive) {
-      if (member.password.hash) {
-        await EmailService.sendTemplateToMember("email-exists-login", member, {
-          loginLink: joinFlow.loginUrl
-        });
+    if (contact?.membership?.isActive) {
+      if (contact.password.hash) {
+        await EmailService.sendTemplateToContact(
+          "email-exists-login",
+          contact,
+          {
+            loginLink: joinFlow.loginUrl
+          }
+        );
       } else {
-        const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
-        await EmailService.sendTemplateToMember(
+        const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
+        await EmailService.sendTemplateToContact(
           "email-exists-set-password",
-          member,
+          contact,
           {
             spLink: joinFlow.setPasswordUrl + "/" + rpFlow.id
           }
@@ -136,19 +139,19 @@ class PaymentFlowService implements PaymentFlowProvider {
     }
   }
 
-  async completeConfirmEmail(joinFlow: JoinFlow): Promise<Member> {
+  async completeConfirmEmail(joinFlow: JoinFlow): Promise<Contact> {
     // Check for an existing active member first to avoid completing the join
     // flow unnecessarily. This should never really happen as the user won't
     // get a confirm email if they are already an active member
-    let member = await MembersService.findOne({
+    let contact = await ContactsService.findOne({
       where: { email: joinFlow.joinForm.email },
       relations: ["profile"]
     });
-    if (member?.membership?.isActive) {
+    if (contact?.membership?.isActive) {
       throw new DuplicateEmailError();
     }
 
-    const partialMember = {
+    const partialContact = {
       email: joinFlow.joinForm.email,
       password: joinFlow.joinForm.password,
       firstname: joinFlow.joinForm.firstname || "",
@@ -170,32 +173,35 @@ class PaymentFlowService implements PaymentFlowProvider {
         completedPaymentFlow
       );
 
-      // Prefill member data from payment provider if possible
-      partialMember.firstname ||= paymentData.firstname || "";
-      partialMember.lastname ||= paymentData.lastname || "";
+      // Prefill contact data from payment provider if possible
+      partialContact.firstname ||= paymentData.firstname || "";
+      partialContact.lastname ||= paymentData.lastname || "";
       deliveryAddress = OptionsService.getBool("show-mail-opt-in")
         ? paymentData.billingAddress
         : undefined;
     }
 
-    if (member) {
-      await MembersService.updateMember(member, partialMember);
-      await MembersService.updateMemberProfile(member, partialProfile);
+    if (contact) {
+      await ContactsService.updateContact(contact, partialContact);
+      await ContactsService.updateContactProfile(contact, partialProfile);
     } else {
-      member = await MembersService.createMember(partialMember, {
+      contact = await ContactsService.createContact(partialContact, {
         ...partialProfile,
         ...(deliveryAddress ? { deliveryAddress } : undefined)
       });
     }
 
     if (completedPaymentFlow) {
-      await PaymentService.updatePaymentMethod(member, completedPaymentFlow);
-      await MembersService.updateMemberContribution(member, joinFlow.joinForm);
+      await PaymentService.updatePaymentMethod(contact, completedPaymentFlow);
+      await ContactsService.updateContactContribution(
+        contact,
+        joinFlow.joinForm
+      );
     }
 
-    await EmailService.sendTemplateToMember("welcome", member);
+    await EmailService.sendTemplateToContact("welcome", contact);
 
-    return member;
+    return contact;
   }
 
   async createPaymentFlow(

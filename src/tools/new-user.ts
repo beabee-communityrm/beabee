@@ -8,9 +8,9 @@ import { getRepository } from "typeorm";
 import * as db from "@core/database";
 import { generatePassword, passwordRequirements } from "@core/utils/auth";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import MemberPermission from "@models/MemberPermission";
+import ContactRole from "@models/ContactRole";
 
 const questions: QuestionCollection[] = [];
 
@@ -71,7 +71,7 @@ questions.push({
 // Level question
 questions.push({
   type: "list",
-  name: "permission",
+  name: "role",
   message: "What level of access do you wish to grant this new user?",
   choices: ["None", "Admin", "Super Admin"],
   default: "Super Admin"
@@ -82,7 +82,7 @@ db.connect().then(async () => {
 
   const password = await generatePassword(answers.password);
 
-  const permissions = [];
+  const roles = [];
 
   if (answers.membership != "No") {
     const now = moment();
@@ -98,27 +98,27 @@ db.connect().then(async () => {
         break;
     }
 
-    const membership = getRepository(MemberPermission).create({
-      permission: "member",
+    const membership = getRepository(ContactRole).create({
+      type: "member",
       ...(dateAdded && { dateAdded }),
       dateExpires
     });
-    permissions.push(membership);
+    roles.push(membership);
   }
 
-  if (answers.permission != "None") {
-    const admin = getRepository(MemberPermission).create({
-      permission: answers.permission === "Admin" ? "admin" : "superadmin"
+  if (answers.role != "None") {
+    const admin = getRepository(ContactRole).create({
+      type: answers.role === "Admin" ? "admin" : "superadmin"
     });
-    permissions.push(admin);
+    roles.push(admin);
   }
 
-  await MembersService.createMember({
+  await ContactsService.createContact({
     firstname: answers.firstname,
     lastname: answers.lastname,
     email: answers.email,
     contributionType: ContributionType.None,
-    permissions,
+    roles: roles,
     password
   });
 

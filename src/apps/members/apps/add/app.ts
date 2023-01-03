@@ -2,7 +2,7 @@ import {
   ContributionPeriod,
   ContributionType,
   NewsletterStatus,
-  PermissionType
+  RoleType
 } from "@beabee/beabee-common";
 import express from "express";
 import { getRepository } from "typeorm";
@@ -10,10 +10,10 @@ import { getRepository } from "typeorm";
 import { hasSchema, isSuperAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
-import MemberPermission from "@models/MemberPermission";
+import ContactRole from "@models/ContactRole";
 
 import { addContactSchema } from "./schemas.json";
 
@@ -24,8 +24,8 @@ interface BaseAddContactSchema {
   email: string;
   firstname?: string;
   lastname?: string;
-  permissions?: {
-    permission: PermissionType;
+  roles?: {
+    type: RoleType;
     startDate?: string;
     startTime?: string;
     expiryDate?: string;
@@ -65,25 +65,24 @@ app.post(
   wrapAsync(async (req, res) => {
     const data = req.body as AddContactSchema;
 
-    const permissions =
-      data.permissions?.map((p) => {
-        const dateAdded = createDateTime(p.startDate, p.startTime);
-        return getRepository(MemberPermission).create({
-          permission: p.permission,
-          ...(dateAdded && { dateAdded }),
-          dateExpires: createDateTime(p.expiryDate, p.expiryTime)
-        });
-      }) || [];
+    const roles = data.roles?.map((p) => {
+      const dateAdded = createDateTime(p.startDate, p.startTime);
+      return getRepository(ContactRole).create({
+        type: p.type,
+        ...(dateAdded && { dateAdded }),
+        dateExpires: createDateTime(p.expiryDate, p.expiryTime)
+      });
+    });
 
-    let member;
+    let contact;
     try {
-      member = await MembersService.createMember(
+      contact = await ContactsService.createContact(
         {
           email: data.email,
           contributionType: data.type,
           firstname: data.firstname || "",
           lastname: data.lastname || "",
-          permissions
+          roles: roles || []
         },
         data.addToNewsletter
           ? {
@@ -105,20 +104,20 @@ app.post(
     }
 
     if (data.type === ContributionType.Manual) {
-      await PaymentService.updateDataBy(member, "source", data.source || null);
+      await PaymentService.updateDataBy(contact, "source", data.source || null);
       await PaymentService.updateDataBy(
-        member,
+        contact,
         "reference",
         data.reference || null
       );
-      await MembersService.updateMember(member, {
+      await ContactsService.updateContact(contact, {
         contributionPeriod: data.period || null,
         contributionMonthlyAmount: data.amount || null
       });
     }
 
     req.flash("success", "member-added");
-    res.redirect(data.addAnother ? "/members/add" : "/members/" + member.id);
+    res.redirect(data.addAnother ? "/members/add" : "/members/" + contact.id);
   })
 );
 

@@ -21,7 +21,7 @@ import { calcRenewalDate } from "@core/utils/payment";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import { GCPaymentData } from "@models/PaymentData";
 
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
@@ -61,10 +61,10 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       payFee: this.data.payFee || false,
       hasPendingPayment: pendingPayment,
       ...(this.data.nextMonthlyAmount &&
-        this.member.contributionPeriod && {
+        this.contact.contributionPeriod && {
           nextAmount: getActualAmount(
             this.data.nextMonthlyAmount,
-            this.member.contributionPeriod
+            this.contact.contributionPeriod
           )
         }),
       ...(paymentSource && { paymentSource }),
@@ -87,7 +87,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     // pending payments, but they can't always change their mandate as this can
     // result in double charging
     return (
-      (useExistingMandate && this.member.contributionPeriod === "monthly") ||
+      (useExistingMandate && this.contact.contributionPeriod === "monthly") ||
       !(this.data.mandateId && (await hasPendingPayment(this.data.mandateId)))
     );
   }
@@ -95,8 +95,8 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
   async updateContribution(
     paymentForm: PaymentForm
   ): Promise<UpdateContributionResult> {
-    log.info("Update contribution for " + this.member.id, {
-      userId: this.member.id,
+    log.info("Update contribution for " + this.contact.id, {
+      userId: this.contact.id,
       paymentForm
     });
 
@@ -107,7 +107,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     let subscription: Subscription | undefined;
 
     if (this.data.subscriptionId) {
-      if (this.member.membership?.isActive) {
+      if (this.contact.membership?.isActive) {
         subscription = await updateSubscription(
           this.data.subscriptionId,
           paymentForm
@@ -118,7 +118,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       }
     }
 
-    const renewalDate = calcRenewalDate(this.member);
+    const renewalDate = calcRenewalDate(this.contact);
 
     if (!subscription) {
       log.info("Creating new subscription");
@@ -135,13 +135,13 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
         this.data.mandateId,
         renewalDate,
         paymentForm,
-        this.member.contributionMonthlyAmount || 0
+        this.contact.contributionMonthlyAmount || 0
       ));
 
     const expiryDate = await getSubscriptionNextChargeDate(subscription);
 
-    log.info("Activate contribution for " + this.member.id, {
-      userId: this.member.id,
+    log.info("Activate contribution for " + this.contact.id, {
+      userId: this.contact.id,
       paymentForm,
       startNow,
       expiryDate
@@ -158,7 +158,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
   }
 
   async cancelContribution(keepMandate: boolean): Promise<void> {
-    log.info("Cancel subscription for " + this.member.id, { keepMandate });
+    log.info("Cancel subscription for " + this.contact.id, { keepMandate });
 
     const subscriptionId = this.data.subscriptionId;
     const mandateId = this.data.mandateId;
@@ -183,8 +183,8 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
   async updatePaymentMethod(
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
-    log.info("Update payment source for " + this.member.id, {
-      userId: this.member.id,
+    log.info("Update payment source for " + this.contact.id, {
+      userId: this.contact.id,
       data: this.data,
       completedPaymentFlow
     });
@@ -206,24 +206,24 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     if (
       hadSubscription &&
-      this.member.contributionPeriod &&
-      this.member.contributionMonthlyAmount
+      this.contact.contributionPeriod &&
+      this.contact.contributionMonthlyAmount
     ) {
       await this.updateContribution({
-        monthlyAmount: this.member.contributionMonthlyAmount,
-        period: this.member.contributionPeriod,
+        monthlyAmount: this.contact.contributionMonthlyAmount,
+        period: this.contact.contributionPeriod,
         payFee: !!this.data.payFee,
         prorate: false
       });
     }
   }
 
-  async updateMember(updates: Partial<Member>): Promise<void> {
+  async updateContact(updates: Partial<Contact>): Promise<void> {
     if (
       (updates.email || updates.firstname || updates.lastname) &&
       this.data.customerId
     ) {
-      log.info("Update member in GoCardless");
+      log.info("Update contact in GoCardless");
       await gocardless.customers.update(this.data.customerId, {
         ...(updates.email && { email: updates.email }),
         ...(updates.firstname && { given_name: updates.firstname }),
@@ -231,7 +231,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       });
     }
   }
-  async permanentlyDeleteMember(): Promise<void> {
+  async permanentlyDeleteContact(): Promise<void> {
     if (this.data.mandateId) {
       await gocardless.mandates.cancel(this.data.mandateId);
     }

@@ -1,5 +1,5 @@
 import Payment from "@models/Payment";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import { Type } from "class-transformer";
 import { IsDate } from "class-validator";
 import {
@@ -22,7 +22,7 @@ class GetStatsQuery {
 }
 
 interface GetStatsData {
-  newMembers: number;
+  newContacts: number;
   averageContribution: number | null;
   totalRevenue: number | null;
 }
@@ -32,17 +32,17 @@ export class StatsController {
   @Authorized("admin")
   @Get("/")
   async getStats(@QueryParams() query: GetStatsQuery): Promise<GetStatsData> {
-    const newMembers = await createQueryBuilder(Member, "m")
-      .innerJoin("m.permissions", "mp")
+    const newContacts = await createQueryBuilder(Contact, "m")
+      .innerJoin("m.roles", "mp")
       .where("m.joined BETWEEN :from AND :to", query)
       .andWhere(
-        "mp.permission = 'member' AND mp.dateAdded BETWEEN :from AND :to",
+        "mp.type = 'member' AND mp.dateAdded BETWEEN :from AND :to",
         query
       )
       .getCount();
 
     const payments = await createQueryBuilder(Payment, "p")
-      .innerJoin("p.member", "m")
+      .innerJoin("p.contact", "m")
       .select("SUM(p.amount)", "total")
       .addSelect(
         "AVG(p.amount / (CASE WHEN m.contributionPeriod = 'annually' THEN 12 ELSE 1 END))",
@@ -57,7 +57,7 @@ export class StatsController {
     }
 
     return {
-      newMembers,
+      newContacts,
       averageContribution: payments.average,
       totalRevenue: payments.total
     };

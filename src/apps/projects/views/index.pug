@@ -13,13 +13,13 @@ block contents
 					tr
 						th Status
 						th Name
-						th Members
+						th Contacts
 				tbody
 					each project in projects
 						tr
 							td: .label.label-default= project.status
 							td(width='100%'): a(href='/projects/' + project.id)= project.title
-							td= project.memberCount
+							td= project.contactCount
 
 			hr
 

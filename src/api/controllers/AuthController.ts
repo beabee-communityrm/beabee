@@ -1,4 +1,4 @@
-import { PermissionTypes, PermissionType } from "@beabee/beabee-common";
+import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import { IsEmail, IsString, isUUID } from "class-validator";
 import { Request, Response } from "express";
 import {
@@ -17,10 +17,10 @@ import { getRepository } from "typeorm";
 
 import passport from "@core/lib/passport";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import Member from "@models/Member";
-import MemberPermission from "@models/MemberPermission";
+import Contact from "@models/Contact";
+import ContactRole from "@models/ContactRole";
 
 import { login } from "@api/utils";
 
@@ -46,7 +46,7 @@ export class AuthController {
     // Just used for validation (email and password are in passport strategy)
     @Body() data: LoginData
   ): Promise<void> {
-    await new Promise<Member>((resolve, reject) => {
+    await new Promise<Contact>((resolve, reject) => {
       passport.authenticate("local", (err, user, info) => {
         if (err || !user) {
           const error = new UnauthorizedError() as any;
@@ -68,19 +68,19 @@ export class AuthController {
       throw new NotFoundError();
     }
 
-    let member: Member | undefined;
-    if (PermissionTypes.indexOf(id as PermissionType) > -1) {
-      const permission = await getRepository(MemberPermission).findOne({
-        where: { permission: id },
-        relations: ["member"]
+    let contact: Contact | undefined;
+    if (RoleTypes.indexOf(id as RoleType) > -1) {
+      const role = await getRepository(ContactRole).findOne({
+        where: { type: id },
+        relations: ["contact"]
       });
-      member = permission?.member;
+      contact = role?.contact;
     } else if (isUUID(id, "4")) {
-      member = await MembersService.findOne(id);
+      contact = await ContactsService.findOne(id);
     }
 
-    if (member) {
-      await login(req, member);
+    if (contact) {
+      await login(req, contact);
     } else {
       throw new NotFoundError();
     }

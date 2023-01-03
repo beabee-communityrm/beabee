@@ -1,22 +1,22 @@
 import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import Referral from "@models/Referral";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 
-function memberDetails(member: Member | null) {
-  return member
+function contactDetails(contact: Contact | null) {
+  return contact
     ? [
-        member.email,
-        member.firstname,
-        member.lastname,
-        ...(member.profile.deliveryOptIn && member.profile.deliveryAddress
+        contact.email,
+        contact.firstname,
+        contact.lastname,
+        ...(contact.profile.deliveryOptIn && contact.profile.deliveryAddress
           ? [
-              member.profile.deliveryAddress.line1,
-              member.profile.deliveryAddress.line2,
-              member.profile.deliveryAddress.city,
-              member.profile.deliveryAddress.postcode
+              contact.profile.deliveryAddress.line1,
+              contact.profile.deliveryAddress.line2,
+              contact.profile.deliveryAddress.city,
+              contact.profile.deliveryAddress.postcode
             ]
           : ["", "", "", ""])
       ]
@@ -71,7 +71,7 @@ export default class ReferralsExport extends BaseExport<Referral> {
           [
             referral.date.toISOString(),
             "Referrer",
-            ...memberDetails(referrer),
+            ...contactDetails(referrer),
             referral.refereeAmount,
             referral.referrerGift,
             ...giftOptions.map(
@@ -81,7 +81,7 @@ export default class ReferralsExport extends BaseExport<Referral> {
           [
             referral.date.toISOString(),
             "Referee",
-            ...memberDetails(referee),
+            ...contactDetails(referee),
             referral.refereeAmount,
             referral.refereeGift,
             ...giftOptions.map(

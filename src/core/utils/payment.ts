@@ -4,7 +4,7 @@ import {
   PaymentMethod
 } from "@beabee/beabee-common";
 import config from "@config";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import {
   addMonths,
   getYear,
@@ -16,26 +16,30 @@ import {
 } from "date-fns";
 import { getActualAmount, PaymentForm } from ".";
 
-export function calcRenewalDate(user: Member): Date | undefined {
-  if (user.membership?.isActive) {
+export function calcRenewalDate(contact: Contact): Date | undefined {
+  if (contact.membership?.isActive) {
     const now = new Date();
 
-    if (user.membership.dateExpires) {
+    if (contact.membership.dateExpires) {
       const maxDate = add(now, {
-        months: user.contributionPeriod === ContributionPeriod.Annually ? 12 : 1
+        months:
+          contact.contributionPeriod === ContributionPeriod.Annually ? 12 : 1
       });
-      const targetDate = sub(user.membership.dateExpires, config.gracePeriod);
+      const targetDate = sub(
+        contact.membership.dateExpires,
+        config.gracePeriod
+      );
 
       // Ensure date is no more than 1 period away from now, this could happen if
       // manual contributors had their expiry date set arbritarily in the future
       return maxDate < targetDate ? maxDate : targetDate;
 
       // Some special rules for upgrading non-expiring manual contributions
-    } else if (user.contributionType === ContributionType.Manual) {
+    } else if (contact.contributionType === ContributionType.Manual) {
       // Annual contribution, calculate based on their start date
-      if (user.contributionPeriod === ContributionPeriod.Annually) {
+      if (contact.contributionPeriod === ContributionPeriod.Annually) {
         const thisYear = getYear(now);
-        const startDate = setYear(user.membership.dateAdded, thisYear);
+        const startDate = setYear(contact.membership.dateAdded, thisYear);
         if (isBefore(startDate, now)) {
           return setYear(startDate, thisYear + 1);
         }
@@ -48,8 +52,8 @@ export function calcRenewalDate(user: Member): Date | undefined {
   }
 }
 
-export function calcMonthsLeft(user: Member): number {
-  const renewalDate = calcRenewalDate(user);
+export function calcMonthsLeft(contact: Contact): number {
+  const renewalDate = calcRenewalDate(contact);
   return renewalDate
     ? Math.max(0, differenceInMonths(renewalDate, new Date()))
     : 0;

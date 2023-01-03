@@ -5,17 +5,20 @@ import { getRepository } from "typeorm";
 import { hasSchema, isLoggedIn } from "@core/middleware";
 import { hasUser, wrapAsync } from "@core/utils";
 
-import MembersService from "@core/services/MembersService";
+import CalloutsService from "@core/services/CalloutsService";
+import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
-import PollsService from "@core/services/PollsService";
 
+import Callout from "@models/Callout";
 import Referral from "@models/Referral";
 
 import { completeSchema } from "./schemas.json";
 
-async function getJoinPoll() {
-  const joinPollId = OptionsService.getText("join-poll");
-  return joinPollId ? await PollsService.getPoll(joinPollId) : undefined;
+async function getJoinCallout() {
+  const calloutId = OptionsService.getText("join-poll");
+  return calloutId
+    ? await getRepository(Callout).findOne(calloutId)
+    : undefined;
 }
 
 const app = express();
@@ -35,7 +38,7 @@ app.get(
       user: req.user,
       isReferralWithGift: referral && referral.refereeGift,
       isGift: req.user?.contributionType === ContributionType.Gift,
-      joinPoll: await getJoinPoll()
+      joinPoll: await getJoinCallout()
     });
   })
 );
@@ -58,9 +61,9 @@ app.post(
 
       const referral = await getRepository(Referral).findOne({ referee: user });
 
-      const joinPoll = await getJoinPoll();
-      if (joinPoll && req.body.data) {
-        await PollsService.setResponse(joinPoll, user, req.body.data);
+      const callout = await getJoinCallout();
+      if (callout && req.body.data) {
+        await CalloutsService.setResponse(callout, user, req.body.data);
       }
 
       const needAddress =
@@ -73,7 +76,7 @@ app.post(
         req.flash("error", "address-required");
         res.redirect(req.originalUrl);
       } else {
-        await MembersService.updateMemberProfile(user, {
+        await ContactsService.updateContactProfile(user, {
           deliveryOptIn: delivery_optin,
           deliveryAddress: needAddress
             ? {

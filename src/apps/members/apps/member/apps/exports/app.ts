@@ -5,8 +5,8 @@ import { wrapAsync } from "@core/utils";
 
 import ExportTypes from "@apps/tools/apps/exports/exports";
 
+import Contact from "@models/Contact";
 import ExportItem from "@models/ExportItem";
-import Member from "@models/Member";
 
 const app = express();
 
@@ -15,9 +15,9 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const member = req.model as Member;
+    const contact = req.model as Contact;
     const exportItems = await createQueryBuilder(ExportItem, "ei")
-      .where("ei.itemId = :itemId", { itemId: member.id })
+      .where("ei.itemId = :itemId", { itemId: contact.id })
       .leftJoinAndSelect("ei.export", "e")
       .orderBy("e.date")
       .getMany();
@@ -29,7 +29,7 @@ app.get(
         type: new ExportTypes[item.export.type]()
       }));
 
-    res.render("index", { exportItems: exportItemsWithTypes, member });
+    res.render("index", { exportItems: exportItemsWithTypes, member: contact });
   })
 );
 

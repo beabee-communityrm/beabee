@@ -13,7 +13,7 @@ import { getRepository } from "typeorm";
 
 import { generatePassword } from "@core/utils/auth";
 
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 import EmailService from "@core/services/EmailService";
 
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
@@ -30,10 +30,10 @@ export class ResetPasswordController {
   @OnUndefined(204)
   @Post()
   async create(@Body() data: CreateResetPasswordData): Promise<void> {
-    const member = await MembersService.findOne({ email: data.email });
-    if (member) {
-      const rpFlow = await getRepository(ResetPasswordFlow).save({ member });
-      await EmailService.sendTemplateToMember("reset-password", member, {
+    const contact = await ContactsService.findOne({ email: data.email });
+    if (contact) {
+      const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
+      await EmailService.sendTemplateToContact("reset-password", contact, {
         rpLink: data.resetUrl + "/" + rpFlow.id
       });
     }
@@ -48,15 +48,15 @@ export class ResetPasswordController {
   ): Promise<void> {
     const rpFlow = await getRepository(ResetPasswordFlow).findOne({
       where: { id },
-      relations: ["member"]
+      relations: ["contact"]
     });
     if (rpFlow) {
-      await MembersService.updateMember(rpFlow.member, {
+      await ContactsService.updateContact(rpFlow.contact, {
         password: await generatePassword(data.password)
       });
       await getRepository(ResetPasswordFlow).delete(id);
 
-      await login(req, rpFlow.member);
+      await login(req, rpFlow.contact);
     } else {
       throw new NotFoundError();
     }

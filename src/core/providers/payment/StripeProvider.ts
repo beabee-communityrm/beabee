@@ -16,7 +16,7 @@ import {
   updateSubscription
 } from "@core/utils/payment/stripe";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 import { StripePaymentData } from "@models/PaymentData";
 
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
@@ -41,10 +41,10 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       ...(paymentSource && { paymentSource }),
       ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt }),
       ...(this.data.nextAmount &&
-        this.member.contributionPeriod && {
+        this.contact.contributionPeriod && {
           nextAmount: getActualAmount(
             this.data.nextAmount.monthly,
-            this.member.contributionPeriod
+            this.contact.contributionPeriod
           )
         })
     };
@@ -81,8 +81,8 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     } else {
       log.info("Create new customer");
       const customer = await stripe.customers.create({
-        email: this.member.email,
-        name: `${this.member.firstname} ${this.member.lastname}`,
+        email: this.contact.email,
+        name: `${this.contact.firstname} ${this.contact.lastname}`,
         payment_method: completedPaymentFlow.mandateId,
         invoice_settings: {
           default_payment_method: completedPaymentFlow.mandateId
@@ -111,18 +111,18 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     // Manual contributors don't have a real subscription yet, create one on
     // their previous amount so Stripe can automatically handle any proration
     if (
-      this.member.membership?.isActive &&
-      this.member.contributionType === ContributionType.Manual
+      this.contact.membership?.isActive &&
+      this.contact.contributionType === ContributionType.Manual
     ) {
       log.info("Creating new subscription for manual contributor");
       const newSubscription = await createSubscription(
         this.data.customerId,
         {
           ...paymentForm,
-          monthlyAmount: this.member.contributionMonthlyAmount || 0
+          monthlyAmount: this.contact.contributionMonthlyAmount || 0
         },
         this.method,
-        calcRenewalDate(this.member)
+        calcRenewalDate(this.contact)
       );
       this.data.subscriptionId = newSubscription.id;
     }
@@ -155,7 +155,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
   private async updateOrCreateContribution(
     paymentForm: PaymentForm
   ): Promise<{ subscription: Stripe.Subscription; startNow: boolean }> {
-    if (this.data.subscriptionId && this.member.membership?.isActive) {
+    if (this.data.subscriptionId && this.contact.membership?.isActive) {
       log.info("Update subscription " + this.data.subscriptionId);
       return await updateSubscription(
         this.data.subscriptionId,
@@ -171,18 +171,18 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
         this.data.customerId!, // customerId is asserted in updateContribution
         paymentForm,
         this.method,
-        calcRenewalDate(this.member)
+        calcRenewalDate(this.contact)
       );
       return { subscription, startNow: true };
     }
   }
 
-  async updateMember(updates: Partial<Member>): Promise<void> {
+  async updateContact(updates: Partial<Contact>): Promise<void> {
     if (
       (updates.email || updates.firstname || updates.lastname) &&
       this.data.customerId
     ) {
-      log.info("Update member");
+      log.info("Update contact");
       await stripe.customers.update(this.data.customerId, {
         ...(updates.email && { email: updates.email }),
         ...((updates.firstname || updates.lastname) && {
@@ -192,7 +192,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     }
   }
 
-  async permanentlyDeleteMember(): Promise<void> {
+  async permanentlyDeleteContact(): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

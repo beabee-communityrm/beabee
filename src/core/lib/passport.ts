@@ -9,9 +9,9 @@ import { cleanEmailAddress, sleep } from "@core/utils";
 import { generatePassword, hashPassword } from "@core/utils/auth";
 
 import OptionsService from "@core/services/OptionsService";
-import MembersService from "@core/services/MembersService";
+import ContactsService from "@core/services/ContactsService";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 // Add support for local authentication in Passport.js
 passport.use(
@@ -22,29 +22,29 @@ passport.use(
     async function (email, password, done) {
       if (email) email = cleanEmailAddress(email);
 
-      const user = await MembersService.findOne({ email });
-      if (user) {
-        const tries = user.password.tries || 0;
+      const contact = await ContactsService.findOne({ email });
+      if (contact) {
+        const tries = contact.password.tries || 0;
         // Has account exceeded it's password tries?
         if (tries >= config.passwordTries) {
           return done(null, false, { message: "account-locked" });
         }
 
-        if (!user.password.salt) {
+        if (!contact.password.salt) {
           return done(null, false, { message: "login-failed" });
         }
 
         const hash = await hashPassword(
           password,
-          user.password.salt,
-          user.password.iterations
+          contact.password.salt,
+          contact.password.iterations
         );
-        if (hash === user.password.hash) {
+        if (hash === contact.password.hash) {
           if (tries > 0) {
-            await MembersService.updateMember(user, {
-              password: { ...user.password, tries: 0 }
+            await ContactsService.updateContact(contact, {
+              password: { ...contact.password, tries: 0 }
             });
-            return done(null, user, {
+            return done(null, contact, {
               message: OptionsService.getText("flash-account-attempts").replace(
                 "%",
                 tries.toString()
@@ -52,18 +52,18 @@ passport.use(
             });
           }
 
-          if (user.password.iterations < config.passwordIterations) {
-            await MembersService.updateMember(user, {
+          if (contact.password.iterations < config.passwordIterations) {
+            await ContactsService.updateContact(contact, {
               password: await generatePassword(password)
             });
           }
 
-          return done(null, user, { message: "logged-in" });
+          return done(null, contact, { message: "logged-in" });
         } else {
           // If password doesn't match, increment tries and save
-          user.password.tries = tries + 1;
-          await MembersService.updateMember(user, {
-            password: { ...user.password, tries: tries + 1 }
+          contact.password.tries = tries + 1;
+          await ContactsService.updateContact(contact, {
+            password: { ...contact.password, tries: tries + 1 }
           });
         }
       }
@@ -82,7 +82,7 @@ passport.use(
       window: 1
     },
     function (_user, done) {
-      const user = _user as Member;
+      const user = _user as Contact;
       if (user.otp.key) {
         return done(null, Buffer.from(user.otp.key, "base64").toString(), 30);
       }
@@ -93,24 +93,24 @@ passport.use(
 
 // Passport.js serialise user function
 passport.serializeUser(function (data, done) {
-  done(null, (data as Member).id);
+  done(null, (data as Contact).id);
 });
 
 // Passport.js deserialise user function
 passport.deserializeUser(async function (data, done) {
   try {
     if (typeof data === "string") {
-      const member = await MembersService.findOne(data);
-      if (member) {
+      const contact = await ContactsService.findOne(data);
+      if (contact) {
         // Debounce last seen updates, we don't need to know to the second
         const now = new Date();
-        if (!member.lastSeen || +now - +member.lastSeen > 60000) {
-          // Don't use MembersService.updateMember to avoid overhead
-          await getRepository(Member).update(member.id, { lastSeen: now });
-          member.lastSeen = now;
+        if (!contact.lastSeen || +now - +contact.lastSeen > 60000) {
+          // Don't use ContactsService.updateContact to avoid overhead
+          await getRepository(Contact).update(contact.id, { lastSeen: now });
+          contact.lastSeen = now;
         }
 
-        return done(null, member);
+        return done(null, contact);
       }
     }
     done(null, false);

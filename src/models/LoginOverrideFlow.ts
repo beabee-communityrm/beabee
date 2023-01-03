@@ -5,15 +5,15 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from "typeorm";
-import type Member from "./Member";
+import type Contact from "./Contact";
 
 @Entity()
 export default class LoginOverrideFlow {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne("Member")
-  member!: Member;
+  @ManyToOne("Contact")
+  contact!: Contact;
 
   @CreateDateColumn()
   date!: Date;

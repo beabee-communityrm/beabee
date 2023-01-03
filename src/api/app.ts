@@ -1,7 +1,7 @@
 import "module-alias/register";
 import "reflect-metadata";
 
-import { PermissionType } from "@beabee/beabee-common";
+import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
 import {
@@ -16,10 +16,7 @@ import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { ContentController } from "./controllers/ContentController";
 import { EmailController } from "./controllers/EmailController";
-import {
-  MemberController,
-  MemberStatsController
-} from "./controllers/MemberController";
+import { ContactController } from "./controllers/ContactController";
 import { NoticeController } from "./controllers/NoticeController";
 import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
@@ -31,18 +28,15 @@ import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
-function currentUserChecker(action: Action): Member | undefined {
+function currentUserChecker(action: Action): Contact | undefined {
   return (action.request as Request).user;
 }
 
-function authorizationChecker(
-  action: Action,
-  roles: PermissionType[]
-): boolean {
+function authorizationChecker(action: Action, roles: RoleType[]): boolean {
   const user = currentUserChecker(action);
-  return !!user && roles.every((role) => user.hasPermission(role));
+  return !!user && roles.every((role) => user.hasRole(role));
 }
 
 const app = express();
@@ -61,8 +55,7 @@ db.connect().then(() => {
       CalloutController,
       ContentController,
       EmailController,
-      MemberStatsController, // Must be before MemberController
-      MemberController,
+      ContactController,
       NoticeController,
       SegmentController,
       SignupController,

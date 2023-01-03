@@ -8,14 +8,14 @@ import * as db from "@core/database";
 import NewsletterService from "@core/services/NewsletterService";
 
 import LoginOverrideFlow from "@models/LoginOverrideFlow";
-import Member from "@models/Member";
+import Contact from "@models/Contact";
 
 import config from "@config";
 
 db.connect().then(async () => {
   const isTest = process.argv[2] === "-n";
 
-  const members = await createQueryBuilder(Member, "m")
+  const contacts = await createQueryBuilder(Contact, "m")
     .innerJoinAndSelect("m.profile", "profile")
     .where("profile.newsletterStatus = :status", {
       status: NewsletterStatus.Subscribed
@@ -23,27 +23,27 @@ db.connect().then(async () => {
     .getMany();
 
   const loFlows = await getRepository(LoginOverrideFlow).save(
-    members.map((member) => ({ member }))
+    contacts.map((contact) => ({ contact }))
   );
 
-  const membersWithFields: [Member, Record<string, string>][] = loFlows.map(
+  const membersWithFields: [Contact, Record<string, string>][] = loFlows.map(
     (loFlow) => [
-      loFlow.member,
+      loFlow.contact,
       {
-        MAGICCODE: `${config.audience}/login/code/${loFlow.member.id}/${loFlow.id}?next=`
+        MAGICCODE: `${config.audience}/login/code/${loFlow.contact.id}/${loFlow.id}?next=`
       }
     ]
   );
 
   if (isTest) {
-    for (const [member, fields] of membersWithFields) {
-      console.log(member.id, fields.MAGICCODE);
+    for (const [contact, fields] of membersWithFields) {
+      console.log(contact.id, fields.MAGICCODE);
     }
     await getRepository(LoginOverrideFlow).delete(
       loFlows.map((loFlow) => loFlow.id)
     );
   } else {
-    await NewsletterService.updateMembersFields(membersWithFields);
+    await NewsletterService.updateContactsFields(membersWithFields);
   }
   await db.close();
 });
