@@ -39,14 +39,14 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       try {
         const mandate = await gocardless.mandates.get(this.data.mandateId);
         const bankAccount = await gocardless.customerBankAccounts.get(
-          mandate.links.customer_bank_account
+          mandate.links!.customer_bank_account!
         );
 
         paymentSource = {
           method: PaymentMethod.GoCardlessDirectDebit,
-          bankName: bankAccount.bank_name,
-          accountHolderName: bankAccount.account_holder_name,
-          accountNumberEnding: bankAccount.account_number_ending
+          bankName: bankAccount.bank_name || "",
+          accountHolderName: bankAccount.account_holder_name || "",
+          accountNumberEnding: bankAccount.account_number_ending || ""
         };
         pendingPayment = await hasPendingPayment(this.data.mandateId);
       } catch (err: any) {
@@ -148,7 +148,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     });
 
     this.data.cancelledAt = null;
-    this.data.subscriptionId = subscription.id;
+    this.data.subscriptionId = subscription.id!;
     this.data.payFee = paymentForm.payFee;
     this.data.nextMonthlyAmount = startNow ? null : paymentForm.monthlyAmount;
 

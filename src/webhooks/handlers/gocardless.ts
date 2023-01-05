@@ -83,10 +83,10 @@ async function handlePaymentResourceEvent(event: Event) {
   // limited. It seems like we can pretty safely assume paid out payments
   // haven't changed though.
   if (event.action === PaymentStatus.PaidOut) {
-    await updatePaymentStatus(event.links.payment, PaymentStatus.PaidOut);
+    await updatePaymentStatus(event.links!.payment!, PaymentStatus.PaidOut);
   } else {
     await updatePayment(
-      event.links.payment,
+      event.links!.payment!,
       event.action === PaymentStatus.Confirmed
     );
   }
@@ -103,7 +103,7 @@ async function handleSubscriptionResourceEvent(event: Event) {
     case "customer_approval_denied":
     case "cancelled":
     case "finished":
-      await cancelSubscription(event.links.subscription);
+      await cancelSubscription(event.links!.subscription!);
       break;
   }
 }
@@ -128,14 +128,14 @@ async function handleMandateResourceEvent(event: Event) {
     case "failed":
     case "expired":
       // Remove the mandate from the database
-      await cancelMandate(event.links.mandate);
+      await cancelMandate(event.links!.mandate!);
       break;
   }
 }
 
 async function handleRefundResourceEvent(event: Event) {
-  const refund = await gocardless.refunds.get(event.links.refund);
-  await updatePayment(refund.links.payment);
+  const refund = await gocardless.refunds.get(event.links!.refund!);
+  await updatePayment(refund.links!.payment!);
 }
 
 export default app;
