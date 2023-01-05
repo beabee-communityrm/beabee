@@ -31,9 +31,9 @@ class GCProvider implements PaymentFlowProvider {
     log.info("Created redirect flow " + redirectFlow.id);
 
     return {
-      id: redirectFlow.id,
+      id: redirectFlow.id!,
       params: {
-        redirectUrl: redirectFlow.redirect_url
+        redirectUrl: redirectFlow.redirect_url!
       }
     };
   }
@@ -49,8 +49,8 @@ class GCProvider implements PaymentFlowProvider {
 
     return {
       paymentMethod: joinFlow.joinForm.paymentMethod,
-      customerId: redirectFlow.links.customer,
-      mandateId: redirectFlow.links.mandate
+      customerId: redirectFlow.links!.customer!,
+      mandateId: redirectFlow.links!.mandate!
     };
   }
 
@@ -66,7 +66,7 @@ class GCProvider implements PaymentFlowProvider {
       ...(customer.family_name && { lastname: customer.family_name }),
       billingAddress: {
         line1: customer.address_line1 || "",
-        line2: customer.address_line2,
+        line2: customer.address_line2 || undefined,
         city: customer.city || "",
         postcode: customer.postal_code || ""
       }

@@ -31,7 +31,7 @@ export async function updatePayment(
   const payment = await findOrCreatePayment(gcPayment);
 
   if (payment) {
-    payment.status = convertStatus(gcPayment.status);
+    payment.status = convertStatus(gcPayment.status!);
     payment.description = gcPayment.description || "Unknown";
     payment.amount = Number(gcPayment.amount) / 100;
     payment.amountRefunded = Number(gcPayment.amount_refunded) / 100;
@@ -68,7 +68,7 @@ async function confirmPayment(
   if (payment.subscriptionId !== gcData.subscriptionId) {
     log.error("Mismatched subscription IDs for payment " + payment.id, {
       ourSubscriptionId: payment.subscriptionId,
-      gcSubscriptionId: gcPayment.links.subscription
+      gcSubscriptionId: gcPayment.links!.subscription
     });
     return;
   }
@@ -101,7 +101,10 @@ async function getSubscriptionPeriodEnd(payment: Payment): Promise<Date> {
   );
 
   // If the subscription has been cancelled there won't be any upcoming payments
-  if (subscription.upcoming_payments.length > 0) {
+  if (
+    subscription.upcoming_payments &&
+    subscription.upcoming_payments.length > 0
+  ) {
     return moment
       .utc(subscription.upcoming_payments[0].charge_date)
       .add(config.gracePeriod)
@@ -179,7 +182,7 @@ async function findOrCreatePayment(
 
   const data = await PaymentService.getDataBy(
     "mandateId",
-    gcPayment.links.mandate
+    gcPayment.links!.mandate!
   );
 
   if (data) {
@@ -188,9 +191,9 @@ async function findOrCreatePayment(
       gcPaymentId: gcPayment.id
     });
     const newPayment = new Payment();
-    newPayment.id = gcPayment.id;
+    newPayment.id = gcPayment.id!;
     newPayment.contact = data.contact;
-    if (gcPayment.links.subscription) {
+    if (gcPayment.links?.subscription) {
       newPayment.subscriptionId = gcPayment.links.subscription;
     }
     return newPayment;

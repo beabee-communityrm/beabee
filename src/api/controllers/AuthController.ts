@@ -88,7 +88,12 @@ export class AuthController {
 
   @OnUndefined(204)
   @Post("/logout")
-  logout(@Req() req: Request): void {
-    req.logout();
+  async logout(@Req() req: Request): Promise<void> {
+    await new Promise<void>((resolve, reject) =>
+      req.logout((err) => {
+        if (err) reject(err);
+        else resolve();
+      })
+    );
   }
 }
