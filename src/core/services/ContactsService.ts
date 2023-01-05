@@ -159,7 +159,7 @@ class ContactsService {
   async updateContactRole(
     contact: Contact,
     roleType: RoleType,
-    updates?: Partial<Omit<ContactRole, "member" | "type">>
+    updates?: Partial<Omit<ContactRole, "contact" | "type">>
   ): Promise<void> {
     log.info(`Update role ${roleType} for ${contact.id}`, updates);
 

@@ -44,7 +44,7 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
 
     if (this.ex!.params?.hasActiveSubscription) {
       query
-        .innerJoin(PaymentData, "pd", "pd.contactId = m.contactId")
+        .innerJoin(PaymentData, "pd", "pd.contactId = m.id")
         .andWhere("pd.data ->> 'subscriptionId' IS NOT NULL");
     }
 
