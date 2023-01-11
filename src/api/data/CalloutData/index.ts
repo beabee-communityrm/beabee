@@ -196,6 +196,7 @@ export async function fetchPaginatedCalloutResponses(
   return {
     ...results,
     items: results.items.map((item) => ({
+      id: item.id,
       contact: item.contact as unknown as string, // TODO: fix typing
       answers: item.answers,
       createdAt: item.createdAt,
