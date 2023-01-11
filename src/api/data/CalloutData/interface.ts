@@ -17,6 +17,7 @@ import IsUrl from "@api/validators/IsUrl";
 
 import { CalloutFormSchema, CalloutAccess } from "@models/Callout";
 import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import { GetContactData } from "../ContactData";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -134,19 +135,28 @@ export class CreateCalloutData implements CalloutData {
   hidden!: boolean;
 }
 
+export enum GetCalloutResponseWith {
+  Answers = "answers",
+  Contact = "contact"
+}
+
 export const responseSortFields = ["createdAt", "updatedAt"] as const;
 
 export class GetCalloutResponsesQuery extends GetPaginatedQuery {
+  @IsOptional()
+  @IsEnum(GetCalloutResponseWith, { each: true })
+  with?: GetCalloutResponseWith[];
+
   @IsIn(responseSortFields)
   sort?: string;
 }
 
 export interface GetCalloutResponseData {
   id: string;
-  contact: string;
-  answers: CalloutResponseAnswers;
   createdAt: Date;
   updatedAt: Date;
+  answers?: CalloutResponseAnswers;
+  contact?: GetContactData;
 }
 
 export class CreateCalloutResponseData {

@@ -6,6 +6,7 @@ import {
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
 
+import { convertContactToData } from "@api/data/ContactData";
 import {
   fetchPaginated,
   mergeRules,
@@ -22,7 +23,8 @@ import {
   GetCalloutsQuery,
   GetCalloutResponseData,
   GetCalloutData,
-  GetCalloutResponsesQuery
+  GetCalloutResponsesQuery,
+  GetCalloutResponseWith
 } from "./interface";
 
 interface ConvertOpts {
@@ -190,17 +192,25 @@ export async function fetchPaginatedCalloutResponses(
     scopedQuery,
     contact,
     undefined,
-    (qb) => qb.loadAllRelationIds()
+    (qb) => {
+      if (query.with?.includes(GetCalloutResponseWith.Contact)) {
+        qb.leftJoinAndSelect("item.contact", "contact");
+      }
+    }
   );
 
   return {
     ...results,
     items: results.items.map((item) => ({
       id: item.id,
-      contact: item.contact as unknown as string, // TODO: fix typing
-      answers: item.answers,
       createdAt: item.createdAt,
-      updatedAt: item.updatedAt
+      updatedAt: item.updatedAt,
+      ...(query.with?.includes(GetCalloutResponseWith.Answers) && {
+        answers: item.answers
+      }),
+      ...(item.contact && {
+        contact: convertContactToData(item.contact)
+      })
     }))
   };
 }
