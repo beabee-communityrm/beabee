@@ -37,6 +37,7 @@ import {
   GetCalloutResponseParam,
   GetCalloutResponseQuery,
   GetCalloutResponsesQuery,
+  GetCalloutResponseWith,
   GetCalloutsQuery
 } from "@api/data/CalloutData";
 import { Paginated } from "@api/data/PaginatedData";
@@ -156,10 +157,15 @@ export class CalloutController {
     @QueryParams() query: GetCalloutResponseQuery
   ): Promise<GetCalloutResponseData | undefined> {
     const response = await getRepository(CalloutResponse).findOne({
-      id,
-      callout: { slug },
-      // Non-admins can only see their own responses
-      ...(!contact.hasRole("admin") && { contact })
+      where: {
+        id: param.id,
+        callout: { slug: param.slug },
+        // Non-admins can only see their own responses
+        ...(!contact.hasRole("admin") && { contact })
+      },
+      relations: query.with?.includes(GetCalloutResponseWith.Contact)
+        ? ["contact", "contact.roles"]
+        : []
     });
 
     return response && convertResponseToData(response, query.with);

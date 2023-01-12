@@ -168,7 +168,7 @@ export interface GetCalloutResponseData {
   createdAt: Date;
   updatedAt: Date;
   answers?: CalloutResponseAnswers;
-  contact?: GetContactData;
+  contact?: GetContactData | null;
 }
 
 export class CreateCalloutResponseData {

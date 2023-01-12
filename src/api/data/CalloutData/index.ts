@@ -90,8 +90,8 @@ export function convertResponseToData(
     ...(_with?.includes(GetCalloutResponseWith.Answers) && {
       answers: response.answers
     }),
-    ...(response.contact && {
-      contact: convertContactToData(response.contact)
+    ...(_with?.includes(GetCalloutResponseWith.Contact) && {
+      contact: response.contact && convertContactToData(response.contact)
     })
   };
 }
