@@ -24,7 +24,6 @@ import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
-import { UUIDParam } from "@api/data";
 import {
   convertCalloutToData,
   convertResponseToData,
@@ -35,6 +34,7 @@ import {
   GetCalloutData,
   GetCalloutQuery,
   GetCalloutResponseData,
+  GetCalloutResponseParam,
   GetCalloutResponseQuery,
   GetCalloutResponsesQuery,
   GetCalloutsQuery
@@ -152,8 +152,7 @@ export class CalloutController {
   @Get("/:slug/responses/:id")
   async getCalloutResponse(
     @CurrentUser() contact: Contact,
-    @Param("slug") slug: string,
-    @Params() { id }: UUIDParam,
+    @Params() param: GetCalloutResponseParam,
     @QueryParams() query: GetCalloutResponseQuery
   ): Promise<GetCalloutResponseData | undefined> {
     const response = await getRepository(CalloutResponse).findOne({

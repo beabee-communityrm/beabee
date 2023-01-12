@@ -18,6 +18,7 @@ import IsUrl from "@api/validators/IsUrl";
 import { CalloutFormSchema, CalloutAccess } from "@models/Callout";
 import { CalloutResponseAnswers } from "@models/CalloutResponse";
 import { GetContactData } from "../ContactData";
+import { UUIDParam } from "..";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -144,6 +145,11 @@ export class GetCalloutResponseQuery {
   @IsOptional()
   @IsEnum(GetCalloutResponseWith, { each: true })
   with?: GetCalloutResponseWith[];
+}
+
+export class GetCalloutResponseParam extends UUIDParam {
+  @IsString()
+  slug!: string;
 }
 
 export const responseSortFields = ["createdAt", "updatedAt"] as const;
