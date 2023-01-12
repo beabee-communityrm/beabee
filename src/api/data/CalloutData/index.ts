@@ -6,6 +6,7 @@ import {
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
 
+import { convertContactToData } from "@api/data/ContactData";
 import {
   fetchPaginated,
   mergeRules,
@@ -22,7 +23,8 @@ import {
   GetCalloutsQuery,
   GetCalloutResponseData,
   GetCalloutData,
-  GetCalloutResponsesQuery
+  GetCalloutResponsesQuery,
+  GetCalloutResponseWith
 } from "./interface";
 
 interface ConvertOpts {
@@ -73,6 +75,23 @@ export async function convertCalloutToData(
       ...(callout.shareDescription && {
         shareDescription: callout.shareDescription
       })
+    })
+  };
+}
+
+export function convertResponseToData(
+  response: CalloutResponse,
+  _with?: GetCalloutResponseWith[]
+): GetCalloutResponseData {
+  return {
+    id: response.id,
+    createdAt: response.createdAt,
+    updatedAt: response.updatedAt,
+    ...(_with?.includes(GetCalloutResponseWith.Answers) && {
+      answers: response.answers
+    }),
+    ...(_with?.includes(GetCalloutResponseWith.Contact) && {
+      contact: response.contact && convertContactToData(response.contact)
     })
   };
 }
@@ -176,7 +195,7 @@ export async function fetchPaginatedCalloutResponses(
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
     { field: "callout", operator: "equal", value: [slug] },
-    // Contact's can only see their own responses
+    // Non admins can only see their own responses
     !contact.hasRole("admin") && {
       field: "contact",
       operator: "equal",
@@ -190,17 +209,17 @@ export async function fetchPaginatedCalloutResponses(
     scopedQuery,
     contact,
     undefined,
-    (qb) => qb.loadAllRelationIds()
+    (qb) => {
+      if (query.with?.includes(GetCalloutResponseWith.Contact)) {
+        qb.leftJoinAndSelect("item.contact", "contact");
+        qb.leftJoinAndSelect("contact.roles", "roles");
+      }
+    }
   );
 
   return {
     ...results,
-    items: results.items.map((item) => ({
-      contact: item.contact as unknown as string, // TODO: fix typing
-      answers: item.answers,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt
-    }))
+    items: results.items.map((item) => convertResponseToData(item, query.with))
   };
 }
 

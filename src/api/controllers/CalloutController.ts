@@ -8,6 +8,7 @@ import {
   NotFoundError,
   OnUndefined,
   Param,
+  Params,
   Patch,
   Post,
   QueryParams
@@ -25,6 +26,7 @@ import CalloutResponse from "@models/CalloutResponse";
 
 import {
   convertCalloutToData,
+  convertResponseToData,
   CreateCalloutData,
   CreateCalloutResponseData,
   fetchPaginatedCalloutResponses,
@@ -32,7 +34,10 @@ import {
   GetCalloutData,
   GetCalloutQuery,
   GetCalloutResponseData,
+  GetCalloutResponseParam,
+  GetCalloutResponseQuery,
   GetCalloutResponsesQuery,
+  GetCalloutResponseWith,
   GetCalloutsQuery
 } from "@api/data/CalloutData";
 import { Paginated } from "@api/data/PaginatedData";
@@ -121,7 +126,7 @@ export class CalloutController {
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseData
-  ) {
+  ): Promise<void> {
     const callout = await getRepository(Callout).findOne(slug);
     if (!callout) {
       throw new NotFoundError();
@@ -143,5 +148,26 @@ export class CalloutController {
     if (error) {
       throw new InvalidCalloutResponse(error);
     }
+  }
+
+  @Get("/:slug/responses/:id")
+  async getCalloutResponse(
+    @CurrentUser() contact: Contact,
+    @Params() param: GetCalloutResponseParam,
+    @QueryParams() query: GetCalloutResponseQuery
+  ): Promise<GetCalloutResponseData | undefined> {
+    const response = await getRepository(CalloutResponse).findOne({
+      where: {
+        id: param.id,
+        callout: { slug: param.slug },
+        // Non-admins can only see their own responses
+        ...(!contact.hasRole("admin") && { contact })
+      },
+      relations: query.with?.includes(GetCalloutResponseWith.Contact)
+        ? ["contact", "contact.roles"]
+        : []
+    });
+
+    return response && convertResponseToData(response, query.with);
   }
 }

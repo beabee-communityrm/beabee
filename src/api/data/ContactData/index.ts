@@ -26,7 +26,7 @@ interface ConvertOpts {
 
 export function convertContactToData(
   contact: Contact,
-  opts: ConvertOpts
+  opts?: ConvertOpts
 ): GetContactData {
   const activeRoles = [...contact.activeRoles];
   if (activeRoles.includes("superadmin")) {
@@ -49,7 +49,7 @@ export function convertContactToData(
       contributionPeriod: contact.contributionPeriod
     }),
     activeRoles,
-    ...(opts.with?.includes(GetContactWith.Profile) &&
+    ...(opts?.with?.includes(GetContactWith.Profile) &&
       contact.profile && {
         profile: {
           telephone: contact.profile.telephone,
@@ -66,7 +66,7 @@ export function convertContactToData(
           })
         }
       }),
-    ...(opts.with?.includes(GetContactWith.Roles) && {
+    ...(opts?.with?.includes(GetContactWith.Roles) && {
       roles: contact.roles.map((p) => ({
         role: p.type,
         dateAdded: p.dateAdded,
