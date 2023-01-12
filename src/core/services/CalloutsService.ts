@@ -3,18 +3,23 @@ import { getRepository, IsNull, LessThan } from "typeorm";
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 
+import { isDuplicateIndex } from "@core/utils";
+
 import Contact from "@models/Contact";
 import Callout, { CalloutAccess } from "@models/Callout";
 import CalloutResponse, {
   CalloutResponseAnswers
 } from "@models/CalloutResponse";
 
+import DuplicateId from "@api/errors/DuplicateId";
+import { CreateCalloutData } from "@api/data/CalloutData";
+
 class CalloutWithResponse extends Callout {
   response?: CalloutResponse;
 }
 
-export default class CalloutsService {
-  static async getVisibleCalloutsWithResponses(
+class CalloutsService {
+  async getVisibleCalloutsWithResponses(
     contact: Contact
   ): Promise<CalloutWithResponse[]> {
     const callouts = await getRepository(Callout).find({
@@ -44,7 +49,28 @@ export default class CalloutsService {
     return calloutsWithResponses;
   }
 
-  static async getResponse(
+  async createCallout(
+    data: CreateCalloutData & { slug: string },
+    autoSlug: number | false
+  ): Promise<Callout> {
+    const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
+    try {
+      await getRepository(Callout).insert({ ...data, slug });
+      return await getRepository(Callout).findOneOrFail(slug);
+    } catch (err) {
+      if (isDuplicateIndex(err, "slug")) {
+        if (autoSlug === false) {
+          throw new DuplicateId(slug);
+        } else {
+          return await this.createCallout(data, autoSlug + 1);
+        }
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  async getResponse(
     callout: Callout,
     contact: Contact
   ): Promise<CalloutResponse | undefined> {
@@ -58,7 +84,7 @@ export default class CalloutsService {
     });
   }
 
-  static async setResponse(
+  async setResponse(
     callout: Callout,
     contact: Contact,
     answers: CalloutResponseAnswers,
@@ -82,7 +108,7 @@ export default class CalloutsService {
       return;
     }
 
-    let response = await CalloutsService.getResponse(callout, contact);
+    let response = await this.getResponse(callout, contact);
     if (response && !callout.allowMultiple) {
       if (!callout.allowUpdate && !response.isPartial) {
         return "cant-update";
@@ -111,7 +137,7 @@ export default class CalloutsService {
     }
   }
 
-  static async setGuestResponse(
+  async setGuestResponse(
     callout: Callout,
     guestName: string | undefined,
     guestEmail: string | undefined,
@@ -143,3 +169,5 @@ export default class CalloutsService {
     });
   }
 }
+
+export default new CalloutsService();
