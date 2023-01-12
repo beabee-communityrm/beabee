@@ -140,6 +140,12 @@ export enum GetCalloutResponseWith {
   Contact = "contact"
 }
 
+export class GetCalloutResponseQuery {
+  @IsOptional()
+  @IsEnum(GetCalloutResponseWith, { each: true })
+  with?: GetCalloutResponseWith[];
+}
+
 export const responseSortFields = ["createdAt", "updatedAt"] as const;
 
 export class GetCalloutResponsesQuery extends GetPaginatedQuery {

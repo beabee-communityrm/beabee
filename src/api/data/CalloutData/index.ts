@@ -79,6 +79,23 @@ export async function convertCalloutToData(
   };
 }
 
+export function convertResponseToData(
+  response: CalloutResponse,
+  _with?: GetCalloutResponseWith[]
+): GetCalloutResponseData {
+  return {
+    id: response.id,
+    createdAt: response.createdAt,
+    updatedAt: response.updatedAt,
+    ...(_with?.includes(GetCalloutResponseWith.Answers) && {
+      answers: response.answers
+    }),
+    ...(response.contact && {
+      contact: convertContactToData(response.contact)
+    })
+  };
+}
+
 export async function fetchPaginatedCallouts(
   query: GetCalloutsQuery,
   contact: Contact | undefined,
@@ -178,7 +195,7 @@ export async function fetchPaginatedCalloutResponses(
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
     { field: "callout", operator: "equal", value: [slug] },
-    // Contact's can only see their own responses
+    // Non admins can only see their own responses
     !contact.hasRole("admin") && {
       field: "contact",
       operator: "equal",
@@ -195,23 +212,14 @@ export async function fetchPaginatedCalloutResponses(
     (qb) => {
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
         qb.leftJoinAndSelect("item.contact", "contact");
+        qb.leftJoinAndSelect("contact.roles", "roles");
       }
     }
   );
 
   return {
     ...results,
-    items: results.items.map((item) => ({
-      id: item.id,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
-      ...(query.with?.includes(GetCalloutResponseWith.Answers) && {
-        answers: item.answers
-      }),
-      ...(item.contact && {
-        contact: convertContactToData(item.contact)
-      })
-    }))
+    items: results.items.map((item) => convertResponseToData(item, query.with))
   };
 }
 
