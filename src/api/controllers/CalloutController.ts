@@ -40,35 +40,23 @@ import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
-async function createCallout(
-  data: CreateCalloutData & { slug: string },
-  autoSlug: number | false
-): Promise<Callout> {
-  const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
-  try {
-    await getRepository(Callout).insert({ ...data, slug });
-    return await getRepository(Callout).findOneOrFail(slug);
-  } catch (err) {
-    if (isDuplicateIndex(err, "slug")) {
-      if (autoSlug === false) {
-        throw new DuplicateId(slug);
-      } else {
-        return await createCallout(data, autoSlug + 1);
-      }
-    } else {
-      throw err;
-    }
+@JsonController("/callout")
+export class CalloutController {
+  @Get("/")
+  async getCallouts(
+    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @QueryParams() query: GetCalloutsQuery
+  ): Promise<Paginated<GetCalloutData>> {
+    return fetchPaginatedCallouts(query, contact, { with: query.with });
   }
-}
 
-abstract class CalloutAdminController {
   @Authorized("admin")
   @Post("/")
   async createCallout(
     @CurrentUser({ required: true }) contact: Contact,
     @Body() data: CreateCalloutData
   ): Promise<GetCalloutData> {
-    const callout = await createCallout(
+    const callout = await CalloutsService.createCallout(
       {
         ...data,
         slug: data.slug || slugify(data.title, { lower: true })
@@ -76,6 +64,18 @@ abstract class CalloutAdminController {
       data.slug ? false : 0
     );
     return convertCalloutToData(callout, contact, {});
+  }
+
+  @Get("/:slug")
+  async getCallout(
+    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @Param("slug") slug: string,
+    @QueryParams() query: GetCalloutQuery
+  ): Promise<GetCalloutData | undefined> {
+    const callout = await getRepository(Callout).findOne(slug);
+    if (callout) {
+      return convertCalloutToData(callout, contact, { with: query.with });
+    }
   }
 
   @Authorized("admin")
@@ -103,29 +103,6 @@ abstract class CalloutAdminController {
     const result = await getRepository(Callout).delete(slug);
     if (result.affected === 0) {
       throw new NotFoundError();
-    }
-  }
-}
-
-@JsonController("/callout")
-export class CalloutController extends CalloutAdminController {
-  @Get("/")
-  async getCallouts(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
-    @QueryParams() query: GetCalloutsQuery
-  ): Promise<Paginated<GetCalloutData>> {
-    return fetchPaginatedCallouts(query, contact, { with: query.with });
-  }
-
-  @Get("/:slug")
-  async getCallout(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
-    @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutQuery
-  ): Promise<GetCalloutData | undefined> {
-    const callout = await getRepository(Callout).findOne(slug);
-    if (callout) {
-      return convertCalloutToData(callout, contact, { with: query.with });
     }
   }
 
