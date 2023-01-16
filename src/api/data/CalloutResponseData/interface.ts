@@ -8,11 +8,13 @@ import {
   IsEmail
 } from "class-validator";
 import { UUIDParam } from "..";
+import { GetCalloutData } from "../CalloutData";
 import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery } from "../PaginatedData";
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
+  Callout = "callout",
   Contact = "contact"
 }
 
@@ -40,10 +42,10 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
 
 export interface GetCalloutResponseData {
   id: string;
-  callout: string;
   createdAt: Date;
   updatedAt: Date;
   answers?: CalloutResponseAnswers;
+  callout?: GetCalloutData;
   contact?: GetContactData | null;
 }
 

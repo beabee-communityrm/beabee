@@ -13,18 +13,21 @@ import {
   GetCalloutResponsesQuery,
   GetCalloutResponseQuery
 } from "./interface";
+import { convertCalloutToData } from "../CalloutData";
 
 export function convertResponseToData(
-  response: WithRelationIds<CalloutResponse, "callout">,
+  response: CalloutResponse,
   _with?: GetCalloutResponseWith[]
 ): GetCalloutResponseData {
   return {
     id: response.id,
     createdAt: response.createdAt,
     updatedAt: response.updatedAt,
-    callout: response.callout,
     ...(_with?.includes(GetCalloutResponseWith.Answers) && {
       answers: response.answers
+    }),
+    ...(_with?.includes(GetCalloutResponseWith.Callout) && {
+      callout: convertCalloutToData(response.callout)
     }),
     ...(_with?.includes(GetCalloutResponseWith.Contact) && {
       contact: response.contact && convertContactToData(response.contact)
@@ -37,17 +40,21 @@ export async function fetchCalloutResponse(
   query: GetCalloutResponseQuery,
   contact: Contact
 ): Promise<GetCalloutResponseData | undefined> {
-  const response = (await getRepository(CalloutResponse).findOne({
+  const response = await getRepository(CalloutResponse).findOne({
     where: {
       ...where,
       // Non-admins can only see their own responses
       ...(!contact.hasRole("admin") && { contact })
     },
-    relations: query.with?.includes(GetCalloutResponseWith.Contact)
-      ? ["contact", "contact.roles"]
-      : [],
-    loadRelationIds: { relations: ["callout"] }
-  })) as WithRelationIds<CalloutResponse, "callout"> | undefined;
+    relations: [
+      ...(query.with?.includes(GetCalloutResponseWith.Callout)
+        ? ["callout"]
+        : []),
+      ...(query.with?.includes(GetCalloutResponseWith.Contact)
+        ? ["contact", "contact.roles"]
+        : [])
+    ]
+  });
 
   return response && convertResponseToData(response, query.with);
 }
@@ -65,20 +72,22 @@ export async function fetchPaginatedCalloutResponses(
     }
   ]);
 
-  const results = (await fetchPaginated(
+  const results = await fetchPaginated(
     CalloutResponse,
     calloutResponseFilters,
     scopedQuery,
     contact,
     undefined,
     (qb) => {
-      qb.loadAllRelationIds({ relations: ["callout"] });
+      if (query.with?.includes(GetCalloutResponseWith.Callout)) {
+        qb.innerJoinAndSelect("item.callout", "callout");
+      }
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
         qb.leftJoinAndSelect("item.contact", "contact");
         qb.leftJoinAndSelect("contact.roles", "roles");
       }
     }
-  )) as unknown as Paginated<WithRelationIds<CalloutResponse, "callout">>;
+  );
 
   return {
     ...results,
