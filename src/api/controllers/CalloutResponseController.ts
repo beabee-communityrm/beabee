@@ -14,7 +14,7 @@ import {
 
 import Contact from "@models/Contact";
 
-@JsonController("/callout-response")
+@JsonController("/callout-responses")
 export class CalloutResponseController {
   @Get("/")
   getCalloutResponses(
