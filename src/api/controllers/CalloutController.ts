@@ -26,20 +26,22 @@ import CalloutResponse from "@models/CalloutResponse";
 
 import {
   convertCalloutToData,
-  convertResponseToData,
   CreateCalloutData,
-  CreateCalloutResponseData,
-  fetchPaginatedCalloutResponses,
   fetchPaginatedCallouts,
   GetCalloutData,
   GetCalloutQuery,
+  GetCalloutsQuery
+} from "@api/data/CalloutData";
+import {
+  convertResponseToData,
+  CreateCalloutResponseData,
+  fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
   GetCalloutResponseParam,
   GetCalloutResponseQuery,
   GetCalloutResponsesQuery,
-  GetCalloutResponseWith,
-  GetCalloutsQuery
-} from "@api/data/CalloutData";
+  GetCalloutResponseWith
+} from "@api/data/CalloutResponseData";
 import { Paginated } from "@api/data/PaginatedData";
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";

@@ -3,7 +3,6 @@ import { Type } from "class-transformer";
 import {
   IsBoolean,
   IsDate,
-  IsEmail,
   IsEnum,
   IsIn,
   IsObject,
@@ -16,9 +15,6 @@ import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
 import { CalloutFormSchema, CalloutAccess } from "@models/Callout";
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
-import { GetContactData } from "../ContactData";
-import { UUIDParam } from "..";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -134,52 +130,4 @@ export class CreateCalloutData implements CalloutData {
 
   @IsBoolean()
   hidden!: boolean;
-}
-
-export enum GetCalloutResponseWith {
-  Answers = "answers",
-  Contact = "contact"
-}
-
-export class GetCalloutResponseQuery {
-  @IsOptional()
-  @IsEnum(GetCalloutResponseWith, { each: true })
-  with?: GetCalloutResponseWith[];
-}
-
-export class GetCalloutResponseParam extends UUIDParam {
-  @IsString()
-  slug!: string;
-}
-
-export const responseSortFields = ["createdAt", "updatedAt"] as const;
-
-export class GetCalloutResponsesQuery extends GetPaginatedQuery {
-  @IsOptional()
-  @IsEnum(GetCalloutResponseWith, { each: true })
-  with?: GetCalloutResponseWith[];
-
-  @IsIn(responseSortFields)
-  sort?: string;
-}
-
-export interface GetCalloutResponseData {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  answers?: CalloutResponseAnswers;
-  contact?: GetContactData | null;
-}
-
-export class CreateCalloutResponseData {
-  @IsObject()
-  answers!: CalloutResponseAnswers;
-
-  @IsOptional()
-  @IsString()
-  guestName?: string;
-
-  @IsOptional()
-  @IsEmail()
-  guestEmail?: string;
 }
