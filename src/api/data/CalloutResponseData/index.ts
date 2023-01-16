@@ -1,4 +1,5 @@
 import { Paginated, calloutResponseFilters } from "@beabee/beabee-common";
+import { FindConditions, getRepository } from "typeorm";
 
 import CalloutResponse from "@models/CalloutResponse";
 import Contact from "@models/Contact";
@@ -9,7 +10,8 @@ import { mergeRules, fetchPaginated } from "../PaginatedData";
 import {
   GetCalloutResponseWith,
   GetCalloutResponseData,
-  GetCalloutResponsesQuery
+  GetCalloutResponsesQuery,
+  GetCalloutResponseQuery
 } from "./interface";
 
 export function convertResponseToData(
@@ -29,13 +31,32 @@ export function convertResponseToData(
   };
 }
 
+export async function fetchCalloutResponse(
+  where: FindConditions<CalloutResponse>,
+  query: GetCalloutResponseQuery,
+  contact: Contact
+): Promise<GetCalloutResponseData | undefined> {
+  const response = await getRepository(CalloutResponse).findOne({
+    where: {
+      ...where,
+      // id: param.id,
+      // callout: { slug: param.slug },
+      // Non-admins can only see their own responses
+      ...(!contact.hasRole("admin") && { contact })
+    },
+    relations: query.with?.includes(GetCalloutResponseWith.Contact)
+      ? ["contact", "contact.roles"]
+      : []
+  });
+
+  return response && convertResponseToData(response, query.with);
+}
+
 export async function fetchPaginatedCalloutResponses(
-  slug: string,
   query: GetCalloutResponsesQuery,
   contact: Contact
 ): Promise<Paginated<GetCalloutResponseData>> {
   const scopedQuery = mergeRules(query, [
-    { field: "callout", operator: "equal", value: [slug] },
     // Non admins can only see their own responses
     !contact.hasRole("admin") && {
       field: "contact",

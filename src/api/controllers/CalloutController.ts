@@ -35,6 +35,7 @@ import {
 import {
   convertResponseToData,
   CreateCalloutResponseData,
+  fetchCalloutResponse,
   fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
   GetCalloutResponseParam,
@@ -42,7 +43,7 @@ import {
   GetCalloutResponsesQuery,
   GetCalloutResponseWith
 } from "@api/data/CalloutResponseData";
-import { Paginated } from "@api/data/PaginatedData";
+import { mergeRules, Paginated } from "@api/data/PaginatedData";
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
@@ -119,7 +120,11 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    return await fetchPaginatedCalloutResponses(slug, query, contact);
+    const scopedQuery = mergeRules(query, [
+      { field: "callout", operator: "equal", value: [slug] }
+    ]);
+
+    return await fetchPaginatedCalloutResponses(scopedQuery, contact);
   }
 
   @Post("/:slug/responses")
@@ -158,18 +163,10 @@ export class CalloutController {
     @Params() param: GetCalloutResponseParam,
     @QueryParams() query: GetCalloutResponseQuery
   ): Promise<GetCalloutResponseData | undefined> {
-    const response = await getRepository(CalloutResponse).findOne({
-      where: {
-        id: param.id,
-        callout: { slug: param.slug },
-        // Non-admins can only see their own responses
-        ...(!contact.hasRole("admin") && { contact })
-      },
-      relations: query.with?.includes(GetCalloutResponseWith.Contact)
-        ? ["contact", "contact.roles"]
-        : []
-    });
-
-    return response && convertResponseToData(response, query.with);
+    return await fetchCalloutResponse(
+      { id: param.id, callout: { slug: param.slug } },
+      query,
+      contact
+    );
   }
 }

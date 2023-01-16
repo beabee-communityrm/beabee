@@ -7,6 +7,7 @@ import {
 } from "routing-controllers";
 
 import {
+  fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
@@ -20,6 +21,6 @@ export class CalloutResponseController {
     @CurrentUser() contact: Contact,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    return [];
+    return fetchPaginatedCalloutResponses(query, contact);
   }
 }
