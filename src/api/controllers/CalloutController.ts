@@ -27,21 +27,20 @@ import CalloutResponse from "@models/CalloutResponse";
 import {
   convertCalloutToData,
   CreateCalloutData,
+  fetchCallout,
   fetchPaginatedCallouts,
   GetCalloutData,
   GetCalloutQuery,
   GetCalloutsQuery
 } from "@api/data/CalloutData";
 import {
-  convertResponseToData,
   CreateCalloutResponseData,
   fetchCalloutResponse,
   fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
   GetCalloutResponseParam,
   GetCalloutResponseQuery,
-  GetCalloutResponsesQuery,
-  GetCalloutResponseWith
+  GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
 import { mergeRules, Paginated } from "@api/data/PaginatedData";
 import PartialBody from "@api/decorators/PartialBody";
@@ -55,13 +54,12 @@ export class CalloutController {
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @QueryParams() query: GetCalloutsQuery
   ): Promise<Paginated<GetCalloutData>> {
-    return fetchPaginatedCallouts(query, contact, { with: query.with });
+    return fetchPaginatedCallouts(query, contact);
   }
 
   @Authorized("admin")
   @Post("/")
   async createCallout(
-    @CurrentUser({ required: true }) contact: Contact,
     @Body() data: CreateCalloutData
   ): Promise<GetCalloutData> {
     const callout = await CalloutsService.createCallout(
@@ -71,7 +69,7 @@ export class CalloutController {
       },
       data.slug ? false : 0
     );
-    return convertCalloutToData(callout, contact, {});
+    return convertCalloutToData(callout);
   }
 
   @Get("/:slug")
@@ -80,10 +78,7 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutQuery
   ): Promise<GetCalloutData | undefined> {
-    const callout = await getRepository(Callout).findOne(slug);
-    if (callout) {
-      return convertCalloutToData(callout, contact, { with: query.with });
-    }
+    return await fetchCallout({ slug }, query, contact);
   }
 
   @Authorized("admin")
@@ -96,8 +91,7 @@ export class CalloutController {
     const newSlug = data.slug || slug;
     await getRepository(Callout).update(slug, data);
     try {
-      const callout = await getRepository(Callout).findOne(newSlug);
-      return callout && convertCalloutToData(callout, contact, {});
+      return await fetchCallout({ slug: newSlug }, {}, contact);
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }

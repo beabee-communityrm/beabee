@@ -1,6 +1,6 @@
 import { calloutFilters, ItemStatus } from "@beabee/beabee-common";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder, FindConditions, getRepository } from "typeorm";
 
 import {
   fetchPaginated,
@@ -13,32 +13,21 @@ import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
-import { GetCalloutWith, GetCalloutsQuery, GetCalloutData } from "./interface";
+import {
+  GetCalloutWith,
+  GetCalloutsQuery,
+  GetCalloutData,
+  GetCalloutQuery
+} from "./interface";
 
 interface ConvertOpts {
   with?: GetCalloutWith[] | undefined;
 }
 
-export async function convertCalloutToData(
+export function convertCalloutToData(
   callout: Callout,
-  contact: Contact | undefined,
-  opts: ConvertOpts
-): Promise<GetCalloutData> {
-  // fetchPaginatedCallouts prefetches these to reduce the number of queries
-  const hasAnswered =
-    opts.with?.includes(GetCalloutWith.HasAnswered) && contact
-      ? callout.hasAnswered !== undefined
-        ? callout.hasAnswered
-        : (await getRepository(CalloutResponse).count({ callout, contact })) > 0
-      : undefined;
-
-  const responseCount =
-    opts.with?.includes(GetCalloutWith.ResponseCount) && contact
-      ? callout.responseCount !== undefined
-        ? callout.responseCount
-        : await getRepository(CalloutResponse).count({ callout })
-      : undefined;
-
+  opts?: ConvertOpts
+): GetCalloutData {
   return {
     slug: callout.slug,
     title: callout.title,
@@ -51,9 +40,13 @@ export async function convertCalloutToData(
     hidden: callout.hidden,
     starts: callout.starts,
     expires: callout.expires,
-    ...(hasAnswered !== undefined && { hasAnswered }),
-    ...(responseCount !== undefined && { responseCount }),
-    ...(opts.with?.includes(GetCalloutWith.Form) && {
+    ...(callout.hasAnswered !== undefined && {
+      hasAnswered: callout.hasAnswered
+    }),
+    ...(callout.responseCount !== undefined && {
+      responseCount: callout.responseCount
+    }),
+    ...(opts?.with?.includes(GetCalloutWith.Form) && {
       intro: callout.intro,
       thanksText: callout.thanksText,
       thanksTitle: callout.thanksTitle,
@@ -67,10 +60,40 @@ export async function convertCalloutToData(
   };
 }
 
+export async function fetchCallout(
+  where: FindConditions<Callout>,
+  query: GetCalloutQuery,
+  contact: Contact | undefined
+): Promise<GetCalloutData | undefined> {
+  const callout = await getRepository(Callout).findOne({ where });
+
+  if (
+    !callout ||
+    // Non-admins can only load open and ended callouts
+    (!contact?.hasRole("admin") &&
+      callout.status !== ItemStatus.Open &&
+      callout.status !== ItemStatus.Ended)
+  ) {
+    return;
+  }
+
+  if (query.with?.includes(GetCalloutWith.HasAnswered) && contact) {
+    callout.hasAnswered =
+      (await getRepository(CalloutResponse).count({ callout, contact })) > 0;
+  }
+
+  if (query.with?.includes(GetCalloutWith.ResponseCount)) {
+    callout.responseCount = await getRepository(CalloutResponse).count({
+      callout
+    });
+  }
+
+  return convertCalloutToData(callout, query);
+}
+
 export async function fetchPaginatedCallouts(
   query: GetCalloutsQuery,
-  contact: Contact | undefined,
-  opts: ConvertOpts
+  contact: Contact | undefined
 ): Promise<Paginated<GetCalloutData>> {
   const scopedQuery = mergeRules(
     query,
@@ -122,7 +145,7 @@ export async function fetchPaginatedCallouts(
       }
     },
     (qb) => {
-      if (contact && opts.with?.includes(GetCalloutWith.ResponseCount)) {
+      if (contact && query.with?.includes(GetCalloutWith.ResponseCount)) {
         qb.loadRelationCountAndMap("item.responseCount", "item.responses");
       }
     }
@@ -132,7 +155,7 @@ export async function fetchPaginatedCallouts(
   if (
     contact &&
     results.items.length > 0 &&
-    opts.with?.includes(GetCalloutWith.HasAnswered)
+    query.with?.includes(GetCalloutWith.HasAnswered)
   ) {
     const answeredCallouts = await createQueryBuilder(CalloutResponse, "pr")
       .select("pr.calloutSlug", "slug")
@@ -154,7 +177,7 @@ export async function fetchPaginatedCallouts(
   return {
     ...results,
     items: await Promise.all(
-      results.items.map((item) => convertCalloutToData(item, contact, opts))
+      results.items.map((item) => convertCalloutToData(item, query))
     )
   };
 }
