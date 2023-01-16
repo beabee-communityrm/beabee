@@ -40,6 +40,7 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
 
 export interface GetCalloutResponseData {
   id: string;
+  callout: string;
   createdAt: Date;
   updatedAt: Date;
   answers?: CalloutResponseAnswers;
