@@ -1,9 +1,5 @@
-import {
-  ContactFilterName,
-  contactFilters,
-  RuleOperator
-} from "@beabee/beabee-common";
-import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
+import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
+import { Brackets, createQueryBuilder } from "typeorm";
 
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
@@ -13,8 +9,8 @@ import PaymentData from "@models/PaymentData";
 import {
   fetchPaginated,
   Paginated,
-  RichRuleValue,
-  SpecialFields
+  FieldHandlers,
+  FieldHandler
 } from "@api/data/PaginatedData";
 
 import { GetContactData, GetContactsQuery, GetContactWith } from "./interface";
@@ -76,11 +72,10 @@ export function convertContactToData(
   };
 }
 
-function membershipField(field: keyof ContactRole) {
-  return (
-    qb: WhereExpressionBuilder,
-    args: { whereFn: (field: string) => string }
-  ) => {
+// Field handlers
+
+function membershipField(field: keyof ContactRole): FieldHandler {
+  return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`mp.contactId`)
@@ -92,11 +87,8 @@ function membershipField(field: keyof ContactRole) {
   };
 }
 
-function profileField(field: keyof ContactProfile) {
-  return (
-    qb: WhereExpressionBuilder,
-    args: { whereFn: (field: string) => string }
-  ) => {
+function profileField(field: keyof ContactProfile): FieldHandler {
+  return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`profile.contactId`)
@@ -107,10 +99,7 @@ function profileField(field: keyof ContactProfile) {
   };
 }
 
-function activePermission(
-  qb: WhereExpressionBuilder,
-  args: { operator: RuleOperator; field: string; values: RichRuleValue[] }
-) {
+const activePermission: FieldHandler = (qb, args) => {
   const roleType =
     args.field === "activeMembership" ? "member" : args.values[0];
 
@@ -136,13 +125,10 @@ function activePermission(
   } else {
     qb.where("item.id NOT IN " + subQb.getQuery());
   }
-}
+};
 
-function paymentDataField(field: string) {
-  return (
-    qb: WhereExpressionBuilder,
-    args: { whereFn: (field: string) => string }
-  ) => {
+function paymentDataField(field: string): FieldHandler {
+  return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`pd.contactId`)
@@ -153,7 +139,7 @@ function paymentDataField(field: string) {
   };
 }
 
-export const specialContactFields: SpecialFields<ContactFilterName> = {
+export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   deliveryOptIn: profileField("deliveryOptIn"),
   newsletterStatus: profileField("newsletterStatus"),
   tags: profileField("tags"),
@@ -164,8 +150,8 @@ export const specialContactFields: SpecialFields<ContactFilterName> = {
   contributionCancelled: paymentDataField(
     "(pd.data ->> 'cancelledAt')::timestamp"
   ),
-  manualPaymentSource: (qb, { whereFn }) => {
-    paymentDataField("pd.data ->> 'source'")(qb, { whereFn });
+  manualPaymentSource: (qb, args) => {
+    paymentDataField("pd.data ->> 'source'")(qb, args);
     qb.andWhere("item.contributionType = 'Manual'");
   }
 };
@@ -179,7 +165,7 @@ export async function fetchPaginatedContacts(
     contactFilters,
     query,
     undefined, // No contact rules in contactFilters
-    specialContactFields,
+    contactFieldHandlers,
     (qb) => {
       if (query.with?.includes(GetContactWith.Profile)) {
         qb.innerJoinAndSelect("item.profile", "profile");

@@ -28,8 +28,11 @@ import {
   GetPaginatedRuleGroupRule,
   Paginated,
   RichRuleValue,
-  SpecialFields
+  FieldHandlers,
+  FieldHandler
 } from "./interface";
+
+// Operator definitions
 
 const equalityOperatorsWhere = {
   equal: (field: string) => `${field} = :a`,
@@ -99,12 +102,15 @@ const operatorsWhereByType: Record<
     ...equalityOperatorsWhere,
     ...nullableOperatorsWhere
   })
-} as const;
+};
 
-export function statusField(
-  qb: WhereExpressionBuilder,
-  args: { operator: RuleOperator; values: RichRuleValue[] }
-) {
+// Generic field handlers
+
+const simpleField: FieldHandler = (qb, args) => {
+  qb.where(args.whereFn(`item.${args.field}`));
+};
+
+export const statusField: FieldHandler = (qb, args) => {
   // TODO: handle other operators
   if (args.operator !== "equal") {
     throw new BadRequestError("Status field only supports equal operator");
@@ -124,7 +130,9 @@ export function statusField(
     case ItemStatus.Ended:
       return qb.andWhere(`item.starts < :now`).andWhere(`item.expires < :now`);
   }
-}
+};
+
+// Rule parsing
 
 const dateUnitSql = {
   y: "year",
@@ -170,7 +178,7 @@ export function buildQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
   ruleGroup: ValidatedRuleGroup<Field> | undefined,
   contact?: Contact,
-  specialFields?: SpecialFields<Field>
+  fieldHandlers?: FieldHandlers<Field>
 ): SelectQueryBuilder<Entity> {
   /*
     The query builder doesn't support having the same parameter names for
@@ -182,7 +190,6 @@ export function buildQuery<Entity, Field extends string>(
     // Some queries need a current date parameter
     now: new Date()
   };
-
   let ruleNo = 0;
 
   function parseRule(rule: ValidatedRule<Field>) {
@@ -199,12 +206,8 @@ export function buildQuery<Entity, Field extends string>(
           .replace(":a", ":a" + suffix)
           .replace(":b", ":b" + suffix);
 
-      const specialField = specialFields?.[rule.field];
-      if (specialField) {
-        specialField(qb, { ...rule, whereFn: whereFnWithSuffix, values });
-      } else {
-        qb.where(whereFnWithSuffix(`item.${rule.field}`));
-      }
+      const fieldHandler = fieldHandlers?.[rule.field] || simpleField;
+      fieldHandler(qb, { ...rule, values, whereFn: whereFnWithSuffix });
 
       ruleNo++;
     };
@@ -242,7 +245,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   filters: Filters<Field>,
   query: GetPaginatedQuery,
   contact?: Contact,
-  specialFields?: SpecialFields<Field>,
+  fieldHandlers?: FieldHandlers<Field>,
   queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
@@ -251,7 +254,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = buildQuery(entity, ruleGroup, contact, specialFields)
+    const qb = buildQuery(entity, ruleGroup, contact, fieldHandlers)
       .offset(offset)
       .limit(limit);
 
@@ -259,9 +262,7 @@ export async function fetchPaginated<Entity, Field extends string>(
       qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
     }
 
-    if (queryCallback) {
-      queryCallback(qb);
-    }
+    queryCallback?.(qb);
 
     const [items, total] = await qb.getManyAndCount();
 
