@@ -1,11 +1,15 @@
-import { Paginated, calloutResponseFilters } from "@beabee/beabee-common";
-import { FindConditions, getRepository } from "typeorm";
+import {
+  Paginated,
+  calloutResponseFilters,
+  CalloutResponseFilterName
+} from "@beabee/beabee-common";
+import { FindConditions, getRepository, QueryBuilder } from "typeorm";
 
 import CalloutResponse from "@models/CalloutResponse";
 import Contact from "@models/Contact";
 
 import { convertContactToData } from "../ContactData";
-import { mergeRules, fetchPaginated } from "../PaginatedData";
+import { mergeRules, fetchPaginated, FieldHandlers } from "../PaginatedData";
 
 import {
   GetCalloutResponseWith,
@@ -59,6 +63,10 @@ export async function fetchCalloutResponse(
   return response && convertResponseToData(response, query.with);
 }
 
+const fieldHandlers: FieldHandlers<CalloutResponseFilterName> = {
+  answers: (qb, args) => {}
+};
+
 export async function fetchPaginatedCalloutResponses(
   query: GetCalloutResponsesQuery,
   contact: Contact
@@ -77,7 +85,7 @@ export async function fetchPaginatedCalloutResponses(
     calloutResponseFilters,
     scopedQuery,
     contact,
-    undefined,
+    fieldHandlers,
     (qb) => {
       if (query.with?.includes(GetCalloutResponseWith.Callout)) {
         qb.innerJoinAndSelect("item.callout", "callout");

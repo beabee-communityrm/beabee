@@ -124,7 +124,7 @@ export async function fetchPaginatedCallouts(
         }
         if (!contact) {
           throw new BadRequestError(
-            "answeredBy can only be used with contact scope"
+            "answeredBy can only be used with valid contact"
           );
         }
 

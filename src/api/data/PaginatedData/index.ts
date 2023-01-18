@@ -68,7 +68,7 @@ function withOperators<T extends FilterType>(
 }
 
 const operatorsWhereByType: Record<
-  FilterType,
+  Exclude<FilterType, "custom">,
   Partial<Record<RuleOperator, (field: string) => string>>
 > = {
   text: withOperators("text", {
@@ -147,31 +147,41 @@ function prepareRule(
   rule: ValidatedRule<string>,
   contact: Contact | undefined
 ): [(field: string) => string, RichRuleValue[]] {
+  if (rule.type === "custom") {
+    return [(s) => s, rule.value];
+  }
+
   const whereFn = operatorsWhereByType[rule.type][rule.operator];
   // This should never happen as a ValidatedRule can't have an invalid type/operator combo
   if (!whereFn) {
     throw new Error("Invalid ValidatedRule");
   }
 
-  if (rule.type === "text") {
-    // Make NULL an empty string for comparison
-    return [(field) => whereFn(`COALESCE(${field}, '')`), rule.value];
-  } else if (rule.type === "date") {
-    // Compare dates by at least day, but more specific if H/m/s are provided
-    const values = rule.value.map((v) => parseDate(v));
-    const minUnit = getMinDateUnit(["d", ...values.map(([_, unit]) => unit)]);
-    return [
-      (field) => whereFn(`DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`),
-      values.map(([date]) => date)
-    ];
-  }
+  switch (rule.type) {
+    case "text":
+      // Make NULL an empty string for comparison
+      return [(field) => whereFn(`COALESCE(${field}, '')`), rule.value];
 
-  return [
-    whereFn,
-    rule.type === "contact"
-      ? rule.value.map((v) => (v === "me" ? contact?.id || "" : v))
-      : rule.value
-  ];
+    case "date": {
+      // Compare dates by at least day, but more specific if H/m/s are provided
+      const values = rule.value.map((v) => parseDate(v));
+      const minUnit = getMinDateUnit(["d", ...values.map(([_, unit]) => unit)]);
+      return [
+        (field) => whereFn(`DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`),
+        values.map(([date]) => date)
+      ];
+    }
+
+    case "contact":
+      if (!contact) {
+        throw new Error("No contact provided to map contact field type");
+      }
+      // Map "me" to contact id
+      return [whereFn, rule.value.map((v) => (v === "me" ? contact.id : v))];
+
+    default:
+      return [whereFn, rule.value];
+  }
 }
 
 export function buildQuery<Entity, Field extends string>(
