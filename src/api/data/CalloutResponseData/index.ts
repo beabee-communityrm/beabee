@@ -3,7 +3,8 @@ import {
   calloutResponseFilters,
   CalloutResponseFilterName
 } from "@beabee/beabee-common";
-import { FindConditions, getRepository, QueryBuilder } from "typeorm";
+import { BadRequestError } from "routing-controllers";
+import { FindConditions, getRepository } from "typeorm";
 
 import CalloutResponse from "@models/CalloutResponse";
 import Contact from "@models/Contact";
@@ -64,7 +65,13 @@ export async function fetchCalloutResponse(
 }
 
 const fieldHandlers: FieldHandlers<CalloutResponseFilterName> = {
-  answers: (qb, args) => {}
+  answers: (qb, args) => {
+    if (!args.param) {
+      throw new BadRequestError("Parameter required for answers field");
+    }
+
+    qb.where(args.whereFn("item.answers ->> :p"));
+  }
 };
 
 export async function fetchPaginatedCalloutResponses(

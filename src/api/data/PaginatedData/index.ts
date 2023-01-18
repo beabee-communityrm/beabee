@@ -210,11 +210,10 @@ export function buildQuery<Entity, Field extends string>(
       // Add values as params
       params["a" + suffix] = values[0];
       params["b" + suffix] = values[1];
+      params["p" + suffix] = rule.param;
 
       const whereFnWithSuffix = (field: string) =>
-        whereFn(field)
-          .replace(":a", ":a" + suffix)
-          .replace(":b", ":b" + suffix);
+        whereFn(field).replace(/:[abp]/g, "$&" + suffix);
 
       const fieldHandler = fieldHandlers?.[rule.field] || simpleField;
       fieldHandler(qb, { ...rule, values, whereFn: whereFnWithSuffix });
