@@ -67,7 +67,7 @@ function withOperators<T extends FilterType>(
   return operators;
 }
 
-const operatorsWhereByType: Record<
+export const operatorsWhereByType: Record<
   Exclude<FilterType, "custom">,
   Partial<Record<RuleOperator, (field: string) => string>>
 > = {
@@ -213,7 +213,8 @@ export function buildQuery<Entity, Field extends string>(
       params["p" + suffix] = rule.param;
 
       const whereFnWithSuffix = (field: string) =>
-        whereFn(field).replace(/:[abp]/g, "$&" + suffix);
+        // Replace :[abp] but avoid replacing casts e.g. ::boolean
+        whereFn(field).replace(/[^:]:[abp]/g, "$&" + suffix);
 
       const fieldHandler = fieldHandlers?.[rule.field] || simpleField;
       fieldHandler(qb, { ...rule, values, whereFn: whereFnWithSuffix });
@@ -227,9 +228,7 @@ export function buildQuery<Entity, Field extends string>(
       if (ruleGroup.rules.length > 0) {
         qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
         const conditionFn =
-          ruleGroup.condition === "AND"
-            ? ("andWhere" as const)
-            : ("orWhere" as const);
+          ruleGroup.condition === "AND" ? "andWhere" : "orWhere";
         for (const rule of ruleGroup.rules) {
           qb[conditionFn](
             new Brackets(

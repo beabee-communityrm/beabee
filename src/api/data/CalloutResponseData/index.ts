@@ -9,8 +9,14 @@ import { FindConditions, getRepository } from "typeorm";
 import CalloutResponse from "@models/CalloutResponse";
 import Contact from "@models/Contact";
 
+import { convertCalloutToData } from "../CalloutData";
 import { convertContactToData } from "../ContactData";
-import { mergeRules, fetchPaginated, FieldHandlers } from "../PaginatedData";
+import {
+  mergeRules,
+  fetchPaginated,
+  FieldHandlers,
+  operatorsWhereByType
+} from "../PaginatedData";
 
 import {
   GetCalloutResponseWith,
@@ -18,7 +24,6 @@ import {
   GetCalloutResponsesQuery,
   GetCalloutResponseQuery
 } from "./interface";
-import { convertCalloutToData } from "../CalloutData";
 
 export function convertResponseToData(
   response: CalloutResponse,
@@ -64,13 +69,39 @@ export async function fetchCalloutResponse(
   return response && convertResponseToData(response, query.with);
 }
 
+const valueTypeToFilter = {
+  string: ["text", "item.answers ->> :p"],
+  boolean: ["boolean", "(item.answers -> :p)::boolean"],
+  number: ["number", "(item.answers -> :p)::numeric"]
+} as const;
+
 const fieldHandlers: FieldHandlers<CalloutResponseFilterName> = {
   answers: (qb, args) => {
     if (!args.param) {
       throw new BadRequestError("Parameter required for answers field");
     }
 
-    qb.where(args.whereFn("item.answers ->> :p"));
+    let where: string;
+
+    // is_empty and is_not_empty need special treatment for JSONB values
+    if (args.operator === "is_empty" || args.operator === "is_not_empty") {
+      const word = args.operator === "is_empty" ? "IN" : "NOT IN";
+      where = `COALESCE(item.answers -> :p, 'null') ${word} ('null', '""')`;
+    } else {
+      const valueType = typeof args.values[0] as
+        | "string"
+        | "boolean"
+        | "number";
+      const [filterType, blah] = valueTypeToFilter[valueType];
+      const operatorFn = operatorsWhereByType[filterType][args.operator];
+      if (operatorFn) {
+        where = operatorFn(blah);
+      } else {
+        throw new BadRequestError("Invalid operator for type");
+      }
+    }
+
+    qb.where(args.whereFn(where));
   }
 };
 
