@@ -15,7 +15,7 @@ x-base-app: &base-app
 
 services:
   db:
-    image: postgres:10.15
+    image: postgres:13.9
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:
