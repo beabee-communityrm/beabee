@@ -1,4 +1,5 @@
 import { getRepository, IsNull, LessThan } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
@@ -13,6 +14,7 @@ import CalloutResponse, {
 
 import DuplicateId from "@api/errors/DuplicateId";
 import { CreateCalloutData } from "@api/data/CalloutData";
+import { CalloutFormSchema } from "@beabee/beabee-common";
 
 class CalloutWithResponse extends Callout {
   response?: CalloutResponse;
@@ -55,7 +57,12 @@ class CalloutsService {
   ): Promise<Callout> {
     const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
     try {
-      await getRepository(Callout).insert({ ...data, slug });
+      await getRepository(Callout).insert({
+        ...data,
+        slug,
+        // Force the correct type as otherwise this errors, not sure why
+        formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+      });
       return await getRepository(Callout).findOneOrFail(slug);
     } catch (err) {
       if (isDuplicateIndex(err, "slug")) {

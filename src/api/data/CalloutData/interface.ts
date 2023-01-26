@@ -1,4 +1,4 @@
-import { ItemStatus } from "@beabee/beabee-common";
+import { CalloutFormSchema, ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
@@ -14,7 +14,8 @@ import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
-import { CalloutFormSchema, CalloutAccess } from "@models/Callout";
+import { CalloutAccess } from "@models/Callout";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -69,6 +70,8 @@ export class GetCalloutQuery {
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
 }
+
+type A = QueryDeepPartialEntity<CalloutFormSchema>;
 
 export class CreateCalloutData implements CalloutData {
   @IsOptional()

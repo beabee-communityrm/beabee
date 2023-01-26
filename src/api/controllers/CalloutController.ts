@@ -1,3 +1,4 @@
+import { CalloutFormSchema } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -15,6 +16,7 @@ import {
 } from "routing-controllers";
 import slugify from "slugify";
 import { getRepository } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import CalloutsService from "@core/services/CalloutsService";
 
@@ -42,7 +44,7 @@ import {
   GetCalloutResponseQuery,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
-import { mergeRules, Paginated } from "@api/data/PaginatedData";
+import { Paginated } from "@api/data/PaginatedData";
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
@@ -89,7 +91,11 @@ export class CalloutController {
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
     const newSlug = data.slug || slug;
-    await getRepository(Callout).update(slug, data);
+    await getRepository(Callout).update(slug, {
+      ...data,
+      // Force the correct type as otherwise this errors, not sure why
+      formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+    });
     try {
       return await fetchCallout({ slug: newSlug }, {}, contact);
     } catch (err) {
