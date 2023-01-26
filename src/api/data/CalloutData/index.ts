@@ -117,7 +117,7 @@ export async function fetchPaginatedCallouts(
     contact,
     {
       status: statusField,
-      answeredBy: (qb, { operator, whereFn, values }) => {
+      answeredBy: (qb, { operator, whereFn, value }) => {
         // TODO: support not_equal for admins
         if (operator !== "equal") {
           throw new BadRequestError("answeredBy only supports equal");
@@ -128,7 +128,7 @@ export async function fetchPaginatedCallouts(
           );
         }
 
-        if (values[0] !== contact.id && !contact.hasRole("admin")) {
+        if (value[0] !== contact.id && !contact.hasRole("admin")) {
           throw new UnauthorizedError();
         }
 

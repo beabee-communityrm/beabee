@@ -1,3 +1,4 @@
+import { CalloutFormSchema } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -15,19 +16,6 @@ export enum CalloutAccess {
   Guest = "guest",
   Anonymous = "anonymous",
   OnlyAnonymous = "only-anonymous"
-}
-
-export interface CalloutComponentSchema {
-  key: string;
-  type: string;
-  label?: string;
-  input?: boolean;
-  values?: { label: string; value: string }[];
-  components?: CalloutComponentSchema[];
-}
-
-export interface CalloutFormSchema {
-  components: CalloutComponentSchema[];
 }
 
 @Entity()

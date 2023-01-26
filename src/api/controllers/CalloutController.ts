@@ -114,11 +114,7 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    const scopedQuery = mergeRules(query, [
-      { field: "callout", operator: "equal", value: [slug] }
-    ]);
-
-    return await fetchPaginatedCalloutResponses(scopedQuery, contact);
+    return await fetchPaginatedCalloutResponses(query, contact, slug);
   }
 
   @Post("/:slug/responses")

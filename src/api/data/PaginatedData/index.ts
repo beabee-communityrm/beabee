@@ -116,7 +116,7 @@ export const statusField: FieldHandler = (qb, args) => {
     throw new BadRequestError("Status field only supports equal operator");
   }
 
-  switch (args.values[0]) {
+  switch (args.value[0]) {
     case ItemStatus.Draft:
       return qb.andWhere(`item.starts IS NULL`);
     case ItemStatus.Scheduled:
@@ -204,12 +204,12 @@ export function buildQuery<Entity, Field extends string>(
 
   function parseRule(rule: ValidatedRule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
-      const [whereFn, values] = prepareRule(rule, contact);
+      const [whereFn, value] = prepareRule(rule, contact);
       const suffix = "_" + ruleNo;
 
       // Add values as params
-      params["a" + suffix] = values[0];
-      params["b" + suffix] = values[1];
+      params["a" + suffix] = value[0];
+      params["b" + suffix] = value[1];
       params["p" + suffix] = rule.param;
 
       const whereFnWithSuffix = (field: string) =>
@@ -217,7 +217,7 @@ export function buildQuery<Entity, Field extends string>(
         whereFn(field).replace(/[^:]:[abp]/g, "$&" + suffix);
 
       const fieldHandler = fieldHandlers?.[rule.field] || simpleField;
-      fieldHandler(qb, { ...rule, values, whereFn: whereFnWithSuffix });
+      fieldHandler(qb, { ...rule, value, whereFn: whereFnWithSuffix });
 
       ruleNo++;
     };

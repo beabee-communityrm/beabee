@@ -100,12 +100,11 @@ function profileField(field: keyof ContactProfile): FieldHandler {
 }
 
 const activePermission: FieldHandler = (qb, args) => {
-  const roleType =
-    args.field === "activeMembership" ? "member" : args.values[0];
+  const roleType = args.field === "activeMembership" ? "member" : args.value[0];
 
   const isIn =
     args.field === "activeMembership"
-      ? (args.values[0] as boolean)
+      ? (args.value[0] as boolean)
       : args.operator === "equal";
 
   const subQb = createQueryBuilder()

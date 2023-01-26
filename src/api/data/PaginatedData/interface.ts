@@ -5,7 +5,9 @@ import {
   RuleOperator,
   RuleValue,
   RuleGroup,
-  isRuleGroup
+  isRuleGroup,
+  FilterType,
+  ValidatedRule
 } from "@beabee/beabee-common";
 import {
   plainToClass,
@@ -94,11 +96,12 @@ export type RichRuleValue = RuleValue | Date;
 export type FieldHandler = (
   qb: WhereExpressionBuilder,
   args: {
-    operator: RuleOperator;
+    type: FilterType;
     field: string;
     param: string | undefined;
+    operator: RuleOperator;
+    value: RichRuleValue[];
     whereFn: (field: string) => string;
-    values: RichRuleValue[];
   }
 ) => void;
 
