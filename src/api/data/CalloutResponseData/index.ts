@@ -68,41 +68,44 @@ export async function fetchCalloutResponse(
 }
 
 // Arrays are actually {a: true, b: false} type objects in answers
-const arrayOperators: Partial<Record<RuleOperator, (field: string) => string>> =
-  {
-    contains: (field) => `(${field} -> :a)::boolean`,
-    not_contains: (field) => `NOT (${field} -> :a)::boolean`,
-    is_empty: (field) => `NOT jsonb_path_exists(${field}, '$.* ? (@ == true)')`,
-    is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
-  };
+const answerArrayOperators: Partial<
+  Record<RuleOperator, (field: string) => string>
+> = {
+  contains: (field) => `(${field} -> :a)::boolean`,
+  not_contains: (field) => `NOT (${field} -> :a)::boolean`,
+  is_empty: (field) => `NOT jsonb_path_exists(${field}, '$.* ? (@ == true)')`,
+  is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
+};
+
+function answerField(type: FilterType): string {
+  switch (type) {
+    case "number":
+      return "(item.answers -> :p)::numeric";
+    case "boolean":
+      return "(item.answers -> :p)::boolean";
+    default:
+      return "item.answers ->> :p";
+  }
+}
 
 const answersFieldHandler: FieldHandler = (qb, args) => {
-  const field = "item.answers -> :p";
-  const cast =
-    args.type === "number"
-      ? "numeric"
-      : args.type === "boolean"
-      ? "boolean"
-      : args.type === "array"
-      ? "jsonb"
-      : "text";
-  const castField = `(${field})::${cast}`;
-
   if (args.type === "array") {
-    const operatorFn = arrayOperators[args.operator];
+    const operatorFn = answerArrayOperators[args.operator];
     if (!operatorFn) {
       // Shouln't be able to happen as rule has been validated
       throw new Error("Invalid ValidatedRule");
     }
-    qb.where(args.suffixFn(operatorFn(castField)));
+    qb.where(args.suffixFn(operatorFn("item.answers -> :p")));
     // is_empty and is_not_empty need special treatment for JSONB values
   } else if (args.operator === "is_empty" || args.operator === "is_not_empty") {
     const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
     qb.where(
-      args.suffixFn(`COALESCE(${field}, 'null') ${operator} ('null', '""')`)
+      args.suffixFn(
+        `COALESCE(item.answers -> :p, 'null') ${operator} ('null', '""')`
+      )
     );
   } else {
-    qb.where(args.whereFn(castField));
+    qb.where(args.whereFn(answerField(args.type)));
   }
 };
 
