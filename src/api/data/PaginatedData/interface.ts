@@ -5,7 +5,9 @@ import {
   RuleOperator,
   RuleValue,
   RuleGroup,
-  isRuleGroup
+  isRuleGroup,
+  FilterType,
+  ValidatedRule
 } from "@beabee/beabee-common";
 import {
   plainToClass,
@@ -91,17 +93,18 @@ export class GetPaginatedQuery implements PaginatedQuery {
 
 export type RichRuleValue = RuleValue | Date;
 
-export type SpecialFields<Field extends string> = Partial<
-  Record<
-    Field,
-    (
-      qb: WhereExpressionBuilder,
-      args: {
-        operator: RuleOperator;
-        field: Field;
-        whereFn: (field: string) => string;
-        values: RichRuleValue[];
-      }
-    ) => void
-  >
->;
+export type FieldHandler = (
+  qb: WhereExpressionBuilder,
+  args: {
+    type: FilterType;
+    field: string;
+    operator: RuleOperator;
+    value: RichRuleValue[];
+    whereFn: (field: string) => string;
+    suffixFn: (field: string) => string;
+  }
+) => void;
+
+export type FieldHandlers<Field extends string> = {
+  [K in Field]?: FieldHandler;
+};

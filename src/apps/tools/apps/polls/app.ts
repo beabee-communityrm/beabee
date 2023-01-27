@@ -131,7 +131,7 @@ app.post(
       case "update":
         await getRepository(Callout).update(
           callout.slug,
-          schemaToPoll(req.body)
+          schemaToPoll(req.body) as any
         );
         req.flash("success", "polls-updated");
         res.redirect(req.originalUrl);

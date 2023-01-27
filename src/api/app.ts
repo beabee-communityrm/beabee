@@ -14,6 +14,7 @@ import {
 
 import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
+import { CalloutResponseController } from "./controllers/CalloutResponseController";
 import { ContentController } from "./controllers/ContentController";
 import { EmailController } from "./controllers/EmailController";
 import { ContactController } from "./controllers/ContactController";
@@ -53,6 +54,7 @@ db.connect().then(() => {
     controllers: [
       AuthController,
       CalloutController,
+      CalloutResponseController,
       ContentController,
       EmailController,
       ContactController,
