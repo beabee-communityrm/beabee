@@ -1,12 +1,11 @@
 import {
   Paginated,
   calloutResponseFilters,
-  CalloutResponseFilterName,
   FilterType,
-  Filters,
-  convertComponentsToFilters
+  convertComponentsToFilters,
+  RuleOperator
 } from "@beabee/beabee-common";
-import { BadRequestError, NotFoundError } from "routing-controllers";
+import { NotFoundError } from "routing-controllers";
 import { FindConditions, getRepository } from "typeorm";
 
 import CalloutResponse from "@models/CalloutResponse";
@@ -14,13 +13,7 @@ import Contact from "@models/Contact";
 
 import { convertCalloutToData } from "../CalloutData";
 import { convertContactToData } from "../ContactData";
-import {
-  mergeRules,
-  fetchPaginated,
-  FieldHandlers,
-  operatorsWhereByType,
-  FieldHandler
-} from "../PaginatedData";
+import { mergeRules, fetchPaginated, FieldHandler } from "../PaginatedData";
 
 import {
   GetCalloutResponseWith,
@@ -74,43 +67,41 @@ export async function fetchCalloutResponse(
   return response && convertResponseToData(response, query.with);
 }
 
-function getAnswerValue(type: FilterType) {
-  switch (type) {
-    case "number":
-      return "(item.answers -> :p)::numeric";
-    case "boolean":
-    case "array":
-      return "(item.answers -> :p)::boolean";
-    default:
-      return "item.answers ->> :p";
-  }
-}
+const castType: Partial<Record<FilterType, string>> = {
+  number: "numeric",
+  boolean: "boolean",
+  array: "jsonb"
+} as const;
+
+const arrayOperators: Partial<Record<RuleOperator, (field: string) => string>> =
+  {
+    contains: (field) => `(${field} -> :a)::boolean`,
+    not_contains: (field) => `NOT (${field} -> :a)::boolean`,
+    is_empty: (field) => `NOT jsonb_path_exists(${field}, '$.* ? (@ == true)')`,
+    is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
+  };
 
 const answersFieldHandler: FieldHandler = (qb, args) => {
-  if (!args.param) {
-    throw new BadRequestError("Parameter required for answers field");
-  }
+  const field = "item.answers -> :p";
+  const castField = `(${field})::${castType[args.type] || "text"}`;
 
-  if (args.type === "custom") {
-    throw new Error();
-  }
-
-  let where: string;
-
-  // is_empty and is_not_empty need special treatment for JSONB values
-  if (args.operator === "is_empty" || args.operator === "is_not_empty") {
-    const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
-    where = `COALESCE(item.answers -> :p, 'null') ${operator} ('null', '""')`;
-  } else {
-    const operatorFn = operatorsWhereByType[args.type][args.operator];
-    if (operatorFn) {
-      where = operatorFn(getAnswerValue(args.type));
-    } else {
-      throw new BadRequestError("Invalid operator for type");
+  // Arrays are actually {a: true, b: false} type objects in answers
+  if (args.type === "array") {
+    const operatorFn = arrayOperators[args.operator];
+    if (!operatorFn) {
+      // Shouln't be able to happen as rule has been validated
+      throw new Error("Invalid ValidatedRule");
     }
+    qb.where(args.suffixFn(operatorFn(castField)));
+    // is_empty and is_not_empty need special treatment for JSONB values
+  } else if (args.operator === "is_empty" || args.operator === "is_not_empty") {
+    const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
+    qb.where(
+      args.suffixFn(`COALESCE(${field}, 'null') ${operator} ('null', '""')`)
+    );
+  } else {
+    qb.where(args.whereFn(castField));
   }
-
-  qb.where(args.whereFn(where));
 };
 
 export async function fetchPaginatedCalloutResponses(
@@ -142,10 +133,10 @@ export async function fetchPaginatedCalloutResponses(
     }
 
     answerFilters = convertComponentsToFilters(callout.formSchema.components);
-    // fieldHandlers = Object.fromEntries(
-    //   Object.keys(answerFilters).map((field) => [field, answersFieldHandler])
-    // );
-    fieldHandlers = { answers: answersFieldHandler };
+    // All handled by the same field handler
+    fieldHandlers = Object.fromEntries(
+      Object.keys(answerFilters).map((field) => [field, answersFieldHandler])
+    );
   }
 
   const results = await fetchPaginated(

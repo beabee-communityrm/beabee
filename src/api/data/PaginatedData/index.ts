@@ -52,9 +52,7 @@ const numericOperatorsWhere = {
   greater: (field: string) => `${field} > :a`,
   greater_or_equal: (field: string) => `${field} >= :a`,
   between: (field: string) => `${field} BETWEEN :a AND :b`,
-  not_between: (field: string) => `${field} NOT BETWEEN :a AND :b`,
-  is_empty: (field: string) => `${field} IS NULL`,
-  is_not_empty: (field: string) => `${field} IS NOT NULL`
+  not_between: (field: string) => `${field} NOT BETWEEN :a AND :b`
 };
 
 function withOperators<T extends FilterType>(
@@ -67,8 +65,8 @@ function withOperators<T extends FilterType>(
   return operators;
 }
 
-export const operatorsWhereByType: Record<
-  Exclude<FilterType, "custom">,
+const operatorsWhereByType: Record<
+  FilterType,
   Partial<Record<RuleOperator, (field: string) => string>>
 > = {
   text: withOperators("text", {
@@ -118,17 +116,17 @@ export const statusField: FieldHandler = (qb, args) => {
 
   switch (args.value[0]) {
     case ItemStatus.Draft:
-      return qb.andWhere(`item.starts IS NULL`);
+      return qb.where(`item.starts IS NULL`);
     case ItemStatus.Scheduled:
-      return qb.andWhere(`item.starts > :now`);
+      return qb.where(`item.starts > :now`);
     case ItemStatus.Open:
-      return qb.andWhere(`item.starts < :now`).andWhere(
+      return qb.where(`item.starts < :now`).andWhere(
         new Brackets((qb) => {
           qb.where("item.expires IS NULL").orWhere(`item.expires > :now`);
         })
       );
     case ItemStatus.Ended:
-      return qb.andWhere(`item.starts < :now`).andWhere(`item.expires < :now`);
+      return qb.where(`item.starts < :now`).andWhere(`item.expires < :now`);
   }
 };
 
@@ -147,27 +145,17 @@ function prepareRule(
   rule: ValidatedRule<string>,
   contact: Contact | undefined
 ): [(field: string) => string, RichRuleValue[]] {
-  if (rule.type === "custom") {
-    return [(s) => s, rule.value];
-  }
-
-  const whereFn = operatorsWhereByType[rule.type][rule.operator];
-  // This should never happen as a ValidatedRule can't have an invalid type/operator combo
-  if (!whereFn) {
-    throw new Error("Invalid ValidatedRule");
-  }
-
   switch (rule.type) {
     case "text":
       // Make NULL an empty string for comparison
-      return [(field) => whereFn(`COALESCE(${field}, '')`), rule.value];
+      return [(field) => `COALESCE(${field}, '')`, rule.value];
 
     case "date": {
       // Compare dates by at least day, but more specific if H/m/s are provided
       const values = rule.value.map((v) => parseDate(v));
       const minUnit = getMinDateUnit(["d", ...values.map(([_, unit]) => unit)]);
       return [
-        (field) => whereFn(`DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`),
+        (field) => `DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`,
         values.map(([date]) => date)
       ];
     }
@@ -177,10 +165,10 @@ function prepareRule(
         throw new Error("No contact provided to map contact field type");
       }
       // Map "me" to contact id
-      return [whereFn, rule.value.map((v) => (v === "me" ? contact.id : v))];
+      return [(s) => s, rule.value.map((v) => (v === "me" ? contact.id : v))];
 
     default:
-      return [whereFn, rule.value];
+      return [(s) => s, rule.value];
   }
 }
 
@@ -204,20 +192,31 @@ export function buildQuery<Entity, Field extends string>(
 
   function parseRule(rule: ValidatedRule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
-      const [whereFn, value] = prepareRule(rule, contact);
+      const operatorFn = operatorsWhereByType[rule.type][rule.operator];
+      if (!operatorFn) {
+        // Shouln't be able to happen as rule has been validated
+        throw new Error("Invalid ValidatedRule");
+      }
+
       const suffix = "_" + ruleNo;
+      const [fieldFn, value] = prepareRule(rule, contact);
 
       // Add values as params
       params["a" + suffix] = value[0];
       params["b" + suffix] = value[1];
-      params["p" + suffix] = rule.param;
+      params["p" + suffix] = rule.field.substring(rule.field.indexOf(".") + 1);
 
-      const whereFnWithSuffix = (field: string) =>
-        // Replace :[abp] but avoid replacing casts e.g. ::boolean
-        whereFn(field).replace(/[^:]:[abp]/g, "$&" + suffix);
+      // Replace :[abp] but avoid replacing casts e.g. ::boolean
+      const suffixFn = (field: string) =>
+        field.replace(/[^:]:[abp]/g, "$&" + suffix);
 
       const fieldHandler = fieldHandlers?.[rule.field] || simpleField;
-      fieldHandler(qb, { ...rule, value, whereFn: whereFnWithSuffix });
+      fieldHandler(qb, {
+        ...rule,
+        value,
+        whereFn: (field) => suffixFn(operatorFn(fieldFn(field))),
+        suffixFn
+      });
 
       ruleNo++;
     };

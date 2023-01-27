@@ -98,10 +98,10 @@ export type FieldHandler = (
   args: {
     type: FilterType;
     field: string;
-    param: string | undefined;
     operator: RuleOperator;
     value: RichRuleValue[];
     whereFn: (field: string) => string;
+    suffixFn: (field: string) => string;
   }
 ) => void;
 
