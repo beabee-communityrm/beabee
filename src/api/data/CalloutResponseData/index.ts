@@ -8,6 +8,7 @@ import {
 import { NotFoundError } from "routing-controllers";
 import { FindConditions, getRepository } from "typeorm";
 
+import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import Contact from "@models/Contact";
 
@@ -21,7 +22,6 @@ import {
   GetCalloutResponsesQuery,
   GetCalloutResponseQuery
 } from "./interface";
-import Callout from "@models/Callout";
 
 export function convertResponseToData(
   response: CalloutResponse,
@@ -67,12 +67,7 @@ export async function fetchCalloutResponse(
   return response && convertResponseToData(response, query.with);
 }
 
-const castType: Partial<Record<FilterType, string>> = {
-  number: "numeric",
-  boolean: "boolean",
-  array: "jsonb"
-} as const;
-
+// Arrays are actually {a: true, b: false} type objects in answers
 const arrayOperators: Partial<Record<RuleOperator, (field: string) => string>> =
   {
     contains: (field) => `(${field} -> :a)::boolean`,
@@ -83,9 +78,16 @@ const arrayOperators: Partial<Record<RuleOperator, (field: string) => string>> =
 
 const answersFieldHandler: FieldHandler = (qb, args) => {
   const field = "item.answers -> :p";
-  const castField = `(${field})::${castType[args.type] || "text"}`;
+  const cast =
+    args.type === "number"
+      ? "numeric"
+      : args.type === "boolean"
+      ? "boolean"
+      : args.type === "array"
+      ? "jsonb"
+      : "text";
+  const castField = `(${field})::${cast}`;
 
-  // Arrays are actually {a: true, b: false} type objects in answers
   if (args.type === "array") {
     const operatorFn = arrayOperators[args.operator];
     if (!operatorFn) {
