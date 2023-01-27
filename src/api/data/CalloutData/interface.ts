@@ -15,7 +15,6 @@ import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
 import { CalloutAccess } from "@models/Callout";
-import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -70,8 +69,6 @@ export class GetCalloutQuery {
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
 }
-
-type A = QueryDeepPartialEntity<CalloutFormSchema>;
 
 export class CreateCalloutData implements CalloutData {
   @IsOptional()
