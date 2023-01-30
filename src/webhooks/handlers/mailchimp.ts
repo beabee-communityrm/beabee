@@ -27,8 +27,12 @@ interface MCUpdateEmailData {
   old_email: string;
 }
 
+interface MCCleanedEmailData {
+  email: string;
+}
+
 interface MCProfileWebhook {
-  type: "subscribe" | "unsubscribe" | "profile" | "cleaned";
+  type: "subscribe" | "unsubscribe" | "profile";
   data: MCProfileData;
 }
 
@@ -37,7 +41,15 @@ interface MCUpdateEmailWebhook {
   data: MCUpdateEmailData;
 }
 
-type MCWebhook = MCProfileWebhook | MCUpdateEmailWebhook;
+interface MCCleanedEmailWebhook {
+  type: "cleaned";
+  data: MCCleanedEmailData;
+}
+
+type MCWebhook =
+  | MCProfileWebhook
+  | MCUpdateEmailWebhook
+  | MCCleanedEmailWebhook;
 
 // Mailchimp pings this endpoint when you first add the webhook
 // Don't check for newsletter provider here as the webhook can be set
@@ -83,7 +95,7 @@ app.post(
         break;
 
       case "cleaned":
-        log.error("Unhandled cleaned", { data: body.data });
+        await handleCleaned(body.data);
         break;
 
       case "profile":
@@ -165,6 +177,19 @@ async function handleUnsubscribe(data: MCProfileData) {
   if (contact) {
     await ContactsService.updateContactProfile(contact, {
       newsletterStatus: NewsletterStatus.Unsubscribed
+    });
+  }
+}
+
+async function handleCleaned(data: MCCleanedEmailData) {
+  const email = cleanEmailAddress(data.email);
+
+  log.info("Cleaned " + email);
+
+  const contact = await ContactsService.findOne({ email });
+  if (contact) {
+    await ContactsService.updateContactProfile(contact, {
+      newsletterStatus: NewsletterStatus.Cleaned
     });
   }
 }
