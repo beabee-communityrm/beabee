@@ -109,7 +109,9 @@ async function handleResync(
     }
 
     const nlContactsToImport = nlContacts.filter((nm) =>
-      contacts.every((m) => m.email !== nm.email)
+      contacts.every(
+        (m) => m.email !== nm.email && nm.status !== NewsletterStatus.Pending
+      )
     );
 
     await OptionsService.set(
