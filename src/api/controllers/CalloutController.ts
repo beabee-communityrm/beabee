@@ -1,4 +1,4 @@
-import { ItemStatus } from "@beabee/beabee-common";
+import { CalloutFormSchema } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -9,12 +9,14 @@ import {
   NotFoundError,
   OnUndefined,
   Param,
+  Params,
   Patch,
   Post,
   QueryParams
 } from "routing-controllers";
 import slugify from "slugify";
 import { getRepository } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import CalloutsService from "@core/services/CalloutsService";
 
@@ -27,56 +29,58 @@ import CalloutResponse from "@models/CalloutResponse";
 import {
   convertCalloutToData,
   CreateCalloutData,
-  CreateCalloutResponseData,
-  fetchPaginatedCalloutResponses,
+  fetchCallout,
   fetchPaginatedCallouts,
   GetCalloutData,
   GetCalloutQuery,
-  GetCalloutResponseData,
-  GetCalloutResponsesQuery,
   GetCalloutsQuery
 } from "@api/data/CalloutData";
+import {
+  CreateCalloutResponseData,
+  fetchCalloutResponse,
+  fetchPaginatedCalloutResponses,
+  GetCalloutResponseData,
+  GetCalloutResponseParam,
+  GetCalloutResponseQuery,
+  GetCalloutResponsesQuery
+} from "@api/data/CalloutResponseData";
 import { Paginated } from "@api/data/PaginatedData";
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
-async function createCallout(
-  data: CreateCalloutData & { slug: string },
-  autoSlug: number | false
-): Promise<Callout> {
-  const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
-  try {
-    await getRepository(Callout).insert({ ...data, slug });
-    return await getRepository(Callout).findOneOrFail(slug);
-  } catch (err) {
-    if (isDuplicateIndex(err, "slug")) {
-      if (autoSlug === false) {
-        throw new DuplicateId(slug);
-      } else {
-        return await createCallout(data, autoSlug + 1);
-      }
-    } else {
-      throw err;
-    }
+@JsonController("/callout")
+export class CalloutController {
+  @Get("/")
+  async getCallouts(
+    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @QueryParams() query: GetCalloutsQuery
+  ): Promise<Paginated<GetCalloutData>> {
+    return fetchPaginatedCallouts(query, contact);
   }
-}
 
-abstract class CalloutAdminController {
   @Authorized("admin")
   @Post("/")
   async createCallout(
-    @CurrentUser({ required: true }) contact: Contact,
     @Body() data: CreateCalloutData
   ): Promise<GetCalloutData> {
-    const callout = await createCallout(
+    const callout = await CalloutsService.createCallout(
       {
         ...data,
         slug: data.slug || slugify(data.title, { lower: true })
       },
       data.slug ? false : 0
     );
-    return convertCalloutToData(callout, contact, {});
+    return convertCalloutToData(callout);
+  }
+
+  @Get("/:slug")
+  async getCallout(
+    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @Param("slug") slug: string,
+    @QueryParams() query: GetCalloutQuery
+  ): Promise<GetCalloutData | undefined> {
+    return await fetchCallout({ slug }, query, contact);
   }
 
   @Authorized("admin")
@@ -87,10 +91,13 @@ abstract class CalloutAdminController {
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
     const newSlug = data.slug || slug;
-    await getRepository(Callout).update(slug, data);
+    await getRepository(Callout).update(slug, {
+      ...data,
+      // Force the correct type as otherwise this errors, not sure why
+      formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+    });
     try {
-      const callout = await getRepository(Callout).findOne(newSlug);
-      return callout && convertCalloutToData(callout, contact, {});
+      return await fetchCallout({ slug: newSlug }, {}, contact);
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }
@@ -106,34 +113,6 @@ abstract class CalloutAdminController {
       throw new NotFoundError();
     }
   }
-}
-
-@JsonController("/callout")
-export class CalloutController extends CalloutAdminController {
-  @Get("/")
-  async getCallouts(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
-    @QueryParams() query: GetCalloutsQuery
-  ): Promise<Paginated<GetCalloutData>> {
-    return fetchPaginatedCallouts(query, contact, { with: query.with });
-  }
-
-  @Get("/:slug")
-  async getCallout(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
-    @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutQuery
-  ): Promise<GetCalloutData | undefined> {
-    const callout = await getRepository(Callout).findOne(slug);
-    if (
-      callout &&
-      (callout.status === ItemStatus.Open ||
-        callout.status === ItemStatus.Ended ||
-        contact?.hasRole("admin"))
-    ) {
-      return convertCalloutToData(callout, contact, { with: query.with });
-    }
-  }
 
   @Get("/:slug/responses")
   async getCalloutResponses(
@@ -141,7 +120,7 @@ export class CalloutController extends CalloutAdminController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    return await fetchPaginatedCalloutResponses(slug, query, contact);
+    return await fetchPaginatedCalloutResponses(query, contact, slug);
   }
 
   @Post("/:slug/responses")
@@ -150,7 +129,7 @@ export class CalloutController extends CalloutAdminController {
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseData
-  ) {
+  ): Promise<void> {
     const callout = await getRepository(Callout).findOne(slug);
     if (!callout) {
       throw new NotFoundError();
@@ -172,5 +151,18 @@ export class CalloutController extends CalloutAdminController {
     if (error) {
       throw new InvalidCalloutResponse(error);
     }
+  }
+
+  @Get("/:slug/responses/:id")
+  async getCalloutResponse(
+    @CurrentUser() contact: Contact,
+    @Params() param: GetCalloutResponseParam,
+    @QueryParams() query: GetCalloutResponseQuery
+  ): Promise<GetCalloutResponseData | undefined> {
+    return await fetchCalloutResponse(
+      { id: param.id, callout: { slug: param.slug } },
+      query,
+      contact
+    );
   }
 }

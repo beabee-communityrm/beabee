@@ -1,23 +1,28 @@
-import Callout, { CalloutComponentSchema } from "@models/Callout";
+import {
+  CalloutComponentSchema,
+  flattenComponents
+} from "@beabee/beabee-common";
+import Callout from "@models/Callout";
 import {
   CalloutResponseAnswer,
   CalloutResponseAnswers
 } from "@models/CalloutResponse";
 
-function flattenComponents(
-  components: CalloutComponentSchema[]
-): CalloutComponentSchema[] {
-  return components.flatMap((component) => [
-    component,
-    ...flattenComponents(component.components || [])
-  ]);
-}
-
 function getNiceAnswer(
   component: CalloutComponentSchema,
   value: string
 ): string {
-  return component.values?.find((v) => v.value === value)?.label || value;
+  switch (component.type) {
+    case "radio":
+    case "selectboxes":
+      return component.values.find((v) => v.value === value)?.label || value;
+    case "select":
+      return (
+        component.data.values.find((v) => v.value === value)?.label || value
+      );
+    default:
+      return value;
+  }
 }
 
 function convertAnswer(
