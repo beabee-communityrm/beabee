@@ -63,7 +63,7 @@ export async function getSubscriptionNextChargeDate(
   // include pending payments
   const date = pendingPayment
     ? pendingPayment.charge_date
-    : subscription.upcoming_payments[0].charge_date;
+    : subscription.upcoming_payments![0].charge_date;
   return moment.utc(date).add(config.gracePeriod).toDate();
 }
 
@@ -84,7 +84,7 @@ export async function createSubscription(
     const mandate = await gocardless.mandates.get(mandateId);
     // next_possible_charge_date will always have a value as this is an active mandate
     if (startDate < mandate.next_possible_charge_date!) {
-      startDate = mandate.next_possible_charge_date;
+      startDate = mandate.next_possible_charge_date!;
     }
   }
 

@@ -239,7 +239,7 @@ export default [
 ] as ModelDrier<any>[];
 
 function isDrier<T>(obj: DrierMap<T>[keyof T]): obj is Drier<T[keyof T]> {
-  return obj && "propMap" in obj;
+  return typeof obj === "object" && "propMap" in obj;
 }
 
 // Maps don't stringify well
