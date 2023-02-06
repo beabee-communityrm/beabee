@@ -51,7 +51,7 @@ async function contactToNlUpdate(
         REFCODE: contact.referralCode || "",
         POLLSCODE: contact.pollsCode || "",
         C_DESC: contact.contributionDescription,
-        C_MNTHAMT: contact.contributionMonthlyAmount?.toString() || "",
+        C_MNTHAMT: contact.contributionMonthlyAmount?.toFixed(2) || "",
         C_PERIOD: contact.contributionPeriod || "",
         C_CHANGED: contact.contributionChanged?.toISOString() || ""
       }
