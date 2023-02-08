@@ -11,7 +11,7 @@ COPY gulpfile.js tsconfig.json tsconfig.build.json /opt/membership-system/
 COPY ./src /opt/membership-system/src/
 RUN NODE_ENV=production npm run build
 
-FROM nginx:1.18.0-alpine as router
+FROM nginx:1.23.3-alpine as router
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx --from=builder /opt/membership-system/built/static /opt/membership-system/built/static
