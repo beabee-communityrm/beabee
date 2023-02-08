@@ -1,4 +1,4 @@
-FROM node:16.18-alpine as builder
+FROM node:16.19-alpine as builder
 
 RUN apk add --no-cache make g++ git
 
@@ -11,12 +11,12 @@ COPY gulpfile.js tsconfig.json tsconfig.build.json /opt/membership-system/
 COPY ./src /opt/membership-system/src/
 RUN NODE_ENV=production npm run build
 
-FROM nginx:1.18.0-alpine as router
+FROM nginx:1.23.3-alpine as router
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx --from=builder /opt/membership-system/built/static /opt/membership-system/built/static
 
-FROM node:16.18-alpine as app
+FROM node:16.19-alpine as app
 
 ARG REVISION=DEV
 
