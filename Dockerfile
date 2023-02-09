@@ -1,6 +1,7 @@
 FROM node:16.19-alpine as builder
 
-RUN apk add --no-cache make g++ git
+RUN apk add --no-cache make g++ git gcc libgcc libstdc++ linux-headers python3
+RUN npm install -g node-gyp 
 
 WORKDIR /opt/membership-system
 
@@ -20,10 +21,13 @@ FROM node:16.19-alpine as app
 
 ARG REVISION=DEV
 
+ENV NODE_ENV=production
+
 WORKDIR /opt/membership-system
 
 COPY package.json package-lock.json /opt/membership-system/
-RUN npm ci --only=production
+COPY --chown=node:node --from=builder /opt/membership-system/node_modules /opt/membership-system/node_modules
+RUN npm prune
 
 COPY --chown=node:node --from=builder /opt/membership-system/built /opt/membership-system/built
 
