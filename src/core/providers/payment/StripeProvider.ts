@@ -7,7 +7,12 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { ContributionInfo, getActualAmount, PaymentForm } from "@core/utils";
+import {
+  ContributionInfo,
+  getActualAmount,
+  PaymentForm,
+  PaymentSource
+} from "@core/utils";
 import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
 import {
   createSubscription,
@@ -31,9 +36,23 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
   }
 
   async getContributionInfo(): Promise<Partial<ContributionInfo>> {
-    const paymentSource = this.data.mandateId
-      ? await manadateToSource(this.data.mandateId)
-      : undefined;
+    let paymentSource: PaymentSource | undefined;
+    try {
+      paymentSource = this.data.mandateId
+        ? await manadateToSource(this.data.mandateId)
+        : undefined;
+    } catch (err) {
+      // 404s can happen on dev as we don't use real mandate IDs
+      if (
+        !(
+          config.dev &&
+          err instanceof Stripe.errors.StripeInvalidRequestError &&
+          err.statusCode === 404
+        )
+      ) {
+        throw err;
+      }
+    }
 
     return {
       payFee: !!this.data.payFee,
