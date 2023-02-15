@@ -31,6 +31,7 @@ export function convertResponseToData(
     id: response.id,
     createdAt: response.createdAt,
     updatedAt: response.updatedAt,
+    bucket: response.bucket,
     ...(_with?.includes(GetCalloutResponseWith.Answers) && {
       answers: response.answers
     }),

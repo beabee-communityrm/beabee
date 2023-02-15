@@ -44,6 +44,7 @@ export interface GetCalloutResponseData {
   id: string;
   createdAt: Date;
   updatedAt: Date;
+  bucket: string | null;
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutData;
   contact?: GetContactData | null;
