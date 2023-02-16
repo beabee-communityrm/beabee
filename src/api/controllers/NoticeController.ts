@@ -41,14 +41,19 @@ export class NoticeController {
     @CurrentUser() contact: Contact,
     @QueryParams() query: GetNoticesQuery
   ): Promise<Paginated<GetNoticeData>> {
-    const authedQuery = mergeRules(query, [
-      // Non-admins can only see open notices
-      !contact.hasRole("admin") && {
-        field: "status",
-        operator: "equal",
-        value: [ItemStatus.Open]
-      }
-    ]);
+    const authedQuery = {
+      ...query,
+      rules: mergeRules([
+        query.rules,
+        // Non-admins can only see open notices
+        !contact.hasRole("admin") && {
+          field: "status",
+          operator: "equal",
+          value: [ItemStatus.Open]
+        }
+      ])
+    };
+
     const results = await fetchPaginated(
       Notice,
       noticeFilters,

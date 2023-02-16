@@ -95,20 +95,23 @@ export async function fetchPaginatedCallouts(
   query: GetCalloutsQuery,
   contact: Contact | undefined
 ): Promise<Paginated<GetCalloutData>> {
-  const scopedQuery = mergeRules(
-    query,
-    !contact?.hasRole("admin") && [
-      // Non-admins can only query for open or ended non-hidden callouts
-      {
-        condition: "OR",
-        rules: [
-          { field: "status", operator: "equal", value: [ItemStatus.Open] },
-          { field: "status", operator: "equal", value: [ItemStatus.Ended] }
-        ]
-      },
-      { field: "hidden", operator: "equal", value: [false] }
-    ]
-  );
+  const scopedQuery = contact?.hasRole("admin")
+    ? query
+    : {
+        ...query,
+        rules: mergeRules([
+          query.rules,
+          // Non-admins can only query for open or ended non-hidden callouts
+          {
+            condition: "OR",
+            rules: [
+              { field: "status", operator: "equal", value: [ItemStatus.Open] },
+              { field: "status", operator: "equal", value: [ItemStatus.Ended] }
+            ]
+          },
+          { field: "hidden", operator: "equal", value: [false] }
+        ])
+      };
 
   const results = await fetchPaginated(
     Callout,
