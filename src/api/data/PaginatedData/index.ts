@@ -141,6 +141,14 @@ const dateUnitSql = {
   s: "second"
 } as const;
 
+function noopField(field: string): string {
+  return field;
+}
+
+function coalesceField(field: string): string {
+  return `COALESCE(${field}, '')`;
+}
+
 function prepareRule(
   rule: ValidatedRule<string>,
   contact: Contact | undefined
@@ -148,7 +156,7 @@ function prepareRule(
   switch (rule.type) {
     case "text":
       // Make NULL an empty string for comparison
-      return [(field) => `COALESCE(${field}, '')`, rule.value];
+      return [rule.nullable ? coalesceField : noopField, rule.value];
 
     case "date": {
       // Compare dates by at least day, but more specific if H/m/s are provided
@@ -165,10 +173,10 @@ function prepareRule(
         throw new Error("No contact provided to map contact field type");
       }
       // Map "me" to contact id
-      return [(s) => s, rule.value.map((v) => (v === "me" ? contact.id : v))];
+      return [noopField, rule.value.map((v) => (v === "me" ? contact.id : v))];
 
     default:
-      return [(s) => s, rule.value];
+      return [noopField, rule.value];
   }
 }
 
