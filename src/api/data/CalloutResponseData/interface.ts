@@ -1,16 +1,22 @@
 import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import { Type } from "class-transformer";
 import {
   IsOptional,
   IsEnum,
   IsString,
   IsIn,
   IsObject,
-  IsEmail
+  IsEmail,
+  IsArray,
+  IsUUID,
+  Validate,
+  ValidateNested,
+  IsDefined
 } from "class-validator";
 import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
 import { GetContactData } from "../ContactData";
-import { GetPaginatedQuery } from "../PaginatedData";
+import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
@@ -61,4 +67,19 @@ export class CreateCalloutResponseData {
   @IsOptional()
   @IsEmail()
   guestEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  bucket?: string;
+}
+
+export class BatchUpdateCalloutResponseData {
+  @IsDefined()
+  @ValidateNested()
+  @Type(() => GetPaginatedRuleGroup)
+  rules?: GetPaginatedRuleGroup;
+
+  @ValidateNested()
+  @Type(() => CreateCalloutResponseData)
+  updates!: CreateCalloutResponseData;
 }

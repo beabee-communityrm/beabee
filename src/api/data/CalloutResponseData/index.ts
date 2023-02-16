@@ -3,7 +3,8 @@ import {
   calloutResponseFilters,
   FilterType,
   convertComponentsToFilters,
-  RuleOperator
+  RuleOperator,
+  Filters
 } from "@beabee/beabee-common";
 import { NotFoundError } from "routing-controllers";
 import { FindConditions, getRepository } from "typeorm";
@@ -14,13 +15,21 @@ import Contact from "@models/Contact";
 
 import { convertCalloutToData } from "../CalloutData";
 import { convertContactToData } from "../ContactData";
-import { mergeRules, fetchPaginated, FieldHandler } from "../PaginatedData";
+import {
+  mergeRules,
+  fetchPaginated,
+  FieldHandler,
+  batchUpdate,
+  FieldHandlers,
+  GetPaginatedRuleGroup
+} from "../PaginatedData";
 
 import {
   GetCalloutResponseWith,
   GetCalloutResponseData,
   GetCalloutResponsesQuery,
-  GetCalloutResponseQuery
+  GetCalloutResponseQuery,
+  BatchUpdateCalloutResponseData
 } from "./interface";
 
 export function convertResponseToData(
@@ -110,12 +119,13 @@ const answersFieldHandler: FieldHandler = (qb, args) => {
   }
 };
 
-export async function fetchPaginatedCalloutResponses(
-  query: GetCalloutResponsesQuery,
+async function prepareQuery(
+  ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
   calloutSlug?: string
-): Promise<Paginated<GetCalloutResponseData>> {
-  const scopedQuery = mergeRules(query, [
+): Promise<[GetPaginatedRuleGroup, Filters<string>, FieldHandlers<string>]> {
+  const scopedRules = mergeRules([
+    ruleGroup,
     // Non admins can only see their own responses
     !contact.hasRole("admin") && {
       field: "contact",
@@ -131,24 +141,44 @@ export async function fetchPaginatedCalloutResponses(
   ]);
 
   // If looking for responses for a particular callout then add answer filtering
-  let answerFilters, fieldHandlers;
   if (calloutSlug) {
     const callout = await getRepository(Callout).findOne(calloutSlug);
     if (!callout) {
       throw new NotFoundError();
     }
 
-    answerFilters = convertComponentsToFilters(callout.formSchema.components);
+    const answerFilters = convertComponentsToFilters(
+      callout.formSchema.components
+    );
     // All handled by the same field handler
-    fieldHandlers = Object.fromEntries(
+    const fieldHandlers = Object.fromEntries(
       Object.keys(answerFilters).map((field) => [field, answersFieldHandler])
     );
+    return [
+      scopedRules,
+      { ...calloutResponseFilters, ...answerFilters },
+      fieldHandlers
+    ];
+  } else {
+    return [scopedRules, calloutResponseFilters, {}];
   }
+}
+
+export async function fetchPaginatedCalloutResponses(
+  query: GetCalloutResponsesQuery,
+  contact: Contact,
+  calloutSlug?: string
+): Promise<Paginated<GetCalloutResponseData>> {
+  const [rules, filters, fieldHandlers] = await prepareQuery(
+    query.rules,
+    contact,
+    calloutSlug
+  );
 
   const results = await fetchPaginated(
     CalloutResponse,
-    { ...calloutResponseFilters, ...answerFilters },
-    scopedQuery,
+    filters,
+    { ...query, rules },
     contact,
     fieldHandlers,
     (qb) => {
@@ -166,6 +196,24 @@ export async function fetchPaginatedCalloutResponses(
     ...results,
     items: results.items.map((item) => convertResponseToData(item, query.with))
   };
+}
+
+export async function batchUpdateCalloutResponses(
+  data: BatchUpdateCalloutResponseData,
+  contact: Contact
+): Promise<number> {
+  const [rules, filters, fieldHandlers] = await prepareQuery(
+    data.rules,
+    contact
+  );
+  return await batchUpdate(
+    CalloutResponse,
+    filters,
+    rules,
+    data.updates,
+    contact,
+    fieldHandlers
+  );
 }
 
 export * from "./interface";

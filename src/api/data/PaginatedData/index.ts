@@ -10,16 +10,19 @@ import {
   operatorsByType,
   InvalidRule,
   parseDate,
-  getMinDateUnit
+  getMinDateUnit,
+  RuleGroup
 } from "@beabee/beabee-common";
 import { BadRequestError } from "routing-controllers";
 import {
   Brackets,
   createQueryBuilder,
   EntityTarget,
+  getRepository,
   SelectQueryBuilder,
   WhereExpressionBuilder
 } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import Contact from "@models/Contact";
 
@@ -29,7 +32,8 @@ import {
   Paginated,
   RichRuleValue,
   FieldHandlers,
-  FieldHandler
+  FieldHandler,
+  GetPaginatedRuleGroup
 } from "./interface";
 
 // Operator definitions
@@ -180,22 +184,17 @@ function prepareRule(
   }
 }
 
-export function buildQuery<Entity, Field extends string>(
-  entity: EntityTarget<Entity>,
-  ruleGroup: ValidatedRuleGroup<Field> | undefined,
+function buildWhere<Field extends string>(
+  ruleGroup: ValidatedRuleGroup<Field>,
   contact?: Contact,
   fieldHandlers?: FieldHandlers<Field>
-): SelectQueryBuilder<Entity> {
+): [Brackets, Record<string, unknown>] {
   /*
     The query builder doesn't support having the same parameter names for
     different parts of the query and subqueries, so we have to ensure each query
     parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
     the end of each parameter for each rule.
   */
-  const params: Record<string, unknown> = {
-    // Some queries need a current date parameter
-    now: new Date()
-  };
   let ruleNo = 0;
 
   function parseRule(rule: ValidatedRule<Field>) {
@@ -247,10 +246,23 @@ export function buildQuery<Entity, Field extends string>(
     };
   }
 
+  const params: Record<string, unknown> = {
+    // Some queries need a current date parameter
+    now: new Date()
+  };
+  const where = new Brackets(parseRuleGroup(ruleGroup));
+  return [where, params];
+}
+
+export function buildSelectQuery<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  ruleGroup: ValidatedRuleGroup<Field> | undefined,
+  contact?: Contact,
+  fieldHandlers?: FieldHandlers<Field>
+): SelectQueryBuilder<Entity> {
   const qb = createQueryBuilder(entity, "item");
   if (ruleGroup) {
-    const where = new Brackets(parseRuleGroup(ruleGroup));
-    qb.where(where).setParameters(params);
+    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers));
   }
   return qb;
 }
@@ -269,7 +281,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = buildQuery(entity, ruleGroup, contact, fieldHandlers)
+    const qb = buildSelectQuery(entity, ruleGroup, contact, fieldHandlers)
       .offset(offset)
       .limit(limit);
 
@@ -298,21 +310,56 @@ export async function fetchPaginated<Entity, Field extends string>(
   }
 }
 
-export function mergeRules(
-  query: GetPaginatedQuery,
-  extraRules?: (GetPaginatedRuleGroupRule | undefined | false)[] | false
-): GetPaginatedQuery {
-  if (!extraRules) return query;
+export async function batchUpdate<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  filters: Filters<Field>,
+  ruleGroup: RuleGroup,
+  updates: QueryDeepPartialEntity<Entity>,
+  contact?: Contact,
+  fieldHandlers?: FieldHandlers<Field>
+): Promise<number> {
+  try {
+    const validatedRuleGroup = validateRuleGroup(filters, ruleGroup);
 
-  return {
-    ...query,
-    rules: {
-      condition: "AND",
-      rules: [
-        ...(extraRules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]),
-        ...(query.rules ? [query.rules] : [])
-      ]
+    const entityMetadata = getRepository(entity).metadata;
+    if (entityMetadata.hasMultiplePrimaryKeys) {
+      throw new BadRequestError(
+        "Unsupported table for batch update: multiple primary keys"
+      );
     }
+
+    const pkey =
+      getRepository(entity).metadata.primaryColumns[0]
+        .databaseNameWithoutPrefixes;
+
+    const items = await createQueryBuilder(entity, "item")
+      .select(pkey)
+      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers))
+      .getRawMany();
+
+    const result = await createQueryBuilder()
+      .update(entity, updates)
+      .where(`${pkey} IN (:...ids)`, { ids: items.map((i) => i[pkey]) })
+      .execute();
+
+    return result.affected || -1;
+  } catch (err) {
+    if (err instanceof InvalidRule) {
+      const err2: any = new BadRequestError(err.message);
+      err2.rule = err.rule;
+      throw err2;
+    } else {
+      throw err;
+    }
+  }
+}
+
+export function mergeRules(
+  rules: (GetPaginatedRuleGroupRule | undefined | false)[]
+): GetPaginatedRuleGroup {
+  return {
+    condition: "AND",
+    rules: rules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]
   };
 }
 
