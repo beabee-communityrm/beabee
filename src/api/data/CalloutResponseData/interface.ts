@@ -21,7 +21,8 @@ import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
 export enum GetCalloutResponseWith {
   Answers = "answers",
   Callout = "callout",
-  Contact = "contact"
+  Contact = "contact",
+  Tags = "tags"
 }
 
 export class GetCalloutResponseQuery {
@@ -54,6 +55,7 @@ export interface GetCalloutResponseData {
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutData;
   contact?: GetContactData | null;
+  tags?: { id: string; name: string }[];
 }
 
 export class CreateCalloutResponseData {

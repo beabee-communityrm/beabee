@@ -7,7 +7,7 @@ import {
   Filters
 } from "@beabee/beabee-common";
 import { NotFoundError } from "routing-controllers";
-import { FindConditions, getRepository } from "typeorm";
+import { createQueryBuilder, FindConditions, getRepository } from "typeorm";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -31,6 +31,7 @@ import {
   GetCalloutResponseQuery,
   BatchUpdateCalloutResponseData
 } from "./interface";
+import CalloutResponseTag from "@models/CalloutResponseTag";
 
 export function convertResponseToData(
   response: CalloutResponse,
@@ -49,7 +50,11 @@ export function convertResponseToData(
     }),
     ...(_with?.includes(GetCalloutResponseWith.Contact) && {
       contact: response.contact && convertContactToData(response.contact)
-    })
+    }),
+    ...(_with?.includes(GetCalloutResponseWith.Tags) &&
+      response.tags && {
+        tags: response.tags.map((rt) => ({ id: rt.tag.id, name: rt.tag.name }))
+      })
   };
 }
 
@@ -70,6 +75,9 @@ export async function fetchCalloutResponse(
         : []),
       ...(query.with?.includes(GetCalloutResponseWith.Contact)
         ? ["contact", "contact.roles"]
+        : []),
+      ...(query.with?.includes(GetCalloutResponseWith.Tags)
+        ? ["tags", "tags.tag"]
         : [])
     ]
   });
@@ -191,6 +199,24 @@ export async function fetchPaginatedCalloutResponses(
       }
     }
   );
+
+  if (
+    results.items.length > 0 &&
+    query.with?.includes(GetCalloutResponseWith.Tags)
+  ) {
+    // Load tags after to ensure offset/limit work
+    const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
+      .where("rt.response IN (:...ids)", {
+        ids: results.items.map((i) => i.id)
+      })
+      .innerJoinAndSelect("rt.tag", "tag")
+      .loadAllRelationIds({ relations: ["response"] })
+      .getMany();
+
+    for (const item of results.items) {
+      item.tags = responseTags.filter((rt) => (rt as any).response === item.id);
+    }
+  }
 
   return {
     ...results,
