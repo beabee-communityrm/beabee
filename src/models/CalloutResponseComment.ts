@@ -23,5 +23,5 @@ export default class CalloutReponseComment {
   createdAt!: Date;
 
   @Column({ type: String })
-  text!: String;
+  text!: string;
 }
