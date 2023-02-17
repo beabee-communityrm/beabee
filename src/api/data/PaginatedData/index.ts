@@ -108,11 +108,11 @@ const operatorsWhereByType: Record<
 
 // Generic field handlers
 
-const simpleField: FieldHandler = (qb, args) => {
+const simpleFieldHandler: FieldHandler = (qb, args) => {
   qb.where(args.whereFn(`item.${args.field}`));
 };
 
-export const statusField: FieldHandler = (qb, args) => {
+export const statusFieldHandler: FieldHandler = (qb, args) => {
   // TODO: handle other operators
   if (args.operator !== "equal") {
     throw new BadRequestError("Status field only supports equal operator");
@@ -145,7 +145,7 @@ const dateUnitSql = {
   s: "second"
 } as const;
 
-function noopField(field: string): string {
+function simpleField(field: string): string {
   return field;
 }
 
@@ -160,7 +160,7 @@ function prepareRule(
   switch (rule.type) {
     case "text":
       // Make NULL an empty string for comparison
-      return [rule.nullable ? coalesceField : noopField, rule.value];
+      return [rule.nullable ? coalesceField : simpleField, rule.value];
 
     case "date": {
       // Compare dates by at least day, but more specific if H/m/s are provided
@@ -177,10 +177,13 @@ function prepareRule(
         throw new Error("No contact provided to map contact field type");
       }
       // Map "me" to contact id
-      return [noopField, rule.value.map((v) => (v === "me" ? contact.id : v))];
+      return [
+        simpleField,
+        rule.value.map((v) => (v === "me" ? contact.id : v))
+      ];
 
     default:
-      return [noopField, rule.value];
+      return [simpleField, rule.value];
   }
 }
 
@@ -217,7 +220,7 @@ function buildWhere<Field extends string>(
       const suffixFn = (field: string) =>
         field.replace(/[^:]:[abp]/g, "$&" + suffix);
 
-      const fieldHandler = fieldHandlers?.[rule.field] || simpleField;
+      const fieldHandler = fieldHandlers?.[rule.field] || simpleFieldHandler;
       fieldHandler(qb, {
         ...rule,
         value,

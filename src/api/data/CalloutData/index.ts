@@ -6,7 +6,7 @@ import {
   fetchPaginated,
   mergeRules,
   Paginated,
-  statusField
+  statusFieldHandler
 } from "@api/data/PaginatedData";
 
 import Contact from "@models/Contact";
@@ -119,10 +119,10 @@ export async function fetchPaginatedCallouts(
     scopedQuery,
     contact,
     {
-      status: statusField,
-      answeredBy: (qb, { operator, whereFn, value }) => {
+      status: statusFieldHandler,
+      answeredBy: (qb, args) => {
         // TODO: support not_equal for admins
-        if (operator !== "equal") {
+        if (args.operator !== "equal") {
           throw new BadRequestError("answeredBy only supports equal");
         }
         if (!contact) {
@@ -131,7 +131,7 @@ export async function fetchPaginatedCallouts(
           );
         }
 
-        if (value[0] !== contact.id && !contact.hasRole("admin")) {
+        if (args.value[0] !== contact.id && !contact.hasRole("admin")) {
           throw new UnauthorizedError();
         }
 
@@ -141,7 +141,7 @@ export async function fetchPaginatedCallouts(
           .select("pr.calloutSlug", "slug")
           .distinctOn(["pr.calloutSlug"])
           .from(CalloutResponse, "pr")
-          .where(whereFn(`pr.contactId`))
+          .where(args.whereFn(`pr.contactId`))
           .orderBy("pr.calloutSlug");
 
         qb.where("item.slug IN " + subQb.getQuery());

@@ -28,7 +28,7 @@ import {
   fetchPaginated,
   mergeRules,
   Paginated,
-  statusField
+  statusFieldHandler
 } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -59,7 +59,7 @@ export class NoticeController {
       noticeFilters,
       authedQuery,
       contact,
-      { status: statusField }
+      { status: statusFieldHandler }
     );
 
     return {
