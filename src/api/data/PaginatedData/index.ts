@@ -18,7 +18,6 @@ import {
   Brackets,
   createQueryBuilder,
   EntityTarget,
-  getRepository,
   SelectQueryBuilder,
   WhereExpressionBuilder
 } from "typeorm";
@@ -109,7 +108,7 @@ const operatorsWhereByType: Record<
 // Generic field handlers
 
 const simpleFieldHandler: FieldHandler = (qb, args) => {
-  qb.where(args.whereFn(`item.${args.field}`));
+  qb.where(args.whereFn(`${args.fieldPrefix}${args.field}`));
 };
 
 export const statusFieldHandler: FieldHandler = (qb, args) => {
@@ -120,17 +119,21 @@ export const statusFieldHandler: FieldHandler = (qb, args) => {
 
   switch (args.value[0]) {
     case ItemStatus.Draft:
-      return qb.where(`item.starts IS NULL`);
+      return qb.where(`${args.fieldPrefix}starts IS NULL`);
     case ItemStatus.Scheduled:
-      return qb.where(`item.starts > :now`);
+      return qb.where(`${args.fieldPrefix}starts > :now`);
     case ItemStatus.Open:
-      return qb.where(`item.starts < :now`).andWhere(
+      return qb.where(`${args.fieldPrefix}starts < :now`).andWhere(
         new Brackets((qb) => {
-          qb.where("item.expires IS NULL").orWhere(`item.expires > :now`);
+          qb.where(`${args.fieldPrefix}expires IS NULL`).orWhere(
+            `${args.fieldPrefix}expires > :now`
+          );
         })
       );
     case ItemStatus.Ended:
-      return qb.where(`item.starts < :now`).andWhere(`item.expires < :now`);
+      return qb
+        .where(`${args.fieldPrefix}starts < :now`)
+        .andWhere(`${args.fieldPrefix}expires < :now`);
   }
 };
 
@@ -189,8 +192,9 @@ function prepareRule(
 
 function buildWhere<Field extends string>(
   ruleGroup: ValidatedRuleGroup<Field>,
-  contact?: Contact,
-  fieldHandlers?: FieldHandlers<Field>
+  contact: Contact | undefined,
+  fieldHandlers: FieldHandlers<Field> | undefined,
+  fieldPrefix: string
 ): [Brackets, Record<string, unknown>] {
   /*
     The query builder doesn't support having the same parameter names for
@@ -198,6 +202,10 @@ function buildWhere<Field extends string>(
     parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
     the end of each parameter for each rule.
   */
+  const params: Record<string, unknown> = {
+    // Some queries need a current date parameter
+    now: new Date()
+  };
   let ruleNo = 0;
 
   function parseRule(rule: ValidatedRule<Field>) {
@@ -222,7 +230,10 @@ function buildWhere<Field extends string>(
 
       const fieldHandler = fieldHandlers?.[rule.field] || simpleFieldHandler;
       fieldHandler(qb, {
-        ...rule,
+        fieldPrefix,
+        field: rule.field,
+        operator: rule.operator,
+        type: rule.type,
         value,
         whereFn: (field) => suffixFn(operatorFn(fieldFn(field))),
         suffixFn
@@ -249,14 +260,11 @@ function buildWhere<Field extends string>(
     };
   }
 
-  const params: Record<string, unknown> = {
-    // Some queries need a current date parameter
-    now: new Date()
-  };
   const where = new Brackets(parseRuleGroup(ruleGroup));
   return [where, params];
 }
 
+// DEPRECATED: Remove once SegmentService is gone
 export function buildSelectQuery<Entity, Field extends string>(
   entity: EntityTarget<Entity>,
   ruleGroup: ValidatedRuleGroup<Field> | undefined,
@@ -265,7 +273,7 @@ export function buildSelectQuery<Entity, Field extends string>(
 ): SelectQueryBuilder<Entity> {
   const qb = createQueryBuilder(entity, "item");
   if (ruleGroup) {
-    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers));
+    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item"));
   }
   return qb;
 }
@@ -276,7 +284,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   query: GetPaginatedQuery,
   contact?: Contact,
   fieldHandlers?: FieldHandlers<Field>,
-  queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
+  queryCallback?: (qb: SelectQueryBuilder<Entity>, fieldPrefix: string) => void
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
@@ -284,15 +292,17 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = buildSelectQuery(entity, ruleGroup, contact, fieldHandlers)
-      .offset(offset)
-      .limit(limit);
+    const qb = createQueryBuilder(entity, "item").offset(offset).limit(limit);
+
+    if (ruleGroup) {
+      qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
+    }
 
     if (query.sort) {
       qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
     }
 
-    queryCallback?.(qb);
+    queryCallback?.(qb, "item.");
 
     const [items, total] = await qb.getManyAndCount();
 
@@ -324,25 +334,9 @@ export async function batchUpdate<Entity, Field extends string>(
   try {
     const validatedRuleGroup = validateRuleGroup(filters, ruleGroup);
 
-    const entityMetadata = getRepository(entity).metadata;
-    if (entityMetadata.hasMultiplePrimaryKeys) {
-      throw new BadRequestError(
-        "Unsupported table for batch update: multiple primary keys"
-      );
-    }
-
-    const pkey =
-      getRepository(entity).metadata.primaryColumns[0]
-        .databaseNameWithoutPrefixes;
-
-    const items = await createQueryBuilder(entity, "item")
-      .select(pkey)
-      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers))
-      .getRawMany();
-
     const result = await createQueryBuilder()
       .update(entity, updates)
-      .where(`${pkey} IN (:...ids)`, { ids: items.map((i) => i[pkey]) })
+      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers, ""))
       .execute();
 
     return result.affected || -1;

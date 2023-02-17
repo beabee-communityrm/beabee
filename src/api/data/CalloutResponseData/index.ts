@@ -87,14 +87,14 @@ const answerArrayOperators: Partial<
   is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
 };
 
-function answerField(type: FilterType): string {
+function answerField(type: FilterType, fieldPrefix: string): string {
   switch (type) {
     case "number":
-      return "(item.answers -> :p)::numeric";
+      return `(${fieldPrefix}answers -> :p)::numeric`;
     case "boolean":
-      return "(item.answers -> :p)::boolean";
+      return `(${fieldPrefix}answers -> :p)::boolean`;
     default:
-      return "item.answers ->> :p";
+      return `${fieldPrefix}answers ->> :p`;
   }
 }
 
@@ -105,7 +105,7 @@ const answersFieldHandler: FieldHandler = (qb, args) => {
       // Shouln't be able to happen as rule has been validated
       throw new Error("Invalid ValidatedRule");
     }
-    qb.where(args.suffixFn(operatorFn("item.answers -> :p")));
+    qb.where(args.suffixFn(operatorFn(`${args.fieldPrefix}answers -> :p`)));
     // is_empty and is_not_empty need special treatment for JSONB values
   } else if (args.operator === "is_empty" || args.operator === "is_not_empty") {
     const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
@@ -115,7 +115,7 @@ const answersFieldHandler: FieldHandler = (qb, args) => {
       )
     );
   } else {
-    qb.where(args.whereFn(answerField(args.type)));
+    qb.where(args.whereFn(answerField(args.type, args.fieldPrefix)));
   }
 };
 
@@ -181,12 +181,12 @@ export async function fetchPaginatedCalloutResponses(
     { ...query, rules },
     contact,
     fieldHandlers,
-    (qb) => {
+    (qb, fieldPrefix) => {
       if (query.with?.includes(GetCalloutResponseWith.Callout)) {
-        qb.innerJoinAndSelect("item.callout", "callout");
+        qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
       }
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
-        qb.leftJoinAndSelect("item.contact", "contact");
+        qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
         qb.leftJoinAndSelect("contact.roles", "roles");
       }
     }

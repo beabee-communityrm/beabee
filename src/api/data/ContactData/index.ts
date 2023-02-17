@@ -83,7 +83,7 @@ function membershipField(field: keyof ContactRole): FieldHandler {
       .where(`mp.type = 'member'`)
       .andWhere(args.whereFn(`mp.${field}`));
 
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
@@ -95,7 +95,7 @@ function profileField(field: keyof ContactProfile): FieldHandler {
       .from(ContactProfile, "profile")
       .where(args.whereFn(`profile.${field}`));
 
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
@@ -120,9 +120,9 @@ const activePermission: FieldHandler = (qb, args) => {
     );
 
   if (isIn) {
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   } else {
-    qb.where("item.id NOT IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id NOT IN ${subQb.getQuery()}`);
   }
 };
 
@@ -134,7 +134,7 @@ function paymentDataField(field: string): FieldHandler {
       .from(PaymentData, "pd")
       .where(args.whereFn(field));
 
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
@@ -151,7 +151,7 @@ export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   ),
   manualPaymentSource: (qb, args) => {
     paymentDataField("pd.data ->> 'source'")(qb, args);
-    qb.andWhere("item.contributionType = 'Manual'");
+    qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
   }
 };
 
@@ -165,14 +165,14 @@ export async function fetchPaginatedContacts(
     query,
     undefined, // No contact rules in contactFilters
     contactFieldHandlers,
-    (qb) => {
+    (qb, fieldPrefix) => {
       if (query.with?.includes(GetContactWith.Profile)) {
-        qb.innerJoinAndSelect("item.profile", "profile");
+        qb.innerJoinAndSelect(`${fieldPrefix}profile`, "profile");
       }
 
       // Put empty names at the bottom
-      qb.addSelect("NULLIF(item.firstname, '')", "firstname");
-      qb.addSelect("NULLIF(item.lastname, '')", "lastname");
+      qb.addSelect(`NULLIF(${fieldPrefix}firstname, '')`, "firstname");
+      qb.addSelect(`NULLIF(${fieldPrefix}lastname, '')`, "lastname");
 
       if (
         query.sort === "membershipStarts" ||
@@ -181,7 +181,7 @@ export async function fetchPaginatedContacts(
         qb.leftJoin(
           ContactRole,
           "mp",
-          "mp.contactId = item.id AND mp.type = 'member'"
+          `mp.contactId = ${fieldPrefix}id AND mp.type = 'member'`
         )
           .addSelect(
             "COALESCE(mp.dateAdded, '-infinity'::timestamp)",
@@ -200,7 +200,7 @@ export async function fetchPaginatedContacts(
       }
 
       // Always sort by ID to ensure predictable offset and limit
-      qb.addOrderBy("item.id", "ASC");
+      qb.addOrderBy(`${fieldPrefix}id`, "ASC");
     }
   );
 

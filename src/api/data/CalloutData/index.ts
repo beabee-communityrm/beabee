@@ -144,12 +144,15 @@ export async function fetchPaginatedCallouts(
           .where(args.whereFn(`pr.contactId`))
           .orderBy("pr.calloutSlug");
 
-        qb.where("item.slug IN " + subQb.getQuery());
+        qb.where(`${args.fieldPrefix}slug IN ${subQb.getQuery()}`);
       }
     },
-    (qb) => {
+    (qb, fieldPrefix) => {
       if (contact && query.with?.includes(GetCalloutWith.ResponseCount)) {
-        qb.loadRelationCountAndMap("item.responseCount", "item.responses");
+        qb.loadRelationCountAndMap(
+          `${fieldPrefix}responseCount`,
+          `${fieldPrefix}responses`
+        );
       }
     }
   );
