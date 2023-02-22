@@ -281,6 +281,7 @@ export async function batchUpdateCalloutResponses(
         .insert()
         .into(CalloutResponseTag)
         .values(addTags)
+        .orIgnore()
         .execute();
     }
     if (removeTags.length > 0) {
