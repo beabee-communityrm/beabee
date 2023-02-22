@@ -25,6 +25,7 @@ import { isDuplicateIndex } from "@core/utils";
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutTag from "@models/CalloutTag";
 
 import {
   convertCalloutToData,
@@ -44,7 +45,13 @@ import {
   GetCalloutResponseQuery,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
+import {
+  convertTagToData,
+  CreateCalloutTagData,
+  GetCalloutTagData
+} from "@api/data/CalloutTagData";
 import { Paginated } from "@api/data/PaginatedData";
+
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
@@ -164,5 +171,48 @@ export class CalloutController {
       query,
       contact
     );
+  }
+
+  @Authorized("admin")
+  @Get("/:slug/tags")
+  async getCalloutTags(
+    @Param("slug") slug: string
+  ): Promise<GetCalloutTagData[]> {
+    const tags = await getRepository(CalloutTag).find({
+      where: { callout: { slug } }
+    });
+    return tags.map(convertTagToData);
+  }
+
+  @Authorized("admin")
+  @Post("/:slug/tags")
+  async createCalloutTag(
+    @Param("slug") slug: string,
+    @Body() data: CreateCalloutTagData
+  ): Promise<GetCalloutTagData> {
+    // TODO: handle foreign key error
+    const tag = await getRepository(CalloutTag).save({
+      name: data.name,
+      description: data.description,
+      callout: { slug }
+    });
+
+    return convertTagToData(tag);
+  }
+
+  @Authorized("admin")
+  @Patch("/:slug/tags/:tag")
+  async updateCalloutTag(
+    @Param("slug") slug: string,
+    @Param("tag") tagId: string,
+    @PartialBody() data: CreateCalloutTagData // Partial<CreateCalloutTagData>
+  ): Promise<GetCalloutTagData | undefined> {
+    await getRepository(CalloutTag).update(
+      { id: tagId, callout: { slug } },
+      data
+    );
+
+    const tag = await getRepository(CalloutTag).findOne(tagId);
+    return tag && convertTagToData(tag);
   }
 }

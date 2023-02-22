@@ -15,6 +15,7 @@ import {
 } from "class-validator";
 import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
+import { GetCalloutTagData } from "../CalloutTagData";
 import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
 
@@ -55,7 +56,7 @@ export interface GetCalloutResponseData {
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutData;
   contact?: GetContactData | null;
-  tags?: { id: string; name: string }[];
+  tags?: GetCalloutTagData[];
 }
 
 export class CreateCalloutResponseData {

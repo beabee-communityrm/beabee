@@ -11,9 +11,11 @@ import { createQueryBuilder, FindConditions, getRepository } from "typeorm";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
 import { convertCalloutToData } from "../CalloutData";
+import { convertTagToData } from "../CalloutTagData";
 import { convertContactToData } from "../ContactData";
 import {
   mergeRules,
@@ -31,7 +33,6 @@ import {
   GetCalloutResponseQuery,
   BatchUpdateCalloutResponseData
 } from "./interface";
-import CalloutResponseTag from "@models/CalloutResponseTag";
 
 export function convertResponseToData(
   response: CalloutResponse,
@@ -53,7 +54,7 @@ export function convertResponseToData(
     }),
     ...(_with?.includes(GetCalloutResponseWith.Tags) &&
       response.tags && {
-        tags: response.tags.map((rt) => ({ id: rt.tag.id, name: rt.tag.name }))
+        tags: response.tags.map((rt) => convertTagToData(rt.tag))
       })
   };
 }
