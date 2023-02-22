@@ -128,6 +128,24 @@ const answersFieldHandler: FieldHandler = (qb, args) => {
   }
 };
 
+const tagsFieldHandler: FieldHandler = (qb, args) => {
+  const subQb = createQueryBuilder()
+    .subQuery()
+    .select("crt.responseId")
+    .from(CalloutResponseTag, "crt");
+
+  if (args.operator === "contains" || args.operator === "not_contains") {
+    subQb.where(args.suffixFn("crt.tag = :a"));
+  }
+
+  const inOp =
+    args.operator === "not_contains" || args.operator === "is_not_empty"
+      ? "NOT IN"
+      : "IN";
+
+  qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
+};
+
 async function prepareQuery(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
@@ -149,6 +167,8 @@ async function prepareQuery(
     }
   ]);
 
+  let answerFilters, fieldHandlers;
+
   // If looking for responses for a particular callout then add answer filtering
   if (calloutSlug) {
     const callout = await getRepository(Callout).findOne(calloutSlug);
@@ -156,21 +176,18 @@ async function prepareQuery(
       throw new NotFoundError();
     }
 
-    const answerFilters = convertComponentsToFilters(
-      callout.formSchema.components
-    );
+    answerFilters = convertComponentsToFilters(callout.formSchema.components);
     // All handled by the same field handler
-    const fieldHandlers = Object.fromEntries(
+    fieldHandlers = Object.fromEntries(
       Object.keys(answerFilters).map((field) => [field, answersFieldHandler])
     );
-    return [
-      scopedRules,
-      { ...calloutResponseFilters, ...answerFilters },
-      fieldHandlers
-    ];
-  } else {
-    return [scopedRules, calloutResponseFilters, {}];
   }
+
+  return [
+    scopedRules,
+    { ...calloutResponseFilters, ...answerFilters },
+    { tags: tagsFieldHandler, ...fieldHandlers }
+  ];
 }
 
 export async function fetchPaginatedCalloutResponses(
