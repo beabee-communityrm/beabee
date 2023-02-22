@@ -19,6 +19,8 @@ import {
   createQueryBuilder,
   EntityTarget,
   SelectQueryBuilder,
+  UpdateQueryBuilder,
+  UpdateResult,
   WhereExpressionBuilder
 } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
@@ -329,17 +331,19 @@ export async function batchUpdate<Entity, Field extends string>(
   ruleGroup: RuleGroup,
   updates: QueryDeepPartialEntity<Entity>,
   contact?: Contact,
-  fieldHandlers?: FieldHandlers<Field>
-): Promise<number> {
+  fieldHandlers?: FieldHandlers<Field>,
+  queryCallback?: (qb: UpdateQueryBuilder<Entity>, fieldPrefix: string) => void
+): Promise<UpdateResult> {
   try {
     const validatedRuleGroup = validateRuleGroup(filters, ruleGroup);
 
-    const result = await createQueryBuilder()
+    const qb = createQueryBuilder()
       .update(entity, updates)
-      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers, ""))
-      .execute();
+      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers, ""));
 
-    return result.affected || -1;
+    queryCallback?.(qb, "");
+
+    return await qb.execute();
   } catch (err) {
     if (err instanceof InvalidRule) {
       const err2: any = new BadRequestError(err.message);

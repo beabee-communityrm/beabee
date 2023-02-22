@@ -74,6 +74,10 @@ export class CreateCalloutResponseData {
   @IsOptional()
   @IsString()
   bucket?: string;
+
+  @IsOptional()
+  @IsString({ each: true })
+  tags?: string[];
 }
 
 export class BatchUpdateCalloutResponseData {

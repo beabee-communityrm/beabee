@@ -233,14 +233,49 @@ export async function batchUpdateCalloutResponses(
     data.rules,
     contact
   );
-  return await batchUpdate(
+
+  const { tags: tagUpdates, ...updates } = data.updates;
+  const result = await batchUpdate(
     CalloutResponse,
     filters,
     rules,
-    data.updates,
+    updates,
     contact,
-    fieldHandlers
+    fieldHandlers,
+    (qb) => qb.returning(["id"])
   );
+
+  const responses = result.raw as { id: string }[];
+
+  if (tagUpdates) {
+    const addTags = tagUpdates
+      .filter((tag) => tag.startsWith("+"))
+      .flatMap((tag) =>
+        responses.map((response) => ({ response, tag: { id: tag.slice(1) } }))
+      );
+    const removeTags = tagUpdates
+      .filter((tag) => tag.startsWith("-"))
+      .flatMap((tag) =>
+        responses.map((response) => ({ response, tag: { id: tag.slice(1) } }))
+      );
+
+    if (addTags.length > 0) {
+      await createQueryBuilder()
+        .insert()
+        .into(CalloutResponseTag)
+        .values(addTags)
+        .execute();
+    }
+    if (removeTags.length > 0) {
+      await createQueryBuilder()
+        .delete()
+        .from(CalloutResponseTag)
+        .where(removeTags)
+        .execute();
+    }
+  }
+
+  return result.affected || -1;
 }
 
 export * from "./interface";
