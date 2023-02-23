@@ -47,4 +47,7 @@ export default class CalloutResponse {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @Column({ type: String, nullable: true })
+  bucket!: string | null;
 }
