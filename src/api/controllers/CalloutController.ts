@@ -25,6 +25,7 @@ import { isDuplicateIndex } from "@core/utils";
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 
 import {
@@ -214,5 +215,22 @@ export class CalloutController {
 
     const tag = await getRepository(CalloutTag).findOne(tagId);
     return tag && convertTagToData(tag);
+  }
+
+  @Authorized("admin")
+  @Delete("/:slug/tags/:tag")
+  @OnUndefined(204)
+  async deleteCalloutTag(
+    @Param("slug") slug: string,
+    @Param("tag") tagId: string
+  ): Promise<void> {
+    await getRepository(CalloutResponseTag).delete({ tag: { id: tagId } });
+    const result = await getRepository(CalloutTag).delete({
+      callout: { slug },
+      id: tagId
+    });
+    if (result.affected === 0) {
+      throw new NotFoundError();
+    }
   }
 }
