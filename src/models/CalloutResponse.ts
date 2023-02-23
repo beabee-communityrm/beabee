@@ -3,12 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from "typeorm";
 
 import type Contact from "./Contact";
 import type Callout from "./Callout";
+import CalloutResponseTag from "./CalloutResponseTag";
 
 export type CalloutResponseAnswer =
   | string
@@ -50,4 +52,7 @@ export default class CalloutResponse {
 
   @Column({ type: String, nullable: true })
   bucket!: string | null;
+
+  @OneToMany("CalloutResponseTag", "response")
+  tags!: CalloutResponseTag[];
 }

@@ -15,13 +15,15 @@ import {
 } from "class-validator";
 import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
+import { GetCalloutTagData } from "../CalloutTagData";
 import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
   Callout = "callout",
-  Contact = "contact"
+  Contact = "contact",
+  Tags = "tags"
 }
 
 export class GetCalloutResponseQuery {
@@ -54,6 +56,7 @@ export interface GetCalloutResponseData {
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutData;
   contact?: GetContactData | null;
+  tags?: GetCalloutTagData[];
 }
 
 export class CreateCalloutResponseData {
@@ -71,6 +74,10 @@ export class CreateCalloutResponseData {
   @IsOptional()
   @IsString()
   bucket?: string;
+
+  @IsOptional()
+  @IsString({ each: true })
+  tags?: string[];
 }
 
 export class BatchUpdateCalloutResponseData {

@@ -7,13 +7,15 @@ import {
   Filters
 } from "@beabee/beabee-common";
 import { NotFoundError } from "routing-controllers";
-import { FindConditions, getRepository } from "typeorm";
+import { createQueryBuilder, FindConditions, getRepository } from "typeorm";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
 import { convertCalloutToData } from "../CalloutData";
+import { convertTagToData } from "../CalloutTagData";
 import { convertContactToData } from "../ContactData";
 import {
   mergeRules,
@@ -49,7 +51,11 @@ export function convertResponseToData(
     }),
     ...(_with?.includes(GetCalloutResponseWith.Contact) && {
       contact: response.contact && convertContactToData(response.contact)
-    })
+    }),
+    ...(_with?.includes(GetCalloutResponseWith.Tags) &&
+      response.tags && {
+        tags: response.tags.map((rt) => convertTagToData(rt.tag))
+      })
   };
 }
 
@@ -70,6 +76,9 @@ export async function fetchCalloutResponse(
         : []),
       ...(query.with?.includes(GetCalloutResponseWith.Contact)
         ? ["contact", "contact.roles"]
+        : []),
+      ...(query.with?.includes(GetCalloutResponseWith.Tags)
+        ? ["tags", "tags.tag"]
         : [])
     ]
   });
@@ -119,6 +128,24 @@ const answersFieldHandler: FieldHandler = (qb, args) => {
   }
 };
 
+const tagsFieldHandler: FieldHandler = (qb, args) => {
+  const subQb = createQueryBuilder()
+    .subQuery()
+    .select("crt.responseId")
+    .from(CalloutResponseTag, "crt");
+
+  if (args.operator === "contains" || args.operator === "not_contains") {
+    subQb.where(args.suffixFn("crt.tag = :a"));
+  }
+
+  const inOp =
+    args.operator === "not_contains" || args.operator === "is_not_empty"
+      ? "NOT IN"
+      : "IN";
+
+  qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
+};
+
 async function prepareQuery(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
@@ -140,6 +167,8 @@ async function prepareQuery(
     }
   ]);
 
+  let answerFilters, fieldHandlers;
+
   // If looking for responses for a particular callout then add answer filtering
   if (calloutSlug) {
     const callout = await getRepository(Callout).findOne(calloutSlug);
@@ -147,21 +176,18 @@ async function prepareQuery(
       throw new NotFoundError();
     }
 
-    const answerFilters = convertComponentsToFilters(
-      callout.formSchema.components
-    );
+    answerFilters = convertComponentsToFilters(callout.formSchema.components);
     // All handled by the same field handler
-    const fieldHandlers = Object.fromEntries(
+    fieldHandlers = Object.fromEntries(
       Object.keys(answerFilters).map((field) => [field, answersFieldHandler])
     );
-    return [
-      scopedRules,
-      { ...calloutResponseFilters, ...answerFilters },
-      fieldHandlers
-    ];
-  } else {
-    return [scopedRules, calloutResponseFilters, {}];
   }
+
+  return [
+    scopedRules,
+    { ...calloutResponseFilters, ...answerFilters },
+    { tags: tagsFieldHandler, ...fieldHandlers }
+  ];
 }
 
 export async function fetchPaginatedCalloutResponses(
@@ -192,6 +218,24 @@ export async function fetchPaginatedCalloutResponses(
     }
   );
 
+  if (
+    results.items.length > 0 &&
+    query.with?.includes(GetCalloutResponseWith.Tags)
+  ) {
+    // Load tags after to ensure offset/limit work
+    const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
+      .where("rt.response IN (:...ids)", {
+        ids: results.items.map((i) => i.id)
+      })
+      .innerJoinAndSelect("rt.tag", "tag")
+      .loadAllRelationIds({ relations: ["response"] })
+      .getMany();
+
+    for (const item of results.items) {
+      item.tags = responseTags.filter((rt) => (rt as any).response === item.id);
+    }
+  }
+
   return {
     ...results,
     items: results.items.map((item) => convertResponseToData(item, query.with))
@@ -206,14 +250,50 @@ export async function batchUpdateCalloutResponses(
     data.rules,
     contact
   );
-  return await batchUpdate(
+
+  const { tags: tagUpdates, ...updates } = data.updates;
+  const result = await batchUpdate(
     CalloutResponse,
     filters,
     rules,
-    data.updates,
+    updates,
     contact,
-    fieldHandlers
+    fieldHandlers,
+    (qb) => qb.returning(["id"])
   );
+
+  const responses = result.raw as { id: string }[];
+
+  if (tagUpdates) {
+    const addTags = tagUpdates
+      .filter((tag) => tag.startsWith("+"))
+      .flatMap((tag) =>
+        responses.map((response) => ({ response, tag: { id: tag.slice(1) } }))
+      );
+    const removeTags = tagUpdates
+      .filter((tag) => tag.startsWith("-"))
+      .flatMap((tag) =>
+        responses.map((response) => ({ response, tag: { id: tag.slice(1) } }))
+      );
+
+    if (addTags.length > 0) {
+      await createQueryBuilder()
+        .insert()
+        .into(CalloutResponseTag)
+        .values(addTags)
+        .orIgnore()
+        .execute();
+    }
+    if (removeTags.length > 0) {
+      await createQueryBuilder()
+        .delete()
+        .from(CalloutResponseTag)
+        .where(removeTags)
+        .execute();
+    }
+  }
+
+  return result.affected || -1;
 }
 
 export * from "./interface";
