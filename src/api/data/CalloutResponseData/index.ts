@@ -40,6 +40,7 @@ export function convertResponseToData(
 ): GetCalloutResponseData {
   return {
     id: response.id,
+    number: response.number,
     createdAt: response.createdAt,
     updatedAt: response.updatedAt,
     bucket: response.bucket,

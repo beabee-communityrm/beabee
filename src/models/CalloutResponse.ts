@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn
 } from "typeorm";
 
@@ -22,12 +23,16 @@ export type CalloutResponseAnswer =
 export type CalloutResponseAnswers = Record<string, CalloutResponseAnswer>;
 
 @Entity()
+@Unique(["callout", "number"])
 export default class CalloutResponse {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @ManyToOne("Callout", "responses")
   callout!: Callout;
+
+  @Column()
+  number!: number;
 
   @ManyToOne("Contact", { nullable: true })
   contact!: Contact | null;
