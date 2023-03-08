@@ -147,17 +147,16 @@ export class CalloutController {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
     }
 
-    const error = contact
-      ? await CalloutsService.setResponse(callout, contact, data.answers)
-      : await CalloutsService.setGuestResponse(
-          callout,
-          data.guestName,
-          data.guestEmail,
-          data.answers
-        );
-
-    if (error) {
-      throw new InvalidCalloutResponse(error);
+    // TODO: support bucket/tags on create
+    if (contact) {
+      await CalloutsService.setResponse(callout, contact, data.answers);
+    } else {
+      await CalloutsService.setGuestResponse(
+        callout,
+        data.guestName,
+        data.guestEmail,
+        data.answers
+      );
     }
   }
 
