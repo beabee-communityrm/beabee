@@ -61,13 +61,13 @@ export function convertResponseToData(
 }
 
 export async function fetchCalloutResponse(
-  where: FindConditions<CalloutResponse>,
+  id: string,
   query: GetCalloutResponseQuery,
   contact: Contact
 ): Promise<GetCalloutResponseData | undefined> {
   const response = await getRepository(CalloutResponse).findOne({
     where: {
-      ...where,
+      id,
       // Non-admins can only see their own responses
       ...(!contact.hasRole("admin") && { contact })
     },
