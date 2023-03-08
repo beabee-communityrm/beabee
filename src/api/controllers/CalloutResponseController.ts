@@ -53,4 +53,14 @@ export class CalloutResponseController {
   ): Promise<GetCalloutResponseData | undefined> {
     return await fetchCalloutResponse(id, query, contact);
   }
+  @Authorized("admin")
+  @Patch("/:id")
+  async updateCalloutResponse(
+    @CurrentUser() contact: Contact,
+    @Params() { id }: UUIDParam,
+    @PartialBody() data: CreateCalloutResponseData // Should be Partial<CreateCalloutResponseData>
+  ): Promise<GetCalloutResponseData | undefined> {
+    await updateCalloutResponse(id, data);
+    return await fetchCalloutResponse(id, {}, contact);
+  }
 }
