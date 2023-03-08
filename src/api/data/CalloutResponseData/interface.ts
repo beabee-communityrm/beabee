@@ -37,7 +37,7 @@ export class GetCalloutResponseParam extends UUIDParam {
   slug!: string;
 }
 
-export const responseSortFields = ["createdAt", "updatedAt"] as const;
+export const responseSortFields = ["number", "createdAt", "updatedAt"] as const;
 
 export class GetCalloutResponsesQuery extends GetPaginatedQuery {
   @IsOptional()
