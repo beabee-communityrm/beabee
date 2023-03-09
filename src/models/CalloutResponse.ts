@@ -55,8 +55,8 @@ export default class CalloutResponse {
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @Column({ type: String, nullable: true })
-  bucket!: string | null;
+  @Column({ default: "" })
+  bucket!: string;
 
   @OneToMany("CalloutResponseTag", "response")
   tags!: CalloutResponseTag[];
