@@ -9,7 +9,6 @@ import {
   NotFoundError,
   OnUndefined,
   Param,
-  Params,
   Patch,
   Post,
   QueryParams
@@ -39,11 +38,8 @@ import {
 } from "@api/data/CalloutData";
 import {
   CreateCalloutResponseData,
-  fetchCalloutResponse,
   fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
-  GetCalloutResponseParam,
-  GetCalloutResponseQuery,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
 import {
@@ -158,19 +154,6 @@ export class CalloutController {
         data.answers
       );
     }
-  }
-
-  @Get("/:slug/responses/:id")
-  async getCalloutResponse(
-    @CurrentUser() contact: Contact,
-    @Params() param: GetCalloutResponseParam,
-    @QueryParams() query: GetCalloutResponseQuery
-  ): Promise<GetCalloutResponseData | undefined> {
-    return await fetchCalloutResponse(
-      { id: param.id, callout: { slug: param.slug } },
-      query,
-      contact
-    );
   }
 
   @Authorized("admin")

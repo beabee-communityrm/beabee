@@ -53,7 +53,7 @@ export interface GetCalloutResponseData {
   number: number;
   createdAt: Date;
   updatedAt: Date;
-  bucket: string | null;
+  bucket: string;
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutData;
   contact?: GetContactData | null;

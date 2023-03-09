@@ -31,7 +31,8 @@ import {
   GetCalloutResponseData,
   GetCalloutResponsesQuery,
   GetCalloutResponseQuery,
-  BatchUpdateCalloutResponseData
+  BatchUpdateCalloutResponseData,
+  CreateCalloutResponseData
 } from "./interface";
 
 export function convertResponseToData(
@@ -61,13 +62,13 @@ export function convertResponseToData(
 }
 
 export async function fetchCalloutResponse(
-  where: FindConditions<CalloutResponse>,
+  id: string,
   query: GetCalloutResponseQuery,
   contact: Contact
 ): Promise<GetCalloutResponseData | undefined> {
   const response = await getRepository(CalloutResponse).findOne({
     where: {
-      ...where,
+      id,
       // Non-admins can only see their own responses
       ...(!contact.hasRole("admin") && { contact })
     },
@@ -85,6 +86,46 @@ export async function fetchCalloutResponse(
   });
 
   return response && convertResponseToData(response, query.with);
+}
+
+async function updateResponseTags(responseIds: string[], tagUpdates: string[]) {
+  const addTags = tagUpdates
+    .filter((tag) => tag.startsWith("+"))
+    .flatMap((tag) =>
+      responseIds.map((id) => ({ response: { id }, tag: { id: tag.slice(1) } }))
+    );
+  const removeTags = tagUpdates
+    .filter((tag) => tag.startsWith("-"))
+    .flatMap((tag) =>
+      responseIds.map((id) => ({ response: { id }, tag: { id: tag.slice(1) } }))
+    );
+
+  if (addTags.length > 0) {
+    await createQueryBuilder()
+      .insert()
+      .into(CalloutResponseTag)
+      .values(addTags)
+      .orIgnore()
+      .execute();
+  }
+  if (removeTags.length > 0) {
+    await createQueryBuilder()
+      .delete()
+      .from(CalloutResponseTag)
+      .where(removeTags)
+      .execute();
+  }
+}
+
+export async function updateCalloutResponse(
+  id: string,
+  data: Partial<CreateCalloutResponseData>
+): Promise<void> {
+  const { tags: tagUpdates, ...updates } = data;
+  await getRepository(CalloutResponse).update(id, updates);
+  if (tagUpdates) {
+    await updateResponseTags([id], tagUpdates);
+  }
 }
 
 // Arrays are actually {a: true, b: false} type objects in answers
@@ -266,32 +307,10 @@ export async function batchUpdateCalloutResponses(
   const responses = result.raw as { id: string }[];
 
   if (tagUpdates) {
-    const addTags = tagUpdates
-      .filter((tag) => tag.startsWith("+"))
-      .flatMap((tag) =>
-        responses.map((response) => ({ response, tag: { id: tag.slice(1) } }))
-      );
-    const removeTags = tagUpdates
-      .filter((tag) => tag.startsWith("-"))
-      .flatMap((tag) =>
-        responses.map((response) => ({ response, tag: { id: tag.slice(1) } }))
-      );
-
-    if (addTags.length > 0) {
-      await createQueryBuilder()
-        .insert()
-        .into(CalloutResponseTag)
-        .values(addTags)
-        .orIgnore()
-        .execute();
-    }
-    if (removeTags.length > 0) {
-      await createQueryBuilder()
-        .delete()
-        .from(CalloutResponseTag)
-        .where(removeTags)
-        .execute();
-    }
+    await updateResponseTags(
+      responses.map((r) => r.id),
+      tagUpdates
+    );
   }
 
   return result.affected || -1;
