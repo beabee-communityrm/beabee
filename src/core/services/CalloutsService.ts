@@ -124,13 +124,13 @@ class CalloutsService {
     } else {
       response = new CalloutResponse();
       response.callout = callout;
-      response.contact = contact;
+      response.contact = contact || null;
     }
 
     response.answers = answers;
     response.isPartial = isPartial;
 
-    const savedResponse = await getRepository(CalloutResponse).save(response);
+    const savedResponse = await this.saveResponse(response);
 
     await EmailService.sendTemplateToAdmin("new-callout-response", {
       callout: callout,
@@ -171,7 +171,7 @@ class CalloutsService {
     response.answers = answers;
     response.isPartial = false;
 
-    const savedResponse = await getRepository(CalloutResponse).save(response);
+    const savedResponse = await this.saveResponse(response);
 
     await EmailService.sendTemplateToAdmin("new-callout-response", {
       callout: callout,
@@ -179,6 +179,30 @@ class CalloutsService {
     });
 
     return savedResponse;
+  }
+
+  private async saveResponse(
+    response: CalloutResponse
+  ): Promise<CalloutResponse> {
+    if (!response.number) {
+      const lastResponse = await getRepository(CalloutResponse).findOne({
+        where: { callout: response.callout },
+        order: { number: "DESC" }
+      });
+
+      response.number = lastResponse ? lastResponse.number + 1 : 1;
+    }
+
+    try {
+      return await getRepository(CalloutResponse).save(response);
+    } catch (error) {
+      if (isDuplicateIndex(error)) {
+        response.number = 0;
+        return await this.saveResponse(response);
+      } else {
+        throw error;
+      }
+    }
   }
 }
 
