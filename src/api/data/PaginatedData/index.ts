@@ -294,7 +294,11 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = createQueryBuilder(entity, "item").offset(offset).limit(limit);
+    const qb = createQueryBuilder(entity, "item").offset(offset);
+
+    if (limit !== -1) {
+      qb.limit(limit);
+    }
 
     if (ruleGroup) {
       qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
