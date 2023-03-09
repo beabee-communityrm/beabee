@@ -1,4 +1,5 @@
 import { CalloutFormSchema } from "@beabee/beabee-common";
+import { Response } from "express";
 import {
   Authorized,
   Body,
@@ -11,7 +12,8 @@ import {
   Param,
   Patch,
   Post,
-  QueryParams
+  QueryParams,
+  Res
 } from "routing-controllers";
 import slugify from "slugify";
 import { getRepository } from "typeorm";
@@ -38,6 +40,8 @@ import {
 } from "@api/data/CalloutData";
 import {
   CreateCalloutResponseData,
+  exportCalloutResponses,
+  ExportCalloutResponsesQuery,
   fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
   GetCalloutResponsesQuery
@@ -125,6 +129,22 @@ export class CalloutController {
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
     return await fetchPaginatedCalloutResponses(query, contact, slug);
+  }
+
+  @Get("/:slug/responses.csv")
+  async exportCalloutResponses(
+    @CurrentUser() contact: Contact,
+    @Param("slug") slug: string,
+    @QueryParams() query: ExportCalloutResponsesQuery,
+    @Res() res: Response
+  ): Promise<Response> {
+    const [exportName, exportData] = await exportCalloutResponses(
+      query.rules,
+      contact,
+      slug
+    );
+    res.attachment(exportName).send(exportData);
+    return res;
   }
 
   @Post("/:slug/responses")

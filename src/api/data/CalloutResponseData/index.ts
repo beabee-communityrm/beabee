@@ -6,8 +6,11 @@ import {
   RuleOperator,
   Filters
 } from "@beabee/beabee-common";
+import Papa from "papaparse";
 import { NotFoundError } from "routing-controllers";
-import { createQueryBuilder, FindConditions, getRepository } from "typeorm";
+import { createQueryBuilder, getRepository } from "typeorm";
+
+import { convertAnswers } from "@core/utils/callouts";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -230,6 +233,67 @@ async function prepareQuery(
     { ...calloutResponseFilters, ...answerFilters },
     { tags: tagsFieldHandler, ...fieldHandlers }
   ];
+}
+
+export async function exportCalloutResponses(
+  ruleGroup: GetPaginatedRuleGroup | undefined,
+  contact: Contact,
+  calloutSlug: string
+): Promise<[string, string]> {
+  const callout = await getRepository(Callout).findOne(calloutSlug);
+  if (!callout) {
+    throw new NotFoundError();
+  }
+
+  const [rules, filters, fieldHandlers] = await prepareQuery(
+    ruleGroup,
+    contact,
+    calloutSlug
+  );
+
+  const results = await fetchPaginated(
+    CalloutResponse,
+    filters,
+    { rules, limit: -1 },
+    contact,
+    fieldHandlers,
+    (qb, fieldPrefix) => {
+      qb.orderBy(`${fieldPrefix}createdAt`, "ASC");
+      qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
+      qb.leftJoinAndSelect("contact.roles", "roles");
+      qb.leftJoinAndSelect(`${fieldPrefix}tags`, "tags");
+      qb.leftJoinAndSelect("tags.tag", "tag");
+    }
+  );
+
+  const exportName = `responses-${
+    callout.title
+  }_${new Date().toISOString()}.csv`;
+
+  const exportData = results.items.map((response) => {
+    return {
+      Date: response.createdAt,
+      Number: response.number,
+      Bucket: response.bucket,
+      Tags: response.tags.map((rt) => rt.tag.name).join(", "),
+      ...(response.contact
+        ? {
+            FirstName: response.contact.firstname,
+            LastName: response.contact.lastname,
+            FullName: response.contact.fullname,
+            EmailAddress: response.contact.email
+          }
+        : {
+            FirstName: "",
+            LastName: "",
+            FullName: response.guestName,
+            EmailAddress: response.guestEmail
+          }),
+      IsGuest: !response.contact,
+      ...convertAnswers(callout, response.answers)
+    };
+  });
+  return [exportName, Papa.unparse(exportData)];
 }
 
 export async function fetchPaginatedCalloutResponses(

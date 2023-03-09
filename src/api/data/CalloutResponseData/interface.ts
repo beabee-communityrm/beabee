@@ -48,6 +48,13 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
   sort?: string;
 }
 
+export class ExportCalloutResponsesQuery {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GetPaginatedRuleGroup)
+  rules?: GetPaginatedRuleGroup;
+}
+
 export interface GetCalloutResponseData {
   id: string;
   number: number;
