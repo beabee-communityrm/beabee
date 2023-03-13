@@ -275,7 +275,7 @@ export function buildSelectQuery<Entity, Field extends string>(
 ): SelectQueryBuilder<Entity> {
   const qb = createQueryBuilder(entity, "item");
   if (ruleGroup) {
-    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item"));
+    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
   }
   return qb;
 }
