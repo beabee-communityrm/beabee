@@ -5,7 +5,7 @@ import {
   paymentFilters,
   NewsletterStatus
 } from "@beabee/beabee-common";
-import { Request, Response } from "express";
+import { Request } from "express";
 import {
   Authorized,
   BadRequestError,
@@ -22,11 +22,9 @@ import {
   Post,
   Put,
   QueryParams,
-  Req,
-  Res,
   UnauthorizedError
 } from "routing-controllers";
-import { Brackets, createQueryBuilder, getRepository } from "typeorm";
+import { getRepository } from "typeorm";
 
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
@@ -44,7 +42,6 @@ import ContactProfile from "@models/ContactProfile";
 import Payment from "@models/Payment";
 import ContactRole from "@models/ContactRole";
 
-import { UUIDParam } from "@api/data";
 import {
   convertContactToData,
   CreateContactData,
@@ -75,8 +72,6 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-
-import config from "@config";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
