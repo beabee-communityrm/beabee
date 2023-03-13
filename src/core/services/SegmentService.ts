@@ -8,7 +8,7 @@ import {
   fetchPaginatedContacts,
   contactFieldHandlers
 } from "@api/data/ContactData";
-import { buildQuery } from "@api/data/PaginatedData";
+import { buildSelectQuery } from "@api/data/PaginatedData";
 
 class SegmentService {
   async createSegment(
@@ -48,7 +48,7 @@ class SegmentService {
       contactFilters,
       segment.ruleGroup
     );
-    const qb = buildQuery(
+    const qb = buildSelectQuery(
       Contact,
       validatedRuleGroup,
       undefined,

@@ -6,7 +6,8 @@ type InvalidCalloutResponseCode =
   | "closed"
   | "cant-update"
   | "guest-fields-missing"
-  | "logged-in-guest-fields";
+  | "logged-in-guest-fields"
+  | "unknown-user";
 
 export default class InvalidCalloutResponse extends BadRequestError {
   readonly code = "invalid-callout-response";

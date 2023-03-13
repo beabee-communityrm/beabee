@@ -1,21 +1,29 @@
 import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import { Type } from "class-transformer";
 import {
   IsOptional,
   IsEnum,
   IsString,
   IsIn,
   IsObject,
-  IsEmail
+  IsEmail,
+  IsArray,
+  IsUUID,
+  Validate,
+  ValidateNested,
+  IsDefined
 } from "class-validator";
 import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
+import { GetCalloutTagData } from "../CalloutTagData";
 import { GetContactData } from "../ContactData";
-import { GetPaginatedQuery } from "../PaginatedData";
+import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
   Callout = "callout",
-  Contact = "contact"
+  Contact = "contact",
+  Tags = "tags"
 }
 
 export class GetCalloutResponseQuery {
@@ -29,7 +37,7 @@ export class GetCalloutResponseParam extends UUIDParam {
   slug!: string;
 }
 
-export const responseSortFields = ["createdAt", "updatedAt"] as const;
+export const responseSortFields = ["number", "createdAt", "updatedAt"] as const;
 
 export class GetCalloutResponsesQuery extends GetPaginatedQuery {
   @IsOptional()
@@ -40,13 +48,23 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
   sort?: string;
 }
 
+export class ExportCalloutResponsesQuery {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GetPaginatedRuleGroup)
+  rules?: GetPaginatedRuleGroup;
+}
+
 export interface GetCalloutResponseData {
   id: string;
+  number: number;
   createdAt: Date;
   updatedAt: Date;
+  bucket: string;
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutData;
   contact?: GetContactData | null;
+  tags?: GetCalloutTagData[];
 }
 
 export class CreateCalloutResponseData {
@@ -60,4 +78,23 @@ export class CreateCalloutResponseData {
   @IsOptional()
   @IsEmail()
   guestEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  bucket?: string;
+
+  @IsOptional()
+  @IsString({ each: true })
+  tags?: string[];
+}
+
+export class BatchUpdateCalloutResponseData {
+  @IsDefined()
+  @ValidateNested()
+  @Type(() => GetPaginatedRuleGroup)
+  rules?: GetPaginatedRuleGroup;
+
+  @ValidateNested()
+  @Type(() => CreateCalloutResponseData)
+  updates!: CreateCalloutResponseData;
 }

@@ -3,12 +3,15 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn
 } from "typeorm";
 
 import type Contact from "./Contact";
 import type Callout from "./Callout";
+import CalloutResponseTag from "./CalloutResponseTag";
 
 export type CalloutResponseAnswer =
   | string
@@ -20,12 +23,16 @@ export type CalloutResponseAnswer =
 export type CalloutResponseAnswers = Record<string, CalloutResponseAnswer>;
 
 @Entity()
+@Unique(["callout", "number"])
 export default class CalloutResponse {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @ManyToOne("Callout", "responses")
   callout!: Callout;
+
+  @Column()
+  number!: number;
 
   @ManyToOne("Contact", { nullable: true })
   contact!: Contact | null;
@@ -47,4 +54,10 @@ export default class CalloutResponse {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @Column({ default: "" })
+  bucket!: string;
+
+  @OneToMany("CalloutResponseTag", "response")
+  tags!: CalloutResponseTag[];
 }

@@ -6,7 +6,7 @@ import {
   fetchPaginated,
   mergeRules,
   Paginated,
-  statusField
+  statusFieldHandler
 } from "@api/data/PaginatedData";
 
 import Contact from "@models/Contact";
@@ -95,20 +95,23 @@ export async function fetchPaginatedCallouts(
   query: GetCalloutsQuery,
   contact: Contact | undefined
 ): Promise<Paginated<GetCalloutData>> {
-  const scopedQuery = mergeRules(
-    query,
-    !contact?.hasRole("admin") && [
-      // Non-admins can only query for open or ended non-hidden callouts
-      {
-        condition: "OR",
-        rules: [
-          { field: "status", operator: "equal", value: [ItemStatus.Open] },
-          { field: "status", operator: "equal", value: [ItemStatus.Ended] }
-        ]
-      },
-      { field: "hidden", operator: "equal", value: [false] }
-    ]
-  );
+  const scopedQuery = contact?.hasRole("admin")
+    ? query
+    : {
+        ...query,
+        rules: mergeRules([
+          query.rules,
+          // Non-admins can only query for open or ended non-hidden callouts
+          {
+            condition: "OR",
+            rules: [
+              { field: "status", operator: "equal", value: [ItemStatus.Open] },
+              { field: "status", operator: "equal", value: [ItemStatus.Ended] }
+            ]
+          },
+          { field: "hidden", operator: "equal", value: [false] }
+        ])
+      };
 
   const results = await fetchPaginated(
     Callout,
@@ -116,10 +119,10 @@ export async function fetchPaginatedCallouts(
     scopedQuery,
     contact,
     {
-      status: statusField,
-      answeredBy: (qb, { operator, whereFn, value }) => {
+      status: statusFieldHandler,
+      answeredBy: (qb, args) => {
         // TODO: support not_equal for admins
-        if (operator !== "equal") {
+        if (args.operator !== "equal") {
           throw new BadRequestError("answeredBy only supports equal");
         }
         if (!contact) {
@@ -128,7 +131,7 @@ export async function fetchPaginatedCallouts(
           );
         }
 
-        if (value[0] !== contact.id && !contact.hasRole("admin")) {
+        if (args.value[0] !== contact.id && !contact.hasRole("admin")) {
           throw new UnauthorizedError();
         }
 
@@ -138,15 +141,18 @@ export async function fetchPaginatedCallouts(
           .select("pr.calloutSlug", "slug")
           .distinctOn(["pr.calloutSlug"])
           .from(CalloutResponse, "pr")
-          .where(whereFn(`pr.contactId`))
+          .where(args.whereFn(`pr.contactId`))
           .orderBy("pr.calloutSlug");
 
-        qb.where("item.slug IN " + subQb.getQuery());
+        qb.where(`${args.fieldPrefix}slug IN ${subQb.getQuery()}`);
       }
     },
-    (qb) => {
+    (qb, fieldPrefix) => {
       if (contact && query.with?.includes(GetCalloutWith.ResponseCount)) {
-        qb.loadRelationCountAndMap("item.responseCount", "item.responses");
+        qb.loadRelationCountAndMap(
+          `${fieldPrefix}responseCount`,
+          `${fieldPrefix}responses`
+        );
       }
     }
   );

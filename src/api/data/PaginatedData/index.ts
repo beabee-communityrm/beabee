@@ -10,7 +10,8 @@ import {
   operatorsByType,
   InvalidRule,
   parseDate,
-  getMinDateUnit
+  getMinDateUnit,
+  RuleGroup
 } from "@beabee/beabee-common";
 import { BadRequestError } from "routing-controllers";
 import {
@@ -18,8 +19,11 @@ import {
   createQueryBuilder,
   EntityTarget,
   SelectQueryBuilder,
+  UpdateQueryBuilder,
+  UpdateResult,
   WhereExpressionBuilder
 } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import Contact from "@models/Contact";
 
@@ -29,7 +33,8 @@ import {
   Paginated,
   RichRuleValue,
   FieldHandlers,
-  FieldHandler
+  FieldHandler,
+  GetPaginatedRuleGroup
 } from "./interface";
 
 // Operator definitions
@@ -104,11 +109,11 @@ const operatorsWhereByType: Record<
 
 // Generic field handlers
 
-const simpleField: FieldHandler = (qb, args) => {
-  qb.where(args.whereFn(`item.${args.field}`));
+const simpleFieldHandler: FieldHandler = (qb, args) => {
+  qb.where(args.whereFn(`${args.fieldPrefix}${args.field}`));
 };
 
-export const statusField: FieldHandler = (qb, args) => {
+export const statusFieldHandler: FieldHandler = (qb, args) => {
   // TODO: handle other operators
   if (args.operator !== "equal") {
     throw new BadRequestError("Status field only supports equal operator");
@@ -116,17 +121,21 @@ export const statusField: FieldHandler = (qb, args) => {
 
   switch (args.value[0]) {
     case ItemStatus.Draft:
-      return qb.where(`item.starts IS NULL`);
+      return qb.where(`${args.fieldPrefix}starts IS NULL`);
     case ItemStatus.Scheduled:
-      return qb.where(`item.starts > :now`);
+      return qb.where(`${args.fieldPrefix}starts > :now`);
     case ItemStatus.Open:
-      return qb.where(`item.starts < :now`).andWhere(
+      return qb.where(`${args.fieldPrefix}starts < :now`).andWhere(
         new Brackets((qb) => {
-          qb.where("item.expires IS NULL").orWhere(`item.expires > :now`);
+          qb.where(`${args.fieldPrefix}expires IS NULL`).orWhere(
+            `${args.fieldPrefix}expires > :now`
+          );
         })
       );
     case ItemStatus.Ended:
-      return qb.where(`item.starts < :now`).andWhere(`item.expires < :now`);
+      return qb
+        .where(`${args.fieldPrefix}starts < :now`)
+        .andWhere(`${args.fieldPrefix}expires < :now`);
   }
 };
 
@@ -141,6 +150,14 @@ const dateUnitSql = {
   s: "second"
 } as const;
 
+function simpleField(field: string): string {
+  return field;
+}
+
+function coalesceField(field: string): string {
+  return `COALESCE(${field}, '')`;
+}
+
 function prepareRule(
   rule: ValidatedRule<string>,
   contact: Contact | undefined
@@ -148,7 +165,7 @@ function prepareRule(
   switch (rule.type) {
     case "text":
       // Make NULL an empty string for comparison
-      return [(field) => `COALESCE(${field}, '')`, rule.value];
+      return [rule.nullable ? coalesceField : simpleField, rule.value];
 
     case "date": {
       // Compare dates by at least day, but more specific if H/m/s are provided
@@ -165,19 +182,22 @@ function prepareRule(
         throw new Error("No contact provided to map contact field type");
       }
       // Map "me" to contact id
-      return [(s) => s, rule.value.map((v) => (v === "me" ? contact.id : v))];
+      return [
+        simpleField,
+        rule.value.map((v) => (v === "me" ? contact.id : v))
+      ];
 
     default:
-      return [(s) => s, rule.value];
+      return [simpleField, rule.value];
   }
 }
 
-export function buildQuery<Entity, Field extends string>(
-  entity: EntityTarget<Entity>,
-  ruleGroup: ValidatedRuleGroup<Field> | undefined,
-  contact?: Contact,
-  fieldHandlers?: FieldHandlers<Field>
-): SelectQueryBuilder<Entity> {
+function buildWhere<Field extends string>(
+  ruleGroup: ValidatedRuleGroup<Field>,
+  contact: Contact | undefined,
+  fieldHandlers: FieldHandlers<Field> | undefined,
+  fieldPrefix: string
+): [Brackets, Record<string, unknown>] {
   /*
     The query builder doesn't support having the same parameter names for
     different parts of the query and subqueries, so we have to ensure each query
@@ -210,9 +230,12 @@ export function buildQuery<Entity, Field extends string>(
       const suffixFn = (field: string) =>
         field.replace(/[^:]:[abp]/g, "$&" + suffix);
 
-      const fieldHandler = fieldHandlers?.[rule.field] || simpleField;
+      const fieldHandler = fieldHandlers?.[rule.field] || simpleFieldHandler;
       fieldHandler(qb, {
-        ...rule,
+        fieldPrefix,
+        field: rule.field,
+        operator: rule.operator,
+        type: rule.type,
         value,
         whereFn: (field) => suffixFn(operatorFn(fieldFn(field))),
         suffixFn
@@ -239,10 +262,20 @@ export function buildQuery<Entity, Field extends string>(
     };
   }
 
+  const where = new Brackets(parseRuleGroup(ruleGroup));
+  return [where, params];
+}
+
+// DEPRECATED: Remove once SegmentService is gone
+export function buildSelectQuery<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  ruleGroup: ValidatedRuleGroup<Field> | undefined,
+  contact?: Contact,
+  fieldHandlers?: FieldHandlers<Field>
+): SelectQueryBuilder<Entity> {
   const qb = createQueryBuilder(entity, "item");
   if (ruleGroup) {
-    const where = new Brackets(parseRuleGroup(ruleGroup));
-    qb.where(where).setParameters(params);
+    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
   }
   return qb;
 }
@@ -253,7 +286,7 @@ export async function fetchPaginated<Entity, Field extends string>(
   query: GetPaginatedQuery,
   contact?: Contact,
   fieldHandlers?: FieldHandlers<Field>,
-  queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
+  queryCallback?: (qb: SelectQueryBuilder<Entity>, fieldPrefix: string) => void
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
@@ -261,15 +294,21 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = buildQuery(entity, ruleGroup, contact, fieldHandlers)
-      .offset(offset)
-      .limit(limit);
+    const qb = createQueryBuilder(entity, "item").offset(offset);
+
+    if (limit !== -1) {
+      qb.limit(limit);
+    }
+
+    if (ruleGroup) {
+      qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
+    }
 
     if (query.sort) {
       qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
     }
 
-    queryCallback?.(qb);
+    queryCallback?.(qb, "item.");
 
     const [items, total] = await qb.getManyAndCount();
 
@@ -290,21 +329,42 @@ export async function fetchPaginated<Entity, Field extends string>(
   }
 }
 
-export function mergeRules(
-  query: GetPaginatedQuery,
-  extraRules?: (GetPaginatedRuleGroupRule | undefined | false)[] | false
-): GetPaginatedQuery {
-  if (!extraRules) return query;
+export async function batchUpdate<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  filters: Filters<Field>,
+  ruleGroup: RuleGroup,
+  updates: QueryDeepPartialEntity<Entity>,
+  contact?: Contact,
+  fieldHandlers?: FieldHandlers<Field>,
+  queryCallback?: (qb: UpdateQueryBuilder<Entity>, fieldPrefix: string) => void
+): Promise<UpdateResult> {
+  try {
+    const validatedRuleGroup = validateRuleGroup(filters, ruleGroup);
 
-  return {
-    ...query,
-    rules: {
-      condition: "AND",
-      rules: [
-        ...(extraRules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]),
-        ...(query.rules ? [query.rules] : [])
-      ]
+    const qb = createQueryBuilder()
+      .update(entity, updates)
+      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers, ""));
+
+    queryCallback?.(qb, "");
+
+    return await qb.execute();
+  } catch (err) {
+    if (err instanceof InvalidRule) {
+      const err2: any = new BadRequestError(err.message);
+      err2.rule = err.rule;
+      throw err2;
+    } else {
+      throw err;
     }
+  }
+}
+
+export function mergeRules(
+  rules: (GetPaginatedRuleGroupRule | undefined | false)[]
+): GetPaginatedRuleGroup {
+  return {
+    condition: "AND",
+    rules: rules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]
   };
 }
 
