@@ -37,9 +37,9 @@ function updateRuleValues(group: RuleGroup): RuleGroup {
 
 export class UpdateRuleValues1667846310950 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const segments = (await queryRunner.query(
+    const segments: Segment[] = await queryRunner.query(
       'SELECT * FROM "segment"'
-    )) as Segment[];
+    );
 
     for (const segment of segments) {
       const newRuleGroup = updateRuleValues(segment.ruleGroup);

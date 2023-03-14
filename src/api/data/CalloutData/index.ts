@@ -1,16 +1,12 @@
-import {
-  calloutFilters,
-  calloutResponseFilters,
-  ItemStatus
-} from "@beabee/beabee-common";
+import { calloutFilters, ItemStatus } from "@beabee/beabee-common";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder, FindConditions, getRepository } from "typeorm";
 
 import {
   fetchPaginated,
   mergeRules,
   Paginated,
-  statusField
+  statusFieldHandler
 } from "@api/data/PaginatedData";
 
 import Contact from "@models/Contact";
@@ -20,35 +16,18 @@ import CalloutResponse from "@models/CalloutResponse";
 import {
   GetCalloutWith,
   GetCalloutsQuery,
-  GetCalloutResponseData,
   GetCalloutData,
-  GetCalloutResponsesQuery
+  GetCalloutQuery
 } from "./interface";
 
 interface ConvertOpts {
   with?: GetCalloutWith[] | undefined;
 }
 
-export async function convertCalloutToData(
+export function convertCalloutToData(
   callout: Callout,
-  contact: Contact | undefined,
-  opts: ConvertOpts
-): Promise<GetCalloutData> {
-  // fetchPaginatedCallouts prefetches these to reduce the number of queries
-  const hasAnswered =
-    opts.with?.includes(GetCalloutWith.HasAnswered) && contact
-      ? callout.hasAnswered !== undefined
-        ? callout.hasAnswered
-        : (await getRepository(CalloutResponse).count({ callout, contact })) > 0
-      : undefined;
-
-  const responseCount =
-    opts.with?.includes(GetCalloutWith.ResponseCount) && contact
-      ? callout.responseCount !== undefined
-        ? callout.responseCount
-        : await getRepository(CalloutResponse).count({ callout })
-      : undefined;
-
+  opts?: ConvertOpts
+): GetCalloutData {
   return {
     slug: callout.slug,
     title: callout.title,
@@ -61,9 +40,13 @@ export async function convertCalloutToData(
     hidden: callout.hidden,
     starts: callout.starts,
     expires: callout.expires,
-    ...(hasAnswered !== undefined && { hasAnswered }),
-    ...(responseCount !== undefined && { responseCount }),
-    ...(opts.with?.includes(GetCalloutWith.Form) && {
+    ...(callout.hasAnswered !== undefined && {
+      hasAnswered: callout.hasAnswered
+    }),
+    ...(callout.responseCount !== undefined && {
+      responseCount: callout.responseCount
+    }),
+    ...(opts?.with?.includes(GetCalloutWith.Form) && {
       intro: callout.intro,
       thanksText: callout.thanksText,
       thanksTitle: callout.thanksTitle,
@@ -77,25 +60,58 @@ export async function convertCalloutToData(
   };
 }
 
+export async function fetchCallout(
+  where: FindConditions<Callout>,
+  query: GetCalloutQuery,
+  contact: Contact | undefined
+): Promise<GetCalloutData | undefined> {
+  const callout = await getRepository(Callout).findOne({ where });
+
+  if (
+    !callout ||
+    // Non-admins can only load open and ended callouts
+    (!contact?.hasRole("admin") &&
+      callout.status !== ItemStatus.Open &&
+      callout.status !== ItemStatus.Ended)
+  ) {
+    return;
+  }
+
+  if (query.with?.includes(GetCalloutWith.HasAnswered) && contact) {
+    callout.hasAnswered =
+      (await getRepository(CalloutResponse).count({ callout, contact })) > 0;
+  }
+
+  if (query.with?.includes(GetCalloutWith.ResponseCount)) {
+    callout.responseCount = await getRepository(CalloutResponse).count({
+      callout
+    });
+  }
+
+  return convertCalloutToData(callout, query);
+}
+
 export async function fetchPaginatedCallouts(
   query: GetCalloutsQuery,
-  contact: Contact | undefined,
-  opts: ConvertOpts
+  contact: Contact | undefined
 ): Promise<Paginated<GetCalloutData>> {
-  const scopedQuery = mergeRules(
-    query,
-    !contact?.hasRole("admin") && [
-      // Non-admins can only query for open or ended non-hidden callouts
-      {
-        condition: "OR",
-        rules: [
-          { field: "status", operator: "equal", value: [ItemStatus.Open] },
-          { field: "status", operator: "equal", value: [ItemStatus.Ended] }
-        ]
-      },
-      { field: "hidden", operator: "equal", value: [false] }
-    ]
-  );
+  const scopedQuery = contact?.hasRole("admin")
+    ? query
+    : {
+        ...query,
+        rules: mergeRules([
+          query.rules,
+          // Non-admins can only query for open or ended non-hidden callouts
+          {
+            condition: "OR",
+            rules: [
+              { field: "status", operator: "equal", value: [ItemStatus.Open] },
+              { field: "status", operator: "equal", value: [ItemStatus.Ended] }
+            ]
+          },
+          { field: "hidden", operator: "equal", value: [false] }
+        ])
+      };
 
   const results = await fetchPaginated(
     Callout,
@@ -103,19 +119,19 @@ export async function fetchPaginatedCallouts(
     scopedQuery,
     contact,
     {
-      status: statusField,
-      answeredBy: (qb, { operator, whereFn, values }) => {
+      status: statusFieldHandler,
+      answeredBy: (qb, args) => {
         // TODO: support not_equal for admins
-        if (operator !== "equal") {
+        if (args.operator !== "equal") {
           throw new BadRequestError("answeredBy only supports equal");
         }
         if (!contact) {
           throw new BadRequestError(
-            "answeredBy can only be used with contact scope"
+            "answeredBy can only be used with valid contact"
           );
         }
 
-        if (values[0] !== contact.id && !contact.hasRole("admin")) {
+        if (args.value[0] !== contact.id && !contact.hasRole("admin")) {
           throw new UnauthorizedError();
         }
 
@@ -125,15 +141,18 @@ export async function fetchPaginatedCallouts(
           .select("pr.calloutSlug", "slug")
           .distinctOn(["pr.calloutSlug"])
           .from(CalloutResponse, "pr")
-          .where(whereFn(`pr.contactId`))
+          .where(args.whereFn(`pr.contactId`))
           .orderBy("pr.calloutSlug");
 
-        qb.where("item.slug IN " + subQb.getQuery());
+        qb.where(`${args.fieldPrefix}slug IN ${subQb.getQuery()}`);
       }
     },
-    (qb) => {
-      if (contact && opts.with?.includes(GetCalloutWith.ResponseCount)) {
-        qb.loadRelationCountAndMap("item.responseCount", "item.responses");
+    (qb, fieldPrefix) => {
+      if (contact && query.with?.includes(GetCalloutWith.ResponseCount)) {
+        qb.loadRelationCountAndMap(
+          `${fieldPrefix}responseCount`,
+          `${fieldPrefix}responses`
+        );
       }
     }
   );
@@ -142,7 +161,7 @@ export async function fetchPaginatedCallouts(
   if (
     contact &&
     results.items.length > 0 &&
-    opts.with?.includes(GetCalloutWith.HasAnswered)
+    query.with?.includes(GetCalloutWith.HasAnswered)
   ) {
     const answeredCallouts = await createQueryBuilder(CalloutResponse, "pr")
       .select("pr.calloutSlug", "slug")
@@ -164,43 +183,8 @@ export async function fetchPaginatedCallouts(
   return {
     ...results,
     items: await Promise.all(
-      results.items.map((item) => convertCalloutToData(item, contact, opts))
+      results.items.map((item) => convertCalloutToData(item, query))
     )
-  };
-}
-
-export async function fetchPaginatedCalloutResponses(
-  slug: string,
-  query: GetCalloutResponsesQuery,
-  contact: Contact
-): Promise<Paginated<GetCalloutResponseData>> {
-  const scopedQuery = mergeRules(query, [
-    { field: "callout", operator: "equal", value: [slug] },
-    // Contact's can only see their own responses
-    !contact.hasRole("admin") && {
-      field: "contact",
-      operator: "equal",
-      value: [contact.id]
-    }
-  ]);
-
-  const results = await fetchPaginated(
-    CalloutResponse,
-    calloutResponseFilters,
-    scopedQuery,
-    contact,
-    undefined,
-    (qb) => qb.loadAllRelationIds()
-  );
-
-  return {
-    ...results,
-    items: results.items.map((item) => ({
-      contact: item.contact as unknown as string, // TODO: fix typing
-      answers: item.answers,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt
-    }))
   };
 }
 

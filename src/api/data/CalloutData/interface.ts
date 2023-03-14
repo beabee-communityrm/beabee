@@ -1,9 +1,8 @@
-import { ItemStatus } from "@beabee/beabee-common";
+import { CalloutFormSchema, ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
   IsDate,
-  IsEmail,
   IsEnum,
   IsIn,
   IsObject,
@@ -15,8 +14,7 @@ import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
-import { CalloutFormSchema, CalloutAccess } from "@models/Callout";
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import { CalloutAccess } from "@models/Callout";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -132,31 +130,4 @@ export class CreateCalloutData implements CalloutData {
 
   @IsBoolean()
   hidden!: boolean;
-}
-
-export const responseSortFields = ["createdAt", "updatedAt"] as const;
-
-export class GetCalloutResponsesQuery extends GetPaginatedQuery {
-  @IsIn(responseSortFields)
-  sort?: string;
-}
-
-export interface GetCalloutResponseData {
-  contact: string;
-  answers: CalloutResponseAnswers;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export class CreateCalloutResponseData {
-  @IsObject()
-  answers!: CalloutResponseAnswers;
-
-  @IsOptional()
-  @IsString()
-  guestName?: string;
-
-  @IsOptional()
-  @IsEmail()
-  guestEmail?: string;
 }

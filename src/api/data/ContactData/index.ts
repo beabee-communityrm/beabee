@@ -1,9 +1,5 @@
-import {
-  ContactFilterName,
-  contactFilters,
-  RuleOperator
-} from "@beabee/beabee-common";
-import { Brackets, createQueryBuilder, WhereExpressionBuilder } from "typeorm";
+import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
+import { Brackets, createQueryBuilder } from "typeorm";
 
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
@@ -13,8 +9,8 @@ import PaymentData from "@models/PaymentData";
 import {
   fetchPaginated,
   Paginated,
-  RichRuleValue,
-  SpecialFields
+  FieldHandlers,
+  FieldHandler
 } from "@api/data/PaginatedData";
 
 import { GetContactData, GetContactsQuery, GetContactWith } from "./interface";
@@ -26,7 +22,7 @@ interface ConvertOpts {
 
 export function convertContactToData(
   contact: Contact,
-  opts: ConvertOpts
+  opts?: ConvertOpts
 ): GetContactData {
   const activeRoles = [...contact.activeRoles];
   if (activeRoles.includes("superadmin")) {
@@ -49,7 +45,7 @@ export function convertContactToData(
       contributionPeriod: contact.contributionPeriod
     }),
     activeRoles,
-    ...(opts.with?.includes(GetContactWith.Profile) &&
+    ...(opts?.with?.includes(GetContactWith.Profile) &&
       contact.profile && {
         profile: {
           telephone: contact.profile.telephone,
@@ -66,7 +62,7 @@ export function convertContactToData(
           })
         }
       }),
-    ...(opts.with?.includes(GetContactWith.Roles) && {
+    ...(opts?.with?.includes(GetContactWith.Roles) && {
       roles: contact.roles.map((p) => ({
         role: p.type,
         dateAdded: p.dateAdded,
@@ -76,11 +72,10 @@ export function convertContactToData(
   };
 }
 
-function membershipField(field: keyof ContactRole) {
-  return (
-    qb: WhereExpressionBuilder,
-    args: { whereFn: (field: string) => string }
-  ) => {
+// Field handlers
+
+function membershipField(field: keyof ContactRole): FieldHandler {
+  return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`mp.contactId`)
@@ -88,35 +83,28 @@ function membershipField(field: keyof ContactRole) {
       .where(`mp.type = 'member'`)
       .andWhere(args.whereFn(`mp.${field}`));
 
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
-function profileField(field: keyof ContactProfile) {
-  return (
-    qb: WhereExpressionBuilder,
-    args: { whereFn: (field: string) => string }
-  ) => {
+function profileField(field: keyof ContactProfile): FieldHandler {
+  return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`profile.contactId`)
       .from(ContactProfile, "profile")
       .where(args.whereFn(`profile.${field}`));
 
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
-function activePermission(
-  qb: WhereExpressionBuilder,
-  args: { operator: RuleOperator; field: string; values: RichRuleValue[] }
-) {
-  const roleType =
-    args.field === "activeMembership" ? "member" : args.values[0];
+const activePermission: FieldHandler = (qb, args) => {
+  const roleType = args.field === "activeMembership" ? "member" : args.value[0];
 
   const isIn =
     args.field === "activeMembership"
-      ? (args.values[0] as boolean)
+      ? (args.value[0] as boolean)
       : args.operator === "equal";
 
   const subQb = createQueryBuilder()
@@ -132,28 +120,25 @@ function activePermission(
     );
 
   if (isIn) {
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   } else {
-    qb.where("item.id NOT IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id NOT IN ${subQb.getQuery()}`);
   }
-}
+};
 
-function paymentDataField(field: string) {
-  return (
-    qb: WhereExpressionBuilder,
-    args: { whereFn: (field: string) => string }
-  ) => {
+function paymentDataField(field: string): FieldHandler {
+  return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`pd.contactId`)
       .from(PaymentData, "pd")
       .where(args.whereFn(field));
 
-    qb.where("item.id IN " + subQb.getQuery());
+    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
-export const specialContactFields: SpecialFields<ContactFilterName> = {
+export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   deliveryOptIn: profileField("deliveryOptIn"),
   newsletterStatus: profileField("newsletterStatus"),
   tags: profileField("tags"),
@@ -164,9 +149,9 @@ export const specialContactFields: SpecialFields<ContactFilterName> = {
   contributionCancelled: paymentDataField(
     "(pd.data ->> 'cancelledAt')::timestamp"
   ),
-  manualPaymentSource: (qb, { whereFn }) => {
-    paymentDataField("pd.data ->> 'source'")(qb, { whereFn });
-    qb.andWhere("item.contributionType = 'Manual'");
+  manualPaymentSource: (qb, args) => {
+    paymentDataField("pd.data ->> 'source'")(qb, args);
+    qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
   }
 };
 
@@ -179,15 +164,15 @@ export async function fetchPaginatedContacts(
     contactFilters,
     query,
     undefined, // No contact rules in contactFilters
-    specialContactFields,
-    (qb) => {
+    contactFieldHandlers,
+    (qb, fieldPrefix) => {
       if (query.with?.includes(GetContactWith.Profile)) {
-        qb.innerJoinAndSelect("item.profile", "profile");
+        qb.innerJoinAndSelect(`${fieldPrefix}profile`, "profile");
       }
 
       // Put empty names at the bottom
-      qb.addSelect("NULLIF(item.firstname, '')", "firstname");
-      qb.addSelect("NULLIF(item.lastname, '')", "lastname");
+      qb.addSelect(`NULLIF(${fieldPrefix}firstname, '')`, "firstname");
+      qb.addSelect(`NULLIF(${fieldPrefix}lastname, '')`, "lastname");
 
       if (
         query.sort === "membershipStarts" ||
@@ -196,7 +181,7 @@ export async function fetchPaginatedContacts(
         qb.leftJoin(
           ContactRole,
           "mp",
-          "mp.contactId = item.id AND mp.type = 'member'"
+          `mp.contactId = ${fieldPrefix}id AND mp.type = 'member'`
         )
           .addSelect(
             "COALESCE(mp.dateAdded, '-infinity'::timestamp)",
@@ -215,7 +200,7 @@ export async function fetchPaginatedContacts(
       }
 
       // Always sort by ID to ensure predictable offset and limit
-      qb.addOrderBy("item.id", "ASC");
+      qb.addOrderBy(`${fieldPrefix}id`, "ASC");
     }
   );
 

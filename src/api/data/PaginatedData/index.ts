@@ -10,7 +10,8 @@ import {
   operatorsByType,
   InvalidRule,
   parseDate,
-  getMinDateUnit
+  getMinDateUnit,
+  RuleGroup
 } from "@beabee/beabee-common";
 import { BadRequestError } from "routing-controllers";
 import {
@@ -18,8 +19,11 @@ import {
   createQueryBuilder,
   EntityTarget,
   SelectQueryBuilder,
+  UpdateQueryBuilder,
+  UpdateResult,
   WhereExpressionBuilder
 } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import Contact from "@models/Contact";
 
@@ -28,8 +32,12 @@ import {
   GetPaginatedRuleGroupRule,
   Paginated,
   RichRuleValue,
-  SpecialFields
+  FieldHandlers,
+  FieldHandler,
+  GetPaginatedRuleGroup
 } from "./interface";
+
+// Operator definitions
 
 const equalityOperatorsWhere = {
   equal: (field: string) => `${field} = :a`,
@@ -49,9 +57,7 @@ const numericOperatorsWhere = {
   greater: (field: string) => `${field} > :a`,
   greater_or_equal: (field: string) => `${field} >= :a`,
   between: (field: string) => `${field} BETWEEN :a AND :b`,
-  not_between: (field: string) => `${field} NOT BETWEEN :a AND :b`,
-  is_empty: (field: string) => `${field} IS NULL`,
-  is_not_empty: (field: string) => `${field} IS NOT NULL`
+  not_between: (field: string) => `${field} NOT BETWEEN :a AND :b`
 };
 
 function withOperators<T extends FilterType>(
@@ -99,32 +105,41 @@ const operatorsWhereByType: Record<
     ...equalityOperatorsWhere,
     ...nullableOperatorsWhere
   })
-} as const;
+};
 
-export function statusField(
-  qb: WhereExpressionBuilder,
-  args: { operator: RuleOperator; values: RichRuleValue[] }
-) {
+// Generic field handlers
+
+const simpleFieldHandler: FieldHandler = (qb, args) => {
+  qb.where(args.whereFn(`${args.fieldPrefix}${args.field}`));
+};
+
+export const statusFieldHandler: FieldHandler = (qb, args) => {
   // TODO: handle other operators
   if (args.operator !== "equal") {
     throw new BadRequestError("Status field only supports equal operator");
   }
 
-  switch (args.values[0]) {
+  switch (args.value[0]) {
     case ItemStatus.Draft:
-      return qb.andWhere(`item.starts IS NULL`);
+      return qb.where(`${args.fieldPrefix}starts IS NULL`);
     case ItemStatus.Scheduled:
-      return qb.andWhere(`item.starts > :now`);
+      return qb.where(`${args.fieldPrefix}starts > :now`);
     case ItemStatus.Open:
-      return qb.andWhere(`item.starts < :now`).andWhere(
+      return qb.where(`${args.fieldPrefix}starts < :now`).andWhere(
         new Brackets((qb) => {
-          qb.where("item.expires IS NULL").orWhere(`item.expires > :now`);
+          qb.where(`${args.fieldPrefix}expires IS NULL`).orWhere(
+            `${args.fieldPrefix}expires > :now`
+          );
         })
       );
     case ItemStatus.Ended:
-      return qb.andWhere(`item.starts < :now`).andWhere(`item.expires < :now`);
+      return qb
+        .where(`${args.fieldPrefix}starts < :now`)
+        .andWhere(`${args.fieldPrefix}expires < :now`);
   }
-}
+};
+
+// Rule parsing
 
 const dateUnitSql = {
   y: "year",
@@ -135,43 +150,54 @@ const dateUnitSql = {
   s: "second"
 } as const;
 
+function simpleField(field: string): string {
+  return field;
+}
+
+function coalesceField(field: string): string {
+  return `COALESCE(${field}, '')`;
+}
+
 function prepareRule(
   rule: ValidatedRule<string>,
   contact: Contact | undefined
 ): [(field: string) => string, RichRuleValue[]] {
-  const whereFn = operatorsWhereByType[rule.type][rule.operator];
-  // This should never happen as a ValidatedRule can't have an invalid type/operator combo
-  if (!whereFn) {
-    throw new Error("Invalid ValidatedRule");
-  }
+  switch (rule.type) {
+    case "text":
+      // Make NULL an empty string for comparison
+      return [rule.nullable ? coalesceField : simpleField, rule.value];
 
-  if (rule.type === "text") {
-    // Make NULL an empty string for comparison
-    return [(field) => whereFn(`COALESCE(${field}, '')`), rule.value];
-  } else if (rule.type === "date") {
-    // Compare dates by at least day, but more specific if H/m/s are provided
-    const values = rule.value.map((v) => parseDate(v));
-    const minUnit = getMinDateUnit(["d", ...values.map(([_, unit]) => unit)]);
-    return [
-      (field) => whereFn(`DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`),
-      values.map(([date]) => date)
-    ];
-  }
+    case "date": {
+      // Compare dates by at least day, but more specific if H/m/s are provided
+      const values = rule.value.map((v) => parseDate(v));
+      const minUnit = getMinDateUnit(["d", ...values.map(([_, unit]) => unit)]);
+      return [
+        (field) => `DATE_TRUNC('${dateUnitSql[minUnit]}', ${field})`,
+        values.map(([date]) => date)
+      ];
+    }
 
-  return [
-    whereFn,
-    rule.type === "contact"
-      ? rule.value.map((v) => (v === "me" ? contact?.id || "" : v))
-      : rule.value
-  ];
+    case "contact":
+      if (!contact) {
+        throw new Error("No contact provided to map contact field type");
+      }
+      // Map "me" to contact id
+      return [
+        simpleField,
+        rule.value.map((v) => (v === "me" ? contact.id : v))
+      ];
+
+    default:
+      return [simpleField, rule.value];
+  }
 }
 
-export function buildQuery<Entity, Field extends string>(
-  entity: EntityTarget<Entity>,
-  ruleGroup: ValidatedRuleGroup<Field> | undefined,
-  contact?: Contact,
-  specialFields?: SpecialFields<Field>
-): SelectQueryBuilder<Entity> {
+function buildWhere<Field extends string>(
+  ruleGroup: ValidatedRuleGroup<Field>,
+  contact: Contact | undefined,
+  fieldHandlers: FieldHandlers<Field> | undefined,
+  fieldPrefix: string
+): [Brackets, Record<string, unknown>] {
   /*
     The query builder doesn't support having the same parameter names for
     different parts of the query and subqueries, so we have to ensure each query
@@ -182,29 +208,38 @@ export function buildQuery<Entity, Field extends string>(
     // Some queries need a current date parameter
     now: new Date()
   };
-
   let ruleNo = 0;
 
   function parseRule(rule: ValidatedRule<Field>) {
     return (qb: WhereExpressionBuilder): void => {
-      const [whereFn, values] = prepareRule(rule, contact);
+      const operatorFn = operatorsWhereByType[rule.type][rule.operator];
+      if (!operatorFn) {
+        // Shouln't be able to happen as rule has been validated
+        throw new Error("Invalid ValidatedRule");
+      }
+
       const suffix = "_" + ruleNo;
+      const [fieldFn, value] = prepareRule(rule, contact);
 
       // Add values as params
-      params["a" + suffix] = values[0];
-      params["b" + suffix] = values[1];
+      params["a" + suffix] = value[0];
+      params["b" + suffix] = value[1];
+      params["p" + suffix] = rule.field.substring(rule.field.indexOf(".") + 1);
 
-      const whereFnWithSuffix = (field: string) =>
-        whereFn(field)
-          .replace(":a", ":a" + suffix)
-          .replace(":b", ":b" + suffix);
+      // Replace :[abp] but avoid replacing casts e.g. ::boolean
+      const suffixFn = (field: string) =>
+        field.replace(/[^:]:[abp]/g, "$&" + suffix);
 
-      const specialField = specialFields?.[rule.field];
-      if (specialField) {
-        specialField(qb, { ...rule, whereFn: whereFnWithSuffix, values });
-      } else {
-        qb.where(whereFnWithSuffix(`item.${rule.field}`));
-      }
+      const fieldHandler = fieldHandlers?.[rule.field] || simpleFieldHandler;
+      fieldHandler(qb, {
+        fieldPrefix,
+        field: rule.field,
+        operator: rule.operator,
+        type: rule.type,
+        value,
+        whereFn: (field) => suffixFn(operatorFn(fieldFn(field))),
+        suffixFn
+      });
 
       ruleNo++;
     };
@@ -215,9 +250,7 @@ export function buildQuery<Entity, Field extends string>(
       if (ruleGroup.rules.length > 0) {
         qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
         const conditionFn =
-          ruleGroup.condition === "AND"
-            ? ("andWhere" as const)
-            : ("orWhere" as const);
+          ruleGroup.condition === "AND" ? "andWhere" : "orWhere";
         for (const rule of ruleGroup.rules) {
           qb[conditionFn](
             new Brackets(
@@ -229,10 +262,20 @@ export function buildQuery<Entity, Field extends string>(
     };
   }
 
+  const where = new Brackets(parseRuleGroup(ruleGroup));
+  return [where, params];
+}
+
+// DEPRECATED: Remove once SegmentService is gone
+export function buildSelectQuery<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  ruleGroup: ValidatedRuleGroup<Field> | undefined,
+  contact?: Contact,
+  fieldHandlers?: FieldHandlers<Field>
+): SelectQueryBuilder<Entity> {
   const qb = createQueryBuilder(entity, "item");
   if (ruleGroup) {
-    const where = new Brackets(parseRuleGroup(ruleGroup));
-    qb.where(where).setParameters(params);
+    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
   }
   return qb;
 }
@@ -242,8 +285,8 @@ export async function fetchPaginated<Entity, Field extends string>(
   filters: Filters<Field>,
   query: GetPaginatedQuery,
   contact?: Contact,
-  specialFields?: SpecialFields<Field>,
-  queryCallback?: (qb: SelectQueryBuilder<Entity>) => void
+  fieldHandlers?: FieldHandlers<Field>,
+  queryCallback?: (qb: SelectQueryBuilder<Entity>, fieldPrefix: string) => void
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
   const offset = query.offset || 0;
@@ -251,17 +294,21 @@ export async function fetchPaginated<Entity, Field extends string>(
   try {
     const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
 
-    const qb = buildQuery(entity, ruleGroup, contact, specialFields)
-      .offset(offset)
-      .limit(limit);
+    const qb = createQueryBuilder(entity, "item").offset(offset);
+
+    if (limit !== -1) {
+      qb.limit(limit);
+    }
+
+    if (ruleGroup) {
+      qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
+    }
 
     if (query.sort) {
       qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
     }
 
-    if (queryCallback) {
-      queryCallback(qb);
-    }
+    queryCallback?.(qb, "item.");
 
     const [items, total] = await qb.getManyAndCount();
 
@@ -282,21 +329,42 @@ export async function fetchPaginated<Entity, Field extends string>(
   }
 }
 
-export function mergeRules(
-  query: GetPaginatedQuery,
-  extraRules?: (GetPaginatedRuleGroupRule | undefined | false)[] | false
-): GetPaginatedQuery {
-  if (!extraRules) return query;
+export async function batchUpdate<Entity, Field extends string>(
+  entity: EntityTarget<Entity>,
+  filters: Filters<Field>,
+  ruleGroup: RuleGroup,
+  updates: QueryDeepPartialEntity<Entity>,
+  contact?: Contact,
+  fieldHandlers?: FieldHandlers<Field>,
+  queryCallback?: (qb: UpdateQueryBuilder<Entity>, fieldPrefix: string) => void
+): Promise<UpdateResult> {
+  try {
+    const validatedRuleGroup = validateRuleGroup(filters, ruleGroup);
 
-  return {
-    ...query,
-    rules: {
-      condition: "AND",
-      rules: [
-        ...(extraRules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]),
-        ...(query.rules ? [query.rules] : [])
-      ]
+    const qb = createQueryBuilder()
+      .update(entity, updates)
+      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers, ""));
+
+    queryCallback?.(qb, "");
+
+    return await qb.execute();
+  } catch (err) {
+    if (err instanceof InvalidRule) {
+      const err2: any = new BadRequestError(err.message);
+      err2.rule = err.rule;
+      throw err2;
+    } else {
+      throw err;
     }
+  }
+}
+
+export function mergeRules(
+  rules: (GetPaginatedRuleGroupRule | undefined | false)[]
+): GetPaginatedRuleGroup {
+  return {
+    condition: "AND",
+    rules: rules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]
   };
 }
 

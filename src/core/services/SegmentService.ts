@@ -6,9 +6,9 @@ import Segment from "@models/Segment";
 
 import {
   fetchPaginatedContacts,
-  specialContactFields
+  contactFieldHandlers
 } from "@api/data/ContactData";
-import { buildQuery } from "@api/data/PaginatedData";
+import { buildSelectQuery } from "@api/data/PaginatedData";
 
 class SegmentService {
   async createSegment(
@@ -48,11 +48,11 @@ class SegmentService {
       contactFilters,
       segment.ruleGroup
     );
-    const qb = buildQuery(
+    const qb = buildSelectQuery(
       Contact,
       validatedRuleGroup,
       undefined,
-      specialContactFields
+      contactFieldHandlers
     );
 
     qb.leftJoinAndSelect("item.profile", "profile").leftJoinAndSelect(
