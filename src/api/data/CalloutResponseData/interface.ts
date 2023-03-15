@@ -7,11 +7,9 @@ import {
   IsIn,
   IsObject,
   IsEmail,
-  IsArray,
-  IsUUID,
-  Validate,
   ValidateNested,
-  IsDefined
+  IsDefined,
+  IsUUID
 } from "class-validator";
 import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
@@ -21,6 +19,7 @@ import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
+  Assignee = "assignee",
   Callout = "callout",
   Contact = "contact",
   Tags = "tags"
@@ -65,6 +64,7 @@ export interface GetCalloutResponseData {
   callout?: GetCalloutData;
   contact?: GetContactData | null;
   tags?: GetCalloutTagData[];
+  assignee?: GetContactData | null;
 }
 
 export class CreateCalloutResponseData {
@@ -86,6 +86,10 @@ export class CreateCalloutResponseData {
   @IsOptional()
   @IsString({ each: true })
   tags?: string[];
+
+  @IsUUID()
+  @IsOptional()
+  assigneeId?: string | null;
 }
 
 export class BatchUpdateCalloutResponseData {
