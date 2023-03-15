@@ -96,6 +96,16 @@ docker-compose build
 docker-compose up -d
 ```
 
+#### Generating database migrations
+
+Whenever you make changes to an object that is mapped into the database, you have to use `typeORM` and create a new migration file. Make sure the database container is running and then:
+
+```
+docker-compose run app npm run typeorm migration:generate -- -n <MigrationName>
+npm run build
+docker-compose run app npm run typeorm migration:run
+```
+
 ### Documentation
 
 Documentation is currently very limited, email [will.franklin@beabee.io](mailto:will.franklin@beabee.io) if you have any questions.
