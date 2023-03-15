@@ -89,7 +89,7 @@ export class CreateCalloutResponseData {
 
   @IsUUID()
   @IsOptional()
-  assigneeId?: string;
+  assigneeId?: string | null;
 }
 
 export class BatchUpdateCalloutResponseData {

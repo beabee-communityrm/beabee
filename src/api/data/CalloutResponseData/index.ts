@@ -107,7 +107,9 @@ function getUpdateData(data: Partial<CreateCalloutResponseData>): {
     tagUpdates,
     responseUpdates: {
       ...otherUpdates,
-      ...(assigneeId && { assignee: { id: assigneeId } })
+      ...(assigneeId !== undefined && {
+        assignee: assigneeId ? { id: assigneeId } : null
+      })
     }
   };
 }
