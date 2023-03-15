@@ -24,7 +24,7 @@ export class CalloutResponseCommentController {
   ): Promise<GetCalloutResponseCommentData> {
     const response: CalloutResponseComment = await getRepository(
       CalloutResponseComment
-    ).save({ contact, ...data });
+    ).save({ ...data, contact });
     return convertCommentToData(response);
   }
 }

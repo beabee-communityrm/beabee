@@ -17,7 +17,7 @@ export default class CalloutReponseComment {
   contact!: Contact;
 
   @ManyToOne("CalloutResponse")
-  calloutResponse!: CalloutResponse;
+  response!: CalloutResponse;
 
   @CreateDateColumn()
   createdAt!: Date;

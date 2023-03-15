@@ -8,7 +8,7 @@ export function convertCommentToData(
     id: comment.id,
     contact: comment.contact,
     createdAt: comment.createdAt,
-    calloutResponseId: comment.calloutResponse.id,
+    responseId: comment.response.id,
     text: comment.text
   };
 }

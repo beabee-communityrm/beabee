@@ -1,14 +1,9 @@
 import Contact from "@models/Contact";
-import { IsString, IsObject } from "class-validator";
+import { IsString } from "class-validator";
 
 export interface CalloutResponseCommentData {
-  calloutResponseId: string;
+  responseId: string;
   text: string;
-}
-
-export interface CreateCalloutResponseCommentData
-  extends CalloutResponseCommentData {
-  contact: Contact;
 }
 
 export interface GetCalloutResponseCommentData
@@ -19,13 +14,10 @@ export interface GetCalloutResponseCommentData
 }
 
 export class CreateCalloutResponseCommentData
-  implements CreateCalloutResponseCommentData
+  implements CalloutResponseCommentData
 {
-  @IsObject()
-  contact!: Contact;
-
   @IsString()
-  calloutResponseId!: string;
+  responseId!: string;
 
   @IsString()
   text!: string;
