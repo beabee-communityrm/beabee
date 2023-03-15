@@ -26,7 +26,10 @@ import PageSettings from "@models/PageSettings";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
 import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponse, {
+  CalloutResponseAnswer,
+  CalloutResponseAnswers
+} from "@models/CalloutResponse";
 import Project from "@models/Project";
 import ProjectContact from "@models/ProjectContact";
 import ProjectEngagement from "@models/ProjectEngagement";
@@ -35,6 +38,10 @@ import ReferralGift from "@models/ReferralGift";
 import Segment from "@models/Segment";
 import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
+import {
+  CalloutComponentSchema,
+  flattenComponents
+} from "@beabee/beabee-common";
 
 const log = mainLogger.child({ app: "drier" });
 
@@ -305,6 +312,68 @@ export async function runExport<T>(
       .insert()
       .into(drier.model)
       .values(newItems as QueryDeepPartialEntity<T>)
+      .getQueryAndParameters();
+
+    console.log(query + ";");
+    console.log(stringify(params));
+  }
+}
+
+const componentMapper = {
+  textarea: () => () => chance.paragraph(),
+  textfield: () => () => chance.sentence(),
+  select: (component) => () => chance.pickone(component.data.values),
+  number: () => () => chance.integer(),
+  password: () => () => chance.word(),
+  button: () => (v) => v,
+  radio: () => (v) => v,
+  selectboxes: () => (v) => v,
+  checkbox: () => (v) => v
+} as const satisfies Record<
+  CalloutComponentSchema["type"],
+  (
+    component: CalloutComponentSchema
+  ) => (v: CalloutResponseAnswer) => CalloutResponseAnswer
+>;
+
+function createAnswersDrier(callout: Callout): Drier<CalloutResponseAnswers> {
+  const propMap = Object.fromEntries(
+    flattenComponents(callout.formSchema.components).map((component) => [
+      component.key,
+      componentMapper[component.type](component)
+    ])
+  );
+
+  return { propMap };
+}
+
+export async function runExportCalloutResponses(
+  fn: (
+    qb: SelectQueryBuilder<CalloutResponse>
+  ) => SelectQueryBuilder<CalloutResponse>,
+  valueMap: Map<string, unknown>
+): Promise<void> {
+  log.info("Anonymising callout responses");
+
+  const callouts = await createQueryBuilder(Callout, "callout").getMany();
+  for (const callout of callouts) {
+    const answersDrier = createAnswersDrier(callout);
+
+    const responses = await fn(createQueryBuilder(CalloutResponse, "response"))
+      .loadAllRelationIds()
+      .where("response.callout = :callout", { callout })
+      .orderBy("id", "ASC")
+      .getMany();
+
+    const newResponses = responses.map((response) => {
+      const newResponse = runDrier(response, calloutResponsesDrier, valueMap);
+      newResponse.answers = runDrier(response.answers, answersDrier, valueMap);
+    });
+
+    const [query, params] = createQueryBuilder()
+      .insert()
+      .into(CalloutResponse)
+      .values(newResponses as QueryDeepPartialEntity<CalloutResponse>)
       .getQueryAndParameters();
 
     console.log(query + ";");
