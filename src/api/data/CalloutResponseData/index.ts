@@ -51,6 +51,9 @@ export function convertResponseToData(
     ...(_with?.includes(GetCalloutResponseWith.Answers) && {
       answers: response.answers
     }),
+    ...(_with?.includes(GetCalloutResponseWith.Assignee) && {
+      assignee: response.assignee && convertContactToData(response.assignee)
+    }),
     ...(_with?.includes(GetCalloutResponseWith.Callout) && {
       callout: convertCalloutToData(response.callout)
     }),
@@ -76,6 +79,9 @@ export async function fetchCalloutResponse(
       ...(!contact.hasRole("admin") && { contact })
     },
     relations: [
+      ...(query.with?.includes(GetCalloutResponseWith.Assignee)
+        ? ["assignee", "assignee.roles"]
+        : []),
       ...(query.with?.includes(GetCalloutResponseWith.Callout)
         ? ["callout"]
         : []),
@@ -260,9 +266,11 @@ export async function exportCalloutResponses(
     (qb, fieldPrefix) => {
       qb.orderBy(`${fieldPrefix}createdAt`, "ASC");
       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-      qb.leftJoinAndSelect("contact.roles", "roles");
+      // qb.leftJoinAndSelect("contact.roles", "roles");
       qb.leftJoinAndSelect(`${fieldPrefix}tags`, "tags");
       qb.leftJoinAndSelect("tags.tag", "tag");
+      qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
+      // qb.leftJoinAndSelect("assignee.roles", "roles");
     }
   );
 
@@ -276,6 +284,7 @@ export async function exportCalloutResponses(
       Number: response.number,
       Bucket: response.bucket,
       Tags: response.tags.map((rt) => rt.tag.name).join(", "),
+      Assignee: response.assignee?.email || "",
       ...(response.contact
         ? {
             FirstName: response.contact.firstname,
@@ -320,6 +329,10 @@ export async function fetchPaginatedCalloutResponses(
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
         qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
         qb.leftJoinAndSelect("contact.roles", "roles");
+      }
+      if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
+        qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
+        qb.leftJoinAndSelect("assignee.roles", "roles");
       }
     }
   );
