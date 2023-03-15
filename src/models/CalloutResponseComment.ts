@@ -3,7 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
 } from "typeorm";
 import CalloutResponse from "./CalloutResponse";
 import Contact from "./Contact";
@@ -21,6 +22,9 @@ export default class CalloutReponseComment {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 
   @Column({ type: String })
   text!: string;
