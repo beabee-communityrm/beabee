@@ -9,6 +9,7 @@ import {
 import Papa from "papaparse";
 import { NotFoundError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import { convertAnswers } from "@core/utils/callouts";
 
@@ -97,6 +98,20 @@ export async function fetchCalloutResponse(
   return response && convertResponseToData(response, query.with);
 }
 
+function getUpdateData(data: Partial<CreateCalloutResponseData>): {
+  tagUpdates: string[] | undefined;
+  responseUpdates: QueryDeepPartialEntity<CalloutResponse>;
+} {
+  const { tags: tagUpdates, assigneeId, ...otherUpdates } = data;
+  return {
+    tagUpdates,
+    responseUpdates: {
+      ...otherUpdates,
+      ...(assigneeId && { assignee: { id: assigneeId } })
+    }
+  };
+}
+
 async function updateResponseTags(responseIds: string[], tagUpdates: string[]) {
   const addTags = tagUpdates
     .filter((tag) => tag.startsWith("+"))
@@ -130,8 +145,8 @@ export async function updateCalloutResponse(
   id: string,
   data: Partial<CreateCalloutResponseData>
 ): Promise<void> {
-  const { tags: tagUpdates, ...updates } = data;
-  await getRepository(CalloutResponse).update(id, updates);
+  const { tagUpdates, responseUpdates } = getUpdateData(data);
+  await getRepository(CalloutResponse).update(id, responseUpdates);
   if (tagUpdates) {
     await updateResponseTags([id], tagUpdates);
   }
@@ -370,12 +385,12 @@ export async function batchUpdateCalloutResponses(
     contact
   );
 
-  const { tags: tagUpdates, ...updates } = data.updates;
+  const { tagUpdates, responseUpdates } = getUpdateData(data.updates);
   const result = await batchUpdate(
     CalloutResponse,
     filters,
     rules,
-    updates,
+    responseUpdates,
     contact,
     fieldHandlers,
     (qb) => qb.returning(["id"])

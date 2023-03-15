@@ -7,11 +7,9 @@ import {
   IsIn,
   IsObject,
   IsEmail,
-  IsArray,
-  IsUUID,
-  Validate,
   ValidateNested,
-  IsDefined
+  IsDefined,
+  IsUUID
 } from "class-validator";
 import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
@@ -88,6 +86,10 @@ export class CreateCalloutResponseData {
   @IsOptional()
   @IsString({ each: true })
   tags?: string[];
+
+  @IsUUID()
+  @IsOptional()
+  assigneeId?: string;
 }
 
 export class BatchUpdateCalloutResponseData {
