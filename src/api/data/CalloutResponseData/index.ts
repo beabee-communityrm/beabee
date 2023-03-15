@@ -282,12 +282,10 @@ export async function exportCalloutResponses(
     fieldHandlers,
     (qb, fieldPrefix) => {
       qb.orderBy(`${fieldPrefix}createdAt`, "ASC");
+      qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-      // qb.leftJoinAndSelect("contact.roles", "roles");
       qb.leftJoinAndSelect(`${fieldPrefix}tags`, "tags");
       qb.leftJoinAndSelect("tags.tag", "tag");
-      qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
-      // qb.leftJoinAndSelect("assignee.roles", "roles");
     }
   );
 
