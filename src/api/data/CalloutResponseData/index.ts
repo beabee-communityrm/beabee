@@ -340,16 +340,16 @@ export async function fetchPaginatedCalloutResponses(
     contact,
     fieldHandlers,
     (qb, fieldPrefix) => {
+      if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
+        qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
+        qb.leftJoinAndSelect("assignee.roles", "assignee_roles");
+      }
       if (query.with?.includes(GetCalloutResponseWith.Callout)) {
         qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
       }
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
         qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-        qb.leftJoinAndSelect("contact.roles", "roles");
-      }
-      if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
-        qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
-        qb.leftJoinAndSelect("assignee.roles", "roles");
+        qb.leftJoinAndSelect("contact.roles", "contact_roles");
       }
     }
   );
