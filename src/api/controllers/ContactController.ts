@@ -294,9 +294,14 @@ export class ContactController {
     @TargetUser() target: Contact,
     @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
-    const targetQuery = mergeRules(query, [
-      { field: "contact", operator: "equal", value: [target.id] }
-    ]);
+    const targetQuery = {
+      ...query,
+      rules: mergeRules([
+        query.rules,
+        { field: "contact", operator: "equal", value: [target.id] }
+      ])
+    };
+
     const data = await fetchPaginated(
       Payment,
       paymentFilters,

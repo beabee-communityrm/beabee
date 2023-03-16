@@ -15,6 +15,7 @@ import CalloutResponse, {
 import DuplicateId from "@api/errors/DuplicateId";
 import { CreateCalloutData } from "@api/data/CalloutData";
 import { CalloutFormSchema } from "@beabee/beabee-common";
+import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 class CalloutWithResponse extends Callout {
   response?: CalloutResponse;
@@ -96,40 +97,40 @@ class CalloutsService {
     contact: Contact,
     answers: CalloutResponseAnswers,
     isPartial = false
-  ): Promise<
-    "only-anonymous" | "expired-user" | "closed" | "cant-update" | undefined
-  > {
+  ): Promise<CalloutResponse> {
     if (callout.access === CalloutAccess.OnlyAnonymous) {
-      return "only-anonymous";
+      throw new InvalidCalloutResponse("only-anonymous");
     } else if (
       !contact.membership?.isActive &&
       callout.access === CalloutAccess.Member
     ) {
-      return "expired-user";
+      throw new InvalidCalloutResponse("expired-user");
     } else if (!callout.active) {
-      return "closed";
+      throw new InvalidCalloutResponse("closed");
     }
 
     // Don't allow partial answers for multiple answer callouts
     if (callout.allowMultiple && isPartial) {
-      return;
+      throw new Error(
+        "Partial answers for multiple answer callouts not supported"
+      );
     }
 
     let response = await this.getResponse(callout, contact);
     if (response && !callout.allowMultiple) {
       if (!callout.allowUpdate && !response.isPartial) {
-        return "cant-update";
+        throw new InvalidCalloutResponse("cant-update");
       }
     } else {
       response = new CalloutResponse();
       response.callout = callout;
-      response.contact = contact;
+      response.contact = contact || null;
     }
 
     response.answers = answers;
     response.isPartial = isPartial;
 
-    await getRepository(CalloutResponse).save(response);
+    const savedResponse = await this.saveResponse(response);
 
     await EmailService.sendTemplateToAdmin("new-callout-response", {
       callout: callout,
@@ -142,6 +143,8 @@ class CalloutsService {
           answers[callout.pollMergeField]?.toString() || ""
       });
     }
+
+    return savedResponse;
   }
 
   async setGuestResponse(
@@ -149,16 +152,16 @@ class CalloutsService {
     guestName: string | undefined,
     guestEmail: string | undefined,
     answers: CalloutResponseAnswers
-  ): Promise<"guest-fields-missing" | "only-anonymous" | "closed" | undefined> {
+  ): Promise<CalloutResponse> {
     if (callout.access === CalloutAccess.Guest && !(guestName && guestEmail)) {
-      return "guest-fields-missing";
+      throw new InvalidCalloutResponse("guest-fields-missing");
     } else if (
       callout.access === CalloutAccess.OnlyAnonymous &&
       (guestName || guestEmail)
     ) {
-      return "only-anonymous";
+      throw new InvalidCalloutResponse("only-anonymous");
     } else if (!callout.active || callout.access === CalloutAccess.Member) {
-      return "closed";
+      throw new InvalidCalloutResponse("closed");
     }
 
     const response = new CalloutResponse();
@@ -168,12 +171,38 @@ class CalloutsService {
     response.answers = answers;
     response.isPartial = false;
 
-    await getRepository(CalloutResponse).save(response);
+    const savedResponse = await this.saveResponse(response);
 
     await EmailService.sendTemplateToAdmin("new-callout-response", {
       callout: callout,
       responderName: guestName || "Anonymous"
     });
+
+    return savedResponse;
+  }
+
+  private async saveResponse(
+    response: CalloutResponse
+  ): Promise<CalloutResponse> {
+    if (!response.number) {
+      const lastResponse = await getRepository(CalloutResponse).findOne({
+        where: { callout: response.callout },
+        order: { number: "DESC" }
+      });
+
+      response.number = lastResponse ? lastResponse.number + 1 : 1;
+    }
+
+    try {
+      return await getRepository(CalloutResponse).save(response);
+    } catch (error) {
+      if (isDuplicateIndex(error)) {
+        response.number = 0;
+        return await this.saveResponse(response);
+      } else {
+        throw error;
+      }
+    }
   }
 }
 

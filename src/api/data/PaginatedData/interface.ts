@@ -96,6 +96,7 @@ export type RichRuleValue = RuleValue | Date;
 export type FieldHandler = (
   qb: WhereExpressionBuilder,
   args: {
+    fieldPrefix: string;
     type: FilterType;
     field: string;
     operator: RuleOperator;

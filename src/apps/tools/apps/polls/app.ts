@@ -200,6 +200,8 @@ app.post(
                     EmailAddress: response.guestEmail
                   }),
               IsMember: !!response.contact,
+              Number: response.number,
+              Bucket: response.bucket,
               ...convertAnswers(callout, response.answers)
             };
           });

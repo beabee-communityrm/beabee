@@ -10,6 +10,8 @@ import * as auth from "@core/utils/auth";
 import ContactsService from "@core/services/ContactsService";
 import CalloutsService from "@core/services/CalloutsService";
 
+import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+
 import Callout, { CalloutAccess } from "@models/Callout";
 import { CalloutResponseAnswers } from "@models/CalloutResponse";
 
@@ -233,30 +235,35 @@ app.post(
       );
     }
 
-    const error =
-      pollsCode && !contact
-        ? "unknown-user"
-        : contact
-        ? await CalloutsService.setResponse(callout, contact, req.answers!)
-        : await CalloutsService.setGuestResponse(
-            callout,
-            req.body.guestName,
-            req.body.guestEmail,
-            req.answers!
-          );
+    try {
+      if (pollsCode && !contact) {
+        throw new InvalidCalloutResponse("unknown-user");
+      }
 
-    if (contact) {
-      setTrackingCookie(contact.id, res);
-    }
+      if (contact) {
+        await CalloutsService.setResponse(callout, contact, req.answers!);
+      } else {
+        await CalloutsService.setGuestResponse(
+          callout,
+          req.body.guestName,
+          req.body.guestEmail,
+          req.answers!
+        );
+      }
 
-    if (error) {
-      req.flash("error", "polls-" + error);
-      res.redirect(calloutUrl(callout, { isEmbed, pollsCode }) + "#vote");
-    } else {
+      if (contact) {
+        setTrackingCookie(contact.id, res);
+      }
+
       if (!req.user) {
         req.session.answers = req.answers;
       }
       res.redirect(calloutUrl(callout, { pollsCode }) + "/thanks");
+    } catch (err) {
+      if (err instanceof InvalidCalloutResponse) {
+        req.flash("error", "polls-" + err.subCode);
+        res.redirect(calloutUrl(callout, { isEmbed, pollsCode }) + "#vote");
+      }
     }
   })
 );

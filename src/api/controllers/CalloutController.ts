@@ -1,4 +1,5 @@
 import { CalloutFormSchema } from "@beabee/beabee-common";
+import { Response } from "express";
 import {
   Authorized,
   Body,
@@ -9,10 +10,10 @@ import {
   NotFoundError,
   OnUndefined,
   Param,
-  Params,
   Patch,
   Post,
-  QueryParams
+  QueryParams,
+  Res
 } from "routing-controllers";
 import slugify from "slugify";
 import { getRepository } from "typeorm";
@@ -25,6 +26,8 @@ import { isDuplicateIndex } from "@core/utils";
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseTag from "@models/CalloutResponseTag";
+import CalloutTag from "@models/CalloutTag";
 
 import {
   convertCalloutToData,
@@ -37,14 +40,19 @@ import {
 } from "@api/data/CalloutData";
 import {
   CreateCalloutResponseData,
-  fetchCalloutResponse,
+  exportCalloutResponses,
+  ExportCalloutResponsesQuery,
   fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
-  GetCalloutResponseParam,
-  GetCalloutResponseQuery,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
+import {
+  convertTagToData,
+  CreateCalloutTagData,
+  GetCalloutTagData
+} from "@api/data/CalloutTagData";
 import { Paginated } from "@api/data/PaginatedData";
+
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
@@ -123,6 +131,22 @@ export class CalloutController {
     return await fetchPaginatedCalloutResponses(query, contact, slug);
   }
 
+  @Get("/:slug/responses.csv")
+  async exportCalloutResponses(
+    @CurrentUser() contact: Contact,
+    @Param("slug") slug: string,
+    @QueryParams() query: ExportCalloutResponsesQuery,
+    @Res() res: Response
+  ): Promise<Response> {
+    const [exportName, exportData] = await exportCalloutResponses(
+      query.rules,
+      contact,
+      slug
+    );
+    res.attachment(exportName).send(exportData);
+    return res;
+  }
+
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
@@ -139,30 +163,76 @@ export class CalloutController {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
     }
 
-    const error = contact
-      ? await CalloutsService.setResponse(callout, contact, data.answers)
-      : await CalloutsService.setGuestResponse(
-          callout,
-          data.guestName,
-          data.guestEmail,
-          data.answers
-        );
-
-    if (error) {
-      throw new InvalidCalloutResponse(error);
+    // TODO: support assignee/bucket/tags on create
+    if (contact) {
+      await CalloutsService.setResponse(callout, contact, data.answers);
+    } else {
+      await CalloutsService.setGuestResponse(
+        callout,
+        data.guestName,
+        data.guestEmail,
+        data.answers
+      );
     }
   }
 
-  @Get("/:slug/responses/:id")
-  async getCalloutResponse(
-    @CurrentUser() contact: Contact,
-    @Params() param: GetCalloutResponseParam,
-    @QueryParams() query: GetCalloutResponseQuery
-  ): Promise<GetCalloutResponseData | undefined> {
-    return await fetchCalloutResponse(
-      { id: param.id, callout: { slug: param.slug } },
-      query,
-      contact
+  @Authorized("admin")
+  @Get("/:slug/tags")
+  async getCalloutTags(
+    @Param("slug") slug: string
+  ): Promise<GetCalloutTagData[]> {
+    const tags = await getRepository(CalloutTag).find({
+      where: { callout: { slug } }
+    });
+    return tags.map(convertTagToData);
+  }
+
+  @Authorized("admin")
+  @Post("/:slug/tags")
+  async createCalloutTag(
+    @Param("slug") slug: string,
+    @Body() data: CreateCalloutTagData
+  ): Promise<GetCalloutTagData> {
+    // TODO: handle foreign key error
+    const tag = await getRepository(CalloutTag).save({
+      name: data.name,
+      description: data.description,
+      callout: { slug }
+    });
+
+    return convertTagToData(tag);
+  }
+
+  @Authorized("admin")
+  @Patch("/:slug/tags/:tag")
+  async updateCalloutTag(
+    @Param("slug") slug: string,
+    @Param("tag") tagId: string,
+    @PartialBody() data: CreateCalloutTagData // Partial<CreateCalloutTagData>
+  ): Promise<GetCalloutTagData | undefined> {
+    await getRepository(CalloutTag).update(
+      { id: tagId, callout: { slug } },
+      data
     );
+
+    const tag = await getRepository(CalloutTag).findOne(tagId);
+    return tag && convertTagToData(tag);
+  }
+
+  @Authorized("admin")
+  @Delete("/:slug/tags/:tag")
+  @OnUndefined(204)
+  async deleteCalloutTag(
+    @Param("slug") slug: string,
+    @Param("tag") tagId: string
+  ): Promise<void> {
+    await getRepository(CalloutResponseTag).delete({ tag: { id: tagId } });
+    const result = await getRepository(CalloutTag).delete({
+      callout: { slug },
+      id: tagId
+    });
+    if (result.affected === 0) {
+      throw new NotFoundError();
+    }
   }
 }
