@@ -11,6 +11,7 @@ import {
 } from "@api/data/CalloutResponseCommentData/interface";
 import PartialBody from "@api/decorators/PartialBody";
 import { Paginated } from "@beabee/beabee-common";
+import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import Contact from "@models/Contact";
 import {
@@ -34,10 +35,14 @@ export class CalloutResponseCommentController {
     @Body() data: CalloutResponseCommentData,
     @CurrentUser({ required: true }) contact: Contact
   ): Promise<GetCalloutResponseCommentData> {
-    const response: CalloutResponseComment = await getRepository(
+    const comment: CalloutResponseComment = await getRepository(
       CalloutResponseComment
-    ).save({ ...data, contact });
-    return convertCommentToData(response);
+    ).save({
+      text: data.text,
+      contact: { id: contact.id },
+      response: { id: data.responseId }
+    });
+    return convertCommentToData(comment, data.responseId);
   }
 
   @Get("/")

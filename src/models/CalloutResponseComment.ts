@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn
@@ -10,15 +11,23 @@ import CalloutResponse from "./CalloutResponse";
 import Contact from "./Contact";
 
 @Entity()
-export default class CalloutReponseComment {
+export default class CalloutResponseComment {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @ManyToOne("Contact")
+  @ManyToOne((type) => Contact)
+  @JoinColumn()
   contact!: Contact;
 
-  @ManyToOne("CalloutResponse")
+  @Column()
+  contactId!: string;
+
+  @ManyToOne((type) => CalloutResponse)
+  @JoinColumn()
   response!: CalloutResponse;
+
+  @Column()
+  responseId!: string;
 
   @CreateDateColumn()
   createdAt!: Date;

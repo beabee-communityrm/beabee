@@ -7,16 +7,22 @@ import {
 } from "./interface";
 
 export function convertCommentToData(
-  comment: CalloutResponseComment
+  comment: CalloutResponseComment,
+  responseId?: string
 ): GetCalloutResponseCommentData {
-  return {
+  const commentData = {
     id: comment.id,
     contact: comment.contact,
     createdAt: comment.createdAt,
     updatedAt: comment.updatedAt,
-    responseId: comment.response.id,
+    responseId: "",
     text: comment.text
   };
+
+  if (comment.response) commentData.responseId = comment.response.id;
+  else if (responseId) commentData.responseId = responseId;
+
+  return commentData;
 }
 
 export async function fetchPaginatedCalloutResponseComments(
@@ -25,6 +31,6 @@ export async function fetchPaginatedCalloutResponseComments(
   const results = await fetchPaginated(CalloutResponseComment, {}, query);
   return {
     ...results,
-    items: results.items.map(convertCommentToData)
+    items: results.items.map((comment) => convertCommentToData(comment))
   };
 }

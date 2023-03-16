@@ -1,10 +1,15 @@
 import Contact from "@models/Contact";
-import { IsIn, IsString } from "class-validator";
+import { IsIn, IsObject, IsString } from "class-validator";
 import { GetPaginatedQuery } from "../PaginatedData";
 
 export interface CalloutResponseCommentData {
   responseId: string;
   text: string;
+}
+
+export interface CreateCalloutResponseCommentData
+  extends CalloutResponseCommentData {
+  contact: Contact;
 }
 
 export interface GetCalloutResponseCommentData
@@ -16,13 +21,16 @@ export interface GetCalloutResponseCommentData
 }
 
 export class CreateCalloutResponseCommentData
-  implements CalloutResponseCommentData
+  implements CreateCalloutResponseCommentData
 {
   @IsString()
   responseId!: string;
 
   @IsString()
   text!: string;
+
+  @IsObject()
+  contact!: Contact;
 }
 
 export const responseSortFields = ["createdAt", "updatedAt"] as const;
