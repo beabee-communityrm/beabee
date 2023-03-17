@@ -29,9 +29,8 @@ async function main() {
     contactAnonymiser
   ] as ModelAnonymiser<any>[]) {
     console.log(
-      `DELETE FROM "${getRepository(drier.model).metadata.tableName}";`
+      `DELETE FROM "${getRepository(drier.model).metadata.tableName}";\n`
     );
-    console.log();
   }
 
   const contacts = await createQueryBuilder(Contact, "m")

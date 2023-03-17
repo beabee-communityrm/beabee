@@ -5,23 +5,18 @@ import { getRepository } from "typeorm";
 import * as db from "@core/database";
 
 import modelAnonymisers from "./anonymisers/models";
-import { anonymiseModel, anonymiseCalloutResponses } from "./anonymisers";
+import { anonymiseModel } from "./anonymisers";
 
 async function main() {
-  console.log('DELETE FROM "callout_response"');
-  console.log();
-
   for (const anonymiser of modelAnonymisers.slice().reverse()) {
     console.log(
-      `DELETE FROM "${getRepository(anonymiser.model).metadata.tableName}";`
+      `DELETE FROM "${getRepository(anonymiser.model).metadata.tableName}";\n`
     );
-    console.log();
   }
   const valueMap = new Map<string, unknown>();
   for (const anonymiser of modelAnonymisers) {
     await anonymiseModel(anonymiser, (qb) => qb, valueMap);
   }
-  await anonymiseCalloutResponses((qb) => qb, valueMap);
 }
 
 db.connect().then(async () => {

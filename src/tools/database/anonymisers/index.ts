@@ -76,6 +76,59 @@ function writeItems<T>(model: EntityTarget<T>, items: T[]) {
   console.log(stringify(params));
 }
 
+function createAnswersMap(
+  components: CalloutComponentSchema[]
+): ObjectMap<CalloutResponseAnswers> {
+  return Object.fromEntries(
+    components.map((c) => [c.key, createComponentAnonymiser(c)])
+  );
+}
+
+async function anonymiseCalloutResponses(
+  fn: (
+    qb: SelectQueryBuilder<CalloutResponse>
+  ) => SelectQueryBuilder<CalloutResponse>,
+  valueMap: Map<string, unknown>
+): Promise<void> {
+  log.info("Anonymising callout responses");
+
+  const callouts = await createQueryBuilder(Callout, "callout").getMany();
+  for (const callout of callouts) {
+    log.info("-- " + callout.slug);
+
+    const answersMap = createAnswersMap(
+      flattenComponents(callout.formSchema.components)
+    );
+
+    const responses = await fn(createQueryBuilder(CalloutResponse, "response"))
+      .loadAllRelationIds()
+      .where("response.callout = :callout", { callout: callout.slug })
+      .orderBy("id", "ASC")
+      .getMany();
+
+    if (responses.length === 0) {
+      continue;
+    }
+
+    const newResponses = responses.map((response) => {
+      const newResponse = anonymiseItem(
+        response,
+        calloutResponsesAnonymiser.objectMap,
+        valueMap
+      );
+      newResponse.answers = anonymiseItem(
+        response.answers,
+        answersMap,
+        undefined,
+        false
+      );
+      return newResponse;
+    });
+
+    writeItems(CalloutResponse, newResponses);
+  }
+}
+
 export async function anonymiseModel<T>(
   anonymiser: ModelAnonymiser<T>,
   fn: (qb: SelectQueryBuilder<T>) => SelectQueryBuilder<T>,
@@ -83,6 +136,11 @@ export async function anonymiseModel<T>(
 ): Promise<void> {
   const metadata = getRepository(anonymiser.model).metadata;
   log.info(`Anonymising ${metadata.tableName}`);
+
+  // Callout responses are handled separately
+  if (anonymiser === calloutResponsesAnonymiser) {
+    return await anonymiseCalloutResponses(fn as any, valueMap);
+  }
 
   // Order by primary keys for predictable pagination
   const orderBy: OrderByCondition = Object.fromEntries(
@@ -106,54 +164,5 @@ export async function anonymiseModel<T>(
     );
 
     writeItems(anonymiser.model, newItems);
-  }
-}
-
-function createAnswersMap(
-  components: CalloutComponentSchema[]
-): ObjectMap<CalloutResponseAnswers> {
-  return Object.fromEntries(
-    components.map((c) => [c.key, createComponentAnonymiser(c)])
-  );
-}
-
-export async function anonymiseCalloutResponses(
-  fn: (
-    qb: SelectQueryBuilder<CalloutResponse>
-  ) => SelectQueryBuilder<CalloutResponse>,
-  valueMap: Map<string, unknown>
-): Promise<void> {
-  log.info("Anonymising callout responses");
-
-  const callouts = await createQueryBuilder(Callout, "callout").getMany();
-  for (const callout of callouts) {
-    log.info("-- " + callout.slug);
-
-    const answersMap = createAnswersMap(
-      flattenComponents(callout.formSchema.components)
-    );
-
-    const responses = await fn(createQueryBuilder(CalloutResponse, "response"))
-      .loadAllRelationIds()
-      .where("response.callout = :callout", { callout: callout.slug })
-      .orderBy("id", "ASC")
-      .getMany();
-
-    const newResponses = responses.map((response) => {
-      const newResponse = anonymiseItem(
-        response,
-        calloutResponsesAnonymiser.objectMap,
-        valueMap
-      );
-      newResponse.answers = anonymiseItem(
-        response.answers,
-        answersMap,
-        undefined,
-        false
-      );
-      return newResponse;
-    });
-
-    writeItems(CalloutResponse, newResponses);
   }
 }
