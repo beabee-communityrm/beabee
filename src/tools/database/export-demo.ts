@@ -7,27 +7,27 @@ import * as db from "@core/database";
 import Contact from "@models/Contact";
 
 import {
-  ModelDrier,
-  paymentDataDrier,
-  paymentsDrier,
-  contactDrier,
-  contactRoleDrier,
-  contacrProfileDrier,
-  calloutResponsesDrier,
-  calloutsDrier,
-  runExport
-} from "./driers";
+  ModelAnonymiser,
+  paymentDataAnonymiser,
+  paymentsAnonymiser,
+  contactAnonymiser,
+  contactRoleAnonymiser,
+  contactProfileAnonymiser,
+  calloutResponsesAnonymiser,
+  calloutsAnonymiser
+} from "./anonymisers/models";
+import { anonymiseModel } from "./anonymisers";
 
 async function main() {
   for (const drier of [
-    calloutResponsesDrier,
-    calloutsDrier,
-    paymentDataDrier,
-    paymentsDrier,
-    contacrProfileDrier,
-    contactRoleDrier,
-    contactDrier
-  ] as ModelDrier<any>[]) {
+    calloutResponsesAnonymiser,
+    calloutsAnonymiser,
+    paymentDataAnonymiser,
+    paymentsAnonymiser,
+    contactProfileAnonymiser,
+    contactRoleAnonymiser,
+    contactAnonymiser
+  ] as ModelAnonymiser<any>[]) {
     console.log(
       `DELETE FROM "${getRepository(drier.model).metadata.tableName}";`
     );
@@ -44,36 +44,36 @@ async function main() {
 
   const valueMap = new Map<string, unknown>();
 
-  await runExport(
-    contactDrier,
+  await anonymiseModel(
+    contactAnonymiser,
     (qb) => qb.where("item.id IN (:...ids)", { ids: contactIds }),
     valueMap
   );
-  await runExport(
-    contactRoleDrier,
+  await anonymiseModel(
+    contactRoleAnonymiser,
     (qb) => qb.where("item.contactId IN (:...ids)", { ids: contactIds }),
     valueMap
   );
-  await runExport(
-    contacrProfileDrier,
+  await anonymiseModel(
+    contactProfileAnonymiser,
     (qb) => qb.where("item.contactId IN (:...ids)", { ids: contactIds }),
     valueMap
   );
-  await runExport(
-    paymentsDrier,
+  await anonymiseModel(
+    paymentsAnonymiser,
     (qb) =>
       qb
         .where("item.contactId IN (:...ids)", { ids: contactIds })
         .orderBy("id"),
     valueMap
   );
-  await runExport(
-    paymentDataDrier,
+  await anonymiseModel(
+    paymentDataAnonymiser,
     (qb) => qb.where("item.contactId IN (:...ids)", { ids: contactIds }),
     valueMap
   );
-  await runExport(
-    calloutsDrier,
+  await anonymiseModel(
+    calloutsAnonymiser,
     (qb) => qb.orderBy({ date: "DESC" }).limit(2),
     valueMap
   );
