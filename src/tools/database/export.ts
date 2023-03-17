@@ -4,18 +4,18 @@ import { getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
-import allDriers, { runExport } from "./driers";
+import modelAnonymisers from "./anonymisers/models";
+import { anonymiseModel } from "./anonymisers";
 
 async function main() {
-  for (const drier of allDriers.slice().reverse()) {
+  for (const anonymiser of modelAnonymisers.slice().reverse()) {
     console.log(
-      `DELETE FROM "${getRepository(drier.model).metadata.tableName}";`
+      `DELETE FROM "${getRepository(anonymiser.model).metadata.tableName}";\n`
     );
-    console.log();
   }
   const valueMap = new Map<string, unknown>();
-  for (const drier of allDriers) {
-    await runExport(drier, (qb) => qb, valueMap);
+  for (const anonymiser of modelAnonymisers) {
+    await anonymiseModel(anonymiser, (qb) => qb, valueMap);
   }
 }
 
