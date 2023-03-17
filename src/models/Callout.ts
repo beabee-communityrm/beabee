@@ -53,7 +53,7 @@ export default class Callout extends ItemWithStatus {
   @Column({ type: String, nullable: true })
   shareDescription!: string | null;
 
-  @Column({ type: "jsonb", default: "{}" })
+  @Column({ type: "jsonb" })
   formSchema!: CalloutFormSchema;
 
   @Column({ type: String, nullable: true })
