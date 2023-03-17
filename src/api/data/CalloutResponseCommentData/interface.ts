@@ -3,9 +3,13 @@ import { IsIn, IsObject, IsString } from "class-validator";
 import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery } from "../PaginatedData";
 
-export interface CalloutResponseCommentData {
-  responseId: string;
+export interface UpdateCalloutResponseComment {
   text: string;
+}
+
+export interface CalloutResponseCommentData
+  extends UpdateCalloutResponseComment {
+  responseId: string;
 }
 
 export interface CreateCalloutResponseCommentData

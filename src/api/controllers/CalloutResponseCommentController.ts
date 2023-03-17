@@ -7,7 +7,8 @@ import {
   GetCalloutResponseCommentData,
   CalloutResponseCommentData,
   GetCalloutResponseCommentsQuery,
-  CreateCalloutResponseCommentData
+  CreateCalloutResponseCommentData,
+  UpdateCalloutResponseComment
 } from "@api/data/CalloutResponseCommentData/interface";
 import PartialBody from "@api/decorators/PartialBody";
 import { Paginated } from "@beabee/beabee-common";
@@ -71,7 +72,7 @@ export class CalloutResponseCommentController {
   @Patch("/:id")
   async updateCalloutResponseComment(
     @Params() { id }: UUIDParam,
-    @PartialBody() data: CreateCalloutResponseCommentData
+    @PartialBody() data: UpdateCalloutResponseComment
   ): Promise<GetCalloutResponseCommentData | undefined> {
     await getRepository(CalloutResponseComment).update(id, data);
     return this.getCalloutResponseComment({ id });
