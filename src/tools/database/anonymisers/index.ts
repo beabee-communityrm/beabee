@@ -90,8 +90,6 @@ async function anonymiseCalloutResponses(
   ) => SelectQueryBuilder<CalloutResponse>,
   valueMap: Map<string, unknown>
 ): Promise<void> {
-  log.info("Anonymising callout responses");
-
   const callouts = await createQueryBuilder(Callout, "callout").getMany();
   for (const callout of callouts) {
     log.info("-- " + callout.slug);
