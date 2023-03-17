@@ -60,4 +60,7 @@ export default class CalloutResponse {
 
   @OneToMany("CalloutResponseTag", "response")
   tags!: CalloutResponseTag[];
+
+  @ManyToOne("Contact", { nullable: true })
+  assignee!: Contact | null;
 }

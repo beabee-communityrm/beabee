@@ -9,6 +9,7 @@ import {
 import Papa from "papaparse";
 import { NotFoundError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import { convertAnswers } from "@core/utils/callouts";
 
@@ -51,6 +52,9 @@ export function convertResponseToData(
     ...(_with?.includes(GetCalloutResponseWith.Answers) && {
       answers: response.answers
     }),
+    ...(_with?.includes(GetCalloutResponseWith.Assignee) && {
+      assignee: response.assignee && convertContactToData(response.assignee)
+    }),
     ...(_with?.includes(GetCalloutResponseWith.Callout) && {
       callout: convertCalloutToData(response.callout)
     }),
@@ -76,6 +80,9 @@ export async function fetchCalloutResponse(
       ...(!contact.hasRole("admin") && { contact })
     },
     relations: [
+      ...(query.with?.includes(GetCalloutResponseWith.Assignee)
+        ? ["assignee", "assignee.roles"]
+        : []),
       ...(query.with?.includes(GetCalloutResponseWith.Callout)
         ? ["callout"]
         : []),
@@ -89,6 +96,22 @@ export async function fetchCalloutResponse(
   });
 
   return response && convertResponseToData(response, query.with);
+}
+
+function getUpdateData(data: Partial<CreateCalloutResponseData>): {
+  tagUpdates: string[] | undefined;
+  responseUpdates: QueryDeepPartialEntity<CalloutResponse>;
+} {
+  const { tags: tagUpdates, assigneeId, ...otherUpdates } = data;
+  return {
+    tagUpdates,
+    responseUpdates: {
+      ...otherUpdates,
+      ...(assigneeId !== undefined && {
+        assignee: assigneeId ? { id: assigneeId } : null
+      })
+    }
+  };
 }
 
 async function updateResponseTags(responseIds: string[], tagUpdates: string[]) {
@@ -124,8 +147,8 @@ export async function updateCalloutResponse(
   id: string,
   data: Partial<CreateCalloutResponseData>
 ): Promise<void> {
-  const { tags: tagUpdates, ...updates } = data;
-  await getRepository(CalloutResponse).update(id, updates);
+  const { tagUpdates, responseUpdates } = getUpdateData(data);
+  await getRepository(CalloutResponse).update(id, responseUpdates);
   if (tagUpdates) {
     await updateResponseTags([id], tagUpdates);
   }
@@ -259,8 +282,8 @@ export async function exportCalloutResponses(
     fieldHandlers,
     (qb, fieldPrefix) => {
       qb.orderBy(`${fieldPrefix}createdAt`, "ASC");
+      qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-      qb.leftJoinAndSelect("contact.roles", "roles");
       qb.leftJoinAndSelect(`${fieldPrefix}tags`, "tags");
       qb.leftJoinAndSelect("tags.tag", "tag");
     }
@@ -276,6 +299,7 @@ export async function exportCalloutResponses(
       Number: response.number,
       Bucket: response.bucket,
       Tags: response.tags.map((rt) => rt.tag.name).join(", "),
+      Assignee: response.assignee?.email || "",
       ...(response.contact
         ? {
             FirstName: response.contact.firstname,
@@ -314,12 +338,16 @@ export async function fetchPaginatedCalloutResponses(
     contact,
     fieldHandlers,
     (qb, fieldPrefix) => {
+      if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
+        qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
+        qb.leftJoinAndSelect("assignee.roles", "assignee_roles");
+      }
       if (query.with?.includes(GetCalloutResponseWith.Callout)) {
         qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
       }
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
         qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-        qb.leftJoinAndSelect("contact.roles", "roles");
+        qb.leftJoinAndSelect("contact.roles", "contact_roles");
       }
     }
   );
@@ -357,12 +385,12 @@ export async function batchUpdateCalloutResponses(
     contact
   );
 
-  const { tags: tagUpdates, ...updates } = data.updates;
+  const { tagUpdates, responseUpdates } = getUpdateData(data.updates);
   const result = await batchUpdate(
     CalloutResponse,
     filters,
     rules,
-    updates,
+    responseUpdates,
     contact,
     fieldHandlers,
     (qb) => qb.returning(["id"])

@@ -163,7 +163,7 @@ export class CalloutController {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
     }
 
-    // TODO: support bucket/tags on create
+    // TODO: support assignee/bucket/tags on create
     if (contact) {
       await CalloutsService.setResponse(callout, contact, data.answers);
     } else {
