@@ -260,6 +260,13 @@ export function createComponentAnonymiser(
   component: CalloutComponentSchema
 ): (v: CalloutResponseAnswer) => CalloutResponseAnswer {
   switch (component.type) {
+    case "address":
+      return (v) => {
+        console.error("ADDRESS IS", v);
+        return "";
+      };
+    case "email":
+      return () => chance.email({ domain: "example.com", length: 10 });
     case "checkbox":
       return () => chance.pickone([true, false]);
     case "number":
@@ -270,13 +277,14 @@ export function createComponentAnonymiser(
       return () => chance.paragraph();
     case "textfield":
       return () => chance.sentence();
+    case "button":
+      return (v) => v;
+
     case "select":
     case "radio":
     case "selectboxes":
       const values =
         component.type === "select" ? component.data.values : component.values;
       return () => chance.pickone(values.map(({ value }) => value));
-    default:
-      return (v) => v;
   }
 }
