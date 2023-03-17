@@ -39,10 +39,10 @@ export class CalloutResponseCommentController {
       CalloutResponseComment
     ).save({
       text: data.text,
-      contact: { id: contact.id },
+      contact: contact,
       response: { id: data.responseId }
     });
-    return convertCommentToData(comment, data.responseId);
+    return convertCommentToData(comment);
   }
 
   @Get("/")
@@ -56,7 +56,10 @@ export class CalloutResponseCommentController {
   async getCalloutResponseComment(
     @Params() { id }: UUIDParam
   ): Promise<GetCalloutResponseCommentData | undefined> {
-    const comment = await getRepository(CalloutResponseComment).findOne(id);
+    const comment = await getRepository(CalloutResponseComment).findOne({
+      where: { id: id },
+      relations: ["contact"]
+    });
     if (comment) {
       return convertCommentToData(comment);
     }

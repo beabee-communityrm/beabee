@@ -1,5 +1,6 @@
 import Contact from "@models/Contact";
 import { IsIn, IsObject, IsString } from "class-validator";
+import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery } from "../PaginatedData";
 
 export interface CalloutResponseCommentData {
@@ -14,7 +15,7 @@ export interface CreateCalloutResponseCommentData
 
 export interface GetCalloutResponseCommentData
   extends CalloutResponseCommentData {
-  contact: Contact;
+  contact: GetContactData;
   id: string;
   createdAt: Date;
   updatedAt: Date;
