@@ -4,7 +4,7 @@ import { getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
-import allDriers, { runExport } from "./driers";
+import allDriers, { runExport, runExportCalloutResponses } from "./driers";
 
 async function main() {
   for (const drier of allDriers.slice().reverse()) {
@@ -17,6 +17,7 @@ async function main() {
   for (const drier of allDriers) {
     await runExport(drier, (qb) => qb, valueMap);
   }
+  await runExportCalloutResponses((qb) => qb, valueMap);
 }
 
 db.connect().then(async () => {

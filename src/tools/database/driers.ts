@@ -233,7 +233,6 @@ export default [
   paymentsDrier,
   pageSettingsDrier,
   calloutsDrier, // Must be before calloutResponsesDrier
-  calloutResponsesDrier,
   projectsDrier,
   projectContactsDrier,
   projectEngagmentsDrier,
@@ -259,9 +258,10 @@ function stringify(value: any): string {
 function runDrier<T>(
   item: T,
   drier: Drier<T>,
-  valueMap: Map<string, unknown>
+  valueMap?: Map<string, unknown>,
+  copyProps = true
 ): T {
-  const newItem = Object.assign({}, item);
+  const newItem = copyProps ? Object.assign({}, item) : ({} as T);
 
   for (const _prop of Object.keys(drier.propMap)) {
     const prop = _prop as keyof T;
@@ -272,10 +272,13 @@ function runDrier<T>(
 
       const newValue = isDrier(propMap)
         ? runDrier(oldValue, propMap, valueMap)
-        : valueMap.get(valueKey) || propMap(oldValue);
+        : valueMap?.get(valueKey) || propMap(oldValue);
 
-      valueMap.set(valueKey, newValue);
       newItem[prop] = newValue as ({} & T)[keyof T];
+
+      if (valueMap) {
+        valueMap.set(valueKey, newValue);
+      }
     }
   }
 
@@ -319,32 +322,41 @@ export async function runExport<T>(
   }
 }
 
-const componentMapper = {
-  textarea: () => () => chance.paragraph(),
-  textfield: () => () => chance.sentence(),
-  select: (component) => () => chance.pickone(component.data.values),
-  number: () => () => chance.integer(),
-  password: () => () => chance.word(),
-  button: () => (v) => v,
-  radio: () => (v) => v,
-  selectboxes: () => (v) => v,
-  checkbox: () => (v) => v
-} as const satisfies Record<
-  CalloutComponentSchema["type"],
-  (
-    component: CalloutComponentSchema
-  ) => (v: CalloutResponseAnswer) => CalloutResponseAnswer
->;
+function createComponentMapper(
+  component: CalloutComponentSchema
+): (v: CalloutResponseAnswer) => CalloutResponseAnswer {
+  switch (component.type) {
+    // case "button":
+    //   return (v) => v;
+    case "checkbox":
+      return () => chance.pickone([true, false]);
+    case "number":
+      return () => chance.integer();
+    case "password":
+      return () => chance.word();
+    case "textarea":
+      return () => chance.paragraph();
+    case "textfield":
+      return () => chance.sentence();
+    case "select":
+    case "radio":
+    case "selectboxes":
+      const values =
+        component.type === "select" ? component.data.values : component.values;
+      return () => chance.pickone(values.map(({ value }) => value));
+    default:
+      return (v) => v;
+  }
+}
 
-function createAnswersDrier(callout: Callout): Drier<CalloutResponseAnswers> {
-  const propMap = Object.fromEntries(
-    flattenComponents(callout.formSchema.components).map((component) => [
-      component.key,
-      componentMapper[component.type](component)
-    ])
-  );
-
-  return { propMap };
+function createAnswersDrier(
+  components: CalloutComponentSchema[]
+): Drier<CalloutResponseAnswers> {
+  return {
+    propMap: Object.fromEntries(
+      components.map((c) => [c.key, createComponentMapper(c)])
+    )
+  };
 }
 
 export async function runExportCalloutResponses(
@@ -357,17 +369,27 @@ export async function runExportCalloutResponses(
 
   const callouts = await createQueryBuilder(Callout, "callout").getMany();
   for (const callout of callouts) {
-    const answersDrier = createAnswersDrier(callout);
+    log.info("-- " + callout.slug);
+
+    const answersDrier = createAnswersDrier(
+      flattenComponents(callout.formSchema.components)
+    );
 
     const responses = await fn(createQueryBuilder(CalloutResponse, "response"))
       .loadAllRelationIds()
-      .where("response.callout = :callout", { callout })
+      .where("response.callout = :callout", { callout: callout.slug })
       .orderBy("id", "ASC")
       .getMany();
 
     const newResponses = responses.map((response) => {
       const newResponse = runDrier(response, calloutResponsesDrier, valueMap);
-      newResponse.answers = runDrier(response.answers, answersDrier, valueMap);
+      newResponse.answers = runDrier(
+        response.answers,
+        answersDrier,
+        undefined,
+        false
+      );
+      return newResponse;
     });
 
     const [query, params] = createQueryBuilder()
