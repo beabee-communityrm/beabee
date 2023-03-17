@@ -18,8 +18,11 @@ import {
   Authorized,
   Body,
   CurrentUser,
+  Delete,
   Get,
   JsonController,
+  NotFoundError,
+  OnUndefined,
   Params,
   Patch,
   Post,
@@ -72,5 +75,12 @@ export class CalloutResponseCommentController {
   ): Promise<GetCalloutResponseCommentData | undefined> {
     await getRepository(CalloutResponseComment).update(id, data);
     return this.getCalloutResponseComment({ id });
+  }
+
+  @OnUndefined(204)
+  @Delete("/:id")
+  async deleteCalloutResponseComment(@Params() { id }: UUIDParam) {
+    const result = await getRepository(CalloutResponseComment).delete(id);
+    if (!result.affected) throw new NotFoundError();
   }
 }
