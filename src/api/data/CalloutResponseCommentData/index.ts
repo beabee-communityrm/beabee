@@ -23,8 +23,20 @@ export function convertCommentToData(
   return commentData;
 }
 
-const commentFilter: Filters = {
+const commentFilters: Filters = {
   responseId: {
+    type: "text"
+  },
+  contact: {
+    type: "contact"
+  },
+  createdAt: {
+    type: "date"
+  },
+  updatedAt: {
+    type: "date"
+  },
+  text: {
     type: "text"
   }
 };
@@ -47,7 +59,7 @@ export async function fetchPaginatedCalloutResponseComments(
 ): Promise<Paginated<GetCalloutResponseCommentData>> {
   const results = await fetchPaginated(
     CalloutResponseComment,
-    commentFilter,
+    commentFilters,
     query,
     undefined,
     undefined,

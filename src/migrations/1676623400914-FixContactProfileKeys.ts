@@ -1,9 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class AddCalloutResponseCommentTable1676623400914
-  implements MigrationInterface
-{
-  name = "AddCalloutResponseCommentTable1676623400914";
+export class FixContactProfileKeys1676623400914 implements MigrationInterface {
+  name = "FixContactProfileKeys1676623400914";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
