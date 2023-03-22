@@ -1,6 +1,6 @@
 import { ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
-import { IsBoolean, IsDate, IsIn, IsOptional, IsString } from "class-validator";
+import { IsDate, IsIn, IsOptional, IsString } from "class-validator";
 import { GetPaginatedQuery } from "./PaginatedData";
 
 interface NoticeData {

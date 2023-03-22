@@ -2,3 +2,5 @@ node_modules
 /built/
 /tsconfig.tsbuildinfo
 .env
+.DS_Store
+data.export
