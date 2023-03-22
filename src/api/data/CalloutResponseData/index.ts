@@ -4,14 +4,13 @@ import {
   FilterType,
   convertComponentsToFilters,
   RuleOperator,
-  Filters
+  Filters,
+  convertAnswers
 } from "@beabee/beabee-common";
 import Papa from "papaparse";
 import { NotFoundError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
-
-import { convertAnswers } from "@core/utils/callouts";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -314,7 +313,7 @@ export async function exportCalloutResponses(
             EmailAddress: response.guestEmail
           }),
       IsGuest: !response.contact,
-      ...convertAnswers(callout, response.answers)
+      ...convertAnswers(callout.formSchema, response.answers)
     };
   });
   return [exportName, Papa.unparse(exportData)];

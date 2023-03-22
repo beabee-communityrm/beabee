@@ -5,12 +5,12 @@ import { createQueryBuilder, getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
-import { convertAnswers } from "@core/utils/callouts";
 
 import Callout, { CalloutAccess } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
 import { createPollSchema } from "./schemas.json";
+import { convertAnswers } from "@beabee/beabee-common";
 
 interface CreatePollSchema {
   title: string;
@@ -202,7 +202,7 @@ app.post(
               IsMember: !!response.contact,
               Number: response.number,
               Bucket: response.bucket,
-              ...convertAnswers(callout, response.answers)
+              ...convertAnswers(callout.formSchema, response.answers)
             };
           });
           res.attachment(exportName).send(Papa.unparse(exportData));
