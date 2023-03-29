@@ -19,7 +19,7 @@ import Contact from "@models/Contact";
 
 import { convertCalloutToData } from "../CalloutData";
 import { convertTagToData } from "../CalloutTagData";
-import { convertContactToData } from "../ContactData";
+import { convertContactToData, loadContactRoles } from "../ContactData";
 import {
   mergeRules,
   fetchPaginated,
@@ -339,14 +339,12 @@ export async function fetchPaginatedCalloutResponses(
     (qb, fieldPrefix) => {
       if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
         qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
-        qb.leftJoinAndSelect("assignee.roles", "assignee_roles");
       }
       if (query.with?.includes(GetCalloutResponseWith.Callout)) {
         qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
       }
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
         qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-        qb.leftJoinAndSelect("contact.roles", "contact_roles");
       }
     }
   );
@@ -367,6 +365,12 @@ export async function fetchPaginatedCalloutResponses(
     for (const item of results.items) {
       item.tags = responseTags.filter((rt) => (rt as any).response === item.id);
     }
+
+    // Load contact roles after to ensure offset/limit work
+    const contacts = results.items
+      .flatMap((item) => [item.contact, item.assignee])
+      .filter((c) => !!c) as Contact[];
+    await loadContactRoles(contacts);
   }
 
   return {
