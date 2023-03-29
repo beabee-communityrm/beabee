@@ -14,11 +14,13 @@ import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
 import { convertCalloutToData } from "../CalloutData";
 import { convertTagToData } from "../CalloutTagData";
+import { convertCommentToData } from "../CalloutResponseCommentData";
 import { convertContactToData, loadContactRoles } from "../ContactData";
 import {
   mergeRules,
@@ -37,8 +39,6 @@ import {
   BatchUpdateCalloutResponseData,
   CreateCalloutResponseData
 } from "./interface";
-import CalloutResponseComment from "@models/CalloutResponseComment";
-import { convertCommentToData } from "../CalloutResponseCommentData";
 
 function convertResponseToData(
   response: CalloutResponse,
