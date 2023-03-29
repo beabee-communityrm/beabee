@@ -204,18 +204,8 @@ export async function fetchPaginatedContacts(
     }
   );
 
-  if (results.items.length > 0) {
-    // Load roles after to ensure offset/limit work
-    const roles = await createQueryBuilder(ContactRole, "mp")
-      .where("mp.contactId IN (:...ids)", {
-        ids: results.items.map((t) => t.id)
-      })
-      .loadAllRelationIds()
-      .getMany();
-    for (const item of results.items) {
-      item.roles = roles.filter((p) => (p.contact as any) === item.id);
-    }
-  }
+  // Load roles after to ensure offset/limit work
+  await loadContactRoles(results.items);
 
   return {
     ...results,
@@ -223,6 +213,21 @@ export async function fetchPaginatedContacts(
       convertContactToData(item, { ...opts, with: query.with })
     )
   };
+}
+
+export async function loadContactRoles(contacts: Contact[]): Promise<void> {
+  if (contacts.length > 0) {
+    // Load roles after to ensure offset/limit work
+    const roles = await createQueryBuilder(ContactRole, "mp")
+      .where("mp.contactId IN (:...ids)", {
+        ids: contacts.map((t) => t.id)
+      })
+      .loadAllRelationIds()
+      .getMany();
+    for (const contact of contacts) {
+      contact.roles = roles.filter((p) => (p.contact as any) === contact.id);
+    }
+  }
 }
 
 export * from "./interface";

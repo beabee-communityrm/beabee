@@ -1,7 +1,7 @@
 import { Filters, Paginated } from "@beabee/beabee-common";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import { SelectQueryBuilder } from "typeorm";
-import { convertContactToData } from "../ContactData";
+import { convertContactToData, loadContactRoles } from "../ContactData";
 import { fetchPaginated } from "../PaginatedData";
 import {
   GetCalloutResponseCommentData,
@@ -41,19 +41,6 @@ const commentFilters: Filters = {
   }
 };
 
-const queryCallback: (
-  qb: SelectQueryBuilder<CalloutResponseComment>,
-  fieldPrefix: string
-) => void = function (
-  qb: SelectQueryBuilder<CalloutResponseComment>,
-  fieldPrefix: string
-): void {
-  qb.leftJoinAndSelect(fieldPrefix + "contact", "contact").leftJoinAndSelect(
-    "contact.roles",
-    "roles"
-  );
-};
-
 export async function fetchPaginatedCalloutResponseComments(
   query: GetCalloutResponseCommentsQuery
 ): Promise<Paginated<GetCalloutResponseCommentData>> {
@@ -63,8 +50,13 @@ export async function fetchPaginatedCalloutResponseComments(
     query,
     undefined,
     undefined,
-    queryCallback
+    (qb, fieldPrefix) =>
+      qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact")
   );
+
+  // Load contact roles after to ensure offset/limit work
+  await loadContactRoles(results.items.map((i) => i.contact));
+
   return {
     ...results,
     items: results.items.map((comment) => convertCommentToData(comment))
