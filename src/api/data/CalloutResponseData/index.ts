@@ -73,36 +73,6 @@ function convertResponseToData(
   };
 }
 
-export async function fetchCalloutResponse(
-  id: string,
-  query: GetCalloutResponseQuery,
-  contact: Contact
-): Promise<GetCalloutResponseData | undefined> {
-  const response = await getRepository(CalloutResponse).findOne({
-    where: {
-      id,
-      // Non-admins can only see their own responses
-      ...(!contact.hasRole("admin") && { contact })
-    },
-    relations: [
-      ...(query.with?.includes(GetCalloutResponseWith.Assignee)
-        ? ["assignee", "assignee.roles"]
-        : []),
-      ...(query.with?.includes(GetCalloutResponseWith.Callout)
-        ? ["callout"]
-        : []),
-      ...(query.with?.includes(GetCalloutResponseWith.Contact)
-        ? ["contact", "contact.roles"]
-        : []),
-      ...(query.with?.includes(GetCalloutResponseWith.Tags)
-        ? ["tags", "tags.tag"]
-        : [])
-    ]
-  });
-
-  return response && convertResponseToData(response, query.with);
-}
-
 function getUpdateData(data: Partial<CreateCalloutResponseData>): {
   tagUpdates: string[] | undefined;
   responseUpdates: QueryDeepPartialEntity<CalloutResponse>;
@@ -434,6 +404,26 @@ export async function batchUpdateCalloutResponses(
   }
 
   return result.affected || -1;
+}
+
+export async function fetchCalloutResponse(
+  id: string,
+  query: GetCalloutResponseQuery,
+  contact: Contact
+): Promise<GetCalloutResponseData | undefined> {
+  const a = await fetchPaginatedCalloutResponses(
+    {
+      ...query,
+      limit: 1,
+      rules: {
+        condition: "AND",
+        rules: [{ field: "id", operator: "equal", value: [id] }]
+      }
+    },
+    contact
+  );
+
+  return a.items[0];
 }
 
 export * from "./interface";
