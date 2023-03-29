@@ -11,7 +11,8 @@ import {
 
 import type Contact from "./Contact";
 import type Callout from "./Callout";
-import CalloutResponseTag from "./CalloutResponseTag";
+import type CalloutResponseTag from "./CalloutResponseTag";
+import type CalloutResponseComment from "./CalloutResponseComment";
 
 export type CalloutResponseAnswer =
   | string
@@ -63,4 +64,6 @@ export default class CalloutResponse {
 
   @ManyToOne("Contact", { nullable: true })
   assignee!: Contact | null;
+
+  latestComment?: CalloutResponseComment | null;
 }

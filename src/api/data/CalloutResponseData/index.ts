@@ -37,8 +37,10 @@ import {
   BatchUpdateCalloutResponseData,
   CreateCalloutResponseData
 } from "./interface";
+import CalloutResponseComment from "@models/CalloutResponseComment";
+import { convertCommentToData } from "../CalloutResponseCommentData";
 
-export function convertResponseToData(
+function convertResponseToData(
   response: CalloutResponse,
   _with?: GetCalloutResponseWith[]
 ): GetCalloutResponseData {
@@ -59,6 +61,10 @@ export function convertResponseToData(
     }),
     ...(_with?.includes(GetCalloutResponseWith.Contact) && {
       contact: response.contact && convertContactToData(response.contact)
+    }),
+    ...(_with?.includes(GetCalloutResponseWith.LatestComment) && {
+      latestComment:
+        response.latestComment && convertCommentToData(response.latestComment)
     }),
     ...(_with?.includes(GetCalloutResponseWith.Tags) &&
       response.tags && {
@@ -349,28 +355,47 @@ export async function fetchPaginatedCalloutResponses(
     }
   );
 
-  if (
-    results.items.length > 0 &&
-    query.with?.includes(GetCalloutResponseWith.Tags)
-  ) {
-    // Load tags after to ensure offset/limit work
-    const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
-      .where("rt.response IN (:...ids)", {
-        ids: results.items.map((i) => i.id)
-      })
-      .innerJoinAndSelect("rt.tag", "tag")
-      .loadAllRelationIds({ relations: ["response"] })
-      .getMany();
+  if (results.items.length > 0) {
+    const responseIds = results.items.map((i) => i.id);
 
-    for (const item of results.items) {
-      item.tags = responseTags.filter((rt) => (rt as any).response === item.id);
+    if (query.with?.includes(GetCalloutResponseWith.LatestComment)) {
+      const comments = await createQueryBuilder(CalloutResponseComment, "c")
+        .distinctOn(["c.response"])
+        .where("c.response IN (:...ids)", { ids: responseIds })
+        .leftJoinAndSelect("c.contact", "contact")
+        .orderBy({ "c.response": "ASC", "c.createdAt": "DESC" })
+        .getMany();
+
+      for (const item of results.items) {
+        item.latestComment =
+          comments.find((c) => c.responseId === item.id) || null;
+      }
     }
 
     // Load contact roles after to ensure offset/limit work
     const contacts = results.items
-      .flatMap((item) => [item.contact, item.assignee])
+      .flatMap((item) => [
+        item.contact,
+        item.assignee,
+        item.latestComment?.contact
+      ])
       .filter((c) => !!c) as Contact[];
     await loadContactRoles(contacts);
+
+    if (query.with?.includes(GetCalloutResponseWith.Tags)) {
+      // Load tags after to ensure offset/limit work
+      const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
+        .where("rt.response IN (:...ids)", { ids: responseIds })
+        .innerJoinAndSelect("rt.tag", "tag")
+        .loadAllRelationIds({ relations: ["response"] })
+        .getMany();
+
+      for (const item of results.items) {
+        item.tags = responseTags.filter(
+          (rt) => (rt as any).response === item.id
+        );
+      }
+    }
   }
 
   return {
