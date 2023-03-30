@@ -67,7 +67,17 @@ export class GetPaginatedRuleGroup implements RuleGroup {
   rules!: GetPaginatedRuleGroupRule[];
 }
 
-export class GetPaginatedQuery implements PaginatedQuery {
+export class GetExportQuery {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GetPaginatedRuleGroup)
+  rules?: GetPaginatedRuleGroup;
+}
+
+export class GetPaginatedQuery
+  extends GetExportQuery
+  implements PaginatedQuery
+{
   @IsOptional()
   @Min(1)
   @Max(100)
@@ -84,11 +94,6 @@ export class GetPaginatedQuery implements PaginatedQuery {
   @IsOptional()
   @IsIn(["ASC", "DESC"])
   order?: "ASC" | "DESC";
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => GetPaginatedRuleGroup)
-  rules?: GetPaginatedRuleGroup;
 }
 
 export type RichRuleValue = RuleValue | Date;

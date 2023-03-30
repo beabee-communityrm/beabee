@@ -41,7 +41,6 @@ import {
 import {
   CreateCalloutResponseData,
   exportCalloutResponses,
-  ExportCalloutResponsesQuery,
   fetchPaginatedCalloutResponses,
   GetCalloutResponseData,
   GetCalloutResponsesQuery
@@ -51,7 +50,7 @@ import {
   CreateCalloutTagData,
   GetCalloutTagData
 } from "@api/data/CalloutTagData";
-import { Paginated } from "@api/data/PaginatedData";
+import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
@@ -135,7 +134,7 @@ export class CalloutController {
   async exportCalloutResponses(
     @CurrentUser() contact: Contact,
     @Param("slug") slug: string,
-    @QueryParams() query: ExportCalloutResponsesQuery,
+    @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
     const [exportName, exportData] = await exportCalloutResponses(
