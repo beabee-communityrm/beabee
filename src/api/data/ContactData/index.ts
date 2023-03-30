@@ -1,5 +1,8 @@
 import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
+import Papa from "papaparse";
 import { Brackets, createQueryBuilder } from "typeorm";
+
+import { getMembershipStatus } from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
@@ -10,7 +13,8 @@ import {
   fetchPaginated,
   Paginated,
   FieldHandlers,
-  FieldHandler
+  FieldHandler,
+  GetPaginatedRuleGroup
 } from "@api/data/PaginatedData";
 
 import { GetContactData, GetContactsQuery, GetContactWith } from "./interface";
@@ -154,6 +158,51 @@ export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
     qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
   }
 };
+
+export async function exportContacts(
+  rules: GetPaginatedRuleGroup | undefined
+): Promise<[string, string]> {
+  const exportName = `contacts-${new Date().toISOString()}.csv`;
+
+  const results = await fetchPaginated(
+    Contact,
+    contactFilters,
+    { limit: -1, ...(rules && { rules }) },
+    undefined,
+    contactFieldHandlers,
+    (qb, fieldPrefix) => {
+      qb.orderBy(`${fieldPrefix}joined`);
+      qb.leftJoinAndSelect(`${fieldPrefix}roles`, "roles");
+      qb.leftJoinAndSelect(`${fieldPrefix}profile`, "profile");
+      qb.leftJoinAndSelect(`${fieldPrefix}paymentData`, "pd");
+    }
+  );
+
+  const exportData = results.items.map((contact) => {
+    const hasCancelled =
+      "cancelledAt" in contact.paymentData.data &&
+      !!contact.paymentData.data.cancelledAt;
+
+    return {
+      Id: contact.id,
+      EmailAddress: contact.email,
+      FirstName: contact.firstname,
+      LastName: contact.lastname,
+      Joined: contact.joined,
+      Tags: contact.profile.tags.join(", "),
+      ContributionType: contact.contributionType,
+      ContributionMonthlyAmount: contact.contributionMonthlyAmount,
+      ContributionPeriod: contact.contributionPeriod,
+      ContributionDescription: contact.contributionDescription,
+      MembershipStarts: contact.membership?.dateAdded,
+      MembershipExpires: contact.membership?.dateExpires,
+      MembershipStatus: getMembershipStatus(contact, hasCancelled),
+      NewsletterStatus: contact.profile.newsletterStatus
+    };
+  });
+
+  return [exportName, Papa.unparse(exportData)];
+}
 
 export async function fetchPaginatedContacts(
   query: GetContactsQuery,

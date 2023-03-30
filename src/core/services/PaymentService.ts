@@ -28,6 +28,17 @@ const PaymentProviders = {
   [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
 
+// TODO: cancelled status should be stored in known place, not in PaymentData.data
+export function getMembershipStatus(contact: Contact, hasCancelled: boolean) {
+  return contact.membership
+    ? contact.membership.isActive
+      ? hasCancelled
+        ? "expiring"
+        : "active"
+      : "expired"
+    : "none";
+}
+
 class PaymentService {
   async getData(contact: Contact): Promise<PaymentData> {
     const data = await getRepository(PaymentData).findOneOrFail(contact.id);
@@ -118,20 +129,14 @@ class PaymentService {
       p.getContributionInfo()
     );
 
-    const hsaCancelled = !!providerInfo.cancellationDate;
-    const renewalDate = !hsaCancelled && calcRenewalDate(contact);
+    const hasCancelled = !!providerInfo.cancellationDate;
+    const renewalDate = !hasCancelled && calcRenewalDate(contact);
 
     return {
       ...basicInfo,
       ...providerInfo,
       ...(renewalDate && { renewalDate }),
-      membershipStatus: contact.membership
-        ? contact.membership.isActive
-          ? hsaCancelled
-            ? "expiring"
-            : "active"
-          : "expired"
-        : "none"
+      membershipStatus: getMembershipStatus(contact, hasCancelled)
     };
   }
 

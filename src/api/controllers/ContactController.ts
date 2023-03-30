@@ -5,7 +5,7 @@ import {
   paymentFilters,
   NewsletterStatus
 } from "@beabee/beabee-common";
-import { Request } from "express";
+import { Request, Response } from "express";
 import {
   Authorized,
   BadRequestError,
@@ -22,6 +22,7 @@ import {
   Post,
   Put,
   QueryParams,
+  Res,
   UnauthorizedError
 } from "routing-controllers";
 import { getRepository } from "typeorm";
@@ -55,7 +56,8 @@ import {
   GetPaymentData,
   GetPaymentsQuery,
   UpdateContactRoleData,
-  UpdateContactData
+  UpdateContactData,
+  exportContacts
 } from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
@@ -67,7 +69,12 @@ import {
   UpdateContributionData,
   ForceUpdateContributionData
 } from "@api/data/ContributionData";
-import { mergeRules, fetchPaginated, Paginated } from "@api/data/PaginatedData";
+import {
+  mergeRules,
+  fetchPaginated,
+  Paginated,
+  GetExportQuery
+} from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -163,6 +170,17 @@ export class ContactController {
     return await fetchPaginatedContacts(query, {
       withRestricted: true
     });
+  }
+
+  @Authorized("admin")
+  @Get(".csv")
+  async exportContacts(
+    @QueryParams() query: GetExportQuery,
+    @Res() res: Response
+  ): Promise<Response> {
+    const [exportName, exportData] = await exportContacts(query.rules);
+    res.attachment(exportName).send(exportData);
+    return res;
   }
 
   @Get("/:id")
