@@ -1,9 +1,8 @@
-import { ContributionType } from "@beabee/beabee-common";
+import { convertAnswers } from "@beabee/beabee-common";
 import _ from "lodash";
 import { createQueryBuilder, getRepository, SelectQueryBuilder } from "typeorm";
 
 import { Param } from "@core/utils/params";
-import { convertAnswers } from "@core/utils/callouts";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -106,7 +105,8 @@ export default class EditionExport extends ActiveMembersExport {
         City: deliveryAddress.city,
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
         ContributionMonthlyAmount: contact.contributionMonthlyAmount,
-        ...(response && convertAnswers(response.callout, response.answers))
+        ...(response &&
+          convertAnswers(response.callout.formSchema, response.answers))
       };
     });
   }
