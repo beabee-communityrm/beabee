@@ -4,23 +4,24 @@ import {
   FilterType,
   convertComponentsToFilters,
   RuleOperator,
-  Filters
+  Filters,
+  convertAnswers
 } from "@beabee/beabee-common";
 import Papa from "papaparse";
 import { NotFoundError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-import { convertAnswers } from "@core/utils/callouts";
-
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
 import { convertCalloutToData } from "../CalloutData";
 import { convertTagToData } from "../CalloutTagData";
-import { convertContactToData } from "../ContactData";
+import { convertCommentToData } from "../CalloutResponseCommentData";
+import { convertContactToData, loadContactRoles } from "../ContactData";
 import {
   mergeRules,
   fetchPaginated,
@@ -39,7 +40,7 @@ import {
   CreateCalloutResponseData
 } from "./interface";
 
-export function convertResponseToData(
+function convertResponseToData(
   response: CalloutResponse,
   _with?: GetCalloutResponseWith[]
 ): GetCalloutResponseData {
@@ -61,41 +62,15 @@ export function convertResponseToData(
     ...(_with?.includes(GetCalloutResponseWith.Contact) && {
       contact: response.contact && convertContactToData(response.contact)
     }),
+    ...(_with?.includes(GetCalloutResponseWith.LatestComment) && {
+      latestComment:
+        response.latestComment && convertCommentToData(response.latestComment)
+    }),
     ...(_with?.includes(GetCalloutResponseWith.Tags) &&
       response.tags && {
         tags: response.tags.map((rt) => convertTagToData(rt.tag))
       })
   };
-}
-
-export async function fetchCalloutResponse(
-  id: string,
-  query: GetCalloutResponseQuery,
-  contact: Contact
-): Promise<GetCalloutResponseData | undefined> {
-  const response = await getRepository(CalloutResponse).findOne({
-    where: {
-      id,
-      // Non-admins can only see their own responses
-      ...(!contact.hasRole("admin") && { contact })
-    },
-    relations: [
-      ...(query.with?.includes(GetCalloutResponseWith.Assignee)
-        ? ["assignee", "assignee.roles"]
-        : []),
-      ...(query.with?.includes(GetCalloutResponseWith.Callout)
-        ? ["callout"]
-        : []),
-      ...(query.with?.includes(GetCalloutResponseWith.Contact)
-        ? ["contact", "contact.roles"]
-        : []),
-      ...(query.with?.includes(GetCalloutResponseWith.Tags)
-        ? ["tags", "tags.tag"]
-        : [])
-    ]
-  });
-
-  return response && convertResponseToData(response, query.with);
 }
 
 function getUpdateData(data: Partial<CreateCalloutResponseData>): {
@@ -314,7 +289,7 @@ export async function exportCalloutResponses(
             EmailAddress: response.guestEmail
           }),
       IsGuest: !response.contact,
-      ...convertAnswers(callout, response.answers)
+      ...convertAnswers(callout.formSchema, response.answers)
     };
   });
   return [exportName, Papa.unparse(exportData)];
@@ -340,33 +315,56 @@ export async function fetchPaginatedCalloutResponses(
     (qb, fieldPrefix) => {
       if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
         qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
-        qb.leftJoinAndSelect("assignee.roles", "assignee_roles");
       }
       if (query.with?.includes(GetCalloutResponseWith.Callout)) {
         qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
       }
       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
         qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-        qb.leftJoinAndSelect("contact.roles", "contact_roles");
       }
     }
   );
 
-  if (
-    results.items.length > 0 &&
-    query.with?.includes(GetCalloutResponseWith.Tags)
-  ) {
-    // Load tags after to ensure offset/limit work
-    const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
-      .where("rt.response IN (:...ids)", {
-        ids: results.items.map((i) => i.id)
-      })
-      .innerJoinAndSelect("rt.tag", "tag")
-      .loadAllRelationIds({ relations: ["response"] })
-      .getMany();
+  if (results.items.length > 0) {
+    const responseIds = results.items.map((i) => i.id);
 
-    for (const item of results.items) {
-      item.tags = responseTags.filter((rt) => (rt as any).response === item.id);
+    if (query.with?.includes(GetCalloutResponseWith.LatestComment)) {
+      const comments = await createQueryBuilder(CalloutResponseComment, "c")
+        .distinctOn(["c.response"])
+        .where("c.response IN (:...ids)", { ids: responseIds })
+        .leftJoinAndSelect("c.contact", "contact")
+        .orderBy({ "c.response": "ASC", "c.createdAt": "DESC" })
+        .getMany();
+
+      for (const item of results.items) {
+        item.latestComment =
+          comments.find((c) => c.responseId === item.id) || null;
+      }
+    }
+
+    // Load contact roles after to ensure offset/limit work
+    const contacts = results.items
+      .flatMap((item) => [
+        item.contact,
+        item.assignee,
+        item.latestComment?.contact
+      ])
+      .filter((c) => !!c) as Contact[];
+    await loadContactRoles(contacts);
+
+    if (query.with?.includes(GetCalloutResponseWith.Tags)) {
+      // Load tags after to ensure offset/limit work
+      const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
+        .where("rt.response IN (:...ids)", { ids: responseIds })
+        .innerJoinAndSelect("rt.tag", "tag")
+        .loadAllRelationIds({ relations: ["response"] })
+        .getMany();
+
+      for (const item of results.items) {
+        item.tags = responseTags.filter(
+          (rt) => (rt as any).response === item.id
+        );
+      }
     }
   }
 
@@ -406,6 +404,26 @@ export async function batchUpdateCalloutResponses(
   }
 
   return result.affected || -1;
+}
+
+export async function fetchCalloutResponse(
+  id: string,
+  query: GetCalloutResponseQuery,
+  contact: Contact
+): Promise<GetCalloutResponseData | undefined> {
+  const a = await fetchPaginatedCalloutResponses(
+    {
+      ...query,
+      limit: 1,
+      rules: {
+        condition: "AND",
+        rules: [{ field: "id", operator: "equal", value: [id] }]
+      }
+    },
+    contact
+  );
+
+  return a.items[0];
 }
 
 export * from "./interface";

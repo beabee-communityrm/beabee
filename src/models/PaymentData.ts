@@ -37,7 +37,7 @@ export type PaymentProviderData =
 
 @Entity()
 export default class PaymentData {
-  @OneToOne("Contact", "profile", { primary: true })
+  @OneToOne("Contact", "paymentData", { primary: true })
   @JoinColumn()
   contact!: Contact;
 

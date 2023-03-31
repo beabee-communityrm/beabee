@@ -18,6 +18,7 @@ import config from "@config";
 import type ContactRole from "./ContactRole";
 import type ContactProfile from "./ContactProfile";
 import Password from "./Password";
+import type PaymentData from "./PaymentData";
 
 interface LoginOverride {
   code: string;
@@ -81,6 +82,9 @@ export default class Contact {
 
   @OneToOne("ContactProfile", "contact")
   profile!: ContactProfile;
+
+  @OneToOne("PaymentData", "contact")
+  paymentData!: PaymentData;
 
   get activeRoles(): RoleType[] {
     return this.roles.filter((p) => p.isActive).map((p) => p.type);
