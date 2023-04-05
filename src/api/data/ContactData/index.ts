@@ -197,7 +197,12 @@ export async function exportContacts(
       MembershipStarts: contact.membership?.dateAdded,
       MembershipExpires: contact.membership?.dateExpires,
       MembershipStatus: getMembershipStatus(contact, hasCancelled),
-      NewsletterStatus: contact.profile.newsletterStatus
+      NewsletterStatus: contact.profile.newsletterStatus,
+      DeliveryOptIn: contact.profile.deliveryOptIn,
+      DeliveryAddressLine1: contact.profile.deliveryAddress?.line1 || "",
+      DeliveryAddressLine2: contact.profile.deliveryAddress?.line2 || "",
+      DeliveryAddressCity: contact.profile.deliveryAddress?.city || "",
+      DeliveryAddressPostcode: contact.profile.deliveryAddress?.postcode || ""
     };
   });
 
