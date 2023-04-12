@@ -1,7 +1,8 @@
 import {
   ContributionPeriod,
   ContributionType,
-  PaymentMethod
+  PaymentMethod,
+  calcPaymentFee
 } from "@beabee/beabee-common";
 import config from "@config";
 import Contact from "@models/Contact";
@@ -59,49 +60,16 @@ export function calcMonthsLeft(contact: Contact): number {
     : 0;
 }
 
-interface Feeable {
-  amount: number;
-  period: ContributionPeriod;
-  paymentMethod: PaymentMethod;
-}
-
-const stripeFees = {
-  gb: {
-    [PaymentMethod.StripeCard]: (amount: number) => 0.2 + 0.014 * amount,
-    [PaymentMethod.StripeSEPA]: () => 0.3,
-    [PaymentMethod.StripeBACS]: (amount: number) => 0.2 + 0.01 * amount
-  },
-  eu: {
-    [PaymentMethod.StripeCard]: (amount: number) => 0.25 + 0.014 * amount,
-    [PaymentMethod.StripeSEPA]: () => 0.35,
-    [PaymentMethod.StripeBACS]: () => 0 // Not available
-  },
-  ca: {
-    [PaymentMethod.StripeCard]: (amount: number) => 0.3 + 0.029 * amount,
-    [PaymentMethod.StripeSEPA]: () => 0, // Not available
-    [PaymentMethod.StripeBACS]: () => 0 // Not available
-  }
-} as const;
-
-const fees = {
-  [PaymentMethod.GoCardlessDirectDebit]: (amount: number) =>
-    0.2 + 0.01 * amount,
-  ...stripeFees[config.stripe.country]
-} as const;
-
-export function calcPaymentFee(feeable: Feeable): number {
-  return feeable.period === ContributionPeriod.Annually
-    ? 0
-    : fees[feeable.paymentMethod](feeable.amount);
-}
-
 export function getChargeableAmount(
   paymentForm: PaymentForm,
   paymentMethod: PaymentMethod
 ): number {
   const amount = getActualAmount(paymentForm.monthlyAmount, paymentForm.period);
   const fee = paymentForm.payFee
-    ? calcPaymentFee({ amount, period: paymentForm.period, paymentMethod })
+    ? calcPaymentFee(
+        { amount, period: paymentForm.period, paymentMethod },
+        config.stripe.country
+      )
     : 0;
   return Math.round((amount + fee) * 100);
 }
