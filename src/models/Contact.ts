@@ -1,16 +1,5 @@
-import {
-  ContributionType,
-  ContributionPeriod,
-  RoleType
-} from "@beabee/beabee-common";
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn
-} from "typeorm";
+import { ContributionType, ContributionPeriod } from "@beabee/beabee-common";
+import { Column, Entity, OneToOne } from "typeorm";
 
 import { getActualAmount } from "@core/utils";
 import config from "@config";
@@ -19,6 +8,7 @@ import type ContactRole from "./ContactRole";
 import type ContactProfile from "./ContactProfile";
 import Password from "./Password";
 import type PaymentData from "./PaymentData";
+import User from "./User";
 
 interface LoginOverride {
   code: string;
@@ -34,10 +24,7 @@ class OneTimePassword {
 }
 
 @Entity()
-export default class Contact {
-  @PrimaryGeneratedColumn("uuid")
-  id!: string;
-
+export default class Contact extends User {
   @Column({ unique: true })
   email!: string;
 
@@ -52,9 +39,6 @@ export default class Contact {
 
   @Column(() => OneTimePassword)
   otp!: OneTimePassword;
-
-  @CreateDateColumn()
-  joined!: Date;
 
   @Column({ type: Date, nullable: true })
   lastSeen!: Date | null;
@@ -77,25 +61,11 @@ export default class Contact {
   @Column({ type: String, unique: true, nullable: true })
   pollsCode!: string | null;
 
-  @OneToMany("ContactRole", "contact", { eager: true, cascade: true })
-  roles!: ContactRole[];
-
   @OneToOne("ContactProfile", "contact")
   profile!: ContactProfile;
 
   @OneToOne("PaymentData", "contact")
   paymentData!: PaymentData;
-
-  get activeRoles(): RoleType[] {
-    return this.roles.filter((p) => p.isActive).map((p) => p.type);
-  }
-
-  hasRole(roleType: RoleType): boolean {
-    return (
-      this.activeRoles.includes("superadmin") ||
-      this.activeRoles.includes(roleType)
-    );
-  }
 
   get fullname(): string {
     return this.firstname || this.lastname
