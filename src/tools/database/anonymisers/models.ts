@@ -31,6 +31,7 @@ import ReferralGift from "@models/ReferralGift";
 import Segment from "@models/Segment";
 import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
+import CalloutResponseComment from "@models/CalloutResponseComment";
 
 export type PropertyMap<T> = ((prop: T) => T) | ObjectMap<T>;
 export type ObjectMap<T> = { [K in keyof T]?: PropertyMap<T[K]> };
@@ -53,6 +54,38 @@ function createObjectMap<T>(objectMap: ObjectMap<T>): ObjectMap<T> {
   return objectMap;
 }
 
+export function createComponentAnonymiser(
+  component: CalloutComponentSchema
+): (v: CalloutResponseAnswer) => CalloutResponseAnswer {
+  switch (component.type) {
+    case "address":
+      return (v) => {
+        console.error("ADDRESS IS", v);
+        return "";
+      };
+    case "email":
+      return () => chance.email({ domain: "example.com", length: 10 });
+    case "checkbox":
+      return () => chance.pickone([true, false]);
+    case "number":
+      return () => chance.integer();
+    case "password":
+      return () => chance.word();
+    case "textarea":
+      return () => chance.paragraph();
+    case "textfield":
+      return () => chance.sentence();
+    case "button":
+      return (v) => v;
+
+    case "select":
+    case "radio":
+    case "selectboxes":
+      const values =
+        component.type === "select" ? component.data.values : component.values;
+      return () => chance.pickone(values.map(({ value }) => value));
+  }
+}
 // Property generators
 
 const chance = new Chance();
@@ -90,6 +123,16 @@ export const calloutResponsesAnonymiser = createModelAnonymiser(
     assignee: relationId,
     guestName: () => chance.name(),
     guestEmail: () => chance.email({ domain: "example.com", length: 10 })
+  }
+);
+
+export const calloutResponseCommentsAnonymiser = createModelAnonymiser(
+  CalloutResponseComment,
+  {
+    id: () => uuidv4(),
+    response: relationId,
+    contact: relationId,
+    text: () => chance.paragraph()
   }
 );
 
@@ -226,65 +269,3 @@ export const segmentContactsAnonymiser = createModelAnonymiser(SegmentContact, {
 
 export const segmentOngoingEmailsAnonymiser =
   createModelAnonymiser(SegmentOngoingEmail);
-
-// Order these so they respect foreign key constraints
-export default [
-  contactAnonymiser, // A lot of relations depend on contacts so leave it first
-  contactRoleAnonymiser,
-  contactProfileAnonymiser,
-  emailAnonymiser,
-  emailMailingAnonymiser,
-  exportsAnonymiser,
-  giftFlowAnonymiser,
-  noticesAnonymiser,
-  optionsAnonymiser,
-  paymentDataAnonymiser,
-  paymentsAnonymiser,
-  pageSettingsAnonymiser,
-  calloutsAnonymiser,
-  calloutTagsAnonymiser, // Must be before calloutResponseTagsAnonymiser
-  calloutResponsesAnonymiser,
-  calloutResponseTagsAnonymiser,
-  projectsAnonymiser,
-  projectContactsAnonymiser,
-  projectEngagmentsAnonymiser,
-  referralsGiftAnonymiser, // Must be before referralsAnonymiser
-  referralsAnonymiser,
-  segmentsAnonymiser,
-  segmentContactsAnonymiser,
-  segmentOngoingEmailsAnonymiser,
-  exportItemsAnonymiser // Must be after all exportable items
-] as ModelAnonymiser<unknown>[];
-
-export function createComponentAnonymiser(
-  component: CalloutComponentSchema
-): (v: CalloutResponseAnswer) => CalloutResponseAnswer {
-  switch (component.type) {
-    case "address":
-      return (v) => {
-        console.error("ADDRESS IS", v);
-        return "";
-      };
-    case "email":
-      return () => chance.email({ domain: "example.com", length: 10 });
-    case "checkbox":
-      return () => chance.pickone([true, false]);
-    case "number":
-      return () => chance.integer();
-    case "password":
-      return () => chance.word();
-    case "textarea":
-      return () => chance.paragraph();
-    case "textfield":
-      return () => chance.sentence();
-    case "button":
-      return (v) => v;
-
-    case "select":
-    case "radio":
-    case "selectboxes":
-      const values =
-        component.type === "select" ? component.data.values : component.values;
-      return () => chance.pickone(values.map(({ value }) => value));
-  }
-}
