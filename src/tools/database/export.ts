@@ -1,11 +1,9 @@
 import "module-alias/register";
 
-import { getRepository } from "typeorm";
-
 import * as db from "@core/database";
 
 import * as models from "./anonymisers/models";
-import { anonymiseModel } from "./anonymisers";
+import { anonymiseModel, clearModels } from "./anonymisers";
 
 // Order these so they respect foreign key constraints
 const anonymisers = [
@@ -38,12 +36,10 @@ const anonymisers = [
 ] as models.ModelAnonymiser<unknown>[];
 
 async function main() {
-  for (const anonymiser of anonymisers.slice().reverse()) {
-    console.log(
-      `DELETE FROM "${getRepository(anonymiser.model).metadata.tableName}";\n`
-    );
-  }
   const valueMap = new Map<string, unknown>();
+
+  clearModels(anonymisers);
+
   for (const anonymiser of anonymisers) {
     await anonymiseModel(anonymiser, (qb) => qb, valueMap);
   }
