@@ -146,7 +146,7 @@ export default {
   passwordTries: env.n("BEABEE_PASSWORDTRIES", 3),
   passwordIterations: env.n("BEABEE_PASSWORDITERATIONS", 50000),
   gracePeriod: {
-    days: 5
+    days: 7
   },
   logFormat: env.e("BEABEE_LOGFORMAT", ["json", "simple"] as const, "json"),
   appOverrides: env.json("BEABEE_APPOVERRIDES", {}) as AppConfigOverrides
