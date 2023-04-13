@@ -2,5 +2,8 @@ import { Column } from "typeorm";
 
 export default class ApiKey {
   @Column()
-  hash!: string;
+  id!: string;
+
+  @Column()
+  secretHash!: string;
 }
