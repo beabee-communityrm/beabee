@@ -1,4 +1,4 @@
-import { convertAnswers } from "@beabee/beabee-common";
+import { stringifyAnswer } from "@beabee/beabee-common";
 import _ from "lodash";
 import { createQueryBuilder, getRepository, SelectQueryBuilder } from "typeorm";
 
@@ -106,7 +106,14 @@ export default class EditionExport extends ActiveMembersExport {
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
         ContributionMonthlyAmount: contact.contributionMonthlyAmount,
         ...(response &&
-          convertAnswers(response.callout.formSchema, response.answers))
+          Object.fromEntries(
+            response.callout.formSchema.components
+              .filter((c) => c.input)
+              .map((c) => [
+                c.label,
+                stringifyAnswer(c, response.answers[c.key])
+              ])
+          ))
       };
     });
   }
