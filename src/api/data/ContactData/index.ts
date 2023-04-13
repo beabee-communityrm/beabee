@@ -1,5 +1,5 @@
 import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
-import Papa from "papaparse";
+import { stringify } from "csv-stringify/sync";
 import { Brackets, createQueryBuilder } from "typeorm";
 
 import { getMembershipStatus } from "@core/services/PaymentService";
@@ -197,11 +197,22 @@ export async function exportContacts(
       MembershipStarts: contact.membership?.dateAdded,
       MembershipExpires: contact.membership?.dateExpires,
       MembershipStatus: getMembershipStatus(contact, hasCancelled),
-      NewsletterStatus: contact.profile.newsletterStatus
+      NewsletterStatus: contact.profile.newsletterStatus,
+      DeliveryOptIn: contact.profile.deliveryOptIn,
+      DeliveryAddressLine1: contact.profile.deliveryAddress?.line1 || "",
+      DeliveryAddressLine2: contact.profile.deliveryAddress?.line2 || "",
+      DeliveryAddressCity: contact.profile.deliveryAddress?.city || "",
+      DeliveryAddressPostcode: contact.profile.deliveryAddress?.postcode || ""
     };
   });
 
-  return [exportName, Papa.unparse(exportData)];
+  return [
+    exportName,
+    stringify(exportData, {
+      cast: { date: (d) => d.toISOString() },
+      header: true
+    })
+  ];
 }
 
 export async function fetchPaginatedContacts(

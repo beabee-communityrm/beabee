@@ -1,6 +1,5 @@
 import express from "express";
 import moment from "moment";
-import Papa from "papaparse";
 import { createQueryBuilder, getRepository } from "typeorm";
 
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
@@ -10,7 +9,7 @@ import Callout, { CalloutAccess } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
 import { createPollSchema } from "./schemas.json";
-import { convertAnswers } from "@beabee/beabee-common";
+import { exportCalloutResponses } from "@api/data/CalloutResponseData";
 
 interface CreatePollSchema {
   title: string;
@@ -175,37 +174,12 @@ app.post(
           req.flash("error", "polls-responses-password-protected");
           res.redirect(req.originalUrl);
         } else {
-          const exportName = `responses-${
-            callout.title
-          }_${moment().format()}.csv`;
-          const responses = await getRepository(CalloutResponse).find({
-            where: { callout: callout },
-            order: { createdAt: "ASC" },
-            relations: ["contact"]
-          });
-          const exportData = responses.map((response) => {
-            return {
-              Date: response.createdAt,
-              ...(response.contact
-                ? {
-                    FirstName: response.contact.firstname,
-                    LastName: response.contact.lastname,
-                    FullName: response.contact.fullname,
-                    EmailAddress: response.contact.email
-                  }
-                : {
-                    FirstName: "",
-                    LastName: "",
-                    FullName: response.guestName,
-                    EmailAddress: response.guestEmail
-                  }),
-              IsMember: !!response.contact,
-              Number: response.number,
-              Bucket: response.bucket,
-              ...convertAnswers(callout.formSchema, response.answers)
-            };
-          });
-          res.attachment(exportName).send(Papa.unparse(exportData));
+          const [exportName, exportData] = await exportCalloutResponses(
+            undefined,
+            req.user!,
+            callout.slug
+          );
+          res.attachment(exportName).send(exportData);
         }
         break;
       }
