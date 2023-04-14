@@ -169,9 +169,8 @@ export function clearModels(anonymisers: ModelAnonymiser<unknown>[]) {
   // Reverse order to clear foreign keys correctly
   for (let i = anonymisers.length - 1; i >= 0; i--) {
     console.log(
-      `DELETE FROM "${
-        getRepository(anonymisers[i].model).metadata.tableName
-      }";\n`
+      `DELETE FROM "${getRepository(anonymisers[i].model).metadata.tableName}";`
     );
+    console.log(); // Empty params line
   }
 }
