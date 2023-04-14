@@ -32,6 +32,7 @@ import Segment from "@models/Segment";
 import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import CalloutResponseComment from "@models/CalloutResponseComment";
+import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 export type PropertyMap<T> = ((prop: T) => T) | ObjectMap<T>;
 export type ObjectMap<T> = { [K in keyof T]?: PropertyMap<T[K]> };
@@ -260,6 +261,14 @@ export const referralsAnonymiser = createModelAnonymiser(Referral, {
 export const referralsGiftAnonymiser = createModelAnonymiser(ReferralGift, {
   stock: copy // Add to map so it is serialised correctly
 });
+
+export const resetPasswordFlowAnonymiser = createModelAnonymiser(
+  ResetPasswordFlow,
+  {
+    id: () => uuidv4(),
+    contact: relationId
+  }
+);
 
 export const segmentsAnonymiser = createModelAnonymiser(Segment);
 
