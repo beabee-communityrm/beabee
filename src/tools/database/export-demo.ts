@@ -43,7 +43,7 @@ const calloutsAnonymisers = [
 
 const calloutResponseAnonymisers = [
   calloutResponsesAnonymiser,
-  calloutResponseCommentsAnonymiser,
+  // calloutResponseCommentsAnonymiser, TODO: make sure contact exists in export
   calloutResponseTagsAnonymiser
 ] as ModelAnonymiser<unknown>[];
 
@@ -54,6 +54,8 @@ async function main() {
     ...contactAnonymisers,
     ...calloutsAnonymisers,
     ...calloutResponseAnonymisers,
+    // Clear comments until above is fixed
+    calloutResponseCommentsAnonymiser,
     // Clear models that link to contacts
     projectContactsAnonymiser,
     projectEngagmentsAnonymiser,
