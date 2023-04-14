@@ -1,6 +1,6 @@
 import "module-alias/register";
 
-import { createQueryBuilder } from "typeorm";
+import { Brackets, createQueryBuilder } from "typeorm";
 
 import * as db from "@core/database";
 
@@ -75,7 +75,8 @@ async function main() {
     const pk = anonymiser === contactAnonymiser ? "id" : "contactId";
     await anonymiseModel(
       anonymiser,
-      (qb) => qb.where(`item.${pk} IN (:...ids)`, { ids: contactIds }),
+      (qb) =>
+        qb.where(`item.${pk} IN (:...contacts)`, { contacts: contactIds }),
       valueMap
     );
   }
@@ -91,14 +92,30 @@ async function main() {
     const pk = anonymiser === calloutsAnonymiser ? "slug" : "calloutSlug";
     await anonymiseModel(
       anonymiser,
-      (qb) => qb.where(`item.${pk} IN (:...slugs)`, { slugs: calloutSlugs }),
+      (qb) =>
+        qb.where(`item.${pk} IN (:...callouts)`, { callouts: calloutSlugs }),
       valueMap
     );
   }
 
   const responses = await createQueryBuilder(CalloutResponse, "item")
     .select("item.id")
-    .where("item.calloutSlug IN (:...slugs)", { slugs: calloutSlugs })
+    .where("item.calloutSlug IN (:...callouts)", { callouts: calloutSlugs })
+    .andWhere(
+      new Brackets((qb) =>
+        qb
+          .where("item.contact IS NULL")
+          .orWhere("item.contact IN (:...contacts)")
+      ),
+      { contacts: contactIds }
+    )
+    .andWhere(
+      new Brackets((qb) =>
+        qb
+          .where("item.assignee IS NULL")
+          .orWhere("item.assignee IN (:...contacts)")
+      )
+    )
     .getMany();
   const responseIds = responses.map((r) => r.id);
 
@@ -106,7 +123,8 @@ async function main() {
     const pk = anonymiser === calloutResponsesAnonymiser ? "id" : "responseId";
     await anonymiseModel(
       anonymiser,
-      (qb) => qb.where(`item.${pk} IN (:...ids)`, { ids: responseIds }),
+      (qb) =>
+        qb.where(`item.${pk} IN (:...responses)`, { responses: responseIds }),
       valueMap
     );
   }
