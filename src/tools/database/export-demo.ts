@@ -17,7 +17,11 @@ import {
   calloutsAnonymiser,
   calloutTagsAnonymiser,
   calloutResponseCommentsAnonymiser,
-  calloutResponseTagsAnonymiser
+  calloutResponseTagsAnonymiser,
+  segmentContactsAnonymiser,
+  projectContactsAnonymiser,
+  projectEngagmentsAnonymiser,
+  referralsAnonymiser
 } from "./anonymisers/models";
 import { anonymiseModel, clearModels } from "./anonymisers";
 import Callout from "@models/Callout";
@@ -48,7 +52,12 @@ async function main() {
   clearModels([
     ...contactAnonymisers,
     ...calloutsAnonymisers,
-    ...calloutResponseAnonymisers
+    ...calloutResponseAnonymisers,
+    // Clear models that link to contacts
+    projectContactsAnonymiser,
+    projectEngagmentsAnonymiser,
+    segmentContactsAnonymiser,
+    referralsAnonymiser
   ]);
 
   const contacts = await createQueryBuilder(Contact, "item")
