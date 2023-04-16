@@ -8,7 +8,7 @@ import { anonymiseModel, clearModels } from "./anonymisers";
 // Order these so they respect foreign key constraints
 const anonymisers = [
   models.contactAnonymiser, // A lot of relations depend on contacts so leave it first
-  models.contactRoleAnonymiser,
+  models.userRoleAnonymiser,
   models.contactProfileAnonymiser,
   models.emailAnonymiser,
   models.emailMailingAnonymiser,

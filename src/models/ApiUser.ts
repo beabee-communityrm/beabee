@@ -1,10 +1,10 @@
 import { Entity, Column, ManyToOne } from "typeorm";
 import ApiKey from "./ApiKey";
-import User from "./User";
+import AppUser from "./AppUser";
 import Contact from "./Contact";
 
 @Entity()
-export default class ApiUser extends User {
+export default class ApiUser extends AppUser {
   @ManyToOne("Contact")
   creator!: Contact;
 

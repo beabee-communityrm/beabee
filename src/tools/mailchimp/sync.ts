@@ -12,7 +12,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import Contact from "@models/Contact";
 import UserRole from "@models/UserRole";
-import User from "@models/User";
+import AppUser from "@models/AppUser";
 
 async function fetchContacts(
   startDate: string | undefined,
@@ -38,7 +38,7 @@ async function fetchContacts(
   console.log(`Got ${memberships.length} members`);
   return memberships
     .map((userRole) => userRole.user)
-    .filter((user: User): user is Contact => {
+    .filter((user: AppUser): user is Contact => {
       return user instanceof Contact;
     })
     .map((contact) => {

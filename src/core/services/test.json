@@ -1,0 +1,142 @@
+{
+    "meta": {
+        "date": "Sun Apr 16 2023 10:34:11 GMT+0000 (Coordinated Universal Time)",
+        "error": {
+            "message": "Relation \"contact\" was not found; please check if it is correct and really exists in your entity."
+        },
+        "exception": true,
+        "level": "error",
+        "message": "uncaughtException: Relation \"contact\" was not found; please check if it is correct and really exists in your entity.\nFindRelationsNotFoundError: Relation \"contact\" was not found; please check if it is correct and really exists in your entity.\n    at FindRelationsNotFoundError.TypeORMError (/opt/membership-system/node_modules/typeorm/error/src/error/TypeORMError.ts:7:9)\n    at FindRelationsNotFoundError (/opt/membership-system/node_modules/typeorm/error/src/error/FindRelationsNotFoundError.ts:8:9)\n    at Function.FindOptionsUtils.applyOptionsToQueryBuilder (/opt/membership-system/node_modules/typeorm/find-options/src/find-options/FindOptionsUtils.ts:131:23)\n    at EntityManager.<anonymous> (/opt/membership-system/node_modules/typeorm/entity-manager/src/entity-manager/EntityManager.ts:829:26)\n    at step (/opt/membership-system/node_modules/tslib/tslib.js:144:27)\n    at Object.next (/opt/membership-system/node_modules/tslib/tslib.js:125:57)\n    at /opt/membership-system/node_modules/tslib/tslib.js:118:75\n    at new Promise (<anonymous>)\n    at __awaiter (/opt/membership-system/node_modules/tslib/tslib.js:114:16)\n    at EntityManager.EntityManager.findOne (/opt/membership-system/node_modules/typeorm/entity-manager/src/entity-manager/EntityManager.ts:797:236)",
+        "os": {
+            "loadavg": [
+                0.05,
+                0.14,
+                0.07
+            ],
+            "uptime": 388.87
+        },
+        "process": {
+            "argv": [
+                "/usr/local/bin/node",
+                "/opt/membership-system/built/app"
+            ],
+            "cwd": "/opt/membership-system",
+            "execPath": "/usr/local/bin/node",
+            "gid": 1000,
+            "memoryUsage": {
+                "arrayBuffers": 153538,
+                "external": 1134536,
+                "heapTotal": 75993088,
+                "heapUsed": 68652016,
+                "rss": 155312128
+            },
+            "pid": 1,
+            "uid": 1000,
+            "version": "v16.19.1"
+        },
+        "req": {
+            "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "en-US,en;q=0.5",
+                "connection": "close",
+                "cookie": "memberId=447381fb-661e-4ffb-86fc-105c206395d9; session=s%3ALRJdE8QanRT5JEOlONQDklyHa0eHhcZl.E%2BgqkVwNWjF%2F64s4XJvbjkYDl1RiUiTypa3qfOdCfH4",
+                "host": "app:3000",
+                "sec-fetch-dest": "document",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-site": "none",
+                "sec-fetch-user": "?1",
+                "upgrade-insecure-requests": "1",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/112.0"
+            },
+            "httpVersion": "1.0",
+            "method": "GET",
+            "originalUrl": "/login/as/superadmin",
+            "query": {},
+            "url": "/login/as/superadmin"
+        },
+        "stack": "FindRelationsNotFoundError: Relation \"contact\" was not found; please check if it is correct and really exists in your entity.\n    at FindRelationsNotFoundError.TypeORMError (/opt/membership-system/node_modules/typeorm/error/src/error/TypeORMError.ts:7:9)\n    at FindRelationsNotFoundError (/opt/membership-system/node_modules/typeorm/error/src/error/FindRelationsNotFoundError.ts:8:9)\n    at Function.FindOptionsUtils.applyOptionsToQueryBuilder (/opt/membership-system/node_modules/typeorm/find-options/src/find-options/FindOptionsUtils.ts:131:23)\n    at EntityManager.<anonymous> (/opt/membership-system/node_modules/typeorm/entity-manager/src/entity-manager/EntityManager.ts:829:26)\n    at step (/opt/membership-system/node_modules/tslib/tslib.js:144:27)\n    at Object.next (/opt/membership-system/node_modules/tslib/tslib.js:125:57)\n    at /opt/membership-system/node_modules/tslib/tslib.js:118:75\n    at new Promise (<anonymous>)\n    at __awaiter (/opt/membership-system/node_modules/tslib/tslib.js:114:16)\n    at EntityManager.EntityManager.findOne (/opt/membership-system/node_modules/typeorm/entity-manager/src/entity-manager/EntityManager.ts:797:236)",
+        "trace": [
+            {
+                "column": 9,
+                "file": "/opt/membership-system/node_modules/typeorm/error/src/error/TypeORMError.ts",
+                "function": "FindRelationsNotFoundError.TypeORMError",
+                "line": 7,
+                "method": "TypeORMError",
+                "native": false
+            },
+            {
+                "column": 9,
+                "file": "/opt/membership-system/node_modules/typeorm/error/src/error/FindRelationsNotFoundError.ts",
+                "function": "FindRelationsNotFoundError",
+                "line": 8,
+                "method": null,
+                "native": false
+            },
+            {
+                "column": 23,
+                "file": "/opt/membership-system/node_modules/typeorm/find-options/src/find-options/FindOptionsUtils.ts",
+                "function": "Function.FindOptionsUtils.applyOptionsToQueryBuilder",
+                "line": 131,
+                "method": "applyOptionsToQueryBuilder",
+                "native": false
+            },
+            {
+                "column": 26,
+                "file": "/opt/membership-system/node_modules/typeorm/entity-manager/src/entity-manager/EntityManager.ts",
+                "function": null,
+                "line": 829,
+                "method": null,
+                "native": false
+            },
+            {
+                "column": 27,
+                "file": "/opt/membership-system/node_modules/tslib/tslib.js",
+                "function": "step",
+                "line": 144,
+                "method": null,
+                "native": false
+            },
+            {
+                "column": 57,
+                "file": "/opt/membership-system/node_modules/tslib/tslib.js",
+                "function": "Object.next",
+                "line": 125,
+                "method": "next",
+                "native": false
+            },
+            {
+                "column": 75,
+                "file": "/opt/membership-system/node_modules/tslib/tslib.js",
+                "function": null,
+                "line": 118,
+                "method": null,
+                "native": false
+            },
+            {
+                "column": null,
+                "file": null,
+                "function": "new Promise",
+                "line": null,
+                "method": null,
+                "native": false
+            },
+            {
+                "column": 16,
+                "file": "/opt/membership-system/node_modules/tslib/tslib.js",
+                "function": "__awaiter",
+                "line": 114,
+                "method": null,
+                "native": false
+            },
+            {
+                "column": 236,
+                "file": "/opt/membership-system/node_modules/typeorm/entity-manager/src/entity-manager/EntityManager.ts",
+                "function": "EntityManager.EntityManager.findOne",
+                "line": 797,
+                "method": "findOne",
+                "native": false
+            }
+        ]
+    }
+}

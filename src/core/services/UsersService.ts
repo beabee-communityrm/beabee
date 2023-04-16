@@ -1,6 +1,6 @@
 import { RoleType } from "@beabee/beabee-common";
 import { log as mainLogger } from "@core/logging";
-import User from "@models/User";
+import AppUser from "@models/AppUser";
 import UserRole from "@models/UserRole";
 import { FindConditions, FindOneOptions, getRepository } from "typeorm";
 import NewsletterService from "./NewsletterService";
@@ -13,22 +13,24 @@ const log = mainLogger.child({ app: "users-service" });
 class UsersService {
   async findOne(
     id?: string,
-    options?: FindOneOptions<User>
-  ): Promise<User | undefined>;
-  async findOne(options?: FindOneOptions<User>): Promise<User | undefined>;
+    options?: FindOneOptions<AppUser>
+  ): Promise<AppUser | undefined>;
   async findOne(
-    conditions: FindConditions<User>,
-    options?: FindOneOptions<User>
-  ): Promise<User | undefined>;
+    options?: FindOneOptions<AppUser>
+  ): Promise<AppUser | undefined>;
   async findOne(
-    arg1?: string | FindConditions<User> | FindOneOptions<User>,
-    arg2?: FindOneOptions<User>
-  ): Promise<User | undefined> {
-    return await getRepository(User).findOne(arg1 as any, arg2);
+    conditions: FindConditions<AppUser>,
+    options?: FindOneOptions<AppUser>
+  ): Promise<AppUser | undefined>;
+  async findOne(
+    arg1?: string | FindConditions<AppUser> | FindOneOptions<AppUser>,
+    arg2?: FindOneOptions<AppUser>
+  ): Promise<AppUser | undefined> {
+    return await getRepository(AppUser).findOne(arg1 as any, arg2);
   }
 
   async updateUserRole(
-    user: User,
+    user: AppUser,
     roleType: RoleType,
     updates?: Partial<Omit<UserRole, "user" | "type">>
   ): Promise<void> {
@@ -45,14 +47,14 @@ class UsersService {
       });
       user.roles.push(newRole);
     }
-    await getRepository(User).save(user);
+    await getRepository(AppUser).save(user);
     if (user instanceof Contact) {
       ContactsService.updateContactMembership(user);
     }
   }
 
   async extendUserRole(
-    user: User,
+    user: AppUser,
     roleType: RoleType,
     dateExpires: Date
   ): Promise<void> {
@@ -68,7 +70,7 @@ class UsersService {
     }
   }
 
-  async revokeUserRole(user: User, roleType: RoleType): Promise<void> {
+  async revokeUserRole(user: AppUser, roleType: RoleType): Promise<void> {
     log.info(`Revoke role ${roleType} for ${user.id}`);
     user.roles = user.roles.filter((p) => p.type !== roleType);
     await getRepository(UserRole).delete({

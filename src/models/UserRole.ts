@@ -6,12 +6,12 @@ import {
   ManyToOne,
   PrimaryColumn
 } from "typeorm";
-import type User from "./User";
+import type AppUser from "./AppUser";
 
 @Entity()
 export default class UserRole {
   @ManyToOne("User", "roles", { primary: true })
-  user!: User;
+  user!: AppUser;
 
   @PrimaryColumn()
   type!: RoleType;

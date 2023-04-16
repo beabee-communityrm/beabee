@@ -1,14 +1,8 @@
 import { RoleType } from "@beabee/beabee-common";
-import {
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn
-} from "typeorm";
+import { CreateDateColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import UserRole from "./UserRole";
 
-@Entity()
-export default abstract class User {
+export default abstract class AppUser {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 

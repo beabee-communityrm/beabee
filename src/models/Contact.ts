@@ -1,5 +1,5 @@
 import { ContributionType, ContributionPeriod } from "@beabee/beabee-common";
-import { Column, Entity, OneToOne } from "typeorm";
+import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 
 import { getActualAmount } from "@core/utils";
 import config from "@config";
@@ -8,7 +8,8 @@ import type UserRole from "./UserRole";
 import type ContactProfile from "./ContactProfile";
 import Password from "./Password";
 import type PaymentData from "./PaymentData";
-import User from "./User";
+import AppUser from "./AppUser";
+import ApiUser from "./ApiUser";
 
 interface LoginOverride {
   code: string;
@@ -24,7 +25,7 @@ class OneTimePassword {
 }
 
 @Entity()
-export default class Contact extends User {
+export default class Contact extends AppUser {
   @Column({ unique: true })
   email!: string;
 
@@ -66,6 +67,9 @@ export default class Contact extends User {
 
   @OneToOne("PaymentData", "contact")
   paymentData!: PaymentData;
+
+  @OneToMany("ApiUser", "creator")
+  apiUser!: ApiUser[];
 
   get fullname(): string {
     return this.firstname || this.lastname

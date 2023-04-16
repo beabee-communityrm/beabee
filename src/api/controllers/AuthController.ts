@@ -25,7 +25,6 @@ import UserRole from "@models/UserRole";
 import { login } from "@api/utils";
 
 import config from "@config";
-import User from "@models/User";
 
 class LoginData {
   @IsEmail()
