@@ -1,7 +1,13 @@
 import { RoleType } from "@beabee/beabee-common";
-import { CreateDateColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn
+} from "typeorm";
 import UserRole from "./UserRole";
 
+@Entity()
 export default abstract class User {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
@@ -9,7 +15,7 @@ export default abstract class User {
   @CreateDateColumn()
   joined!: Date;
 
-  @OneToMany("UserRole", "contact", { eager: true, cascade: true })
+  @OneToMany("UserRole", "user", { eager: true, cascade: true })
   roles!: UserRole[];
 
   get activeRoles(): RoleType[] {

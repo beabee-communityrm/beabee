@@ -31,6 +31,7 @@ import sessions from "@core/sessions";
 import startServer from "@core/server";
 
 import Contact from "@models/Contact";
+import { ApiUserController } from "./controllers/ApiUserController";
 
 function currentUserChecker(action: Action): Contact | undefined {
   return (action.request as Request).user;
@@ -53,18 +54,19 @@ db.connect().then(() => {
   useExpressServer(app, {
     routePrefix: "/1.0",
     controllers: [
+      ApiUserController,
       AuthController,
       CalloutController,
       CalloutResponseController,
       CalloutResponseCommentController,
+      ContactController,
       ContentController,
       EmailController,
-      ContactController,
       NoticeController,
+      ResetPasswordController,
       SegmentController,
       SignupController,
-      StatsController,
-      ResetPasswordController
+      StatsController
     ],
     currentUserChecker,
     authorizationChecker,

@@ -37,7 +37,8 @@ if (config.dev) {
           },
           relations: ["contact"]
         });
-        contact = role?.user;
+        const user = role?.user;
+        contact = await ContactsService.findOne(user?.id);
       } else {
         contact = await ContactsService.findOne(req.params.id);
       }

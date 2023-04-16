@@ -2,7 +2,7 @@ import { RoleType } from "@beabee/beabee-common";
 import { log as mainLogger } from "@core/logging";
 import User from "@models/User";
 import UserRole from "@models/UserRole";
-import { getRepository } from "typeorm";
+import { FindConditions, FindOneOptions, getRepository } from "typeorm";
 import NewsletterService from "./NewsletterService";
 import OptionsService from "./OptionsService";
 import ContactsService from "./ContactsService";
@@ -11,6 +11,22 @@ import Contact from "@models/Contact";
 const log = mainLogger.child({ app: "users-service" });
 
 class UsersService {
+  async findOne(
+    id?: string,
+    options?: FindOneOptions<User>
+  ): Promise<User | undefined>;
+  async findOne(options?: FindOneOptions<User>): Promise<User | undefined>;
+  async findOne(
+    conditions: FindConditions<User>,
+    options?: FindOneOptions<User>
+  ): Promise<User | undefined>;
+  async findOne(
+    arg1?: string | FindConditions<User> | FindOneOptions<User>,
+    arg2?: FindOneOptions<User>
+  ): Promise<User | undefined> {
+    return await getRepository(User).findOne(arg1 as any, arg2);
+  }
+
   async updateUserRole(
     user: User,
     roleType: RoleType,

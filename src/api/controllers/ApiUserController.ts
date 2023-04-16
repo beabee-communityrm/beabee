@@ -25,7 +25,6 @@ export class ApiUserController {
     });
 
     await UsersService.updateUserRole(apiUser, "admin");
-
     return { token };
   }
 }

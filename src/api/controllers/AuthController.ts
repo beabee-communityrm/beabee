@@ -25,6 +25,7 @@ import UserRole from "@models/UserRole";
 import { login } from "@api/utils";
 
 import config from "@config";
+import User from "@models/User";
 
 class LoginData {
   @IsEmail()
@@ -74,7 +75,8 @@ export class AuthController {
         where: { type: id },
         relations: ["contact"]
       });
-      contact = role?.user;
+      const user = role?.user;
+      contact = await ContactsService.findOne(user?.id);
     } else if (isUUID(id, "4")) {
       contact = await ContactsService.findOne(id);
     }

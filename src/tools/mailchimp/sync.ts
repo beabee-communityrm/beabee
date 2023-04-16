@@ -12,6 +12,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import Contact from "@models/Contact";
 import UserRole from "@models/UserRole";
+import User from "@models/User";
 
 async function fetchContacts(
   startDate: string | undefined,
@@ -35,10 +36,15 @@ async function fetchContacts(
     relations: ["contact", "contact.profile"]
   });
   console.log(`Got ${memberships.length} members`);
-  return memberships.map(({ user: contact }) => {
-    console.log(contact.membership?.isActive ? "U" : "D", contact.email);
-    return contact;
-  });
+  return memberships
+    .map((userRole) => userRole.user)
+    .filter((user: User): user is Contact => {
+      return user instanceof Contact;
+    })
+    .map((contact) => {
+      console.log(contact.membership?.isActive ? "U" : "D", contact.email);
+      return contact;
+    });
 }
 
 async function processContacts(contacts: Contact[]) {

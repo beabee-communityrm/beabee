@@ -1,8 +1,4 @@
-import {
-  ContributionType,
-  RoleType,
-  ContributionPeriod
-} from "@beabee/beabee-common";
+import { ContributionType, ContributionPeriod } from "@beabee/beabee-common";
 import {
   createQueryBuilder,
   FindConditions,
