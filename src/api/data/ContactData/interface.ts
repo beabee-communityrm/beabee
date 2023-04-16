@@ -2,14 +2,12 @@ import {
   ContributionPeriod,
   NewsletterStatus,
   PaymentStatus,
-  RoleType,
-  RoleTypes
+  RoleType
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
-  IsDate,
   IsDefined,
   IsEmail,
   IsEnum,
@@ -28,6 +26,7 @@ import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import { ForceUpdateContributionData } from "../ContributionData";
+import { GetUserRoleData, CreateUserRoleData } from "../UserData/interface";
 
 interface ContactData {
   email: string;
@@ -50,29 +49,6 @@ interface ContactProfileData {
   description?: string;
 }
 
-export class UpdateContactRoleData {
-  @Type(() => Date)
-  @IsDate()
-  dateAdded!: Date;
-
-  @Type(() => Date)
-  @IsDate()
-  @IsOptional()
-  dateExpires!: Date | null;
-}
-
-export interface GetContactRoleData extends UpdateContactRoleData {
-  role: RoleType;
-}
-
-export class CreateContactRoleData
-  extends UpdateContactRoleData
-  implements GetContactRoleData
-{
-  @IsIn(RoleTypes)
-  role!: RoleType;
-}
-
 export interface GetContactData extends ContactData {
   id: string;
   joined: Date;
@@ -81,7 +57,7 @@ export interface GetContactData extends ContactData {
   contributionPeriod?: ContributionPeriod;
   activeRoles: RoleType[];
   profile?: ContactProfileData;
-  roles?: GetContactRoleData[];
+  roles?: GetUserRoleData[];
   contribution?: ContributionInfo;
 }
 
@@ -210,8 +186,8 @@ export class CreateContactData extends UpdateContactData {
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => CreateContactRoleData)
-  roles?: CreateContactRoleData[];
+  @Type(() => CreateUserRoleData)
+  roles?: CreateUserRoleData[];
 }
 
 export interface GetPaymentData {

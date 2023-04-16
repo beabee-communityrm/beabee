@@ -5,7 +5,7 @@ import { Brackets, createQueryBuilder } from "typeorm";
 import { getMembershipStatus } from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 import ContactProfile from "@models/ContactProfile";
 import PaymentData from "@models/PaymentData";
 
@@ -78,12 +78,12 @@ export function convertContactToData(
 
 // Field handlers
 
-function membershipField(field: keyof ContactRole): FieldHandler {
+function membershipField(field: keyof UserRole): FieldHandler {
   return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`mp.contactId`)
-      .from(ContactRole, "mp")
+      .from(UserRole, "mp")
       .where(`mp.type = 'member'`)
       .andWhere(args.whereFn(`mp.${field}`));
 
@@ -114,7 +114,7 @@ const activePermission: FieldHandler = (qb, args) => {
   const subQb = createQueryBuilder()
     .subQuery()
     .select(`mp.contactId`)
-    .from(ContactRole, "mp")
+    .from(UserRole, "mp")
     .where(`mp.type = '${roleType}'`)
     .andWhere(`mp.dateAdded <= :now`)
     .andWhere(
@@ -233,7 +233,7 @@ export async function fetchPaginatedContacts(
         query.sort === "membershipExpires"
       ) {
         qb.leftJoin(
-          ContactRole,
+          UserRole,
           "mp",
           `mp.contactId = ${fieldPrefix}id AND mp.type = 'member'`
         )
@@ -259,7 +259,7 @@ export async function fetchPaginatedContacts(
   );
 
   // Load roles after to ensure offset/limit work
-  await loadContactRoles(results.items);
+  await loadUserRoles(results.items);
 
   return {
     ...results,
@@ -269,17 +269,17 @@ export async function fetchPaginatedContacts(
   };
 }
 
-export async function loadContactRoles(contacts: Contact[]): Promise<void> {
+export async function loadUserRoles(contacts: Contact[]): Promise<void> {
   if (contacts.length > 0) {
     // Load roles after to ensure offset/limit work
-    const roles = await createQueryBuilder(ContactRole, "mp")
+    const roles = await createQueryBuilder(UserRole, "mp")
       .where("mp.contactId IN (:...ids)", {
         ids: contacts.map((t) => t.id)
       })
       .loadAllRelationIds()
       .getMany();
     for (const contact of contacts) {
-      contact.roles = roles.filter((p) => (p.contact as any) === contact.id);
+      contact.roles = roles.filter((p) => (p.user as any) === contact.id);
     }
   }
 }

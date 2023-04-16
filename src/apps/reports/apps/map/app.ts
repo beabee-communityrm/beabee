@@ -6,7 +6,7 @@ import { log } from "@core/logging";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 import ContactProfile from "@models/ContactProfile";
 
 const app = express();
@@ -85,7 +85,7 @@ app.get(
   wrapAsync(async (req, res) => {
     const now = new Date();
     const profiles = await createQueryBuilder(ContactProfile, "profile")
-      .innerJoin(ContactRole, "mp", "profile.contactId = mp.contactId")
+      .innerJoin(UserRole, "mp", "profile.contactId = mp.contactId")
       .where("profile.deliveryOptIn = true")
       .andWhere("mp.type = 'member' AND mp.dateAdded <= :now", { now })
       .andWhere(

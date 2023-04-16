@@ -9,6 +9,7 @@ import ContactsService from "@core/services/ContactsService";
 import Contact from "@models/Contact";
 
 import { createPermissionSchema, updatePermissionSchema } from "./schemas.json";
+import UsersService from "@core/services/UsersService";
 
 interface CreateRoleSchema {
   type: RoleType;
@@ -67,7 +68,7 @@ app.post(
       return;
     }
 
-    await ContactsService.updateContactRole(contact, type, {
+    await UsersService.updateUserRole(contact, type, {
       dateAdded,
       dateExpires
     });
@@ -112,7 +113,7 @@ app.post(
       return;
     }
 
-    await ContactsService.updateContactRole(contact, roleType, {
+    await UsersService.updateUserRole(contact, roleType, {
       dateAdded,
       dateExpires
     });
@@ -126,7 +127,7 @@ app.post(
   "/:id/revoke",
   canUpdateRole,
   wrapAsync(async (req, res) => {
-    await ContactsService.revokeContactRole(
+    await UsersService.revokeUserRole(
       req.model as Contact,
       req.params.id as RoleType
     );

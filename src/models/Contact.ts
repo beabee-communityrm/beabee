@@ -4,7 +4,7 @@ import { Column, Entity, OneToOne } from "typeorm";
 import { getActualAmount } from "@core/utils";
 import config from "@config";
 
-import type ContactRole from "./ContactRole";
+import type UserRole from "./UserRole";
 import type ContactProfile from "./ContactProfile";
 import Password from "./Password";
 import type PaymentData from "./PaymentData";
@@ -98,7 +98,7 @@ export default class Contact extends User {
     }
   }
 
-  get membership(): ContactRole | undefined {
+  get membership(): UserRole | undefined {
     return this.roles.find((p) => p.type === "member");
   }
 

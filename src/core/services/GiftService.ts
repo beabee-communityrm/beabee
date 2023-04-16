@@ -13,7 +13,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import Address from "@models/Address";
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 
 import config from "@config";
 import { generateContactCode } from "@core/utils/contact";
@@ -111,7 +111,7 @@ export default class GiftService {
 
     await getRepository(GiftFlow).update(giftFlow.id, { processed: true });
 
-    const role = getRepository(ContactRole).create({
+    const role = getRepository(UserRole).create({
       type: "member",
       dateExpires: now.clone().add(months, "months").toDate()
     });

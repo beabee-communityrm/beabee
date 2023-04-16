@@ -1,4 +1,5 @@
 import ApiUsersService from "@core/services/ApiUsersService";
+import UsersService from "@core/services/UsersService";
 import { generateApiKey } from "@core/utils/auth";
 import Contact from "@models/Contact";
 import {
@@ -8,21 +9,23 @@ import {
   CurrentUser
 } from "routing-controllers";
 
-@JsonController("/apiuser")
+@JsonController("/api-user")
 @Authorized()
 export class ApiUserController {
   @Post("/")
   async createApiUser(
     @CurrentUser({ required: true }) creator: Contact
-  ): Promise<string> {
+  ): Promise<{ token: string }> {
     const { id, secret, secretHash, token } = generateApiKey();
     const apiKey = { id: id, secretHash: secretHash };
     const apiUser = await ApiUsersService.createApiUser({
       roles: [],
-      apikey: apiKey,
+      apiKey: apiKey,
       creator: creator
     });
 
-    return token;
+    await UsersService.updateUserRole(apiUser, "admin");
+
+    return { token };
   }
 }

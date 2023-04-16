@@ -20,7 +20,7 @@ import passport from "@core/lib/passport";
 import ContactsService from "@core/services/ContactsService";
 
 import Contact from "@models/Contact";
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 
 import { login } from "@api/utils";
 
@@ -70,11 +70,11 @@ export class AuthController {
 
     let contact: Contact | undefined;
     if (RoleTypes.indexOf(id as RoleType) > -1) {
-      const role = await getRepository(ContactRole).findOne({
+      const role = await getRepository(UserRole).findOne({
         where: { type: id },
         relations: ["contact"]
       });
-      contact = role?.contact;
+      contact = role?.user;
     } else if (isUUID(id, "4")) {
       contact = await ContactsService.findOne(id);
     }

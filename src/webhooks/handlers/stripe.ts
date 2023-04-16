@@ -18,6 +18,7 @@ import Payment from "@models/Payment";
 import PaymentData, { StripePaymentData } from "@models/PaymentData";
 
 import config from "@config";
+import UsersService from "@core/services/UsersService";
 
 const log = mainLogger.child({ app: "webhook-stripe" });
 
@@ -120,7 +121,7 @@ async function handleCustomerSubscriptionUpdated(
       log.info(
         `Subscription ${subscription.id} never started, revoking membership from ${data.contact.id}`
       );
-      await ContactsService.revokeContactRole(data.contact, "member");
+      await UsersService.revokeUserRole(data.contact, "member");
       await PaymentService.updateDataBy(data.contact, "subscriptionId", null);
     }
   }
@@ -182,7 +183,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     return;
   }
 
-  await ContactsService.extendContactRole(
+  await UsersService.extendUserRole(
     data.contact,
     "member",
     add(new Date(line.period.end * 1000), config.gracePeriod)

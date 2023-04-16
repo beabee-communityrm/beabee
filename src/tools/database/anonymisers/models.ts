@@ -10,7 +10,7 @@ import Export from "@models/Export";
 import ExportItem from "@models/ExportItem";
 import GiftFlow from "@models/GiftFlow";
 import Contact from "@models/Contact";
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 import ContactProfile from "@models/ContactProfile";
 import Notice from "@models/Notice";
 import Option from "@models/Option";
@@ -134,8 +134,8 @@ export const contactProfileAnonymiser = createModelAnonymiser(ContactProfile, {
   tags: (tags) => tags.map(() => chance.profession())
 });
 
-export const contactRoleAnonymiser = createModelAnonymiser(ContactRole, {
-  contact: relationId
+export const userRoleAnonymiser = createModelAnonymiser(UserRole, {
+  user: relationId
 });
 
 export const emailAnonymiser = createModelAnonymiser(Email);
@@ -230,7 +230,7 @@ export const segmentOngoingEmailsAnonymiser =
 // Order these so they respect foreign key constraints
 export default [
   contactAnonymiser, // A lot of relations depend on contacts so leave it first
-  contactRoleAnonymiser,
+  userRoleAnonymiser,
   contactProfileAnonymiser,
   emailAnonymiser,
   emailMailingAnonymiser,

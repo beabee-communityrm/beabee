@@ -11,7 +11,7 @@ import {
   paymentDataAnonymiser,
   paymentsAnonymiser,
   contactAnonymiser,
-  contactRoleAnonymiser,
+  userRoleAnonymiser,
   contactProfileAnonymiser,
   calloutResponsesAnonymiser,
   calloutsAnonymiser
@@ -25,7 +25,7 @@ async function main() {
     paymentDataAnonymiser,
     paymentsAnonymiser,
     contactProfileAnonymiser,
-    contactRoleAnonymiser,
+    userRoleAnonymiser,
     contactAnonymiser
   ] as ModelAnonymiser<any>[]) {
     console.log(
@@ -49,7 +49,7 @@ async function main() {
     valueMap
   );
   await anonymiseModel(
-    contactRoleAnonymiser,
+    userRoleAnonymiser,
     (qb) => qb.where("item.contactId IN (:...ids)", { ids: contactIds }),
     valueMap
   );

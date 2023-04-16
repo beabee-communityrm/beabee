@@ -21,7 +21,7 @@ import Contact from "@models/Contact";
 import { convertCalloutToData } from "../CalloutData";
 import { convertTagToData } from "../CalloutTagData";
 import { convertCommentToData } from "../CalloutResponseCommentData";
-import { convertContactToData, loadContactRoles } from "../ContactData";
+import { convertContactToData, loadUserRoles } from "../ContactData";
 import {
   mergeRules,
   fetchPaginated,
@@ -350,7 +350,7 @@ export async function fetchPaginatedCalloutResponses(
         item.latestComment?.contact
       ])
       .filter((c) => !!c) as Contact[];
-    await loadContactRoles(contacts);
+    await loadUserRoles(contacts);
 
     if (query.with?.includes(GetCalloutResponseWith.Tags)) {
       // Load tags after to ensure offset/limit work

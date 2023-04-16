@@ -8,7 +8,7 @@ import { loginAndRedirect } from "@core/utils/contact";
 
 import ContactsService from "@core/services/ContactsService";
 
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 
 import config from "@config";
 
@@ -31,13 +31,13 @@ if (config.dev) {
     wrapAsync(async (req, res) => {
       let contact;
       if (RoleTypes.indexOf(req.params.id as RoleType) > -1) {
-        const role = await getRepository(ContactRole).findOne({
+        const role = await getRepository(UserRole).findOne({
           where: {
             type: req.params.id as RoleType
           },
           relations: ["contact"]
         });
-        contact = role?.contact;
+        contact = role?.user;
       } else {
         contact = await ContactsService.findOne(req.params.id);
       }

@@ -10,7 +10,7 @@ import { generatePassword, passwordRequirements } from "@core/utils/auth";
 
 import ContactsService from "@core/services/ContactsService";
 
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 
 const questions: QuestionCollection[] = [];
 
@@ -98,7 +98,7 @@ db.connect().then(async () => {
         break;
     }
 
-    const membership = getRepository(ContactRole).create({
+    const membership = getRepository(UserRole).create({
       type: "member",
       ...(dateAdded && { dateAdded }),
       dateExpires
@@ -107,7 +107,7 @@ db.connect().then(async () => {
   }
 
   if (answers.role != "None") {
-    const admin = getRepository(ContactRole).create({
+    const admin = getRepository(UserRole).create({
       type: answers.role === "Admin" ? "admin" : "superadmin"
     });
     roles.push(admin);

@@ -9,5 +9,5 @@ export default class ApiUser extends User {
   creator!: Contact;
 
   @Column(() => ApiKey)
-  apikey!: ApiKey;
+  apiKey!: ApiKey;
 }

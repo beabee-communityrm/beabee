@@ -1,7 +1,6 @@
 import { Filters, Paginated } from "@beabee/beabee-common";
 import CalloutResponseComment from "@models/CalloutResponseComment";
-import { SelectQueryBuilder } from "typeorm";
-import { convertContactToData, loadContactRoles } from "../ContactData";
+import { convertContactToData, loadUserRoles } from "../ContactData";
 import { fetchPaginated } from "../PaginatedData";
 import {
   GetCalloutResponseCommentData,
@@ -55,7 +54,7 @@ export async function fetchPaginatedCalloutResponseComments(
   );
 
   // Load contact roles after to ensure offset/limit work
-  await loadContactRoles(results.items.map((i) => i.contact));
+  await loadUserRoles(results.items.map((i) => i.contact));
 
   return {
     ...results,

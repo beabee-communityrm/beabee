@@ -18,6 +18,7 @@ import { GCPaymentData } from "@models/PaymentData";
 import Payment from "@models/Payment";
 
 import config from "@config";
+import UsersService from "@core/services/UsersService";
 
 const log = mainLogger.child({ app: "payment-webhook-utils" });
 
@@ -87,7 +88,7 @@ async function confirmPayment(
     });
   }
 
-  await ContactsService.extendContactRole(
+  await UsersService.extendUserRole(
     payment.contact,
     "member",
     await getSubscriptionPeriodEnd(payment)

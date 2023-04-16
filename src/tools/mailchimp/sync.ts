@@ -11,7 +11,7 @@ import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
 import Contact from "@models/Contact";
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 
 async function fetchContacts(
   startDate: string | undefined,
@@ -27,7 +27,7 @@ async function fetchContacts(
 
   console.log("# Fetching contacts");
 
-  const memberships = await getRepository(ContactRole).find({
+  const memberships = await getRepository(UserRole).find({
     where: {
       type: "member",
       dateExpires: Between(actualStartDate, actualEndDate)
@@ -35,7 +35,7 @@ async function fetchContacts(
     relations: ["contact", "contact.profile"]
   });
   console.log(`Got ${memberships.length} members`);
-  return memberships.map(({ contact }) => {
+  return memberships.map(({ user: contact }) => {
     console.log(contact.membership?.isActive ? "U" : "D", contact.email);
     return contact;
   });

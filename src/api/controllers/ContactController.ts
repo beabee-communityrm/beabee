@@ -41,7 +41,7 @@ import JoinFlow from "@models/JoinFlow";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import Payment from "@models/Payment";
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 
 import { UUIDParam } from "@api/data";
 import {
@@ -50,12 +50,10 @@ import {
   fetchPaginatedContacts,
   GetContactData,
   GetContactQuery,
-  GetContactRoleData,
   GetContactsQuery,
   GetContactWith,
   GetPaymentData,
   GetPaymentsQuery,
-  UpdateContactRoleData,
   UpdateContactData,
   exportContacts
 } from "@api/data/ContactData";
@@ -80,6 +78,11 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
+import UsersService from "@core/services/UsersService";
+import {
+  UpdateUserRoleData,
+  GetUserRoleData
+} from "@api/data/UserData/interface";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -142,7 +145,7 @@ export class ContactController {
 
     if (data.roles) {
       for (const role of data.roles) {
-        await ContactsService.updateContactRole(contact, role.role, role);
+        await UsersService.updateUserRole(contact, role.role, role);
       }
     }
 
@@ -421,8 +424,8 @@ export class ContactController {
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
     @Param("role") roleType: string,
-    @Body() data: UpdateContactRoleData
-  ): Promise<GetContactRoleData | undefined> {
+    @Body() data: UpdateUserRoleData
+  ): Promise<GetUserRoleData | undefined> {
     if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
       throw new UnauthorizedError();
     }
@@ -432,7 +435,7 @@ export class ContactController {
     }
 
     if (RoleTypes.includes(roleType as RoleType)) {
-      const role = await getRepository(ContactRole).save({
+      const role = await getRepository(UserRole).save({
         contact: target,
         type: roleType as RoleType,
         ...data
@@ -457,8 +460,8 @@ export class ContactController {
       throw new UnauthorizedError();
     }
 
-    const result = await getRepository(ContactRole).delete({
-      contact: target,
+    const result = await getRepository(UserRole).delete({
+      user: target,
       type: role as RoleType
     });
 

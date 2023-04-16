@@ -13,7 +13,7 @@ import { createDateTime, wrapAsync } from "@core/utils";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
-import ContactRole from "@models/ContactRole";
+import UserRole from "@models/UserRole";
 
 import { addContactSchema } from "./schemas.json";
 
@@ -67,7 +67,7 @@ app.post(
 
     const roles = data.roles?.map((p) => {
       const dateAdded = createDateTime(p.startDate, p.startTime);
-      return getRepository(ContactRole).create({
+      return getRepository(UserRole).create({
         type: p.type,
         ...(dateAdded && { dateAdded }),
         dateExpires: createDateTime(p.expiryDate, p.expiryTime)

@@ -17,15 +17,15 @@ import { generateContactCode } from "@core/utils/contact";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
-import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
-import ContactRole from "@models/ContactRole";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import UsersService from "./UsersService";
+import OptionsService from "./OptionsService";
 
 export type PartialContact = Pick<Contact, "email" | "contributionType"> &
   Partial<Contact>;
@@ -156,74 +156,6 @@ class ContactsService {
     await PaymentService.updateContact(contact, updates);
   }
 
-  async updateContactRole(
-    contact: Contact,
-    roleType: RoleType,
-    updates?: Partial<Omit<ContactRole, "contact" | "type">>
-  ): Promise<void> {
-    log.info(`Update role ${roleType} for ${contact.id}`, updates);
-
-    const wasActive = contact.membership?.isActive;
-
-    const existingRole = contact.roles.find((p) => p.type === roleType);
-    if (existingRole && updates) {
-      Object.assign(existingRole, updates);
-    } else {
-      const newRole = getRepository(ContactRole).create({
-        contact: contact,
-        type: roleType,
-        ...updates
-      });
-      contact.roles.push(newRole);
-    }
-    await getRepository(Contact).save(contact);
-
-    if (!wasActive && contact.membership?.isActive) {
-      await NewsletterService.addTagToContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
-    } else if (wasActive && !contact.membership.isActive) {
-      await NewsletterService.removeTagFromContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
-    }
-  }
-
-  async extendContactRole(
-    contact: Contact,
-    roleType: RoleType,
-    dateExpires: Date
-  ): Promise<void> {
-    const p = contact.roles.find((p) => p.type === roleType);
-    log.info(`Extend role ${roleType} for ${contact.id}`, {
-      contactId: contact.id,
-      role: roleType,
-      prevDate: p?.dateExpires,
-      newDate: dateExpires
-    });
-    if (!p?.dateExpires || dateExpires > p.dateExpires) {
-      await this.updateContactRole(contact, roleType, { dateExpires });
-    }
-  }
-
-  async revokeContactRole(contact: Contact, roleType: RoleType): Promise<void> {
-    log.info(`Revoke role ${roleType} for ${contact.id}`);
-    contact.roles = contact.roles.filter((p) => p.type !== roleType);
-    await getRepository(ContactRole).delete({
-      contact: contact,
-      type: roleType
-    });
-
-    if (!contact.membership?.isActive) {
-      await NewsletterService.removeTagFromContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
-    }
-  }
-
   async updateContactProfile(
     contact: Contact,
     updates: Partial<ContactProfile>,
@@ -238,6 +170,22 @@ class ContactsService {
 
     if (opts.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       await NewsletterService.upsertContact(contact);
+    }
+  }
+
+  async updateContactMembership(contact: Contact): Promise<void> {
+    const wasActive = contact.membership?.isActive;
+
+    if (!wasActive && contact.membership?.isActive) {
+      await NewsletterService.addTagToContacts(
+        [contact],
+        OptionsService.getText("newsletter-active-member-tag")
+      );
+    } else if (wasActive && !contact.membership.isActive) {
+      await NewsletterService.removeTagFromContacts(
+        [contact],
+        OptionsService.getText("newsletter-active-member-tag")
+      );
     }
   }
 
@@ -279,7 +227,7 @@ class ContactsService {
       })
     });
 
-    await this.extendContactRole(contact, "member", expiryDate);
+    await UsersService.extendUserRole(contact, "member", expiryDate);
 
     if (wasManual) {
       await EmailService.sendTemplateToContact("manual-to-automatic", contact);
