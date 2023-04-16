@@ -5,9 +5,10 @@ import {
   convertComponentsToFilters,
   RuleOperator,
   Filters,
-  convertAnswers
+  flattenComponents,
+  stringifyAnswer
 } from "@beabee/beabee-common";
-import Papa from "papaparse";
+import { stringify } from "csv-stringify/sync";
 import { NotFoundError } from "routing-controllers";
 import { createQueryBuilder, getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
@@ -268,31 +269,46 @@ export async function exportCalloutResponses(
     callout.title
   }_${new Date().toISOString()}.csv`;
 
-  const exportData = results.items.map((response) => {
-    return {
-      Date: response.createdAt,
-      Number: response.number,
-      Bucket: response.bucket,
-      Tags: response.tags.map((rt) => rt.tag.name).join(", "),
-      Assignee: response.assignee?.email || "",
-      ...(response.contact
-        ? {
-            FirstName: response.contact.firstname,
-            LastName: response.contact.lastname,
-            FullName: response.contact.fullname,
-            EmailAddress: response.contact.email
-          }
-        : {
-            FirstName: "",
-            LastName: "",
-            FullName: response.guestName,
-            EmailAddress: response.guestEmail
-          }),
-      IsGuest: !response.contact,
-      ...convertAnswers(callout.formSchema, response.answers)
-    };
-  });
-  return [exportName, Papa.unparse(exportData)];
+  const components = flattenComponents(callout.formSchema.components).filter(
+    (c) => c.input
+  );
+
+  const headers = [
+    "Date",
+    "Number",
+    "Bucket",
+    "Tags",
+    "Assignee",
+    "FirstName",
+    "LastName",
+    "FullName",
+    "EmailAddress",
+    "IsGuest",
+    ...components.map((c) => c.label || c.key)
+  ];
+
+  const rows = results.items.map((response) => [
+    response.createdAt,
+    response.number,
+    response.bucket,
+    response.tags.map((rt) => rt.tag.name).join(", "),
+    response.assignee?.email || "",
+    ...(response.contact
+      ? [
+          response.contact.firstname,
+          response.contact.lastname,
+          response.contact.fullname,
+          response.contact.email
+        ]
+      : ["", "", response.guestName, response.guestEmail]),
+    !response.contact,
+    ...components.map((c) => stringifyAnswer(c, response.answers[c.key]))
+  ]);
+
+  return [
+    exportName,
+    stringify([headers, ...rows], { cast: { date: (d) => d.toISOString() } })
+  ];
 }
 
 export async function fetchPaginatedCalloutResponses(

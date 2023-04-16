@@ -1,5 +1,5 @@
 import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
-import Papa from "papaparse";
+import { stringify } from "csv-stringify/sync";
 import { Brackets, createQueryBuilder } from "typeorm";
 
 import { getMembershipStatus } from "@core/services/PaymentService";
@@ -206,7 +206,13 @@ export async function exportContacts(
     };
   });
 
-  return [exportName, Papa.unparse(exportData)];
+  return [
+    exportName,
+    stringify(exportData, {
+      cast: { date: (d) => d.toISOString() },
+      header: true
+    })
+  ];
 }
 
 export async function fetchPaginatedContacts(
