@@ -38,7 +38,7 @@ app.get(
         createdAt: Between(start.toDate(), end.toDate())
       },
       order: { chargeDate: "DESC" },
-      relations: ["contact"]
+      relations: ["user"]
     });
 
     const successfulPayments = payments

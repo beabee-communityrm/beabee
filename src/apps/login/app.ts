@@ -35,7 +35,7 @@ if (config.dev) {
           where: {
             type: req.params.id as RoleType
           },
-          relations: ["contact"]
+          relations: ["user"]
         });
         const user = role?.user;
         contact = await ContactsService.findOne(user?.id);

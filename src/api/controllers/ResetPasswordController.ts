@@ -48,7 +48,7 @@ export class ResetPasswordController {
   ): Promise<void> {
     const rpFlow = await getRepository(ResetPasswordFlow).findOne({
       where: { id },
-      relations: ["contact"]
+      relations: ["user"]
     });
     if (rpFlow) {
       await ContactsService.updateContact(rpFlow.contact, {

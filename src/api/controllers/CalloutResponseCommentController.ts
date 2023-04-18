@@ -62,7 +62,7 @@ export class CalloutResponseCommentController {
   ): Promise<GetCalloutResponseCommentData | undefined> {
     const comment = await getRepository(CalloutResponseComment).findOne({
       where: { id: id },
-      relations: ["contact"]
+      relations: ["user"]
     });
     if (comment) {
       return convertCommentToData(comment);

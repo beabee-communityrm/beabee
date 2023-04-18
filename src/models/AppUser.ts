@@ -1,7 +1,15 @@
 import { RoleType } from "@beabee/beabee-common";
-import { CreateDateColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  TableInheritance
+} from "typeorm";
 import UserRole from "./UserRole";
 
+@Entity()
+@TableInheritance({ column: { type: "varchar", name: "type" } })
 export default abstract class AppUser {
   @PrimaryGeneratedColumn("uuid")
   id!: string;

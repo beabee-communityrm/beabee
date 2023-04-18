@@ -175,7 +175,7 @@ async function findOrCreatePayment(
   gcPayment: GCPayment
 ): Promise<Payment | undefined> {
   const payment = await getRepository(Payment).findOne(gcPayment.id, {
-    relations: ["contact"]
+    relations: ["user"]
   });
   if (payment) {
     return payment;

@@ -33,7 +33,7 @@ async function fetchContacts(
       type: "member",
       dateExpires: Between(actualStartDate, actualEndDate)
     },
-    relations: ["contact", "contact.profile"]
+    relations: ["user", "contact.profile"]
   });
   console.log(`Got ${memberships.length} members`);
   return memberships

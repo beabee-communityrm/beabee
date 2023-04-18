@@ -94,11 +94,14 @@ class ContactsService {
       });
       await getRepository(Contact).save(contact);
 
+      log.info("Saved contact");
+
       contact.profile = getRepository(ContactProfile).create({
         ...partialProfile,
         contact: contact
       });
       await getRepository(ContactProfile).save(contact.profile);
+      log.info("Saved profile");
 
       await PaymentService.createContact(contact);
 

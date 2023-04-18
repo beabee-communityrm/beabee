@@ -72,7 +72,7 @@ export class AuthController {
     if (RoleTypes.indexOf(id as RoleType) > -1) {
       const role = await getRepository(UserRole).findOne({
         where: { type: id },
-        relations: ["contact"]
+        relations: ["user"]
       });
       const user = role?.user;
       contact = await ContactsService.findOne(user?.id);

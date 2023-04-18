@@ -121,7 +121,7 @@ app.get(
 
     const projectContacts = await getRepository(ProjectContact).find({
       where: { project },
-      relations: ["contact", "contact.profile"]
+      relations: ["user", "contact.profile"]
     });
     const engagements = await getRepository(ProjectEngagement).find({
       where: { project },

@@ -106,7 +106,7 @@ app.get(
         order: {
           createdAt: "ASC"
         },
-        relations: ["contact"]
+        relations: ["user"]
       });
       const responsesWithText = responses.map((response) => ({
         ...response,

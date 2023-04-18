@@ -84,6 +84,9 @@ import {
   GetUserRoleData
 } from "@api/data/UserData/interface";
 
+import { log as mainLogger } from "@core/logging";
+const log = mainLogger.child({ app: "contact-controller" });
+
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
 // and also ensures the user has the correct roles
@@ -142,7 +145,7 @@ export class ContactController {
         })
       }
     );
-
+    log.info("test");
     if (data.roles) {
       for (const role of data.roles) {
         await UsersService.updateUserRole(contact, role.role, role);

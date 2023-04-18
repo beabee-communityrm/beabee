@@ -1,5 +1,5 @@
 import { ContributionType, ContributionPeriod } from "@beabee/beabee-common";
-import { Column, Entity, OneToMany, OneToOne } from "typeorm";
+import { ChildEntity, Column, OneToMany, OneToOne } from "typeorm";
 
 import { getActualAmount } from "@core/utils";
 import config from "@config";
@@ -24,7 +24,7 @@ class OneTimePassword {
   activated!: boolean;
 }
 
-@Entity()
+@ChildEntity()
 export default class Contact extends AppUser {
   @Column({ unique: true })
   email!: string;
