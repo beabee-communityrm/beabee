@@ -10,7 +10,7 @@ import type AppUser from "./AppUser";
 
 @Entity()
 export default class UserRole {
-  @ManyToOne("User", "roles", { primary: true })
+  @ManyToOne("AppUser", "roles", { primary: true })
   user!: AppUser;
 
   @PrimaryColumn()
