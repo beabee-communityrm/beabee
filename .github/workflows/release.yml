@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - feat/*
+    tags:
+      - v*
 
 jobs:
   check:
@@ -25,11 +25,10 @@ jobs:
           flavor: |
             latest=false
           images: |
-            ${{ secrets.DOCKER_ORGANISATION }}/beabee-test
+            ${{ secrets.DOCKER_ORGANISATION }}/beabee
           tags: |
             type=ref,event=tag
-            type=ref,event=branch
-            test
+            release
 
       - id: router_meta
         uses: docker/metadata-action@v4
@@ -37,11 +36,10 @@ jobs:
           flavor: |
             latest=false
           images: |
-            ${{ secrets.DOCKER_ORGANISATION }}/beabee-router-test
+            ${{ secrets.DOCKER_ORGANISATION }}/beabee-router
           tags: |
             type=ref,event=tag
-            type=ref,event=branch
-            test
+            release
 
       - uses: docker/login-action@v2
         with:
