@@ -22,7 +22,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v4
         with:
-          flavour: |
+          flavor: |
             latest=false
           images: |
             ${{ secrets.DOCKER_ORGANISATION }}/beabee-test
@@ -63,7 +63,7 @@ jobs:
           echo -n ${{ needs.push.outputs.version }} > API_VERSION
           ./update.sh
 
-          git add docker-compose.yml
+          git add API_VERSION docker-compose.yml
           if ! git diff --quiet --cached; then
             git commit -m "Deploy ${{ needs.push.outputs.version }}"
             git push
