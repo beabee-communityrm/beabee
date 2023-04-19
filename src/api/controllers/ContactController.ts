@@ -132,6 +132,15 @@ export class ContactController {
         email: data.email,
         firstname: data.firstname,
         lastname: data.lastname,
+        roles: data.roles
+          ? data.roles.map((role) => {
+              return {
+                type: role.role,
+                dateAdded: role.dateAdded,
+                dateExpires: role.dateExpires
+              } as UserRole;
+            })
+          : [],
         ...(data.password && {
           password: await generatePassword(data.password)
         })
@@ -145,12 +154,6 @@ export class ContactController {
         })
       }
     );
-    log.info("test");
-    if (data.roles) {
-      for (const role of data.roles) {
-        await UsersService.updateUserRole(contact, role.role, role);
-      }
-    }
 
     if (data.contribution) {
       await ContactsService.forceUpdateContactContribution(

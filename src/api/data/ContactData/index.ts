@@ -82,7 +82,7 @@ function membershipField(field: keyof UserRole): FieldHandler {
   return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`mp.contactId`)
+      .select(`mp.userId`)
       .from(UserRole, "mp")
       .where(`mp.type = 'member'`)
       .andWhere(args.whereFn(`mp.${field}`));
@@ -113,7 +113,7 @@ const activePermission: FieldHandler = (qb, args) => {
 
   const subQb = createQueryBuilder()
     .subQuery()
-    .select(`mp.contactId`)
+    .select(`mp.userId`)
     .from(UserRole, "mp")
     .where(`mp.type = '${roleType}'`)
     .andWhere(`mp.dateAdded <= :now`)
@@ -241,7 +241,7 @@ export async function fetchPaginatedContacts(
         qb.leftJoin(
           UserRole,
           "mp",
-          `mp.contactId = ${fieldPrefix}id AND mp.type = 'member'`
+          `mp.userId = ${fieldPrefix}id AND mp.type = 'member'`
         )
           .addSelect(
             "COALESCE(mp.dateAdded, '-infinity'::timestamp)",
@@ -279,7 +279,7 @@ export async function loadUserRoles(contacts: Contact[]): Promise<void> {
   if (contacts.length > 0) {
     // Load roles after to ensure offset/limit work
     const roles = await createQueryBuilder(UserRole, "mp")
-      .where("mp.contactId IN (:...ids)", {
+      .where("mp.userId IN (:...ids)", {
         ids: contacts.map((t) => t.id)
       })
       .loadAllRelationIds()

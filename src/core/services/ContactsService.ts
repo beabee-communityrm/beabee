@@ -79,22 +79,29 @@ class ContactsService {
     opts = { sync: true }
   ): Promise<Contact> {
     log.info("Create contact", { partialContact, partialProfile });
-
     try {
       const contact = getRepository(Contact).create({
         referralCode: generateContactCode(partialContact),
         pollsCode: generateContactCode(partialContact),
-        roles: [],
         password: { hash: "", salt: "", iterations: 0, tries: 0 },
         firstname: "",
         lastname: "",
         contributionType: ContributionType.None,
         ...partialContact,
+        roles: [],
         email: cleanEmailAddress(partialContact.email)
       });
+
+      console.log(contact);
       await getRepository(Contact).save(contact);
 
       log.info("Saved contact");
+
+      if (partialContact.roles) {
+        for (const role of partialContact.roles) {
+          await UsersService.updateUserRole(contact, role.type, role);
+        }
+      }
 
       contact.profile = getRepository(ContactProfile).create({
         ...partialProfile,

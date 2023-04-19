@@ -11,7 +11,7 @@ export class manualMigration1681650701079 implements MigrationInterface {
 
     await queryRunner.query(
       `ALTER TABLE "app_user" 
-      ADD COLUMN "type" character varying NOT NULL DEFAULT 'contact', 
+      ADD COLUMN "type" character varying NOT NULL DEFAULT 'Contact', 
       ADD COLUMN "creatorId" uuid, 
       ADD COLUMN "apiKeyId" character varying, 
       ADD COLUMN "apiKeySecrethash" character varying`

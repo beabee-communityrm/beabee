@@ -85,7 +85,7 @@ app.get(
   wrapAsync(async (req, res) => {
     const now = new Date();
     const profiles = await createQueryBuilder(ContactProfile, "profile")
-      .innerJoin(UserRole, "mp", "profile.contactId = mp.contactId")
+      .innerJoin(UserRole, "mp", "profile.contactId = mp.userId")
       .where("profile.deliveryOptIn = true")
       .andWhere("mp.type = 'member' AND mp.dateAdded <= :now", { now })
       .andWhere(
