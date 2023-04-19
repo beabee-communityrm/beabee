@@ -61,9 +61,10 @@ jobs:
           git config --global user.email "<>"
 
           echo -n ${{ needs.push.outputs.version }} > API_VERSION
-
           ./update.sh
 
           git add docker-compose.yml
-          git commit -m "Deploy ${{ needs.push.outputs.version }}"
-          git push
+          if ! git diff --quiet --cached; then
+            git commit -m "Deploy ${{ needs.push.outputs.version }}"
+            git push
+          fi
