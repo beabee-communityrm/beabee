@@ -56,14 +56,14 @@ jobs:
           repository: beabee-communityrm/test-deploy
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - run |
-        git config --global user.name "Deploy bot"
-        git config --global user.email "<>"
+      - run: |
+          git config --global user.name "Deploy bot"
+          git config --global user.email "<>"
 
-        echo -n ${{ needs.push.outputs.version }} > API_VERSION
+          echo -n ${{ needs.push.outputs.version }} > API_VERSION
 
-        ./update.sh
+          ./update.sh
 
-        git add docker-compose.yml
-        git commit -m "Deploy ${{ needs.push.outputs.version }}"
-        git push
+          git add docker-compose.yml
+          git commit -m "Deploy ${{ needs.push.outputs.version }}"
+          git push
