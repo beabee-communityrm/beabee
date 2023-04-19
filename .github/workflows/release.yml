@@ -54,7 +54,7 @@ jobs:
           tags: ${{ steps.app_meta.outputs.tags }}
           labels: ${{ steps.app_meta.outputs.labels }}
           build-args: |
-            REVISION=${{ fromJSON(steps.app_meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            REVISION=${{ github.sha }}
 
       - uses: docker/build-push-action@v4
         with:
@@ -64,9 +64,7 @@ jobs:
           tags: ${{ steps.router_meta.outputs.tags }}
           labels: ${{ steps.router_meta.outputs.labels }}
           build-args: |
-            REVISION=${{ fromJSON(steps.router_meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-
-      - uses: docker/build-push-action@v4
+            REVISION=${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -86,6 +84,6 @@ jobs:
 
           git add API_VERSION docker-compose.yml
           if ! git diff --quiet --cached; then
-            git commit -m "Deploy ${{ needs.push.outputs.version }}"
+            git commit -m "Deploy API ${{ needs.push.outputs.version }}"
             git push
           fi
