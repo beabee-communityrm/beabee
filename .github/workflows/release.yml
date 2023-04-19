@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - "feat/*"
+      - feat/*
 
 jobs:
   check:
@@ -14,12 +14,12 @@ jobs:
     needs: [check]
 
     outputs:
-      version: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+      version: ${{ fromJSON(steps.app_meta.outputs.json).labels['org.opencontainers.image.version'] }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - id: meta
+      - id: app_meta
         uses: docker/metadata-action@v4
         with:
           flavor: |
@@ -27,8 +27,21 @@ jobs:
           images: |
             ${{ secrets.DOCKER_ORGANISATION }}/beabee-test
           tags: |
+            type=ref,event=tag
             type=ref,event=branch
-            release
+            test
+
+      - id: router_meta
+        uses: docker/metadata-action@v4
+        with:
+          flavor: |
+            latest=false
+          images: |
+            ${{ secrets.DOCKER_ORGANISATION }}/beabee-router-test
+          tags: |
+            type=ref,event=tag
+            type=ref,event=branch
+            test
 
       - uses: docker/login-action@v2
         with:
@@ -40,10 +53,20 @@ jobs:
           context: .
           target: app
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.app_meta.outputs.tags }}
+          labels: ${{ steps.app_meta.outputs.labels }}
           build-args: |
-            REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            REVISION=${{ fromJSON(steps.app_meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+
+      - uses: docker/build-push-action@v4
+        with:
+          context: .
+          target: router
+          push: true
+          tags: ${{ steps.router_meta.outputs.tags }}
+          labels: ${{ steps.router_meta.outputs.labels }}
+          build-args: |
+            REVISION=${{ fromJSON(steps.router_meta.outputs.json).labels['org.opencontainers.image.revision'] }}
 
       - uses: docker/build-push-action@v4
 
