@@ -14,7 +14,8 @@ export class manualMigration1681650701079 implements MigrationInterface {
       ADD COLUMN "type" character varying NOT NULL DEFAULT 'Contact', 
       ADD COLUMN "creatorId" uuid, 
       ADD COLUMN "apiKeyId" character varying, 
-      ADD COLUMN "apiKeySecrethash" character varying`
+      ADD COLUMN "apiKeySecrethash" character varying
+      ADD COLUMN "apiKeyDescription" character varying`
     );
 
     await queryRunner.query(
@@ -44,7 +45,8 @@ export class manualMigration1681650701079 implements MigrationInterface {
       DROP COLUMN "type",
       DROP COLUMN "creatorId", 
       DROP COLUMN "ApiKeyId", 
-      DROP COLUMN "apiKeySecrethash"`
+      DROP COLUMN "apiKeySecrethash"
+      DROP COLUMN "apiKeyDescription"`
     );
 
     await queryRunner.query(

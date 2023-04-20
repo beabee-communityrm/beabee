@@ -2,7 +2,7 @@ import { log as mainLogger } from "@core/logging";
 import ApiUser from "@models/ApiUser";
 import { getRepository } from "typeorm";
 
-const log = mainLogger.child({ app: "contacts-service" });
+const log = mainLogger.child({ app: "ApiUsers-service" });
 
 class ApiUsersService {
   async createApiUser(
