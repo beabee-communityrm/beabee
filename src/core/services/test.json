@@ -1,4 +1,0 @@
-"type" character varying NOT NULL,
-"creatorId" uuid,
-"apiKeyId" character varying,
-"apiKeySecrethash" character varying

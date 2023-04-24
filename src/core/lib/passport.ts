@@ -1,6 +1,8 @@
+import crypto from "crypto";
 import passport from "passport";
 import passportLocal from "passport-local";
 import passportTotp from "passport-totp";
+import passportBearer from "passport-http-bearer";
 import { getRepository } from "typeorm";
 
 import config from "@config";
@@ -12,6 +14,21 @@ import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
 
 import Contact from "@models/Contact";
+import ApiUsersService from "@core/services/ApiUsersService";
+
+passport.use(
+  new passportBearer.Strategy(async function (token, done) {
+    const [id, secret] = token.split("_");
+    const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
+    const apiUser = await ApiUsersService.findOne(secretHash);
+
+    if (apiUser) {
+      return done(null, apiUser, { scope: "all" });
+    } else {
+      return done(null, false);
+    }
+  })
+);
 
 // Add support for local authentication in Passport.js
 passport.use(

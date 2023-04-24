@@ -14,6 +14,12 @@ class ApiUsersService {
     const apiUser = getRepository(ApiUser).create(partialApiUser);
     return await getRepository(ApiUser).save(apiUser);
   }
+
+  async findOne(secretHash: string): Promise<ApiUser | undefined> {
+    return await getRepository(ApiUser).findOne({
+      where: { apiKey: { secretHash: secretHash } }
+    });
+  }
 }
 
 export default new ApiUsersService();
