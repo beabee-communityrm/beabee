@@ -14,7 +14,7 @@ jobs:
     needs: [check]
 
     outputs:
-      version: ${{ steps.meta.outputs.version }}
+      version: ${{ steps.app_meta.outputs.version }}
 
     steps:
       - uses: actions/checkout@v3
