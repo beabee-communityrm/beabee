@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          repository: beabee-communityrm/test-deploy
+          repository: beabee-communityrm/hive-deploy-stack
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - run: |
