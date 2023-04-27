@@ -45,7 +45,7 @@ db.connect().then(async () => {
   try {
     await main(process.argv[2]);
   } catch (err) {
-    console.error(err);
+    log.error(err);
   }
   await db.close();
 });
