@@ -1,10 +1,10 @@
+import { RoleType } from "@beabee/beabee-common";
+import AppUser from "@models/AppUser";
+import cookie from "cookie-parser";
+import crypto from "crypto";
+import express, { ErrorRequestHandler, Request } from "express";
 import "module-alias/register";
 import "reflect-metadata";
-
-import crypto from "crypto";
-import { RoleType } from "@beabee/beabee-common";
-import cookie from "cookie-parser";
-import express, { ErrorRequestHandler, Request } from "express";
 import {
   Action,
   HttpError,
@@ -13,27 +13,25 @@ import {
   useExpressServer
 } from "routing-controllers";
 
+import * as db from "@core/database";
+import { log, requestErrorLogger, requestLogger } from "@core/logging";
+import startServer from "@core/server";
+import ApiUsersService from "@core/services/ApiUsersService";
+import sessions from "@core/sessions";
+
+import { ApiUserController } from "./controllers/ApiUserController";
 import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
-import { CalloutResponseController } from "./controllers/CalloutResponseController";
 import { CalloutResponseCommentController } from "./controllers/CalloutResponseCommentController";
+import { CalloutResponseController } from "./controllers/CalloutResponseController";
+import { ContactController } from "./controllers/ContactController";
 import { ContentController } from "./controllers/ContentController";
 import { EmailController } from "./controllers/EmailController";
-import { ContactController } from "./controllers/ContactController";
 import { NoticeController } from "./controllers/NoticeController";
+import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
 import { StatsController } from "./controllers/StatsController";
-import { ResetPasswordController } from "./controllers/ResetPasswordController";
-
-import * as db from "@core/database";
-import { log, requestErrorLogger, requestLogger } from "@core/logging";
-import sessions from "@core/sessions";
-import startServer from "@core/server";
-
-import { ApiUserController } from "./controllers/ApiUserController";
-import ApiUsersService from "@core/services/ApiUsersService";
-import AppUser from "@models/AppUser";
 
 async function currentUserChecker(
   action: Action

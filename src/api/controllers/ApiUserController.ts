@@ -1,4 +1,4 @@
-import { Filters, ItemStatus } from "@beabee/beabee-common";
+import { Filters } from "@beabee/beabee-common";
 import { CreateApiUserData, GetApiUsersQuery } from "@api/data/ApiUserData";
 import { GetApiUserData } from "@api/data/ApiUserData/interface";
 import { Paginated, fetchPaginated } from "@api/data/PaginatedData";
@@ -19,6 +19,7 @@ import {
   Params,
   Delete
 } from "routing-controllers";
+
 import { UUIDParam } from "@api/data";
 import { getRepository } from "typeorm";
 import { log as mainLogger } from "@core/logging";
@@ -87,3 +88,4 @@ export const apiUserFilters = {
     type: "date"
   }
 } as const satisfies Filters;
+

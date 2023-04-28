@@ -1,26 +1,22 @@
-import "module-alias/register";
-
+//import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
+import config from "@config";
 import cleanDeep from "clean-deep";
 import cookie from "cookie-parser";
 import csrf from "csurf";
 import express, { ErrorRequestHandler } from "express";
 import flash from "express-flash";
 import helmet from "helmet";
+import "module-alias/register";
 
 import appLoader from "@core/app-loader";
 import * as database from "@core/database";
 import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import quickflash from "@core/quickflash";
 import startServer from "@core/server";
-import sessions from "@core/sessions";
-import { isInvalidType } from "@core/utils";
-
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import PageSettingsService from "@core/services/PageSettingsService";
-
-//import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
-
-import config from "@config";
+import sessions from "@core/sessions";
+import { isInvalidType } from "@core/utils";
 
 if (!config.gocardless.sandbox && config.dev) {
   log.error(

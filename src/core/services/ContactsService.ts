@@ -1,27 +1,24 @@
-import { ContributionType, ContributionPeriod } from "@beabee/beabee-common";
-import {
-  createQueryBuilder,
-  FindConditions,
-  FindManyOptions,
-  FindOneOptions,
-  getRepository
-} from "typeorm";
-
+import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import { ContributionPeriod, ContributionType } from "@beabee/beabee-common";
 import { log as mainLogger } from "@core/logging";
-import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
-import { generateContactCode } from "@core/utils/contact";
-
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import PaymentService from "@core/services/PaymentService";
-
+import { PaymentForm, cleanEmailAddress, isDuplicateIndex } from "@core/utils";
+import { generateContactCode } from "@core/utils/contact";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
+import {
+  FindConditions,
+  FindManyOptions,
+  FindOneOptions,
+  createQueryBuilder,
+  getRepository
+} from "typeorm";
 
-import DuplicateEmailError from "@api/errors/DuplicateEmailError";
-import CantUpdateContribution from "@api/errors/CantUpdateContribution";
-import UsersService from "./UsersService";
 import OptionsService from "./OptionsService";
+import UsersService from "./UsersService";
 
 export type PartialContact = Pick<Contact, "email" | "contributionType"> &
   Partial<Contact>;
