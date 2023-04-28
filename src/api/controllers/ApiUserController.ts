@@ -3,7 +3,6 @@ import { CreateApiUserData, GetApiUsersQuery } from "@api/data/ApiUserData";
 import { GetApiUserData } from "@api/data/ApiUserData/interface";
 import { Paginated, fetchPaginated } from "@api/data/PaginatedData";
 import ApiUsersService from "@core/services/ApiUsersService";
-import UsersService from "@core/services/UsersService";
 import { generateApiKey } from "@core/utils/auth";
 import ApiUser from "@models/ApiUser";
 import Contact from "@models/Contact";
@@ -56,22 +55,29 @@ export class ApiUserController {
       secretHash: secretHash,
       description: data.description
     };
+
     const apiUser = await ApiUsersService.createApiUser({
       roles: [],
       apiKey: apiKey,
       creator: creator
     });
 
-    await UsersService.updateUserRole(apiUser, "admin");
+    const newRole = getRepository(UserRole).create({
+      user: apiUser,
+      type: "admin"
+    });
+    apiUser.roles.push(newRole);
+
+    await getRepository(ApiUser).save(apiUser);
+
     return { token };
   }
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteNotice(@Params() { id }: UUIDParam) {
+  async deleteApiUser(@Params() { id }: UUIDParam) {
     await getRepository(UserRole).delete({ user: { id } });
     const result = await getRepository(ApiUser).delete(id);
-    log.info(result);
     if (!result.affected) throw new NotFoundError();
   }
 }

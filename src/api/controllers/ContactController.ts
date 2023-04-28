@@ -78,7 +78,6 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-import UsersService from "@core/services/UsersService";
 import {
   UpdateUserRoleData,
   GetUserRoleData

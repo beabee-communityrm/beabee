@@ -1,6 +1,7 @@
 import "module-alias/register";
 import "reflect-metadata";
 
+import crypto from "crypto";
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
 import express, { ErrorRequestHandler, Request } from "express";
@@ -30,15 +31,36 @@ import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
-import Contact from "@models/Contact";
 import { ApiUserController } from "./controllers/ApiUserController";
+import ApiUsersService from "@core/services/ApiUsersService";
+import AppUser from "@models/AppUser";
 
-function currentUserChecker(action: Action): Contact | undefined {
-  return (action.request as Request).user;
+async function currentUserChecker(
+  action: Action
+): Promise<AppUser | undefined> {
+  if (action.request.user) {
+    return action.request.user;
+  }
+  if (action.request.headers.authorization) {
+    const [type, token] = action.request.headers.authorization.split(" ");
+    if (type === "Bearer") {
+      const [id, secret] = token.split("_");
+      const secretHash = crypto
+        .createHash("sha256")
+        .update(secret)
+        .digest("hex");
+      const apiUser = await ApiUsersService.findOne(secretHash);
+
+      return apiUser;
+    }
+  }
 }
 
-function authorizationChecker(action: Action, roles: RoleType[]): boolean {
-  const user = currentUserChecker(action);
+async function authorizationChecker(
+  action: Action,
+  roles: RoleType[]
+): Promise<boolean> {
+  const user = await currentUserChecker(action);
   return !!user && roles.every((role) => user.hasRole(role));
 }
 
