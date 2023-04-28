@@ -5,6 +5,7 @@ export interface SMTPEmailConfig {
   settings: {
     host: string;
     port: number;
+    secure: boolean;
     auth: {
       user: string;
       pass: string;
@@ -101,6 +102,7 @@ export default {
         ? {
             host: env.s("BEABEE_EMAIL_SETTINGS_HOST"),
             port: env.s("BEABEE_EMAIL_SETTINGS_PORT"),
+            secure: env.b("BEABEE_EMAIL_SETTINGS_SECURE", false),
             auth: {
               user: env.s("BEABEE_EMAIL_SETTINGS_AUTH_USER"),
               pass: env.s("BEABEE_EMAIL_SETTINGS_AUTH_PASS")

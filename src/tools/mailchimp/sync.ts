@@ -1,18 +1,14 @@
-import "module-alias/register";
-
 import { NewsletterStatus } from "@beabee/beabee-common";
-import moment from "moment";
-import { Between, getRepository } from "typeorm";
-
 import * as db from "@core/database";
-
+import { log as mainLogger } from "@core/logging";
 import ContactsService from "@core/services/ContactsService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
-
+import AppUser from "@models/AppUser";
 import Contact from "@models/Contact";
 import UserRole from "@models/UserRole";
-import AppUser from "@models/AppUser";
+
+const log = mainLogger.child({ app: "mailchimp-sync" });
 
 async function fetchContacts(
   startDate: string | undefined,
@@ -23,10 +19,10 @@ async function fetchContacts(
     : moment().subtract({ d: 1, h: 2 }).toDate();
   const actualEndDate = moment(endDate).toDate();
 
-  console.log("Start date:", actualStartDate.toISOString());
-  console.log("End date:", actualEndDate.toISOString());
-
-  console.log("# Fetching contacts");
+  log.info("Fetching contacts", {
+    startDate: actualStartDate,
+    endDate: actualEndDate
+  });
 
   const memberships = await getRepository(UserRole).find({
     where: {
@@ -35,14 +31,14 @@ async function fetchContacts(
     },
     relations: ["user", "contact.profile"]
   });
-  console.log(`Got ${memberships.length} members`);
+  log.info(`Got ${memberships.length} members`);
   return memberships
     .map((userRole) => userRole.user)
     .filter((user: AppUser): user is Contact => {
       return user instanceof Contact;
     })
     .map((contact) => {
-      console.log(contact.membership?.isActive ? "U" : "D", contact.email);
+      log.info(contact.membership?.isActive ? "U" : "D", contact.email);
       return contact;
     });
 }
@@ -54,7 +50,7 @@ async function processContacts(contacts: Contact[]) {
       !m.membership?.isActive
   );
 
-  console.log(
+  log.info(
     `Removing active member tag from ${contactsToArchive.length} contacts`
   );
   await NewsletterService.removeTagFromContacts(
@@ -63,7 +59,7 @@ async function processContacts(contacts: Contact[]) {
   );
 
   if (OptionsService.getBool("newsletter-archive-on-expired")) {
-    console.log(`Archiving ${contactsToArchive.length} contacts`);
+    log.info(`Archiving ${contactsToArchive.length} contacts`);
     for (const contact of contactsToArchive) {
       await ContactsService.updateContactProfile(
         contact,
@@ -90,7 +86,7 @@ db.connect().then(async () => {
       await processContacts(contacts);
     }
   } catch (err) {
-    console.error(err);
+    log.error(err);
   }
   await db.close();
 });
