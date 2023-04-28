@@ -1,14 +1,12 @@
-import { contactFilters, validateRuleGroup } from "@beabee/beabee-common";
-import { getRepository } from "typeorm";
-
-import Contact from "@models/Contact";
-import Segment from "@models/Segment";
-
 import {
   fetchPaginatedContacts,
   contactFieldHandlers
 } from "@api/data/ContactData";
 import { buildSelectQuery } from "@api/data/PaginatedData";
+import { contactFilters, validateRuleGroup } from "@beabee/beabee-common";
+import Contact from "@models/Contact";
+import Segment from "@models/Segment";
+import { getRepository } from "typeorm";
 
 class SegmentService {
   async createSegment(

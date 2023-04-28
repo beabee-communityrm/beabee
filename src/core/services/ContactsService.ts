@@ -1,3 +1,5 @@
+import OptionsService from "./OptionsService";
+import UsersService from "./UsersService";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import { ContributionPeriod, ContributionType } from "@beabee/beabee-common";
@@ -16,9 +18,6 @@ import {
   createQueryBuilder,
   getRepository
 } from "typeorm";
-
-import OptionsService from "./OptionsService";
-import UsersService from "./UsersService";
 
 export type PartialContact = Pick<Contact, "email" | "contributionType"> &
   Partial<Contact>;
@@ -173,22 +172,6 @@ class ContactsService {
 
     if (opts.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       await NewsletterService.upsertContact(contact);
-    }
-  }
-
-  async updateContactMembership(contact: Contact): Promise<void> {
-    const wasActive = contact.membership?.isActive;
-
-    if (!wasActive && contact.membership?.isActive) {
-      await NewsletterService.addTagToContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
-    } else if (wasActive && !contact.membership.isActive) {
-      await NewsletterService.removeTagFromContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
     }
   }
 

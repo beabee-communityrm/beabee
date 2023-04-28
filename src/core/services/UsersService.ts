@@ -1,12 +1,11 @@
+import NewsletterService from "./NewsletterService";
+import OptionsService from "./OptionsService";
 import { RoleType } from "@beabee/beabee-common";
 import { log as mainLogger } from "@core/logging";
 import AppUser from "@models/AppUser";
+import Contact from "@models/Contact";
 import UserRole from "@models/UserRole";
 import { FindConditions, FindOneOptions, getRepository } from "typeorm";
-import NewsletterService from "./NewsletterService";
-import OptionsService from "./OptionsService";
-import ContactsService from "./ContactsService";
-import Contact from "@models/Contact";
 
 const log = mainLogger.child({ app: "users-service" });
 
@@ -49,7 +48,23 @@ class UsersService {
     }
     await getRepository(AppUser).save(user);
     if (user instanceof Contact) {
-      ContactsService.updateContactMembership(user);
+      this.updateContactMembership(user);
+    }
+  }
+
+  async updateContactMembership(contact: Contact): Promise<void> {
+    const wasActive = contact.membership?.isActive;
+
+    if (!wasActive && contact.membership?.isActive) {
+      await NewsletterService.addTagToContacts(
+        [contact],
+        OptionsService.getText("newsletter-active-member-tag")
+      );
+    } else if (wasActive && !contact.membership.isActive) {
+      await NewsletterService.removeTagFromContacts(
+        [contact],
+        OptionsService.getText("newsletter-active-member-tag")
+      );
     }
   }
 

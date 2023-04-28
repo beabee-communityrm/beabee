@@ -7,6 +7,8 @@ import OptionsService from "@core/services/OptionsService";
 import AppUser from "@models/AppUser";
 import Contact from "@models/Contact";
 import UserRole from "@models/UserRole";
+import moment from "moment";
+import { Between, getRepository } from "typeorm";
 
 const log = mainLogger.child({ app: "mailchimp-sync" });
 

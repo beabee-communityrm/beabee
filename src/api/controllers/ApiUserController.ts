@@ -88,4 +88,3 @@ export const apiUserFilters = {
     type: "date"
   }
 } as const satisfies Filters;
-
