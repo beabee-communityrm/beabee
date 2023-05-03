@@ -9,8 +9,9 @@ import {
   stringifyAnswer
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
+import { format } from "date-fns";
 import { NotFoundError } from "routing-controllers";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { In, createQueryBuilder, getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import Callout from "@models/Callout";
@@ -18,6 +19,8 @@ import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
+
+import { groupBy } from "@api/utils";
 
 import { convertCalloutToData } from "../CalloutData";
 import { convertTagToData } from "../CalloutTagData";
@@ -234,6 +237,11 @@ async function prepareQuery(
   ];
 }
 
+function commentText(comment: CalloutResponseComment) {
+  const date = format(comment.createdAt, "Pp");
+  return `${comment.contact.fullname} (${date}): ${comment.text}`;
+}
+
 export async function exportCalloutResponses(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
@@ -265,6 +273,16 @@ export async function exportCalloutResponses(
     }
   );
 
+  // Fetch comments for filtered responses
+  const comments = await getRepository(CalloutResponseComment).find({
+    where: {
+      responseId: In(results.items.map((response) => response.id))
+    },
+    relations: ["contact"],
+    order: { createdAt: "ASC" }
+  });
+  const commentsByResponseId = groupBy(comments, (c) => c.responseId);
+
   const exportName = `responses-${
     callout.title
   }_${new Date().toISOString()}.csv`;
@@ -284,26 +302,32 @@ export async function exportCalloutResponses(
     "FullName",
     "EmailAddress",
     "IsGuest",
+    "Comments",
     ...components.map((c) => c.label || c.key)
   ];
 
-  const rows = results.items.map((response) => [
-    response.createdAt,
-    response.number,
-    response.bucket,
-    response.tags.map((rt) => rt.tag.name).join(", "),
-    response.assignee?.email || "",
-    ...(response.contact
-      ? [
-          response.contact.firstname,
-          response.contact.lastname,
-          response.contact.fullname,
-          response.contact.email
-        ]
-      : ["", "", response.guestName, response.guestEmail]),
-    !response.contact,
-    ...components.map((c) => stringifyAnswer(c, response.answers[c.key]))
-  ]);
+  const rows = results.items.map((response) => {
+    const comments = commentsByResponseId[response.id] || [];
+
+    return [
+      response.createdAt,
+      response.number,
+      response.bucket,
+      response.tags.map((rt) => rt.tag.name).join(", "),
+      response.assignee?.email || "",
+      ...(response.contact
+        ? [
+            response.contact.firstname,
+            response.contact.lastname,
+            response.contact.fullname,
+            response.contact.email
+          ]
+        : ["", "", response.guestName, response.guestEmail]),
+      !response.contact,
+      comments.map(commentText).join(", "),
+      ...components.map((c) => stringifyAnswer(c, response.answers[c.key]))
+    ];
+  });
 
   return [
     exportName,
