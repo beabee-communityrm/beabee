@@ -1,6 +1,9 @@
-import { Filters, Paginated } from "@beabee/beabee-common";
+import {
+  Filters,
+  Paginated,
+  calloutResponseCommentFilters
+} from "@beabee/beabee-common";
 import CalloutResponseComment from "@models/CalloutResponseComment";
-import { SelectQueryBuilder } from "typeorm";
 import { convertContactToData, loadContactRoles } from "../ContactData";
 import { fetchPaginated } from "../PaginatedData";
 import {
@@ -23,30 +26,12 @@ export function convertCommentToData(
   return commentData;
 }
 
-const commentFilters: Filters = {
-  responseId: {
-    type: "text"
-  },
-  contact: {
-    type: "contact"
-  },
-  createdAt: {
-    type: "date"
-  },
-  updatedAt: {
-    type: "date"
-  },
-  text: {
-    type: "text"
-  }
-};
-
 export async function fetchPaginatedCalloutResponseComments(
   query: GetCalloutResponseCommentsQuery
 ): Promise<Paginated<GetCalloutResponseCommentData>> {
   const results = await fetchPaginated(
     CalloutResponseComment,
-    commentFilters,
+    calloutResponseCommentFilters,
     query,
     undefined,
     undefined,
