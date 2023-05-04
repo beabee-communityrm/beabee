@@ -154,7 +154,7 @@ function answerField(type: FilterType, fieldPrefix: string): string {
   }
 }
 
-const answersFieldHandler: FieldHandler = (qb, args) => {
+const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
   if (args.type === "array") {
     const operatorFn = answerArrayOperators[args.operator];
     if (!operatorFn) {
@@ -173,6 +173,14 @@ const answersFieldHandler: FieldHandler = (qb, args) => {
   } else {
     qb.where(args.whereFn(answerField(args.type, args.fieldPrefix)));
   }
+};
+
+const answersFieldHandler: FieldHandler = (qb, args) => {
+  qb.where(
+    args.whereFn(
+      `(SELECT string_agg(value, '') FROM jsonb_each_text(${args.fieldPrefix}answers))`
+    )
+  );
 };
 
 const tagsFieldHandler: FieldHandler = (qb, args) => {
@@ -226,14 +234,21 @@ async function prepareQuery(
     answerFilters = convertComponentsToFilters(callout.formSchema.components);
     // All handled by the same field handler
     fieldHandlers = Object.fromEntries(
-      Object.keys(answerFilters).map((field) => [field, answersFieldHandler])
+      Object.keys(answerFilters).map((field) => [
+        field,
+        individualAnswerFieldHandler
+      ])
     );
   }
 
   return [
     scopedRules,
     { ...calloutResponseFilters, ...answerFilters },
-    { tags: tagsFieldHandler, ...fieldHandlers }
+    {
+      answers: answersFieldHandler,
+      tags: tagsFieldHandler,
+      ...fieldHandlers
+    }
   ];
 }
 
