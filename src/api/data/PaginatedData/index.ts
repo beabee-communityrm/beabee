@@ -311,7 +311,7 @@ export async function fetchPaginated<Entity, Field extends string>(
     }
 
     if (query.sort) {
-      qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
+      qb.orderBy(`item."${query.sort}"`, query.order || "ASC", "NULLS LAST");
     }
 
     queryCallback?.(qb, "item.");
