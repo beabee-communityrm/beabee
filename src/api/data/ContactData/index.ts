@@ -244,7 +244,7 @@ export async function fetchPaginatedContacts(
               "COALESCE(mp.dateExpires, '-infinity'::timestamp)",
               "membershipExpires"
             )
-            .orderBy(`"${query.sort}"`, query.order || "ASC", "NULLS LAST");
+            .orderBy(query.sort, query.order || "ASC", "NULLS LAST");
           break;
 
         // Always put empty first/last names at the bottom
