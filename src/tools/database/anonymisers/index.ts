@@ -26,7 +26,7 @@ import {
   PropertyMap
 } from "./models";
 
-const log = mainLogger.child({ app: "drier" });
+const log = mainLogger.child({ app: "anonymisers" });
 
 // Maps don't stringify well
 function stringify(value: any): string {
@@ -92,21 +92,21 @@ async function anonymiseCalloutResponses(
 ): Promise<void> {
   const callouts = await createQueryBuilder(Callout, "callout").getMany();
   for (const callout of callouts) {
-    log.info("-- " + callout.slug);
-
     const answersMap = createAnswersMap(
       flattenComponents(callout.formSchema.components)
     );
 
-    const responses = await fn(createQueryBuilder(CalloutResponse, "response"))
+    const responses = await fn(createQueryBuilder(CalloutResponse, "item"))
       .loadAllRelationIds()
-      .where("response.callout = :callout", { callout: callout.slug })
-      .orderBy("id", "ASC")
+      .andWhere("item.callout = :callout", { callout: callout.slug })
+      .orderBy("item.id", "ASC")
       .getMany();
 
     if (responses.length === 0) {
       continue;
     }
+
+    log.info("-- " + callout.slug);
 
     const newResponses = responses.map((response) => {
       const newResponse = anonymiseItem(
@@ -162,5 +162,15 @@ export async function anonymiseModel<T>(
     );
 
     writeItems(anonymiser.model, newItems);
+  }
+}
+
+export function clearModels(anonymisers: ModelAnonymiser<unknown>[]) {
+  // Reverse order to clear foreign keys correctly
+  for (let i = anonymisers.length - 1; i >= 0; i--) {
+    console.log(
+      `DELETE FROM "${getRepository(anonymisers[i].model).metadata.tableName}";`
+    );
+    console.log(); // Empty params line
   }
 }

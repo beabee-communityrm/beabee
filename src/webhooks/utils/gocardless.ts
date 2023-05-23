@@ -40,15 +40,12 @@ export async function updatePayment(
     await getRepository(Payment).save(payment);
 
     if (isConfirmed) {
-      await confirmPayment(payment, gcPayment);
+      await confirmPayment(payment);
     }
   }
 }
 
-async function confirmPayment(
-  payment: Payment,
-  gcPayment: GCPayment
-): Promise<void> {
+async function confirmPayment(payment: Payment): Promise<void> {
   log.info("Confirm payment " + payment.id, {
     paymentId: payment.id,
     contactId: payment.contact?.id,
@@ -67,8 +64,8 @@ async function confirmPayment(
 
   if (payment.subscriptionId !== gcData.subscriptionId) {
     log.error("Mismatched subscription IDs for payment " + payment.id, {
-      ourSubscriptionId: payment.subscriptionId,
-      gcSubscriptionId: gcPayment.links!.subscription
+      gcSubscriptionId: payment.subscriptionId,
+      ourSubscriptionId: gcData.subscriptionId
     });
     return;
   }
@@ -185,6 +182,7 @@ async function findOrCreatePayment(
     gcPayment.links!.mandate!
   );
 
+  // If not found then the mandate wasn't created by us
   if (data) {
     log.info("Create payment " + gcPayment.id, {
       contactId: data.contact.id,

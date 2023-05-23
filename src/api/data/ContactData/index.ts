@@ -230,33 +230,32 @@ export async function fetchPaginatedContacts(
         qb.innerJoinAndSelect(`${fieldPrefix}profile`, "profile");
       }
 
-      // Put empty names at the bottom
-      qb.addSelect(`NULLIF(${fieldPrefix}firstname, '')`, "firstname");
-      qb.addSelect(`NULLIF(${fieldPrefix}lastname, '')`, "lastname");
+      switch (query.sort) {
+        // Add member role to allow sorting by membershipStarts and membershipExpires
+        case "membershipStarts":
+        case "membershipExpires":
+          qb.leftJoin(
+            ContactRole,
+            "mp",
+            `mp.contactId = ${fieldPrefix}id AND mp.type = 'member'`
+          )
+            .addSelect("mp.dateAdded", "membershipStarts")
+            .addSelect(
+              "COALESCE(mp.dateExpires, '-infinity'::timestamp)",
+              "membershipExpires"
+            )
+            .orderBy(`"${query.sort}"`, query.order || "ASC", "NULLS LAST");
+          break;
 
-      if (
-        query.sort === "membershipStarts" ||
-        query.sort === "membershipExpires"
-      ) {
-        qb.leftJoin(
-          ContactRole,
-          "mp",
-          `mp.contactId = ${fieldPrefix}id AND mp.type = 'member'`
-        )
-          .addSelect(
-            "COALESCE(mp.dateAdded, '-infinity'::timestamp)",
-            "membershipStarts"
-          )
-          .addSelect(
-            "COALESCE(mp.dateExpires, '-infinity'::timestamp)",
-            "membershipExpires"
-          )
-          .orderBy(`"${query.sort}"`, query.order || "ASC");
-      } else if (query.sort === "firstname" || query.sort === "lastname") {
-        // Override the sort order to use the NULLIF(...) variants
-        qb.orderBy(query.sort, query.order || "ASC");
-      } else {
-        qb.addOrderBy("firstname", "ASC");
+        // Always put empty first/last names at the bottom
+        case "firstname":
+        case "lastname":
+          qb.orderBy(
+            `NULLIF(${fieldPrefix}${query.sort}, '')`,
+            query.order || "ASC",
+            "NULLS LAST"
+          );
+          break;
       }
 
       // Always sort by ID to ensure predictable offset and limit
