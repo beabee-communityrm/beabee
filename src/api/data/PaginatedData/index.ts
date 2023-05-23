@@ -49,6 +49,13 @@ const nullableOperatorsWhere = {
   is_not_empty: (field: string) => `${field} IS NOT NULL`
 };
 
+const blobOperatorsWhere = {
+  contains: (field: string) => `${field} ILIKE '%' || :a || '%'`,
+  not_contains: (field: string) => `${field} NOT ILIKE '%' || :a || '%'`,
+  is_empty: (field: string) => `${field} = ''`,
+  is_not_empty: (field: string) => `${field} <> ''`
+};
+
 const numericOperatorsWhere = {
   ...equalityOperatorsWhere,
   ...nullableOperatorsWhere,
@@ -76,15 +83,13 @@ const operatorsWhereByType: Record<
 > = {
   text: withOperators("text", {
     ...equalityOperatorsWhere,
+    ...blobOperatorsWhere,
     begins_with: (field) => `${field} ILIKE :a || '%'`,
     not_begins_with: (field) => `${field} NOT ILIKE :a || '%'`,
     ends_with: (field) => `${field} ILIKE '%' || :a`,
-    not_ends_with: (field) => `${field} NOT ILIKE '%' || :a`,
-    contains: (field) => `${field} ILIKE '%' || :a || '%'`,
-    not_contains: (field) => `${field} NOT ILIKE '%' || :a || '%'`,
-    is_empty: (field) => `${field} = ''`,
-    is_not_empty: (field) => `${field} <> ''`
+    not_ends_with: (field) => `${field} NOT ILIKE '%' || :a`
   }),
+  blob: withOperators("blob", blobOperatorsWhere),
   date: withOperators("date", numericOperatorsWhere),
   number: withOperators("number", numericOperatorsWhere),
   boolean: withOperators("boolean", {
@@ -163,6 +168,7 @@ function prepareRule(
   contact: Contact | undefined
 ): [(field: string) => string, RichRuleValue[]] {
   switch (rule.type) {
+    case "blob":
     case "text":
       // Make NULL an empty string for comparison
       return [rule.nullable ? coalesceField : simpleField, rule.value];
@@ -305,7 +311,7 @@ export async function fetchPaginated<Entity, Field extends string>(
     }
 
     if (query.sort) {
-      qb.orderBy({ [`item."${query.sort}"`]: query.order || "ASC" });
+      qb.orderBy(`item."${query.sort}"`, query.order || "ASC", "NULLS LAST");
     }
 
     queryCallback?.(qb, "item.");
