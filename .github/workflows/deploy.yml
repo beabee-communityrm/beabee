@@ -8,16 +8,19 @@ jobs:
   init:
     runs-on: ubuntu-latest
     outputs:
-      stage: ${{ steps.setvars.outputs.stage }}
+      tag: ${{ steps.setvars.outputs.tag }}
+      stack: ${{ steps.setvars.outputs.stack }}
     steps:
       - id: setvars
         run: |
           case "${{ github.ref }}" in
             refs/heads/master)
-              echo "stage=latest" >> $GITHUB_OUTPUT
+              echo "tag=latest" >> $GITHUB_OUTPUT
+              echo "stack=beabee-demo" >> $GITHUB_OUTPUT
               ;;
             refs/heads/dev)
-              echo "stage=dev" >> $GITHUB_OUTPUT
+              echo "tag=dev" >> $GITHUB_OUTPUT
+              echo "stack=beabee-dev" >> $GITHUB_OUTPUT
               ;;
           esac
 
@@ -43,20 +46,21 @@ jobs:
           target: app
           build-args: |
             REVISION=${{ steps.getrev.outputs.revision }}
-          tags: ${{ secrets.DOCKER_ORGANISATION }}/beabee:${{ needs.init.outputs.stage }}
+          tags: ${{ secrets.DOCKER_ORGANISATION }}/beabee:${{ needs.init.outputs.tag }}
       - uses: docker/build-push-action@v3
         with:
           push: true
           target: router
-          tags: ${{ secrets.DOCKER_ORGANISATION }}/router:${{ needs.init.outputs.stage }}
+          tags: ${{ secrets.DOCKER_ORGANISATION }}/router:${{ needs.init.outputs.tag }}
 
   deploy:
     runs-on: ubuntu-latest
     needs: [init, push]
     steps:
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
+      - uses: jonasschatz/portami@main
         with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      - run: ssh ${{ secrets.DEPLOY_SERVER }} ${{ needs.init.outputs.stage }}
+          endpoint: "https://port.hive.beabee.io"
+          access_token: ${{ secrets.PORTAINER_ACCESSTOKEN }}
+          stack_name: ${{ needs.init.outputs.stack }}
+          prune: true
+          pull: true
