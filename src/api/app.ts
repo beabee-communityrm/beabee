@@ -3,6 +3,7 @@ import "reflect-metadata";
 
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
+import crypto from "crypto";
 import express, { ErrorRequestHandler, Request } from "express";
 import {
   Action,
@@ -12,6 +13,7 @@ import {
   useExpressServer
 } from "routing-controllers";
 
+import { ApiKeyController } from "./controllers/ApiKeyController";
 import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { CalloutResponseController } from "./controllers/CalloutResponseController";
@@ -31,14 +33,59 @@ import sessions from "@core/sessions";
 import startServer from "@core/server";
 
 import Contact from "@models/Contact";
+import { getRepository } from "typeorm";
+import ApiKey from "@models/ApiKey";
+import ContactsService from "@core/services/ContactsService";
 
-function currentUserChecker(action: Action): Contact | undefined {
-  return (action.request as Request).user;
+async function isValidApiKey(authHeader: string): Promise<boolean> {
+  const [type, token] = authHeader.split(" ");
+  if (type === "Bearer") {
+    const [_, secret] = token.split("_");
+    const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
+    const apiKey = await getRepository(ApiKey).findOne({ secretHash });
+    return !!apiKey;
+  }
+  return false;
 }
 
-function authorizationChecker(action: Action, roles: RoleType[]): boolean {
-  const user = currentUserChecker(action);
-  return !!user && roles.every((role) => user.hasRole(role));
+async function currentUserChecker(
+  action: Action
+): Promise<Contact | undefined> {
+  const headers = (action.request as Request).headers;
+  const authHeader = headers.authorization;
+
+  if (authHeader) {
+    const contactId = headers["x-contact-id"];
+    if ((await isValidApiKey(authHeader)) && contactId) {
+      return await ContactsService.findOne(contactId.toString());
+    }
+  } else {
+    return (action.request as Request).user;
+  }
+}
+
+async function authorizationChecker(
+  action: Action,
+  roles: RoleType[]
+): Promise<boolean> {
+  let contact: Contact | undefined;
+
+  const headers = (action.request as Request).headers;
+  const authHeader = headers.authorization;
+  if (authHeader) {
+    const contactId = headers["x-contact-id"];
+    if (await isValidApiKey(authHeader)) {
+      if (contactId) {
+        contact = await ContactsService.findOne(contactId.toString());
+      } else {
+        return true;
+      }
+    }
+  } else {
+    contact = await currentUserChecker(action);
+  }
+
+  return !!contact && roles.every((role) => contact?.hasRole(role));
 }
 
 const app = express();
@@ -53,6 +100,7 @@ db.connect().then(() => {
   useExpressServer(app, {
     routePrefix: "/1.0",
     controllers: [
+      ApiKeyController,
       AuthController,
       CalloutController,
       CalloutResponseController,
