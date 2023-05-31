@@ -65,7 +65,7 @@ export function generateApiKey(
   const secret = crypto.randomBytes(secretLength / 2).toString("hex");
   const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
   const token = `${id}_${secret}`;
-  return { id: id, secret: secret, secretHash: secretHash, token: token };
+  return { id, secret, secretHash, token };
 }
 
 // Hashes passwords through sha512 1000 times
