@@ -26,6 +26,7 @@ import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
 
 import { UUIDParam } from "@api/data";
+import { loadContactRoles } from "@api/data/ContactData";
 
 const apiUserFilters = {
   createdAt: {
@@ -40,7 +41,19 @@ export class ApiKeyController {
   async getApiKeys(
     @QueryParams() query: GetApiKeysQuery
   ): Promise<Paginated<GetApiKeyData>> {
-    const results = await fetchPaginated(ApiKey, apiUserFilters, query);
+    const results = await fetchPaginated(
+      ApiKey,
+      apiUserFilters,
+      query,
+      undefined,
+      undefined,
+      (qb, fieldPrefix) => {
+        qb.leftJoinAndSelect(`${fieldPrefix}creator`, "creator");
+      }
+    );
+
+    await loadContactRoles(results.items.map((i) => i.creator));
+
     return {
       ...results,
       items: results.items.map(convertApiKeyToData)
