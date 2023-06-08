@@ -28,7 +28,7 @@
     "check:prettier": "prettier -c .",
     "check:dependencies": "dpdm -T --no-warning --no-tree --exit-code circular:1 src/app.ts src/webhooks/app.ts src/api/app.ts",
     "typeorm": "node --require module-alias/register node_modules/.bin/typeorm",
-    "test": "jest"
+    "test": "jest --setupFiles dotenv/config"
   },
   "dependencies": {
     "@beabee/beabee-common": "^1.13.1",
@@ -117,6 +117,7 @@
     "autoprefixer": "^10.4.13",
     "browser-sync": "^2.27.11",
     "concurrently": "^7.6.0",
+    "dotenv": "^16.1.1",
     "dpdm": "^3.10.0",
     "gulp": "^4.0.2",
     "gulp-postcss": "^9.0.1",

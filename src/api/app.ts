@@ -3,6 +3,7 @@ import "reflect-metadata";
 
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
+import crypto from "crypto";
 import express, { ErrorRequestHandler, Request } from "express";
 import {
   Action,
@@ -11,7 +12,9 @@ import {
   NotFoundError,
   useExpressServer
 } from "routing-controllers";
+import { getRepository } from "typeorm";
 
+import { ApiKeyController } from "./controllers/ApiKeyController";
 import { AuthController } from "./controllers/AuthController";
 import { CalloutController } from "./controllers/CalloutController";
 import { CalloutResponseController } from "./controllers/CalloutResponseController";
@@ -30,15 +33,58 @@ import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
-import Contact from "@models/Contact";
+import ContactsService from "@core/services/ContactsService";
 
-function currentUserChecker(action: Action): Contact | undefined {
-  return (action.request as Request).user;
+import Contact from "@models/Contact";
+import ApiKey from "@models/ApiKey";
+
+async function isValidApiKey(authHeader: string): Promise<boolean> {
+  const [type, token] = authHeader.split(" ");
+  if (type === "Bearer") {
+    const [_, secret] = token.split("_");
+    const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
+    const apiKey = await getRepository(ApiKey).findOne({ secretHash });
+    return !!apiKey;
+  }
+  return false;
 }
 
-function authorizationChecker(action: Action, roles: RoleType[]): boolean {
-  const user = currentUserChecker(action);
-  return !!user && roles.every((role) => user.hasRole(role));
+async function checkAuthorization(
+  action: Action
+): Promise<true | Contact | undefined> {
+  const headers = (action.request as Request).headers;
+  const authHeader = headers.authorization;
+
+  if (authHeader) {
+    // If there's an authorization header check API key
+    if (await isValidApiKey(authHeader)) {
+      // API key can act as a user
+      const contactId = headers["x-contact-id"]?.toString();
+      return contactId ? await ContactsService.findOne(contactId) : true;
+    }
+  } else {
+    // Otherwise use logged in user
+    return (action.request as Request).user;
+  }
+}
+
+async function currentUserChecker(
+  action: Action
+): Promise<Contact | undefined> {
+  const apiKeyOrContact = await checkAuthorization(action);
+  // API key isn't a user
+  return apiKeyOrContact === true ? undefined : apiKeyOrContact;
+}
+
+async function authorizationChecker(
+  action: Action,
+  roles: RoleType[]
+): Promise<boolean> {
+  const apiKeyOrContact = await checkAuthorization(action);
+  // API key has superadmin abilities
+  return apiKeyOrContact === true
+    ? true
+    : roles.every((role) => apiKeyOrContact?.hasRole(role));
 }
 
 const app = express();
@@ -53,6 +99,7 @@ db.connect().then(() => {
   useExpressServer(app, {
     routePrefix: "/1.0",
     controllers: [
+      ApiKeyController,
       AuthController,
       CalloutController,
       CalloutResponseController,
