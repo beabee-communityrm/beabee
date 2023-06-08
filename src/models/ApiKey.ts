@@ -3,13 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryColumn
 } from "typeorm";
 import type Contact from "./Contact";
 
 @Entity()
 export default class ApiKey {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryColumn()
   id!: string;
 
   @ManyToOne("Contact")
@@ -21,6 +21,6 @@ export default class ApiKey {
   @Column()
   secretHash!: string;
 
-  @Column({ type: String, nullable: true })
-  description!: string | null;
+  @Column()
+  description!: string;
 }

@@ -1,4 +1,3 @@
-import { Filters } from "@beabee/beabee-common";
 import {
   JsonController,
   Authorized,
@@ -9,8 +8,8 @@ import {
   Body,
   OnUndefined,
   NotFoundError,
-  Params,
-  Delete
+  Delete,
+  Param
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
@@ -18,21 +17,12 @@ import {
   CreateApiKeyData,
   GetApiKeysQuery,
   GetApiKeyData,
-  convertApiKeyToData
+  fetchPaginatedApiKeys
 } from "@api/data/ApiKeyData";
-import { Paginated, fetchPaginated } from "@api/data/PaginatedData";
+import { Paginated } from "@api/data/PaginatedData";
 import { generateApiKey } from "@core/utils/auth";
 import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
-
-import { UUIDParam } from "@api/data";
-import { loadContactRoles } from "@api/data/ContactData";
-
-const apiUserFilters = {
-  createdAt: {
-    type: "date"
-  }
-} as const satisfies Filters;
 
 @JsonController("/api-key")
 @Authorized("admin")
@@ -41,23 +31,7 @@ export class ApiKeyController {
   async getApiKeys(
     @QueryParams() query: GetApiKeysQuery
   ): Promise<Paginated<GetApiKeyData>> {
-    const results = await fetchPaginated(
-      ApiKey,
-      apiUserFilters,
-      query,
-      undefined,
-      undefined,
-      (qb, fieldPrefix) => {
-        qb.leftJoinAndSelect(`${fieldPrefix}creator`, "creator");
-      }
-    );
-
-    await loadContactRoles(results.items.map((i) => i.creator));
-
-    return {
-      ...results,
-      items: results.items.map(convertApiKeyToData)
-    };
+    return await fetchPaginatedApiKeys(query);
   }
 
   @Post("/")
@@ -65,11 +39,12 @@ export class ApiKeyController {
     @Body() data: CreateApiKeyData,
     @CurrentUser({ required: true }) creator: Contact
   ): Promise<{ token: string }> {
-    const { secretHash, token } = generateApiKey();
+    const { id, secretHash, token } = generateApiKey();
 
     await getRepository(ApiKey).save({
+      id,
       secretHash,
-      description: data.description || null,
+      description: data.description,
       creator
     });
 
@@ -78,7 +53,7 @@ export class ApiKeyController {
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteApiKey(@Params() { id }: UUIDParam) {
+  async deleteApiKey(@Param("id") id: string) {
     const result = await getRepository(ApiKey).delete(id);
     if (!result.affected) throw new NotFoundError();
   }
