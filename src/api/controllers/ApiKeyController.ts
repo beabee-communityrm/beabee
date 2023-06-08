@@ -46,7 +46,7 @@ export class ApiKeyController {
     await getRepository(ApiKey).save({
       id,
       secretHash,
-      description: data.description || null,
+      description: data.description,
       creator
     });
 

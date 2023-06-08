@@ -1,11 +1,10 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsString } from "class-validator";
 import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery } from "../PaginatedData";
 
 export class CreateApiKeyData {
-  @IsOptional()
   @IsString()
-  description?: string | null;
+  description!: string;
 }
 
 export interface GetApiKeyData extends CreateApiKeyData {

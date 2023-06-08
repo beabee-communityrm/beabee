@@ -21,6 +21,6 @@ export default class ApiKey {
   @Column()
   secretHash!: string;
 
-  @Column({ type: String, nullable: true })
-  description!: string | null;
+  @Column()
+  description!: string;
 }
