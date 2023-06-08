@@ -41,9 +41,10 @@ export class ApiKeyController {
     @Body() data: CreateApiKeyData,
     @CurrentUser({ required: true }) creator: Contact
   ): Promise<{ token: string }> {
-    const { secretHash, token } = generateApiKey();
+    const { id, secretHash, token } = generateApiKey();
 
     await getRepository(ApiKey).save({
+      id,
       secretHash,
       description: data.description || null,
       creator
