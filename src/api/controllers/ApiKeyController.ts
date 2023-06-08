@@ -8,8 +8,8 @@ import {
   Body,
   OnUndefined,
   NotFoundError,
-  Params,
-  Delete
+  Delete,
+  Param
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
@@ -23,8 +23,6 @@ import { Paginated } from "@api/data/PaginatedData";
 import { generateApiKey } from "@core/utils/auth";
 import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
-
-import { UUIDParam } from "@api/data";
 
 @JsonController("/api-key")
 @Authorized("admin")
@@ -55,7 +53,7 @@ export class ApiKeyController {
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteApiKey(@Params() { id }: UUIDParam) {
+  async deleteApiKey(@Param("id") id: string) {
     const result = await getRepository(ApiKey).delete(id);
     if (!result.affected) throw new NotFoundError();
   }
