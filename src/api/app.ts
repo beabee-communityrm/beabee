@@ -12,6 +12,7 @@ import {
   NotFoundError,
   useExpressServer
 } from "routing-controllers";
+import { getRepository } from "typeorm";
 
 import { ApiKeyController } from "./controllers/ApiKeyController";
 import { AuthController } from "./controllers/AuthController";
@@ -32,10 +33,10 @@ import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
-import Contact from "@models/Contact";
-import { getRepository } from "typeorm";
-import ApiKey from "@models/ApiKey";
 import ContactsService from "@core/services/ContactsService";
+
+import Contact from "@models/Contact";
+import ApiKey from "@models/ApiKey";
 
 async function isValidApiKey(authHeader: string): Promise<boolean> {
   const [type, token] = authHeader.split(" ");
@@ -48,44 +49,42 @@ async function isValidApiKey(authHeader: string): Promise<boolean> {
   return false;
 }
 
-async function currentUserChecker(
+async function checkAuthorization(
   action: Action
-): Promise<Contact | undefined> {
+): Promise<true | Contact | undefined> {
   const headers = (action.request as Request).headers;
   const authHeader = headers.authorization;
 
   if (authHeader) {
-    const contactId = headers["x-contact-id"];
-    if ((await isValidApiKey(authHeader)) && contactId) {
-      return await ContactsService.findOne(contactId.toString());
+    // If there's an authorization header check API key
+    if (await isValidApiKey(authHeader)) {
+      // API key can act as a user
+      const contactId = headers["x-contact-id"]?.toString();
+      return contactId ? await ContactsService.findOne(contactId) : true;
     }
   } else {
+    // Otherwise use logged in user
     return (action.request as Request).user;
   }
+}
+
+async function currentUserChecker(
+  action: Action
+): Promise<Contact | undefined> {
+  const apiKeyOrContact = await checkAuthorization(action);
+  // API key isn't a user
+  return apiKeyOrContact === true ? undefined : apiKeyOrContact;
 }
 
 async function authorizationChecker(
   action: Action,
   roles: RoleType[]
 ): Promise<boolean> {
-  let contact: Contact | undefined;
-
-  const headers = (action.request as Request).headers;
-  const authHeader = headers.authorization;
-  if (authHeader) {
-    const contactId = headers["x-contact-id"];
-    if (await isValidApiKey(authHeader)) {
-      if (contactId) {
-        contact = await ContactsService.findOne(contactId.toString());
-      } else {
-        return true;
-      }
-    }
-  } else {
-    contact = await currentUserChecker(action);
-  }
-
-  return !!contact && roles.every((role) => contact?.hasRole(role));
+  const apiKeyOrContact = await checkAuthorization(action);
+  // API key has superadmin abilities
+  return apiKeyOrContact === true
+    ? true
+    : roles.every((role) => apiKeyOrContact?.hasRole(role));
 }
 
 const app = express();
