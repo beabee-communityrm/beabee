@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsIn, IsString } from "class-validator";
 import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery } from "../PaginatedData";
 
@@ -14,4 +14,7 @@ export interface GetApiKeyData extends CreateApiKeyData {
   secretHash: string;
 }
 
-export class GetApiKeysQuery extends GetPaginatedQuery {}
+export class GetApiKeysQuery extends GetPaginatedQuery {
+  @IsIn(["createdAt"])
+  sort?: string;
+}
