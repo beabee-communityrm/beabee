@@ -101,7 +101,9 @@ export class CalloutController {
     await getRepository(Callout).update(slug, {
       ...data,
       // Force the correct type as otherwise this errors, not sure why
-      formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+      ...(data.formSchema && {
+        formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+      })
     });
     try {
       return await fetchCallout({ slug: newSlug }, {}, contact);
