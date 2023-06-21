@@ -11,6 +11,15 @@ import { generatePassword, passwordRequirements } from "@core/utils/auth";
 import ContactsService from "@core/services/ContactsService";
 
 import ContactRole from "@models/ContactRole";
+import ResetPasswordFlow from "@models/ResetPasswordFlow";
+
+import config from "@config";
+
+function notEmpty(msg: string) {
+  return (s: string) => {
+    return s.trim() === "" ? msg : true;
+  };
+}
 
 const questions: QuestionCollection[] = [];
 
@@ -19,9 +28,7 @@ questions.push({
   type: "input",
   name: "firstname",
   message: "First Name",
-  validate: function (s) {
-    return s.trim() === "" ? "You must enter a first name" : true;
-  }
+  validate: notEmpty("You must enter a first name")
 });
 
 // Last Name
@@ -29,9 +36,7 @@ questions.push({
   type: "input",
   name: "lastname",
   message: "Last Name",
-  validate: function (s) {
-    return s.trim() === "" ? "You must enter a last name" : true;
-  }
+  validate: notEmpty("You must enter a last name")
 });
 
 // Email address
@@ -39,18 +44,16 @@ questions.push({
   type: "input",
   name: "email",
   message: "Email Address",
-  validate: function (s) {
-    return s.trim() === "" ? "You must enter an email address" : true;
-  }
+  validate: notEmpty("You must enter an email address")
 });
 
 // Password
 questions.push({
   type: "password",
   name: "password",
-  message: "Password",
-  validate: function (s) {
-    return passwordRequirements(s);
+  message: "Password (leave empty to generate reset password link)",
+  validate: (s) => {
+    return !s.trim() || passwordRequirements(s);
   }
 });
 
@@ -79,8 +82,6 @@ questions.push({
 
 db.connect().then(async () => {
   const answers = await inquirer.prompt(questions);
-
-  const password = await generatePassword(answers.password);
 
   const roles = [];
 
@@ -113,14 +114,26 @@ db.connect().then(async () => {
     roles.push(admin);
   }
 
-  await ContactsService.createContact({
+  const contact = await ContactsService.createContact({
     firstname: answers.firstname,
     lastname: answers.lastname,
     email: answers.email,
     contributionType: ContributionType.None,
     roles: roles,
-    password
+    ...(answers.password && {
+      password: await generatePassword(answers.password)
+    })
   });
+
+  if (!answers.password) {
+    const rpFlow = await getRepository(ResetPasswordFlow).save({
+      contact
+    });
+
+    console.log(
+      `Reset password link: ${config.audience}/auth/set-password/${rpFlow.id}`
+    );
+  }
 
   await db.close();
 });
