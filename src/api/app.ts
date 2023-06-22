@@ -38,15 +38,11 @@ import ContactsService from "@core/services/ContactsService";
 import Contact from "@models/Contact";
 import ApiKey from "@models/ApiKey";
 
-async function isValidApiKey(authHeader: string): Promise<boolean> {
-  const [type, token] = authHeader.split(" ");
-  if (type === "Bearer") {
-    const [_, secret] = token.split("_");
-    const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
-    const apiKey = await getRepository(ApiKey).findOne({ secretHash });
-    return !!apiKey;
-  }
-  return false;
+async function isValidApiKey(key: string): Promise<boolean> {
+  const [_, secret] = key.split("_");
+  const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
+  const apiKey = await getRepository(ApiKey).findOne({ secretHash });
+  return !!apiKey;
 }
 
 async function checkAuthorization(
@@ -55,9 +51,9 @@ async function checkAuthorization(
   const headers = (action.request as Request).headers;
   const authHeader = headers.authorization;
 
-  if (authHeader) {
-    // If there's an authorization header check API key
-    if (await isValidApiKey(authHeader)) {
+  // If there's a bearer key check API key
+  if (authHeader?.startsWith("Bearer ")) {
+    if (await isValidApiKey(authHeader.substring(7))) {
       // API key can act as a user
       const contactId = headers["x-contact-id"]?.toString();
       return contactId ? await ContactsService.findOne(contactId) : true;
