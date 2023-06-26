@@ -52,6 +52,22 @@ export function generateSalt(): Promise<string> {
   });
 }
 
+export function generateApiKey(
+  idLength: number = 16,
+  secretLength: number = 48
+): {
+  id: string;
+  secret: string;
+  secretHash: string;
+  token: string;
+} {
+  const id = crypto.randomBytes(idLength / 2).toString("hex");
+  const secret = crypto.randomBytes(secretLength / 2).toString("hex");
+  const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
+  const token = `${id}_${secret}`;
+  return { id, secret, secretHash, token };
+}
+
 // Hashes passwords through sha512 1000 times
 // returns a 512 byte / 1024 character hex string
 export function hashPassword(
