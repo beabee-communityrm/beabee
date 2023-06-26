@@ -55,6 +55,8 @@ export interface GetCalloutResponseData {
   createdAt: Date;
   updatedAt: Date;
   bucket: string;
+  guestName: string | null;
+  guestEmail: string | null;
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutData;
   contact?: GetContactData | null;
