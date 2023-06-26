@@ -54,6 +54,8 @@ function convertResponseToData(
     createdAt: response.createdAt,
     updatedAt: response.updatedAt,
     bucket: response.bucket,
+    guestName: response.guestName,
+    guestEmail: response.guestEmail,
     ...(_with?.includes(GetCalloutResponseWith.Answers) && {
       answers: response.answers
     }),
