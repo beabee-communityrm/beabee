@@ -328,6 +328,7 @@ export class ContactController {
     return {
       ...data,
       items: data.items.map((item) => ({
+        id: item.id,
         amount: item.amount,
         chargeDate: item.chargeDate,
         status: item.status

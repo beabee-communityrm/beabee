@@ -10,6 +10,7 @@ function convertPaymentToPaymentData(
   _with?: GetPaymentWith[]
 ): GetPaymentData {
   return {
+    id: payment.id,
     amount: payment.amount,
     chargeDate: payment.chargeDate,
     status: payment.status,

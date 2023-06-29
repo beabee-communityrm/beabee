@@ -5,6 +5,7 @@ import { GetPaginatedQuery } from "../PaginatedData";
 import { GetContactData } from "../ContactData";
 
 export interface GetPaymentData {
+  id: string;
   amount: number;
   chargeDate: Date;
   status: PaymentStatus;
