@@ -23,6 +23,7 @@ import { ContentController } from "./controllers/ContentController";
 import { EmailController } from "./controllers/EmailController";
 import { ContactController } from "./controllers/ContactController";
 import { NoticeController } from "./controllers/NoticeController";
+import { PaymentController } from "./controllers/PaymentController";
 import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
 import { StatsController } from "./controllers/StatsController";
@@ -104,6 +105,7 @@ db.connect().then(() => {
       EmailController,
       ContactController,
       NoticeController,
+      PaymentController,
       SegmentController,
       SignupController,
       StatsController,
