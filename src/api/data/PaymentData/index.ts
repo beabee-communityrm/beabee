@@ -13,10 +13,9 @@ function convertPaymentToPaymentData(
     amount: payment.amount,
     chargeDate: payment.chargeDate,
     status: payment.status,
-    ...(_with?.includes(GetPaymentWith.Contact) &&
-      payment.contact && {
-        contact: convertContactToData(payment.contact)
-      })
+    ...(_with?.includes(GetPaymentWith.Contact) && {
+      contact: payment.contact && convertContactToData(payment.contact)
+    })
   };
 }
 

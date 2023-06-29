@@ -8,7 +8,7 @@ export interface GetPaymentData {
   amount: number;
   chargeDate: Date;
   status: PaymentStatus;
-  contact?: GetContactData;
+  contact?: GetContactData | null;
 }
 
 export enum GetPaymentWith {
