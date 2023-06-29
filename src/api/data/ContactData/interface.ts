@@ -1,7 +1,6 @@
 import {
   ContributionPeriod,
   NewsletterStatus,
-  PaymentStatus,
   RoleType,
   RoleTypes
 } from "@beabee/beabee-common";
@@ -212,16 +211,4 @@ export class CreateContactData extends UpdateContactData {
   @ValidateNested({ each: true })
   @Type(() => CreateContactRoleData)
   roles?: CreateContactRoleData[];
-}
-
-export interface GetPaymentData {
-  amount: number;
-  chargeDate: Date;
-  status: PaymentStatus;
-}
-
-const paymentSortFields = ["amount", "chargeDate"] as const;
-export class GetPaymentsQuery extends GetPaginatedQuery {
-  @IsIn(paymentSortFields)
-  sort?: string;
 }
