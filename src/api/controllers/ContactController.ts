@@ -37,11 +37,11 @@ import PaymentService from "@core/services/PaymentService";
 import { ContributionInfo } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
-import JoinFlow from "@models/JoinFlow";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
-import Payment from "@models/Payment";
 import ContactRole from "@models/ContactRole";
+import JoinFlow from "@models/JoinFlow";
+import Payment from "@models/Payment";
 
 import { UUIDParam } from "@api/data";
 import {
@@ -53,8 +53,6 @@ import {
   GetContactRoleData,
   GetContactsQuery,
   GetContactWith,
-  GetPaymentData,
-  GetPaymentsQuery,
   UpdateContactRoleData,
   UpdateContactData,
   exportContacts
@@ -75,6 +73,7 @@ import {
   Paginated,
   GetExportQuery
 } from "@api/data/PaginatedData";
+import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
