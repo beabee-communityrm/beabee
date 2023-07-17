@@ -22,8 +22,9 @@ db.connect().then(async () => {
   const now = new Date();
 
   await clean(LoginOverrideFlow, { date: LessThan(subDays(now, 3)) });
-  await clean(JoinFlow, { date: LessThan(subDays(now, 7)) });
   await clean(ResetPasswordFlow, { date: LessThan(subDays(now, 7)) });
+
+  await clean(JoinFlow, { date: LessThan(subDays(now, 28)) });
 
   await db.close();
 });
