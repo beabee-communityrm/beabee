@@ -126,6 +126,14 @@ class ContactsService {
     }
   }
 
+  /**
+   * Update a contact, syncing with the payment service and optionally the
+   * newsletter service
+   *
+   * @param contact The contact to update
+   * @param updates The updates to apply to the contact
+   * @param opts Options for the update
+   */
   async updateContact(
     contact: Contact,
     updates: Partial<Contact>,
@@ -156,26 +164,38 @@ class ContactsService {
     await PaymentService.updateContact(contact, updates);
   }
 
+  /**
+   * Update a contact's role, creating it if it doesn't exist.
+   * Also toggles the newsletter active member tag if needed.
+   *
+   * @param contact The contact to update the role for
+   * @param roleType The role to update
+   * @param updates The updates to apply to the role
+   */
   async updateContactRole(
     contact: Contact,
     roleType: RoleType,
-    updates?: Partial<Omit<ContactRole, "contact" | "type">>
+    updates: { dateAdded?: Date; dateExpires?: Date | null }
   ): Promise<void> {
     log.info(`Update role ${roleType} for ${contact.id}`, updates);
 
     const wasActive = contact.membership?.isActive;
 
     const existingRole = contact.roles.find((p) => p.type === roleType);
-    if (existingRole && updates) {
-      Object.assign(existingRole, updates);
+    if (existingRole) {
+      existingRole.dateAdded = updates.dateAdded || existingRole.dateAdded;
+      existingRole.dateExpires =
+        updates.dateExpires || existingRole.dateExpires;
     } else {
       const newRole = getRepository(ContactRole).create({
         contact: contact,
         type: roleType,
-        ...updates
+        dateAdded: updates?.dateAdded || new Date(),
+        dateExpires: updates?.dateExpires || null
       });
       contact.roles.push(newRole);
     }
+
     await getRepository(Contact).save(contact);
 
     if (!wasActive && contact.membership?.isActive) {
@@ -191,6 +211,14 @@ class ContactsService {
     }
   }
 
+  /**
+   * Extend a contact's role if the new date is later than the current one, or
+   * sets it if there is no current expiry date
+
+   * @param contact The contact to extend the role for
+   * @param roleType The role to extend
+   * @param dateExpires The new date to extend the role to
+   */
   async extendContactRole(
     contact: Contact,
     roleType: RoleType,
@@ -208,6 +236,12 @@ class ContactsService {
     }
   }
 
+  /**
+   * Revoke a contact's role.
+   *
+   * @param contact The contact to revoke the role for
+   * @param roleType The role to revoke
+   */
   async revokeContactRole(contact: Contact, roleType: RoleType): Promise<void> {
     log.info(`Revoke role ${roleType} for ${contact.id}`);
     contact.roles = contact.roles.filter((p) => p.type !== roleType);

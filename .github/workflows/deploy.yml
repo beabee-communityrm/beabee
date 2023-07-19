@@ -27,9 +27,17 @@ jobs:
   check:
     uses: ./.github/workflows/check.yml
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup
+      - run: cp .env.example .env
+      - run: npm test
+
   push:
     runs-on: ubuntu-latest
-    needs: [init, check]
+    needs: [init, check, test]
     steps:
       - uses: actions/checkout@v3
       - id: getrev
