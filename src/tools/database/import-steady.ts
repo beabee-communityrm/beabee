@@ -9,6 +9,7 @@ import { parse } from "csv-parse";
 import { In, getRepository } from "typeorm";
 
 import * as db from "@core/database";
+import { cleanEmailAddress } from "@core/utils";
 
 import ContactsService from "@core/services/ContactsService";
 
@@ -148,19 +149,12 @@ async function setContributionData(contact: Contact, row: SteadyRow) {
 async function updateExistingContact(contact: Contact, row: SteadyRow) {
   if (contact.contributionType !== ContributionType.Manual) {
     console.error(
-      `${contact.email} has contribution type ${contact.contributionType}`
+      `${contact.email} has contribution type ${contact.contributionType}, can't update`
     );
     return;
   }
 
-  if (contact.contributionPeriod !== convertPeriod(row.subscription_period)) {
-    console.error(
-      `${contact.email} has different contribution period ${contact.contributionPeriod} ${row.subscription_period}`
-    );
-    return;
-  }
-
-  console.error("Updating" + contact.email);
+  console.error("Updating " + contact.email);
   if (!isDangerMode) {
     return;
   }
@@ -171,16 +165,19 @@ async function updateExistingContact(contact: Contact, row: SteadyRow) {
     lastname: row.last_name
   });
 
-  // If the contact is already a member, only update their role if
-  // it expires later than the current one
+  // If the contact is already a member, use extend instead to ensure
+  // the role expiry date isn't reduced
+  const role = getRole(row);
   if (contact.membership?.isActive) {
-    await ContactsService.extendContactRole(
-      contact,
-      "member",
-      new Date(row.expires_at)
-    );
+    if (role.dateExpires) {
+      await ContactsService.extendContactRole(
+        contact,
+        "member",
+        role.dateExpires
+      );
+    }
   } else {
-    await ContactsService.updateContactRole(contact, "member", getRole(row));
+    await ContactsService.updateContactRole(contact, "member", role);
   }
 
   const [deliveryOptIn, deliveryAddress] = getDeliveryAddress(row);
@@ -274,6 +271,7 @@ async function loadRows(): Promise<SteadyRow[]> {
         if (isSteadyRow(row)) {
           rows.push({
             ...row,
+            email: cleanEmailAddress(row.email),
             plan_monthly_amount_cents: parseInt(row.plan_monthly_amount_cents),
             gifted: row.gifted === "true",
             subscription_period: row.subscription_period as "annual" | "monthly"
