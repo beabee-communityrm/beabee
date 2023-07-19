@@ -183,7 +183,8 @@ async function updateExistingContact(contact: Contact, row: SteadyRow) {
   const [deliveryOptIn, deliveryAddress] = getDeliveryAddress(row);
   await ContactsService.updateContactProfile(contact, {
     deliveryOptIn,
-    deliveryAddress
+    deliveryAddress,
+    tags: ["Steady"]
   });
 
   await setContributionData(contact, row);
@@ -215,7 +216,8 @@ async function addNewContact(row: SteadyRow) {
     {
       deliveryOptIn,
       deliveryAddress,
-      newsletterStatus: NewsletterStatus.None
+      newsletterStatus: NewsletterStatus.None,
+      tags: ["Steady"]
     }
   );
 
