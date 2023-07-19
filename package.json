@@ -23,6 +23,7 @@
     "dev:api:watch": "tsc-watch -p tsconfig.build.json --noClear --onSuccess 'docker-compose restart api_app router'",
     "dev:api:logs": "while true; do docker-compose logs -f --tail=0 api_app; sleep 1; done",
     "build": "rimraf built/ && gulp build && tsc -p ./tsconfig.build.json",
+    "watch": "tsc-watch -p tsconfig.build.json --noClear",
     "check": "concurrently npm:check:*",
     "check:tsc": "tsc --noEmit",
     "check:prettier": "prettier -c .",
