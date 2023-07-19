@@ -46,6 +46,7 @@
     "connect-pg-simple": "^8.0.0",
     "cookie-parser": "^1.4.6",
     "csurf": "^1.11.0",
+    "csv-parse": "^5.4.0",
     "csv-stringify": "^6.3.0",
     "date-fns": "^2.29.3",
     "discourse-sso": "^1.0.5",
