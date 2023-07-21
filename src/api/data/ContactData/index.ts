@@ -194,6 +194,8 @@ export async function exportContacts(
       qb.orderBy(`${fieldPrefix}joined`);
       qb.leftJoinAndSelect(`${fieldPrefix}roles`, "roles");
       qb.leftJoinAndSelect(`${fieldPrefix}profile`, "profile");
+      qb.leftJoinAndSelect("profile.tags", "tags");
+      qb.leftJoinAndSelect("tags.tag", "tag");
       qb.leftJoinAndSelect(`${fieldPrefix}paymentData`, "pd");
     }
   );
@@ -285,6 +287,22 @@ export async function fetchPaginatedContacts(
 
   // Load roles after to ensure offset/limit work
   await loadContactRoles(results.items);
+
+  if (query.with?.includes(GetContactWith.Profile)) {
+    const ids = results.items.map((t) => t.id);
+    // Load tags after to ensure offset/limit work
+    const profileTags = await createQueryBuilder(ContactProfileTag, "cpt")
+      .where("cpt.profile IN (:...ids)", { ids })
+      .innerJoinAndSelect("cpt.tag", "tag")
+      .loadAllRelationIds({ relations: ["profile"] })
+      .getMany();
+
+    for (const item of results.items) {
+      item.profile.tags = profileTags.filter(
+        (pt) => (pt as any).profile === item.id
+      );
+    }
+  }
 
   return {
     ...results,
