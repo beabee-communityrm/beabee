@@ -2,7 +2,7 @@
 subject: Mitglieder-Account existiert bereits
 ---
 
-<p>Hallo *|FNAME|*,</p>
+<p>Hallo *|FNAME|* *|LNAME|*,</p>
 <p><br /></p>
 <p>
   Du hast versucht, mit dieser Email-Adresse einen Account bei uns anzulegen.
