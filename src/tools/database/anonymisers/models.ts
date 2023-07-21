@@ -176,7 +176,6 @@ export const contactProfileAnonymiser = createModelAnonymiser(ContactProfile, {
     city: "Bristol",
     postcode: "BS1 1AA"
   })
-  // tags: (tags) => tags.map(() => chance.profession())
 });
 
 export const contactTagAnonymiser = createModelAnonymiser(ContactTag, {
