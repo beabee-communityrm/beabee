@@ -7,7 +7,7 @@ export default class ContactProfileTag {
   @ManyToOne("ContactProfile", "tags", { primary: true })
   profile!: ContactProfile;
 
-  @ManyToOne("ContactTag", { primary: true })
+  @ManyToOne("ContactTag", { eager: true, primary: true })
   tag!: ContactTag;
 
   @CreateDateColumn()

@@ -7,6 +7,7 @@ import { getMembershipStatus } from "@core/services/PaymentService";
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 import ContactProfile from "@models/ContactProfile";
+import ContactProfileTag from "@models/ContactProfileTag";
 import PaymentData from "@models/PaymentData";
 
 import {
@@ -143,10 +144,27 @@ function paymentDataField(field: string): FieldHandler {
   };
 }
 
+const tagsFieldHandler: FieldHandler = (qb, args) => {
+  const subQb = createQueryBuilder()
+    .subQuery()
+    .select("cpt.profileContact")
+    .from(ContactProfileTag, "cpt");
+
+  if (args.operator === "contains" || args.operator === "not_contains") {
+    subQb.where(args.suffixFn("cpt.tag = :a"));
+  }
+
+  const inOp =
+    args.operator === "not_contains" || args.operator === "is_empty"
+      ? "NOT IN"
+      : "IN";
+
+  qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
+};
+
 export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   deliveryOptIn: profileField("deliveryOptIn"),
   newsletterStatus: profileField("newsletterStatus"),
-  tags: profileField("tags"),
   activePermission,
   activeMembership: activePermission,
   membershipStarts: membershipField("dateAdded"),
@@ -157,7 +175,8 @@ export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   manualPaymentSource: (qb, args) => {
     paymentDataField("pd.data ->> 'source'")(qb, args);
     qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
-  }
+  },
+  tags: tagsFieldHandler
 };
 
 export async function exportContacts(
