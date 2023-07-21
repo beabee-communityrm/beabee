@@ -27,9 +27,6 @@ import ContactRole from "@models/ContactRole";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 
-export type PartialContact = Pick<Contact, "email" | "contributionType"> &
-  Partial<Contact>;
-
 interface ForceUpdateContribution {
   type: ContributionType.Manual | ContributionType.None;
   period?: ContributionPeriod;
@@ -264,11 +261,14 @@ class ContactsService {
     opts = { sync: true }
   ): Promise<void> {
     log.info("Update contact profile for " + contact.id);
-    await getRepository(ContactProfile).update(contact.id, updates);
-
-    if (contact.profile) {
-      Object.assign(contact.profile, updates);
+    if (!contact.profile) {
+      contact.profile = await getRepository(ContactProfile).findOneOrFail({
+        contact
+      });
     }
+
+    Object.assign(contact.profile, updates);
+    await getRepository(ContactProfile).save(contact.profile);
 
     if (opts.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
       await NewsletterService.upsertContact(contact);
