@@ -7,6 +7,7 @@ import { getMembershipStatus } from "@core/services/PaymentService";
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 import ContactProfile from "@models/ContactProfile";
+import ContactProfileTag from "@models/ContactProfileTag";
 import PaymentData from "@models/PaymentData";
 
 import {
@@ -17,6 +18,7 @@ import {
   GetPaginatedRuleGroup
 } from "@api/data/PaginatedData";
 
+import { convertTagToData } from "../ContactTagData";
 import { GetContactData, GetContactsQuery, GetContactWith } from "./interface";
 
 interface ConvertOpts {
@@ -60,7 +62,7 @@ export function convertContactToData(
           newsletterStatus: contact.profile.newsletterStatus,
           newsletterGroups: contact.profile.newsletterGroups,
           ...(opts.withRestricted && {
-            tags: contact.profile.tags,
+            tags: contact.profile.tags.map((t) => convertTagToData(t.tag)),
             notes: contact.profile.notes,
             description: contact.profile.description
           })
@@ -142,10 +144,27 @@ function paymentDataField(field: string): FieldHandler {
   };
 }
 
+const tagsFieldHandler: FieldHandler = (qb, args) => {
+  const subQb = createQueryBuilder()
+    .subQuery()
+    .select("cpt.profileContact")
+    .from(ContactProfileTag, "cpt");
+
+  if (args.operator === "contains" || args.operator === "not_contains") {
+    subQb.where(args.suffixFn("cpt.tag = :a"));
+  }
+
+  const inOp =
+    args.operator === "not_contains" || args.operator === "is_empty"
+      ? "NOT IN"
+      : "IN";
+
+  qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
+};
+
 export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   deliveryOptIn: profileField("deliveryOptIn"),
   newsletterStatus: profileField("newsletterStatus"),
-  tags: profileField("tags"),
   activePermission,
   activeMembership: activePermission,
   membershipStarts: membershipField("dateAdded"),
@@ -156,7 +175,8 @@ export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   manualPaymentSource: (qb, args) => {
     paymentDataField("pd.data ->> 'source'")(qb, args);
     qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
-  }
+  },
+  tags: tagsFieldHandler
 };
 
 export async function exportContacts(
@@ -174,6 +194,8 @@ export async function exportContacts(
       qb.orderBy(`${fieldPrefix}joined`);
       qb.leftJoinAndSelect(`${fieldPrefix}roles`, "roles");
       qb.leftJoinAndSelect(`${fieldPrefix}profile`, "profile");
+      qb.leftJoinAndSelect("profile.tags", "tags");
+      qb.leftJoinAndSelect("tags.tag", "tag");
       qb.leftJoinAndSelect(`${fieldPrefix}paymentData`, "pd");
     }
   );
@@ -189,7 +211,7 @@ export async function exportContacts(
       FirstName: contact.firstname,
       LastName: contact.lastname,
       Joined: contact.joined,
-      Tags: contact.profile.tags.join(", "),
+      Tags: contact.profile.tags.map((t) => t.tag.name).join(", "),
       ContributionType: contact.contributionType,
       ContributionMonthlyAmount: contact.contributionMonthlyAmount,
       ContributionPeriod: contact.contributionPeriod,
@@ -265,6 +287,22 @@ export async function fetchPaginatedContacts(
 
   // Load roles after to ensure offset/limit work
   await loadContactRoles(results.items);
+
+  if (query.with?.includes(GetContactWith.Profile)) {
+    const ids = results.items.map((t) => t.id);
+    // Load tags after to ensure offset/limit work
+    const profileTags = await createQueryBuilder(ContactProfileTag, "cpt")
+      .where("cpt.profile IN (:...ids)", { ids })
+      .innerJoinAndSelect("cpt.tag", "tag")
+      .loadAllRelationIds({ relations: ["profile"] })
+      .getMany();
+
+    for (const item of results.items) {
+      item.profile.tags = profileTags.filter(
+        (pt) => (pt as any).profile === item.id
+      );
+    }
+  }
 
   return {
     ...results,

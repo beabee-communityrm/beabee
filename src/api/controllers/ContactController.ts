@@ -130,7 +130,7 @@ export class ContactController {
         })
       },
       data.profile && {
-        ...data.profile,
+        // ...data.profile,
         ...(data.profile.newsletterStatus === NewsletterStatus.Subscribed && {
           // Automatically add default groups for now, this should be revisited
           // once groups are exposed to the frontend
@@ -230,7 +230,7 @@ export class ContactController {
         throw new UnauthorizedError();
       }
 
-      await ContactsService.updateContactProfile(target, data.profile);
+      // await ContactsService.updateContactProfile(target, data.profile);
     }
 
     return await this.getContact(caller, target, {

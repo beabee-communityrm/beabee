@@ -16,6 +16,8 @@ import ContactsService from "@core/services/ContactsService";
 import Address from "@models/Address";
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
+import ContactTag from "@models/ContactTag";
+import ContactProfileTag from "@models/ContactProfileTag";
 
 const headers = [
   "first_name",
@@ -146,7 +148,11 @@ async function setContributionData(contact: Contact, row: SteadyRow) {
  * @param row
  * @returns
  */
-async function updateExistingContact(contact: Contact, row: SteadyRow) {
+async function updateExistingContact(
+  contact: Contact,
+  row: SteadyRow,
+  tag: ContactTag
+) {
   if (contact.contributionType !== ContributionType.Manual) {
     console.error(
       `${contact.email} has contribution type ${contact.contributionType}, can't update`
@@ -181,10 +187,15 @@ async function updateExistingContact(contact: Contact, row: SteadyRow) {
   }
 
   const [deliveryOptIn, deliveryAddress] = getDeliveryAddress(row);
+  const tags = [
+    { tag } as ContactProfileTag,
+    ...contact.profile.tags.filter((t) => t.tag.id !== tag.id)
+  ];
+
   await ContactsService.updateContactProfile(contact, {
     deliveryOptIn,
     deliveryAddress,
-    tags: ["Steady"]
+    tags
   });
 
   await setContributionData(contact, row);
@@ -195,7 +206,7 @@ async function updateExistingContact(contact: Contact, row: SteadyRow) {
  *
  * @param row A row from the CSV file
  */
-async function addNewContact(row: SteadyRow) {
+async function addNewContact(row: SteadyRow, tag: ContactTag) {
   const joined = new Date(row.subscribed_at);
 
   const [deliveryOptIn, deliveryAddress] = getDeliveryAddress(row);
@@ -217,7 +228,7 @@ async function addNewContact(row: SteadyRow) {
       deliveryOptIn,
       deliveryAddress,
       newsletterStatus: NewsletterStatus.None,
-      tags: ["Steady"]
+      tags: [{ tag } as ContactProfileTag]
     }
   );
 
@@ -234,8 +245,20 @@ async function processRows(rows: SteadyRow[]) {
   console.error(`Processing ${rows.length} rows`);
 
   const existingContacts = await getRepository(Contact).find({
-    where: { email: In(rows.map((row) => row.email)) }
+    where: { email: In(rows.map((row) => row.email)) },
+    relations: ["profile"]
   });
+
+  // Ensure Steady tag exists
+  let tag = await getRepository(ContactTag).findOne({
+    where: { name: "Steady" }
+  });
+  if (!tag) {
+    tag = await getRepository(ContactTag).save({
+      name: "Steady",
+      description: "Imported from Steady"
+    });
+  }
 
   const existingEmails = existingContacts.map((c) => c.email);
 
@@ -244,13 +267,13 @@ async function processRows(rows: SteadyRow[]) {
 
   for (const contact of existingContacts) {
     const row = rows.find((r) => r.email === contact.email) as SteadyRow;
-    await updateExistingContact(contact, row);
+    await updateExistingContact(contact, row, tag);
     updated++;
   }
 
   for (const row of rows) {
     if (!existingEmails.includes(row.email)) {
-      await addNewContact(row);
+      await addNewContact(row, tag);
       added++;
     }
   }

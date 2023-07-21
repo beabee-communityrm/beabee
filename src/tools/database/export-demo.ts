@@ -13,6 +13,8 @@ import {
   contactAnonymiser,
   contactRoleAnonymiser,
   contactProfileAnonymiser,
+  contactProfileTagAnonymiser,
+  contactTagAnonymiser,
   calloutResponsesAnonymiser,
   calloutsAnonymiser,
   calloutTagsAnonymiser,
@@ -56,6 +58,8 @@ async function main() {
     ...calloutResponseAnonymisers,
     // Clear comments until above is fixed
     calloutResponseCommentsAnonymiser,
+    // Clear profile tags until importing is fixed
+    contactProfileTagAnonymiser,
     // Clear models that link to contacts
     projectContactsAnonymiser,
     projectEngagmentsAnonymiser,
@@ -63,6 +67,8 @@ async function main() {
     referralsAnonymiser,
     resetPasswordFlowAnonymiser
   ]);
+
+  await anonymiseModel(contactTagAnonymiser, (qb) => qb, valueMap);
 
   const contacts = await createQueryBuilder(Contact, "item")
     .select("item.id")

@@ -27,6 +27,7 @@ import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import { ForceUpdateContributionData } from "../ContributionData";
+import { GetContactTagData } from "../ContactTagData";
 
 interface ContactData {
   email: string;
@@ -34,7 +35,7 @@ interface ContactData {
   lastname: string;
 }
 
-interface ContactProfileData {
+interface GetContactProfileData {
   telephone: string;
   twitter: string;
   preferredContact: string;
@@ -44,7 +45,7 @@ interface ContactProfileData {
   newsletterGroups: string[];
 
   // Admin only
-  tags?: string[];
+  tags?: GetContactTagData[];
   notes?: string;
   description?: string;
 }
@@ -79,7 +80,7 @@ export interface GetContactData extends ContactData {
   contributionAmount?: number;
   contributionPeriod?: ContributionPeriod;
   activeRoles: RoleType[];
-  profile?: ContactProfileData;
+  profile?: GetContactProfileData;
   roles?: GetContactRoleData[];
   contribution?: ContributionInfo;
 }
@@ -136,7 +137,7 @@ class UpdateAddressData implements Address {
   postcode!: string;
 }
 
-class UpdateContactProfileData implements Partial<ContactProfileData> {
+class UpdateContactProfileData {
   @IsOptional()
   @IsString()
   telephone?: string;

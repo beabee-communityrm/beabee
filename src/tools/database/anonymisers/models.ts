@@ -33,6 +33,8 @@ import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import ContactTag from "@models/ContactTag";
+import ContactProfileTag from "@models/ContactProfileTag";
 
 export type PropertyMap<T> = ((prop: T) => T) | ObjectMap<T>;
 export type ObjectMap<T> = { [K in keyof T]?: PropertyMap<T[K]> };
@@ -174,8 +176,21 @@ export const contactProfileAnonymiser = createModelAnonymiser(ContactProfile, {
     line2: chance.pickone(["Cabot", "Easton", "Southmead", "Hanham"]),
     city: "Bristol",
     postcode: "BS1 1AA"
-  }),
-  tags: (tags) => tags.map(() => chance.profession())
+  })
+});
+
+export const contactProfileTagAnonymiser = createModelAnonymiser(
+  ContactProfileTag,
+  {
+    profile: relationId,
+    tag: relationId
+  }
+);
+
+export const contactTagAnonymiser = createModelAnonymiser(ContactTag, {
+  id: () => uuidv4(),
+  name: () => chance.profession(),
+  description: () => chance.sentence()
 });
 
 export const contactRoleAnonymiser = createModelAnonymiser(ContactRole, {
