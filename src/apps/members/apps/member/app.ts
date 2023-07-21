@@ -79,7 +79,6 @@ app.post(
     switch (req.body.action) {
       case "save-about": {
         await ContactsService.updateContactProfile(contact, {
-          tags: req.body.tags || [],
           description: req.body.description || "",
           bio: req.body.bio || ""
         });
