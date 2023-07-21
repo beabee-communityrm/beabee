@@ -1,8 +1,9 @@
 import { NewsletterStatus } from "@beabee/beabee-common";
-import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 
 import type Address from "./Address";
 import type Contact from "./Contact";
+import type ContactProfileTag from "./ContactProfileTag";
 
 @Entity()
 export default class ContactProfile {
@@ -34,8 +35,8 @@ export default class ContactProfile {
   @Column({ type: "jsonb", nullable: true })
   deliveryAddress!: Address | null;
 
-  @Column({ type: "jsonb", default: "[]" })
-  tags!: string[];
+  @OneToMany("ContactProfileTag", "profile", { eager: true, cascade: true })
+  tags!: ContactProfileTag[];
 
   @Column({ default: NewsletterStatus.None })
   newsletterStatus!: NewsletterStatus;

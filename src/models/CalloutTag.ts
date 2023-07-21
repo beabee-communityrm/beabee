@@ -1,7 +1,6 @@
 import {
   Column,
   Entity,
-  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique

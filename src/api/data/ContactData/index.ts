@@ -17,6 +17,7 @@ import {
   GetPaginatedRuleGroup
 } from "@api/data/PaginatedData";
 
+import { convertTagToData } from "../ContactTagData";
 import { GetContactData, GetContactsQuery, GetContactWith } from "./interface";
 
 interface ConvertOpts {
@@ -60,7 +61,7 @@ export function convertContactToData(
           newsletterStatus: contact.profile.newsletterStatus,
           newsletterGroups: contact.profile.newsletterGroups,
           ...(opts.withRestricted && {
-            tags: contact.profile.tags,
+            tags: contact.profile.tags.map((t) => convertTagToData(t.tag)),
             notes: contact.profile.notes,
             description: contact.profile.description
           })
@@ -189,7 +190,7 @@ export async function exportContacts(
       FirstName: contact.firstname,
       LastName: contact.lastname,
       Joined: contact.joined,
-      Tags: contact.profile.tags.join(", "),
+      Tags: contact.profile.tags.map((t) => t.tag.name).join(", "),
       ContributionType: contact.contributionType,
       ContributionMonthlyAmount: contact.contributionMonthlyAmount,
       ContributionPeriod: contact.contributionPeriod,
