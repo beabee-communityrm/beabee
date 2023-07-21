@@ -9,7 +9,9 @@ import { anonymiseModel, clearModels } from "./anonymisers";
 const anonymisers = [
   models.contactAnonymiser, // A lot of relations depend on contacts so leave it first
   models.contactRoleAnonymiser,
-  models.contactProfileAnonymiser,
+  models.contactTagAnonymiser, // Must be before contactProfileTagAnonymiser
+  models.contactProfileAnonymiser, // Before Tags
+  models.contactProfileTagAnonymiser,
   models.emailAnonymiser,
   models.emailMailingAnonymiser,
   models.exportsAnonymiser,
