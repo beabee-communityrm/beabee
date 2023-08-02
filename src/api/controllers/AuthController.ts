@@ -47,17 +47,20 @@ export class AuthController {
     @Body() data: LoginData
   ): Promise<void> {
     await new Promise<Contact>((resolve, reject) => {
-      passport.authenticate("local", (err, user, info) => {
-        if (err || !user) {
-          const error = new UnauthorizedError() as any;
-          if (info?.message) {
-            error.code = info.message;
+      passport.authenticate(
+        "local",
+        (err: any, user: Contact, info?: { message: string }) => {
+          if (err || !user) {
+            const error = new UnauthorizedError() as any;
+            if (info?.message) {
+              error.code = info.message;
+            }
+            reject(error);
+          } else {
+            resolve(user);
           }
-          reject(error);
-        } else {
-          resolve(user);
         }
-      })(req, res);
+      )(req, res);
     }).then((user) => login(req, user)); // Why do we have to login after authenticate?
   }
 
