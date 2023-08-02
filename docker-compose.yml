@@ -41,6 +41,7 @@ services:
   img_upload_app:
     image: hascheksolutions/pictshare:72394f17
     environment:
+      URL: ${BEABEE_AUDIENCE}/uploads/
       CONTENTCONTROLLERS: IMAGE,TEXT
     init: true
 
