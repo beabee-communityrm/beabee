@@ -42,7 +42,9 @@ import {
   CreateCalloutResponseData,
   exportCalloutResponses,
   fetchPaginatedCalloutResponses,
+  fetchPaginatedCalloutResponsesForMap,
   GetCalloutResponseData,
+  GetCalloutResponseMapData,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
 import {
@@ -146,6 +148,15 @@ export class CalloutController {
     );
     res.attachment(exportName).send(exportData);
     return res;
+  }
+
+  @Get("/:slug/responses/map")
+  async getCalloutResponsesMap(
+    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @Param("slug") slug: string,
+    @QueryParams() query: GetCalloutResponsesQuery
+  ): Promise<Paginated<GetCalloutResponseMapData>> {
+    return await fetchPaginatedCalloutResponsesForMap(query, contact, slug);
   }
 
   @Post("/:slug/responses")

@@ -41,7 +41,8 @@ import {
   GetCalloutResponsesQuery,
   GetCalloutResponseQuery,
   BatchUpdateCalloutResponseData,
-  CreateCalloutResponseData
+  CreateCalloutResponseData,
+  GetCalloutResponseMapData
 } from "./interface";
 
 function convertResponseToData(
@@ -203,6 +204,38 @@ const tagsFieldHandler: FieldHandler = (qb, args) => {
   qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
 };
 
+async function prepareFilters(
+  calloutSlug?: string
+): Promise<[Filters<string>, FieldHandlers<string>]> {
+  let answerFilters, fieldHandlers;
+
+  // If looking for responses for a particular callout then add answer filtering
+  if (calloutSlug) {
+    const callout = await getRepository(Callout).findOne(calloutSlug);
+    if (!callout) {
+      throw new NotFoundError();
+    }
+
+    answerFilters = convertComponentsToFilters(callout.formSchema.components);
+    // All handled by the same field handler
+    fieldHandlers = Object.fromEntries(
+      Object.keys(answerFilters).map((field) => [
+        field,
+        individualAnswerFieldHandler
+      ])
+    );
+  }
+
+  return [
+    { ...calloutResponseFilters, ...answerFilters },
+    {
+      answers: answersFieldHandler,
+      tags: tagsFieldHandler,
+      ...fieldHandlers
+    }
+  ];
+}
+
 async function prepareQuery(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
@@ -224,34 +257,9 @@ async function prepareQuery(
     }
   ]);
 
-  let answerFilters, fieldHandlers;
+  const [answerFilters, fieldHandlers] = await prepareFilters(calloutSlug);
 
-  // If looking for responses for a particular callout then add answer filtering
-  if (calloutSlug) {
-    const callout = await getRepository(Callout).findOne(calloutSlug);
-    if (!callout) {
-      throw new NotFoundError();
-    }
-
-    answerFilters = convertComponentsToFilters(callout.formSchema.components);
-    // All handled by the same field handler
-    fieldHandlers = Object.fromEntries(
-      Object.keys(answerFilters).map((field) => [
-        field,
-        individualAnswerFieldHandler
-      ])
-    );
-  }
-
-  return [
-    scopedRules,
-    { ...calloutResponseFilters, ...answerFilters },
-    {
-      answers: answersFieldHandler,
-      tags: tagsFieldHandler,
-      ...fieldHandlers
-    }
-  ];
+  return [scopedRules, answerFilters, fieldHandlers];
 }
 
 function commentText(comment: CalloutResponseComment) {
@@ -428,6 +436,42 @@ export async function fetchPaginatedCalloutResponses(
   return {
     ...results,
     items: results.items.map((item) => convertResponseToData(item, query.with))
+  };
+}
+
+export async function fetchPaginatedCalloutResponsesForMap(
+  query: GetCalloutResponsesQuery,
+  contact?: Contact,
+  calloutSlug?: string
+): Promise<Paginated<GetCalloutResponseMapData>> {
+  const [filters, fieldHandlers] = await prepareFilters(calloutSlug);
+  const scopedRules = mergeRules([
+    query.rules,
+    // Non admins can only see verified responses
+    !contact?.hasRole("admin") && {
+      field: "bucket",
+      operator: "equal",
+      value: ["verified"]
+    },
+    // Only load responses for the given callout
+    !!calloutSlug && {
+      field: "callout",
+      operator: "equal",
+      value: [calloutSlug]
+    }
+  ]);
+
+  const results = await fetchPaginated(
+    CalloutResponse,
+    filters,
+    { limit: 2000, ...query, rules: scopedRules },
+    contact,
+    fieldHandlers
+  );
+
+  return {
+    ...results,
+    items: results.items.map((item) => ({ answers: item.answers }))
   };
 }
 
