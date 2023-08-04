@@ -426,23 +426,27 @@ export async function fetchPaginatedCalloutResponses(
 
 export async function fetchPaginatedCalloutResponsesForMap(
   query: GetCalloutResponsesQuery,
-  contact?: Contact,
-  calloutSlug?: string
+  contact: Contact | undefined,
+  callout: Callout
 ): Promise<Paginated<GetCalloutResponseMapData>> {
-  const [filters, fieldHandlers] = await prepareFilters(calloutSlug);
+  if (!callout.mapSchema) {
+    throw new NotFoundError();
+  }
+
+  const [filters, fieldHandlers] = prepareFilters(callout);
   const scopedRules = mergeRules([
     query.rules,
+    // Only load responses for the given callout
+    {
+      field: "callout",
+      operator: "equal",
+      value: [callout.slug]
+    },
     // Non admins can only see verified responses
     !contact?.hasRole("admin") && {
       field: "bucket",
       operator: "equal",
       value: ["verified"]
-    },
-    // Only load responses for the given callout
-    !!calloutSlug && {
-      field: "callout",
-      operator: "equal",
-      value: [calloutSlug]
     }
   ]);
 
