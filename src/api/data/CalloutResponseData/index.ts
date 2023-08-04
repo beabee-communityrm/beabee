@@ -178,47 +178,43 @@ const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
   }
 };
 
-const answersFieldHandler: FieldHandler = (qb, args) => {
-  qb.where(
-    args.whereFn(
-      `(SELECT string_agg(value, '') FROM jsonb_each_text(${args.fieldPrefix}answers))`
-    )
-  );
-};
+const calloutResponseFieldHandlers: FieldHandlers<string> = {
+  answers: (qb, args) => {
+    qb.where(
+      args.whereFn(
+        `(SELECT string_agg(value, '') FROM jsonb_each_text(${args.fieldPrefix}answers))`
+      )
+    );
+  },
+  tags: (qb, args) => {
+    const subQb = createQueryBuilder()
+      .subQuery()
+      .select("crt.responseId")
+      .from(CalloutResponseTag, "crt");
 
-const tagsFieldHandler: FieldHandler = (qb, args) => {
-  const subQb = createQueryBuilder()
-    .subQuery()
-    .select("crt.responseId")
-    .from(CalloutResponseTag, "crt");
-
-  if (args.operator === "contains" || args.operator === "not_contains") {
-    subQb.where(args.suffixFn("crt.tag = :a"));
-  }
-
-  const inOp =
-    args.operator === "not_contains" || args.operator === "is_not_empty"
-      ? "NOT IN"
-      : "IN";
-
-  qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
-};
-
-async function prepareFilters(
-  calloutSlug?: string
-): Promise<[Filters<string>, FieldHandlers<string>]> {
-  let answerFilters, fieldHandlers;
-
-  // If looking for responses for a particular callout then add answer filtering
-  if (calloutSlug) {
-    const callout = await getRepository(Callout).findOne(calloutSlug);
-    if (!callout) {
-      throw new NotFoundError();
+    if (args.operator === "contains" || args.operator === "not_contains") {
+      subQb.where(args.suffixFn("crt.tag = :a"));
     }
 
+    const inOp =
+      args.operator === "not_contains" || args.operator === "is_not_empty"
+        ? "NOT IN"
+        : "IN";
+
+    qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
+  }
+};
+
+function prepareFilters(
+  callout?: Callout
+): [Filters<string>, FieldHandlers<string>] {
+  let answerFilters, answerFieldHandlers;
+
+  // If looking for responses for a particular callout then add answer filtering
+  if (callout) {
     answerFilters = convertComponentsToFilters(callout.formSchema.components);
     // All handled by the same field handler
-    fieldHandlers = Object.fromEntries(
+    answerFieldHandlers = Object.fromEntries(
       Object.keys(answerFilters).map((field) => [
         field,
         individualAnswerFieldHandler
@@ -228,18 +224,14 @@ async function prepareFilters(
 
   return [
     { ...calloutResponseFilters, ...answerFilters },
-    {
-      answers: answersFieldHandler,
-      tags: tagsFieldHandler,
-      ...fieldHandlers
-    }
+    { ...calloutResponseFieldHandlers, ...answerFieldHandlers }
   ];
 }
 
 async function prepareQuery(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
-  calloutSlug?: string
+  callout?: Callout
 ): Promise<[GetPaginatedRuleGroup, Filters<string>, FieldHandlers<string>]> {
   const scopedRules = mergeRules([
     ruleGroup,
@@ -250,16 +242,14 @@ async function prepareQuery(
       value: [contact.id]
     },
     // Only load responses for the given callout
-    !!calloutSlug && {
+    !!callout && {
       field: "callout",
       operator: "equal",
-      value: [calloutSlug]
+      value: [callout.slug]
     }
   ]);
 
-  const [answerFilters, fieldHandlers] = await prepareFilters(calloutSlug);
-
-  return [scopedRules, answerFilters, fieldHandlers];
+  return [scopedRules, ...prepareFilters(callout)];
 }
 
 function commentText(comment: CalloutResponseComment) {
@@ -270,17 +260,12 @@ function commentText(comment: CalloutResponseComment) {
 export async function exportCalloutResponses(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
-  calloutSlug: string
+  callout: Callout
 ): Promise<[string, string]> {
-  const callout = await getRepository(Callout).findOne(calloutSlug);
-  if (!callout) {
-    throw new NotFoundError();
-  }
-
   const [rules, filters, fieldHandlers] = await prepareQuery(
     ruleGroup,
     contact,
-    calloutSlug
+    callout
   );
 
   const results = await fetchPaginated(
@@ -363,12 +348,12 @@ export async function exportCalloutResponses(
 export async function fetchPaginatedCalloutResponses(
   query: GetCalloutResponsesQuery,
   contact: Contact,
-  calloutSlug?: string
+  callout?: Callout
 ): Promise<Paginated<GetCalloutResponseData>> {
   const [rules, filters, fieldHandlers] = await prepareQuery(
     query.rules,
     contact,
-    calloutSlug
+    callout
   );
 
   const results = await fetchPaginated(
