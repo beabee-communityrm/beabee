@@ -131,7 +131,11 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    return await fetchPaginatedCalloutResponses(query, contact, slug);
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
+      throw new NotFoundError();
+    }
+    return await fetchPaginatedCalloutResponses(query, contact, callout);
   }
 
   @Get("/:slug/responses.csv")
@@ -141,10 +145,14 @@ export class CalloutController {
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
+      throw new NotFoundError();
+    }
     const [exportName, exportData] = await exportCalloutResponses(
       query.rules,
       contact,
-      slug
+      callout
     );
     res.attachment(exportName).send(exportData);
     return res;
@@ -156,7 +164,11 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseMapData>> {
-    return await fetchPaginatedCalloutResponsesForMap(query, contact, slug);
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
+      throw new NotFoundError();
+    }
+    return await fetchPaginatedCalloutResponsesForMap(query, contact, callout);
   }
 
   @Post("/:slug/responses")
