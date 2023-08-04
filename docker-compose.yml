@@ -44,6 +44,8 @@ services:
       URL: ${BEABEE_AUDIENCE}/uploads/
       CONTENTCONTROLLERS: IMAGE,TEXT
     init: true
+    volumes:
+      - upload_data:/var/www/data
 
   cron:
     <<: *base-app
@@ -62,3 +64,4 @@ services:
 
 volumes:
   db_data:
+  upload_data:
