@@ -20,4 +20,7 @@ export default class UploadFlow {
 
   @Column()
   ipAddress!: string;
+
+  @Column()
+  used!: boolean;
 }

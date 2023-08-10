@@ -46,7 +46,8 @@ export class UploadController {
 
     const newUploadFlow = getRepository(UploadFlow).create({
       contact: contact || null,
-      ipAddress: req.ip
+      ipAddress: req.ip,
+      used: false
     });
 
     return await getRepository(UploadFlow).save(newUploadFlow);
@@ -59,10 +60,10 @@ export class UploadController {
   async get(@Params() { id }: UUIDParam) {
     // Flows are valid for a minute
     const oneMinAgo = sub(new Date(), { minutes: 1 });
-    const res = await getRepository(UploadFlow).delete({
-      id,
-      date: MoreThan(oneMinAgo)
-    });
+    const res = await getRepository(UploadFlow).update(
+      { id, date: MoreThan(oneMinAgo), used: false },
+      { used: true }
+    );
 
     if (!res.affected) {
       throw new NotFoundError();
