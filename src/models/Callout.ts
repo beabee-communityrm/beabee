@@ -18,6 +18,15 @@ export enum CalloutAccess {
   OnlyAnonymous = "only-anonymous"
 }
 
+export interface CalloutMapSchema {
+  bounds: [[number, number], [number, number]];
+  center: [number, number];
+  minZoom: number;
+  maxZoom: number;
+  initialZoom: number;
+  style: string;
+}
+
 @Entity()
 export default class Callout extends ItemWithStatus {
   @PrimaryColumn()
@@ -55,6 +64,9 @@ export default class Callout extends ItemWithStatus {
 
   @Column({ type: "jsonb" })
   formSchema!: CalloutFormSchema;
+
+  @Column({ type: "jsonb", nullable: true })
+  mapSchema!: CalloutMapSchema | null;
 
   @Column({ type: String, nullable: true })
   mcMergeField!: string | null;

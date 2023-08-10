@@ -25,13 +25,22 @@ block contents
 					.form-group
 						label.control-label.col-md-3 Type
 						.col-md-9
-							label.radio-inline
-								input(type='radio' name='type' value='one-off' required checked).js-reveal-types
+							label.radio-inline(class=segment.contactCount === 0 ? 'disabled' : '')
+								input(
+									type='radio' name='type' value='one-off' required
+									checked=segment.contactCount > 0
+									disabled=segment.contactCount === 0
+								).js-reveal-types
 								| One-off
 							|
 							label.radio-inline
-								input(type='radio' name='type' value='ongoing' required).js-reveal-types
+								input(
+									type='radio' name='type' value='ongoing' required
+									checked=segment.contactCount === 0
+									).js-reveal-types
 								| Ongoing
+							if segment.contactCount === 0
+								p.help-block You can't send a one-off email to an empty segment
 
 					.hidden.js-reveal-type(data-type='ongoing')
 						.js-reveal

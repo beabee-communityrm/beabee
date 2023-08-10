@@ -65,6 +65,10 @@ export interface GetCalloutResponseData {
   latestComment?: GetCalloutResponseCommentData | null;
 }
 
+export interface GetCalloutResponseMapData {
+  answers: CalloutResponseAnswers;
+}
+
 export class CreateCalloutResponseData {
   @IsObject()
   answers!: CalloutResponseAnswers;

@@ -28,6 +28,7 @@ import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
 import { StatsController } from "./controllers/StatsController";
 import { ResetPasswordController } from "./controllers/ResetPasswordController";
+import { UploadController } from "./controllers/UploadController";
 
 import * as db from "@core/database";
 import { log, requestErrorLogger, requestLogger } from "@core/logging";
@@ -109,7 +110,8 @@ db.connect().then(() => {
       SegmentController,
       SignupController,
       StatsController,
-      ResetPasswordController
+      ResetPasswordController,
+      UploadController
     ],
     currentUserChecker,
     authorizationChecker,

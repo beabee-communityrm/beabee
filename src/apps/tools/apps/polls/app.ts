@@ -177,7 +177,7 @@ app.post(
           const [exportName, exportData] = await exportCalloutResponses(
             undefined,
             req.user!,
-            callout.slug
+            callout
           );
           res.attachment(exportName).send(exportData);
         }

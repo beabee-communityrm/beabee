@@ -42,7 +42,9 @@ import {
   CreateCalloutResponseData,
   exportCalloutResponses,
   fetchPaginatedCalloutResponses,
+  fetchPaginatedCalloutResponsesForMap,
   GetCalloutResponseData,
+  GetCalloutResponseMapData,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
 import {
@@ -129,7 +131,11 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    return await fetchPaginatedCalloutResponses(query, contact, slug);
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
+      throw new NotFoundError();
+    }
+    return await fetchPaginatedCalloutResponses(query, contact, callout);
   }
 
   @Get("/:slug/responses.csv")
@@ -139,13 +145,30 @@ export class CalloutController {
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
+      throw new NotFoundError();
+    }
     const [exportName, exportData] = await exportCalloutResponses(
       query.rules,
       contact,
-      slug
+      callout
     );
     res.attachment(exportName).send(exportData);
     return res;
+  }
+
+  @Get("/:slug/responses/map")
+  async getCalloutResponsesMap(
+    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @Param("slug") slug: string,
+    @QueryParams() query: GetCalloutResponsesQuery
+  ): Promise<Paginated<GetCalloutResponseMapData>> {
+    const callout = await getRepository(Callout).findOne(slug);
+    if (!callout) {
+      throw new NotFoundError();
+    }
+    return await fetchPaginatedCalloutResponsesForMap(query, contact, callout);
   }
 
   @Post("/:slug/responses")
