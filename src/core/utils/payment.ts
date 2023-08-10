@@ -6,53 +6,63 @@ import {
 } from "@beabee/beabee-common";
 import config from "@config";
 import Contact from "@models/Contact";
-import {
-  addMonths,
-  getYear,
-  isBefore,
-  setYear,
-  sub,
-  differenceInMonths,
-  add
-} from "date-fns";
+import { addMonths, getYear, setYear, sub, differenceInMonths } from "date-fns";
 import { getActualAmount, PaymentForm } from ".";
 
-export function calcRenewalDate(contact: Contact): Date | undefined {
-  if (contact.membership?.isActive) {
-    const now = new Date();
-
-    if (contact.membership.dateExpires) {
-      const maxDate = add(now, {
-        months:
-          contact.contributionPeriod === ContributionPeriod.Annually ? 12 : 1
-      });
-      const targetDate = sub(
-        contact.membership.dateExpires,
-        config.gracePeriod
-      );
-
-      // Ensure date is no more than 1 period away from now, this could happen if
-      // manual contributors had their expiry date set arbritarily in the future
-      return maxDate < targetDate ? maxDate : targetDate;
-
-      // Some special rules for upgrading non-expiring manual contributions
-    } else if (contact.contributionType === ContributionType.Manual) {
-      // Annual contribution, calculate based on their start date
-      if (contact.contributionPeriod === ContributionPeriod.Annually) {
-        const thisYear = getYear(now);
-        const startDate = setYear(contact.membership.dateAdded, thisYear);
-        if (isBefore(startDate, now)) {
-          return setYear(startDate, thisYear + 1);
-        }
-        return startDate;
-      } else {
-        // Monthly contribution, give them a 1 month grace period
-        return addMonths(now, 1);
-      }
-    }
+/**
+ * Calculate the contact's membership renewal date based on their membership
+ * expiry date or start date if they are a non-expiring member
+ *
+ * @param contact The contact to calculate for
+ * @returns The renewal date or undefined if they are not a member
+ */
+export function calcRenewalDate(
+  contact: Contact,
+  now?: Date
+): Date | undefined {
+  if (
+    !contact.membership?.isActive ||
+    contact.contributionType === ContributionType.None
+  ) {
+    return;
   }
+
+  now = now || new Date();
+
+  let renewalDate: Date;
+
+  if (contact.membership.dateExpires) {
+    // Simple case, use their expiry date
+    renewalDate = sub(contact.membership.dateExpires, config.gracePeriod);
+  } else if (contact.contributionPeriod === ContributionPeriod.Annually) {
+    // Annual contribution, calculate based on their start date
+    const thisYear = getYear(now);
+    // Find the next time their renewal occurs (either later this year or next year)
+    const startDate = setYear(contact.membership.dateAdded, thisYear);
+    renewalDate =
+      startDate <= now ? setYear(startDate, thisYear + 1) : startDate;
+  } else {
+    // Monthly contribution, give them a 1 month grace period
+    renewalDate = addMonths(now, 1);
+  }
+
+  // Ensure date is no more than 1 period away from now, this could happen if
+  // manual contributors had their expiry date set arbritarily in the future
+  const maxDate = addMonths(
+    now,
+    contact.contributionPeriod === ContributionPeriod.Annually ? 12 : 1
+  );
+  return renewalDate > maxDate ? maxDate : renewalDate;
 }
 
+/**
+ * Calculate the number of months left until the next renewal date
+ * TODO: Remove when legacy member app is removed
+ *
+ * @deprecated
+ * @param contact The contact to calculate for
+ * @returns The number of months left
+ */
 export function calcMonthsLeft(contact: Contact): number {
   const renewalDate = calcRenewalDate(contact);
   return renewalDate
@@ -60,6 +70,13 @@ export function calcMonthsLeft(contact: Contact): number {
     : 0;
 }
 
+/**
+ * Calculate the amount to charge including the payment fee if applicable
+ *
+ * @param paymentForm The payment form
+ * @param paymentMethod The payment method
+ * @returns The chargeable amount in cents
+ */
 export function getChargeableAmount(
   paymentForm: PaymentForm,
   paymentMethod: PaymentMethod

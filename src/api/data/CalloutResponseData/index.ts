@@ -41,7 +41,8 @@ import {
   GetCalloutResponsesQuery,
   GetCalloutResponseQuery,
   BatchUpdateCalloutResponseData,
-  CreateCalloutResponseData
+  CreateCalloutResponseData,
+  GetCalloutResponseMapData
 } from "./interface";
 
 function convertResponseToData(
@@ -177,36 +178,60 @@ const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
   }
 };
 
-const answersFieldHandler: FieldHandler = (qb, args) => {
-  qb.where(
-    args.whereFn(
-      `(SELECT string_agg(value, '') FROM jsonb_each_text(${args.fieldPrefix}answers))`
-    )
-  );
+const calloutResponseFieldHandlers: FieldHandlers<string> = {
+  answers: (qb, args) => {
+    qb.where(
+      args.whereFn(
+        `(SELECT string_agg(value, '') FROM jsonb_each_text(${args.fieldPrefix}answers))`
+      )
+    );
+  },
+  tags: (qb, args) => {
+    const subQb = createQueryBuilder()
+      .subQuery()
+      .select("crt.responseId")
+      .from(CalloutResponseTag, "crt");
+
+    if (args.operator === "contains" || args.operator === "not_contains") {
+      subQb.where(args.suffixFn("crt.tag = :a"));
+    }
+
+    const inOp =
+      args.operator === "not_contains" || args.operator === "is_not_empty"
+        ? "NOT IN"
+        : "IN";
+
+    qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
+  }
 };
 
-const tagsFieldHandler: FieldHandler = (qb, args) => {
-  const subQb = createQueryBuilder()
-    .subQuery()
-    .select("crt.responseId")
-    .from(CalloutResponseTag, "crt");
+function prepareFilters(
+  callout?: Callout
+): [Filters<string>, FieldHandlers<string>] {
+  let answerFilters, answerFieldHandlers;
 
-  if (args.operator === "contains" || args.operator === "not_contains") {
-    subQb.where(args.suffixFn("crt.tag = :a"));
+  // If looking for responses for a particular callout then add answer filtering
+  if (callout) {
+    answerFilters = convertComponentsToFilters(callout.formSchema.components);
+    // All handled by the same field handler
+    answerFieldHandlers = Object.fromEntries(
+      Object.keys(answerFilters).map((field) => [
+        field,
+        individualAnswerFieldHandler
+      ])
+    );
   }
 
-  const inOp =
-    args.operator === "not_contains" || args.operator === "is_not_empty"
-      ? "NOT IN"
-      : "IN";
-
-  qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
-};
+  return [
+    { ...calloutResponseFilters, ...answerFilters },
+    { ...calloutResponseFieldHandlers, ...answerFieldHandlers }
+  ];
+}
 
 async function prepareQuery(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
-  calloutSlug?: string
+  callout?: Callout
 ): Promise<[GetPaginatedRuleGroup, Filters<string>, FieldHandlers<string>]> {
   const scopedRules = mergeRules([
     ruleGroup,
@@ -217,41 +242,14 @@ async function prepareQuery(
       value: [contact.id]
     },
     // Only load responses for the given callout
-    !!calloutSlug && {
+    !!callout && {
       field: "callout",
       operator: "equal",
-      value: [calloutSlug]
+      value: [callout.slug]
     }
   ]);
 
-  let answerFilters, fieldHandlers;
-
-  // If looking for responses for a particular callout then add answer filtering
-  if (calloutSlug) {
-    const callout = await getRepository(Callout).findOne(calloutSlug);
-    if (!callout) {
-      throw new NotFoundError();
-    }
-
-    answerFilters = convertComponentsToFilters(callout.formSchema.components);
-    // All handled by the same field handler
-    fieldHandlers = Object.fromEntries(
-      Object.keys(answerFilters).map((field) => [
-        field,
-        individualAnswerFieldHandler
-      ])
-    );
-  }
-
-  return [
-    scopedRules,
-    { ...calloutResponseFilters, ...answerFilters },
-    {
-      answers: answersFieldHandler,
-      tags: tagsFieldHandler,
-      ...fieldHandlers
-    }
-  ];
+  return [scopedRules, ...prepareFilters(callout)];
 }
 
 function commentText(comment: CalloutResponseComment) {
@@ -262,17 +260,12 @@ function commentText(comment: CalloutResponseComment) {
 export async function exportCalloutResponses(
   ruleGroup: GetPaginatedRuleGroup | undefined,
   contact: Contact,
-  calloutSlug: string
+  callout: Callout
 ): Promise<[string, string]> {
-  const callout = await getRepository(Callout).findOne(calloutSlug);
-  if (!callout) {
-    throw new NotFoundError();
-  }
-
   const [rules, filters, fieldHandlers] = await prepareQuery(
     ruleGroup,
     contact,
-    calloutSlug
+    callout
   );
 
   const results = await fetchPaginated(
@@ -355,12 +348,12 @@ export async function exportCalloutResponses(
 export async function fetchPaginatedCalloutResponses(
   query: GetCalloutResponsesQuery,
   contact: Contact,
-  calloutSlug?: string
+  callout?: Callout
 ): Promise<Paginated<GetCalloutResponseData>> {
   const [rules, filters, fieldHandlers] = await prepareQuery(
     query.rules,
     contact,
-    calloutSlug
+    callout
   );
 
   const results = await fetchPaginated(
@@ -428,6 +421,46 @@ export async function fetchPaginatedCalloutResponses(
   return {
     ...results,
     items: results.items.map((item) => convertResponseToData(item, query.with))
+  };
+}
+
+export async function fetchPaginatedCalloutResponsesForMap(
+  query: GetCalloutResponsesQuery,
+  contact: Contact | undefined,
+  callout: Callout
+): Promise<Paginated<GetCalloutResponseMapData>> {
+  if (!callout.mapSchema) {
+    throw new NotFoundError();
+  }
+
+  const [filters, fieldHandlers] = prepareFilters(callout);
+  const scopedRules = mergeRules([
+    query.rules,
+    // Only load responses for the given callout
+    {
+      field: "callout",
+      operator: "equal",
+      value: [callout.slug]
+    },
+    // Non admins can only see verified responses
+    !contact?.hasRole("admin") && {
+      field: "bucket",
+      operator: "equal",
+      value: ["verified"]
+    }
+  ]);
+
+  const results = await fetchPaginated(
+    CalloutResponse,
+    filters,
+    { limit: 2000, ...query, rules: scopedRules },
+    contact,
+    fieldHandlers
+  );
+
+  return {
+    ...results,
+    items: results.items.map((item) => ({ answers: item.answers }))
   };
 }
 

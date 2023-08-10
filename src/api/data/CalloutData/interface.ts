@@ -14,10 +14,11 @@ import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
-import { CalloutAccess } from "@models/Callout";
+import { CalloutAccess, CalloutMapSchema } from "@models/Callout";
 
 export enum GetCalloutWith {
   Form = "form",
+  MapShema = "mapSchema",
   ResponseCount = "responseCount",
   HasAnswered = "hasAnswered"
 }
@@ -62,6 +63,8 @@ export interface GetCalloutData extends CalloutData {
   hasAnswered?: boolean;
   // With "responseCount"
   responseCount?: number;
+  // With "mapSchema"
+  mapSchema?: CalloutMapSchema | null;
 }
 
 export class GetCalloutQuery {

@@ -85,6 +85,10 @@ label.question {
 	font-weight: 600;
 }
 
+.radio-inline.disabled {
+	color: #737373;
+}
+
 .comma-list > span {
 	display: inline-block;
 	&::after {
