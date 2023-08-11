@@ -33,7 +33,7 @@ export class UploadController {
   async create(
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @Req() req: Request
-  ) {
+  ): Promise<{ id: string }> {
     // No more than 10 uploads in a minute for all users
     const oneMinAgo = sub(new Date(), { minutes: 1 });
     await canUploadOrFail(req.ip, oneMinAgo, 10);
@@ -44,13 +44,13 @@ export class UploadController {
       await canUploadOrFail(req.ip, oneHourAgo, 20);
     }
 
-    const newUploadFlow = getRepository(UploadFlow).create({
+    const newUploadFlow = await getRepository(UploadFlow).save({
       contact: contact || null,
       ipAddress: req.ip,
       used: false
     });
 
-    return await getRepository(UploadFlow).save(newUploadFlow);
+    return { id: newUploadFlow.id };
   }
 
   // This should be a POST request as it's not idempotent, but we use nginx's
