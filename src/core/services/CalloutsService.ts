@@ -1,3 +1,7 @@
+import {
+  CalloutFormSchema,
+  CalloutResponseAnswers
+} from "@beabee/beabee-common";
 import { getRepository, IsNull, LessThan } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -8,13 +12,11 @@ import { isDuplicateIndex } from "@core/utils";
 
 import Contact from "@models/Contact";
 import Callout, { CalloutAccess } from "@models/Callout";
-import CalloutResponse, {
-  CalloutResponseAnswers
-} from "@models/CalloutResponse";
+import CalloutResponse from "@models/CalloutResponse";
 
 import DuplicateId from "@api/errors/DuplicateId";
 import { CreateCalloutData } from "@api/data/CalloutData";
-import { CalloutFormSchema } from "@beabee/beabee-common";
+
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 class CalloutWithResponse extends Callout {

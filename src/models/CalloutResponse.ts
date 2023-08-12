@@ -1,3 +1,4 @@
+import { CalloutResponseAnswers } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -13,15 +14,6 @@ import type Contact from "./Contact";
 import type Callout from "./Callout";
 import type CalloutResponseTag from "./CalloutResponseTag";
 import type CalloutResponseComment from "./CalloutResponseComment";
-
-export type CalloutResponseAnswer =
-  | string
-  | boolean
-  | number
-  | null
-  | undefined
-  | Record<string, boolean>;
-export type CalloutResponseAnswers = Record<string, CalloutResponseAnswer>;
 
 @Entity()
 @Unique(["callout", "number"])

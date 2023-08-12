@@ -1,4 +1,4 @@
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import { CalloutResponseAnswers } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsOptional,

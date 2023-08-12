@@ -1,3 +1,4 @@
+import { CalloutResponseAnswers } from "@beabee/beabee-common";
 import express, { NextFunction, Request, Response } from "express";
 import _ from "lodash";
 import { getRepository } from "typeorm";
@@ -13,7 +14,6 @@ import CalloutsService from "@core/services/CalloutsService";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 import Callout, { CalloutAccess } from "@models/Callout";
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
 
 import schemas from "./schemas.json";
 

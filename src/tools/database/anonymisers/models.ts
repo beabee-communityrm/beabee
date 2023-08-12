@@ -1,4 +1,7 @@
-import { CalloutComponentSchema } from "@beabee/beabee-common";
+import {
+  CalloutComponentSchema,
+  CalloutResponseAnswer
+} from "@beabee/beabee-common";
 import { Chance } from "chance";
 import crypto from "crypto";
 import { EntityTarget } from "typeorm";
@@ -18,9 +21,7 @@ import PageSettings from "@models/PageSettings";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
 import Callout from "@models/Callout";
-import CalloutResponse, {
-  CalloutResponseAnswer
-} from "@models/CalloutResponse";
+import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 import Project from "@models/Project";
@@ -57,35 +58,46 @@ function createObjectMap<T>(objectMap: ObjectMap<T>): ObjectMap<T> {
 
 export function createComponentAnonymiser(
   component: CalloutComponentSchema
-): (v: CalloutResponseAnswer) => CalloutResponseAnswer {
-  switch (component.type) {
-    case "address":
-      return (v) => {
-        console.error("ADDRESS IS", v);
-        return "";
-      };
-    case "email":
-      return () => chance.email({ domain: "example.com", length: 10 });
-    case "checkbox":
-      return () => chance.pickone([true, false]);
-    case "number":
-      return () => chance.integer();
-    case "password":
-      return () => chance.word();
-    case "textarea":
-      return () => chance.paragraph();
-    case "textfield":
-      return () => chance.sentence();
-    case "button":
-      return (v) => v;
+): (
+  v: CalloutResponseAnswer | CalloutResponseAnswer[]
+) => CalloutResponseAnswer | CalloutResponseAnswer[] {
+  function anonymiseAnswer(v: CalloutResponseAnswer): CalloutResponseAnswer {
+    switch (component.type) {
+      case "address":
+        return {
+          geometry: {
+            location: { lat: chance.latitude(), lng: chance.longitude() }
+          }
+        };
+      case "email":
+        return chance.email({ domain: "example.com", length: 10 });
+      case "checkbox":
+        return chance.pickone([true, false]);
+      case "number":
+        return chance.integer();
+      case "password":
+        return chance.word();
+      case "textarea":
+        return chance.paragraph();
+      case "textfield":
+        return chance.sentence();
+      case "button":
+        return v;
 
-    case "select":
-    case "radio":
-    case "selectboxes":
-      const values =
-        component.type === "select" ? component.data.values : component.values;
-      return () => chance.pickone(values.map(({ value }) => value));
+      case "select":
+      case "radio":
+      case "selectboxes":
+        const values =
+          component.type === "select"
+            ? component.data.values
+            : component.values;
+        return chance.pickone(values.map(({ value }) => value));
+    }
   }
+
+  return (v) => {
+    return Array.isArray(v) ? v.map(anonymiseAnswer) : anonymiseAnswer(v);
+  };
 }
 // Property generators
 
