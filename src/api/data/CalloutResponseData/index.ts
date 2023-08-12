@@ -6,7 +6,9 @@ import {
   RuleOperator,
   Filters,
   flattenComponents,
-  stringifyAnswer
+  stringifyAnswer,
+  isAddressAnswer,
+  CalloutResponseAnswerFileUpload
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
@@ -77,6 +79,31 @@ function convertResponseToData(
       response.tags && {
         tags: response.tags.map((rt) => convertTagToData(rt.tag))
       })
+  };
+}
+
+function convertResponseToMapData(
+  response: CalloutResponse,
+  titleProp: string,
+  photosProp: string
+): GetCalloutResponseMapData {
+  const titleAnswer = response.answers[titleProp];
+  const title = Array.isArray(titleAnswer) ? titleAnswer[0] : titleAnswer;
+
+  const photoAnswer = response.answers[photosProp];
+  const photos = (
+    photoAnswer
+      ? Array.isArray(photoAnswer)
+        ? photoAnswer
+        : [photoAnswer]
+      : []
+  ) as CalloutResponseAnswerFileUpload[]; // TODO: ensure type?
+
+  return {
+    number: response.number,
+    answers: response.answers,
+    title: stringifyAnswer({} as any, title), // TODO: fix stringify
+    photos
   };
 }
 
@@ -460,7 +487,10 @@ export async function fetchPaginatedCalloutResponsesForMap(
 
   return {
     ...results,
-    items: results.items.map((item) => ({ answers: item.answers }))
+    items: results.items.map((item) =>
+      // TODO: use title and file from mapSchema
+      convertResponseToMapData(item, "address", "file")
+    )
   };
 }
 
