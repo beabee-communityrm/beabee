@@ -100,14 +100,15 @@ export class CalloutController {
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
     const newSlug = data.slug || slug;
-    await getRepository(Callout).update(slug, {
-      ...data,
-      // Force the correct type as otherwise this errors, not sure why
-      ...(data.formSchema && {
-        formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
-      })
-    });
     try {
+      await getRepository(Callout).update(slug, {
+        ...data,
+        // Force the correct type as otherwise this errors, not sure why
+        ...(data.formSchema && {
+          formSchema:
+            data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+        })
+      });
       return await fetchCallout({ slug: newSlug }, {}, contact);
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
