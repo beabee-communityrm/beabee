@@ -57,8 +57,8 @@ export function convertCalloutToData(
         shareDescription: callout.shareDescription
       })
     }),
-    ...(opts?.with?.includes(GetCalloutWith.MapShema) && {
-      mapSchema: callout.mapSchema
+    ...(opts?.with?.includes(GetCalloutWith.ResponseViewSchema) && {
+      responseViewSchema: callout.responseViewSchema
     })
   };
 }

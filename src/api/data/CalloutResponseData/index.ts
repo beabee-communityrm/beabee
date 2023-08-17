@@ -459,7 +459,7 @@ export async function fetchPaginatedCalloutResponsesForMap(
   contact: Contact | undefined,
   callout: Callout
 ): Promise<Paginated<GetCalloutResponseMapData>> {
-  if (!callout.mapSchema) {
+  if (!callout.responseViewSchema) {
     throw new NotFoundError();
   }
 
