@@ -58,7 +58,7 @@ class CalloutsService {
     data: CreateCalloutData & { slug: string },
     autoSlug: number | false
   ): Promise<Callout> {
-    const slug = data.slug + (autoSlug > 0 ? "-" + autoSlug : "");
+    const slug = data.slug + (autoSlug && autoSlug > 0 ? "-" + autoSlug : "");
     try {
       await getRepository(Callout).insert({
         ...data,
