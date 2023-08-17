@@ -84,14 +84,21 @@ function convertResponseToData(
 
 function convertResponseToMapData(
   callout: Callout,
-  response: CalloutResponse,
-  titleProp: string,
-  photosProp: string
+  response: CalloutResponse
 ): GetCalloutResponseMapData {
+  if (!callout.responseViewSchema) {
+    throw new Error(
+      "Tried to convert response to map data without response view schema"
+    );
+  }
+
+  const titleProp = callout.responseViewSchema.titleProp;
+  const imageProp = callout.responseViewSchema.imageProp;
+
   const components = flattenComponents(callout.formSchema.components);
   const titleComponent = components.find((c) => c.key === titleProp);
 
-  const photoAnswer = response.answers[photosProp];
+  const photoAnswer = response.answers[imageProp];
   const photos = (
     photoAnswer
       ? Array.isArray(photoAnswer)
@@ -490,10 +497,7 @@ export async function fetchPaginatedCalloutResponsesForMap(
 
   return {
     ...results,
-    items: results.items.map((item) =>
-      // TODO: use title and file from mapSchema
-      convertResponseToMapData(callout, item, "address", "file")
-    )
+    items: results.items.map((item) => convertResponseToMapData(callout, item))
   };
 }
 
