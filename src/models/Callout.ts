@@ -18,21 +18,21 @@ export enum CalloutAccess {
   OnlyAnonymous = "only-anonymous"
 }
 
+export interface CalloutMapSchema {
+  style: string;
+  center: [number, number];
+  bounds: [[number, number], [number, number]];
+  minZoom: number;
+  maxZoom: number;
+  initialZoom: number;
+  addressProp: string;
+}
+
 export interface CalloutResponseViewSchema {
   titleProp: string;
   imageProp: string;
   gallery: boolean;
-  map:
-    | {
-        style: string;
-        center: [number, number];
-        bounds: [[number, number], [number, number]];
-        minZoom: number;
-        maxZoom: number;
-        initialZoom: number;
-        addressProp: string;
-      }
-    | false;
+  map: CalloutMapSchema | null;
 }
 
 @Entity()

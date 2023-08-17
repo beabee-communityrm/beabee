@@ -5,16 +5,26 @@ import {
   IsDate,
   IsEnum,
   IsIn,
+  IsNumber,
   IsObject,
   IsOptional,
-  IsString
+  IsString,
+  Max,
+  Min,
+  ValidateNested
 } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
-import { CalloutAccess, CalloutResponseViewSchema } from "@models/Callout";
+import {
+  CalloutAccess,
+  CalloutMapSchema,
+  CalloutResponseViewSchema
+} from "@models/Callout";
+import IsMapBounds from "@api/validators/IsMapBounds";
+import IsLngLat from "@api/validators/IsLngLat";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -73,6 +83,51 @@ export class GetCalloutQuery {
   with?: GetCalloutWith[];
 }
 
+class CalloutMapSchemaData implements CalloutMapSchema {
+  @IsUrl()
+  style!: string;
+
+  @IsLngLat()
+  center!: [number, number];
+
+  @IsMapBounds()
+  bounds!: [[number, number], [number, number]];
+
+  @IsNumber()
+  @Min(0)
+  @Max(20)
+  minZoom!: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(20)
+  maxZoom!: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(20)
+  initialZoom!: number;
+
+  @IsString()
+  addressProp!: string;
+}
+
+class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
+  @IsString()
+  titleProp!: string;
+
+  @IsString()
+  imageProp!: string;
+
+  @IsBoolean()
+  gallery!: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalloutMapSchemaData)
+  map!: CalloutMapSchemaData | null;
+}
+
 export class CreateCalloutData implements CalloutData {
   @IsOptional()
   @IsSlug()
@@ -109,8 +164,14 @@ export class CreateCalloutData implements CalloutData {
   @IsString()
   shareDescription?: string;
 
+  // TODO: needs validation
   @IsObject()
   formSchema!: CalloutFormSchema;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalloutResponseViewSchemaData)
+  responseViewSchema!: CalloutResponseViewSchemaData;
 
   @IsOptional()
   @Type(() => Date)
