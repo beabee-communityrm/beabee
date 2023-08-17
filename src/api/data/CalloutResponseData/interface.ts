@@ -1,4 +1,7 @@
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import {
+  CalloutResponseAnswerFileUpload,
+  CalloutResponseAnswers
+} from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsOptional,
@@ -66,7 +69,10 @@ export interface GetCalloutResponseData {
 }
 
 export interface GetCalloutResponseMapData {
+  number: number;
   answers: CalloutResponseAnswers;
+  title: string;
+  photos: CalloutResponseAnswerFileUpload[];
 }
 
 export class CreateCalloutResponseData {
