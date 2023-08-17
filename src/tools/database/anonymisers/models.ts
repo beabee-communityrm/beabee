@@ -65,6 +65,7 @@ export function createComponentAnonymiser(
     switch (component.type) {
       case "address":
         return {
+          formatted_address: chance.address(),
           geometry: {
             location: { lat: chance.latitude(), lng: chance.longitude() }
           }
