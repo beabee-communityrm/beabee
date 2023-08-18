@@ -104,7 +104,7 @@ export class BatchUpdateCalloutResponseData {
   @IsDefined()
   @ValidateNested()
   @Type(() => GetPaginatedRuleGroup)
-  rules?: GetPaginatedRuleGroup;
+  rules!: GetPaginatedRuleGroup;
 
   @ValidateNested()
   @Type(() => CreateCalloutResponseData)
