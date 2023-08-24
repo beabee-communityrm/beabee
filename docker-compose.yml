@@ -39,7 +39,7 @@ services:
     command: "node built/webhooks/app"
 
   img_upload_app:
-    image: ghcr.io/hascheksolutions/pictshare:8c2702be
+    image: beabee/pictshare:v0.1.1
     environment:
       URL: ${BEABEE_AUDIENCE}/uploads/
       CONTENTCONTROLLERS: IMAGE,TEXT
