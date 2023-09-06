@@ -187,6 +187,7 @@ export async function exportContacts(
     ContributionMonthlyAmount: contact.contributionMonthlyAmount,
     ContributionPeriod: contact.contributionPeriod,
     ContributionDescription: contact.contributionDescription,
+    ContributionCancelled: contact.paymentData.cancelledAt,
     MembershipStarts: contact.membership?.dateAdded,
     MembershipExpires: contact.membership?.dateExpires,
     MembershipStatus: getMembershipStatus(contact),
