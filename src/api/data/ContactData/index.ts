@@ -136,7 +136,7 @@ function paymentDataField(field: string): FieldHandler {
       .subQuery()
       .select(`pd.contactId`)
       .from(PaymentData, "pd")
-      .where(args.whereFn(field));
+      .where(args.whereFn(`pd.${field}`));
 
     qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
@@ -152,7 +152,7 @@ export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   membershipExpires: membershipField("dateExpires"),
   contributionCancelled: paymentDataField("cancelledAt"),
   manualPaymentSource: (qb, args) => {
-    paymentDataField("pd.data ->> 'source'")(qb, args);
+    paymentDataField("data ->> 'source'")(qb, args);
     qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
   }
 };
