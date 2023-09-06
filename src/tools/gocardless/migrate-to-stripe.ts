@@ -13,6 +13,7 @@ import {
 } from "typeorm";
 
 import * as db from "@core/database";
+import stripe from "@core/lib/stripe";
 
 import PaymentService from "@core/services/PaymentService";
 
@@ -22,14 +23,6 @@ import Payment from "@models/Payment";
 import config from "@config";
 import PaymentData, { GCPaymentData } from "@models/PaymentData";
 import { stripeTypeToPaymentMethod } from "@core/utils/payment/stripe";
-
-const headers = [
-  "old_customer_id",
-  "customer_id",
-  "old_source_id",
-  "source_id",
-  "type"
-] as const;
 
 interface MigrationRow {
   old_customer_id: string;
@@ -164,6 +157,12 @@ db.connect().then(async () => {
           subscriptionId: null,
           payFee: null,
           nextAmount: null
+        }
+      });
+
+      await stripe.customers.update(migrationRow.customer_id, {
+        invoice_settings: {
+          default_payment_method: migrationRow.source_id
         }
       });
 
