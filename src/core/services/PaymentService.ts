@@ -177,6 +177,7 @@ class PaymentService {
       await this.providerFromData(data, (p) => p.cancelContribution(false));
 
       data.method = newMethod;
+      data.cancelledAt = new Date();
       data.data = {};
       await getRepository(PaymentData).save(data);
     }

@@ -20,7 +20,7 @@ import Contact from "@models/Contact";
 import Payment from "@models/Payment";
 
 import config from "@config";
-import { GCPaymentData } from "@models/PaymentData";
+import PaymentData, { GCPaymentData } from "@models/PaymentData";
 import { stripeTypeToPaymentMethod } from "@core/utils/payment/stripe";
 
 const headers = [
@@ -149,11 +149,25 @@ db.connect().then(async () => {
         migrationRow.customer_id
       );
 
-      await PaymentService.updatePaymentMethod(contact, {
-        customerId: migrationRow.customer_id,
-        mandateId: migrationRow.source_id,
-        paymentMethod: stripeTypeToPaymentMethod(migrationRow.type)
+      // Cancel the GoCardless contribution
+      await PaymentService.cancelContribution(contact);
+
+      // Update the payment data to point to the new Stripe customer
+      // We do this directly rather than using updatePaymentMethod as it's not
+      // meant for updating payment methods that are already associated with
+      // the customer in Stripe
+      await getRepository(PaymentData).update(contact.id, {
+        method: stripeTypeToPaymentMethod(migrationRow.type),
+        data: {
+          customerId: migrationRow.customer_id,
+          mandateId: migrationRow.source_id,
+          subscriptionId: null,
+          payFee: null,
+          nextAmount: null
+        }
       });
+
+      // Recreate the contribution
       await PaymentService.updateContribution(contact, {
         monthlyAmount: contact.contributionMonthlyAmount,
         period: contact.contributionPeriod,
