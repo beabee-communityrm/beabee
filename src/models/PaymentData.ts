@@ -7,7 +7,6 @@ export interface GCPaymentData {
   customerId: string | null;
   mandateId: string | null;
   subscriptionId: string | null;
-  cancelledAt: Date | null;
   payFee: boolean | null;
   nextMonthlyAmount: number | null;
 }
@@ -21,7 +20,6 @@ export interface StripePaymentData {
   customerId: string | null;
   mandateId: string | null;
   subscriptionId: string | null;
-  cancelledAt: Date | null;
   payFee: boolean | null;
   nextAmount: {
     chargeable: number;
@@ -43,6 +41,9 @@ export default class PaymentData {
 
   @Column({ type: String, nullable: true })
   method!: PaymentMethod | null;
+
+  @Column({ type: Date, nullable: true })
+  cancelledAt!: Date | null;
 
   @Column({ type: "jsonb", default: "{}" })
   data!: PaymentProviderData;

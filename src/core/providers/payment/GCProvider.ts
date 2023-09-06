@@ -67,8 +67,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
             this.contact.contributionPeriod
           )
         }),
-      ...(paymentSource && { paymentSource }),
-      ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt })
+      ...(paymentSource && { paymentSource })
     };
   }
 
@@ -147,7 +146,6 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       expiryDate
     });
 
-    this.data.cancelledAt = null;
     this.data.subscriptionId = subscription.id!;
     this.data.payFee = paymentForm.payFee;
     this.data.nextMonthlyAmount = startNow ? null : paymentForm.monthlyAmount;
@@ -165,7 +163,6 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     this.data.nextMonthlyAmount = null;
     this.data.subscriptionId = null;
-    this.data.cancelledAt = new Date();
     if (!keepMandate) {
       this.data.mandateId = null;
     }

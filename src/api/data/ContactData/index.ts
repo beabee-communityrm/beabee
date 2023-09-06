@@ -150,9 +150,7 @@ export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   activeMembership: activePermission,
   membershipStarts: membershipField("dateAdded"),
   membershipExpires: membershipField("dateExpires"),
-  contributionCancelled: paymentDataField(
-    "(pd.data ->> 'cancelledAt')::timestamp"
-  ),
+  contributionCancelled: paymentDataField("cancelledAt"),
   manualPaymentSource: (qb, args) => {
     paymentDataField("pd.data ->> 'source'")(qb, args);
     qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
@@ -178,33 +176,27 @@ export async function exportContacts(
     }
   );
 
-  const exportData = results.items.map((contact) => {
-    const hasCancelled =
-      "cancelledAt" in contact.paymentData.data &&
-      !!contact.paymentData.data.cancelledAt;
-
-    return {
-      Id: contact.id,
-      EmailAddress: contact.email,
-      FirstName: contact.firstname,
-      LastName: contact.lastname,
-      Joined: contact.joined,
-      Tags: contact.profile.tags.join(", "),
-      ContributionType: contact.contributionType,
-      ContributionMonthlyAmount: contact.contributionMonthlyAmount,
-      ContributionPeriod: contact.contributionPeriod,
-      ContributionDescription: contact.contributionDescription,
-      MembershipStarts: contact.membership?.dateAdded,
-      MembershipExpires: contact.membership?.dateExpires,
-      MembershipStatus: getMembershipStatus(contact, hasCancelled),
-      NewsletterStatus: contact.profile.newsletterStatus,
-      DeliveryOptIn: contact.profile.deliveryOptIn,
-      DeliveryAddressLine1: contact.profile.deliveryAddress?.line1 || "",
-      DeliveryAddressLine2: contact.profile.deliveryAddress?.line2 || "",
-      DeliveryAddressCity: contact.profile.deliveryAddress?.city || "",
-      DeliveryAddressPostcode: contact.profile.deliveryAddress?.postcode || ""
-    };
-  });
+  const exportData = results.items.map((contact) => ({
+    Id: contact.id,
+    EmailAddress: contact.email,
+    FirstName: contact.firstname,
+    LastName: contact.lastname,
+    Joined: contact.joined,
+    Tags: contact.profile.tags.join(", "),
+    ContributionType: contact.contributionType,
+    ContributionMonthlyAmount: contact.contributionMonthlyAmount,
+    ContributionPeriod: contact.contributionPeriod,
+    ContributionDescription: contact.contributionDescription,
+    MembershipStarts: contact.membership?.dateAdded,
+    MembershipExpires: contact.membership?.dateExpires,
+    MembershipStatus: getMembershipStatus(contact),
+    NewsletterStatus: contact.profile.newsletterStatus,
+    DeliveryOptIn: contact.profile.deliveryOptIn,
+    DeliveryAddressLine1: contact.profile.deliveryAddress?.line1 || "",
+    DeliveryAddressLine2: contact.profile.deliveryAddress?.line2 || "",
+    DeliveryAddressCity: contact.profile.deliveryAddress?.city || "",
+    DeliveryAddressPostcode: contact.profile.deliveryAddress?.postcode || ""
+  }));
 
   return [
     exportName,
