@@ -58,7 +58,6 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       payFee: !!this.data.payFee,
       // TODO hasPendingPayment: await this.hasPendingPayment(),
       ...(paymentSource && { paymentSource }),
-      ...(this.data.cancelledAt && { cancellationDate: this.data.cancelledAt }),
       ...(this.data.nextAmount &&
         this.contact.contributionPeriod && {
           nextAmount: getActualAmount(
@@ -78,7 +77,6 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       await deleteSubscription(this.data.subscriptionId);
       this.data.subscriptionId = null;
     }
-    this.data.cancelledAt = new Date();
     this.data.nextAmount = null;
 
     await this.updateData();
@@ -152,7 +150,6 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
 
     this.data.subscriptionId = subscription.id;
     this.data.payFee = paymentForm.payFee;
-    this.data.cancelledAt = null;
     this.data.nextAmount = startNow
       ? null
       : {
