@@ -13,6 +13,7 @@ import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import SegmentContact from "@models/SegmentContact";
 
 import { EmailSchema, schemaToEmail } from "@apps/tools/apps/emails/app";
+import { cleanRuleGroup } from "@apps/members/app";
 
 const app = express();
 
@@ -58,7 +59,7 @@ app.post(
         break;
       case "update-rules":
         await getRepository(Segment).update(segment.id, {
-          ruleGroup: JSON.parse(req.body.rules)
+          ruleGroup: cleanRuleGroup(JSON.parse(req.body.rules))
         });
         req.flash("success", "segment-updated");
         res.redirect(req.originalUrl);
