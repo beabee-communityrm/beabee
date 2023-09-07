@@ -119,6 +119,9 @@ class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
   @IsString()
   imageProp!: string;
 
+  @IsString()
+  imageFilter!: string;
+
   @IsBoolean()
   gallery!: boolean;
 
