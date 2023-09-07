@@ -14,15 +14,15 @@ import {
 
 import * as db from "@core/database";
 import stripe from "@core/lib/stripe";
+import { stripeTypeToPaymentMethod } from "@core/utils/payment/stripe";
 
 import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
 import Payment from "@models/Payment";
+import PaymentData, { GCPaymentData } from "@models/PaymentData";
 
 import config from "@config";
-import PaymentData, { GCPaymentData } from "@models/PaymentData";
-import { stripeTypeToPaymentMethod } from "@core/utils/payment/stripe";
 
 interface MigrationRow {
   old_customer_id: string;
@@ -33,6 +33,8 @@ interface MigrationRow {
 }
 
 const validTypes = ["sepa_debit", "card", "bacs_debit"];
+
+const isDangerMode = process.argv.includes("--danger");
 
 function isMigrationRow(row: any): row is MigrationRow {
   return (
@@ -142,37 +144,39 @@ db.connect().then(async () => {
         migrationRow.customer_id
       );
 
-      // Cancel the GoCardless contribution
-      await PaymentService.cancelContribution(contact);
+      if (isDangerMode) {
+        // Cancel the GoCardless contribution
+        await PaymentService.cancelContribution(contact);
 
-      // Update the payment data to point to the new Stripe customer
-      // We do this directly rather than using updatePaymentMethod as it's not
-      // meant for updating payment methods that are already associated with
-      // the customer in Stripe
-      await getRepository(PaymentData).update(contact.id, {
-        method: stripeTypeToPaymentMethod(migrationRow.type),
-        data: {
-          customerId: migrationRow.customer_id,
-          mandateId: migrationRow.source_id,
-          subscriptionId: null,
-          payFee: null,
-          nextAmount: null
-        }
-      });
+        // Update the payment data to point to the new Stripe customer
+        // We do this directly rather than using updatePaymentMethod as it's not
+        // meant for updating payment methods that are already associated with
+        // the customer in Stripe
+        await getRepository(PaymentData).update(contact.id, {
+          method: stripeTypeToPaymentMethod(migrationRow.type),
+          data: {
+            customerId: migrationRow.customer_id,
+            mandateId: migrationRow.source_id,
+            subscriptionId: null,
+            payFee: null,
+            nextAmount: null
+          }
+        });
 
-      await stripe.customers.update(migrationRow.customer_id, {
-        invoice_settings: {
-          default_payment_method: migrationRow.source_id
-        }
-      });
+        await stripe.customers.update(migrationRow.customer_id, {
+          invoice_settings: {
+            default_payment_method: migrationRow.source_id
+          }
+        });
 
-      // Recreate the contribution
-      await PaymentService.updateContribution(contact, {
-        monthlyAmount: contact.contributionMonthlyAmount,
-        period: contact.contributionPeriod,
-        payFee: false,
-        prorate: false
-      });
+        // Recreate the contribution
+        await PaymentService.updateContribution(contact, {
+          monthlyAmount: contact.contributionMonthlyAmount,
+          period: contact.contributionPeriod,
+          payFee: false,
+          prorate: false
+        });
+      }
     }
   }
 
