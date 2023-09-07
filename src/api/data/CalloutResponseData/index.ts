@@ -8,7 +8,8 @@ import {
   flattenComponents,
   stringifyAnswer,
   isAddressAnswer,
-  CalloutResponseAnswerFileUpload
+  CalloutResponseAnswerFileUpload,
+  CalloutResponseAnswerAddress
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
@@ -92,8 +93,7 @@ function convertResponseToMapData(
     );
   }
 
-  const titleProp = callout.responseViewSchema.titleProp;
-  const imageProp = callout.responseViewSchema.imageProp;
+  const { titleProp, imageProp, map } = callout.responseViewSchema;
 
   const components = flattenComponents(callout.formSchema.components);
   const titleComponent = components.find((c) => c.key === titleProp);
@@ -113,7 +113,10 @@ function convertResponseToMapData(
     title: titleComponent
       ? stringifyAnswer(titleComponent, response.answers[titleProp])
       : "",
-    photos
+    photos,
+    ...(map && {
+      address: response.answers[map.addressProp] as CalloutResponseAnswerAddress // TODO: ensure type?
+    })
   };
 }
 

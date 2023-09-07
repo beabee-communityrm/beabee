@@ -110,6 +110,12 @@ class CalloutMapSchemaData implements CalloutMapSchema {
 
   @IsString()
   addressProp!: string;
+
+  @IsString()
+  addressPattern!: string;
+
+  @IsString()
+  addressPatternProp!: string;
 }
 
 class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
@@ -118,6 +124,9 @@ class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
 
   @IsString()
   imageProp!: string;
+
+  @IsString()
+  imageFilter!: string;
 
   @IsBoolean()
   gallery!: boolean;

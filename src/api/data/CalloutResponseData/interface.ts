@@ -1,4 +1,5 @@
 import {
+  CalloutResponseAnswerAddress,
   CalloutResponseAnswerFileUpload,
   CalloutResponseAnswers
 } from "@beabee/beabee-common";
@@ -73,6 +74,7 @@ export interface GetCalloutResponseMapData {
   answers: CalloutResponseAnswers;
   title: string;
   photos: CalloutResponseAnswerFileUpload[];
+  address?: CalloutResponseAnswerAddress;
 }
 
 export class CreateCalloutResponseData {
