@@ -110,6 +110,12 @@ class CalloutMapSchemaData implements CalloutMapSchema {
 
   @IsString()
   addressProp!: string;
+
+  @IsString()
+  addressPattern!: string;
+
+  @IsString()
+  addressPatternProp!: string;
 }
 
 class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {

@@ -26,6 +26,8 @@ export interface CalloutMapSchema {
   maxZoom: number;
   initialZoom: number;
   addressProp: string;
+  addressPattern: string;
+  addressPatternProp: string;
 }
 
 export interface CalloutResponseViewSchema {
