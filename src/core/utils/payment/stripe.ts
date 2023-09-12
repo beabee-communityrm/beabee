@@ -168,7 +168,7 @@ export async function deleteSubscription(
   }
 }
 
-export function paymentMethodToType(
+export function paymentMethodToStripeType(
   method: PaymentMethod
 ): Stripe.PaymentMethod.Type {
   switch (method) {
@@ -180,6 +180,21 @@ export function paymentMethodToType(
       return "bacs_debit";
     default:
       throw new Error("Unexpected payment method");
+  }
+}
+
+export function stripeTypeToPaymentMethod(
+  type: Stripe.PaymentMethod.Type
+): PaymentMethod {
+  switch (type) {
+    case "card":
+      return PaymentMethod.StripeCard;
+    case "sepa_debit":
+      return PaymentMethod.StripeSEPA;
+    case "bacs_debit":
+      return PaymentMethod.StripeBACS;
+    default:
+      throw new Error("Unexpected Stripe payment type");
   }
 }
 

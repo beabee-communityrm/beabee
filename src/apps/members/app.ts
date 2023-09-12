@@ -74,7 +74,7 @@ function convertBasicSearch(query: Request["query"]): RuleGroup | undefined {
 }
 
 // Convert legacy app group queries to clean RuleGroups
-function cleanRuleGroup(group: RuleGroup): RuleGroup {
+export function cleanRuleGroup(group: RuleGroup): RuleGroup {
   return {
     condition: group.condition,
     rules: group.rules.map((rule) =>

@@ -19,12 +19,23 @@ export enum CalloutAccess {
 }
 
 export interface CalloutMapSchema {
-  bounds: [[number, number], [number, number]];
+  style: string;
   center: [number, number];
+  bounds: [[number, number], [number, number]];
   minZoom: number;
   maxZoom: number;
   initialZoom: number;
-  style: string;
+  addressProp: string;
+  addressPattern: string;
+  addressPatternProp: string;
+}
+
+export interface CalloutResponseViewSchema {
+  titleProp: string;
+  imageProp: string;
+  imageFilter: string;
+  gallery: boolean;
+  map: CalloutMapSchema | null;
 }
 
 @Entity()
@@ -66,7 +77,7 @@ export default class Callout extends ItemWithStatus {
   formSchema!: CalloutFormSchema;
 
   @Column({ type: "jsonb", nullable: true })
-  mapSchema!: CalloutMapSchema | null;
+  responseViewSchema!: CalloutResponseViewSchema | null;
 
   @Column({ type: String, nullable: true })
   mcMergeField!: string | null;

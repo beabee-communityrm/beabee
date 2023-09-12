@@ -1,4 +1,8 @@
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import {
+  CalloutResponseAnswerAddress,
+  CalloutResponseAnswerFileUpload,
+  CalloutResponseAnswers
+} from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsOptional,
@@ -66,7 +70,11 @@ export interface GetCalloutResponseData {
 }
 
 export interface GetCalloutResponseMapData {
+  number: number;
   answers: CalloutResponseAnswers;
+  title: string;
+  photos: CalloutResponseAnswerFileUpload[];
+  address?: CalloutResponseAnswerAddress;
 }
 
 export class CreateCalloutResponseData {
@@ -98,7 +106,7 @@ export class BatchUpdateCalloutResponseData {
   @IsDefined()
   @ValidateNested()
   @Type(() => GetPaginatedRuleGroup)
-  rules?: GetPaginatedRuleGroup;
+  rules!: GetPaginatedRuleGroup;
 
   @ValidateNested()
   @Type(() => CreateCalloutResponseData)

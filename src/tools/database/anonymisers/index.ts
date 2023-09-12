@@ -10,11 +10,10 @@ import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity
 import { log as mainLogger } from "@core/logging";
 
 import Callout from "@models/Callout";
-import CalloutResponse, {
-  CalloutResponseAnswers
-} from "@models/CalloutResponse";
+import CalloutResponse from "@models/CalloutResponse";
 import {
   CalloutComponentSchema,
+  CalloutResponseAnswers,
   flattenComponents
 } from "@beabee/beabee-common";
 

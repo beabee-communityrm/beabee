@@ -1,6 +1,6 @@
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { paymentMethodToType } from "@core/utils/payment/stripe";
+import { paymentMethodToStripeType } from "@core/utils/payment/stripe";
 
 import {
   CompletedPaymentFlow,
@@ -17,7 +17,7 @@ class StripeProvider implements PaymentFlowProvider {
   async createPaymentFlow(joinFlow: JoinFlow): Promise<PaymentFlow> {
     const setupIntent = await stripe.setupIntents.create({
       payment_method_types: [
-        paymentMethodToType(joinFlow.joinForm.paymentMethod)
+        paymentMethodToStripeType(joinFlow.joinForm.paymentMethod)
       ]
     });
 

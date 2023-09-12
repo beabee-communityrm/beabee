@@ -28,16 +28,17 @@ const PaymentProviders = {
   [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
 
-// TODO: cancelled status should be stored in known place, not in PaymentData.data
-export function getMembershipStatus(contact: Contact, hasCancelled: boolean) {
+export function getMembershipStatus(contact: Contact) {
   return contact.membership
     ? contact.membership.isActive
-      ? hasCancelled
+      ? contact.paymentData.cancelledAt
         ? "expiring"
         : "active"
       : "expired"
     : "none";
 }
+
+type ProviderFn<T> = (p: PaymentProvider<any>, data: PaymentData) => Promise<T>;
 
 class PaymentService {
   async getData(contact: Contact): Promise<PaymentData> {
@@ -73,29 +74,20 @@ class PaymentService {
       .execute();
   }
 
-  private async provider(
-    contact: Contact,
-    fn: (provider: PaymentProvider<any>) => Promise<void>
-  ): Promise<void>;
-  private async provider<T>(
-    contact: Contact,
-    fn: (provider: PaymentProvider<any>) => Promise<T>
-  ): Promise<T>;
-  private async provider<T>(
-    contact: Contact,
-    fn: (provider: PaymentProvider<any>) => Promise<T>
-  ): Promise<T> {
+  private async provider(contact: Contact, fn: ProviderFn<void>): Promise<void>;
+  private async provider<T>(contact: Contact, fn: ProviderFn<T>): Promise<T>;
+  private async provider<T>(contact: Contact, fn: ProviderFn<T>): Promise<T> {
     return this.providerFromData(await this.getData(contact), fn);
   }
 
   private async providerFromData<T>(
     data: PaymentData,
-    fn: (provider: PaymentProvider<any>) => Promise<T>
+    fn: ProviderFn<T>
   ): Promise<T> {
     const Provider = data.method
       ? PaymentProviders[data.method]
       : ManualProvider;
-    return await fn(new Provider(data));
+    return await fn(new Provider(data), data);
   }
 
   async canChangeContribution(
@@ -112,32 +104,30 @@ class PaymentService {
   }
 
   async getContributionInfo(contact: Contact): Promise<ContributionInfo> {
-    const basicInfo = {
-      type: contact.contributionType,
-      ...(contact.contributionAmount !== null && {
-        amount: contact.contributionAmount
-      }),
-      ...(contact.contributionPeriod !== null && {
-        period: contact.contributionPeriod
-      }),
-      ...(contact.membership?.dateExpires && {
-        membershipExpiryDate: contact.membership.dateExpires
-      })
-    };
+    return await this.provider<ContributionInfo>(contact, async (p, d) => {
+      // Store payment data in contact for getMembershipStatus
+      // TODO: fix this!
+      contact.paymentData = d;
 
-    const providerInfo = await this.provider(contact, (p) =>
-      p.getContributionInfo()
-    );
+      const renewalDate = !d.cancelledAt && calcRenewalDate(contact);
 
-    const hasCancelled = !!providerInfo.cancellationDate;
-    const renewalDate = !hasCancelled && calcRenewalDate(contact);
-
-    return {
-      ...basicInfo,
-      ...providerInfo,
-      ...(renewalDate && { renewalDate }),
-      membershipStatus: getMembershipStatus(contact, hasCancelled)
-    };
+      return {
+        type: contact.contributionType,
+        ...(contact.contributionAmount !== null && {
+          amount: contact.contributionAmount
+        }),
+        ...(contact.contributionPeriod !== null && {
+          period: contact.contributionPeriod
+        }),
+        ...(contact.membership?.dateExpires && {
+          membershipExpiryDate: contact.membership.dateExpires
+        }),
+        membershipStatus: getMembershipStatus(contact),
+        ...(await p.getContributionInfo()),
+        ...(d.cancelledAt && { cancellationDate: d.cancelledAt }),
+        ...(renewalDate && { renewalDate })
+      };
+    });
   }
 
   async getPayments(contact: Contact): Promise<Payment[]> {
@@ -162,9 +152,11 @@ class PaymentService {
     paymentForm: PaymentForm
   ): Promise<UpdateContributionResult> {
     log.info("Update contribution for " + contact.id);
-    return await this.provider(contact, (p) =>
+    const ret = await this.provider(contact, (p) =>
       p.updateContribution(paymentForm)
     );
+    await getRepository(PaymentData).update({ contact }, { cancelledAt: null });
+    return ret;
   }
 
   async updatePaymentMethod(
@@ -185,6 +177,7 @@ class PaymentService {
       await this.providerFromData(data, (p) => p.cancelContribution(false));
 
       data.method = newMethod;
+      data.cancelledAt = new Date();
       data.data = {};
       await getRepository(PaymentData).save(data);
     }
@@ -200,6 +193,10 @@ class PaymentService {
   ): Promise<void> {
     log.info("Cancel contribution for " + contact.id);
     await this.provider(contact, (p) => p.cancelContribution(keepMandate));
+    await getRepository(PaymentData).update(
+      { contact },
+      { cancelledAt: new Date() }
+    );
   }
 
   async permanentlyDeleteContact(contact: Contact): Promise<void> {
