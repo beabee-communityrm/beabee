@@ -26,7 +26,7 @@ Browser testing with<br/>
 You need:
 
 - Docker >= 19.03.8
-- Docker Compose >= 1.28.0
+- Docker Compose >= 2
 - Node.js >= 16.13.1
 
 NOTE: Lower non-major versions probably work but haven't been tested
