@@ -1,6 +1,7 @@
 import { CalloutFormSchema, ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
+  IsArray,
   IsBoolean,
   IsDate,
   IsEnum,
@@ -119,6 +120,10 @@ class CalloutMapSchemaData implements CalloutMapSchema {
 }
 
 class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
+  @IsArray()
+  @IsString({ each: true })
+  buckets!: string[];
+
   @IsString()
   titleProp!: string;
 

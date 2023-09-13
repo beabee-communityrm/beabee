@@ -481,13 +481,15 @@ export async function fetchPaginatedCalloutResponsesForMap(
       field: "callout",
       operator: "equal",
       value: [callout.slug]
+    },
+    {
+      condition: "OR",
+      rules: callout.responseViewSchema.buckets.map((bucket) => ({
+        field: "bucket",
+        operator: "equal",
+        value: [bucket]
+      }))
     }
-    // Non admins can only see verified responses
-    // !contact?.hasRole("admin") && {
-    //   field: "bucket",
-    //   operator: "equal",
-    //   value: ["verified"]
-    // }
   ]);
 
   const results = await fetchPaginated(
