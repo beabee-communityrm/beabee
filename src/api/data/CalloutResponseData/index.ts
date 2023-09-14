@@ -7,9 +7,9 @@ import {
   Filters,
   flattenComponents,
   stringifyAnswer,
-  isAddressAnswer,
   CalloutResponseAnswerFileUpload,
-  CalloutResponseAnswerAddress
+  CalloutResponseAnswerAddress,
+  CalloutResponseAnswers
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
@@ -83,10 +83,10 @@ function convertResponseToData(
   };
 }
 
-function convertResponseToMapData(
+function convertResponsesToMapData(
   callout: Callout,
-  response: CalloutResponse
-): GetCalloutResponseMapData {
+  responses: CalloutResponse[]
+): GetCalloutResponseMapData[] {
   if (!callout.responseViewSchema) {
     throw new Error(
       "Tried to convert response to map data without response view schema"
@@ -95,29 +95,46 @@ function convertResponseToMapData(
 
   const { titleProp, imageProp, map } = callout.responseViewSchema;
 
-  const components = flattenComponents(callout.formSchema.components);
-  const titleComponent = components.find((c) => c.key === titleProp);
+  const components = flattenComponents(callout.formSchema.components).filter(
+    (c) => !c.adminOnly
+  );
 
-  const photoAnswer = response.answers[imageProp];
-  const photos = (
-    photoAnswer
+  const titleComponent =
+    titleProp && components.find((c) => c.key === titleProp);
+
+  return responses.map((response) => {
+    // Copy valid answers over (should be non-admin only answers))
+    const answers: CalloutResponseAnswers = {};
+    for (const component of components) {
+      const answer = response.answers[component.key];
+      if (answer) {
+        answers[component.key] = answer;
+      }
+    }
+
+    const title = titleComponent
+      ? stringifyAnswer(titleComponent, answers[titleProp])
+      : "";
+
+    const photoAnswer = answers[imageProp];
+    const photos = photoAnswer
       ? Array.isArray(photoAnswer)
         ? photoAnswer
         : [photoAnswer]
-      : []
-  ) as CalloutResponseAnswerFileUpload[]; // TODO: ensure type?
+      : [];
 
-  return {
-    number: response.number,
-    answers: response.answers,
-    title: titleComponent
-      ? stringifyAnswer(titleComponent, response.answers[titleProp])
-      : "",
-    photos,
-    ...(map && {
-      address: response.answers[map.addressProp] as CalloutResponseAnswerAddress // TODO: ensure type?
-    })
-  };
+    const address = map?.addressProp && response.answers[map.addressProp];
+
+    return {
+      number: response.number,
+      answers,
+      title,
+      photos: photos as CalloutResponseAnswerFileUpload[], // TODO: ensure type?
+      ...(address && {
+        address: address as CalloutResponseAnswerAddress // TODO: ensure type?
+      })
+    };
+  });
 }
 
 function getUpdateData(data: Partial<CreateCalloutResponseData>): {
@@ -502,7 +519,7 @@ export async function fetchPaginatedCalloutResponsesForMap(
 
   return {
     ...results,
-    items: results.items.map((item) => convertResponseToMapData(callout, item))
+    items: convertResponsesToMapData(callout, results.items)
   };
 }
 
