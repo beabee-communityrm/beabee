@@ -22,6 +22,7 @@ import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
+import Password from "@models/Password";
 
 import BadRequestError from "@api/errors/BadRequestError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -95,7 +96,7 @@ class ContactsService {
         referralCode: generateContactCode(partialContact),
         pollsCode: generateContactCode(partialContact),
         roles: [],
-        password: { hash: "", salt: "", iterations: 0, tries: 0 },
+        password: Password.none,
         firstname: "",
         lastname: "",
         contributionType: ContributionType.None,
