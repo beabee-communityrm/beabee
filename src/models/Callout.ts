@@ -31,6 +31,7 @@ export interface CalloutMapSchema {
 }
 
 export interface CalloutResponseViewSchema {
+  buckets: string[];
   titleProp: string;
   imageProp: string;
   imageFilter: string;
