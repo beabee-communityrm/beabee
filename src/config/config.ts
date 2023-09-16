@@ -101,7 +101,7 @@ export default {
       emailProvider === "smtp"
         ? {
             host: env.s("BEABEE_EMAIL_SETTINGS_HOST"),
-            port: env.s("BEABEE_EMAIL_SETTINGS_PORT"),
+            port: env.n("BEABEE_EMAIL_SETTINGS_PORT"),
             secure: env.b("BEABEE_EMAIL_SETTINGS_SECURE", false),
             auth: {
               user: env.s("BEABEE_EMAIL_SETTINGS_AUTH_USER"),
