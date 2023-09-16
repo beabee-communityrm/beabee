@@ -33,7 +33,9 @@ export class SignupController {
   ): Promise<PaymentFlowParams | undefined> {
     const baseForm = {
       email: data.email,
-      password: await generatePassword(data.password)
+      password: data.password
+        ? await generatePassword(data.password)
+        : { tries: 0, salt: "", iterations: 0, hash: "" }
     };
 
     if (data.contribution) {
