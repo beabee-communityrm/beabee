@@ -2,8 +2,11 @@
   "completeSchema": {
     "body": {
       "type": "object",
-      "required": ["delivery_optin"],
+      "required": ["password", "delivery_optin"],
       "properties": {
+        "password": {
+          "type": "string"
+        },
         "delivery_optin": {
           "type": "boolean"
         }

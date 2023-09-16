@@ -37,6 +37,11 @@ block body
 
 					.row
 						.col-md-12
+							h4 Your account
+							p.
+								Set a password for your account
+							+input( 'password', 'Password', 'password', { required: true, left: 4, right: 6 } )
+
 							h4 Delivery details
 
 							mixin deliveryAddressFields
