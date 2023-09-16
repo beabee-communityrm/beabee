@@ -90,7 +90,7 @@ export default {
     domain: env.s("BEABEE_COOKIE_DOMAIN"),
     secure: env.b("BEABEE_COOKIE_SECURE", true)
   },
-  trackDomains: env.ss("BEABEE_TRACKDOMAINS", []),
+  trustedOrigins: env.ss("BEABEE_TRUSTEDORIGINS", []),
   discourse: {
     url: env.s("BEABEE_DISCOURSE_URL", ""),
     ssoSecret: env.s("BEABEE_DISCOURSE_SSOSECRET", "")
