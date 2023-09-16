@@ -4,7 +4,6 @@ import {
   ContributionPeriod
 } from "@beabee/beabee-common";
 import {
-  createQueryBuilder,
   FindConditions,
   FindManyOptions,
   FindOneOptions,
@@ -23,6 +22,7 @@ import PaymentService from "@core/services/PaymentService";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
+import Password from "@models/Password";
 
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -82,7 +82,7 @@ class ContactsService {
         referralCode: generateContactCode(partialContact),
         pollsCode: generateContactCode(partialContact),
         roles: [],
-        password: { hash: "", salt: "", iterations: 0, tries: 0 },
+        password: Password.none,
         firstname: "",
         lastname: "",
         contributionType: ContributionType.None,

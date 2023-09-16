@@ -12,4 +12,8 @@ export default class Password {
 
   @Column({ default: 0 })
   tries!: number;
+
+  static get none(): Password {
+    return { hash: "", salt: "", iterations: 0, tries: 0 };
+  }
 }
