@@ -31,7 +31,11 @@ import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { UploadController } from "./controllers/UploadController";
 
 import * as db from "@core/database";
-import { log, requestErrorLogger, requestLogger } from "@core/logging";
+import {
+  log as mainLogger,
+  requestErrorLogger,
+  requestLogger
+} from "@core/logging";
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
@@ -138,9 +142,14 @@ db.connect().then(() => {
     }
   });
 
+  const log = mainLogger.child({ app: "response" });
+
   app.use(function (error, req, res, next) {
-    if (error instanceof HttpError) {
+    if (error instanceof HttpError && error.httpCode < 500) {
       res.status(error.httpCode).send(error);
+      if (error.httpCode === 400) {
+        log.notice(error);
+      }
     } else {
       log.error("Unhandled error: ", error);
       res.status(500).send(new InternalServerError("Unhandled error"));
