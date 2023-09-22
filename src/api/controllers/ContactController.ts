@@ -29,9 +29,10 @@ import { getRepository } from "typeorm";
 
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
-import PaymentFlowService from "@core/services/PaymentFlowService";
+import AuthService from "@core/services/AuthService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
+import PaymentFlowService from "@core/services/PaymentFlowService";
 import PaymentService from "@core/services/PaymentService";
 
 import { ContributionInfo } from "@core/utils";
@@ -88,17 +89,14 @@ function TargetUser() {
     required: true,
     value: async (action): Promise<Contact> => {
       const request: Request = action.request;
-      const user = request.user;
-      if (!user) {
+
+      const auth = await AuthService.check(request);
+      if (!auth) {
         throw new UnauthorizedError();
       }
 
       const id = request.params.id;
-      if (id === "me" || id === user.id) {
-        return user;
-      } else if (!user.hasRole("admin")) {
-        throw new UnauthorizedError();
-      } else {
+      if (auth === true || (id !== "me" && auth.hasRole("admin"))) {
         const uuid = new UUIDParam();
         uuid.id = id;
         await validateOrReject(uuid);
@@ -109,6 +107,10 @@ function TargetUser() {
         } else {
           throw new NotFoundError();
         }
+      } else if (id === "me" || id === auth.id) {
+        return auth;
+      } else {
+        throw new UnauthorizedError();
       }
     }
   });
