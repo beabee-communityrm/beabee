@@ -39,50 +39,16 @@ import {
 import sessions from "@core/sessions";
 import startServer from "@core/server";
 
-import ContactsService from "@core/services/ContactsService";
+import AuthService from "@core/services/AuthService";
 
-import Contact from "@models/Contact";
-import ApiKey from "@models/ApiKey";
-
-async function isValidApiKey(key: string): Promise<boolean> {
-  const [_, secret] = key.split("_");
-  const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
-  const apiKey = await getRepository(ApiKey).findOne({ secretHash });
-  return !!apiKey;
-}
-
-async function checkAuthorization(
-  action: Action
-): Promise<true | Contact | undefined> {
-  const headers = (action.request as Request).headers;
-  const authHeader = headers.authorization;
-
-  // If there's a bearer key check API key
-  if (authHeader?.startsWith("Bearer ")) {
-    if (await isValidApiKey(authHeader.substring(7))) {
-      // API key can act as a user
-      const contactId = headers["x-contact-id"]?.toString();
-      return contactId ? await ContactsService.findOne(contactId) : true;
-    }
-  } else {
-    // Otherwise use logged in user
-    return (action.request as Request).user;
-  }
-}
-
-async function currentUserChecker(
-  action: Action
-): Promise<Contact | undefined> {
-  const apiKeyOrContact = await checkAuthorization(action);
+async function currentUserChecker(action: Action) {
+  const apiKeyOrContact = await AuthService.check(action.request);
   // API key isn't a user
   return apiKeyOrContact === true ? undefined : apiKeyOrContact;
 }
 
-async function authorizationChecker(
-  action: Action,
-  roles: RoleType[]
-): Promise<boolean> {
-  const apiKeyOrContact = await checkAuthorization(action);
+async function authorizationChecker(action: Action, roles: RoleType[]) {
+  const apiKeyOrContact = await AuthService.check(action.request);
   // API key has superadmin abilities
   return apiKeyOrContact === true
     ? true
