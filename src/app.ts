@@ -56,7 +56,7 @@ app.use("/membership.js", (req, res) => {
   res.set("Content-Type", "application/javascript");
   if (
     referrerUrl &&
-    config.trackDomains.some((domain) => referrerUrl.startsWith(domain))
+    config.trustedOrigins.some((url) => referrerUrl.startsWith(url))
   ) {
     const memberId = req.cookies.memberId;
     if (memberId) {

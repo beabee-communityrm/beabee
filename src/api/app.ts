@@ -3,6 +3,7 @@ import "reflect-metadata";
 
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
+import cors from "cors";
 import crypto from "crypto";
 import express, { ErrorRequestHandler, Request } from "express";
 import {
@@ -41,6 +42,8 @@ import startServer from "@core/server";
 
 import AuthService from "@core/services/AuthService";
 
+import config from "@config";
+
 async function currentUserChecker(action: Action) {
   const apiKeyOrContact = await AuthService.check(action.request);
   // API key isn't a user
@@ -58,6 +61,8 @@ async function authorizationChecker(action: Action, roles: RoleType[]) {
 const app = express();
 
 app.use(requestLogger);
+
+app.use(cors({ origin: config.trustedOrigins }));
 
 app.use(cookie());
 
