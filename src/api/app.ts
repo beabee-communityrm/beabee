@@ -3,6 +3,7 @@ import "reflect-metadata";
 
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
+import cors from "cors";
 import crypto from "crypto";
 import express, { ErrorRequestHandler, Request } from "express";
 import {
@@ -39,6 +40,7 @@ import ContactsService from "@core/services/ContactsService";
 
 import Contact from "@models/Contact";
 import ApiKey from "@models/ApiKey";
+import config from "@config";
 
 async function isValidApiKey(key: string): Promise<boolean> {
   const [_, secret] = key.split("_");
@@ -88,6 +90,8 @@ async function authorizationChecker(
 const app = express();
 
 app.use(requestLogger);
+
+app.use(cors({ origin: config.trustedOrigins }));
 
 app.use(cookie());
 
