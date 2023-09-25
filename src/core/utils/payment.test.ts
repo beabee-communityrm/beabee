@@ -6,6 +6,7 @@ import { add, sub } from "date-fns";
 import { calcRenewalDate } from "./payment";
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
+import Password from "@models/Password";
 
 import config from "@config";
 
@@ -14,7 +15,7 @@ function createContact(contact?: Partial<Contact>): Contact {
     referralCode: "AB123",
     pollsCode: "AB234",
     roles: [],
-    password: { hash: "", salt: "", iterations: 0, tries: 0 },
+    password: Password.none,
     email: "test@example.com",
     firstname: "",
     lastname: "",

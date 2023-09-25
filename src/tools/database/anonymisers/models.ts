@@ -34,6 +34,7 @@ import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import Password from "@models/Password";
 
 export type PropertyMap<T> = ((prop: T) => T) | ObjectMap<T>;
 export type ObjectMap<T> = { [K in keyof T]?: PropertyMap<T[K]> };
@@ -170,7 +171,7 @@ export const contactAnonymiser = createModelAnonymiser(Contact, {
   firstname: () => chance.first(),
   lastname: () => chance.last(),
   otp: () => ({ activated: false, key: null }),
-  password: () => ({ hash: "", salt: "", iterations: 0, tries: 0 }),
+  password: () => Password.none,
   pollsCode: uniqueCode,
   referralCode: uniqueCode
 });
