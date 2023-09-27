@@ -36,6 +36,7 @@ export interface CalloutResponseViewSchema {
   imageProp: string;
   imageFilter: string;
   gallery: boolean;
+  links: { text: string; url: string }[];
   map: CalloutMapSchema | null;
 }
 
