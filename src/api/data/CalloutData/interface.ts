@@ -133,6 +133,10 @@ class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
   @IsString()
   imageFilter!: string;
 
+  @IsArray()
+  // TODO: validate properly
+  links!: { text: string; url: string }[];
+
   @IsBoolean()
   gallery!: boolean;
 
