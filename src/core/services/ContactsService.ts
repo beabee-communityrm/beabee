@@ -1,7 +1,8 @@
 import {
   ContributionType,
   RoleType,
-  ContributionPeriod
+  ContributionPeriod,
+  NewsletterStatus
 } from "@beabee/beabee-common";
 import {
   createQueryBuilder,
@@ -263,15 +264,35 @@ class ContactsService {
     updates: Partial<ContactProfile>,
     opts = { sync: true }
   ): Promise<void> {
-    log.info("Update contact profile for " + contact.id);
+    log.info("Update contact profile for " + contact.id, { updates });
+    const shouldSync =
+      opts.sync && (updates.newsletterStatus || updates.newsletterGroups);
+    let isFirstSync = false;
+
+    if (shouldSync) {
+      contact.profile = await getRepository(ContactProfile).findOneOrFail({
+        contact
+      });
+      // If this is the first time the contact is being synced to the newsletter
+      // then we need to set the active member tag
+      isFirstSync = contact.profile.newsletterStatus === NewsletterStatus.None;
+    }
+
     await getRepository(ContactProfile).update(contact.id, updates);
 
     if (contact.profile) {
       Object.assign(contact.profile, updates);
     }
 
-    if (opts.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
+    if (shouldSync) {
       await NewsletterService.upsertContact(contact);
+      // Add the active member tag
+      if (isFirstSync && contact.membership?.isActive) {
+        await NewsletterService.addTagToContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
     }
   }
 
