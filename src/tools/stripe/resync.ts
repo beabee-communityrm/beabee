@@ -5,9 +5,10 @@ import { In, getRepository } from "typeorm";
 
 import * as db from "@core/database";
 import stripe from "@core/lib/stripe";
-import { log as mainLogger } from "@core/logging";
+import ContactsService from "@core/services/ContactsService";
 
 import PaymentData, { StripePaymentData } from "@models/PaymentData";
+
 import {
   handleInvoicePaid,
   handleInvoiceUpdated
@@ -60,9 +61,17 @@ db.connect().then(async () => {
             : new Date();
 
           pd.data.subscriptionId = null;
+        } else if (subscription.status === "incomplete_expired") {
+          console.log(
+            `Removing incomplete subscription ${pd.data.subscriptionId}`
+          );
+          pd.data.subscriptionId = null;
+          if (isDangerMode) {
+            await ContactsService.revokeContactRole(pd.contact, "member");
+          }
         }
       } catch (e) {
-        console.log(`Removing subscription ${pd.data.subscriptionId}`);
+        console.log(`Removing missing subscription ${pd.data.subscriptionId}`);
         pd.data.subscriptionId = null;
       }
     }
