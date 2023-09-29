@@ -177,24 +177,23 @@ class ContactsService {
     contact: Contact,
     roleType: RoleType,
     updates: { dateAdded?: Date; dateExpires?: Date | null }
-  ): Promise<void> {
+  ): Promise<ContactRole> {
     log.info(`Update role ${roleType} for ${contact.id}`, updates);
 
     const wasActive = contact.membership?.isActive;
 
-    const existingRole = contact.roles.find((p) => p.type === roleType);
-    if (existingRole) {
-      existingRole.dateAdded = updates.dateAdded || existingRole.dateAdded;
-      existingRole.dateExpires =
-        updates.dateExpires || existingRole.dateExpires;
+    let role = contact.roles.find((p) => p.type === roleType);
+    if (role) {
+      role.dateAdded = updates.dateAdded || role.dateAdded;
+      role.dateExpires = updates.dateExpires || role.dateExpires;
     } else {
-      const newRole = getRepository(ContactRole).create({
+      role = getRepository(ContactRole).create({
         contact: contact,
         type: roleType,
         dateAdded: updates?.dateAdded || new Date(),
         dateExpires: updates?.dateExpires || null
       });
-      contact.roles.push(newRole);
+      contact.roles.push(role);
     }
 
     await getRepository(Contact).save(contact);
@@ -210,6 +209,8 @@ class ContactsService {
         OptionsService.getText("newsletter-active-member-tag")
       );
     }
+
+    return role;
   }
 
   /**
@@ -243,10 +244,13 @@ class ContactsService {
    * @param contact The contact to revoke the role for
    * @param roleType The role to revoke
    */
-  async revokeContactRole(contact: Contact, roleType: RoleType): Promise<void> {
+  async revokeContactRole(
+    contact: Contact,
+    roleType: RoleType
+  ): Promise<boolean> {
     log.info(`Revoke role ${roleType} for ${contact.id}`);
     contact.roles = contact.roles.filter((p) => p.type !== roleType);
-    await getRepository(ContactRole).delete({
+    const ret = await getRepository(ContactRole).delete({
       contact: contact,
       type: roleType
     });
@@ -257,6 +261,8 @@ class ContactsService {
         OptionsService.getText("newsletter-active-member-tag")
       );
     }
+
+    return ret.affected !== 0;
   }
 
   async updateContactProfile(

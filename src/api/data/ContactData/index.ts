@@ -17,11 +17,24 @@ import {
   GetPaginatedRuleGroup
 } from "@api/data/PaginatedData";
 
-import { GetContactData, GetContactsQuery, GetContactWith } from "./interface";
+import {
+  GetContactData,
+  GetContactRoleData,
+  GetContactsQuery,
+  GetContactWith
+} from "./interface";
 
 interface ConvertOpts {
   with: GetContactWith[] | undefined;
   withRestricted: boolean;
+}
+
+export function convertRoleToData(role: ContactRole): GetContactRoleData {
+  return {
+    role: role.type,
+    dateAdded: role.dateAdded,
+    dateExpires: role.dateExpires
+  };
 }
 
 export function convertContactToData(
@@ -67,11 +80,7 @@ export function convertContactToData(
         }
       }),
     ...(opts?.with?.includes(GetContactWith.Roles) && {
-      roles: contact.roles.map((p) => ({
-        role: p.type,
-        dateAdded: p.dateAdded,
-        dateExpires: p.dateExpires
-      }))
+      roles: contact.roles.map(convertRoleToData)
     })
   };
 }
