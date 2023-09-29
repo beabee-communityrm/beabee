@@ -27,6 +27,7 @@ import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import { ForceUpdateContributionData } from "../ContributionData";
+import { UUIDParam } from "..";
 
 interface ContactData {
   email: string;
@@ -64,12 +65,9 @@ export interface GetContactRoleData extends UpdateContactRoleData {
   role: RoleType;
 }
 
-export class CreateContactRoleData
-  extends UpdateContactRoleData
-  implements GetContactRoleData
-{
+export class ContactRoleParams extends UUIDParam {
   @IsIn(RoleTypes)
-  role!: RoleType;
+  roleType!: RoleType;
 }
 
 export interface GetContactData extends ContactData {
@@ -199,6 +197,14 @@ export class UpdateContactData implements ContactData {
   @ValidateNested()
   @Type(() => UpdateContactProfileData)
   profile?: UpdateContactProfileData;
+}
+
+class CreateContactRoleData
+  extends UpdateContactRoleData
+  implements GetContactRoleData
+{
+  @IsIn(RoleTypes)
+  role!: RoleType;
 }
 
 export class CreateContactData extends UpdateContactData {

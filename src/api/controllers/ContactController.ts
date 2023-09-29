@@ -1,7 +1,5 @@
 import {
   ContributionPeriod,
-  RoleTypes,
-  RoleType,
   paymentFilters,
   NewsletterStatus
 } from "@beabee/beabee-common";
@@ -17,7 +15,7 @@ import {
   JsonController,
   NotFoundError,
   OnUndefined,
-  Param,
+  Params,
   Patch,
   Post,
   Put,
@@ -56,7 +54,8 @@ import {
   UpdateContactRoleData,
   UpdateContactData,
   exportContacts,
-  convertRoleToData
+  convertRoleToData,
+  ContactRoleParams
 } from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
@@ -417,17 +416,13 @@ export class ContactController {
   }
 
   @Authorized("admin")
-  @Put("/:id/role/:role")
+  @Put("/:id/role/:roleType")
   async updateRole(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @Param("role") roleType: string,
+    @Params() { roleType }: ContactRoleParams,
     @Body() data: UpdateContactRoleData
   ): Promise<GetContactRoleData> {
-    if (!isRoleType(roleType)) {
-      throw new BadRequestError();
-    }
-
     if (data.dateExpires && data.dateAdded >= data.dateExpires) {
       throw new BadRequestError();
     }
@@ -445,17 +440,13 @@ export class ContactController {
   }
 
   @Authorized("admin")
-  @Delete("/:id/role/:role")
+  @Delete("/:id/role/:roleType")
   @OnUndefined(201)
   async deleteRole(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @Param("role") roleType: string
+    @Params() { roleType }: ContactRoleParams
   ): Promise<void> {
-    if (!isRoleType(roleType)) {
-      throw new BadRequestError();
-    }
-
     if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
       throw new UnauthorizedError();
     }
@@ -465,8 +456,4 @@ export class ContactController {
       throw new NotFoundError();
     }
   }
-}
-
-function isRoleType(role: string): role is RoleType {
-  return RoleTypes.includes(role as RoleType);
 }
