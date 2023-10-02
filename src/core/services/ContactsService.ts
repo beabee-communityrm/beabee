@@ -20,6 +20,7 @@ import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
+import ContactActivity, { ActivityType } from "@models/ContactActivity";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
 import Password from "@models/Password";
@@ -298,6 +299,16 @@ class ContactsService {
 
     log.info("Updated contribution", { startNow, expiryDate });
 
+    await getRepository(ContactActivity).save({
+      type: ActivityType.ChangeContribution,
+      contact,
+      data: {
+        oldMonthlyAmount: contact.contributionMonthlyAmount || 0,
+        newMonthlyAmount: paymentForm.monthlyAmount,
+        startNow
+      }
+    });
+
     await this.updateContact(contact, {
       contributionType: ContributionType.Automatic,
       contributionPeriod: paymentForm.period,
@@ -319,6 +330,11 @@ class ContactsService {
     email: "cancelled-contribution" | "cancelled-contribution-no-survey"
   ): Promise<void> {
     await PaymentService.cancelContribution(contact);
+
+    await getRepository(ContactActivity).save({
+      type: ActivityType.CancelContribution,
+      contact
+    });
 
     await EmailService.sendTemplateToContact(email, contact);
     await EmailService.sendTemplateToAdmin("cancelled-member", {
