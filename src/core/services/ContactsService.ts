@@ -21,6 +21,7 @@ import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
+import ContactActivity, { ActivityType } from "@models/ContactActivity";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
 import Password from "@models/Password";
@@ -173,9 +174,8 @@ class ContactsService {
   ): Promise<ContactRole> {
     log.info(`Update role ${roleType} for ${contact.id}`, updates);
 
-    const wasActive = contact.membership?.isActive;
-
     let role = contact.roles.find((p) => p.type === roleType);
+    const wasActive = role?.isActive;
     if (role) {
       role.dateAdded = updates.dateAdded || role.dateAdded;
       role.dateExpires = updates.dateExpires || role.dateExpires;
@@ -191,16 +191,31 @@ class ContactsService {
 
     await getRepository(Contact).save(contact);
 
-    if (!wasActive && contact.membership?.isActive) {
-      await NewsletterService.addTagToContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
-    } else if (wasActive && !contact.membership.isActive) {
-      await NewsletterService.removeTagFromContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
+    if (!wasActive && role.isActive) {
+      await getRepository(ContactActivity).save({
+        type: ActivityType.AddRole,
+        contact,
+        data: { type: roleType }
+      });
+      if (role.type === "member") {
+        await NewsletterService.addTagToContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
+    } else if (wasActive && !role.isActive) {
+      await getRepository(ContactActivity).save({
+        type: ActivityType.RevokeRole,
+        contact,
+        data: { type: roleType }
+      });
+
+      if (role.type === "member") {
+        await NewsletterService.removeTagFromContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
     }
 
     return role;
@@ -242,17 +257,27 @@ class ContactsService {
     roleType: RoleType
   ): Promise<boolean> {
     log.info(`Revoke role ${roleType} for ${contact.id}`);
+    const wasActive = contact.roles.find((p) => p.type === roleType)?.isActive;
+
     contact.roles = contact.roles.filter((p) => p.type !== roleType);
     const ret = await getRepository(ContactRole).delete({
       contact: contact,
       type: roleType
     });
 
-    if (!contact.membership?.isActive) {
-      await NewsletterService.removeTagFromContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
+    if (wasActive) {
+      await getRepository(ContactActivity).save({
+        type: ActivityType.RevokeRole,
+        contact,
+        data: { type: roleType }
+      });
+
+      if (roleType === "member") {
+        await NewsletterService.removeTagFromContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
     }
 
     return ret.affected !== 0;
@@ -325,6 +350,16 @@ class ContactsService {
 
     log.info("Updated contribution", { startNow, expiryDate });
 
+    await getRepository(ContactActivity).save({
+      type: ActivityType.ChangeContribution,
+      contact,
+      data: {
+        oldMonthlyAmount: contact.contributionMonthlyAmount || 0,
+        newMonthlyAmount: paymentForm.monthlyAmount,
+        startNow
+      }
+    });
+
     await this.updateContact(contact, {
       contributionType: ContributionType.Automatic,
       contributionPeriod: paymentForm.period,
@@ -346,6 +381,11 @@ class ContactsService {
     email: "cancelled-contribution" | "cancelled-contribution-no-survey"
   ): Promise<void> {
     await PaymentService.cancelContribution(contact);
+
+    await getRepository(ContactActivity).save({
+      type: ActivityType.CancelContribution,
+      contact
+    });
 
     await EmailService.sendTemplateToContact(email, contact);
     await EmailService.sendTemplateToAdmin("cancelled-member", {
