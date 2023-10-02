@@ -1,7 +1,5 @@
 import {
   ContributionPeriod,
-  RoleTypes,
-  RoleType,
   paymentFilters,
   NewsletterStatus
 } from "@beabee/beabee-common";
@@ -17,7 +15,7 @@ import {
   JsonController,
   NotFoundError,
   OnUndefined,
-  Param,
+  Params,
   Patch,
   Post,
   Put,
@@ -29,9 +27,10 @@ import { getRepository } from "typeorm";
 
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
-import PaymentFlowService from "@core/services/PaymentFlowService";
+import AuthService from "@core/services/AuthService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
+import PaymentFlowService from "@core/services/PaymentFlowService";
 import PaymentService from "@core/services/PaymentService";
 
 import { ContributionInfo } from "@core/utils";
@@ -39,7 +38,6 @@ import { generatePassword } from "@core/utils/auth";
 
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
-import ContactRole from "@models/ContactRole";
 import JoinFlow from "@models/JoinFlow";
 import Payment from "@models/Payment";
 
@@ -54,7 +52,9 @@ import {
   GetContactWith,
   UpdateContactRoleData,
   UpdateContactData,
-  exportContacts
+  exportContacts,
+  convertRoleToData,
+  ContactRoleParams
 } from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
@@ -87,18 +87,14 @@ function TargetUser() {
     required: true,
     value: async (action): Promise<Contact> => {
       const request: Request = action.request;
-      const user = request.user;
-      if (!user) {
+
+      const auth = await AuthService.check(request);
+      if (!auth) {
         throw new UnauthorizedError();
       }
 
       const id = request.params.id;
-      if (id === "me" || id === user.id) {
-        return user;
-      } else if (!user.hasRole("admin")) {
-        throw new UnauthorizedError();
-      } else {
-        // TODO: Fix invalid UUIDs
+      if (auth === true || (id !== "me" && auth.hasRole("admin"))) {
         // const uuid = new UUIDParam();
         // uuid.id = id;
         // await validateOrReject(uuid);
@@ -109,6 +105,10 @@ function TargetUser() {
         } else {
           throw new NotFoundError();
         }
+      } else if (id === "me" || id === auth.id) {
+        return auth;
+      } else {
+        throw new UnauthorizedError();
       }
     }
   });
@@ -415,53 +415,43 @@ export class ContactController {
   }
 
   @Authorized("admin")
-  @Put("/:id/role/:role")
+  @Put("/:id/role/:roleType")
   async updateRole(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @Param("role") roleType: string,
+    @Params() { roleType }: ContactRoleParams,
     @Body() data: UpdateContactRoleData
-  ): Promise<GetContactRoleData | undefined> {
-    if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
-      throw new UnauthorizedError();
-    }
-
+  ): Promise<GetContactRoleData> {
     if (data.dateExpires && data.dateAdded >= data.dateExpires) {
       throw new BadRequestError();
     }
 
-    if (RoleTypes.includes(roleType as RoleType)) {
-      const role = await getRepository(ContactRole).save({
-        contact: target,
-        type: roleType as RoleType,
-        ...data
-      });
-      return {
-        role: role.type,
-        dateAdded: role.dateAdded,
-        dateExpires: role.dateExpires
-      };
+    if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
+      throw new UnauthorizedError();
     }
+
+    const role = await ContactsService.updateContactRole(
+      target,
+      roleType,
+      data
+    );
+    return convertRoleToData(role);
   }
 
   @Authorized("admin")
-  @Delete("/:id/role/:role")
+  @Delete("/:id/role/:roleType")
   @OnUndefined(201)
   async deleteRole(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @Param("role") role: string
+    @Params() { roleType }: ContactRoleParams
   ): Promise<void> {
-    if (role === "superadmin" && !caller.hasRole("superadmin")) {
+    if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
       throw new UnauthorizedError();
     }
 
-    const result = await getRepository(ContactRole).delete({
-      contact: target,
-      type: role as RoleType
-    });
-
-    if (result.affected === 0) {
+    const revoked = await ContactsService.revokeContactRole(target, roleType);
+    if (!revoked) {
       throw new NotFoundError();
     }
   }

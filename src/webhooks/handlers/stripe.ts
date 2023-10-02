@@ -144,7 +144,7 @@ async function handleCustomerSubscriptionDeleted(
 }
 
 // Invoice created or updated, update our equivalent entry in the Payment table
-async function handleInvoiceUpdated(invoice: Stripe.Invoice) {
+export async function handleInvoiceUpdated(invoice: Stripe.Invoice) {
   const payment = await findOrCreatePayment(invoice);
   if (payment) {
     log.info("Updating payment for invoice " + invoice.id);
@@ -162,7 +162,7 @@ async function handleInvoiceUpdated(invoice: Stripe.Invoice) {
 
 // Invoice has been paid, if this is related to a subscription then extend the
 // user's membership to the new end of the subscription
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
+export async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const data = await getInvoiceData(invoice);
   if (!data || !invoice.subscription) {
     return;
