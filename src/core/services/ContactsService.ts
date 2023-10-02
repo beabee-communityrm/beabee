@@ -1,7 +1,8 @@
 import {
   ContributionType,
   RoleType,
-  ContributionPeriod
+  ContributionPeriod,
+  NewsletterStatus
 } from "@beabee/beabee-common";
 import {
   FindConditions,
@@ -170,7 +171,7 @@ class ContactsService {
     contact: Contact,
     roleType: RoleType,
     updates: { dateAdded?: Date; dateExpires?: Date | null }
-  ): Promise<void> {
+  ): Promise<ContactRole> {
     log.info(`Update role ${roleType} for ${contact.id}`, updates);
 
     let role = contact.roles.find((p) => p.type === roleType);
@@ -216,6 +217,8 @@ class ContactsService {
         );
       }
     }
+
+    return role;
   }
 
   /**
@@ -249,12 +252,15 @@ class ContactsService {
    * @param contact The contact to revoke the role for
    * @param roleType The role to revoke
    */
-  async revokeContactRole(contact: Contact, roleType: RoleType): Promise<void> {
+  async revokeContactRole(
+    contact: Contact,
+    roleType: RoleType
+  ): Promise<boolean> {
     log.info(`Revoke role ${roleType} for ${contact.id}`);
     const wasActive = contact.roles.find((p) => p.type === roleType)?.isActive;
 
     contact.roles = contact.roles.filter((p) => p.type !== roleType);
-    await getRepository(ContactRole).delete({
+    const ret = await getRepository(ContactRole).delete({
       contact: contact,
       type: roleType
     });
@@ -273,6 +279,8 @@ class ContactsService {
         );
       }
     }
+
+    return ret.affected !== 0;
   }
 
   async updateContactProfile(
@@ -280,15 +288,35 @@ class ContactsService {
     updates: Partial<ContactProfile>,
     opts = { sync: true }
   ): Promise<void> {
-    log.info("Update contact profile for " + contact.id);
+    log.info("Update contact profile for " + contact.id, { updates });
+    const shouldSync =
+      opts.sync && (updates.newsletterStatus || updates.newsletterGroups);
+    let isFirstSync = false;
+
+    if (shouldSync) {
+      contact.profile = await getRepository(ContactProfile).findOneOrFail({
+        contact
+      });
+      // If this is the first time the contact is being synced to the newsletter
+      // then we need to set the active member tag
+      isFirstSync = contact.profile.newsletterStatus === NewsletterStatus.None;
+    }
+
     await getRepository(ContactProfile).update(contact.id, updates);
 
     if (contact.profile) {
       Object.assign(contact.profile, updates);
     }
 
-    if (opts.sync && (updates.newsletterStatus || updates.newsletterGroups)) {
+    if (shouldSync) {
       await NewsletterService.upsertContact(contact);
+      // Add the active member tag
+      if (isFirstSync && contact.membership?.isActive) {
+        await NewsletterService.addTagToContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
     }
   }
 
