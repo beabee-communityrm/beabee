@@ -37,6 +37,13 @@ block body
 
 					.row
 						.col-md-12
+							h4 Your account
+							p.
+								Set a password for your account. You'll be able to use your
+								account to manage your membership and access member-only
+								callouts.
+							+input( 'password', 'Password', 'password', { required: true, left: 4, right: 6 } )
+
 							h4 Delivery details
 
 							mixin deliveryAddressFields

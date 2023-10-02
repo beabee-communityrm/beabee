@@ -4,6 +4,7 @@ import { getRepository } from "typeorm";
 
 import { hasSchema, isLoggedIn } from "@core/middleware";
 import { hasUser, wrapAsync } from "@core/utils";
+import { generatePassword } from "@core/utils/auth";
 
 import CalloutsService from "@core/services/CalloutsService";
 import ContactsService from "@core/services/ContactsService";
@@ -50,6 +51,7 @@ app.post(
     hasUser(async function (req, res) {
       const {
         body: {
+          password,
           delivery_optin,
           delivery_line1,
           delivery_line2,
@@ -58,6 +60,10 @@ app.post(
         },
         user
       } = req;
+
+      await ContactsService.updateContact(user, {
+        password: await generatePassword(password)
+      });
 
       const referral = await getRepository(Referral).findOne({ referee: user });
 
