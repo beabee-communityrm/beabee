@@ -173,35 +173,48 @@ class ContactsService {
   ): Promise<void> {
     log.info(`Update role ${roleType} for ${contact.id}`, updates);
 
-    const wasActive = contact.membership?.isActive;
-
-    const existingRole = contact.roles.find((p) => p.type === roleType);
-    if (existingRole) {
-      existingRole.dateAdded = updates.dateAdded || existingRole.dateAdded;
-      existingRole.dateExpires =
-        updates.dateExpires || existingRole.dateExpires;
+    let role = contact.roles.find((p) => p.type === roleType);
+    const wasActive = role?.isActive;
+    if (role) {
+      role.dateAdded = updates.dateAdded || role.dateAdded;
+      role.dateExpires = updates.dateExpires || role.dateExpires;
     } else {
-      const newRole = getRepository(ContactRole).create({
+      role = getRepository(ContactRole).create({
         contact: contact,
         type: roleType,
         dateAdded: updates?.dateAdded || new Date(),
         dateExpires: updates?.dateExpires || null
       });
-      contact.roles.push(newRole);
+      contact.roles.push(role);
     }
 
     await getRepository(Contact).save(contact);
 
-    if (!wasActive && contact.membership?.isActive) {
-      await NewsletterService.addTagToContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
-    } else if (wasActive && !contact.membership.isActive) {
-      await NewsletterService.removeTagFromContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
+    if (!wasActive && role.isActive) {
+      await getRepository(ContactActivity).save({
+        type: ActivityType.AddRole,
+        contact,
+        data: { type: roleType }
+      });
+      if (role.type === "member") {
+        await NewsletterService.addTagToContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
+    } else if (wasActive && !role.isActive) {
+      await getRepository(ContactActivity).save({
+        type: ActivityType.RevokeRole,
+        contact,
+        data: { type: roleType }
+      });
+
+      if (role.type === "member") {
+        await NewsletterService.removeTagFromContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
     }
   }
 
@@ -238,17 +251,27 @@ class ContactsService {
    */
   async revokeContactRole(contact: Contact, roleType: RoleType): Promise<void> {
     log.info(`Revoke role ${roleType} for ${contact.id}`);
+    const wasActive = contact.roles.find((p) => p.type === roleType)?.isActive;
+
     contact.roles = contact.roles.filter((p) => p.type !== roleType);
     await getRepository(ContactRole).delete({
       contact: contact,
       type: roleType
     });
 
-    if (!contact.membership?.isActive) {
-      await NewsletterService.removeTagFromContacts(
-        [contact],
-        OptionsService.getText("newsletter-active-member-tag")
-      );
+    if (wasActive) {
+      await getRepository(ContactActivity).save({
+        type: ActivityType.RevokeRole,
+        contact,
+        data: { type: roleType }
+      });
+
+      if (roleType === "member") {
+        await NewsletterService.removeTagFromContacts(
+          [contact],
+          OptionsService.getText("newsletter-active-member-tag")
+        );
+      }
     }
   }
 

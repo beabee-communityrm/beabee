@@ -6,19 +6,26 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 import type Contact from "./Contact";
+import { RoleType } from "@beabee/beabee-common";
 
 export enum ActivityType {
+  AddRole = "addRole",
+  RevokeRole = "revokeRole",
   ChangeContribution = "changeContribution",
   CancelContribution = "cancelContribution"
 }
 
-interface IncreaseContributionData {
+interface ChangeContributionData {
   oldMonthlyAmount: number;
   newMonthlyAmount: number;
   startNow: boolean;
 }
 
-type ActivityData = IncreaseContributionData | {};
+interface RoleData {
+  type: RoleType;
+}
+
+type ActivityData = ChangeContributionData | RoleData | {};
 
 @Entity()
 export default class ContactActivity {
