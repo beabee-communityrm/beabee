@@ -64,12 +64,13 @@ export async function updateSubscription(
     expand: ["schedule"]
   });
 
-  const renewalDate = new Date(subscription.current_period_end * 1000);
+  const renewalTs = subscription.current_period_end;
+  const renewalDate = new Date(renewalTs * 1000);
   const monthsLeft = Math.max(0, differenceInMonths(renewalDate, new Date()));
   // Calculate exact number of seconds to remove (rather than just "one month")
   // as this aligns with Stripe's calculations
   const prorationTs = Math.floor(
-    +renewalDate / 1000 - SECONDS_IN_A_YEAR * (monthsLeft / 12)
+    renewalTs - SECONDS_IN_A_YEAR * (monthsLeft / 12)
   );
 
   const priceData = getPriceData(paymentForm, paymentMethod);
@@ -120,13 +121,8 @@ export async function updateSubscription(
     await stripe.subscriptions.update(subscriptionId, {
       items: subscriptionItems,
       ...(wouldProrate && paymentForm.prorate
-        ? {
-            proration_behavior: "always_invoice",
-            proration_date: prorationTs
-          }
-        : {
-            proration_behavior: "none"
-          })
+        ? { proration_behavior: "always_invoice", proration_date: prorationTs }
+        : { proration_behavior: "none", trial_end: renewalTs })
     });
   } else {
     log.info(`Creating new schedule for ${subscription.id}`);

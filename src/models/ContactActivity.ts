@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 import type Contact from "./Contact";
-import { RoleType } from "@beabee/beabee-common";
+import { ContributionPeriod, RoleType } from "@beabee/beabee-common";
 
 export enum ActivityType {
   AddRole = "addRole",
@@ -15,9 +15,11 @@ export enum ActivityType {
   CancelContribution = "cancelContribution"
 }
 
-interface ChangeContributionData {
+export interface ChangeContributionData {
   oldMonthlyAmount: number;
+  oldPeriod: ContributionPeriod;
   newMonthlyAmount: number;
+  newPeriod: ContributionPeriod;
   startNow: boolean;
 }
 

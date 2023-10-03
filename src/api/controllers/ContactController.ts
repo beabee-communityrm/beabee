@@ -61,10 +61,9 @@ import {
   StartJoinFlowData
 } from "@api/data/JoinFlowData";
 import {
-  SetContributionData,
   StartContributionData,
-  UpdateContributionData,
-  ForceUpdateContributionData
+  ForceUpdateContributionData,
+  UpdateContributionData
 } from "@api/data/ContributionData";
 import {
   mergeRules,
@@ -77,7 +76,6 @@ import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
-import { validateOrReject } from "@api/utils";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
@@ -250,19 +248,11 @@ export class ContactController {
     @TargetUser() target: Contact,
     @Body() data: UpdateContributionData
   ): Promise<ContributionInfo> {
-    // TODO: can we move this into validators?
-    const contributionData = new SetContributionData();
-    contributionData.amount = data.amount;
-    contributionData.period = target.contributionPeriod!;
-    contributionData.payFee = data.payFee;
-    contributionData.prorate = data.prorate;
-    await validateOrReject(contributionData);
-
     if (!(await PaymentService.canChangeContribution(target, true))) {
       throw new CantUpdateContribution();
     }
 
-    await ContactsService.updateContactContribution(target, contributionData);
+    await ContactsService.updateContactContribution(target, data);
 
     return await this.getContribution(target);
   }

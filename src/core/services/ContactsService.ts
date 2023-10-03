@@ -21,7 +21,10 @@ import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
-import ContactActivity, { ActivityType } from "@models/ContactActivity";
+import ContactActivity, {
+  ActivityType,
+  ChangeContributionData
+} from "@models/ContactActivity";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
 import Password from "@models/Password";
@@ -332,13 +335,9 @@ class ContactsService {
     // prevent proration problems
     if (
       contact.membership?.isActive &&
-      // Manual annual contributors can't change their period
-      ((wasManual &&
-        contact.contributionPeriod === ContributionPeriod.Annually &&
-        paymentForm.period !== ContributionPeriod.Annually) ||
-        // Automated contributors can't either
-        (contact.contributionType === ContributionType.Automatic &&
-          contact.contributionPeriod !== paymentForm.period))
+      // Annual contributors can't change their period
+      contact.contributionPeriod === ContributionPeriod.Annually &&
+      paymentForm.period !== ContributionPeriod.Annually
     ) {
       throw new CantUpdateContribution();
     }
@@ -355,9 +354,11 @@ class ContactsService {
       contact,
       data: {
         oldMonthlyAmount: contact.contributionMonthlyAmount || 0,
+        oldPeriod: contact.contributionPeriod || ContributionPeriod.Monthly,
         newMonthlyAmount: paymentForm.monthlyAmount,
+        newPeriod: paymentForm.period,
         startNow
-      }
+      } satisfies ChangeContributionData
     });
 
     await this.updateContact(contact, {
