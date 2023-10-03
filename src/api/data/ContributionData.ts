@@ -19,13 +19,7 @@ import ValidPayFee from "@api/validators/ValidPayFee";
 
 import { StartJoinFlowData } from "./JoinFlowData";
 
-interface ContributionData {
-  amount: number;
-  payFee: boolean;
-  prorate: boolean;
-}
-
-export class SetContributionData implements ContributionData {
+export class UpdateContributionData {
   @Validate(MinContributionAmount)
   amount!: number;
 
@@ -46,7 +40,7 @@ export class SetContributionData implements ContributionData {
 }
 
 export class StartContributionData
-  extends SetContributionData
+  extends UpdateContributionData
   implements StartJoinFlowData
 {
   @IsUrl()
@@ -54,17 +48,6 @@ export class StartContributionData
 
   @IsEnum(PaymentMethod)
   paymentMethod!: PaymentMethod;
-}
-
-export class UpdateContributionData implements ContributionData {
-  @IsNumber()
-  amount!: number;
-
-  @IsBoolean()
-  payFee!: boolean;
-
-  @IsBoolean()
-  prorate!: boolean;
 }
 
 export class ForceUpdateContributionData {
