@@ -30,6 +30,41 @@ function getPriceData(
   };
 }
 
+const SECONDS_IN_A_YEAR = 365 * 24 * 60 * 60;
+
+async function calculateProrationParams(
+  subscription: Stripe.Subscription,
+  subscriptionItem: Stripe.InvoiceRetrieveUpcomingParams.SubscriptionItem
+) {
+  const renewalTime = subscription.current_period_end;
+  const renewalDate = new Date(renewalTime * 1000);
+
+  const monthsLeft = Math.max(0, differenceInMonths(renewalDate, new Date()));
+  // Calculate exact number of seconds to remove (rather than just "one month")
+  // as this aligns with Stripe's calculations
+  const prorationTime = Math.floor(
+    renewalTime - SECONDS_IN_A_YEAR * (monthsLeft / 12)
+  );
+
+  const invoice = await stripe.invoices.retrieveUpcoming({
+    subscription: subscription.id,
+    subscription_items: [subscriptionItem],
+    subscription_proration_date: prorationTime
+  });
+
+  const prorationAmount = invoice.lines.data
+    .filter((item) => item.proration)
+    .reduce((total, item) => total + item.amount, 0);
+
+  return {
+    // Only prorate amounts above 100 cents. This aligns with GoCardless's minimum
+    // amount and is much simpler than trying to calculate the minimum payment per
+    // payment method
+    prorationAmount: prorationAmount < 100 ? 0 : prorationAmount,
+    prorationTime
+  };
+}
+
 export async function createSubscription(
   customerId: string,
   paymentForm: PaymentForm,
@@ -53,8 +88,6 @@ export async function createSubscription(
   });
 }
 
-const SECONDS_IN_A_YEAR = 365 * 24 * 60 * 60;
-
 export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm,
@@ -63,49 +96,24 @@ export async function updateSubscription(
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ["schedule"]
   });
+  const subscriptionItem = {
+    id: subscription.items.data[0].id,
+    price_data: getPriceData(paymentForm, paymentMethod)
+  };
 
-  const renewalTs = subscription.current_period_end;
-  const renewalDate = new Date(renewalTs * 1000);
-  const monthsLeft = Math.max(0, differenceInMonths(renewalDate, new Date()));
-  // Calculate exact number of seconds to remove (rather than just "one month")
-  // as this aligns with Stripe's calculations
-  const prorationTs = Math.floor(
-    renewalTs - SECONDS_IN_A_YEAR * (monthsLeft / 12)
+  const { prorationAmount, prorationTime } = await calculateProrationParams(
+    subscription,
+    subscriptionItem
   );
 
-  const priceData = getPriceData(paymentForm, paymentMethod);
-  const subscriptionItems = [
-    {
-      id: subscription.items.data[0].id,
-      price_data: priceData
-    }
-  ];
-
-  const invoice = await stripe.invoices.retrieveUpcoming({
-    subscription: subscriptionId,
-    subscription_items: subscriptionItems,
-    subscription_proration_date: prorationTs
-  });
-
-  const prorationAmount = invoice.lines.data
-    .filter((item) => item.proration)
-    .reduce((total, item) => total + item.amount, 0);
-
-  // Only prorate amounts above 100 cents. This aligns with GoCardless's minimum
-  // amount and is much simpler than trying to calculate the minimum payment per
-  // payment method
-  const wouldProrate = prorationAmount < 0 || prorationAmount >= 100;
-
-  log.info("Preparing update subscription for " + subscriptionId, {
-    renewalDate,
-    prorationDate: new Date(prorationTs * 1000),
-    wouldProrate,
+  log.info("Preparing update subscription for " + subscription.id, {
+    renewalDate: new Date(subscription.current_period_end * 1000),
+    prorationDate: new Date(prorationTime * 1000),
+    prorationAmount,
     paymentForm
   });
 
-  const startNow =
-    prorationAmount >= 0 && (!wouldProrate || paymentForm.prorate);
-
+  // Clear any previous schedule
   const oldSchedule =
     subscription.schedule as Stripe.SubscriptionSchedule | null;
   if (
@@ -116,15 +124,28 @@ export async function updateSubscription(
     await stripe.subscriptionSchedules.release(oldSchedule.id);
   }
 
+  const startNow = prorationAmount === 0 || paymentForm.prorate;
+
   if (startNow) {
+    // Start new contribution immediately (monthly or prorated annuals)
     log.info(`Updating subscription for ${subscription.id}`);
     await stripe.subscriptions.update(subscriptionId, {
-      items: subscriptionItems,
-      ...(wouldProrate && paymentForm.prorate
-        ? { proration_behavior: "always_invoice", proration_date: prorationTs }
-        : { proration_behavior: "none", trial_end: renewalTs })
+      items: [subscriptionItem],
+      ...(prorationAmount > 0
+        ? {
+            proration_behavior: "always_invoice",
+            proration_date: prorationTime
+          }
+        : {
+            proration_behavior: "none",
+            // Force it to change at the start of the next period, this is
+            // important when changing from monthly to annual as otherwise
+            // Stripe starts the new billing cycle immediately
+            trial_end: subscription.current_period_end
+          })
     });
   } else {
+    // Schedule the change for the next period
     log.info(`Creating new schedule for ${subscription.id}`);
     const schedule = await stripe.subscriptionSchedules.create({
       from_subscription: subscription.id
@@ -139,7 +160,7 @@ export async function updateSubscription(
         },
         {
           start_date: schedule.phases[0].end_date,
-          items: [{ price_data: priceData }]
+          items: [{ price_data: subscriptionItem.price_data }]
         }
       ]
     });
