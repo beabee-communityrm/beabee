@@ -11,10 +11,7 @@ import { createQueryBuilder, getRepository } from "typeorm";
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import { getEmailFooter } from "@core/utils/email";
 
-import { GetCalloutWith, fetchCallout } from "@api/data/CalloutData";
-
 import Content, { ContentId } from "@models/Content";
-
 import config from "@config";
 
 type OptionKeyType = "text" | "int" | "bool" | "list" | "json";
@@ -73,7 +70,7 @@ const contentOptions: ContentMap<[OptionKey, OptionKeyType]> = {
   ]
 };
 
-const contentReadOnly: ContentMap<[() => Promise<any> | any]> = {
+const contentReadOnly: ContentMap<[() => any]> = {
   general: [
     ["currencyCode", () => config.currencyCode],
     ["currencySymbol", () => config.currencySymbol]
@@ -82,21 +79,6 @@ const contentReadOnly: ContentMap<[() => Promise<any> | any]> = {
   join: [
     ["stripePublicKey", () => config.stripe.publicKey],
     ["stripeCountry", () => config.stripe.country]
-  ],
-  "join/setup": [
-    [
-      "survey",
-      async () => {
-        const slug = OptionsService.getText("join-survey");
-        if (slug) {
-          return await fetchCallout(
-            { slug },
-            { with: [GetCalloutWith.Form] },
-            undefined
-          );
-        }
-      }
-    ]
   ]
 };
 
@@ -113,16 +95,14 @@ export class ContentController {
           OptionsService[optTypeGetter[optType]](optKey)
         ]
       );
-
-      const readOnlyData: Record<string, any> = {};
-      for (const [contentKey, contentFn] of contentReadOnly[id] || []) {
-        readOnlyData[contentKey] = await contentFn();
-      }
+      const readOnlyData = contentReadOnly[id]?.map(
+        ([contentKey, contentFn]) => [contentKey, contentFn()]
+      );
 
       return {
         ...content.data,
-        ...readOnlyData,
-        ...(optsData && Object.fromEntries(optsData))
+        ...(optsData && Object.fromEntries(optsData)),
+        ...(readOnlyData && Object.fromEntries(readOnlyData))
       };
     }
   }
