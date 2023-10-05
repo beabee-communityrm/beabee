@@ -50,7 +50,10 @@ const contentOptions: ContentMap<[OptionKey, OptionKeyType]> = {
     ["minMonthlyAmount", "contribution-min-monthly-amount", "int"],
     ["showAbsorbFee", "show-absorb-fee", "bool"]
   ],
-  "join/setup": [["showMailOptIn", "show-mail-opt-in", "bool"]],
+  "join/setup": [
+    ["showMailOptIn", "show-mail-opt-in", "bool"],
+    ["surveySlug", "join-survey", "text"]
+  ],
   contacts: [
     ["tags", "available-tags", "list"],
     ["manualPaymentSources", "available-manual-payment-sources", "list"]

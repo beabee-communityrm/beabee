@@ -2,6 +2,7 @@ import { CalloutFormSchema } from "@beabee/beabee-common";
 import { Response } from "express";
 import {
   Authorized,
+  BadRequestError,
   Body,
   CurrentUser,
   Delete,
@@ -20,6 +21,7 @@ import { getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import CalloutsService from "@core/services/CalloutsService";
+import OptionsService from "@core/services/OptionsService";
 
 import { isDuplicateIndex } from "@core/utils";
 
@@ -100,6 +102,19 @@ export class CalloutController {
     @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutData | undefined> {
     const newSlug = data.slug || slug;
+
+    if (OptionsService.getText("join-survey") === slug) {
+      if (data.expires) {
+        throw new BadRequestError(
+          "Cannot set an expiry date on the join survey"
+        );
+      } else if (data.starts === null) {
+        throw new BadRequestError("Cannot set join survey to draft");
+      } else if (data.starts && data.starts > new Date()) {
+        throw new BadRequestError("Cannot set join survey to scheduled");
+      }
+    }
+
     try {
       await getRepository(Callout).update(slug, {
         ...data,
