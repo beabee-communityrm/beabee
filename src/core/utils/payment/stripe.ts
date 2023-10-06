@@ -30,21 +30,21 @@ function getPriceData(
   };
 }
 
-const SECONDS_IN_A_YEAR = 365 * 24 * 60 * 60;
-
 async function calculateProrationParams(
   subscription: Stripe.Subscription,
   subscriptionItem: Stripe.InvoiceRetrieveUpcomingParams.SubscriptionItem
 ) {
-  const renewalTime = subscription.current_period_end;
-  const renewalDate = new Date(renewalTime * 1000);
-
-  const monthsLeft = Math.max(0, differenceInMonths(renewalDate, new Date()));
+  // Prorate by whole months
+  const monthsLeft = Math.max(
+    0,
+    differenceInMonths(subscription.current_period_end * 1000, new Date())
+  );
   // Calculate exact number of seconds to remove (rather than just "one month")
   // as this aligns with Stripe's calculations
-  const prorationTime = Math.floor(
-    renewalTime - SECONDS_IN_A_YEAR * (monthsLeft / 12)
-  );
+  const prorationTime =
+    subscription.current_period_end -
+    (subscription.current_period_end - subscription.current_period_start) *
+      (monthsLeft / 12);
 
   const invoice = await stripe.invoices.retrieveUpcoming({
     subscription: subscription.id,
