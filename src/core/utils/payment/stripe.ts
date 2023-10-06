@@ -96,14 +96,14 @@ export async function updateSubscription(
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ["schedule"]
   });
-  const subscriptionItem = {
+  const newSubscriptionItem = {
     id: subscription.items.data[0].id,
     price_data: getPriceData(paymentForm, paymentMethod)
   };
 
   const { prorationAmount, prorationTime } = await calculateProrationParams(
     subscription,
-    subscriptionItem
+    newSubscriptionItem
   );
 
   log.info("Preparing update subscription for " + subscription.id, {
@@ -130,7 +130,7 @@ export async function updateSubscription(
     // Start new contribution immediately (monthly or prorated annuals)
     log.info(`Updating subscription for ${subscription.id}`);
     await stripe.subscriptions.update(subscriptionId, {
-      items: [subscriptionItem],
+      items: [newSubscriptionItem],
       ...(prorationAmount > 0
         ? {
             proration_behavior: "always_invoice",
@@ -160,7 +160,7 @@ export async function updateSubscription(
         },
         {
           start_date: schedule.phases[0].end_date,
-          items: [{ price_data: subscriptionItem.price_data }]
+          items: [{ price_data: newSubscriptionItem.price_data }]
         }
       ]
     });
