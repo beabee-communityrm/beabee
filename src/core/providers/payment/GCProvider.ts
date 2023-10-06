@@ -1,5 +1,6 @@
 import { PaymentMethod } from "@beabee/beabee-common";
 import { Subscription } from "gocardless-nodejs";
+import moment from "moment";
 
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
@@ -60,10 +61,10 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     return {
       payFee: this.data.payFee || false,
       hasPendingPayment: pendingPayment,
-      ...(this.data.nextMonthlyAmount &&
+      ...(this.data.nextAmount &&
         this.contact.contributionPeriod && {
           nextAmount: getActualAmount(
-            this.data.nextMonthlyAmount,
+            this.data.nextAmount.monthly,
             this.contact.contributionPeriod
           )
         }),
@@ -106,26 +107,34 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     let subscription: Subscription | undefined;
 
     if (this.data.subscriptionId) {
-      if (this.contact.membership?.isActive) {
+      if (
+        this.contact.membership?.isActive &&
+        this.contact.contributionPeriod === paymentForm.period
+      ) {
         subscription = await updateSubscription(
           this.data.subscriptionId,
           paymentForm
         );
       } else {
-        // Cancel failed subscriptions, we'll try a new one
+        // Cancel failed subscriptions or when period is changing
         await this.cancelContribution(true);
       }
     }
 
     const renewalDate = calcRenewalDate(this.contact);
+    let expiryDate;
 
-    if (!subscription) {
+    if (subscription) {
+      expiryDate = subscription.upcoming_payments![0].charge_date;
+    } else {
       log.info("Creating new subscription");
       subscription = await createSubscription(
         this.data.mandateId,
         paymentForm,
         renewalDate
       );
+      // The second payment is the first renewal payment when you first create a subscription
+      expiryDate = subscription.upcoming_payments![1].charge_date;
     }
 
     const startNow =
@@ -137,8 +146,6 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
         this.contact.contributionMonthlyAmount || 0
       ));
 
-    const expiryDate = await getSubscriptionNextChargeDate(subscription);
-
     log.info("Activate contribution for " + this.contact.id, {
       userId: this.contact.id,
       paymentForm,
@@ -148,11 +155,16 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
 
     this.data.subscriptionId = subscription.id!;
     this.data.payFee = paymentForm.payFee;
-    this.data.nextMonthlyAmount = startNow ? null : paymentForm.monthlyAmount;
+    this.data.nextAmount = startNow
+      ? null
+      : {
+          monthly: paymentForm.monthlyAmount,
+          chargeable: Number(subscription.amount)
+        };
 
     await this.updateData();
 
-    return { startNow, expiryDate };
+    return { startNow, expiryDate: moment.utc(expiryDate).toDate() };
   }
 
   async cancelContribution(keepMandate: boolean): Promise<void> {
@@ -161,7 +173,7 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     const subscriptionId = this.data.subscriptionId;
     const mandateId = this.data.mandateId;
 
-    this.data.nextMonthlyAmount = null;
+    this.data.nextAmount = null;
     this.data.subscriptionId = null;
     if (!keepMandate) {
       this.data.mandateId = null;

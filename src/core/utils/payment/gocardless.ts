@@ -152,7 +152,7 @@ export async function prorateSubscription(
       await gocardless.payments.create({
         amount: Math.floor(prorateAmount * 100).toFixed(0),
         currency: config.currencyCode.toUpperCase() as PaymentCurrency,
-        // TODO: i18n description: "One-off payment to start new contribution",
+        description: "One-off payment to start new contribution",
         links: {
           mandate: mandateId
         }
