@@ -72,7 +72,10 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     };
   }
 
-  async canChangeContribution(useExistingMandate: boolean): Promise<boolean> {
+  async canChangeContribution(
+    useExistingMandate: boolean,
+    paymentForm: PaymentForm
+  ): Promise<boolean> {
     // No payment method available
     if (useExistingMandate && !this.data.mandateId) {
       return false;
@@ -83,11 +86,13 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       return true;
     }
 
-    // Monthly contributors can update their contribution even if they have
-    // pending payments, but they can't always change their mandate as this can
+    // Monthly contributors can update their contribution amount even if they have
+    // pending payments, but they can't always change their period or mandate as this can
     // result in double charging
     return (
-      (useExistingMandate && this.contact.contributionPeriod === "monthly") ||
+      (useExistingMandate &&
+        this.contact.contributionPeriod === "monthly" &&
+        paymentForm.period === "monthly") ||
       !(this.data.mandateId && (await hasPendingPayment(this.data.mandateId)))
     );
   }

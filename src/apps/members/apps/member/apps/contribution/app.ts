@@ -29,7 +29,7 @@ app.get(
 
       res.render("automatic", {
         member: contact,
-        canChange: await PaymentService.canChangeContribution(contact, true),
+        canChange: true, // TODO: remove
         monthsLeft: calcMonthsLeft(contact),
         payments,
         total
