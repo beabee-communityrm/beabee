@@ -16,6 +16,7 @@ export class NewCalloutSlideSchema1697020619835 implements MigrationInterface {
         slides: [
           {
             id: "slide1",
+            title: "Slide 1",
             components: callout.formSchema.components,
             navigation: {
               prevText: "",
