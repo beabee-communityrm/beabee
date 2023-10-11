@@ -13,8 +13,7 @@ import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import {
   CalloutComponentSchema,
-  CalloutResponseAnswers,
-  flattenComponents
+  CalloutResponseAnswers
 } from "@beabee/beabee-common";
 
 import {
@@ -92,7 +91,7 @@ async function anonymiseCalloutResponses(
   const callouts = await createQueryBuilder(Callout, "callout").getMany();
   for (const callout of callouts) {
     const answersMap = createAnswersMap(
-      flattenComponents(callout.formSchema.components)
+      [] // TODO
     );
 
     const responses = await fn(createQueryBuilder(CalloutResponse, "item"))

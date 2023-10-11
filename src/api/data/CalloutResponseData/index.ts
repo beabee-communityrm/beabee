@@ -2,14 +2,14 @@ import {
   Paginated,
   calloutResponseFilters,
   FilterType,
-  convertComponentsToFilters,
   RuleOperator,
   Filters,
-  flattenComponents,
+  getCalloutComponents,
   stringifyAnswer,
   CalloutResponseAnswerFileUpload,
   CalloutResponseAnswerAddress,
-  CalloutResponseAnswers
+  CalloutResponseAnswers,
+  getCalloutFilters
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
@@ -95,7 +95,7 @@ function convertResponsesToMapData(
 
   const { titleProp, imageProp, map } = callout.responseViewSchema;
 
-  const components = flattenComponents(callout.formSchema.components).filter(
+  const components = getCalloutComponents(callout.formSchema).filter(
     (c) => !c.adminOnly
   );
 
@@ -269,7 +269,7 @@ function prepareFilters(
 
   // If looking for responses for a particular callout then add answer filtering
   if (callout) {
-    answerFilters = convertComponentsToFilters(callout.formSchema.components);
+    answerFilters = getCalloutFilters(callout.formSchema);
     // All handled by the same field handler
     answerFieldHandlers = Object.fromEntries(
       Object.keys(answerFilters).map((field) => [
@@ -354,7 +354,7 @@ export async function exportCalloutResponses(
     callout.title
   }_${new Date().toISOString()}.csv`;
 
-  const components = flattenComponents(callout.formSchema.components).filter(
+  const components = getCalloutComponents(callout.formSchema).filter(
     (c) => c.input
   );
 
