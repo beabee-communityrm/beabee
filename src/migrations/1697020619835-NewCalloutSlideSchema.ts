@@ -2,7 +2,24 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 
 interface Callout {
   slug: string;
-  formSchema: { components: unknown[] };
+  formSchema: { components: CalloutComponentSchema[] };
+}
+
+interface CalloutComponentSchema {
+  type: string;
+  label: string;
+  components?: CalloutComponentSchema[];
+}
+
+function removeButtons(components: CalloutComponentSchema[]) {
+  return components
+    .filter((component) => component.type !== "button")
+    .map((component) => {
+      if (component.components) {
+        component.components = removeButtons(component.components);
+      }
+      return component;
+    });
 }
 
 export class NewCalloutSlideSchema1697020619835 implements MigrationInterface {
@@ -12,17 +29,24 @@ export class NewCalloutSlideSchema1697020619835 implements MigrationInterface {
     );
 
     for (const callout of callouts) {
+      const components = callout.formSchema.components;
+
+      const submitText =
+        components[components.length - 1]?.type === "button"
+          ? components[components.length - 1].label
+          : "Submit";
+
       const newFormSchema = {
         slides: [
           {
             id: "slide1",
             title: "Slide 1",
-            components: callout.formSchema.components,
+            components: removeButtons(components),
             navigation: {
-              prevText: "",
-              nextText: "",
+              prevText: "Prev",
+              nextText: "Next",
               nextSlideId: "",
-              submitText: "Submit" // TODO: use actual button component?
+              submitText
             }
           }
         ]
@@ -33,6 +57,10 @@ export class NewCalloutSlideSchema1697020619835 implements MigrationInterface {
         [newFormSchema, callout.slug]
       );
     }
+
+    // await queryRunner.query(
+    //   `UPDATE "callout_response" SET "answers"=jsonb_build_object('slide1', "answers")`
+    // );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
