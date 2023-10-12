@@ -77,9 +77,10 @@ function writeItems<T>(model: EntityTarget<T>, items: T[]) {
 function createAnswersMap(
   components: CalloutComponentSchema[]
 ): ObjectMap<CalloutResponseAnswers> {
-  return Object.fromEntries(
-    components.map((c) => [c.key, createComponentAnonymiser(c)])
-  );
+  // return Object.fromEntries(
+  //   components.map((c) => [c.key, createComponentAnonymiser(c)])
+  // );
+  return {};
 }
 
 async function anonymiseCalloutResponses(

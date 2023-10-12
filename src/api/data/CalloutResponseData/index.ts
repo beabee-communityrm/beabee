@@ -4,7 +4,7 @@ import {
   FilterType,
   RuleOperator,
   Filters,
-  getCalloutComponents,
+  flattenComponents,
   stringifyAnswer,
   CalloutResponseAnswerFileUpload,
   CalloutResponseAnswerAddress,
@@ -95,43 +95,52 @@ function convertResponsesToMapData(
 
   const { titleProp, imageProp, map } = callout.responseViewSchema;
 
-  const components = getCalloutComponents(callout.formSchema).filter(
-    (c) => !c.adminOnly
-  );
-
-  const titleComponent =
-    titleProp && components.find((c) => c.key === titleProp);
-
   return responses.map((response) => {
-    // Copy valid answers over (should be non-admin only answers))
+    let title = "",
+      addressAnswer,
+      imageAnswer;
+
     const answers: CalloutResponseAnswers = {};
-    for (const component of components) {
-      const answer = response.answers[component.key];
-      if (answer) {
-        answers[component.key] = answer;
+    for (const slide of callout.formSchema.slides) {
+      answers[slide.id] = {};
+
+      for (const component of flattenComponents(slide.components)) {
+        // Skip components that shouldn't be displayed publicly
+        if (component.adminOnly) {
+          continue;
+        }
+
+        const answer = response.answers[slide.id][component.key];
+        if (answer) {
+          answers[slide.id][component.key] = answer;
+        }
+
+        // Extract title, address and image answers
+        if (component.key === titleProp) {
+          title = stringifyAnswer(component, answer);
+        }
+        if (component.key === map?.addressProp) {
+          addressAnswer = answer;
+        }
+        if (component.key === imageProp) {
+          imageAnswer = answer;
+        }
       }
     }
 
-    const title = titleComponent
-      ? stringifyAnswer(titleComponent, answers[titleProp])
-      : "";
-
-    const photoAnswer = answers[imageProp];
-    const photos = photoAnswer
-      ? Array.isArray(photoAnswer)
-        ? photoAnswer
-        : [photoAnswer]
+    const images = imageAnswer
+      ? Array.isArray(imageAnswer)
+        ? imageAnswer
+        : [imageAnswer]
       : [];
-
-    const address = map?.addressProp && response.answers[map.addressProp];
 
     return {
       number: response.number,
       answers,
       title,
-      photos: photos as CalloutResponseAnswerFileUpload[], // TODO: ensure type?
-      ...(address && {
-        address: address as CalloutResponseAnswerAddress // TODO: ensure type?
+      photos: images as CalloutResponseAnswerFileUpload[], // TODO: ensure type?
+      ...(addressAnswer && {
+        address: addressAnswer as CalloutResponseAnswerAddress // TODO: ensure type?
       })
     };
   });
@@ -203,44 +212,48 @@ const answerArrayOperators: Partial<
   is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
 };
 
-function answerField(type: FilterType, fieldPrefix: string): string {
-  switch (type) {
-    case "number":
-      return `(${fieldPrefix}answers -> :p)::numeric`;
-    case "boolean":
-      return `(${fieldPrefix}answers -> :p)::boolean`;
-    default:
-      return `${fieldPrefix}answers ->> :p`;
-  }
-}
-
 const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
+  const answerField = `${args.fieldPrefix}answers -> :s -> :k`;
+
   if (args.type === "array") {
     const operatorFn = answerArrayOperators[args.operator];
     if (!operatorFn) {
       // Shouln't be able to happen as rule has been validated
       throw new Error("Invalid ValidatedRule");
     }
-    qb.where(args.suffixFn(operatorFn(`${args.fieldPrefix}answers -> :p`)));
+    qb.where(args.suffixFn(operatorFn(answerField)));
     // is_empty and is_not_empty need special treatment for JSONB values
   } else if (args.operator === "is_empty" || args.operator === "is_not_empty") {
     const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
     qb.where(
       args.suffixFn(
-        `COALESCE(item.answers -> :p, 'null') ${operator} ('null', '""')`
+        `COALESCE(${answerField}, 'null') ${operator} ('null', '""')`
       )
     );
   } else {
-    qb.where(args.whereFn(answerField(args.type, args.fieldPrefix)));
+    const cast =
+      args.type === "number"
+        ? "numeric"
+        : args.type === "boolean"
+        ? "boolean"
+        : "text";
+    qb.where(args.whereFn(`(${answerField})::${cast}`));
   }
+
+  const [_, slideId, answerKey] = args.field.split(".");
+  return {
+    s: slideId,
+    k: answerKey
+  };
 };
 
 const calloutResponseFieldHandlers: FieldHandlers<string> = {
   answers: (qb, args) => {
     qb.where(
-      args.whereFn(
-        `(SELECT string_agg(value, '') FROM jsonb_each_text(${args.fieldPrefix}answers))`
-      )
+      args.whereFn(`(
+        SELECT string_agg(answer.value, '')
+        FROM jsonb_each(${args.fieldPrefix}answers) AS slide, jsonb_each_text(slide.value) AS answer
+      )`)
     );
   },
   tags: (qb, args) => {
@@ -354,10 +367,6 @@ export async function exportCalloutResponses(
     callout.title
   }_${new Date().toISOString()}.csv`;
 
-  const components = getCalloutComponents(callout.formSchema).filter(
-    (c) => c.input
-  );
-
   const headers = [
     "Date",
     "Number",
@@ -370,7 +379,10 @@ export async function exportCalloutResponses(
     "EmailAddress",
     "IsGuest",
     "Comments",
-    ...components.map((c) => c.label || c.key)
+    ...callout.formSchema.slides
+      .flatMap((slide) => flattenComponents(slide.components))
+      .filter((c) => c.input)
+      .map((c) => c.label || c.key)
   ];
 
   const rows = results.items.map((response) => {
@@ -392,7 +404,11 @@ export async function exportCalloutResponses(
         : ["", "", response.guestName, response.guestEmail]),
       !response.contact,
       comments.map(commentText).join(", "),
-      ...components.map((c) => stringifyAnswer(c, response.answers[c.key]))
+      ...callout.formSchema.slides.flatMap((slide) =>
+        flattenComponents(slide.components)
+          .filter((c) => c.input)
+          .map((c) => stringifyAnswer(c, response.answers[slide.id][c.key]))
+      )
     ];
   });
 

@@ -140,9 +140,9 @@ class CalloutsService {
     });
 
     if (callout.mcMergeField && callout.pollMergeField) {
+      const [slideId, answerKey] = callout.pollMergeField.split(".");
       await NewsletterService.updateContactFields(contact, {
-        [callout.mcMergeField]:
-          answers[callout.pollMergeField]?.toString() || ""
+        [callout.mcMergeField]: answers[slideId]?.[answerKey]?.toString() || ""
       });
     }
 

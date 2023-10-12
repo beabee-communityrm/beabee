@@ -126,21 +126,25 @@ export const statusFieldHandler: FieldHandler = (qb, args) => {
 
   switch (args.value[0]) {
     case ItemStatus.Draft:
-      return qb.where(`${args.fieldPrefix}starts IS NULL`);
+      qb.where(`${args.fieldPrefix}starts IS NULL`);
+      break;
     case ItemStatus.Scheduled:
-      return qb.where(`${args.fieldPrefix}starts > :now`);
+      qb.where(`${args.fieldPrefix}starts > :now`);
+      break;
     case ItemStatus.Open:
-      return qb.where(`${args.fieldPrefix}starts < :now`).andWhere(
+      qb.where(`${args.fieldPrefix}starts < :now`).andWhere(
         new Brackets((qb) => {
           qb.where(`${args.fieldPrefix}expires IS NULL`).orWhere(
             `${args.fieldPrefix}expires > :now`
           );
         })
       );
+      break;
     case ItemStatus.Ended:
-      return qb
-        .where(`${args.fieldPrefix}starts < :now`)
-        .andWhere(`${args.fieldPrefix}expires < :now`);
+      qb.where(`${args.fieldPrefix}starts < :now`).andWhere(
+        `${args.fieldPrefix}expires < :now`
+      );
+      break;
   }
 };
 
@@ -230,14 +234,13 @@ function buildWhere<Field extends string>(
       // Add values as params
       params["a" + suffix] = value[0];
       params["b" + suffix] = value[1];
-      params["p" + suffix] = rule.field.substring(rule.field.indexOf(".") + 1);
 
-      // Replace :[abp] but avoid replacing casts e.g. ::boolean
+      // Replace :[a-z] but avoid replacing casts e.g. ::boolean
       const suffixFn = (field: string) =>
-        field.replace(/[^:]:[abp]/g, "$&" + suffix);
+        field.replace(/[^:]:[a-z]/g, "$&" + suffix);
 
       const fieldHandler = fieldHandlers?.[rule.field] || simpleFieldHandler;
-      fieldHandler(qb, {
+      const extraParams = fieldHandler(qb, {
         fieldPrefix,
         field: rule.field,
         operator: rule.operator,
@@ -246,6 +249,12 @@ function buildWhere<Field extends string>(
         whereFn: (field) => suffixFn(operatorFn(fieldFn(field))),
         suffixFn
       });
+
+      if (extraParams) {
+        for (const [key, value] of Object.entries(extraParams)) {
+          params[key + suffix] = value;
+        }
+      }
 
       ruleNo++;
     };

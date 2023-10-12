@@ -58,14 +58,17 @@ export class NewCalloutSlideSchema1697020619835 implements MigrationInterface {
       );
     }
 
-    // await queryRunner.query(
-    //   `UPDATE "callout_response" SET "answers"=jsonb_build_object('slide1', "answers")`
-    // );
+    await queryRunner.query(
+      `UPDATE "callout_response" SET "answers"=jsonb_build_object('slide1', "answers")`
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `UPDATE "callout" SET "formSchema"=jsonb_build_object('components', "formSchema"->'slides'->0->'components')`
+    );
+    await queryRunner.query(
+      `UPDATE "callout_response" SET "answers"="answers"->'slide1'`
     );
   }
 }

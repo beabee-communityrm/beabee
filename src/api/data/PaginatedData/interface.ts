@@ -109,7 +109,7 @@ export type FieldHandler = (
     whereFn: (field: string) => string;
     suffixFn: (field: string) => string;
   }
-) => void;
+) => void | Record<string, unknown>;
 
 export type FieldHandlers<Field extends string> = {
   [K in Field]?: FieldHandler;
