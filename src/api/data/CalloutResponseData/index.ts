@@ -9,7 +9,9 @@ import {
   CalloutResponseAnswerFileUpload,
   CalloutResponseAnswerAddress,
   CalloutResponseAnswers,
-  getCalloutFilters
+  getCalloutFilters,
+  CalloutFormSchema,
+  CalloutResponseAnswer
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
@@ -17,7 +19,7 @@ import { NotFoundError } from "routing-controllers";
 import { In, createQueryBuilder, getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-import Callout from "@models/Callout";
+import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
@@ -84,24 +86,21 @@ function convertResponseToData(
 }
 
 function convertResponsesToMapData(
-  callout: Callout,
+  formSchema: CalloutFormSchema,
+  { titleProp, imageProp, map }: CalloutResponseViewSchema,
   responses: CalloutResponse[]
 ): GetCalloutResponseMapData[] {
-  if (!callout.responseViewSchema) {
-    throw new Error(
-      "Tried to convert response to map data without response view schema"
-    );
-  }
-
-  const { titleProp, imageProp, map } = callout.responseViewSchema;
+  const [titleSlideId, titleAnswerKey] = titleProp.split(".");
+  const [imageSlideId, imageAnswerKey] = imageProp.split(".");
+  const [addressSlideId, addressAnswerKey] = map?.addressProp.split(".") || [];
 
   return responses.map((response) => {
     let title = "",
-      addressAnswer,
-      imageAnswer;
+      images: CalloutResponseAnswer[] = [],
+      address: CalloutResponseAnswer | undefined;
 
     const answers: CalloutResponseAnswers = {};
-    for (const slide of callout.formSchema.slides) {
+    for (const slide of formSchema.slides) {
       answers[slide.id] = {};
 
       for (const component of flattenComponents(slide.components)) {
@@ -116,31 +115,25 @@ function convertResponsesToMapData(
         }
 
         // Extract title, address and image answers
-        if (component.key === titleProp) {
+        if (titleSlideId === slide.id && component.key === titleAnswerKey) {
           title = stringifyAnswer(component, answer);
         }
-        if (component.key === map?.addressProp) {
-          addressAnswer = answer;
+        if (addressSlideId === slide.id && component.key === addressAnswerKey) {
+          address = Array.isArray(answer) ? answer[0] : answer;
         }
-        if (component.key === imageProp) {
-          imageAnswer = answer;
+        if (imageSlideId === slide.id && component.key === imageAnswerKey) {
+          images = Array.isArray(answer) ? answer : [answer];
         }
       }
     }
-
-    const images = imageAnswer
-      ? Array.isArray(imageAnswer)
-        ? imageAnswer
-        : [imageAnswer]
-      : [];
 
     return {
       number: response.number,
       answers,
       title,
       photos: images as CalloutResponseAnswerFileUpload[], // TODO: ensure type?
-      ...(addressAnswer && {
-        address: addressAnswer as CalloutResponseAnswerAddress // TODO: ensure type?
+      ...(address && {
+        address: address as CalloutResponseAnswerAddress // TODO: ensure type?
       })
     };
   });
@@ -502,7 +495,8 @@ export async function fetchPaginatedCalloutResponsesForMap(
   contact: Contact | undefined,
   callout: Callout
 ): Promise<Paginated<GetCalloutResponseMapData>> {
-  if (!callout.responseViewSchema) {
+  const responseViewSchema = callout.responseViewSchema;
+  if (!responseViewSchema) {
     throw new NotFoundError();
   }
 
@@ -517,7 +511,7 @@ export async function fetchPaginatedCalloutResponsesForMap(
     },
     {
       condition: "OR",
-      rules: callout.responseViewSchema.buckets.map((bucket) => ({
+      rules: responseViewSchema.buckets.map((bucket) => ({
         field: "bucket",
         operator: "equal",
         value: [bucket]
@@ -535,7 +529,11 @@ export async function fetchPaginatedCalloutResponsesForMap(
 
   return {
     ...results,
-    items: convertResponsesToMapData(callout, results.items)
+    items: convertResponsesToMapData(
+      callout.formSchema,
+      responseViewSchema,
+      results.items
+    )
   };
 }
 
