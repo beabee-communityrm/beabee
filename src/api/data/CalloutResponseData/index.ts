@@ -217,14 +217,12 @@ const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
         `COALESCE(${answerField}, 'null') ${operator} ('null', '""')`
       )
     );
-  } else {
-    const cast =
-      args.type === "number"
-        ? "numeric"
-        : args.type === "boolean"
-        ? "boolean"
-        : "text";
+  } else if (args.type === "number" || args.type === "boolean") {
+    const cast = args.type === "number" ? "numeric" : "boolean";
     qb.where(args.whereFn(`(${answerField})::${cast}`));
+  } else {
+    // Extract as text instead of JSONB (note ->> instead of ->)
+    qb.where(args.whereFn(`${args.fieldPrefix}answers -> :s ->> :k`));
   }
 
   const [_, slideId, answerKey] = args.field.split(".");
