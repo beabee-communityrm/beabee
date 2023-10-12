@@ -1,17 +1,16 @@
 import {
   Paginated,
   calloutResponseFilters,
-  FilterType,
   RuleOperator,
   Filters,
-  flattenComponents,
   stringifyAnswer,
   CalloutResponseAnswerFileUpload,
   CalloutResponseAnswerAddress,
   CalloutResponseAnswers,
   getCalloutFilters,
   CalloutFormSchema,
-  CalloutResponseAnswer
+  CalloutResponseAnswer,
+  getCalloutComponents
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
@@ -90,40 +89,35 @@ function convertResponsesToMapData(
   { titleProp, imageProp, map }: CalloutResponseViewSchema,
   responses: CalloutResponse[]
 ): GetCalloutResponseMapData[] {
-  const [titleSlideId, titleAnswerKey] = titleProp.split(".");
-  const [imageSlideId, imageAnswerKey] = imageProp.split(".");
-  const [addressSlideId, addressAnswerKey] = map?.addressProp.split(".") || [];
-
   return responses.map((response) => {
     let title = "",
       images: CalloutResponseAnswer[] = [],
       address: CalloutResponseAnswer | undefined;
 
-    const answers: CalloutResponseAnswers = {};
-    for (const slide of formSchema.slides) {
-      answers[slide.id] = {};
+    const answers: CalloutResponseAnswers = Object.fromEntries(
+      formSchema.slides.map((slide) => [slide.id, {}])
+    );
 
-      for (const component of flattenComponents(slide.components)) {
-        // Skip components that shouldn't be displayed publicly
-        if (component.adminOnly) {
-          continue;
-        }
+    for (const component of getCalloutComponents(formSchema)) {
+      // Skip components that shouldn't be displayed publicly
+      if (component.adminOnly) {
+        continue;
+      }
 
-        const answer = response.answers[slide.id][component.key];
-        if (answer) {
-          answers[slide.id][component.key] = answer;
-        }
+      const answer = response.answers[component.slideId][component.key];
+      if (answer) {
+        answers[component.slideId][component.key] = answer;
+      }
 
-        // Extract title, address and image answers
-        if (titleSlideId === slide.id && component.key === titleAnswerKey) {
-          title = stringifyAnswer(component, answer);
-        }
-        if (addressSlideId === slide.id && component.key === addressAnswerKey) {
-          address = Array.isArray(answer) ? answer[0] : answer;
-        }
-        if (imageSlideId === slide.id && component.key === imageAnswerKey) {
-          images = Array.isArray(answer) ? answer : [answer];
-        }
+      // Extract title, address and image answers
+      if (component.fullKey === titleProp) {
+        title = stringifyAnswer(component, answer);
+      }
+      if (component.fullKey === map?.addressProp) {
+        address = Array.isArray(answer) ? answer[0] : answer;
+      }
+      if (component.fullKey === imageProp) {
+        images = Array.isArray(answer) ? answer : [answer];
       }
     }
 
@@ -360,6 +354,10 @@ export async function exportCalloutResponses(
     callout.title
   }_${new Date().toISOString()}.csv`;
 
+  const components = getCalloutComponents(callout.formSchema).filter(
+    (c) => c.input
+  );
+
   const headers = [
     "Date",
     "Number",
@@ -372,10 +370,7 @@ export async function exportCalloutResponses(
     "EmailAddress",
     "IsGuest",
     "Comments",
-    ...callout.formSchema.slides
-      .flatMap((slide) => flattenComponents(slide.components))
-      .filter((c) => c.input)
-      .map((c) => c.label || c.key)
+    ...components.map((c) => c.label || c.key)
   ];
 
   const rows = results.items.map((response) => {
@@ -397,10 +392,8 @@ export async function exportCalloutResponses(
         : ["", "", response.guestName, response.guestEmail]),
       !response.contact,
       comments.map(commentText).join(", "),
-      ...callout.formSchema.slides.flatMap((slide) =>
-        flattenComponents(slide.components)
-          .filter((c) => c.input)
-          .map((c) => stringifyAnswer(c, response.answers[slide.id][c.key]))
+      ...components.map((c) =>
+        stringifyAnswer(c, response.answers[c.slideId][c.key])
       )
     ];
   });
