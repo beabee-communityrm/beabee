@@ -104,9 +104,11 @@ function convertResponsesToMapData(
         continue;
       }
 
-      const answer = response.answers[component.slideId][component.key];
+      const slideAnswers = answers[component.slideId];
+      const answer = response.answers[component.slideId]?.[component.key];
       if (answer) {
-        answers[component.slideId][component.key] = answer;
+        // answers[slideId] will definitely be defined
+        answers[component.slideId]![component.key] = answer;
       }
 
       // Extract title, address and image answers
@@ -391,7 +393,7 @@ export async function exportCalloutResponses(
       !response.contact,
       comments.map(commentText).join(", "),
       ...components.map((c) =>
-        stringifyAnswer(c, response.answers[c.slideId][c.key])
+        stringifyAnswer(c, response.answers[c.slideId]?.[c.key])
       )
     ];
   });
