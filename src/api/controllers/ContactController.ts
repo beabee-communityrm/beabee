@@ -289,8 +289,9 @@ export class ContactController {
   @Get("/:id/mfa")
   async getContactMfa(
     @TargetUser() target: Contact
-  ): Promise<GetContactMfaData | undefined> {
-    return await ContactMfaService.findOne(target);
+  ): Promise<GetContactMfaData | null> {
+    const mfa = await ContactMfaService.get(target);
+    return mfa || null;
   }
 
   /**
@@ -305,6 +306,16 @@ export class ContactController {
   ): Promise<CreateContactMfaData> {
     await validateOrReject(data);
     return await ContactMfaService.create(target, data);
+  }
+
+  /**
+   * Delete contact multi factor authentication
+   * @param target The target contact (which is the current user)
+   */
+  @Delete("/:id/mfa")
+  async deleteContactMfa(@TargetUser() target: Contact): Promise<null> {
+    await ContactMfaService.delete(target);
+    return null; // Without this, the response an error
   }
 
   @OnUndefined(204)

@@ -6,33 +6,12 @@ import ContactMfa from "@models/ContactMfa";
 
 import { CreateContactMfaData } from "@api/data/ContactData/interface";
 
-import contactService from "./ContactsService";
-
 /**
  * Contact multi factor authentication service
- * TODO: @wpf500 How can I make sure that only the user itself get fetch its own mfa?
  */
 class ContactMfaService {
-  async findOne(
-    id?: string,
-    options?: FindOneOptions<Contact>
-  ): Promise<ContactMfa | undefined>;
-  async findOne(
-    options?: FindOneOptions<Contact>
-  ): Promise<ContactMfa | undefined>;
-  async findOne(
-    conditions: FindConditions<Contact>,
-    options?: FindOneOptions<Contact>
-  ): Promise<ContactMfa | undefined>;
-  async findOne(
-    arg1?: string | FindConditions<Contact> | FindOneOptions<Contact>,
-    arg2?: FindOneOptions<Contact>
-  ): Promise<ContactMfa | undefined> {
-    const contact = await contactService.findOne(arg1 as any, arg2);
-    if (!contact) {
-      return;
-    }
-    const mfa = await getRepository(ContactMfa).findOne({ contact });
+  async get(contact: Contact): Promise<ContactMfa | undefined> {
+    const mfa = await getRepository(ContactMfa).findOne(contact.id);
     return mfa;
   }
 
@@ -48,6 +27,16 @@ class ContactMfaService {
       ...data
     });
     return mfa;
+  }
+
+  async delete(contact: Contact) {
+    const mfa = await this.get(contact);
+
+    if (!mfa) {
+      throw new Error("Contact has no MFA");
+    }
+
+    await getRepository(ContactMfa).delete({ contact: { id: contact.id } });
   }
 
   validateToken(mfa: CreateContactMfaData) {
