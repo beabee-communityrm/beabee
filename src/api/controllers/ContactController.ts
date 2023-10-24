@@ -58,7 +58,7 @@ import {
   convertRoleToData,
   ContactRoleParams,
   CreateContactMfaData,
-  GetContactMfaData,
+  GetContactMfaData
 } from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
@@ -288,7 +288,7 @@ export class ContactController {
    */
   @Get("/:id/mfa")
   async getContactMfa(
-    @TargetUser() target: Contact,
+    @TargetUser() target: Contact
   ): Promise<GetContactMfaData | undefined> {
     return await ContactMfaService.findOne(target);
   }
@@ -301,7 +301,7 @@ export class ContactController {
   @Post("/:id/mfa")
   async createContactMfa(
     @Body() data: CreateContactMfaData,
-    @TargetUser() target: Contact,
+    @TargetUser() target: Contact
   ): Promise<CreateContactMfaData> {
     await validateOrReject(data);
     return await ContactMfaService.create(target, data);

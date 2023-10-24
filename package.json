@@ -28,6 +28,7 @@
     "check:tsc": "tsc --noEmit",
     "check:prettier": "prettier -c .",
     "check:dependencies": "dpdm -T --no-warning --no-tree --exit-code circular:1 src/app.ts src/webhooks/app.ts src/api/app.ts",
+    "fix:prettier": "prettier --write .",
     "typeorm": "node --require module-alias/register node_modules/.bin/typeorm",
     "test": "jest --setupFiles dotenv/config"
   },

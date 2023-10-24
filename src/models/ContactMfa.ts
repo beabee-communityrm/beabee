@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
-import { ContactMfaType } from '../api/data/ContactData/interface';
+import { ContactMfaType } from "../api/data/ContactData/interface";
 
 import type Contact from "./Contact";
 
@@ -12,7 +12,7 @@ export default class ContactMfa {
 
   @Column({
     type: "enum",
-    enum: ContactMfaType,
+    enum: ContactMfaType
   })
   type!: ContactMfaType;
 

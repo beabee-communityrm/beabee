@@ -1,16 +1,12 @@
-import {
-  FindConditions,
-  FindOneOptions,
-  getRepository
-} from "typeorm";
-import { TOTP, Secret } from 'otpauth';
+import { FindConditions, FindOneOptions, getRepository } from "typeorm";
+import { TOTP, Secret } from "otpauth";
 
 import Contact from "@models/Contact";
 import ContactMfa from "@models/ContactMfa";
 
 import { CreateContactMfaData } from "@api/data/ContactData/interface";
 
-import contactService from './ContactsService';
+import contactService from "./ContactsService";
 
 /**
  * Contact multi factor authentication service
@@ -41,11 +37,10 @@ class ContactMfaService {
   }
 
   async create(contact: Contact, data: CreateContactMfaData) {
-
     const isValid = this.validateToken(data);
 
     if (!isValid) {
-      throw new Error('Invalid token');
+      throw new Error("Invalid token");
     }
 
     const mfa = await getRepository(ContactMfa).save({

@@ -201,7 +201,8 @@ export class UpdateContactData implements ContactData {
 
 class CreateContactRoleData
   extends UpdateContactRoleData
-  implements GetContactRoleData {
+  implements GetContactRoleData
+{
   @IsIn(RoleTypes)
   role!: RoleType;
 }
