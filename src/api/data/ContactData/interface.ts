@@ -201,8 +201,7 @@ export class UpdateContactData implements ContactData {
 
 class CreateContactRoleData
   extends UpdateContactRoleData
-  implements GetContactRoleData
-{
+  implements GetContactRoleData {
   @IsIn(RoleTypes)
   role!: RoleType;
 }
@@ -217,4 +216,47 @@ export class CreateContactData extends UpdateContactData {
   @ValidateNested({ each: true })
   @Type(() => CreateContactRoleData)
   roles?: CreateContactRoleData[];
+}
+
+/**
+ * Contact multi factor authentication type
+ * TODO: Move to common
+ */
+export enum ContactMfaType {
+  TOTP = "totp"
+  // E.g. U2F, EMAIL, SMS, HOTP, etc.
+}
+
+/**
+ * Contact multi factor authentication data
+ * TODO: Move to common
+ */
+interface ContactMfaData {
+  secret?: string;
+  /** The code from the authenticator app */
+  token?: string;
+  type: ContactMfaType;
+}
+
+/**
+ * Get contact multi factor authentication validation data
+ */
+export class GetContactMfaData implements ContactMfaData {
+  @IsString()
+  type!: ContactMfaType;
+}
+
+/**
+ * Create contact multi factor authentication validation data
+ */
+export class CreateContactMfaData implements ContactMfaData {
+  @IsString()
+  secret!: string;
+
+  /** The code from the authenticator app */
+  @IsString()
+  token!: string;
+
+  @IsString()
+  type!: ContactMfaType;
 }

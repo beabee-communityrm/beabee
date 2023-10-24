@@ -32,6 +32,7 @@ import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentFlowService from "@core/services/PaymentFlowService";
 import PaymentService from "@core/services/PaymentService";
+import ContactMfaService from "@core/services/ContactMfaService";
 
 import { ContributionInfo } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
@@ -55,7 +56,9 @@ import {
   UpdateContactData,
   exportContacts,
   convertRoleToData,
-  ContactRoleParams
+  ContactRoleParams,
+  CreateContactMfaData,
+  GetContactMfaData,
 } from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
@@ -79,10 +82,13 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
+import { log } from "console";
 
-// The target user can either be the current user or for admins
-// it can be any user, this decorator injects the correct target
-// and also ensures the user has the correct roles
+/**
+ * The target user can either be the current user or for admins
+ * it can be any user, this decorator injects the correct target
+ * and also ensures the user has the correct roles
+ */
 function TargetUser() {
   return createParamDecorator({
     required: true,
@@ -274,6 +280,31 @@ export class ContactController {
     @Body() data: StartContributionData
   ): Promise<PaymentFlowParams> {
     return await this.handleStartUpdatePaymentMethod(target, data);
+  }
+
+  /**
+   * Get contact multi factor authentication if exists
+   * @param target The target contact (which is the current user)
+   */
+  @Get("/:id/mfa")
+  async getContactMfa(
+    @TargetUser() target: Contact,
+  ): Promise<GetContactMfaData | undefined> {
+    return await ContactMfaService.findOne(target);
+  }
+
+  /**
+   * Create contact multi factor authentication
+   * @param target The target contact (which is the current user)
+   * @param data The data to create the contact multi factor authentication
+   */
+  @Post("/:id/mfa")
+  async createContactMfa(
+    @Body() data: CreateContactMfaData,
+    @TargetUser() target: Contact,
+  ): Promise<CreateContactMfaData> {
+    await validateOrReject(data);
+    return await ContactMfaService.create(target, data);
   }
 
   @OnUndefined(204)
