@@ -1,4 +1,4 @@
-import { FindConditions, FindOneOptions, getRepository } from "typeorm";
+import { getRepository } from "typeorm";
 import { TOTP, Secret } from "otpauth";
 
 import Contact from "@models/Contact";
@@ -10,11 +10,10 @@ import { CreateContactMfaData } from "@api/data/ContactData/interface";
  * Contact multi factor authentication service
  */
 class ContactMfaService {
-
   /**
    * Get contact MFA by contact
    * @param contact The contact
-   * @returns 
+   * @returns
    */
   async get(contact: Contact): Promise<ContactMfa | undefined> {
     const mfa = await getRepository(ContactMfa).findOne({
@@ -29,8 +28,8 @@ class ContactMfaService {
 
   /**
    * Get contact MFA by MFA ID
-   * @param id 
-   * @returns 
+   * @param id
+   * @returns
    */
   async getById(id: string): Promise<ContactMfa | undefined> {
     const mfa = await getRepository(ContactMfa).findOne(id);
@@ -41,7 +40,7 @@ class ContactMfaService {
    * Create contact MFA
    * @param contact The contact
    * @param data The mfa data
-   * @returns 
+   * @returns
    */
   async create(contact: Contact, data: CreateContactMfaData) {
     const isValid = this.validateToken(data.secret, data.token);
