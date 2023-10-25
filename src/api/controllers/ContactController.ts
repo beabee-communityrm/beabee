@@ -284,7 +284,7 @@ export class ContactController {
 
   /**
    * Get contact multi factor authentication if exists
-   * @param target The target contact (which is the current user)
+   * @param target The target contact (which is the current user or admin)
    */
   @Get("/:id/mfa")
   async getContactMfa(
@@ -296,7 +296,7 @@ export class ContactController {
 
   /**
    * Create contact multi factor authentication
-   * @param target The target contact (which is the current user)
+   * @param target The target contact (which is the current user or admin)
    * @param data The data to create the contact multi factor authentication
    */
   @Post("/:id/mfa")
@@ -310,7 +310,7 @@ export class ContactController {
 
   /**
    * Delete contact multi factor authentication
-   * @param target The target contact (which is the current user)
+   * @param target The target contact (which is the current user or admin)
    */
   @Delete("/:id/mfa")
   async deleteContactMfa(@TargetUser() target: Contact): Promise<null> {
@@ -337,8 +337,13 @@ export class ContactController {
     return await this.getContribution(target);
   }
 
-  // This is a temporary API endpoint until we rework the contribution/payment tables
-  // TODO: Remove this!
+  /**
+   * TODO: Remove this!
+   * @deprecated This is a temporary API endpoint until we rework the contribution/payment tables
+   * @param target
+   * @param data
+   * @returns
+   */
   @Authorized("admin")
   @Patch("/:id/contribution/force")
   async forceUpdateContribution(

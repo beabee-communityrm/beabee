@@ -9,9 +9,11 @@ import { ContactMfaType } from "../api/data/ContactData/interface";
 
 import type Contact from "./Contact";
 
-/** Contact multi factor authentication information */
+/**
+ * The **unsecure** contact multi factor authentication information with the `secret` key
+ **/
 @Entity()
-export default class ContactMfa {
+export class ContactMfa {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
@@ -28,3 +30,10 @@ export default class ContactMfa {
   @Column({ default: "" })
   secret!: string;
 }
+
+/**
+ * The **secure** contact multi factor authentication information without the `secret` key
+ */
+export type ContactMfaSecure = Pick<ContactMfa, "id" | "type">;
+
+export default ContactMfa;

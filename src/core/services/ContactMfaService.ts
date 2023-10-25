@@ -1,8 +1,8 @@
 import { getRepository } from "typeorm";
-import { TOTP, Secret } from "otpauth";
 
 import Contact from "@models/Contact";
-import ContactMfa from "@models/ContactMfa";
+import { ContactMfa, ContactMfaSecure } from "@models/ContactMfa";
+import { validateTotpToken } from "@core/utils/auth";
 
 import { CreateContactMfaData } from "@api/data/ContactData/interface";
 
@@ -11,11 +11,14 @@ import { CreateContactMfaData } from "@api/data/ContactData/interface";
  */
 class ContactMfaService {
   /**
-   * Get contact MFA by contact
+   * Get contact MFA by contact.
+   * ### ATTENTION
+   * This method is unsecure because it contains the `secret` key.
+   * Please only use them if you know what you are doing.
    * @param contact The contact
-   * @returns
+   * @returns The **insecure** contact MFA with the `secret` key
    */
-  async get(contact: Contact): Promise<ContactMfa | undefined> {
+  async getInsecure(contact: Contact): Promise<ContactMfa | null> {
     const mfa = await getRepository(ContactMfa).findOne({
       where: {
         contact: {
@@ -23,17 +26,40 @@ class ContactMfaService {
         }
       }
     });
-    return mfa;
+    return mfa || null;
   }
 
   /**
-   * Get contact MFA by MFA ID
-   * @param id
-   * @returns
+   * Get contact MFA by contact.
+   * @param contact The contact
+   * @returns The **secure** contact MFA without the `secret` key
    */
-  async getById(id: string): Promise<ContactMfa | undefined> {
+  async get(contact: Contact): Promise<ContactMfaSecure | null> {
+    const mfa = await this.getInsecure(contact);
+    return this.makeSecure(mfa);
+  }
+
+  /**
+   * Get contact MFA by MFA ID.
+   * ### ATTENTION
+   * This method is unsecure because it contains the `secret` key.
+   * Please only use them if you know what you are doing.
+   * @param id The MFA ID (not the contact ID)
+   * @returns The **insecure** contact MFA with the `secret` key
+   */
+  async getByIdInsecure(id: string): Promise<ContactMfa | null> {
     const mfa = await getRepository(ContactMfa).findOne(id);
-    return mfa;
+    return mfa || null;
+  }
+
+  /**
+   * Get contact MFA by MFA ID.
+   * @param id The MFA ID (not the contact ID)
+   * @returns The **secure** contact MFA without the `secret` key
+   */
+  async getById(id: string): Promise<ContactMfaSecure | null> {
+    const mfa = await this.getByIdInsecure(id);
+    return this.makeSecure(mfa);
   }
 
   /**
@@ -43,7 +69,9 @@ class ContactMfaService {
    * @returns
    */
   async create(contact: Contact, data: CreateContactMfaData) {
-    const isValid = this.validateToken(data.secret, data.token);
+    // Validate the token to make sure the user has entered the correct token
+    // For the creation we allow two steps behind the current time if the user is slow
+    const { isValid } = validateTotpToken(data.secret, data.token, 2);
 
     if (!isValid) {
       throw new Error("Invalid token");
@@ -71,23 +99,38 @@ class ContactMfaService {
   }
 
   /**
-   * Validate 2FA TOTP token
-   * @param secret The secret key encoded in base32
-   * @param token The token to validate
-   * @returns `true` if valid, `false` otherwise
+   * Check if the MFA token is valid for the contact
+   * @param contact The contact
+   * @param token The user's token
+   * @param window The larger this value is, the greater the time difference between the user and server that will be tolerated, but it also becomes increasingly less secure.
+   * @returns
    */
-  validateToken(secret: string, token: string) {
-    const totp = new TOTP({
-      secret: Secret.fromBase32(secret)
-    });
+  async checkToken(contact: Contact, token: string, window = 1) {
+    const mfa = await this.getInsecure(contact);
+    if (!mfa) {
+      return {
+        isValid: true,
+        delta: null
+      };
+    }
+    return validateTotpToken(mfa.secret, token, window);
+  }
 
-    const delta = totp.validate({ token });
-
-    // To check if the authenticator works it should be enough to check if the token is max. two steps behind the current time
-    // E.g. if the user needs longer to click on save, the token is still valid
-    const isValid = delta !== null && delta <= 0 && delta >= -2;
-
-    return isValid;
+  /**
+   * Make contact MFA secure by removing the secret key.
+   * @param mfa
+   * @returns
+   */
+  private makeSecure(
+    mfa?: ContactMfa | null
+  ): Pick<ContactMfa, "id" | "type"> | null {
+    if (!mfa) {
+      return null;
+    }
+    return {
+      id: mfa.id,
+      type: mfa.type
+    };
   }
 }
 

@@ -41,7 +41,7 @@ npm install
 npm run build
 docker compose build
 
-# Initialize database
+# Initialise database
 docker compose up -d db
 docker compose run --rm app npm run typeorm migration:run
 

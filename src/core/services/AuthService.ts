@@ -15,6 +15,9 @@ async function isValidApiKey(key: string): Promise<boolean> {
 }
 
 class AuthService {
+  /**
+   * Check if the request is authenticated.
+   */
   async check(request: Request): Promise<true | Contact | undefined> {
     const headers = request.headers;
     const authHeader = headers.authorization;
@@ -30,6 +33,8 @@ class AuthService {
       // Otherwise use logged in user
       return request.user;
     }
+
+    return undefined; // Not authenticated
   }
 }
 

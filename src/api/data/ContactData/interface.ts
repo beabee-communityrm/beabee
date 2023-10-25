@@ -18,11 +18,13 @@ import {
   Validate,
   ValidateNested
 } from "class-validator";
+import type { IVerifyOptions } from "passport-local";
 
 import { ContributionInfo } from "@core/utils";
 
 import IsPassword from "@api/validators/IsPassword";
 
+import Contact from "@models/Contact";
 import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
@@ -227,6 +229,33 @@ export enum ContactMfaType {
   TOTP = "totp"
   // E.g. U2F, EMAIL, SMS, HOTP, etc.
 }
+
+/**
+ * Login codes
+ * TODO: Move to common
+ */
+export enum LOGIN_CODES {
+  LOCKED = "account-locked",
+  LOGGED_IN = "logged-in",
+  LOGIN_FAILED = "login-failed",
+  REQUIRES_2FA = "requires-2fa",
+  UNSUPPORTED_2FA = "unsupported-2fa",
+  WRONG_2FA_TOKEN = "wrong-2fa-token"
+}
+
+export interface PassportLoginInfo {
+  message: LOGIN_CODES;
+}
+
+export type PassportLocalVerifyFunction = IVerifyOptions & {
+  message: LOGIN_CODES | string;
+};
+
+export type PassportLocalDoneCallback = (
+  error: null,
+  user: Contact | false,
+  options?: PassportLocalVerifyFunction | undefined
+) => void;
 
 /**
  * Contact multi factor authentication data
