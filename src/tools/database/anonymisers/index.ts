@@ -13,8 +13,7 @@ import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import {
   CalloutComponentSchema,
-  CalloutResponseAnswers,
-  flattenComponents
+  CalloutResponseAnswers
 } from "@beabee/beabee-common";
 
 import {
@@ -78,9 +77,10 @@ function writeItems<T>(model: EntityTarget<T>, items: T[]) {
 function createAnswersMap(
   components: CalloutComponentSchema[]
 ): ObjectMap<CalloutResponseAnswers> {
-  return Object.fromEntries(
-    components.map((c) => [c.key, createComponentAnonymiser(c)])
-  );
+  // return Object.fromEntries(
+  //   components.map((c) => [c.key, createComponentAnonymiser(c)])
+  // );
+  return {};
 }
 
 async function anonymiseCalloutResponses(
@@ -92,7 +92,7 @@ async function anonymiseCalloutResponses(
   const callouts = await createQueryBuilder(Callout, "callout").getMany();
   for (const callout of callouts) {
     const answersMap = createAnswersMap(
-      flattenComponents(callout.formSchema.components)
+      [] // TODO
     );
 
     const responses = await fn(createQueryBuilder(CalloutResponse, "item"))

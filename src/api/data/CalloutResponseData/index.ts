@@ -1,15 +1,16 @@
 import {
   Paginated,
   calloutResponseFilters,
-  FilterType,
-  convertComponentsToFilters,
   RuleOperator,
   Filters,
-  flattenComponents,
   stringifyAnswer,
   CalloutResponseAnswerFileUpload,
   CalloutResponseAnswerAddress,
-  CalloutResponseAnswers
+  CalloutResponseAnswers,
+  getCalloutFilters,
+  CalloutFormSchema,
+  CalloutResponseAnswer,
+  getCalloutComponents
 } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
@@ -17,7 +18,7 @@ import { NotFoundError } from "routing-controllers";
 import { In, createQueryBuilder, getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-import Callout from "@models/Callout";
+import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
@@ -84,52 +85,49 @@ function convertResponseToData(
 }
 
 function convertResponsesToMapData(
-  callout: Callout,
+  formSchema: CalloutFormSchema,
+  { titleProp, imageProp, map }: CalloutResponseViewSchema,
   responses: CalloutResponse[]
 ): GetCalloutResponseMapData[] {
-  if (!callout.responseViewSchema) {
-    throw new Error(
-      "Tried to convert response to map data without response view schema"
-    );
-  }
-
-  const { titleProp, imageProp, map } = callout.responseViewSchema;
-
-  const components = flattenComponents(callout.formSchema.components).filter(
-    (c) => !c.adminOnly
-  );
-
-  const titleComponent =
-    titleProp && components.find((c) => c.key === titleProp);
-
   return responses.map((response) => {
-    // Copy valid answers over (should be non-admin only answers))
-    const answers: CalloutResponseAnswers = {};
-    for (const component of components) {
-      const answer = response.answers[component.key];
+    let title = "",
+      images: CalloutResponseAnswer[] = [],
+      address: CalloutResponseAnswer | undefined;
+
+    const answers: CalloutResponseAnswers = Object.fromEntries(
+      formSchema.slides.map((slide) => [slide.id, {}])
+    );
+
+    for (const component of getCalloutComponents(formSchema)) {
+      // Skip components that shouldn't be displayed publicly
+      if (component.adminOnly) {
+        continue;
+      }
+
+      const slideAnswers = answers[component.slideId];
+      const answer = response.answers[component.slideId]?.[component.key];
       if (answer) {
-        answers[component.key] = answer;
+        // answers[slideId] will definitely be defined
+        answers[component.slideId]![component.key] = answer;
+      }
+
+      // Extract title, address and image answers
+      if (component.fullKey === titleProp) {
+        title = stringifyAnswer(component, answer);
+      }
+      if (component.fullKey === map?.addressProp) {
+        address = Array.isArray(answer) ? answer[0] : answer;
+      }
+      if (component.fullKey === imageProp) {
+        images = Array.isArray(answer) ? answer : [answer];
       }
     }
-
-    const title = titleComponent
-      ? stringifyAnswer(titleComponent, answers[titleProp])
-      : "";
-
-    const photoAnswer = answers[imageProp];
-    const photos = photoAnswer
-      ? Array.isArray(photoAnswer)
-        ? photoAnswer
-        : [photoAnswer]
-      : [];
-
-    const address = map?.addressProp && response.answers[map.addressProp];
 
     return {
       number: response.number,
       answers,
       title,
-      photos: photos as CalloutResponseAnswerFileUpload[], // TODO: ensure type?
+      photos: images as CalloutResponseAnswerFileUpload[], // TODO: ensure type?
       ...(address && {
         address: address as CalloutResponseAnswerAddress // TODO: ensure type?
       })
@@ -203,44 +201,46 @@ const answerArrayOperators: Partial<
   is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
 };
 
-function answerField(type: FilterType, fieldPrefix: string): string {
-  switch (type) {
-    case "number":
-      return `(${fieldPrefix}answers -> :p)::numeric`;
-    case "boolean":
-      return `(${fieldPrefix}answers -> :p)::boolean`;
-    default:
-      return `${fieldPrefix}answers ->> :p`;
-  }
-}
-
 const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
+  const answerField = `${args.fieldPrefix}answers -> :s -> :k`;
+
   if (args.type === "array") {
     const operatorFn = answerArrayOperators[args.operator];
     if (!operatorFn) {
       // Shouln't be able to happen as rule has been validated
       throw new Error("Invalid ValidatedRule");
     }
-    qb.where(args.suffixFn(operatorFn(`${args.fieldPrefix}answers -> :p`)));
+    qb.where(args.suffixFn(operatorFn(answerField)));
     // is_empty and is_not_empty need special treatment for JSONB values
   } else if (args.operator === "is_empty" || args.operator === "is_not_empty") {
     const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
     qb.where(
       args.suffixFn(
-        `COALESCE(item.answers -> :p, 'null') ${operator} ('null', '""')`
+        `COALESCE(${answerField}, 'null') ${operator} ('null', '""')`
       )
     );
+  } else if (args.type === "number" || args.type === "boolean") {
+    const cast = args.type === "number" ? "numeric" : "boolean";
+    qb.where(args.whereFn(`(${answerField})::${cast}`));
   } else {
-    qb.where(args.whereFn(answerField(args.type, args.fieldPrefix)));
+    // Extract as text instead of JSONB (note ->> instead of ->)
+    qb.where(args.whereFn(`${args.fieldPrefix}answers -> :s ->> :k`));
   }
+
+  const [_, slideId, answerKey] = args.field.split(".");
+  return {
+    s: slideId,
+    k: answerKey
+  };
 };
 
 const calloutResponseFieldHandlers: FieldHandlers<string> = {
   answers: (qb, args) => {
     qb.where(
-      args.whereFn(
-        `(SELECT string_agg(value, '') FROM jsonb_each_text(${args.fieldPrefix}answers))`
-      )
+      args.whereFn(`(
+        SELECT string_agg(answer.value, '')
+        FROM jsonb_each(${args.fieldPrefix}answers) AS slide, jsonb_each_text(slide.value) AS answer
+      )`)
     );
   },
   tags: (qb, args) => {
@@ -269,7 +269,7 @@ function prepareFilters(
 
   // If looking for responses for a particular callout then add answer filtering
   if (callout) {
-    answerFilters = convertComponentsToFilters(callout.formSchema.components);
+    answerFilters = getCalloutFilters(callout.formSchema);
     // All handled by the same field handler
     answerFieldHandlers = Object.fromEntries(
       Object.keys(answerFilters).map((field) => [
@@ -354,7 +354,7 @@ export async function exportCalloutResponses(
     callout.title
   }_${new Date().toISOString()}.csv`;
 
-  const components = flattenComponents(callout.formSchema.components).filter(
+  const components = getCalloutComponents(callout.formSchema).filter(
     (c) => c.input
   );
 
@@ -392,7 +392,9 @@ export async function exportCalloutResponses(
         : ["", "", response.guestName, response.guestEmail]),
       !response.contact,
       comments.map(commentText).join(", "),
-      ...components.map((c) => stringifyAnswer(c, response.answers[c.key]))
+      ...components.map((c) =>
+        stringifyAnswer(c, response.answers[c.slideId]?.[c.key])
+      )
     ];
   });
 
@@ -486,7 +488,8 @@ export async function fetchPaginatedCalloutResponsesForMap(
   contact: Contact | undefined,
   callout: Callout
 ): Promise<Paginated<GetCalloutResponseMapData>> {
-  if (!callout.responseViewSchema) {
+  const responseViewSchema = callout.responseViewSchema;
+  if (!responseViewSchema) {
     throw new NotFoundError();
   }
 
@@ -501,7 +504,7 @@ export async function fetchPaginatedCalloutResponsesForMap(
     },
     {
       condition: "OR",
-      rules: callout.responseViewSchema.buckets.map((bucket) => ({
+      rules: responseViewSchema.buckets.map((bucket) => ({
         field: "bucket",
         operator: "equal",
         value: [bucket]
@@ -519,7 +522,11 @@ export async function fetchPaginatedCalloutResponsesForMap(
 
   return {
     ...results,
-    items: convertResponsesToMapData(callout, results.items)
+    items: convertResponsesToMapData(
+      callout.formSchema,
+      responseViewSchema,
+      results.items
+    )
   };
 }
 
