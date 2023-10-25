@@ -50,6 +50,7 @@ export default class Contact {
   @Column(() => Password)
   password!: Password;
 
+  /** @deprecated */
   @Column(() => OneTimePassword)
   otp!: OneTimePassword;
 
@@ -107,9 +108,9 @@ export default class Contact {
     return this.contributionMonthlyAmount === null
       ? null
       : getActualAmount(
-          this.contributionMonthlyAmount,
-          this.contributionPeriod!
-        );
+        this.contributionMonthlyAmount,
+        this.contributionPeriod!
+      );
   }
 
   get contributionDescription(): string {
@@ -122,9 +123,8 @@ export default class Contact {
     ) {
       return "None";
     } else {
-      return `${config.currencySymbol}${this.contributionAmount}/${
-        this.contributionPeriod === "monthly" ? "month" : "year"
-      }`;
+      return `${config.currencySymbol}${this.contributionAmount}/${this.contributionPeriod === "monthly" ? "month" : "year"
+        }`;
     }
   }
 
