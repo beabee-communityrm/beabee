@@ -162,7 +162,10 @@ app.post(
         break;
       case "add-contacts":
         await getRepository(ProjectContact).insert(
-          data.contactIds.map((contactId) => ({ project, contactId }))
+          data.contactIds.map((contactId) => ({
+            project,
+            contact: { id: contactId }
+          }))
         );
         req.flash("success", "project-members-added");
         res.redirect(req.originalUrl);
