@@ -18,11 +18,16 @@ import {
   Validate,
   ValidateNested
 } from "class-validator";
-import type { IVerifyOptions } from "passport-local";
+import { HttpError } from "routing-controllers";
+import type {
+  IVerifyOptions,
+  IStrategyOptionsWithRequest
+} from "passport-local";
 
 import { ContributionInfo } from "@core/utils";
 
 import IsPassword from "@api/validators/IsPassword";
+import type { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
 import Address from "@models/Address";
@@ -247,14 +252,16 @@ export interface PassportLoginInfo {
   message: LOGIN_CODES;
 }
 
-export type PassportLocalVerifyFunction = IVerifyOptions & {
+export type PassportLocalStrategyOptions = IStrategyOptionsWithRequest;
+
+export type PassportLocalVerifyOptions = IVerifyOptions & {
   message: LOGIN_CODES | string;
 };
 
 export type PassportLocalDoneCallback = (
-  error: null,
+  error: null | HttpError | UnauthorizedError,
   user: Contact | false,
-  options?: PassportLocalVerifyFunction | undefined
+  options?: PassportLocalVerifyOptions | undefined
 ) => void;
 
 /**

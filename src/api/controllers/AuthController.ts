@@ -34,7 +34,7 @@ import {
 
 import config from "@config";
 
-class LoginData {
+export class LoginData {
   @IsEmail()
   email!: string;
 
@@ -56,18 +56,26 @@ export class AuthController {
   async login(
     @Req() req: Request,
     @Res() res: Response,
-    /**
-     * `email` and `password` just used for validation (email and password are in passport strategy)
-     * `token` is used for multi factor authentication
-     */
-    @Body() data: LoginData
+    /** Just used for validation (`email`, `password` and `req.data.token` are in passport strategy) */
+    @Body() _: LoginData
   ): Promise<void> {
     const user = await new Promise<Contact>((resolve, reject) => {
       passport.authenticate(
         "local",
-        async (err: null, user: Contact | false, info?: PassportLoginInfo) => {
+        async (
+          err: null | HttpError | UnauthorizedError,
+          user: Contact | false,
+          info?: PassportLoginInfo
+        ) => {
+          // Forward HTTP errors
+          if (err) {
+            if (err instanceof HttpError || (err as UnauthorizedError).code) {
+              return reject(err);
+            }
+          }
+
+          // Unknown errors
           if (err || !user) {
-            // Unknown error
             return reject(
               new UnauthorizedError({
                 code: info?.message || LOGIN_CODES.LOGIN_FAILED
@@ -75,37 +83,13 @@ export class AuthController {
             );
           }
 
-          // If user has 2FA enabled, check token
-          if (info?.message === LOGIN_CODES.REQUIRES_2FA) {
-            // If user has no token, notify client that 2FA is required
-            if (!data.token) {
-              return reject(
-                new UnauthorizedError({ code: LOGIN_CODES.REQUIRES_2FA })
-              );
-            }
-
-            // Check token
-            const { isValid, delta } = await ContactMfaService.checkToken(
-              user,
-              data.token,
-              1
-            );
-            if (!isValid) {
-              return reject(
-                new UnauthorizedError({
-                  code: LOGIN_CODES.INVALID_TOKEN,
-                  message:
-                    "Invalid 2FA token" + delta ? ` (delta: ${delta})` : ""
-                })
-              );
-            }
-          }
-
+          // Looks good, return user
           resolve(user);
         }
       )(req, res);
     });
 
+    // If there is no error thrown, login
     await login(req, user); // Why do we have to login after authenticate?
   }
 

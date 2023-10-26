@@ -12,11 +12,13 @@ import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
 import ContactMfaService from "@core/services/ContactMfaService";
 
+import { LoginData } from "@api/controllers/AuthController";
 import {
   ContactMfaType,
   LOGIN_CODES,
   PassportLocalDoneCallback
 } from "@api/data/ContactData/interface";
+import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
 
@@ -24,9 +26,16 @@ import Contact from "@models/Contact";
 passport.use(
   new passportLocal.Strategy(
     {
-      usernameField: "email"
+      usernameField: "email",
+      passReqToCallback: true
     },
-    async function (email, password, done: PassportLocalDoneCallback) {
+    async function (
+      req: { body: LoginData },
+      email: LoginData["email"],
+      password: LoginData["password"],
+      done: PassportLocalDoneCallback
+    ) {
+      const token = req.body.token;
       if (email) email = cleanEmailAddress(email);
 
       const contact = await ContactsService.findOne({ email });
@@ -86,8 +95,30 @@ passport.use(
               });
             }
 
-            // Please see AuthController for the rest of this authentication flow
-            return done(null, contact, { message: LOGIN_CODES.REQUIRES_2FA });
+            // If user has no token, notify client that 2FA is required
+            if (!token) {
+              return done(
+                new UnauthorizedError({ code: LOGIN_CODES.REQUIRES_2FA }),
+                false
+              );
+            }
+
+            // Check token
+            const { isValid, delta } = await ContactMfaService.checkToken(
+              contact,
+              token,
+              1
+            );
+            if (!isValid) {
+              return done(
+                new UnauthorizedError({
+                  code: LOGIN_CODES.INVALID_TOKEN,
+                  message:
+                    "Invalid 2FA token" + delta ? ` (delta: ${delta})` : ""
+                }),
+                false
+              );
+            }
           }
 
           // User is logged in
