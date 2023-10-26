@@ -25,14 +25,6 @@ interface LoginOverride {
   expires: Date;
 }
 
-class OneTimePassword {
-  @Column({ type: String, nullable: true })
-  key!: string | null;
-
-  @Column({ default: false })
-  activated!: boolean;
-}
-
 @Entity()
 export default class Contact {
   @PrimaryGeneratedColumn("uuid")
@@ -49,10 +41,6 @@ export default class Contact {
 
   @Column(() => Password)
   password!: Password;
-
-  /** @deprecated This is used in the legacy frontend, use the `ContactMfa` model / table instead for the new frontend */
-  @Column(() => OneTimePassword)
-  otp!: OneTimePassword;
 
   @CreateDateColumn()
   joined!: Date;

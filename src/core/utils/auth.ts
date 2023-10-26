@@ -54,20 +54,6 @@ export const validateTotpToken = (
   };
 };
 
-/**
- * Used for generating an OTP secret for 2FA
- * @returns a base32 encoded string of random bytes
- * @deprecated This is the old implementation, use {@link validateTotpToken} instead.
- */
-export function generateOTPSecret(): Promise<string> {
-  return new Promise((resolve) => {
-    crypto.randomBytes(16, function (ex, raw) {
-      const secret = Buffer.from(raw);
-      resolve(secret.toString("base64").replace(/=/g, ""));
-    });
-  });
-}
-
 export function generateCode(): string {
   return crypto.randomBytes(10).toString("hex");
 }
@@ -151,15 +137,7 @@ export async function generatePassword(password: string): Promise<Password> {
 export function loggedIn(req: Request): AuthenticationStatus {
   // Is the user logged in?
   if (req.isAuthenticated() && req.user) {
-    // Is the user active
-    if (
-      !req.user.otp.activated ||
-      (req.user.otp.activated && req.session.method == "totp")
-    ) {
-      return AuthenticationStatus.LOGGED_IN;
-    } else {
-      return AuthenticationStatus.REQUIRES_2FA;
-    }
+    return AuthenticationStatus.LOGGED_IN;
   } else {
     return AuthenticationStatus.NOT_LOGGED_IN;
   }

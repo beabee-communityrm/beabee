@@ -12,10 +12,3 @@ block contents
 			+page_header( title )
 			form( method="post" ).form-horizontal
 				+csrf
-				if member.otp.activated
-					.form-group
-						.col-md-12
-							p Are you sure you want to disable 2FA on this user account, the user will be notified.
-							button.btn.btn-danger Yes, disable 2FA on this account
-				else
-					p This user does not have two factor authentication enabled. It can only be enabled by the user once they've logged in.

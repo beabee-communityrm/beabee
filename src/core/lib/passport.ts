@@ -1,6 +1,5 @@
 import passport from "passport";
 import passportLocal from "passport-local";
-import passportTotp from "passport-totp";
 import { getRepository } from "typeorm";
 
 import config from "@config";
@@ -75,10 +74,6 @@ passport.use(
             });
           }
 
-          if (contact.otp.key) {
-            log.warn("The user has the old 2FA enabled.");
-          }
-
           const mfa = await ContactMfaService.get(contact);
 
           // Check if multi factor authentication is enabled and supported
@@ -109,23 +104,6 @@ passport.use(
       // Delay by 1 second to slow down password guessing
       await sleep(1000);
       return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
-    }
-  )
-);
-
-// Add support for TOTP authentication in Passport.js
-// This is used for 2FA in the legacy frontend
-passport.use(
-  new passportTotp.Strategy(
-    {
-      window: 1
-    },
-    function (_user, done) {
-      const user = _user as Contact;
-      if (user.otp.key) {
-        return done(null, Buffer.from(user.otp.key, "base64").toString(), 30);
-      }
-      return done(null, false);
     }
   )
 );
