@@ -61,7 +61,7 @@ passport.use(
           contact.password.iterations
         );
 
-        // Check if password matches
+        // Check if password hash matches
         if (hash === contact.password.hash) {
           // Reset tries
           if (tries > 0) {
@@ -103,12 +103,14 @@ passport.use(
               );
             }
 
-            // Check token
+            // Check token..
             const { isValid, delta } = await ContactMfaService.checkToken(
               contact,
               token,
               1
             );
+
+            // .. if invalid notify client
             if (!isValid) {
               return done(
                 new UnauthorizedError({
@@ -121,7 +123,7 @@ passport.use(
             }
           }
 
-          // User is logged in
+          // User is logged in with or without 2FA
           return done(null, contact, { message: LOGIN_CODES.LOGGED_IN });
         } else {
           // If password doesn't match, increment tries and save
