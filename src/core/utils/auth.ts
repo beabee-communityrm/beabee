@@ -143,7 +143,11 @@ export async function generatePassword(password: string): Promise<Password> {
   };
 }
 
-// Checks the user is logged in and activated.
+/**
+ * Checks the user is logged in and activated.
+ * @param req
+ * @returns
+ */
 export function loggedIn(req: Request): AuthenticationStatus {
   // Is the user logged in?
   if (req.isAuthenticated() && req.user) {
@@ -161,7 +165,11 @@ export function loggedIn(req: Request): AuthenticationStatus {
   }
 }
 
-// Checks if the user has an active admin or superadmin privilege
+/**
+ * Checks if the user has an active admin or superadmin privilege
+ * @param req
+ * @returns
+ */
 export function canAdmin(req: Request): AuthenticationStatus {
   // Check user is logged in
   const status = loggedIn(req);
@@ -173,7 +181,11 @@ export function canAdmin(req: Request): AuthenticationStatus {
   return AuthenticationStatus.NOT_ADMIN;
 }
 
-// Checks if the user has an active superadmin privilege
+/**
+ * Checks if the user has an active superadmin privilege
+ * @param req
+ * @returns
+ */
 export function canSuperAdmin(req: Request): AuthenticationStatus {
   // Check user is logged in
   const status = loggedIn(req);
@@ -202,7 +214,17 @@ export function handleNotAuthed(
       return;
   }
 }
-// Checks password meets requirements
+//
+/**
+ * Checks password meets requirements.
+ * The requirements are:
+ * - At least 8 characters
+ * - At least 1 number
+ * - At least 1 uppercase letter
+ * - At least 1 lowercase letter
+ * @param password
+ * @returns
+ */
 export function passwordRequirements(password: string): string | true {
   if (!password) return "password-err-length";
 

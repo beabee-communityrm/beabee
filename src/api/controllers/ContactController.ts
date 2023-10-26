@@ -82,7 +82,6 @@ import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-import { log } from "console";
 
 /**
  * The target user can either be the current user or for admins
@@ -299,23 +298,23 @@ export class ContactController {
    * @param target The target contact (which is the current user or admin)
    * @param data The data to create the contact multi factor authentication
    */
+  @OnUndefined(201)
   @Post("/:id/mfa")
   async createContactMfa(
     @Body() data: CreateContactMfaData,
     @TargetUser() target: Contact
-  ): Promise<CreateContactMfaData> {
-    await validateOrReject(data);
-    return await ContactMfaService.create(target, data);
+  ): Promise<void> {
+    await ContactMfaService.create(target, data);
   }
 
   /**
    * Delete contact multi factor authentication
    * @param target The target contact (which is the current user or admin)
    */
+  @OnUndefined(201)
   @Delete("/:id/mfa")
-  async deleteContactMfa(@TargetUser() target: Contact): Promise<null> {
+  async deleteContactMfa(@TargetUser() target: Contact): Promise<void> {
     await ContactMfaService.delete(target);
-    return null; // Without this, the response an error
   }
 
   @OnUndefined(204)

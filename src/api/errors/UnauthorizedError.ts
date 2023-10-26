@@ -8,6 +8,7 @@ export class UnauthorizedError extends _UnauthorizedError {
 
   constructor({ message, code }: { message?: string; code?: string } = {}) {
     super(message);
+    Object.setPrototypeOf(this, UnauthorizedError.prototype);
     this.code = code;
   }
 }

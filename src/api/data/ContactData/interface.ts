@@ -240,7 +240,7 @@ export enum LOGIN_CODES {
   LOGIN_FAILED = "login-failed",
   REQUIRES_2FA = "requires-2fa",
   UNSUPPORTED_2FA = "unsupported-2fa",
-  WRONG_2FA_TOKEN = "wrong-2fa-token"
+  INVALID_TOKEN = "invalid-token"
 }
 
 export interface PassportLoginInfo {

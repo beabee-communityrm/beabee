@@ -93,8 +93,9 @@ export class AuthController {
             if (!isValid) {
               return reject(
                 new UnauthorizedError({
-                  code: LOGIN_CODES.WRONG_2FA_TOKEN,
-                  message: "Wrong 2FA token" + delta ? ` (delta: ${delta})` : ""
+                  code: LOGIN_CODES.INVALID_TOKEN,
+                  message:
+                    "Invalid 2FA token" + delta ? ` (delta: ${delta})` : ""
                 })
               );
             }

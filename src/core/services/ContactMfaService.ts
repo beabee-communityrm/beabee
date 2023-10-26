@@ -1,8 +1,10 @@
 import { getRepository } from "typeorm";
+import { BadRequestError, NotFoundError } from "routing-controllers";
 
 import Contact from "@models/Contact";
 import { ContactMfa, ContactMfaSecure } from "@models/ContactMfa";
 import { validateTotpToken } from "@core/utils/auth";
+import { LOGIN_CODES } from "@api/data/ContactData/interface";
 
 import { CreateContactMfaData } from "@api/data/ContactData/interface";
 
@@ -12,44 +14,12 @@ import { CreateContactMfaData } from "@api/data/ContactData/interface";
 class ContactMfaService {
   /**
    * Get contact MFA by contact.
-   * ### ATTENTION
-   * This method is unsecure because it contains the `secret` key.
-   * Please only use them if you know what you are doing.
-   * @param contact The contact
-   * @returns The **insecure** contact MFA with the `secret` key
-   */
-  async getInsecure(contact: Contact): Promise<ContactMfa | null> {
-    const mfa = await getRepository(ContactMfa).findOne({
-      where: {
-        contact: {
-          id: contact.id
-        }
-      }
-    });
-    return mfa || null;
-  }
-
-  /**
-   * Get contact MFA by contact.
    * @param contact The contact
    * @returns The **secure** contact MFA without the `secret` key
    */
   async get(contact: Contact): Promise<ContactMfaSecure | null> {
     const mfa = await this.getInsecure(contact);
     return this.makeSecure(mfa);
-  }
-
-  /**
-   * Get contact MFA by MFA ID.
-   * ### ATTENTION
-   * This method is unsecure because it contains the `secret` key.
-   * Please only use them if you know what you are doing.
-   * @param id The MFA ID (not the contact ID)
-   * @returns The **insecure** contact MFA with the `secret` key
-   */
-  async getByIdInsecure(id: string): Promise<ContactMfa | null> {
-    const mfa = await getRepository(ContactMfa).findOne(id);
-    return mfa || null;
   }
 
   /**
@@ -74,7 +44,7 @@ class ContactMfaService {
     const { isValid } = validateTotpToken(data.secret, data.token, 2);
 
     if (!isValid) {
-      throw new Error("Invalid token");
+      throw new BadRequestError(LOGIN_CODES.INVALID_TOKEN);
     }
 
     const mfa = await getRepository(ContactMfa).save({
@@ -92,7 +62,7 @@ class ContactMfaService {
     const mfa = await this.get(contact);
 
     if (!mfa) {
-      throw new Error("Contact has no MFA");
+      throw new NotFoundError("Contact has no MFA");
     }
 
     await getRepository(ContactMfa).delete(mfa.id);
@@ -114,6 +84,42 @@ class ContactMfaService {
       };
     }
     return validateTotpToken(mfa.secret, token, window);
+  }
+
+  /**
+   * Get contact MFA by contact.
+   *
+   * ### ATTENTION
+   * This method is unsecure because it contains the `secret` key.
+   * Please only use them if you know what you are doing.
+   *
+   * @param contact The contact
+   * @returns The **insecure** contact MFA with the `secret` key
+   */
+  private async getInsecure(contact: Contact): Promise<ContactMfa | null> {
+    const mfa = await getRepository(ContactMfa).findOne({
+      where: {
+        contact: {
+          id: contact.id
+        }
+      }
+    });
+    return mfa || null;
+  }
+
+  /**
+   * Get contact MFA by MFA ID.
+   *
+   * ### ATTENTION
+   * This method is unsecure because it contains the `secret` key.
+   * Please only use them if you know what you are doing.
+   *
+   * @param id The MFA ID (not the contact ID)
+   * @returns The **insecure** contact MFA with the `secret` key
+   */
+  private async getByIdInsecure(id: string): Promise<ContactMfa | null> {
+    const mfa = await getRepository(ContactMfa).findOne(id);
+    return mfa || null;
   }
 
   /**
