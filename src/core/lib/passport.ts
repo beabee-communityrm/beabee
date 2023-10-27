@@ -11,6 +11,7 @@ import { generatePassword, hashPassword } from "@core/utils/auth";
 import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
 import ContactMfaService from "@core/services/ContactMfaService";
+import { ContactMfaSecure } from "@models/ContactMfa";
 
 import { LoginData } from "@api/controllers/AuthController";
 import {
@@ -83,47 +84,13 @@ passport.use(
             });
           }
 
+          // Check MFA
           const mfa = await ContactMfaService.get(contact);
-
-          // Check if multi factor authentication is enabled and supported
           if (mfa) {
-            if (mfa.type !== ContactMfaType.TOTP) {
-              log.warn("The user has unsupported 2FA enabled.");
-              // We pass the contact to the done callback so the user can be logged in and the 2FA is ignored
-              return done(null, contact, {
-                message: LOGIN_CODES.UNSUPPORTED_2FA
-              });
-            }
-
-            // If user has no token, notify client that 2FA is required
-            if (!token) {
-              return done(
-                new UnauthorizedError({ code: LOGIN_CODES.REQUIRES_2FA }),
-                false
-              );
-            }
-
-            // Check token..
-            const { isValid, delta } = await ContactMfaService.checkToken(
-              contact,
-              token,
-              1
-            );
-
-            // .. if invalid notify client
-            if (!isValid) {
-              return done(
-                new UnauthorizedError({
-                  code: LOGIN_CODES.INVALID_TOKEN,
-                  message:
-                    "Invalid 2FA token" + delta ? ` (delta: ${delta})` : ""
-                }),
-                false
-              );
-            }
+            return loginWithMfa(mfa, contact, token, done);
           }
 
-          // User is logged in with or without 2FA
+          // User is logged in without 2FA
           return done(null, contact, { message: LOGIN_CODES.LOGGED_IN });
         } else {
           // If password doesn't match, increment tries and save
@@ -140,6 +107,57 @@ passport.use(
     }
   )
 );
+
+/**
+ * Check if multi factor authentication is enabled and supported
+ * @param mfa The multi factor authentication information
+ * @param contact The contact
+ * @param token The multi factor authentication token
+ * @param done The passport done callback
+ */
+const loginWithMfa = async (
+  mfa: ContactMfaSecure,
+  contact: Contact,
+  token: LoginData["token"],
+  done: PassportLocalDoneCallback
+) => {
+  if (mfa.type !== ContactMfaType.TOTP) {
+    log.warn("The user has unsupported 2FA enabled.");
+    // We pass the contact to the done callback so the user can be logged in and the 2FA is ignored
+    return done(null, contact, {
+      message: LOGIN_CODES.UNSUPPORTED_2FA
+    });
+  }
+
+  // If user has no token, notify client that 2FA is required
+  if (!token) {
+    return done(
+      new UnauthorizedError({ code: LOGIN_CODES.REQUIRES_2FA }),
+      false
+    );
+  }
+
+  // Check token..
+  const { isValid, delta } = await ContactMfaService.checkToken(
+    contact,
+    token,
+    1
+  );
+
+  // .. if invalid notify client
+  if (!isValid) {
+    return done(
+      new UnauthorizedError({
+        code: LOGIN_CODES.INVALID_TOKEN,
+        message: "Invalid 2FA token" + delta ? ` (delta: ${delta})` : ""
+      }),
+      false
+    );
+  }
+
+  // Looks good, return user
+  return done(null, contact, { message: LOGIN_CODES.LOGGED_IN });
+};
 
 // Passport.js serialise user function
 passport.serializeUser(function (data, done) {
