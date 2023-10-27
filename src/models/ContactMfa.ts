@@ -21,10 +21,7 @@ export class ContactMfa {
   @JoinColumn()
   contact!: Contact;
 
-  @Column({
-    type: "enum",
-    enum: ContactMfaType
-  })
+  @Column({ type: String })
   type!: ContactMfaType;
 
   @Column({ default: "" })
