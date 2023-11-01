@@ -92,10 +92,11 @@ class PaymentService {
 
   async canChangeContribution(
     contact: Contact,
-    useExistingPaymentSource: boolean
+    useExistingPaymentSource: boolean,
+    paymentForm: PaymentForm
   ): Promise<boolean> {
     const ret = await this.provider(contact, (p) =>
-      p.canChangeContribution(useExistingPaymentSource)
+      p.canChangeContribution(useExistingPaymentSource, paymentForm)
     );
     log.info(
       `User ${contact.id} ${ret ? "can" : "cannot"} change contribution`
