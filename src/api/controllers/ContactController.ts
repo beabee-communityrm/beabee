@@ -77,6 +77,7 @@ import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
+import { validateOrReject } from "@api/utils";
 
 // The target user can either be the current user or for admins
 // it can be any user, this decorator injects the correct target
