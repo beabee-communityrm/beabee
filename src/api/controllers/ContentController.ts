@@ -9,6 +9,7 @@ import {
 import { createQueryBuilder, getRepository } from "typeorm";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
+import PaymentService from "@core/services/PaymentService";
 import { getEmailFooter } from "@core/utils/email";
 
 import Content, { ContentId } from "@models/Content";
@@ -48,6 +49,7 @@ const contentOptions: ContentMap<[OptionKey, OptionKeyType]> = {
   ],
   join: [
     ["minMonthlyAmount", "contribution-min-monthly-amount", "int"],
+    ["paymentMethods", "contribution-payment-methods", "list"],
     ["showAbsorbFee", "show-absorb-fee", "bool"]
   ],
   "join/setup": [
@@ -78,7 +80,8 @@ const contentReadOnly: ContentMap<[() => any]> = {
   email: [["footer", getEmailFooter]],
   join: [
     ["stripePublicKey", () => config.stripe.publicKey],
-    ["stripeCountry", () => config.stripe.country]
+    ["stripeCountry", () => config.stripe.country],
+    ["availablePaymentMethods", () => PaymentService.availablePaymentMethods]
   ]
 };
 

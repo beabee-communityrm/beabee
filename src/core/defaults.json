@@ -16,6 +16,7 @@
   "support-email-from": "UK Makerspace Membership",
 
   "contribution-min-monthly-amount": "1",
+  "contribution-payment-methods": "",
   "show-absorb-fee": "true",
   "show-mail-opt-in": "",
 

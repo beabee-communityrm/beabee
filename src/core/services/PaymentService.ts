@@ -5,6 +5,8 @@ import { ContributionInfo, PaymentForm } from "@core/utils";
 import { log as mainLogger } from "@core/logging";
 import { calcRenewalDate } from "@core/utils/payment";
 
+import OptionsService from "@core/services/OptionsService";
+
 import Contact from "@models/Contact";
 import Payment from "@models/Payment";
 import PaymentData from "@models/PaymentData";
@@ -18,6 +20,8 @@ import ManualProvider from "@core/providers/payment/ManualProvider";
 import StripeProvider from "@core/providers/payment/StripeProvider";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+
+import config from "@config";
 
 const log = mainLogger.child({ app: "payment-service" });
 
@@ -41,6 +45,22 @@ export function getMembershipStatus(contact: Contact) {
 type ProviderFn<T> = (p: PaymentProvider<any>, data: PaymentData) => Promise<T>;
 
 class PaymentService {
+  availablePaymentMethods: PaymentMethod[] = [
+    ...(config.gocardless.accessToken
+      ? [PaymentMethod.GoCardlessDirectDebit]
+      : []),
+    ...(config.stripe.secretKey
+      ? [
+          PaymentMethod.StripeCard,
+          ...(config.stripe.country === "gb"
+            ? [PaymentMethod.StripeBACS]
+            : config.stripe.country == "eu"
+            ? [PaymentMethod.StripeSEPA]
+            : [])
+        ]
+      : [])
+  ];
+
   async getData(contact: Contact): Promise<PaymentData> {
     const data = await getRepository(PaymentData).findOneOrFail(contact.id);
     log.info("Loaded data for " + contact.id, { data });
@@ -170,6 +190,14 @@ class PaymentService {
 
     const data = await this.getData(contact);
     const newMethod = completedPaymentFlow.paymentMethod;
+    if (
+      !OptionsService.getList("contribution-payment-methods").includes(
+        newMethod
+      )
+    ) {
+      throw new Error("Invalid payment method " + newMethod);
+    }
+
     if (data.method !== newMethod) {
       log.info(
         "Changing payment method, cancelling any previous contribution",
