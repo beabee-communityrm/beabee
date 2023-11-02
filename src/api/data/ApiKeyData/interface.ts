@@ -1,10 +1,16 @@
-import { IsIn, IsString } from "class-validator";
+import { IsDate, IsIn, IsOptional, IsString } from "class-validator";
 import { GetContactData } from "../ContactData";
 import { GetPaginatedQuery } from "../PaginatedData";
+import { Type } from "class-transformer";
 
 export class CreateApiKeyData {
   @IsString()
   description!: string;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  expires!: Date | null;
 }
 
 export interface GetApiKeyData extends CreateApiKeyData {
@@ -15,6 +21,6 @@ export interface GetApiKeyData extends CreateApiKeyData {
 }
 
 export class GetApiKeysQuery extends GetPaginatedQuery {
-  @IsIn(["createdAt"])
+  @IsIn(["createdAt", "expires"])
   sort?: string;
 }

@@ -11,7 +11,7 @@ async function isValidApiKey(key: string): Promise<boolean> {
   const [_, secret] = key.split("_");
   const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
   const apiKey = await getRepository(ApiKey).findOne({ secretHash });
-  return !!apiKey;
+  return !!apiKey && (!apiKey.expires || apiKey.expires > new Date());
 }
 
 class AuthService {
