@@ -17,7 +17,6 @@ export interface GetApiKeyData extends CreateApiKeyData {
   id: string;
   creator: GetContactData;
   createdAt: Date;
-  secretHash: string;
 }
 
 export class GetApiKeysQuery extends GetPaginatedQuery {
