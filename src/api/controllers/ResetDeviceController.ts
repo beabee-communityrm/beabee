@@ -32,12 +32,18 @@ export class ResetDeviceController {
   @Post()
   async create(@Body() data: CreateResetDeviceData): Promise<void> {
     const contact = await ContactsService.findOne({ email: data.email });
-    if (contact) {
-      const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
-      await EmailService.sendTemplateToContact("reset-device", contact, {
-        rpLink: data.resetUrl + "/" + rpFlow.id
-      });
+    if (!contact) {
+      return
     }
+
+    // TODO: Check if contact has MFA enabled
+
+    // TODO: Check if reset password flow already exists, if so throw error
+
+    const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
+    await EmailService.sendTemplateToContact("reset-device", contact, {
+      rpLink: data.resetUrl + "/" + rpFlow.id
+    });
   }
 
   @OnUndefined(204)
@@ -51,29 +57,29 @@ export class ResetDeviceController {
       where: { id },
       relations: ["contact"]
     });
-    if (rpFlow) {
-      // Validate password
-      const isValid = await AuthService.isValidPassword(
-        rpFlow.contact.password,
-        data.password
-      );
-
-      if (!isValid) {
-        // TODO: Increment tries
-        // TODO: Error code
-        throw new UnauthorizedError();
-      }
-
-      // Disable MFA
-      await ContactMfaService.delete(rpFlow.contact);
-
-      // Stop reset flow
-      // TODO: Separate reset flow from MFA?
-      await getRepository(ResetPasswordFlow).delete(id);
-
-      await login(req, rpFlow.contact);
-    } else {
+    if (!rpFlow) {
       throw new NotFoundError();
     }
+
+    // Validate password
+    const isValid = await AuthService.isValidPassword(
+      rpFlow.contact.password,
+      data.password
+    );
+
+    if (!isValid) {
+      // TODO: Increment tries
+      // TODO: Error codes
+      throw new UnauthorizedError();
+    }
+
+    // Disable MFA
+    await ContactMfaService.delete(rpFlow.contact);
+
+    // Stop reset flow
+    // TODO: ResetPasswordFlow -> ResetSecurityFlow
+    await getRepository(ResetPasswordFlow).delete(id);
+
+    await login(req, rpFlow.contact);
   }
 }
