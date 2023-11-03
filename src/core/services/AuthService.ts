@@ -6,6 +6,11 @@ import ContactsService from "./ContactsService";
 
 import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
+import Password from "@models/Password";
+
+import { LoginData } from "@api/controllers/AuthController";
+
+import { hashPassword } from "@core/utils/auth";
 
 async function isValidApiKey(key: string): Promise<boolean> {
   const [_, secret] = key.split("_");
@@ -34,6 +39,25 @@ class AuthService {
 
     // Otherwise use logged in user
     return request.user;
+  }
+
+  /**
+   * Check if password hash matches the raw password.
+   * @param passwordData Password data from database
+   * @param passwordRaw Raw password
+   * @returns Whether the password is valid or not
+   */
+  async isValidPassword(
+    passwordData: Password,
+    passwordRaw: LoginData["password"]
+  ): Promise<boolean> {
+    const hash = await hashPassword(
+      passwordRaw,
+      passwordData.salt,
+      passwordData.iterations
+    );
+    // Check if password hash matches
+    return hash === passwordData.hash;
   }
 }
 

@@ -82,6 +82,9 @@ const contactEmailTemplates = {
   "reset-password": (_: Contact, params: { rpLink: string }) => ({
     RPLINK: params.rpLink
   }),
+  "reset-device": (_: Contact, params: { rpLink: string }) => ({
+    RPLINK: params.rpLink
+  }),
   "cancelled-contribution": (contact: Contact) => ({
     EXPIRES: contact.membership?.dateExpires
       ? moment.utc(contact.membership.dateExpires).format("dddd Do MMMM")

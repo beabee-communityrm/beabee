@@ -1,0 +1,15 @@
+---
+subject: Resetting Your Multi-Factor Authentication
+---
+
+<p>Hello *|FNAME|* *|LNAME|*,</p>
+
+<p>You've requested a reset of your multi-factor authentication. To reset your device and set up a new one, just click on the following link:</p>
+
+<p><a href="*|RPLINK|*"><strong>Reset MFA Device Now</strong></a></p>
+
+<p>If you didn't request this reset or if it was a mistake, please simply ignore this email or get in touch with us if you need support.</p>
+
+<p>The link is only valid for a short period, so don't delay too long.</p>
+
+<p>Best wishes</p>

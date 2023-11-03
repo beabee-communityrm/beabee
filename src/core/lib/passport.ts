@@ -11,7 +11,7 @@ import { generatePassword, hashPassword } from "@core/utils/auth";
 import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
 import ContactMfaService from "@core/services/ContactMfaService";
-import { ContactMfaSecure } from "@models/ContactMfa";
+import authService from "@core/services/AuthService";
 
 import { LoginData } from "@api/controllers/AuthController";
 import {
@@ -22,6 +22,7 @@ import {
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
+import { ContactMfaSecure } from "@models/ContactMfa";
 
 // Add support for local authentication in Passport.js
 passport.use(
@@ -62,8 +63,7 @@ passport.use(
           contact.password.iterations
         );
 
-        // Check if password hash matches
-        if (hash === contact.password.hash) {
+        if (await authService.isValidPassword(contact.password, password)) {
           // Reset tries
           if (tries > 0) {
             await ContactsService.updateContact(contact, {
