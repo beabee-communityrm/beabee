@@ -1,7 +1,7 @@
 import {
   Payment as GCPayment,
   PaymentStatus as GCPaymentStatus,
-  Subscription,
+  Subscription as GCSubscription,
   SubscriptionIntervalUnit
 } from "gocardless-nodejs/types/Types";
 import moment, { DurationInputObject } from "moment";
@@ -18,12 +18,13 @@ import { GCPaymentData } from "@models/PaymentData";
 import Payment from "@models/Payment";
 
 import config from "@config";
+import { PaymentStatus } from "@beabee/beabee-common";
 
 const log = mainLogger.child({ app: "payment-webhook-utils" });
 
 export async function updatePayment(
   gcPaymentId: string,
-  isConfirmed: boolean = false
+  action?: string
 ): Promise<void> {
   log.info("Update payment " + gcPaymentId);
 
@@ -39,9 +40,39 @@ export async function updatePayment(
 
     await getRepository(Payment).save(payment);
 
-    if (isConfirmed) {
-      await confirmPayment(payment);
+    switch (action) {
+      case "cancelled":
+      case "failed":
+        await cancelPayment(payment);
+        break;
+
+      case "confirmed":
+        await confirmPayment(payment);
+        break;
     }
+  }
+}
+
+async function cancelPayment(payment: Payment): Promise<void> {
+  if (!payment.contact?.membership?.isActive || !payment.subscriptionId) {
+    return;
+  }
+
+  const expiryDate = await calcFailedPaymentPeriodEnd(payment);
+
+  log.info("Cancel payment " + payment.id, {
+    paymentId: payment.id,
+    contactId: payment.contact.id,
+    subscriptionId: payment.subscriptionId,
+    expiryDate
+  });
+
+  if (expiryDate) {
+    await ContactsService.updateContactRole(payment.contact, "member", {
+      dateExpires: expiryDate
+    });
+  } else {
+    await ContactsService.revokeContactRole(payment.contact, "member");
   }
 }
 
@@ -59,45 +90,45 @@ async function confirmPayment(payment: Payment): Promise<void> {
     return;
   }
 
-  const gcData = (await PaymentService.getData(payment.contact))
-    .data as GCPaymentData;
-
-  if (payment.subscriptionId !== gcData.subscriptionId) {
-    log.error("Mismatched subscription IDs for payment " + payment.id, {
-      gcSubscriptionId: payment.subscriptionId,
-      ourSubscriptionId: gcData.subscriptionId
-    });
-    return;
-  }
-
-  // If there's a pending amount change we assume this confirms it.  Because we
-  // don't allow subscription changes while any payments are pending there can't
-  // be a pending payment for the previous amount
-  if (gcData.nextMonthlyAmount) {
-    await PaymentService.updateDataBy(
-      payment.contact,
-      "nextMonthlyAmount",
-      null
-    );
-    await ContactsService.updateContact(payment.contact, {
-      contributionMonthlyAmount: gcData.nextMonthlyAmount
-    });
-  }
+  // TODO: Keep list of valid subscriptions
+  // if (payment.subscriptionId !== gcData.subscriptionId) {
+  //   log.error("Mismatched subscription IDs for payment " + payment.id, {
+  //     gcSubscriptionId: payment.subscriptionId,
+  //     ourSubscriptionId: gcData.subscriptionId
+  //   });
+  //   return;
+  // }
 
   await ContactsService.extendContactRole(
     payment.contact,
     "member",
-    await getSubscriptionPeriodEnd(payment)
+    await calcConfirmedPaymentPeriodEnd(payment)
   );
+
+  const data = await PaymentService.getData(payment.contact);
+  const gcData = data.data as GCPaymentData;
+  if (payment.amount === gcData.nextAmount?.chargeable) {
+    await ContactsService.updateContact(payment.contact, {
+      contributionMonthlyAmount: gcData.nextAmount?.monthly
+    });
+    await PaymentService.updateDataBy(payment.contact, "nextAmount", null);
+  }
   // TODO: resubscribe to newsletter
 }
 
-async function getSubscriptionPeriodEnd(payment: Payment): Promise<Date> {
+/**
+ * Calculate when subscription this payment is associated with will renew. This
+ * assumes the payment was confirmed and either uses the subscription's next
+ * payment date or the payment's date if the subscription has been cancelled
+ *
+ * @param payment The confirmed payment
+ * @returns The current period end for the subscription
+ */
+async function calcConfirmedPaymentPeriodEnd(payment: Payment): Promise<Date> {
   const subscription = await gocardless.subscriptions.get(
     payment.subscriptionId!
   );
 
-  // If the subscription has been cancelled there won't be any upcoming payments
   if (
     subscription.upcoming_payments &&
     subscription.upcoming_payments.length > 0
@@ -107,6 +138,7 @@ async function getSubscriptionPeriodEnd(payment: Payment): Promise<Date> {
       .add(config.gracePeriod)
       .toDate();
   } else {
+    // If the subscription has been cancelled there won't be any upcoming payments
     return moment
       .utc(payment.chargeDate)
       .add(getSubscriptionDuration(subscription))
@@ -114,8 +146,37 @@ async function getSubscriptionPeriodEnd(payment: Payment): Promise<Date> {
   }
 }
 
+/**
+ * Calculates when the subscription has been paid up until
+ *
+ * @param payment The failed or cancelled payment
+ * @returns The last successful payment's period end or undefined if there isn't one
+ */
+async function calcFailedPaymentPeriodEnd(
+  payment: Payment
+): Promise<Date | undefined> {
+  const subscription = await gocardless.subscriptions.get(
+    payment.subscriptionId!
+  );
+
+  const latestSuccessfulPayment = await getRepository(Payment).findOne({
+    where: {
+      subscriptionId: payment.subscriptionId,
+      status: PaymentStatus.Successful
+    },
+    order: { chargeDate: "DESC" }
+  });
+
+  if (latestSuccessfulPayment) {
+    return moment
+      .utc(latestSuccessfulPayment.chargeDate)
+      .add(getSubscriptionDuration(subscription))
+      .toDate();
+  }
+}
+
 function getSubscriptionDuration(
-  subscription: Subscription
+  subscription: GCSubscription
 ): DurationInputObject {
   const unit =
     subscription.interval_unit === SubscriptionIntervalUnit.Yearly

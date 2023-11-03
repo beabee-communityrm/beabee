@@ -30,7 +30,10 @@ export abstract class PaymentProvider<T extends PaymentProviderData> {
     });
   }
 
-  abstract canChangeContribution(useExistingMandate: boolean): Promise<boolean>;
+  abstract canChangeContribution(
+    useExistingMandate: boolean,
+    paymentForm: PaymentForm
+  ): Promise<boolean>;
 
   abstract cancelContribution(keepMandate: boolean): Promise<void>;
 

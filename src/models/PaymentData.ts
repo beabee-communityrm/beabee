@@ -8,7 +8,10 @@ export interface GCPaymentData {
   mandateId: string | null;
   subscriptionId: string | null;
   payFee: boolean | null;
-  nextMonthlyAmount: number | null;
+  nextAmount: {
+    chargeable: number;
+    monthly: number;
+  } | null;
 }
 
 export interface ManualPaymentData {

@@ -141,6 +141,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
         this.method,
         calcRenewalDate(this.contact)
       );
+      // Set this for the updateOrCreateContribution call below
       this.data.subscriptionId = newSubscription.id;
     }
 

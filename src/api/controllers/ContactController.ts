@@ -65,10 +65,9 @@ import {
   StartJoinFlowData
 } from "@api/data/JoinFlowData";
 import {
-  SetContributionData,
   StartContributionData,
-  UpdateContributionData,
-  ForceUpdateContributionData
+  ForceUpdateContributionData,
+  UpdateContributionData
 } from "@api/data/ContributionData";
 import {
   mergeRules,
@@ -256,19 +255,11 @@ export class ContactController {
     @TargetUser() target: Contact,
     @Body() data: UpdateContributionData
   ): Promise<ContributionInfo> {
-    // TODO: can we move this into validators?
-    const contributionData = new SetContributionData();
-    contributionData.amount = data.amount;
-    contributionData.period = target.contributionPeriod!;
-    contributionData.payFee = data.payFee;
-    contributionData.prorate = data.prorate;
-    await validateOrReject(contributionData);
-
-    if (!(await PaymentService.canChangeContribution(target, true))) {
+    if (!(await PaymentService.canChangeContribution(target, true, data))) {
       throw new CantUpdateContribution();
     }
 
-    await ContactsService.updateContactContribution(target, contributionData);
+    await ContactsService.updateContactContribution(target, data);
 
     return await this.getContribution(target);
   }
@@ -418,7 +409,7 @@ export class ContactController {
     target: Contact,
     data: StartContributionData
   ) {
-    if (!(await PaymentService.canChangeContribution(target, false))) {
+    if (!(await PaymentService.canChangeContribution(target, false, data))) {
       throw new CantUpdateContribution();
     }
 
@@ -444,15 +435,21 @@ export class ContactController {
     target: Contact,
     data: CompleteJoinFlowData
   ): Promise<JoinFlow> {
-    if (!(await PaymentService.canChangeContribution(target, false))) {
-      throw new CantUpdateContribution();
-    }
-
     const joinFlow = await PaymentFlowService.getJoinFlowByPaymentId(
       data.paymentFlowId
     );
     if (!joinFlow) {
       throw new NotFoundError();
+    }
+
+    if (
+      !(await PaymentService.canChangeContribution(
+        target,
+        false,
+        joinFlow.joinForm
+      ))
+    ) {
+      throw new CantUpdateContribution();
     }
 
     const completedFlow = await PaymentFlowService.completeJoinFlow(joinFlow);

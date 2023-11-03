@@ -314,13 +314,9 @@ class ContactsService {
     // prevent proration problems
     if (
       contact.membership?.isActive &&
-      // Manual annual contributors can't change their period
-      ((wasManual &&
-        contact.contributionPeriod === ContributionPeriod.Annually &&
-        paymentForm.period !== ContributionPeriod.Annually) ||
-        // Automated contributors can't either
-        (contact.contributionType === ContributionType.Automatic &&
-          contact.contributionPeriod !== paymentForm.period))
+      // Annual contributors can't change their period
+      contact.contributionPeriod === ContributionPeriod.Annually &&
+      paymentForm.period !== ContributionPeriod.Annually
     ) {
       throw new CantUpdateContribution();
     }
