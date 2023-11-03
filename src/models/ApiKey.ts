@@ -18,6 +18,9 @@ export default class ApiKey {
   @CreateDateColumn()
   createdAt!: Date;
 
+  @Column({ type: Date, nullable: true })
+  expires!: Date | null;
+
   @Column()
   secretHash!: string;
 
