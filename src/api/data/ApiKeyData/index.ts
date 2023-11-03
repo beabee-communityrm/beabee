@@ -8,9 +8,9 @@ export function convertApiKeyToData(apiKey: ApiKey): GetApiKeyData {
   return {
     id: apiKey.id,
     description: apiKey.description,
+    expires: apiKey.expires,
     creator: convertContactToData(apiKey.creator),
-    createdAt: apiKey.createdAt,
-    secretHash: apiKey.secretHash
+    createdAt: apiKey.createdAt
   };
 }
 
