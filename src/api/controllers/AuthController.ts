@@ -69,7 +69,12 @@ export class AuthController {
         ) => {
           // Forward HTTP errors
           if (err) {
-            if (err instanceof HttpError || (err as UnauthorizedError).code) {
+            if (err instanceof HttpError) {
+              // Passport errors only have a `message` property, so we handle the message as code
+              if (err instanceof UnauthorizedError) {
+                err.code ||= err.message || LOGIN_CODES.LOGIN_FAILED;
+              }
+
               return reject(err);
             }
           }
@@ -78,7 +83,8 @@ export class AuthController {
           if (err || !user) {
             return reject(
               new UnauthorizedError({
-                code: info?.message || LOGIN_CODES.LOGIN_FAILED
+                code: info?.message || LOGIN_CODES.LOGIN_FAILED,
+                message: info?.message || LOGIN_CODES.LOGIN_FAILED
               })
             );
           }

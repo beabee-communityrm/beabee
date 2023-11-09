@@ -245,7 +245,8 @@ export enum LOGIN_CODES {
   LOGIN_FAILED = "login-failed",
   REQUIRES_2FA = "requires-2fa",
   UNSUPPORTED_2FA = "unsupported-2fa",
-  INVALID_TOKEN = "invalid-token"
+  INVALID_TOKEN = "invalid-token",
+  MISSING_TOKEN = "missing-token"
 }
 
 export interface PassportLoginInfo {
@@ -269,9 +270,6 @@ export type PassportLocalDoneCallback = (
  * TODO: Move to common
  */
 interface ContactMfaData {
-  secret?: string;
-  /** The code from the authenticator app */
-  token?: string;
   type: ContactMfaType;
 }
 
@@ -293,6 +291,16 @@ export class CreateContactMfaData implements ContactMfaData {
   /** The code from the authenticator app */
   @IsString()
   token!: string;
+
+  @IsString()
+  type!: ContactMfaType;
+}
+
+export class DeleteContactMfaData implements ContactMfaData {
+  /** The code from the authenticator app, only required by the user itself, not by the admin */
+  @IsString()
+  @IsOptional()
+  token?: string;
 
   @IsString()
   type!: ContactMfaType;
