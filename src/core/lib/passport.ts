@@ -17,7 +17,8 @@ import { LoginData } from "@api/controllers/AuthController";
 import {
   ContactMfaType,
   LOGIN_CODES,
-  PassportLocalDoneCallback
+  PassportLocalDoneCallback,
+  PassportLoginInfo
 } from "@api/data/ContactData/interface";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 

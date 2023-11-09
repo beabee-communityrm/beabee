@@ -20,8 +20,7 @@ import {
   Post,
   Put,
   QueryParams,
-  Res,
-  UnauthorizedError
+  Res
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
@@ -43,9 +42,11 @@ import JoinFlow from "@models/JoinFlow";
 import Payment from "@models/Payment";
 
 import { UUIDParam } from "@api/data";
+import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 import {
   convertContactToData,
   CreateContactData,
+  DeleteContactMfaData,
   fetchPaginatedContacts,
   GetContactData,
   GetContactQuery,
@@ -76,6 +77,7 @@ import {
   GetExportQuery
 } from "@api/data/PaginatedData";
 import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
+import { LOGIN_CODES } from "@api/data/ContactData/interface";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -274,7 +276,7 @@ export class ContactController {
 
   /**
    * Get contact multi factor authentication if exists
-   * @param target The target contact (which is the current user or admin)
+   * @param target The target contact
    */
   @Get("/:id/mfa")
   async getContactMfa(
@@ -286,7 +288,7 @@ export class ContactController {
 
   /**
    * Create contact multi factor authentication
-   * @param target The target contact (which is the current user or admin)
+   * @param target The target contact
    * @param data The data to create the contact multi factor authentication
    */
   @OnUndefined(201)
@@ -300,12 +302,18 @@ export class ContactController {
 
   /**
    * Delete contact multi factor authentication
-   * @param target The target contact (which is the current user or admin)
+   * @param target The target contact
+   * @param data The data to delete the contact multi factor authentication
+   * @param id The contact id
    */
   @OnUndefined(201)
   @Delete("/:id/mfa")
-  async deleteContactMfa(@TargetUser() target: Contact): Promise<void> {
-    await ContactMfaService.delete(target);
+  async deleteContactMfa(
+    @TargetUser() target: Contact,
+    @Body() data: DeleteContactMfaData,
+    @Params() { id }: { id: string }
+  ): Promise<void> {
+    await ContactMfaService.delete(target, id, data);
   }
 
   @OnUndefined(204)
