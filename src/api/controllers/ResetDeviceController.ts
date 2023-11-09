@@ -24,6 +24,7 @@ import {
   CreateResetDeviceData,
   UpdateResetDeviceData
 } from "@api/data/ResetDeviceData";
+import { ContactMfaType } from "@api/data/ContactData/interface";
 import UnauthorizedError from "@api/errors/UnauthorizedError";
 
 @JsonController("/reset-device")
@@ -33,7 +34,7 @@ export class ResetDeviceController {
   async create(@Body() data: CreateResetDeviceData): Promise<void> {
     const contact = await ContactsService.findOne({ email: data.email });
     if (!contact) {
-      return
+      return;
     }
 
     // TODO: Check if contact has MFA enabled
@@ -74,7 +75,9 @@ export class ResetDeviceController {
     }
 
     // Disable MFA
-    await ContactMfaService.delete(rpFlow.contact);
+    await ContactMfaService.delete(rpFlow.contact, rpFlow.contact.id, {
+      type: ContactMfaType.TOTP
+    });
 
     // Stop reset flow
     // TODO: ResetPasswordFlow -> ResetSecurityFlow

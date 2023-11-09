@@ -63,7 +63,7 @@ class ContactMfaService {
    * Delete contact MFA
    *
    * ### ATTENTION
-   * If the id is `'me'` we check if the token is valid, otherwise the user must be an admin, this must be checked before calling this method.
+   * If the id is `'me'` we check if the token is valid, otherwise the user must be authenticated, this must be checked before calling this method.
    * E.g. with the `@TargetUser()` or `@Authorized()` decorators.
    *
    * @param contact The contact
