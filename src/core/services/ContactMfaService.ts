@@ -6,7 +6,7 @@ import { ContactMfa, ContactMfaSecure } from "@models/ContactMfa";
 
 import { validateTotpToken } from "@core/utils/auth";
 
-import { LOGIN_CODES } from "@api/data/ContactData/interface";
+import { LOGIN_CODES } from "@enums/login-codes";
 import {
   CreateContactMfaData,
   DeleteContactMfaData
@@ -63,36 +63,45 @@ class ContactMfaService {
    * Delete contact MFA
    *
    * ### ATTENTION
-   * If the id is `'me'` we check if the token is valid, otherwise the user must be authenticated, this must be checked before calling this method.
-   * E.g. with the `@TargetUser()` or `@Authorized()` decorators.
+   * This method is secure because the token is checked.
+   *
+   * @param contact The contact
+   * @param data The MFA type and the token (if the user is not an admin)
+   */
+  async deleteSecure(contact: Contact, data: DeleteContactMfaData) {
+    if (!data.token) {
+      throw new ForbiddenError({
+        code: LOGIN_CODES.MISSING_TOKEN,
+        message:
+          "The contact itself needs to enter the old code to delete its MFA"
+      });
+    }
+    const tokenValidation = await this.checkToken(contact, data.token, 2);
+    if (!tokenValidation.isValid) {
+      throw new ForbiddenError({
+        code: LOGIN_CODES.INVALID_TOKEN,
+        message: "Invalid token"
+      });
+    }
+
+    return this.deleteUnsecure(contact);
+  }
+
+  /**
+   * Delete contact MFA
+   *
+   * ### ATTENTION
+   * In this unsecure method the token is not checked. So calling this method is only allowed for admins.
    *
    * @param contact The contact
    * @param id The request contact ID (we check if the id is 'me' or the contact ID)
    * @param data The MFA type and the token (if the user is not an admin)
    */
-  async delete(contact: Contact, id: string, data: DeleteContactMfaData) {
+  async deleteUnsecure(contact: Contact) {
     const mfa = await this.get(contact);
 
     if (!mfa) {
       throw new NotFoundError("Contact has no MFA");
-    }
-
-    // If the id is 'me' we check if the token is valid
-    if (id === "me") {
-      if (!data.token) {
-        throw new ForbiddenError({
-          code: LOGIN_CODES.MISSING_TOKEN,
-          message:
-            "The contact itself needs to enter the old code to delete its MFA"
-        });
-      }
-      const tokenValidation = await this.checkToken(contact, data.token, 2);
-      if (!tokenValidation.isValid) {
-        throw new ForbiddenError({
-          code: LOGIN_CODES.INVALID_TOKEN,
-          message: "Invalid token"
-        });
-      }
     }
 
     await getRepository(ContactMfa).delete(mfa.id);

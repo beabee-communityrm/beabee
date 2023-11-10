@@ -16,7 +16,7 @@ import { generatePassword } from "@core/utils/auth";
 import ContactsService from "@core/services/ContactsService";
 import EmailService from "@core/services/EmailService";
 
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
 import { login } from "@api/utils";
 import { UUIDParam } from "@api/data";
@@ -30,9 +30,10 @@ export class ResetPasswordController {
   @OnUndefined(204)
   @Post()
   async create(@Body() data: CreateResetPasswordData): Promise<void> {
+    // TODO: Create ResetSecurityFlowService
     const contact = await ContactsService.findOne({ email: data.email });
     if (contact) {
-      const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
+      const rpFlow = await getRepository(ResetSecurityFlow).save({ contact });
       await EmailService.sendTemplateToContact("reset-password", contact, {
         rpLink: data.resetUrl + "/" + rpFlow.id
       });
@@ -46,7 +47,8 @@ export class ResetPasswordController {
     @Params() { id }: UUIDParam,
     @Body() data: UpdateResetPasswordData
   ): Promise<void> {
-    const rpFlow = await getRepository(ResetPasswordFlow).findOne({
+    // TODO: Create ResetSecurityFlowService
+    const rpFlow = await getRepository(ResetSecurityFlow).findOne({
       where: { id },
       relations: ["contact"]
     });
@@ -54,7 +56,7 @@ export class ResetPasswordController {
       await ContactsService.updateContact(rpFlow.contact, {
         password: await generatePassword(data.password)
       });
-      await getRepository(ResetPasswordFlow).delete(id);
+      await getRepository(ResetSecurityFlow).delete(id);
 
       await login(req, rpFlow.contact);
     } else {

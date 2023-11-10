@@ -11,7 +11,7 @@ import { generatePassword, passwordRequirements } from "@core/utils/auth";
 import ContactsService from "@core/services/ContactsService";
 
 import ContactRole from "@models/ContactRole";
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
 import config from "@config";
 
@@ -126,7 +126,7 @@ db.connect().then(async () => {
   });
 
   if (!answers.password) {
-    const rpFlow = await getRepository(ResetPasswordFlow).save({
+    const rpFlow = await getRepository(ResetSecurityFlow).save({
       contact
     });
 

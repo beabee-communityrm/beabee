@@ -1,3 +1,4 @@
+require("module-alias/register");
 const autoprefixer = require("autoprefixer");
 const gulp = require("gulp");
 const postcss = require("gulp-postcss");

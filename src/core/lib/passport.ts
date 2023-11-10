@@ -14,16 +14,14 @@ import ContactMfaService from "@core/services/ContactMfaService";
 import authService from "@core/services/AuthService";
 
 import { LoginData } from "@api/controllers/AuthController";
-import {
-  ContactMfaType,
-  LOGIN_CODES,
-  PassportLocalDoneCallback,
-  PassportLoginInfo
-} from "@api/data/ContactData/interface";
+import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
+import { LOGIN_CODES } from "@enums/login-codes";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
 import { ContactMfaSecure } from "@models/ContactMfa";
+
+import type { PassportLocalDoneCallback } from "@type/passport-local-done-callback";
 
 // Add support for local authentication in Passport.js
 passport.use(
@@ -122,7 +120,7 @@ const loginWithMfa = async (
   token: LoginData["token"],
   done: PassportLocalDoneCallback
 ) => {
-  if (mfa.type !== ContactMfaType.TOTP) {
+  if (mfa.type !== CONTACT_MFA_TYPE.TOTP) {
     log.warn("The user has unsupported 2FA enabled.");
     // We pass the contact to the done callback so the user can be logged in and the 2FA is ignored
     return done(null, contact, {

@@ -19,7 +19,7 @@ import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
 import { GetCalloutResponseCommentData } from "../CalloutResponseCommentData/interface";
 import { GetCalloutTagData } from "../CalloutTagData";
-import { GetContactData } from "../ContactData";
+import { GetContactData } from "@type/get-contact-data";
 import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
 
 export enum GetCalloutResponseWith {

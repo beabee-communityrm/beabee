@@ -4,8 +4,7 @@ import "reflect-metadata";
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
 import cors from "cors";
-import crypto from "crypto";
-import express, { ErrorRequestHandler, Request } from "express";
+import express, { ErrorRequestHandler } from "express";
 import {
   Action,
   HttpError,
@@ -13,7 +12,6 @@ import {
   NotFoundError,
   useExpressServer
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 import { ApiKeyController } from "./controllers/ApiKeyController";
 import { AuthController } from "./controllers/AuthController";

@@ -16,7 +16,7 @@ import EmailService from "@core/services/EmailService";
 import AuthService from "@core/services/AuthService";
 import ContactMfaService from "@core/services/ContactMfaService";
 
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
 import { login } from "@api/utils";
 import { UUIDParam } from "@api/data";
@@ -24,7 +24,6 @@ import {
   CreateResetDeviceData,
   UpdateResetDeviceData
 } from "@api/data/ResetDeviceData";
-import { ContactMfaType } from "@api/data/ContactData/interface";
 import UnauthorizedError from "@api/errors/UnauthorizedError";
 
 @JsonController("/reset-device")
@@ -32,6 +31,7 @@ export class ResetDeviceController {
   @OnUndefined(204)
   @Post()
   async create(@Body() data: CreateResetDeviceData): Promise<void> {
+    // TODO: Create ResetSecurityFlowService
     const contact = await ContactsService.findOne({ email: data.email });
     if (!contact) {
       return;
@@ -41,7 +41,7 @@ export class ResetDeviceController {
 
     // TODO: Check if reset password flow already exists, if so throw error
 
-    const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
+    const rpFlow = await getRepository(ResetSecurityFlow).save({ contact });
     await EmailService.sendTemplateToContact("reset-device", contact, {
       rpLink: data.resetUrl + "/" + rpFlow.id
     });
@@ -54,7 +54,8 @@ export class ResetDeviceController {
     @Params() { id }: UUIDParam,
     @Body() data: UpdateResetDeviceData
   ): Promise<void> {
-    const rpFlow = await getRepository(ResetPasswordFlow).findOne({
+    // TODO: Create ResetSecurityFlowService
+    const rpFlow = await getRepository(ResetSecurityFlow).findOne({
       where: { id },
       relations: ["contact"]
     });
@@ -75,13 +76,10 @@ export class ResetDeviceController {
     }
 
     // Disable MFA
-    await ContactMfaService.delete(rpFlow.contact, rpFlow.contact.id, {
-      type: ContactMfaType.TOTP
-    });
+    await ContactMfaService.deleteUnsecure(rpFlow.contact);
 
     // Stop reset flow
-    // TODO: ResetPasswordFlow -> ResetSecurityFlow
-    await getRepository(ResetPasswordFlow).delete(id);
+    await getRepository(ResetSecurityFlow).delete(id);
 
     await login(req, rpFlow.contact);
   }

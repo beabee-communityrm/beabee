@@ -1,3 +1,5 @@
+import "module-alias/register";
+
 import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import express from "express";
 import passport from "passport";

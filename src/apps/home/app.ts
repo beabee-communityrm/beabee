@@ -1,3 +1,5 @@
+import "module-alias/register";
+
 import express from "express";
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 

@@ -48,11 +48,8 @@ import {
   CreateContactData,
   DeleteContactMfaData,
   fetchPaginatedContacts,
-  GetContactData,
   GetContactQuery,
-  GetContactRoleData,
   GetContactsQuery,
-  GetContactWith,
   UpdateContactRoleData,
   UpdateContactData,
   exportContacts,
@@ -61,6 +58,9 @@ import {
   CreateContactMfaData,
   GetContactMfaData
 } from "@api/data/ContactData";
+import { GetContactData } from "@type/get-contact-data";
+import { GetContactRoleData } from "@type/get-contact-role-data";
+import { GetContactWith } from "@enums/get-contact-with";
 import {
   CompleteJoinFlowData,
   StartJoinFlowData
@@ -77,7 +77,6 @@ import {
   GetExportQuery
 } from "@api/data/PaginatedData";
 import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
-import { LOGIN_CODES } from "@api/data/ContactData/interface";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -313,7 +312,13 @@ export class ContactController {
     @Body() data: DeleteContactMfaData,
     @Params() { id }: { id: string }
   ): Promise<void> {
-    await ContactMfaService.delete(target, id, data);
+    if (id === "me") {
+      await ContactMfaService.deleteSecure(target, data);
+    } else {
+      // It's secure to call this unsecure method here because the user is an admin,
+      // this is checked in the `@TargetUser()` decorator
+      await ContactMfaService.deleteUnsecure(target);
+    }
   }
 
   @OnUndefined(204)

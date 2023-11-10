@@ -7,7 +7,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import Email from "@models/Email";
 import Contact from "@models/Contact";
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
 import {
   EmailProvider,
@@ -56,7 +56,7 @@ function generateResetPasswordLinks(type: "set" | "reset") {
     // Create reset password flows for matching contacts
     const rpInsertResult: InsertResetPasswordResult = await createQueryBuilder()
       .insert()
-      .into(ResetPasswordFlow)
+      .into(ResetSecurityFlow)
       .values(
         Object.values(contactIdsByEmail).map((id) => ({ contact: { id } }))
       )

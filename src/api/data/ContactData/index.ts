@@ -17,12 +17,11 @@ import {
   GetPaginatedRuleGroup
 } from "@api/data/PaginatedData";
 
-import {
-  GetContactData,
-  GetContactRoleData,
-  GetContactsQuery,
-  GetContactWith
-} from "./interface";
+import { GetContactWith } from "@enums/get-contact-with";
+
+import type { GetContactData } from "@type/get-contact-data";
+import type { GetContactRoleData } from "@type/get-contact-role-data";
+import type { GetContactsQuery } from "@api/data/ContactData";
 
 interface ConvertOpts {
   with: GetContactWith[] | undefined;

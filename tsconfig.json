@@ -16,7 +16,9 @@
       "@api/*": ["./src/api/*"],
       "@config": ["./src/config/config"],
       "@locale": ["./src/locales/current"],
-      "@models/*": ["./src/models/*"]
+      "@models/*": ["./src/models/*"],
+      "@type/*": ["./src/type/*"],
+      "@enums/*": ["./src/enums/*"]
     },
     "typeRoots": ["./src/typings", "./node_modules/@types/"]
   }

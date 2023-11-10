@@ -20,17 +20,15 @@ import { UnauthorizedError } from "../errors/UnauthorizedError";
 import passport from "@core/lib/passport";
 
 import ContactsService from "@core/services/ContactsService";
-import ContactMfaService from "@core/services/ContactMfaService";
 
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 
 import { login } from "@api/utils";
 
-import {
-  LOGIN_CODES,
-  PassportLoginInfo
-} from "@api/data/ContactData/interface";
+import { PassportLoginInfo } from "@type/passport-login-info";
+
+import { LOGIN_CODES } from "@enums/login-codes";
 
 import config from "@config";
 

@@ -1,3 +1,5 @@
+import "module-alias/register";
+
 import { wrapAsync } from "@core/utils";
 import express from "express";
 

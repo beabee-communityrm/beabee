@@ -1,6 +1,7 @@
-import { IsEmail, Validate } from "class-validator";
+import { IsEmail, Validate, IsIn } from "class-validator";
 import IsPassword from "@api/validators/IsPassword";
 import IsUrl from "@api/validators/IsUrl";
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
 export class CreateResetDeviceData {
   @IsEmail()
@@ -8,6 +9,9 @@ export class CreateResetDeviceData {
 
   @IsUrl()
   resetUrl!: string;
+
+  @IsIn([RESET_SECURITY_FLOW_TYPE.TOTP])
+  type!: RESET_SECURITY_FLOW_TYPE.TOTP;
 }
 
 export class UpdateResetDeviceData {
