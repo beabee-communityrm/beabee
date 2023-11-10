@@ -20,3 +20,5 @@ dl.dl-horizontal
 				button.btn.btn-xs.btn-default Generate link
 	dt Password tries
 	dd #{ member.password.tries } #{ member.password.tries >= password_tries ? ' – Locked Out' : '' }
+	dt 2FA
+	dd #{ member.otp.activated ? 'Enabled' : 'Disabled' }

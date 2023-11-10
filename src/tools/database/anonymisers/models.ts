@@ -169,6 +169,7 @@ export const contactAnonymiser = createModelAnonymiser(Contact, {
   email: () => chance.email({ domain: "fake.beabee.io", length: 10 }),
   firstname: () => chance.first(),
   lastname: () => chance.last(),
+  otp: () => ({ activated: false, key: null }),
   password: () => ({ hash: "", salt: "", iterations: 0, tries: 0 }),
   pollsCode: uniqueCode,
   referralCode: uniqueCode

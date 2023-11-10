@@ -2,7 +2,6 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { getNextParam } from "@core/utils";
-import { TOTP, Secret } from "otpauth";
 
 import Contact from "@models/Contact";
 import Password from "@models/Password";
@@ -28,40 +27,23 @@ export enum AuthenticationStatus {
   REQUIRES_2FA = -3
 }
 
-/**
- * Validate 2FA TOTP token
- *
- * @param secret The secret key encoded in base32
- * @param token The token to validate
- * @param window The larger this value is, the greater the time difference between the user and server that will be tolerated, but it also becomes increasingly less secure.
- * @returns
- */
-export const validateTotpToken = (
-  secret: string,
-  token: string,
-  window = 1
-) => {
-  const totp = new TOTP({
-    secret: Secret.fromBase32(secret)
+// Used for generating an OTP secret for 2FA
+// returns a base32 encoded string of random bytes
+export function generateOTPSecret(): Promise<string> {
+  return new Promise((resolve) => {
+    crypto.randomBytes(16, function (ex, raw) {
+      const secret = Buffer.from(raw);
+      resolve(secret.toString("base64").replace(/=/g, ""));
+    });
   });
-
-  const delta = totp.validate({ token, window });
-  const isValid = delta === 0;
-
-  return {
-    isValid,
-    delta
-  };
-};
+}
 
 export function generateCode(): string {
   return crypto.randomBytes(10).toString("hex");
 }
 
-/**
- * Used to create a long salt for each individual user
- * @returns a 256 byte / 512 character hex string
- */
+// Used to create a long salt for each individual user
+// returns a 256 byte / 512 character hex string
 export function generateSalt(): Promise<string> {
   return new Promise((resolve) => {
     crypto.randomBytes(256, function (ex, salt) {
@@ -86,14 +68,8 @@ export function generateApiKey(
   return { id, secret, secretHash, token };
 }
 
-/**
- * Hashes passwords through sha512 1000 times
- * returns a 512 byte / 1024 character hex string
- * @param password
- * @param salt
- * @param iterations
- * @returns
- */
+// Hashes passwords through sha512 1000 times
+// returns a 512 byte / 1024 character hex string
 export function hashPassword(
   password: string,
   salt: string,
@@ -113,11 +89,7 @@ export function hashPassword(
   });
 }
 
-/**
- * Utility function generates a salt and hash from a plain text password
- * @param password The plain text password to hash
- * @returns
- */
+// Utility function generates a salt and hash from a plain text password
 export async function generatePassword(password: string): Promise<Password> {
   const salt = await generateSalt();
   const hash = await hashPassword(password, salt, config.passwordIterations);
@@ -129,25 +101,25 @@ export async function generatePassword(password: string): Promise<Password> {
   };
 }
 
-/**
- * Checks the user is logged in and activated.
- * @param req
- * @returns
- */
+// Checks the user is logged in and activated.
 export function loggedIn(req: Request): AuthenticationStatus {
   // Is the user logged in?
   if (req.isAuthenticated() && req.user) {
-    return AuthenticationStatus.LOGGED_IN;
+    // Is the user active
+    if (
+      !req.user.otp.activated ||
+      (req.user.otp.activated && req.session.method == "totp")
+    ) {
+      return AuthenticationStatus.LOGGED_IN;
+    } else {
+      return AuthenticationStatus.REQUIRES_2FA;
+    }
   } else {
     return AuthenticationStatus.NOT_LOGGED_IN;
   }
 }
 
-/**
- * Checks if the user has an active admin or superadmin privilege
- * @param req
- * @returns
- */
+// Checks if the user has an active admin or superadmin privilage
 export function canAdmin(req: Request): AuthenticationStatus {
   // Check user is logged in
   const status = loggedIn(req);
@@ -159,11 +131,7 @@ export function canAdmin(req: Request): AuthenticationStatus {
   return AuthenticationStatus.NOT_ADMIN;
 }
 
-/**
- * Checks if the user has an active superadmin privilege
- * @param req
- * @returns
- */
+// Checks if the user has an active superadmin privilage
 export function canSuperAdmin(req: Request): AuthenticationStatus {
   // Check user is logged in
   const status = loggedIn(req);
@@ -192,17 +160,7 @@ export function handleNotAuthed(
       return;
   }
 }
-//
-/**
- * Checks password meets requirements.
- * The requirements are:
- * - At least 8 characters
- * - At least 1 number
- * - At least 1 uppercase letter
- * - At least 1 lowercase letter
- * @param password
- * @returns
- */
+// Checks password meets requirements
 export function passwordRequirements(password: string): string | true {
   if (!password) return "password-err-length";
 

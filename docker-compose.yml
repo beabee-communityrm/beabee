@@ -22,8 +22,6 @@ services:
       POSTGRES_USER: membership_system
       POSTGRES_PASSWORD: membership_system
       POSTGRES_DB: membership_system
-    ports:
-      - 6543:5432 # To connect to the database from the host machine
 
   mail:
     image: mailhog/mailhog:latest

@@ -25,6 +25,14 @@ interface LoginOverride {
   expires: Date;
 }
 
+class OneTimePassword {
+  @Column({ type: String, nullable: true })
+  key!: string | null;
+
+  @Column({ default: false })
+  activated!: boolean;
+}
+
 @Entity()
 export default class Contact {
   @PrimaryGeneratedColumn("uuid")
@@ -41,6 +49,9 @@ export default class Contact {
 
   @Column(() => Password)
   password!: Password;
+
+  @Column(() => OneTimePassword)
+  otp!: OneTimePassword;
 
   @CreateDateColumn()
   joined!: Date;

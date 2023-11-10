@@ -360,12 +360,8 @@ class ContactsService {
     await NewsletterService.deleteContacts([contact]);
   }
 
-  /**
-   * TODO: Remove this!
-   * @deprecated This is a temporary method until we rework manual contribution updates
-   * @param contact
-   * @param data
-   */
+  // This is a temporary method until we rework manual contribution updates
+  // TODO: Remove this!
   async forceUpdateContactContribution(
     contact: Contact,
     data: ForceUpdateContribution

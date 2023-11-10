@@ -5,6 +5,7 @@ import {
 } from "@api/data/CalloutResponseCommentData";
 import {
   GetCalloutResponseCommentData,
+  CalloutResponseCommentData,
   GetCalloutResponseCommentsQuery,
   CreateCalloutResponseCommentData,
   UpdateCalloutResponseComment
@@ -35,7 +36,7 @@ import { getRepository } from "typeorm";
 export class CalloutResponseCommentController {
   @Post("/")
   async createCalloutReponseComment(
-    @Body() data: CreateCalloutResponseCommentData,
+    @Body() data: CalloutResponseCommentData,
     @CurrentUser({ required: true }) contact: Contact
   ): Promise<GetCalloutResponseCommentData> {
     const comment: CalloutResponseComment = await getRepository(

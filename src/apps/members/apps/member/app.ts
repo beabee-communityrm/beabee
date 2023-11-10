@@ -133,4 +133,19 @@ app.post(
   })
 );
 
+app.get("/2fa", (req, res) => {
+  res.render("2fa", { member: req.model });
+});
+
+app.post(
+  "/2fa",
+  wrapAsync(async (req, res) => {
+    await ContactsService.updateContact(req.model as Contact, {
+      otp: { key: null, activated: false }
+    });
+    req.flash("success", "2fa-disabled");
+    res.redirect(req.baseUrl);
+  })
+);
+
 export default app;

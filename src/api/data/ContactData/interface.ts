@@ -18,18 +18,11 @@ import {
   Validate,
   ValidateNested
 } from "class-validator";
-import { HttpError } from "routing-controllers";
-import type {
-  IVerifyOptions,
-  IStrategyOptionsWithRequest
-} from "passport-local";
 
 import { ContributionInfo } from "@core/utils";
 
 import IsPassword from "@api/validators/IsPassword";
-import type { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
-import Contact from "@models/Contact";
 import Address from "@models/Address";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
@@ -224,84 +217,4 @@ export class CreateContactData extends UpdateContactData {
   @ValidateNested({ each: true })
   @Type(() => CreateContactRoleData)
   roles?: CreateContactRoleData[];
-}
-
-/**
- * Contact multi factor authentication type
- * TODO: Move to common
- */
-export enum ContactMfaType {
-  TOTP = "totp"
-  // E.g. U2F, EMAIL, SMS, HOTP, etc.
-}
-
-/**
- * Login codes
- * TODO: Move to common
- */
-export enum LOGIN_CODES {
-  LOCKED = "account-locked",
-  LOGGED_IN = "logged-in",
-  LOGIN_FAILED = "login-failed",
-  REQUIRES_2FA = "requires-2fa",
-  UNSUPPORTED_2FA = "unsupported-2fa",
-  INVALID_TOKEN = "invalid-token",
-  MISSING_TOKEN = "missing-token"
-}
-
-export interface PassportLoginInfo {
-  message: LOGIN_CODES;
-}
-
-export type PassportLocalStrategyOptions = IStrategyOptionsWithRequest;
-
-export type PassportLocalVerifyOptions = IVerifyOptions & {
-  message: LOGIN_CODES | string;
-};
-
-export type PassportLocalDoneCallback = (
-  error: null | HttpError | UnauthorizedError,
-  user: Contact | false,
-  options?: PassportLocalVerifyOptions | undefined
-) => void;
-
-/**
- * Contact multi factor authentication data
- * TODO: Move to common
- */
-interface ContactMfaData {
-  type: ContactMfaType;
-}
-
-/**
- * Get contact multi factor authentication validation data
- */
-export class GetContactMfaData implements ContactMfaData {
-  @IsString()
-  type!: ContactMfaType;
-}
-
-/**
- * Create contact multi factor authentication validation data
- */
-export class CreateContactMfaData implements ContactMfaData {
-  @IsString()
-  secret!: string;
-
-  /** The code from the authenticator app */
-  @IsString()
-  token!: string;
-
-  @IsString()
-  type!: ContactMfaType;
-}
-
-export class DeleteContactMfaData implements ContactMfaData {
-  /** The code from the authenticator app, only required by the user itself, not by the admin */
-  @IsString()
-  @IsOptional()
-  token?: string;
-
-  @IsString()
-  type!: ContactMfaType;
 }

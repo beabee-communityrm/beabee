@@ -1,26 +1,15 @@
 import passport from "passport";
 import passportLocal from "passport-local";
+import passportTotp from "passport-totp";
 import { getRepository } from "typeorm";
 
 import config from "@config";
 
-import { log } from "@core/logging";
 import { cleanEmailAddress, sleep } from "@core/utils";
 import { generatePassword, hashPassword } from "@core/utils/auth";
 
 import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
-import ContactMfaService from "@core/services/ContactMfaService";
-import { ContactMfaSecure } from "@models/ContactMfa";
-
-import { LoginData } from "@api/controllers/AuthController";
-import {
-  ContactMfaType,
-  LOGIN_CODES,
-  PassportLocalDoneCallback,
-  PassportLoginInfo
-} from "@api/data/ContactData/interface";
-import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
 
@@ -28,44 +17,29 @@ import Contact from "@models/Contact";
 passport.use(
   new passportLocal.Strategy(
     {
-      usernameField: "email",
-      passReqToCallback: true
+      usernameField: "email"
     },
-    async function (
-      req: { body: LoginData },
-      email: LoginData["email"],
-      password: LoginData["password"],
-      done: PassportLocalDoneCallback
-    ) {
-      const token = req.body.token;
+    async function (email, password, done) {
       if (email) email = cleanEmailAddress(email);
 
       const contact = await ContactsService.findOne({ email });
-
-      // Check if contact for email exists
       if (contact) {
         const tries = contact.password.tries || 0;
-
         // Has account exceeded it's password tries?
         if (tries >= config.passwordTries) {
-          return done(null, false, { message: LOGIN_CODES.LOCKED });
+          return done(null, false, { message: "account-locked" });
         }
 
-        // Check if password salt is set
         if (!contact.password.salt) {
-          return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
+          return done(null, false, { message: "login-failed" });
         }
 
-        // Generate hash from password
         const hash = await hashPassword(
           password,
           contact.password.salt,
           contact.password.iterations
         );
-
-        // Check if password hash matches
         if (hash === contact.password.hash) {
-          // Reset tries
           if (tries > 0) {
             await ContactsService.updateContact(contact, {
               password: { ...contact.password, tries: 0 }
@@ -78,21 +52,13 @@ passport.use(
             });
           }
 
-          // Check if password needs to be rehashed
           if (contact.password.iterations < config.passwordIterations) {
             await ContactsService.updateContact(contact, {
               password: await generatePassword(password)
             });
           }
 
-          // Check MFA
-          const mfa = await ContactMfaService.get(contact);
-          if (mfa) {
-            return loginWithMfa(mfa, contact, token, done);
-          }
-
-          // User is logged in without 2FA
-          return done(null, contact, { message: LOGIN_CODES.LOGGED_IN });
+          return done(null, contact, { message: "logged-in" });
         } else {
           // If password doesn't match, increment tries and save
           contact.password.tries = tries + 1;
@@ -104,61 +70,26 @@ passport.use(
 
       // Delay by 1 second to slow down password guessing
       await sleep(1000);
-      return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
+      return done(null, false, { message: "login-failed" });
     }
   )
 );
 
-/**
- * Check if multi factor authentication is enabled and supported
- * @param mfa The multi factor authentication information
- * @param contact The contact
- * @param token The multi factor authentication token
- * @param done The passport done callback
- */
-const loginWithMfa = async (
-  mfa: ContactMfaSecure,
-  contact: Contact,
-  token: LoginData["token"],
-  done: PassportLocalDoneCallback
-) => {
-  if (mfa.type !== ContactMfaType.TOTP) {
-    log.warn("The user has unsupported 2FA enabled.");
-    // We pass the contact to the done callback so the user can be logged in and the 2FA is ignored
-    return done(null, contact, {
-      message: LOGIN_CODES.UNSUPPORTED_2FA
-    });
-  }
-
-  // If user has no token, notify client that 2FA is required
-  if (!token) {
-    return done(
-      new UnauthorizedError({ code: LOGIN_CODES.REQUIRES_2FA }),
-      false
-    );
-  }
-
-  // Check token..
-  const { isValid, delta } = await ContactMfaService.checkToken(
-    contact,
-    token,
-    1
-  );
-
-  // .. if invalid notify client
-  if (!isValid) {
-    return done(
-      new UnauthorizedError({
-        code: LOGIN_CODES.INVALID_TOKEN,
-        message: "Invalid 2FA token" + delta ? ` (delta: ${delta})` : ""
-      }),
-      false
-    );
-  }
-
-  // Looks good, return user
-  return done(null, contact, { message: LOGIN_CODES.LOGGED_IN });
-};
+// Add support for TOTP authentication in Passport.js
+passport.use(
+  new passportTotp.Strategy(
+    {
+      window: 1
+    },
+    function (_user, done) {
+      const user = _user as Contact;
+      if (user.otp.key) {
+        return done(null, Buffer.from(user.otp.key, "base64").toString(), 30);
+      }
+      return done(null, false);
+    }
+  )
+);
 
 // Passport.js serialise user function
 passport.serializeUser(function (data, done) {
