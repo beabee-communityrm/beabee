@@ -20,8 +20,7 @@ import {
   Post,
   Put,
   QueryParams,
-  Res,
-  UnauthorizedError
+  Res
 } from "routing-controllers";
 import { getRepository } from "typeorm";
 
@@ -32,6 +31,7 @@ import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentFlowService from "@core/services/PaymentFlowService";
 import PaymentService from "@core/services/PaymentService";
+import ContactMfaService from "@core/services/ContactMfaService";
 
 import { ContributionInfo } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
@@ -42,9 +42,11 @@ import JoinFlow from "@models/JoinFlow";
 import Payment from "@models/Payment";
 
 import { UUIDParam } from "@api/data";
+import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 import {
   convertContactToData,
   CreateContactData,
+  DeleteContactMfaData,
   fetchPaginatedContacts,
   GetContactData,
   GetContactQuery,
@@ -55,7 +57,9 @@ import {
   UpdateContactData,
   exportContacts,
   convertRoleToData,
-  ContactRoleParams
+  ContactRoleParams,
+  CreateContactMfaData,
+  GetContactMfaData
 } from "@api/data/ContactData";
 import {
   CompleteJoinFlowData,
@@ -73,15 +77,18 @@ import {
   GetExportQuery
 } from "@api/data/PaginatedData";
 import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
+import { LOGIN_CODES } from "@api/data/ContactData/interface";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
 
-// The target user can either be the current user or for admins
-// it can be any user, this decorator injects the correct target
-// and also ensures the user has the correct roles
+/**
+ * The target user can either be the current user or for admins
+ * it can be any user, this decorator injects the correct target
+ * and also ensures the user has the correct roles
+ */
 function TargetUser() {
   return createParamDecorator({
     required: true,
@@ -267,6 +274,54 @@ export class ContactController {
     return await this.handleStartUpdatePaymentMethod(target, data);
   }
 
+  /**
+   * Get contact multi factor authentication if exists
+   * @param target The target contact
+   */
+  @Get("/:id/mfa")
+  async getContactMfa(
+    @TargetUser() target: Contact
+  ): Promise<GetContactMfaData | null> {
+    const mfa = await ContactMfaService.get(target);
+    return mfa || null;
+  }
+
+  /**
+   * Create contact multi factor authentication
+   * @param target The target contact
+   * @param data The data to create the contact multi factor authentication
+   */
+  @OnUndefined(201)
+  @Post("/:id/mfa")
+  async createContactMfa(
+    @Body() data: CreateContactMfaData,
+    @TargetUser() target: Contact
+  ): Promise<void> {
+    await ContactMfaService.create(target, data);
+  }
+
+  /**
+   * Delete contact multi factor authentication
+   * @param target The target contact
+   * @param data The data to delete the contact multi factor authentication
+   * @param id The contact id
+   */
+  @OnUndefined(201)
+  @Delete("/:id/mfa")
+  async deleteContactMfa(
+    @TargetUser() target: Contact,
+    @Body() data: DeleteContactMfaData,
+    @Params() { id }: { id: string }
+  ): Promise<void> {
+    if (id === "me") {
+      await ContactMfaService.deleteSecure(target, data);
+    } else {
+      // It's secure to call this unsecure method here because the user is an admin,
+      // this is checked in the `@TargetUser()` decorator
+      await ContactMfaService.deleteUnsecure(target);
+    }
+  }
+
   @OnUndefined(204)
   @Post("/:id/contribution/cancel")
   async cancelContribution(@TargetUser() target: Contact): Promise<void> {
@@ -286,8 +341,13 @@ export class ContactController {
     return await this.getContribution(target);
   }
 
-  // This is a temporary API endpoint until we rework the contribution/payment tables
-  // TODO: Remove this!
+  /**
+   * TODO: Remove this!
+   * @deprecated This is a temporary API endpoint until we rework the contribution/payment tables
+   * @param target
+   * @param data
+   * @returns
+   */
   @Authorized("admin")
   @Patch("/:id/contribution/force")
   async forceUpdateContribution(

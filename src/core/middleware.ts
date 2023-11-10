@@ -152,6 +152,13 @@ export function hasNewModel<T>(
   });
 }
 
+/**
+ * @deprecated The old login is no longer used
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 export function isLoggedIn(
   req: Request,
   res: Response,
@@ -168,22 +175,9 @@ export function isLoggedIn(
   }
 }
 
-export function isNotLoggedIn(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  const status = auth.loggedIn(req);
-  switch (status) {
-    case auth.AuthenticationStatus.NOT_LOGGED_IN:
-      return next();
-    default:
-      res.redirect("/");
-      return;
-  }
-}
-
-// Express middleware to redirect users without admin/superadmin privileges
+/**
+ * Express middleware to redirect users without admin/superadmin privileges
+ */
 export function isAdmin(req: Request, res: Response, next: NextFunction): void {
   const status = auth.canAdmin(req);
   switch (status) {
@@ -199,7 +193,13 @@ export function isAdmin(req: Request, res: Response, next: NextFunction): void {
   }
 }
 
-// Express middleware to redirect users without superadmin privilages
+/**
+ * Express middleware to redirect users without superadmin privilages
+ * @param req
+ * @param res
+ * @param next
+ * @returns
+ */
 export function isSuperAdmin(
   req: Request,
   res: Response,

@@ -39,14 +39,14 @@ cp .env.example .env
 
 npm install
 npm run build
-docker-compose build
+docker compose build
 
 # Initialise database
-docker-compose up -d db
-docker-compose run --rm app npm run typeorm migration:run
+docker compose up -d db
+docker compose run --rm app npm run typeorm migration:run
 
 # Do the rest
-docker-compose up -d
+docker compose up -d
 ```
 
 Go to: http://localhost:3001
@@ -56,7 +56,7 @@ Go to: http://localhost:3001
 #### Create a new super admin
 
 ```bash
-docker-compose run --rm app node built/tools/new-user
+docker compose run --rm app node built/tools/new-user
 ```
 
 #### Import some data
@@ -64,12 +64,12 @@ docker-compose run --rm app node built/tools/new-user
 Need some test data? Download it here: coming soon
 
 ```bash
-docker-compose run --rm -T app node built/tools/database/import.js < <import file>
+docker compose run --rm -T app node built/tools/database/import.js < <import file>
 ```
 
 ## Development
 
-Development is containerised, in general you should be able to use the following to get started
+Development is containerized, in general you should be able to use the following to get started
 
 ```bash
 npm start
@@ -86,14 +86,14 @@ npm run dev:api
 If you make changes to `.env` you need to recreate the Docker containers
 
 ```
-docker-compose up -d
+docker compose up -d
 ```
 
 If you change the dependencies in `package.json` you must rebuild and recreate the Docker containers
 
 ```
-docker-compose build
-docker-compose up -d
+docker compose build
+docker compose up -d
 ```
 
 #### Generating database migrations
@@ -101,10 +101,12 @@ docker-compose up -d
 Whenever you make changes to an object that is mapped into the database, you have to use `typeORM` and create a new migration file. Make sure the database container is running and then:
 
 ```
-docker-compose run app npm run typeorm migration:generate -- -n <MigrationName>
+docker compose run app npm run typeorm migration:generate -- -n <MigrationName>
 npm run build
-docker-compose run app npm run typeorm migration:run
+docker compose run app npm run typeorm migration:run
 ```
+
+> Note: If you get an `EACCES: permission denied` error, you may need to run the above commands with `docker compose run -u root`.
 
 ### Documentation
 
