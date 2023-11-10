@@ -313,7 +313,13 @@ export class ContactController {
     @Body() data: DeleteContactMfaData,
     @Params() { id }: { id: string }
   ): Promise<void> {
-    await ContactMfaService.delete(target, id, data);
+    if (id === "me") {
+      await ContactMfaService.deleteSecure(target, data);
+    } else {
+      // It's secure to call this unsecure method here because the user is an admin,
+      // this is checked in the `@TargetUser()` decorator
+      await ContactMfaService.deleteUnsecure(target);
+    }
   }
 
   @OnUndefined(204)
