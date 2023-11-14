@@ -393,6 +393,27 @@ class ContactsService {
       data.reference || null
     );
   }
+
+  /**
+   * Increment the number of password tries for a contact.
+   * @param contact The contact to increment the password tries for
+   * @returns The new number of tries
+   */
+  async incrementPasswordTries(contact: Contact) {
+    contact.password.tries ||= 0;
+    contact.password.tries++;
+    await this.updateContact(contact, {
+      password: { ...contact.password }
+    });
+    return contact.password.tries;
+  }
+
+  async resetPasswordTries(contact: Contact) {
+    contact.password.tries = 0;
+    await this.updateContact(contact, {
+      password: { ...contact.password }
+    });
+  }
 }
 
 export default new ContactsService();

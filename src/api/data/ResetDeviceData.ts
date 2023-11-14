@@ -10,6 +10,7 @@ export class CreateResetDeviceData {
   @IsUrl()
   resetUrl!: string;
 
+  /** In the future, we might want to add more types of reset flows */
   @IsIn([RESET_SECURITY_FLOW_TYPE.TOTP])
   type!: RESET_SECURITY_FLOW_TYPE.TOTP;
 }
@@ -17,4 +18,8 @@ export class CreateResetDeviceData {
 export class UpdateResetDeviceData {
   @Validate(IsPassword)
   password!: string;
+
+  /** In the future, we might want to add more types of reset flows */
+  @IsIn([RESET_SECURITY_FLOW_TYPE.TOTP])
+  type!: RESET_SECURITY_FLOW_TYPE.TOTP;
 }

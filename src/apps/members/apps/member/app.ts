@@ -16,6 +16,8 @@ import ReferralsService from "@core/services/ReferralsService";
 import Contact from "@models/Contact";
 import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+
 const app = express();
 
 async function getAvailableTags(): Promise<string[]> {
@@ -113,7 +115,10 @@ app.post(
         req.flash("success", "member-login-override-generated");
         break;
       case "password-reset":
-        await getRepository(ResetSecurityFlow).save({ contact });
+        await getRepository(ResetSecurityFlow).save({
+          contact,
+          type: RESET_SECURITY_FLOW_TYPE.PASSWORD
+        });
         req.flash("success", "member-password-reset-generated");
         break;
       case "permanently-delete":

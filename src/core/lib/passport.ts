@@ -65,9 +65,7 @@ passport.use(
         if (await authService.isValidPassword(contact.password, password)) {
           // Reset tries
           if (tries > 0) {
-            await ContactsService.updateContact(contact, {
-              password: { ...contact.password, tries: 0 }
-            });
+            await ContactsService.resetPasswordTries(contact);
             return done(null, contact, {
               message: OptionsService.getText("flash-account-attempts").replace(
                 "%",
@@ -94,9 +92,7 @@ passport.use(
         } else {
           // If password doesn't match, increment tries and save
           contact.password.tries = tries + 1;
-          await ContactsService.updateContact(contact, {
-            password: { ...contact.password, tries: tries + 1 }
-          });
+          await ContactsService.incrementPasswordTries(contact);
         }
       }
 
