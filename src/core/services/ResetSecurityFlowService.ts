@@ -30,7 +30,7 @@ import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 
 /**
  * Service for handling reset password and reset device flows.
- * 
+ *
  * This service is oriented on the client side `ResetSecurityFlowService`.
  */
 class ResetSecurityFlowService {
@@ -53,7 +53,8 @@ class ResetSecurityFlowService {
     if (rdFlow) {
       throw new ForbiddenError({
         code: RESET_SECURITY_FLOW_ERROR_CODE.OTHER_ACTIVE_FLOW,
-        message: "Contact has already requested a reset device flow, for security reasons please complete the reset password flow first"
+        message:
+          "Contact has already requested a reset device flow, for security reasons please complete the reset password flow first"
       });
     }
 
@@ -97,7 +98,6 @@ class ResetSecurityFlowService {
     // Check if contact has MFA enabled, if so validate MFA
     const mfa = await ContactMfaService.get(rpFlow.contact);
     if (mfa) {
-
       // In the future, we might want to add more types of reset flows
       if (mfa.type !== CONTACT_MFA_TYPE.TOTP) {
         throw new BadRequestError({
@@ -111,7 +111,11 @@ class ResetSecurityFlowService {
         });
       }
 
-      const isValid = await ContactMfaService.checkToken(rpFlow.contact, data.token, 1);
+      const isValid = await ContactMfaService.checkToken(
+        rpFlow.contact,
+        data.token,
+        1
+      );
 
       if (!isValid) {
         throw new UnauthorizedError({
@@ -153,11 +157,15 @@ class ResetSecurityFlowService {
     }
 
     // Check if reset password flow already exists, if so throw error
-    const rpFlow = await this.getByType(contact, RESET_SECURITY_FLOW_TYPE.PASSWORD);
+    const rpFlow = await this.getByType(
+      contact,
+      RESET_SECURITY_FLOW_TYPE.PASSWORD
+    );
     if (rpFlow) {
       throw new ForbiddenError({
         code: RESET_SECURITY_FLOW_ERROR_CODE.OTHER_ACTIVE_FLOW,
-        message: "Contact has already requested a reset device flow, for security reasons please complete the reset password flow first"
+        message:
+          "Contact has already requested a reset device flow, for security reasons please complete the reset password flow first"
       });
     }
 
