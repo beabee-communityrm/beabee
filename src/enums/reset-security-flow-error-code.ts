@@ -3,7 +3,7 @@
  * TODO: Move to common
  */
 export enum RESET_SECURITY_FLOW_ERROR_CODE {
-  NONE = '',
+  NONE = "",
   INVALID_PASSWORD = "invalid-password",
   INVALID_TOKEN = "invalid-token",
   NO_FLOW = "no-flow",

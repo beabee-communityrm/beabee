@@ -39,7 +39,7 @@ class ResetSecurityFlowService {
    * This is mostly used after the user has clicked on the forgot password the link on the login page.
    * @param data
    * @returns The contact associated with the reset device flow or null if the email doesn't exist
-   * 
+   *
    * @throws {ForbiddenError} If the contact has already requested a reset device flow
    */
   public async resetPasswordBegin(data: CreateResetPasswordData) {
@@ -78,7 +78,7 @@ class ResetSecurityFlowService {
    * @param id The reset password flow id
    * @param data
    * @returns The contact associated with the reset password flow
-   * 
+   *
    * @throws {NotFoundError} If the reset password flow doesn't exist
    * @throws {BadRequestError} If the reset password flow type is not PASSWORD
    * @throws {BadRequestError} If MFA is enabled but the MFA type is not TOTP
@@ -150,7 +150,7 @@ class ResetSecurityFlowService {
    * This is mostly used after the user has clicked on the lost device the link on the login page.
    * @param data
    * @returns The contact associated with the reset device flow or null if the email doesn't exist
-   * 
+   *
    * @throws {BadRequestError} If the contact has no MFA enabled
    * @throws {ForbiddenError} If the contact has already requested a reset password flow
    */
@@ -199,7 +199,7 @@ class ResetSecurityFlowService {
    * @param id The reset device flow id
    * @param data
    * @returns The contact associated with the reset device flow
-   * 
+   *
    * @throws {NotFoundError} If the reset device flow doesn't exist
    * @throws {BadRequestError} If the reset device flow type is not TOTP
    * @throws {UnauthorizedError} If the password is invalid
