@@ -39,6 +39,8 @@ class ResetSecurityFlowService {
    * This is mostly used after the user has clicked on the forgot password the link on the login page.
    * @param data
    * @returns The contact associated with the reset device flow or null if the email doesn't exist
+   * 
+   * @throws {ForbiddenError} If the contact has already requested a reset device flow
    */
   public async resetPasswordBegin(data: CreateResetPasswordData) {
     const contact = await ContactsService.findOne({ email: data.email });
@@ -76,6 +78,12 @@ class ResetSecurityFlowService {
    * @param id The reset password flow id
    * @param data
    * @returns The contact associated with the reset password flow
+   * 
+   * @throws {NotFoundError} If the reset password flow doesn't exist
+   * @throws {BadRequestError} If the reset password flow type is not PASSWORD
+   * @throws {BadRequestError} If MFA is enabled but the MFA type is not TOTP
+   * @throws {ForbiddenError} If the MFA token is not provided
+   * @throws {UnauthorizedError} If the MFA token is invalid
    */
   public async resetPasswordComplete(
     id: string,
@@ -106,12 +114,12 @@ class ResetSecurityFlowService {
       }
 
       if (!data.token) {
-        throw new BadRequestError({
-          code: RESET_SECURITY_FLOW_ERROR_CODE.INVALID_TOKEN
+        throw new ForbiddenError({
+          code: RESET_SECURITY_FLOW_ERROR_CODE.MFA_TOKEN_REQUIRED
         });
       }
 
-      const isValid = await ContactMfaService.checkToken(
+      const { isValid } = await ContactMfaService.checkToken(
         rpFlow.contact,
         data.token,
         1
@@ -128,7 +136,11 @@ class ResetSecurityFlowService {
       password: await generatePassword(data.password)
     });
 
+    // Stop this reset flow
     await this.delete(id);
+
+    // Stop all other reset flows if they exist
+    await this.deleteAll(rpFlow.contact);
 
     return rpFlow.contact;
   }
@@ -138,6 +150,9 @@ class ResetSecurityFlowService {
    * This is mostly used after the user has clicked on the lost device the link on the login page.
    * @param data
    * @returns The contact associated with the reset device flow or null if the email doesn't exist
+   * 
+   * @throws {BadRequestError} If the contact has no MFA enabled
+   * @throws {ForbiddenError} If the contact has already requested a reset password flow
    */
   public async resetDeviceBegin(data: CreateResetDeviceData) {
     const contact = await ContactsService.findOne({ email: data.email });
@@ -165,7 +180,7 @@ class ResetSecurityFlowService {
       throw new ForbiddenError({
         code: RESET_SECURITY_FLOW_ERROR_CODE.OTHER_ACTIVE_FLOW,
         message:
-          "Contact has already requested a reset device flow, for security reasons please complete the reset password flow first"
+          "Contact has already requested a reset password flow, for security reasons please complete the reset password flow first"
       });
     }
 
@@ -184,6 +199,10 @@ class ResetSecurityFlowService {
    * @param id The reset device flow id
    * @param data
    * @returns The contact associated with the reset device flow
+   * 
+   * @throws {NotFoundError} If the reset device flow doesn't exist
+   * @throws {BadRequestError} If the reset device flow type is not TOTP
+   * @throws {UnauthorizedError} If the password is invalid
    */
   public async resetDeviceComplete(id: string, data: UpdateResetDeviceData) {
     const rdFlow = await this.get(id);
@@ -219,8 +238,11 @@ class ResetSecurityFlowService {
     // Disable MFA, we can use the unsecure method because we already validated the password
     await ContactMfaService.deleteUnsecure(rdFlow.contact);
 
-    // Stop reset flow
+    // Stop this reset flow
     await this.delete(id);
+
+    // Stop all other reset flows if they exist
+    await this.deleteAll(rdFlow.contact);
 
     return rdFlow.contact;
   }
@@ -241,6 +263,14 @@ class ResetSecurityFlowService {
    */
   private async delete(id: string) {
     return await getRepository(ResetSecurityFlow).delete(id);
+  }
+
+  /**
+   * Deletes all reset security flows for a contact.
+   * @param contact The contact
+   */
+  private async deleteAll(contact: Contact) {
+    return await getRepository(ResetSecurityFlow).delete({ contact });
   }
 
   /**
