@@ -4,6 +4,7 @@ export class RenameResetPasswordFlowToResetSecurityFlow1700131647453 implements 
     name = 'RenameResetPasswordFlowToResetSecurityFlow1700131647453'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // TO not drop the foreign key, this should be done automatically by the database
         // await queryRunner.query(`ALTER TABLE "reset_password_flow" DROP CONSTRAINT "FK_06c9d2d78e460f9a8ecdba5a592"`);
         await queryRunner.query(`DROP TABLE "reset_password_flow"`);
 
