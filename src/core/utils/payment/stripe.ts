@@ -41,10 +41,11 @@ async function calculateProrationParams(
   );
   // Calculate exact number of seconds to remove (rather than just "one month")
   // as this aligns with Stripe's calculations
-  const prorationTime =
+  const prorationTime = Math.floor(
     subscription.current_period_end -
-    (subscription.current_period_end - subscription.current_period_start) *
-      (monthsLeft / 12);
+      (subscription.current_period_end - subscription.current_period_start) *
+        (monthsLeft / 12)
+  );
 
   const invoice = await stripe.invoices.retrieveUpcoming({
     subscription: subscription.id,
