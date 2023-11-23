@@ -1,4 +1,5 @@
-import { getRepository } from "typeorm";
+import { subHours } from "date-fns";
+import { MoreThan, getRepository } from "typeorm";
 
 import UnauthorizedError from "@api/errors/UnauthorizedError";
 import NotFoundError from "@api/errors/NotFoundError";
@@ -241,13 +242,13 @@ class ResetSecurityFlowService {
   }
 
   /**
-   * Gets a reset security flow.
+   * Gets a reset security flow, as long as it hasn't expired
    * @param id The reset security flow id
    * @returns The reset security flow
    */
   private async get(id: string) {
     return await getRepository(ResetSecurityFlow).findOne({
-      where: { id },
+      where: { id, date: MoreThan(subHours(new Date(), 24)) },
       relations: ["contact"]
     });
   }
