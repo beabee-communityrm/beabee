@@ -1,7 +1,6 @@
 import { getRepository } from "typeorm";
 
 import UnauthorizedError from "@api/errors/UnauthorizedError";
-import ForbiddenError from "@api/errors/ForbiddenError";
 import NotFoundError from "@api/errors/NotFoundError";
 import BadRequestError from "@api/errors/BadRequestError";
 
@@ -27,6 +26,7 @@ import {
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error-code";
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
+import { LOGIN_CODES } from "@enums/login-codes";
 
 /**
  * Service for handling reset password and reset device flows.
@@ -39,8 +39,6 @@ class ResetSecurityFlowService {
    * This is mostly used after the user has clicked on the forgot password the link on the login page.
    * @param data
    * @returns The contact associated with the reset device flow or null if the email doesn't exist
-   *
-   * @throws {ForbiddenError} If the contact has already requested a reset device flow
    */
   public async resetPasswordBegin(data: CreateResetPasswordData) {
     const contact = await ContactsService.findOne({ email: data.email });
@@ -48,16 +46,6 @@ class ResetSecurityFlowService {
     // We don't want to leak if the email exists or not
     if (!contact) {
       return null;
-    }
-
-    // Check if contact has already requested a reset device flow, if so throw error
-    const rdFlow = await this.getByType(contact, RESET_SECURITY_FLOW_TYPE.TOTP);
-    if (rdFlow) {
-      throw new ForbiddenError({
-        code: RESET_SECURITY_FLOW_ERROR_CODE.OTHER_ACTIVE_FLOW,
-        message:
-          "Contact has already requested a reset device flow, for security reasons please complete the reset password flow first"
-      });
     }
 
     const rpFlow = await this.create(
@@ -82,7 +70,7 @@ class ResetSecurityFlowService {
    * @throws {NotFoundError} If the reset password flow doesn't exist
    * @throws {BadRequestError} If the reset password flow type is not PASSWORD
    * @throws {BadRequestError} If MFA is enabled but the MFA type is not TOTP
-   * @throws {ForbiddenError} If the MFA token is not provided
+   * @throws {BadRequestError} If the MFA token is not provided
    * @throws {UnauthorizedError} If the MFA token is invalid
    */
   public async resetPasswordComplete(
@@ -114,7 +102,7 @@ class ResetSecurityFlowService {
       }
 
       if (!data.token) {
-        throw new ForbiddenError({
+        throw new BadRequestError({
           code: RESET_SECURITY_FLOW_ERROR_CODE.MFA_TOKEN_REQUIRED
         });
       }
@@ -126,9 +114,7 @@ class ResetSecurityFlowService {
       );
 
       if (!isValid) {
-        throw new UnauthorizedError({
-          code: RESET_SECURITY_FLOW_ERROR_CODE.INVALID_TOKEN
-        });
+        throw new UnauthorizedError({ code: LOGIN_CODES.INVALID_TOKEN });
       }
     }
 
@@ -150,9 +136,6 @@ class ResetSecurityFlowService {
    * This is mostly used after the user has clicked on the lost device the link on the login page.
    * @param data
    * @returns The contact associated with the reset device flow or null if the email doesn't exist
-   *
-   * @throws {BadRequestError} If the contact has no MFA enabled
-   * @throws {ForbiddenError} If the contact has already requested a reset password flow
    */
   public async resetDeviceBegin(data: CreateResetDeviceData) {
     const contact = await ContactsService.findOne({ email: data.email });
@@ -165,23 +148,7 @@ class ResetSecurityFlowService {
     // Check if contact has MFA enabled
     const mfa = await ContactMfaService.get(contact);
     if (!mfa) {
-      throw new BadRequestError({
-        code: RESET_SECURITY_FLOW_ERROR_CODE.NO_MFA,
-        message: "Contact has no MFA enabled"
-      });
-    }
-
-    // Check if reset password flow already exists, if so throw error
-    const rpFlow = await this.getByType(
-      contact,
-      RESET_SECURITY_FLOW_TYPE.PASSWORD
-    );
-    if (rpFlow) {
-      throw new ForbiddenError({
-        code: RESET_SECURITY_FLOW_ERROR_CODE.OTHER_ACTIVE_FLOW,
-        message:
-          "Contact has already requested a reset password flow, for security reasons please complete the reset password flow first"
-      });
+      return null;
     }
 
     const rdFlow = await this.create(contact, data.type);
