@@ -83,8 +83,6 @@ passport.use(
           // User is logged in without 2FA
           return done(null, contact, { message: LOGIN_CODES.LOGGED_IN });
         } else {
-          // If password doesn't match, increment tries and save
-          contact.password.tries = tries + 1;
           await ContactsService.incrementPasswordTries(contact);
         }
       }
