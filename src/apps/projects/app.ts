@@ -1,4 +1,3 @@
-import "module-alias/register";
 import express from "express";
 import _ from "lodash";
 import moment from "moment";

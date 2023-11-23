@@ -1,5 +1,3 @@
-import "module-alias/register";
-
 import { RuleGroup } from "@beabee/beabee-common";
 import express, { Request } from "express";
 import queryString from "query-string";

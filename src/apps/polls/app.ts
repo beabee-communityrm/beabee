@@ -1,4 +1,3 @@
-import "module-alias/register";
 import { CalloutResponseAnswers } from "@beabee/beabee-common";
 import express, { NextFunction, Request, Response } from "express";
 import _ from "lodash";
