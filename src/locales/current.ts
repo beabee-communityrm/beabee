@@ -7,7 +7,8 @@ import localeEn from "./en.json";
 const locales = {
   de: localeDe,
   "de@informal": localeDeInformal,
-  en: localeEn
+  en: localeEn,
+  nl: localeEn // CNR only
 } as const;
 
 export type Locale = keyof typeof locales;

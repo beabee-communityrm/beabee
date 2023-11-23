@@ -320,9 +320,11 @@ class EmailService {
   }
 
   private getDefaultEmail(template: EmailTemplateId): Email | undefined {
-    return this.defaultEmails[OptionsService.getText("locale") as Locale]?.[
-      template
-    ];
+    const locale = OptionsService.getText("locale") as Locale;
+    return (
+      this.defaultEmails[locale]?.[template] ||
+      this.defaultEmails.en?.[template]
+    );
   }
 
   private convertContactToRecipient(
