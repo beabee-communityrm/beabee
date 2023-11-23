@@ -287,12 +287,6 @@ class ResetSecurityFlowService {
       relations: ["contact"]
     });
   }
-
-  private async getByType(contact: Contact, type: RESET_SECURITY_FLOW_TYPE) {
-    return await getRepository(ResetSecurityFlow).findOne({
-      where: { contact, type }
-    });
-  }
 }
 
 export default new ResetSecurityFlowService();
