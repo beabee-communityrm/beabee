@@ -11,7 +11,7 @@ import { generatePassword, hashPassword } from "@core/utils/auth";
 import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
 import ContactMfaService from "@core/services/ContactMfaService";
-import authService from "@core/services/AuthService";
+import AuthService from "@core/services/AuthService";
 
 import { LoginData } from "@api/controllers/AuthController";
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
@@ -55,14 +55,7 @@ passport.use(
           return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
         }
 
-        // Generate hash from password
-        const hash = await hashPassword(
-          password,
-          contact.password.salt,
-          contact.password.iterations
-        );
-
-        if (await authService.isValidPassword(contact.password, password)) {
+        if (await AuthService.isValidPassword(contact.password, password)) {
           // Reset tries
           if (tries > 0) {
             await ContactsService.resetPasswordTries(contact);

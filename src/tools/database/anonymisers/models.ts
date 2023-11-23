@@ -274,7 +274,7 @@ export const referralsGiftAnonymiser = createModelAnonymiser(ReferralGift, {
   stock: copy // Add to map so it is serialised correctly
 });
 
-export const ResetSecurityFlowAnonymiser = createModelAnonymiser(
+export const resetSecurityFlowAnonymiser = createModelAnonymiser(
   ResetSecurityFlow,
   {
     id: () => uuidv4(),

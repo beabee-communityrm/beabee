@@ -22,7 +22,7 @@ import {
   projectContactsAnonymiser,
   projectEngagmentsAnonymiser,
   referralsAnonymiser,
-  ResetSecurityFlowAnonymiser
+  resetSecurityFlowAnonymiser
 } from "./anonymisers/models";
 import { anonymiseModel, clearModels } from "./anonymisers";
 import Callout from "@models/Callout";
@@ -61,7 +61,7 @@ async function main() {
     projectEngagmentsAnonymiser,
     segmentContactsAnonymiser,
     referralsAnonymiser,
-    ResetSecurityFlowAnonymiser
+    resetSecurityFlowAnonymiser
   ]);
 
   const contacts = await createQueryBuilder(Contact, "item")

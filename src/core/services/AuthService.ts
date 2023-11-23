@@ -8,8 +8,6 @@ import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
 import Password from "@models/Password";
 
-import { LoginData } from "@api/controllers/AuthController";
-
 import { hashPassword } from "@core/utils/auth";
 
 async function isValidApiKey(key: string): Promise<boolean> {
@@ -49,7 +47,7 @@ class AuthService {
    */
   async isValidPassword(
     passwordData: Password,
-    passwordRaw: LoginData["password"]
+    passwordRaw: string
   ): Promise<boolean> {
     const hash = await hashPassword(
       passwordRaw,
