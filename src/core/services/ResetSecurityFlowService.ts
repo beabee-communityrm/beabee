@@ -221,7 +221,7 @@ class ResetSecurityFlowService {
    * @param type The reset security flow type
    * @returns The reset security flow
    */
-  private async create(contact: Contact, type: RESET_SECURITY_FLOW_TYPE) {
+  async create(contact: Contact, type: RESET_SECURITY_FLOW_TYPE) {
     return await getRepository(ResetSecurityFlow).save({ contact, type });
   }
 
