@@ -1,5 +1,10 @@
 import { subHours } from "date-fns";
-import { MoreThan, getRepository } from "typeorm";
+import {
+  InsertResult,
+  MoreThan,
+  createQueryBuilder,
+  getRepository
+} from "typeorm";
 
 import UnauthorizedError from "@api/errors/UnauthorizedError";
 import NotFoundError from "@api/errors/NotFoundError";
@@ -28,6 +33,10 @@ import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error-code";
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 import { LOGIN_CODES } from "@enums/login-codes";
+
+interface InsertResetSecurityFlowResult extends InsertResult {
+  raw: { id: string; contactId: string }[] | undefined;
+}
 
 /**
  * Service for handling reset password and reset device flows.
@@ -223,6 +232,32 @@ class ResetSecurityFlowService {
    */
   async create(contact: Contact, type: RESET_SECURITY_FLOW_TYPE) {
     return await getRepository(ResetSecurityFlow).save({ contact, type });
+  }
+
+  /**
+   * Creates multiple reset security flows efficiently using a single query
+   *
+   * @param contactIds A list of contact IDs to create reset security flows for
+   * @param type The reset security flow type
+   * @returns a map of contact IDs to reset security flow IDs
+   */
+  async createManyRaw(
+    contactIds: string[],
+    type: RESET_SECURITY_FLOW_TYPE
+  ): Promise<{ [id: string]: string }> {
+    const rpInsertResult: InsertResetSecurityFlowResult =
+      await createQueryBuilder()
+        .insert()
+        .into(ResetSecurityFlow)
+        .values(contactIds.map((id) => ({ contact: { id }, type })))
+        .returning(["id", "contact"])
+        .execute();
+
+    const rpFlowIdsByContactId = Object.fromEntries(
+      (rpInsertResult.raw || []).map((rpFlow) => [rpFlow.contactId, rpFlow.id])
+    );
+
+    return rpFlowIdsByContactId;
   }
 
   /**
