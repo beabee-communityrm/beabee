@@ -14,19 +14,32 @@ import {
 
 import { log as mainLogger } from "@core/logging";
 import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
+import { generatePassword, isValidPassword } from "@core/utils/auth";
 import { generateContactCode } from "@core/utils/contact";
 
+import AuthService from "@core/services/AuthService";
+import ContactMfaService from "@core/services/ContactMfaService";
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
+import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
 
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
 
-import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import BadRequestError from "@api/errors/BadRequestError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import NotFoundError from "@api/errors/NotFoundError";
+import UnauthorizedError from "@api/errors/UnauthorizedError";
+
+import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
+import { LOGIN_CODES } from "@enums/login-codes";
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error-code";
+import config from "@config";
 
 export type PartialContact = Pick<Contact, "email" | "contributionType"> &
   Partial<Contact>;
@@ -413,6 +426,177 @@ class ContactsService {
     await this.updateContact(contact, {
       password: { ...contact.password }
     });
+  }
+
+  /**
+   * Starts the reset password flow.
+   * This is mostly used after the user has clicked on the forgot password the link on the login page.
+   * @param email The email of the contact
+   * @param resetUrl The reset url
+   */
+  public async resetPasswordBegin(
+    email: string,
+    resetUrl: string
+  ): Promise<void> {
+    const contact = await this.findOne({ email });
+
+    if (!contact) {
+      return;
+    }
+
+    const rpFlow = await ResetSecurityFlowService.create(
+      contact,
+      RESET_SECURITY_FLOW_TYPE.PASSWORD
+    );
+
+    await EmailService.sendTemplateToContact("reset-password", contact, {
+      rpLink: resetUrl + "/" + rpFlow.id
+    });
+  }
+
+  /**
+   * Completes the reset password flow.
+   * This is mostly used after the user has clicked the link in the email.
+   * @param id The reset password flow id
+   * @param data
+   * @returns The contact associated with the reset password flow
+   *
+   * @throws {NotFoundError} If the reset password flow doesn't exist
+   * @throws {BadRequestError} If the reset password flow type is not PASSWORD
+   * @throws {BadRequestError} If MFA is enabled but the MFA type is not TOTP
+   * @throws {BadRequestError} If the MFA token is not provided
+   * @throws {UnauthorizedError} If the MFA token is invalid
+   */
+  public async resetPasswordComplete(
+    id: string,
+    data: { password: string; token?: string }
+  ) {
+    const rpFlow = await ResetSecurityFlowService.get(id);
+
+    if (!rpFlow) {
+      throw new NotFoundError({
+        code: RESET_SECURITY_FLOW_ERROR_CODE.NOT_FOUND
+      });
+    }
+
+    if (rpFlow.type !== RESET_SECURITY_FLOW_TYPE.PASSWORD) {
+      throw new BadRequestError({
+        code: RESET_SECURITY_FLOW_ERROR_CODE.WRONG_TYPE
+      });
+    }
+
+    // Check if contact has MFA enabled, if so validate MFA
+    const mfa = await ContactMfaService.get(rpFlow.contact);
+    if (mfa) {
+      // In the future, we might want to add more types of reset flows
+      if (mfa.type !== CONTACT_MFA_TYPE.TOTP) {
+        throw new BadRequestError({
+          code: RESET_SECURITY_FLOW_ERROR_CODE.WRONG_MFA_TYPE
+        });
+      }
+
+      if (!data.token) {
+        throw new BadRequestError({
+          code: RESET_SECURITY_FLOW_ERROR_CODE.MFA_TOKEN_REQUIRED
+        });
+      }
+
+      const { isValid } = await ContactMfaService.checkToken(
+        rpFlow.contact,
+        data.token,
+        1
+      );
+
+      if (!isValid) {
+        throw new UnauthorizedError({ code: LOGIN_CODES.INVALID_TOKEN });
+      }
+    }
+
+    await this.updateContact(rpFlow.contact, {
+      password: await generatePassword(data.password)
+    });
+
+    // Stop all other reset flows if they exist
+    await ResetSecurityFlowService.deleteAll(rpFlow.contact);
+
+    return rpFlow.contact;
+  }
+
+  /**
+   * Starts the reset device flow.
+   * This is mostly used after the user has clicked on the lost device the link on the login page.
+   * @param email The email of the contact
+   * @param type The reset device flow type
+   * @param resetUrl The reset url
+   */
+  public async resetDeviceBegin(
+    email: string,
+    type: RESET_SECURITY_FLOW_TYPE,
+    resetUrl: string
+  ): Promise<void> {
+    const contact = await this.findOne({ email });
+
+    // We don't want to leak if the email exists or not
+    if (!contact) {
+      return;
+    }
+
+    // Check if contact has MFA enabled
+    const mfa = await ContactMfaService.get(contact);
+    if (!mfa) {
+      return;
+    }
+
+    const rdFlow = await ResetSecurityFlowService.create(contact, type);
+
+    await EmailService.sendTemplateToContact("reset-device", contact, {
+      rpLink: resetUrl + "/" + rdFlow.id
+    });
+  }
+
+  /**
+   * Completes the reset device flow.
+   * This is mostly used after the user has clicked the link in the email.
+   * @param id The reset device flow id
+   * @param password The password of the contact
+   * @returns The contact associated with the reset device flow
+   *
+   * @throws {NotFoundError} If the reset device flow doesn't exist
+   * @throws {BadRequestError} If the reset device flow type is not TOTP
+   * @throws {UnauthorizedError} If the password is invalid
+   */
+  public async resetDeviceComplete(id: string, password: string) {
+    const rdFlow = await ResetSecurityFlowService.get(id);
+
+    if (!rdFlow) {
+      throw new NotFoundError({
+        code: RESET_SECURITY_FLOW_ERROR_CODE.NOT_FOUND
+      });
+    }
+
+    if (rdFlow.type !== RESET_SECURITY_FLOW_TYPE.TOTP) {
+      throw new BadRequestError({
+        code: RESET_SECURITY_FLOW_ERROR_CODE.WRONG_TYPE
+      });
+    }
+
+    // Validate password
+    const code = await isValidPassword(rdFlow.contact.password, password);
+    if (code !== LOGIN_CODES.LOGGED_IN) {
+      await this.incrementPasswordTries(rdFlow.contact);
+      throw new UnauthorizedError({ code });
+    }
+
+    // Reset password tries because the password was correct
+    await this.resetPasswordTries(rdFlow.contact);
+
+    // Disable MFA, we can use the unsecure method because we already validated the password
+    await ContactMfaService.deleteUnsecure(rdFlow.contact);
+
+    // Stop all other reset flows if they exist
+    await ResetSecurityFlowService.deleteAll(rdFlow.contact);
+
+    return rdFlow.contact;
   }
 }
 

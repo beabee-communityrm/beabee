@@ -9,7 +9,7 @@ import {
   Req
 } from "routing-controllers";
 
-import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import ContactsService from "@core/services/ContactsService";
 
 import { login } from "@api/utils";
 import { UUIDParam } from "@api/data";
@@ -23,7 +23,7 @@ export class ResetPasswordController {
   @OnUndefined(204)
   @Post()
   async create(@Body() data: CreateResetPasswordData): Promise<void> {
-    await ResetSecurityFlowService.resetPasswordBegin(data);
+    await ContactsService.resetPasswordBegin(data.email, data.resetUrl);
   }
 
   @OnUndefined(204)
@@ -33,10 +33,7 @@ export class ResetPasswordController {
     @Params() { id }: UUIDParam,
     @Body() data: UpdateResetPasswordData
   ): Promise<void> {
-    const contact = await ResetSecurityFlowService.resetPasswordComplete(
-      id,
-      data
-    );
+    const contact = await ContactsService.resetPasswordComplete(id, data);
     await login(req, contact);
   }
 }

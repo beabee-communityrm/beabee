@@ -17,5 +17,5 @@ export class UpdateResetPasswordData {
   /** If MFA is enabled, we need to provide the token */
   @IsOptional()
   @IsString()
-  token?: string | undefined;
+  token?: string;
 }

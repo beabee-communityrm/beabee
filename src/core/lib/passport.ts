@@ -6,12 +6,10 @@ import config from "@config";
 
 import { log } from "@core/logging";
 import { cleanEmailAddress, sleep } from "@core/utils";
-import { generatePassword, hashPassword } from "@core/utils/auth";
+import { generatePassword, isValidPassword } from "@core/utils/auth";
 
-import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
 import ContactMfaService from "@core/services/ContactMfaService";
-import AuthService from "@core/services/AuthService";
 
 import { LoginData } from "@api/controllers/AuthController";
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
@@ -37,35 +35,20 @@ passport.use(
       done: PassportLocalDoneCallback
     ) {
       const token = req.body.token;
-      if (email) email = cleanEmailAddress(email);
+
+      email = cleanEmailAddress(email);
 
       const contact = await ContactsService.findOne({ email });
 
+      let code = LOGIN_CODES.LOGIN_FAILED;
+
       // Check if contact for email exists
       if (contact) {
-        const tries = contact.password.tries || 0;
+        code = await isValidPassword(contact.password, password);
 
-        // Has account exceeded it's password tries?
-        if (tries >= config.passwordTries) {
-          return done(null, false, { message: LOGIN_CODES.LOCKED });
-        }
-
-        // Check if password salt is set
-        if (!contact.password.salt) {
-          return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
-        }
-
-        if (await AuthService.isValidPassword(contact.password, password)) {
+        if (code === LOGIN_CODES.LOGGED_IN) {
           // Reset tries
-          if (tries > 0) {
-            await ContactsService.resetPasswordTries(contact);
-            return done(null, contact, {
-              message: OptionsService.getText("flash-account-attempts").replace(
-                "%",
-                tries.toString()
-              )
-            });
-          }
+          await ContactsService.resetPasswordTries(contact);
 
           // Check if password needs to be rehashed
           if (contact.password.iterations < config.passwordIterations) {
@@ -89,7 +72,7 @@ passport.use(
 
       // Delay by 1 second to slow down password guessing
       await sleep(1000);
-      return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
+      return done(null, false, { message: code });
     }
   )
 );
