@@ -7,12 +7,12 @@ import EmailService from "@core/services/EmailService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
+import ResetSecurityFlowService from "./ResetSecurityFlowService";
 
 import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Contact from "@models/Contact";
-import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
 import {
   CompletedPaymentFlow,
@@ -27,6 +27,8 @@ import GCProvider from "@core/providers/payment-flow/GCProvider";
 
 import { CompleteUrls } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
 const paymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,
@@ -113,7 +115,10 @@ class PaymentFlowService implements PaymentFlowProvider {
           }
         );
       } else {
-        const rpFlow = await getRepository(ResetSecurityFlow).save({ contact });
+        const rpFlow = await ResetSecurityFlowService.create(
+          contact,
+          RESET_SECURITY_FLOW_TYPE.PASSWORD
+        );
         await EmailService.sendTemplateToContact(
           "email-exists-set-password",
           contact,

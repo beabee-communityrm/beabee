@@ -17,7 +17,6 @@ import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
 import { generatePassword, isValidPassword } from "@core/utils/auth";
 import { generateContactCode } from "@core/utils/contact";
 
-import AuthService from "@core/services/AuthService";
 import ContactMfaService from "@core/services/ContactMfaService";
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
@@ -39,7 +38,6 @@ import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 import { LOGIN_CODES } from "@enums/login-codes";
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error-code";
-import config from "@config";
 
 export type PartialContact = Pick<Contact, "email" | "contributionType"> &
   Partial<Contact>;
