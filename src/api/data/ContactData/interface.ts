@@ -1,9 +1,4 @@
-import {
-  ContributionPeriod,
-  NewsletterStatus,
-  RoleType,
-  RoleTypes
-} from "@beabee/beabee-common";
+import { NewsletterStatus, RoleType, RoleTypes } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -18,44 +13,22 @@ import {
   Validate,
   ValidateNested
 } from "class-validator";
-import { HttpError } from "routing-controllers";
-import type {
-  IVerifyOptions,
-  IStrategyOptionsWithRequest
-} from "passport-local";
-
-import { ContributionInfo } from "@core/utils";
 
 import IsPassword from "@api/validators/IsPassword";
-import type { UnauthorizedError } from "@api/errors/UnauthorizedError";
+import { GetPaginatedQuery } from "@api/data/PaginatedData";
 
-import Contact from "@models/Contact";
 import Address from "@models/Address";
 
-import { GetPaginatedQuery } from "@api/data/PaginatedData";
 import { ForceUpdateContributionData } from "../ContributionData";
 import { UUIDParam } from "..";
 
-interface ContactData {
-  email: string;
-  firstname: string;
-  lastname: string;
-}
+import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
+import { GetContactWith } from "@enums/get-contact-with";
 
-interface ContactProfileData {
-  telephone: string;
-  twitter: string;
-  preferredContact: string;
-  deliveryOptIn: boolean;
-  deliveryAddress: Address | null;
-  newsletterStatus: NewsletterStatus;
-  newsletterGroups: string[];
-
-  // Admin only
-  tags?: string[];
-  notes?: string;
-  description?: string;
-}
+import type { ContactProfileData } from "@type/contact-profile-data";
+import type { GetContactRoleData } from "@type/get-contact-role-data";
+import type { ContactMfaData } from "@type/contact-mfa-data";
+import type { ContactData } from "@type/contact-data";
 
 export class UpdateContactRoleData {
   @Type(() => Date)
@@ -68,31 +41,9 @@ export class UpdateContactRoleData {
   dateExpires!: Date | null;
 }
 
-export interface GetContactRoleData extends UpdateContactRoleData {
-  role: RoleType;
-}
-
 export class ContactRoleParams extends UUIDParam {
   @IsIn(RoleTypes)
   roleType!: RoleType;
-}
-
-export interface GetContactData extends ContactData {
-  id: string;
-  joined: Date;
-  lastSeen?: Date;
-  contributionAmount?: number;
-  contributionPeriod?: ContributionPeriod;
-  activeRoles: RoleType[];
-  profile?: ContactProfileData;
-  roles?: GetContactRoleData[];
-  contribution?: ContributionInfo;
-}
-
-export enum GetContactWith {
-  Contribution = "contribution",
-  Profile = "profile",
-  Roles = "roles"
 }
 
 export class GetContactQuery {
@@ -227,58 +178,11 @@ export class CreateContactData extends UpdateContactData {
 }
 
 /**
- * Contact multi factor authentication type
- * TODO: Move to common
- */
-export enum ContactMfaType {
-  TOTP = "totp"
-  // E.g. U2F, EMAIL, SMS, HOTP, etc.
-}
-
-/**
- * Login codes
- * TODO: Move to common
- */
-export enum LOGIN_CODES {
-  LOCKED = "account-locked",
-  LOGGED_IN = "logged-in",
-  LOGIN_FAILED = "login-failed",
-  REQUIRES_2FA = "requires-2fa",
-  UNSUPPORTED_2FA = "unsupported-2fa",
-  INVALID_TOKEN = "invalid-token",
-  MISSING_TOKEN = "missing-token"
-}
-
-export interface PassportLoginInfo {
-  message: LOGIN_CODES;
-}
-
-export type PassportLocalStrategyOptions = IStrategyOptionsWithRequest;
-
-export type PassportLocalVerifyOptions = IVerifyOptions & {
-  message: LOGIN_CODES | string;
-};
-
-export type PassportLocalDoneCallback = (
-  error: null | HttpError | UnauthorizedError,
-  user: Contact | false,
-  options?: PassportLocalVerifyOptions | undefined
-) => void;
-
-/**
- * Contact multi factor authentication data
- * TODO: Move to common
- */
-interface ContactMfaData {
-  type: ContactMfaType;
-}
-
-/**
  * Get contact multi factor authentication validation data
  */
 export class GetContactMfaData implements ContactMfaData {
   @IsString()
-  type!: ContactMfaType;
+  type!: CONTACT_MFA_TYPE;
 }
 
 /**
@@ -293,7 +197,7 @@ export class CreateContactMfaData implements ContactMfaData {
   token!: string;
 
   @IsString()
-  type!: ContactMfaType;
+  type!: CONTACT_MFA_TYPE;
 }
 
 export class DeleteContactMfaData implements ContactMfaData {
@@ -303,5 +207,5 @@ export class DeleteContactMfaData implements ContactMfaData {
   token?: string;
 
   @IsString()
-  type!: ContactMfaType;
+  type!: CONTACT_MFA_TYPE;
 }

@@ -14,16 +14,20 @@ import ContactsService from "@core/services/ContactsService";
 import { login } from "@api/utils";
 import { UUIDParam } from "@api/data";
 import {
-  CreateResetPasswordData,
-  UpdateResetPasswordData
-} from "@api/data/ResetPasswordData";
+  CreateResetDeviceData,
+  UpdateResetDeviceData
+} from "@api/data/ResetDeviceData";
 
-@JsonController("/reset-password")
-export class ResetPasswordController {
+@JsonController("/reset-device")
+export class ResetDeviceController {
   @OnUndefined(204)
   @Post()
-  async create(@Body() data: CreateResetPasswordData): Promise<void> {
-    await ContactsService.resetPasswordBegin(data.email, data.resetUrl);
+  async create(@Body() data: CreateResetDeviceData): Promise<void> {
+    await ContactsService.resetDeviceBegin(
+      data.email,
+      data.type,
+      data.resetUrl
+    );
   }
 
   @OnUndefined(204)
@@ -31,9 +35,12 @@ export class ResetPasswordController {
   async complete(
     @Req() req: Request,
     @Params() { id }: UUIDParam,
-    @Body() data: UpdateResetPasswordData
+    @Body() data: UpdateResetDeviceData
   ): Promise<void> {
-    const contact = await ContactsService.resetPasswordComplete(id, data);
+    const contact = await ContactsService.resetDeviceComplete(
+      id,
+      data.password
+    );
     await login(req, contact);
   }
 }

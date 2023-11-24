@@ -5,7 +5,8 @@ import {
   OneToOne,
   PrimaryGeneratedColumn
 } from "typeorm";
-import { ContactMfaType } from "../api/data/ContactData/interface";
+
+import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 
 import type Contact from "./Contact";
 
@@ -22,7 +23,7 @@ export class ContactMfa {
   contact!: Contact;
 
   @Column({ type: String })
-  type!: ContactMfaType;
+  type!: CONTACT_MFA_TYPE;
 
   @Column({ default: "" })
   secret!: string;

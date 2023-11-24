@@ -4,8 +4,7 @@ import "reflect-metadata";
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
 import cors from "cors";
-import crypto from "crypto";
-import express, { ErrorRequestHandler, Request } from "express";
+import express, { ErrorRequestHandler } from "express";
 import {
   Action,
   HttpError,
@@ -13,7 +12,6 @@ import {
   NotFoundError,
   useExpressServer
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 import { ApiKeyController } from "./controllers/ApiKeyController";
 import { AuthController } from "./controllers/AuthController";
@@ -29,6 +27,7 @@ import { SegmentController } from "./controllers/SegmentController";
 import { SignupController } from "./controllers/SignupController";
 import { StatsController } from "./controllers/StatsController";
 import { ResetPasswordController } from "./controllers/ResetPasswordController";
+import { ResetDeviceController } from "./controllers/ResetDeviceController";
 import { UploadController } from "./controllers/UploadController";
 
 import * as db from "@core/database";
@@ -86,6 +85,7 @@ db.connect().then(() => {
       SignupController,
       StatsController,
       ResetPasswordController,
+      ResetDeviceController,
       UploadController
     ],
     currentUserChecker,

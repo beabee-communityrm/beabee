@@ -9,11 +9,12 @@ import * as db from "@core/database";
 import { generatePassword, passwordRequirements } from "@core/utils/auth";
 
 import ContactsService from "@core/services/ContactsService";
+import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
 
 import ContactRole from "@models/ContactRole";
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import config from "@config";
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
 function notEmpty(msg: string) {
   return (s: string) => {
@@ -126,9 +127,10 @@ db.connect().then(async () => {
   });
 
   if (!answers.password) {
-    const rpFlow = await getRepository(ResetPasswordFlow).save({
-      contact
-    });
+    const rpFlow = await ResetSecurityFlowService.create(
+      contact,
+      RESET_SECURITY_FLOW_TYPE.PASSWORD
+    );
 
     console.log(
       `Reset password link: ${config.audience}/auth/set-password/${rpFlow.id}`

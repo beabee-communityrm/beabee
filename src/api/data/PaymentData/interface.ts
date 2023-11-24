@@ -2,7 +2,7 @@ import { PaymentStatus } from "@beabee/beabee-common";
 import { IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
 
 import { GetPaginatedQuery } from "../PaginatedData";
-import { GetContactData } from "../ContactData";
+import { GetContactData } from "@type/get-contact-data";
 
 export interface GetPaymentData {
   amount: number;

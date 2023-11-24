@@ -1,4 +1,4 @@
-import { createQueryBuilder, getRepository, InsertResult } from "typeorm";
+import { createQueryBuilder, getRepository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
@@ -7,7 +7,6 @@ import OptionsService from "@core/services/OptionsService";
 
 import Email from "@models/Email";
 import Contact from "@models/Contact";
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
 
 import {
   EmailProvider,
@@ -18,12 +17,10 @@ import {
 } from ".";
 
 import config from "@config";
+import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
 const log = mainLogger.child({ app: "base-email-provider" });
-
-interface InsertResetPasswordResult extends InsertResult {
-  raw: { id: string; contactId: string }[] | undefined;
-}
 
 function generateResetPasswordLinks(type: "set" | "reset") {
   const mergeField = type === "set" ? "SPLINK" : "RPLINK";
@@ -53,18 +50,9 @@ function generateResetPasswordLinks(type: "set" | "reset") {
       contacts.map((m) => [m.email, m.id])
     );
 
-    // Create reset password flows for matching contacts
-    const rpInsertResult: InsertResetPasswordResult = await createQueryBuilder()
-      .insert()
-      .into(ResetPasswordFlow)
-      .values(
-        Object.values(contactIdsByEmail).map((id) => ({ contact: { id } }))
-      )
-      .returning(["id", "contact"])
-      .execute();
-
-    const rpFlowIdsByContactId = Object.fromEntries(
-      (rpInsertResult.raw || []).map((rpFlow) => [rpFlow.contactId, rpFlow.id])
+    const rpFlowIdsByContactId = await ResetSecurityFlowService.createManyRaw(
+      Object.values(contactIdsByEmail),
+      RESET_SECURITY_FLOW_TYPE.PASSWORD
     );
 
     return recipients.map((recipient) => {

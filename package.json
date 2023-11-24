@@ -144,6 +144,8 @@
     "@apps": "./built/apps",
     "@config": "./built/config/config.js",
     "@locale": "./built/locales/current.js",
-    "@models": "./built/models"
+    "@models": "./built/models",
+    "@type": "./built/type",
+    "@enums": "./built/enums"
   }
 }

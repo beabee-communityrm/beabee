@@ -1,6 +1,6 @@
 import Contact from "@models/Contact";
 import { IsIn, IsObject, IsString } from "class-validator";
-import { GetContactData } from "../ContactData";
+import { GetContactData } from "@type/get-contact-data";
 import { GetPaginatedQuery } from "../PaginatedData";
 
 export interface UpdateCalloutResponseComment {

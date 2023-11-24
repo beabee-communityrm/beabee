@@ -11,7 +11,8 @@ import SegmentService from "@core/services/SegmentService";
 
 import Project from "@models/Project";
 import Contact from "@models/Contact";
-import { fetchPaginatedContacts, GetContactWith } from "@api/data/ContactData";
+import { fetchPaginatedContacts } from "@api/data/ContactData";
+import { GetContactWith } from "@enums/get-contact-with";
 
 const app = express();
 

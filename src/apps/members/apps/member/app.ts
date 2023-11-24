@@ -14,7 +14,9 @@ import PaymentService from "@core/services/PaymentService";
 import ReferralsService from "@core/services/ReferralsService";
 
 import Contact from "@models/Contact";
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import ResetSecurityFlow from "@models/ResetSecurityFlow";
+
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
 const app = express();
 
@@ -51,7 +53,7 @@ app.get(
     const contact = req.model as Contact;
     const availableTags = await getAvailableTags();
 
-    const rpFlow = await getRepository(ResetPasswordFlow).findOne({
+    const rpFlow = await getRepository(ResetSecurityFlow).findOne({
       where: { contact: contact },
       order: { date: "DESC" }
     });
@@ -113,7 +115,10 @@ app.post(
         req.flash("success", "member-login-override-generated");
         break;
       case "password-reset":
-        await getRepository(ResetPasswordFlow).save({ contact });
+        await getRepository(ResetSecurityFlow).save({
+          contact,
+          type: RESET_SECURITY_FLOW_TYPE.PASSWORD
+        });
         req.flash("success", "member-password-reset-generated");
         break;
       case "permanently-delete":

@@ -15,7 +15,6 @@ import { getRepository } from "typeorm";
 
 import { UUIDParam } from "@api/data";
 import {
-  GetContactData,
   GetContactsQuery,
   fetchPaginatedContacts
 } from "@api/data/ContactData";
@@ -33,6 +32,8 @@ import PartialBody from "@api/decorators/PartialBody";
 import Segment from "@models/Segment";
 import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
+
+import type { GetContactData } from "@type/get-contact-data";
 
 @JsonController("/segments")
 @Authorized("admin")

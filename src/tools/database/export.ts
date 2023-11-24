@@ -29,7 +29,7 @@ const anonymisers = [
   models.projectEngagmentsAnonymiser,
   models.referralsGiftAnonymiser, // Must be before referralsAnonymiser
   models.referralsAnonymiser,
-  models.resetPasswordFlowAnonymiser,
+  models.resetSecurityFlowAnonymiser,
   models.segmentsAnonymiser,
   models.segmentContactsAnonymiser,
   models.segmentOngoingEmailsAnonymiser,

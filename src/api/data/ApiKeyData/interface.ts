@@ -1,5 +1,5 @@
 import { IsDate, IsIn, IsOptional, IsString } from "class-validator";
-import { GetContactData } from "../ContactData";
+import { GetContactData } from "@type/get-contact-data";
 import { GetPaginatedQuery } from "../PaginatedData";
 import { Type } from "class-transformer";
 

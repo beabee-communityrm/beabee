@@ -39,6 +39,7 @@ export function schemaToEmail(data: EmailSchema): Email {
 const assignableSystemEmails = {
   welcome: "Welcome",
   "reset-password": "Reset password",
+  "reset-device": "Reset device",
   "cancelled-contribution": "Cancelled contribution",
   "cancelled-contribution-no-survey": "Cancelled contribution - no survey",
   "confirm-email": "Confirm email",

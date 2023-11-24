@@ -1,0 +1,25 @@
+---
+subject: Zurücksetzen deiner Multi-Faktor-Authentifizierung
+---
+
+<p>Hallo *|FNAME|* *|LNAME|*,</p>
+<p><br /></p>
+<p>
+  du hast eine Zurücksetzung deiner Multi-Faktor-Authentifizierung beantragt. Um
+  dein Gerät zurückzusetzen und ein neues einzurichten, klicke einfach auf den
+  folgenden Link:
+</p>
+<p><br /></p>
+<p>
+  <a href="*|RPLINK|*"><strong>Jetzt MFA-Gerät zurücksetzen</strong></a>
+</p>
+<p><br /></p>
+<p>
+  Falls du diese Zurücksetzung nicht angefordert hast oder es sich um einen
+  Irrtum handelt, ignoriere diese E-Mail einfach oder melde dich bei uns, falls
+  du Unterstützung benötigst.
+</p>
+<p><br /></p>
+<p>Der Link ist nur kurzzeitig gültig, also zögere nicht zu lange.</p>
+<p><br /></p>
+<p>Viele Grüße</p>

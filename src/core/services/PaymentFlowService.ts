@@ -12,7 +12,7 @@ import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Contact from "@models/Contact";
-import ResetPasswordFlow from "@models/ResetPasswordFlow";
+import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
 import {
   CompletedPaymentFlow,
@@ -113,7 +113,7 @@ class PaymentFlowService implements PaymentFlowProvider {
           }
         );
       } else {
-        const rpFlow = await getRepository(ResetPasswordFlow).save({ contact });
+        const rpFlow = await getRepository(ResetSecurityFlow).save({ contact });
         await EmailService.sendTemplateToContact(
           "email-exists-set-password",
           contact,
