@@ -42,5 +42,5 @@ export const responseSortFields = ["createdAt", "updatedAt"] as const;
 
 export class GetCalloutResponseCommentsQuery extends GetPaginatedQuery {
   @IsIn(responseSortFields)
-  sort?: string;
+  declare sort?: string;
 }

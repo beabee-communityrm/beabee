@@ -72,7 +72,7 @@ export class GetContactsQuery extends GetPaginatedQuery {
   with?: GetContactWith[];
 
   @IsIn(contactSortFields)
-  sort?: string;
+  declare sort?: string;
 }
 
 class UpdateAddressData implements Address {

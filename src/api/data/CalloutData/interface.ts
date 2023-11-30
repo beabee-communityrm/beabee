@@ -42,7 +42,7 @@ export class GetCalloutsQuery extends GetPaginatedQuery {
   with?: GetCalloutWith[];
 
   @IsIn(sortFields)
-  sort?: string;
+  declare sort?: string;
 }
 
 interface CalloutData {

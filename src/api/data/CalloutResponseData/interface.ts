@@ -50,7 +50,7 @@ export class GetCalloutResponsesQuery extends GetPaginatedQuery {
   with?: GetCalloutResponseWith[];
 
   @IsIn(responseSortFields)
-  sort?: string;
+  declare sort?: string;
 }
 
 export interface GetCalloutResponseData {

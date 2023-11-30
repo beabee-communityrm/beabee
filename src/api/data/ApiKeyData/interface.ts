@@ -21,5 +21,5 @@ export interface GetApiKeyData extends CreateApiKeyData {
 
 export class GetApiKeysQuery extends GetPaginatedQuery {
   @IsIn(["createdAt", "expires"])
-  sort?: string;
+  declare sort?: string;
 }
