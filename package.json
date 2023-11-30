@@ -1,18 +1,19 @@
 {
-  "name": "membership-system",
+  "name": "beabee",
   "version": "2.2.8",
-  "description": "Membership System for The Bristol Cable",
+  "description": "A community engagement system for community newsrooms",
   "main": "built/app.js",
+  "type": "commonjs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thebristolcable/membership-system.git"
+    "url": "git+https://github.com/beabee-communityrm/beabee.git"
   },
   "author": "Tom Lynch & Chris Roberts",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/thebristolcable/membership-system/issues"
+    "url": "https://github.com/beabee-communityrm/beabee/issues"
   },
-  "homepage": "https://github.com/thebristolcable/membership-system#readme",
+  "homepage": "https://github.com/beabee-communityrm/beabee#readme",
   "scripts": {
     "start": "npm run dev:app",
     "dev:app": "npm run build && docker compose restart && concurrently -c red,green,blue npm:dev:app:*",
