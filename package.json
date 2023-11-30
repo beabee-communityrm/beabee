@@ -71,7 +71,7 @@
     "mandrill-api": "^1.0.45",
     "module-alias": "^2.2.3",
     "moment": "^2.29.4",
-    "muhammara": "^3.5.0",
+    "muhammara": "^4.0.0",
     "nodemailer": "^6.9.7",
     "otpauth": "^9.2.0",
     "papaparse": "^5.4.1",

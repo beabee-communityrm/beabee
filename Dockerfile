@@ -1,4 +1,4 @@
-FROM node:16.20-alpine as builder
+FROM node:20.8-alpine as builder
 
 RUN apk add --no-cache make g++ git gcc libgcc libstdc++ linux-headers python3
 RUN npm install -g node-gyp 
@@ -17,7 +17,7 @@ FROM nginx:1.24-alpine as router
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --chown=nginx:nginx --from=builder /opt/membership-system/built/static /opt/membership-system/built/static
 
-FROM node:16.20-alpine as app
+FROM node:20.8-alpine as app
 
 ARG REVISION=DEV
 
