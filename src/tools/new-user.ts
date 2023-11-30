@@ -53,7 +53,7 @@ questions.push({
   type: "password",
   name: "password",
   message: "Password (leave empty to generate reset password link)",
-  validate: (s) => {
+  validate: (s: string) => {
     return !s.trim() || passwordRequirements(s);
   }
 });
