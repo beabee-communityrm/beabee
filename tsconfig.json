@@ -2,13 +2,16 @@
   "extends": "@tsconfig/node20/tsconfig.json",
   "include": ["./src/**/*", "./test/**/*"],
   "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "exactOptionalPropertyTypes": true,
+    "resolveJsonModule": true,
 
     "sourceMap": true,
     "outDir": "./built",
-    "resolveJsonModule": true,
     "baseUrl": "./",
     "paths": {
       "@core/*": ["./src/core/*"],
