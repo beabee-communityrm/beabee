@@ -67,8 +67,8 @@ async function processSegment(segment: Segment) {
       outgoingEmail.trigger === "onLeave"
         ? oldContacts
         : outgoingEmail.trigger === "onJoin"
-        ? newContacts
-        : [];
+          ? newContacts
+          : [];
     if (emailContacts.length > 0) {
       await EmailService.sendEmailToContact(outgoingEmail.email, emailContacts);
     }

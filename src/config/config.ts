@@ -109,13 +109,13 @@ export default {
             }
           }
         : emailProvider === "mandrill"
-        ? {
-            apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY")
-          }
-        : {
-            apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY"),
-            testMode: env.b("BEABEE_EMAIL_SETTIGS_TESTMODE", false)
-          }
+          ? {
+              apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY")
+            }
+          : {
+              apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY"),
+              testMode: env.b("BEABEE_EMAIL_SETTIGS_TESTMODE", false)
+            }
   } as EmailConfig,
   newsletter: {
     provider: newsletterProvider,

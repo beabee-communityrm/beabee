@@ -120,9 +120,8 @@ export default abstract class BaseProvider implements EmailProvider {
     let preparedRecipients = recipients;
     for (const mergeField of magicMergeFields) {
       if (email.body.includes(`*|${mergeField}|*`)) {
-        preparedRecipients = await magicMergeFieldsProcessors[mergeField](
-          preparedRecipients
-        );
+        preparedRecipients =
+          await magicMergeFieldsProcessors[mergeField](preparedRecipients);
       }
     }
 
