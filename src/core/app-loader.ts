@@ -47,7 +47,11 @@ async function loadAppConfig(
   path: string,
   overrides: AppConfigOverride = {}
 ): Promise<AppConfig> {
-  const appConfig = await import(path + "/config.json");
+  const appConfig = (
+    await import(path + "/config.json", {
+      assert: { type: "json" }
+    })
+  ).default;
 
   const subApps = fs.existsSync(path + "/apps")
     ? await loadAppConfigs(path + "/apps", overrides.subApps)
@@ -67,7 +71,7 @@ async function loadAppConfig(
 
 async function requireApp(appPath: string): Promise<express.Express> {
   const app = await import(appPath);
-  return app.default || app;
+  return app.default.default || app.default;
 }
 
 async function routeApps(
