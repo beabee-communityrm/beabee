@@ -14,6 +14,8 @@ export default class ProjectEngagement {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  projectId!: string;
   @ManyToOne("Project")
   project!: Project;
 

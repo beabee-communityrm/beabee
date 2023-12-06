@@ -1,14 +1,18 @@
-import { CreateDateColumn, Entity, ManyToOne } from "typeorm";
+import { CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 
 import type Contact from "./Contact";
 import type Segment from "./Segment";
 
 @Entity()
 export default class SegmentContact {
-  @ManyToOne("Segment", "contacts", { primary: true })
+  @PrimaryColumn()
+  segmentId!: string;
+  @ManyToOne("Segment", "contacts")
   segment!: Segment;
 
-  @ManyToOne("Contact", { primary: true })
+  @PrimaryColumn()
+  contactId!: string;
+  @ManyToOne("Contact")
   contact!: Contact;
 
   @CreateDateColumn()

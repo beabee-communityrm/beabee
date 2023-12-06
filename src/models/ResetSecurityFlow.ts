@@ -13,6 +13,8 @@ export default class ResetSecurityFlow {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  contactId!: string;
   @ManyToOne("Contact")
   contact!: Contact;
 

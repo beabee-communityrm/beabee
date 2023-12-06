@@ -17,12 +17,16 @@ export default class SegmentOngoingEmail {
   @CreateDateColumn()
   date!: Date;
 
+  @Column()
+  segmentId!: string;
   @ManyToOne("Segment")
   segment!: Segment;
 
   @Column()
   trigger!: string;
 
+  @Column()
+  emailId!: string;
   @ManyToOne("Email")
   email!: Email;
 

@@ -14,9 +14,13 @@ export default class ProjectContact {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  projectId!: string;
   @ManyToOne("Project", "contacts")
   project!: Project;
 
+  @Column()
+  contactId!: string;
   @ManyToOne("Contact")
   contact!: Contact;
 

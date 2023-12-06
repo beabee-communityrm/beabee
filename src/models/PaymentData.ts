@@ -1,5 +1,5 @@
 import { PaymentMethod } from "@beabee/beabee-common";
-import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 
 import type Contact from "./Contact";
 
@@ -38,7 +38,9 @@ export type PaymentProviderData =
 
 @Entity()
 export default class PaymentData {
-  @OneToOne("Contact", "paymentData", { primary: true })
+  @PrimaryColumn()
+  contactId!: string;
+  @OneToOne("Contact", "paymentData")
   @JoinColumn()
   contact!: Contact;
 
