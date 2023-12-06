@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 

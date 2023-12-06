@@ -2,7 +2,7 @@ import "module-alias/register";
 
 import { NewsletterStatus } from "@beabee/beabee-common";
 import moment from "moment";
-import { Between, getRepository } from "typeorm";
+import { Between } from "typeorm";
 
 import * as db from "@core/database";
 import { log as mainLogger } from "@core/logging";
@@ -30,12 +30,12 @@ async function fetchContacts(
     endDate: actualEndDate
   });
 
-  const memberships = await getRepository(ContactRole).find({
+  const memberships = await db.getRepository(ContactRole).find({
     where: {
       type: "member",
       dateExpires: Between(actualStartDate, actualEndDate)
     },
-    relations: ["contact", "contact.profile"]
+    relations: { contact: { profile: true } }
   });
   log.info(`Got ${memberships.length} members`);
   return memberships.map(({ contact }) => {

@@ -1,7 +1,7 @@
 import "module-alias/register";
 
 import moment from "moment";
-import { Between, getRepository } from "typeorm";
+import { Between } from "typeorm";
 
 import * as db from "@core/database";
 import { log as mainLogger } from "@core/logging";
@@ -20,7 +20,7 @@ async function main(date: string | undefined) {
     `Processing gifts between ${fromDate.format()} and ${toDate.format()}`
   );
 
-  const giftFlows = await getRepository(GiftFlow).find({
+  const giftFlows = await db.getRepository(GiftFlow).find({
     where: {
       giftForm: { startDate: Between(fromDate.toDate(), toDate.toDate()) },
       completed: true,

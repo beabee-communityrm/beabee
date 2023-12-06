@@ -1,8 +1,8 @@
 import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import express from "express";
 import passport from "passport";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
 import { loginAndRedirect } from "@core/utils/contact";
 
@@ -39,7 +39,7 @@ if (config.dev) {
         });
         contact = role?.contact;
       } else {
-        contact = await ContactsService.findOne(req.params.id);
+        contact = await ContactsService.findOneBy({ id: req.params.id });
       }
 
       if (contact) {

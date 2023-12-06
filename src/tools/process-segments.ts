@@ -1,6 +1,6 @@
 import "module-alias/register";
 
-import { getRepository, In } from "typeorm";
+import { In } from "typeorm";
 
 import * as db from "@core/database";
 import { log as mainLogger } from "@core/logging";
@@ -10,7 +10,6 @@ import NewsletterService from "@core/services/NewsletterService";
 import ContactsService from "@core/services/ContactsService";
 import SegmentService from "@core/services/SegmentService";
 
-import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import SegmentContact from "@models/SegmentContact";
@@ -22,8 +21,8 @@ async function processSegment(segment: Segment) {
 
   const matchedContacts = await SegmentService.getSegmentContacts(segment);
 
-  const segmentContacts = (await getRepository(SegmentContact).find({
-    where: { segment },
+  const segmentContacts = (await db.getRepository(SegmentContact).find({
+    where: { segmentId: segment.id },
     loadRelationIds: true
   })) as unknown as WithRelationIds<SegmentContact, "contact">[];
 
@@ -38,18 +37,16 @@ async function processSegment(segment: Segment) {
     `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContacts.length} old contacts`
   );
 
-  await getRepository(SegmentContact).delete({
-    segment,
-    contact: In(
-      oldSegmentContacts.map((sm) => sm.contact as unknown as Contact)
-    ) // Types seem strange here
+  await db.getRepository(SegmentContact).delete({
+    segmentId: segment.id,
+    contactId: In(oldSegmentContacts.map((sm) => sm.contact))
   });
-  await getRepository(SegmentContact).insert(
-    newContacts.map((contact) => ({ segment, contact }))
-  );
+  await db
+    .getRepository(SegmentContact)
+    .insert(newContacts.map((contact) => ({ segment, contact })));
 
-  const outgoingEmails = await getRepository(SegmentOngoingEmail).find({
-    where: { segment },
+  const outgoingEmails = await db.getRepository(SegmentOngoingEmail).find({
+    where: { segmentId: segment.id },
     relations: ["email"]
   });
 
@@ -89,7 +86,9 @@ async function processSegment(segment: Segment) {
 async function main(segmentId?: string) {
   let segments: Segment[];
   if (segmentId) {
-    const segment = await getRepository(Segment).findOne(segmentId);
+    const segment = await db
+      .getRepository(Segment)
+      .findOneBy({ id: segmentId });
     if (segment) {
       segments = [segment];
     } else {
@@ -97,7 +96,7 @@ async function main(segmentId?: string) {
       return;
     }
   } else {
-    segments = await getRepository(Segment).find();
+    segments = await db.getRepository(Segment).find();
   }
 
   for (const segment of segments) {

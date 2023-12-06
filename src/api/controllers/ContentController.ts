@@ -6,9 +6,11 @@ import {
   Param,
   Patch
 } from "routing-controllers";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder } from "typeorm";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
+
+import { getRepository } from "@core/database";
 import { getEmailFooter } from "@core/utils/email";
 
 import Content, { ContentId } from "@models/Content";
@@ -86,7 +88,7 @@ const contentReadOnly: ContentMap<[() => any]> = {
 export class ContentController {
   @Get("/:id(*)")
   async get(@Param("id") id: ContentId): Promise<object | undefined> {
-    const content = await getRepository(Content).findOne(id);
+    const content = await getRepository(Content).findOneBy({ id });
 
     if (content) {
       const optsData = contentOptions[id]?.map(

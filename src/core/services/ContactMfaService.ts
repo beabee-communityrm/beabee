@@ -1,9 +1,9 @@
-import { getRepository } from "typeorm";
 import { NotFoundError } from "routing-controllers";
 
 import Contact from "@models/Contact";
 import { ContactMfa, ContactMfaSecure } from "@models/ContactMfa";
 
+import { getRepository } from "@core/database";
 import { validateTotpToken } from "@core/utils/auth";
 
 import { LOGIN_CODES } from "@enums/login-codes";
@@ -158,7 +158,7 @@ class ContactMfaService {
    * @returns The **insecure** contact MFA with the `secret` key
    */
   private async getByIdInsecure(id: string): Promise<ContactMfa | null> {
-    const mfa = await getRepository(ContactMfa).findOne(id);
+    const mfa = await getRepository(ContactMfa).findOneBy({ id });
     return mfa || null;
   }
 

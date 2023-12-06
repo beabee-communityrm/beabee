@@ -17,12 +17,12 @@ import {
   Res
 } from "routing-controllers";
 import slugify from "slugify";
-import { getRepository } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import CalloutsService from "@core/services/CalloutsService";
 import OptionsService from "@core/services/OptionsService";
 
+import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
 import Contact from "@models/Contact";
@@ -147,7 +147,7 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseData>> {
-    const callout = await getRepository(Callout).findOne(slug);
+    const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {
       throw new NotFoundError();
     }
@@ -161,7 +161,7 @@ export class CalloutController {
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
-    const callout = await getRepository(Callout).findOne(slug);
+    const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {
       throw new NotFoundError();
     }
@@ -180,7 +180,7 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutResponsesQuery
   ): Promise<Paginated<GetCalloutResponseMapData>> {
-    const callout = await getRepository(Callout).findOne(slug);
+    const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {
       throw new NotFoundError();
     }
@@ -194,7 +194,7 @@ export class CalloutController {
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseData
   ): Promise<void> {
-    const callout = await getRepository(Callout).findOne(slug);
+    const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {
       throw new NotFoundError();
     }
@@ -255,8 +255,8 @@ export class CalloutController {
       data
     );
 
-    const tag = await getRepository(CalloutTag).findOne(tagId);
-    return tag && convertTagToData(tag);
+    const tag = await getRepository(CalloutTag).findOneBy({ id: tagId });
+    return tag ? convertTagToData(tag) : undefined;
   }
 
   @Authorized("admin")

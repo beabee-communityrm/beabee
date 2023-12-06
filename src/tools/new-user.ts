@@ -3,7 +3,6 @@ import "module-alias/register";
 import { ContributionType } from "@beabee/beabee-common";
 import { input, password, select } from "@inquirer/prompts";
 import moment from "moment";
-import { getRepository } from "typeorm";
 
 import * as db from "@core/database";
 import { generatePassword, passwordRequirements } from "@core/utils/auth";
@@ -69,7 +68,7 @@ db.connect().then(async () => {
         break;
     }
 
-    const membership = getRepository(ContactRole).create({
+    const membership = db.getRepository(ContactRole).create({
       type: "member",
       ...(dateAdded && { dateAdded }),
       dateExpires
@@ -78,7 +77,7 @@ db.connect().then(async () => {
   }
 
   if (answers.role != "None") {
-    const admin = getRepository(ContactRole).create({
+    const admin = db.getRepository(ContactRole).create({
       type: answers.role === "Admin" ? "admin" : "superadmin"
     });
     roles.push(admin);

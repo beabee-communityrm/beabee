@@ -13,7 +13,8 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+
+import { getRepository } from "@core/database";
 
 import Contact from "@models/Contact";
 import Notice from "@models/Notice";
@@ -73,7 +74,7 @@ export class NoticeController {
     @CurrentUser() contact: Contact,
     @Params() { id }: UUIDParam
   ): Promise<GetNoticeData | undefined> {
-    const notice = await getRepository(Notice).findOne(id);
+    const notice = await getRepository(Notice).findOneBy({ id });
     if (notice && (notice.active || contact.hasRole("admin"))) {
       return this.noticeToData(notice);
     }

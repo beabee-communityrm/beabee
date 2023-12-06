@@ -1,5 +1,6 @@
-import { createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
@@ -133,14 +134,14 @@ export default abstract class BaseProvider implements EmailProvider {
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    const email = await getRepository(Email).findOne(template);
+    const email = await getRepository(Email).findOneBy({ id: template });
     if (email) {
       await this.sendEmail(email, recipients, opts);
     }
   }
 
   async getTemplateEmail(template: string): Promise<false | Email | null> {
-    return (await getRepository(Email).findOne(template)) || null;
+    return (await getRepository(Email).findOneBy({ id: template })) || null;
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {

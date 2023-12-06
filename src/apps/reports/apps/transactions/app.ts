@@ -1,7 +1,8 @@
 import express from "express";
 import moment from "moment";
-import { Between, getRepository } from "typeorm";
+import { Between } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { isSuperAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 

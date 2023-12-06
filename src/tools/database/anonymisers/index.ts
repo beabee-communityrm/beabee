@@ -1,12 +1,13 @@
 import {
   createQueryBuilder,
   EntityTarget,
-  getRepository,
+  ObjectLiteral,
   OrderByCondition,
   SelectQueryBuilder
 } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import Callout from "@models/Callout";
@@ -63,7 +64,10 @@ function anonymiseItem<T>(
   return newItem;
 }
 
-function writeItems<T>(model: EntityTarget<T>, items: T[]) {
+function writeItems<T extends ObjectLiteral>(
+  model: EntityTarget<T>,
+  items: T[]
+) {
   const [query, params] = createQueryBuilder()
     .insert()
     .into(model)
@@ -126,7 +130,7 @@ async function anonymiseCalloutResponses(
   }
 }
 
-export async function anonymiseModel<T>(
+export async function anonymiseModel<T extends ObjectLiteral>(
   anonymiser: ModelAnonymiser<T>,
   fn: (qb: SelectQueryBuilder<T>) => SelectQueryBuilder<T>,
   valueMap: Map<string, unknown>
@@ -168,7 +172,9 @@ export function clearModels(anonymisers: ModelAnonymiser<unknown>[]) {
   // Reverse order to clear foreign keys correctly
   for (let i = anonymisers.length - 1; i >= 0; i--) {
     console.log(
-      `DELETE FROM "${getRepository(anonymisers[i].model).metadata.tableName}";`
+      `DELETE FROM "${
+        getRepository(anonymisers[i].model as any).metadata.tableName
+      }";`
     );
     console.log(); // Empty params line
   }

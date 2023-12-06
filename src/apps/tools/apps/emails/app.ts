@@ -2,8 +2,9 @@ import busboy from "connect-busboy";
 import express from "express";
 import _ from "lodash";
 import Papa from "papaparse";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 import { formatEmailBody } from "@core/utils/email";
@@ -97,12 +98,12 @@ app.get(
     const email = req.model as Email;
 
     const mailings = await getRepository(EmailMailing).find({
-      where: { email },
+      where: { emailId: email.id },
       order: { createdDate: "ASC" }
     });
     const segmentEmails = await getRepository(SegmentOngoingEmail).find({
-      where: { email },
-      relations: ["segment"]
+      where: { emailId: email.id },
+      relations: { segment: true }
     });
     const systemEmails = Object.entries(providerTemplateMap())
       .filter(([systemId, emailId]) => emailId === email.id)
@@ -149,7 +150,7 @@ app.post(
         break;
       }
       case "delete":
-        await getRepository(EmailMailing).delete({ email });
+        await getRepository(EmailMailing).delete({ emailId: email.id });
         await getRepository(Email).delete(email.id);
         req.flash("success", "transactional-email-deleted");
         res.redirect("/tools/emails");
@@ -186,9 +187,9 @@ app.get(
   hasNewModel(Email, "id"),
   wrapAsync(async (req, res, next) => {
     const email = req.model as Email;
-    const mailing = await getRepository(EmailMailing).findOne(
-      req.params.mailingId
-    );
+    const mailing = await getRepository(EmailMailing).findOneBy({
+      id: req.params.mailingId
+    });
     if (!mailing) return next("route");
 
     const matches = email.body.match(/\*\|[^|]+\|\*/g) || [];
@@ -217,9 +218,9 @@ app.post(
   hasNewModel(Email, "id"),
   wrapAsync(async (req, res, next) => {
     const email = req.model as Email;
-    const mailing = await getRepository(EmailMailing).findOne(
-      req.params.mailingId
-    );
+    const mailing = await getRepository(EmailMailing).findOneBy({
+      id: req.params.mailingId
+    });
     if (!mailing) return next("route");
 
     const { emailField, nameField, mergeFields }: SendSchema = req.body;

@@ -1,7 +1,8 @@
 import express from "express";
 import moment from "moment";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
@@ -85,10 +86,11 @@ app.get(
   "/:slug",
   hasNewModel(Callout, "slug"),
   wrapAsync(async (req, res) => {
+    const poll = req.model as Callout;
     const responsesCount = await getRepository(CalloutResponse).count({
-      where: { callout: req.model }
+      where: { calloutSlug: poll.slug }
     });
-    res.render("poll", { poll: req.model, responsesCount });
+    res.render("poll", { poll, responsesCount });
   })
 );
 
@@ -102,11 +104,11 @@ app.get(
       next("route");
     } else {
       const responses = await getRepository(CalloutResponse).find({
-        where: { callout: req.model },
+        where: { calloutSlug: poll.slug },
         order: {
           createdAt: "ASC"
         },
-        relations: ["contact"]
+        relations: { contact: true }
       });
       const responsesWithText = responses.map((response) => ({
         ...response,

@@ -18,6 +18,7 @@ import {
   Brackets,
   createQueryBuilder,
   EntityTarget,
+  ObjectLiteral,
   SelectQueryBuilder,
   UpdateQueryBuilder,
   UpdateResult,
@@ -282,7 +283,10 @@ function buildWhere<Field extends string>(
 }
 
 // DEPRECATED: Remove once SegmentService is gone
-export function buildSelectQuery<Entity, Field extends string>(
+export function buildSelectQuery<
+  Entity extends ObjectLiteral,
+  Field extends string
+>(
   entity: EntityTarget<Entity>,
   ruleGroup: ValidatedRuleGroup<Field> | undefined,
   contact?: Contact,
@@ -295,7 +299,10 @@ export function buildSelectQuery<Entity, Field extends string>(
   return qb;
 }
 
-export async function fetchPaginated<Entity, Field extends string>(
+export async function fetchPaginated<
+  Entity extends ObjectLiteral,
+  Field extends string
+>(
   entity: EntityTarget<Entity>,
   filters: Filters<Field>,
   query: GetPaginatedQuery,
@@ -344,7 +351,10 @@ export async function fetchPaginated<Entity, Field extends string>(
   }
 }
 
-export async function batchUpdate<Entity, Field extends string>(
+export async function batchUpdate<
+  Entity extends ObjectLiteral,
+  Field extends string
+>(
   entity: EntityTarget<Entity>,
   filters: Filters<Field>,
   ruleGroup: RuleGroup,

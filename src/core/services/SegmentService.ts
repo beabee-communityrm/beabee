@@ -1,5 +1,6 @@
 import { contactFilters, validateRuleGroup } from "@beabee/beabee-common";
-import { getRepository } from "typeorm";
+
+import { getRepository } from "@core/database";
 
 import Contact from "@models/Contact";
 import Segment from "@models/Segment";

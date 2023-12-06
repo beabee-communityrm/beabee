@@ -1,6 +1,6 @@
 import { PaymentMethod } from "@beabee/beabee-common";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { ContributionInfo, PaymentForm } from "@core/utils";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";

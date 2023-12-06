@@ -6,12 +6,13 @@ import {
 } from "@beabee/beabee-common";
 import {
   createQueryBuilder,
-  FindConditions,
   FindManyOptions,
   FindOneOptions,
-  getRepository
+  FindOptionsWhere,
+  In
 } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
 import { generatePassword, isValidPassword } from "@core/utils/auth";
@@ -61,32 +62,31 @@ class ContactsService {
     ids: string[],
     options?: FindOneOptions<Contact>
   ): Promise<Contact[]> {
-    return await getRepository(Contact).findByIds(ids, options);
+    return await getRepository(Contact).findBy({ id: In(ids), ...options });
   }
 
   async findOne(
-    id?: string,
-    options?: FindOneOptions<Contact>
-  ): Promise<Contact | undefined>;
-  async findOne(
-    options?: FindOneOptions<Contact>
-  ): Promise<Contact | undefined>;
-  async findOne(
-    conditions: FindConditions<Contact>,
-    options?: FindOneOptions<Contact>
-  ): Promise<Contact | undefined>;
-  async findOne(
-    arg1?: string | FindConditions<Contact> | FindOneOptions<Contact>,
-    arg2?: FindOneOptions<Contact>
+    options: FindOneOptions<Contact>
   ): Promise<Contact | undefined> {
-    return await getRepository(Contact).findOne(arg1 as any, arg2);
+    // TODO: check undefined
+    return (await getRepository(Contact).findOne(options)) || undefined;
+  }
+
+  async findOneBy(
+    where: FindOptionsWhere<Contact>
+  ): Promise<Contact | undefined> {
+    // TODO: check undefined
+    return (await getRepository(Contact).findOneBy(where)) || undefined;
   }
 
   async findByLoginOverride(code: string): Promise<Contact | undefined> {
-    return await createQueryBuilder(Contact, "m")
-      .where("m.loginOverride ->> 'code' = :code", { code: code })
-      .andWhere("m.loginOverride ->> 'expires' > :now", { now: new Date() })
-      .getOne();
+    // TODO: check undefined
+    return (
+      (await createQueryBuilder(Contact, "m")
+        .where("m.loginOverride ->> 'code' = :code", { code: code })
+        .andWhere("m.loginOverride ->> 'expires' > :now", { now: new Date() })
+        .getOne()) || undefined
+    );
   }
 
   async createContact(
@@ -262,7 +262,7 @@ class ContactsService {
     log.info(`Revoke role ${roleType} for ${contact.id}`);
     contact.roles = contact.roles.filter((p) => p.type !== roleType);
     const ret = await getRepository(ContactRole).delete({
-      contact: contact,
+      contactId: contact.id,
       type: roleType
     });
 
@@ -287,8 +287,8 @@ class ContactsService {
     let isFirstSync = false;
 
     if (shouldSync) {
-      contact.profile = await getRepository(ContactProfile).findOneOrFail({
-        contact
+      contact.profile = await getRepository(ContactProfile).findOneByOrFail({
+        contactId: contact.id
       });
       // If this is the first time the contact is being synced to the newsletter
       // then we need to set the active member tag
@@ -436,7 +436,7 @@ class ContactsService {
     email: string,
     resetUrl: string
   ): Promise<void> {
-    const contact = await this.findOne({ email });
+    const contact = await this.findOneBy({ email });
 
     if (!contact) {
       return;
@@ -532,7 +532,7 @@ class ContactsService {
     type: RESET_SECURITY_FLOW_TYPE,
     resetUrl: string
   ): Promise<void> {
-    const contact = await this.findOne({ email });
+    const contact = await this.findOneBy({ email });
 
     // We don't want to leak if the email exists or not
     if (!contact) {

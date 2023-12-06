@@ -1,7 +1,8 @@
 import express from "express";
 import Papa from "papaparse";
-import { getRepository, SelectQueryBuilder } from "typeorm";
+import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 import { Param, parseParams } from "@core/utils/params";
@@ -13,7 +14,7 @@ import { createSchema, updateSchema } from "./schemas.json";
 
 import ExportTypes from "./exports";
 
-export interface ExportType<T extends any> {
+export interface ExportType<T extends ObjectLiteral> {
   exportName: string;
   itemName: string;
   itemStatuses: string[];
@@ -112,7 +113,7 @@ app.get(
     const exportType = new ExportTypes[exportDetails.type](exportDetails);
 
     const exportItems = await getRepository(ExportItem).find({
-      export: exportDetails
+      where: { exportId: exportDetails.id }
     });
     const newItemIds = await exportType.getNewItemIds();
 
@@ -182,10 +183,7 @@ app.post(
       res.redirect("/tools/exports/" + exportDetails.id);
     } else if (data.action === "update") {
       await getRepository(ExportItem).update(
-        {
-          export: exportDetails,
-          status: data.oldStatus
-        },
+        { exportId: exportDetails.id, status: data.oldStatus },
         { status: data.newStatus }
       );
 
@@ -201,7 +199,7 @@ app.post(
 
       res.attachment(exportName).send(Papa.unparse(exportData as any)); // TODO: fix
     } else if (data.action === "delete") {
-      await getRepository(ExportItem).delete({ export: exportDetails });
+      await getRepository(ExportItem).delete({ exportId: exportDetails.id });
       await getRepository(Export).delete(exportDetails.id);
       req.flash("success", "exports-deleted");
       res.redirect("/tools/exports");

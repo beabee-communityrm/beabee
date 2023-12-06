@@ -7,26 +7,28 @@ import {
   Param,
   Put
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 import EmailService from "@core/services/EmailService";
+
+import { getRepository } from "@core/database";
 
 import Email from "@models/Email";
 
 import { GetEmailData, UpdateEmailData } from "@api/data/EmailData";
 import ExternalEmailTemplate from "@api/errors/ExternalEmailTemplate";
 
-async function findEmail(id: string): Promise<Email | undefined> {
+async function findEmail(id: string): Promise<Email | null> {
   if (isUUID(id, "4")) {
-    return await getRepository(Email).findOne(id);
+    return await getRepository(Email).findOneBy({ id });
   } else if (EmailService.isTemplateId(id)) {
     const maybeEmail = await EmailService.getTemplateEmail(id);
-    if (maybeEmail === false) {
+    if (maybeEmail) {
+      return maybeEmail;
+    } else if (maybeEmail === false) {
       throw new ExternalEmailTemplate();
-    } else {
-      return maybeEmail || undefined;
     }
   }
+  return null;
 }
 
 function emailToData(email: Email): GetEmailData {
@@ -42,7 +44,7 @@ export class EmailController {
   @Get("/:id")
   async getEmail(@Param("id") id: string): Promise<GetEmailData | undefined> {
     const email = await findEmail(id);
-    return email && emailToData(email);
+    return email ? emailToData(email) : undefined;
   }
 
   @Put("/:id")

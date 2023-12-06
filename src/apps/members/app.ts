@@ -1,8 +1,8 @@
 import { RuleGroup } from "@beabee/beabee-common";
 import express, { Request } from "express";
 import queryString from "query-string";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
@@ -161,7 +161,9 @@ app.get(
 
     const addToProject =
       query.addToProject &&
-      (await getRepository(Project).findOne(query.addToProject as string));
+      (await getRepository(Project).findOneBy({
+        id: query.addToProject as string
+      }));
 
     res.render("index", {
       availableTags,

@@ -1,9 +1,9 @@
 import passport from "passport";
 import passportLocal from "passport-local";
-import { getRepository } from "typeorm";
 
 import config from "@config";
 
+import { getRepository } from "@core/database";
 import { log } from "@core/logging";
 import { cleanEmailAddress, sleep } from "@core/utils";
 import { generatePassword, isValidPassword } from "@core/utils/auth";
@@ -38,7 +38,7 @@ passport.use(
 
       email = cleanEmailAddress(email);
 
-      const contact = await ContactsService.findOne({ email });
+      const contact = await ContactsService.findOneBy({ email });
 
       let code = LOGIN_CODES.LOGIN_FAILED;
 
@@ -137,7 +137,7 @@ passport.serializeUser(function (data, done) {
 passport.deserializeUser(async function (data, done) {
   try {
     if (typeof data === "string") {
-      const contact = await ContactsService.findOne(data);
+      const contact = await ContactsService.findOneBy({ id: data });
       if (contact) {
         // Debounce last seen updates, we don't need to know to the second
         const now = new Date();

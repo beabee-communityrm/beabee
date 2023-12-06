@@ -1,6 +1,6 @@
 import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
@@ -87,8 +87,8 @@ class PaymentFlowService implements PaymentFlowProvider {
 
   async getJoinFlowByPaymentId(
     paymentFlowId: string
-  ): Promise<JoinFlow | undefined> {
-    return await getRepository(JoinFlow).findOne({ paymentFlowId });
+  ): Promise<JoinFlow | null> {
+    return await getRepository(JoinFlow).findOneBy({ paymentFlowId });
   }
 
   async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
@@ -101,7 +101,7 @@ class PaymentFlowService implements PaymentFlowProvider {
   async sendConfirmEmail(joinFlow: JoinFlow): Promise<void> {
     log.info("Send confirm email for " + joinFlow.id);
 
-    const contact = await ContactsService.findOne({
+    const contact = await ContactsService.findOneBy({
       email: joinFlow.joinForm.email
     });
 
@@ -146,7 +146,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     // get a confirm email if they are already an active member
     let contact = await ContactsService.findOne({
       where: { email: joinFlow.joinForm.email },
-      relations: ["profile"]
+      relations: { profile: true }
     });
     if (contact?.membership?.isActive) {
       throw new DuplicateEmailError();

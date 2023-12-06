@@ -4,13 +4,7 @@ import { PaymentMethod, PaymentStatus } from "@beabee/beabee-common";
 import { parse } from "csv-parse";
 import { add, startOfDay, sub } from "date-fns";
 import Stripe from "stripe";
-import {
-  Equal,
-  FindConditions,
-  In,
-  createQueryBuilder,
-  getRepository
-} from "typeorm";
+import { Equal, In, createQueryBuilder } from "typeorm";
 
 import * as db from "@core/database";
 import stripe from "@core/lib/stripe";
@@ -94,11 +88,11 @@ db.connect().then(async () => {
 
   console.log("Found", contacts.length, "contacts");
 
-  const payments = await getRepository(Payment).find({
+  const payments = await db.getRepository(Payment).find({
     where: {
-      contact: In(contacts.map((c) => c.id)),
+      contactId: In(contacts.map((c) => c.id)),
       status: Equal(PaymentStatus.Pending)
-    } as FindConditions<Payment>,
+    },
     loadRelationIds: true
   });
 
@@ -152,7 +146,7 @@ db.connect().then(async () => {
         // We do this directly rather than using updatePaymentMethod as it's not
         // meant for updating payment methods that are already associated with
         // the customer in Stripe
-        await getRepository(PaymentData).update(contact.id, {
+        await db.getRepository(PaymentData).update(contact.id, {
           method: stripeTypeToPaymentMethod(migrationRow.type),
           data: {
             customerId: migrationRow.customer_id,
