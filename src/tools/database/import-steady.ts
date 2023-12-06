@@ -6,7 +6,7 @@ import {
   NewsletterStatus
 } from "@beabee/beabee-common";
 import { parse } from "csv-parse";
-import { In, getRepository } from "typeorm";
+import { In } from "typeorm";
 
 import * as db from "@core/database";
 import { cleanEmailAddress } from "@core/utils";
@@ -96,7 +96,7 @@ function convertPeriod(period: "annual" | "monthly"): ContributionPeriod {
 }
 
 function getRole(row: SteadyRow): ContactRole {
-  return getRepository(ContactRole).create({
+  return db.getRepository(ContactRole).create({
     type: "member",
     dateAdded: new Date(row.subscribed_at),
     dateExpires: row.expires_at ? new Date(row.expires_at) : null
@@ -233,7 +233,7 @@ async function addNewContact(row: SteadyRow) {
 async function processRows(rows: SteadyRow[]) {
   console.error(`Processing ${rows.length} rows`);
 
-  const existingContacts = await getRepository(Contact).find({
+  const existingContacts = await db.getRepository(Contact).find({
     where: { email: In(rows.map((row) => row.email)) }
   });
 

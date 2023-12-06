@@ -1,7 +1,7 @@
 import "module-alias/register";
 
 import { PaymentMethod } from "@beabee/beabee-common";
-import { In, getRepository } from "typeorm";
+import { In } from "typeorm";
 
 import * as db from "@core/database";
 import stripe from "@core/lib/stripe";
@@ -31,7 +31,7 @@ async function* fetchInvoices(customerId: string) {
 }
 
 db.connect().then(async () => {
-  const stripePaymentData = (await getRepository(PaymentData).find({
+  const stripePaymentData = (await db.getRepository(PaymentData).find({
     where: {
       method: In([
         PaymentMethod.StripeBACS,
@@ -117,7 +117,7 @@ db.connect().then(async () => {
     }
 
     if (isDangerMode) {
-      await getRepository(PaymentData).save(pd);
+      await db.getRepository(PaymentData).save(pd);
     } else {
       console.log(pd.cancelledAt, pd.data);
     }

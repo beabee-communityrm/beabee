@@ -1,16 +1,28 @@
 import "reflect-metadata";
 
-import { createConnection, getConnection } from "typeorm";
+import { DataSource, EntityTarget, ObjectLiteral, Repository } from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
 
 import OptionsService from "@core/services/OptionsService";
+import config from "@config";
 
 const log = mainLogger.child({ app: "database" });
 
+export let dataSource: DataSource;
+export function getRepository<Entity extends ObjectLiteral>(
+  target: EntityTarget<Entity>
+): Repository<Entity> {
+  return dataSource.getRepository(target);
+}
+
 export async function connect(): Promise<void> {
   try {
-    await createConnection();
+    dataSource = new DataSource({
+      type: "postgres",
+      url: config.databaseUrl
+    });
+    await dataSource.initialize();
     log.info("Connected to database");
     await OptionsService.reload();
   } catch (error) {
@@ -20,5 +32,5 @@ export async function connect(): Promise<void> {
 }
 
 export async function close(): Promise<void> {
-  await getConnection().close();
+  await dataSource.destroy();
 }

@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
@@ -23,7 +23,7 @@ export default class ReferralsService {
   ): Promise<boolean> {
     if (!giftForm.referralGift) return true; // No gift option
 
-    const gift = await getRepository(ReferralGift).findOne({
+    const gift = await getRepository(ReferralGift).findOneBy({
       name: giftForm.referralGift
     });
     if (gift && gift.enabled && gift.minAmount <= amount) {
@@ -45,7 +45,7 @@ export default class ReferralsService {
     log.info("Update gift stock", giftForm);
 
     if (giftForm.referralGift) {
-      const gift = await getRepository(ReferralGift).findOne({
+      const gift = await getRepository(ReferralGift).findOneBy({
         name: giftForm.referralGift
       });
       if (gift && giftForm.referralGiftOptions) {
@@ -104,7 +104,7 @@ export default class ReferralsService {
   static async getContactReferrals(referrer: Contact): Promise<Referral[]> {
     return await getRepository(Referral).find({
       relations: ["referrerGift", "referee"],
-      where: { referrer }
+      where: { referrerId: referrer.id }
     });
   }
 
@@ -134,7 +134,7 @@ export default class ReferralsService {
 
   static async permanentlyDeleteContact(contact: Contact): Promise<void> {
     await getRepository(Referral).update(
-      { referrer: contact },
+      { referrerId: contact.id },
       { referrer: null }
     );
   }

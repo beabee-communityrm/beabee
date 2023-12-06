@@ -1,7 +1,6 @@
 import "module-alias/register";
 
 import { checkbox, input } from "@inquirer/prompts";
-import { getRepository } from "typeorm";
 
 import * as db from "@core/database";
 
@@ -29,7 +28,7 @@ db.connect().then(async () => {
 
   await OptionsService.set("support-email", "support@" + answers.emailDomain);
 
-  await getRepository(Content).update("join", {
+  await db.getRepository(Content).update("join", {
     data: () =>
       `jsonb_set(data, \'{paymentMethods}\', \'${JSON.stringify(
         answers.paymentProviders

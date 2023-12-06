@@ -13,10 +13,10 @@ import {
   Req,
   Res
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 
+import { getRepository } from "@core/database";
 import passport from "@core/lib/passport";
 
 import ContactsService from "@core/services/ContactsService";
@@ -107,12 +107,12 @@ export class AuthController {
     let contact: Contact | undefined;
     if (RoleTypes.indexOf(id as RoleType) > -1) {
       const role = await getRepository(ContactRole).findOne({
-        where: { type: id },
+        where: { type: id as RoleType },
         relations: ["contact"]
       });
       contact = role?.contact;
     } else if (isUUID(id, "4")) {
-      contact = await ContactsService.findOne(id);
+      contact = await ContactsService.findOneBy({ id });
     }
 
     if (contact) {

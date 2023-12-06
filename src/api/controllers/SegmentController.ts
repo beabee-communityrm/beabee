@@ -11,7 +11,8 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+
+import { getRepository } from "@core/database";
 
 import { UUIDParam } from "@api/data";
 import {
@@ -74,7 +75,7 @@ export class SegmentController {
     @Params() { id }: UUIDParam,
     @QueryParams() query: GetSegmentQuery
   ): Promise<GetSegmentData | undefined> {
-    const segment = await getRepository(Segment).findOne(id);
+    const segment = await getRepository(Segment).findOneBy({ id });
     if (segment) {
       return convertSegmentToData(segment, query);
     }
@@ -108,7 +109,7 @@ export class SegmentController {
     @Params() { id }: UUIDParam,
     @QueryParams() query: GetContactsQuery
   ): Promise<Paginated<GetContactData> | undefined> {
-    const segment = await getRepository(Segment).findOne(id);
+    const segment = await getRepository(Segment).findOneBy({ id });
     if (segment) {
       return await fetchPaginatedContacts(
         {

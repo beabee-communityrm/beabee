@@ -11,7 +11,12 @@ import {
   Delete,
   Param
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+
+import { getRepository } from "@core/database";
+import { generateApiKey } from "@core/utils/auth";
+
+import ApiKey from "@models/ApiKey";
+import Contact from "@models/Contact";
 
 import {
   CreateApiKeyData,
@@ -20,9 +25,6 @@ import {
   fetchPaginatedApiKeys
 } from "@api/data/ApiKeyData";
 import { Paginated } from "@api/data/PaginatedData";
-import { generateApiKey } from "@core/utils/auth";
-import ApiKey from "@models/ApiKey";
-import Contact from "@models/Contact";
 
 @JsonController("/api-key")
 @Authorized("admin")

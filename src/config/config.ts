@@ -91,6 +91,7 @@ export default {
     secure: env.b("BEABEE_COOKIE_SECURE", true)
   },
   trustedOrigins: env.ss("BEABEE_TRUSTEDORIGINS", []),
+  databaseUrl: env.s("BEABEE_DATABASE_URL"),
   discourse: {
     url: env.s("BEABEE_DISCOURSE_URL", ""),
     ssoSecret: env.s("BEABEE_DISCOURSE_SSOSECRET", "")

@@ -5,8 +5,8 @@ import {
   SubscriptionIntervalUnit
 } from "gocardless-nodejs/types/Types";
 import moment, { DurationInputObject } from "moment";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
 import { convertStatus } from "@core/utils/payment/gocardless";
@@ -155,13 +155,12 @@ async function calcConfirmedPaymentPeriodEnd(payment: Payment): Promise<Date> {
 async function calcFailedPaymentPeriodEnd(
   payment: Payment
 ): Promise<Date | undefined> {
-  const subscription = await gocardless.subscriptions.get(
-    payment.subscriptionId!
-  );
+  const subscriptionId = payment.subscriptionId!; // Definitely exists
+  const subscription = await gocardless.subscriptions.get(subscriptionId);
 
   const latestSuccessfulPayment = await getRepository(Payment).findOne({
     where: {
-      subscriptionId: payment.subscriptionId,
+      subscriptionId,
       status: PaymentStatus.Successful
     },
     order: { chargeDate: "DESC" }
@@ -231,8 +230,9 @@ export async function cancelMandate(mandateId: string): Promise<void> {
 async function findOrCreatePayment(
   gcPayment: GCPayment
 ): Promise<Payment | undefined> {
-  const payment = await getRepository(Payment).findOne(gcPayment.id, {
-    relations: ["contact"]
+  const payment = await getRepository(Payment).findOne({
+    where: { id: gcPayment.id! },
+    relations: { contact: true }
   });
   if (payment) {
     return payment;

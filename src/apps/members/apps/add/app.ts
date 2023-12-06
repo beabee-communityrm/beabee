@@ -5,8 +5,8 @@ import {
   RoleType
 } from "@beabee/beabee-common";
 import express from "express";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasSchema, isSuperAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 

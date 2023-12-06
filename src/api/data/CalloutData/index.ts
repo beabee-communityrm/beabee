@@ -1,6 +1,8 @@
 import { calloutFilters, ItemStatus } from "@beabee/beabee-common";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
-import { createQueryBuilder, FindConditions, getRepository } from "typeorm";
+import { createQueryBuilder, FindOptionsWhere } from "typeorm";
+
+import { getRepository } from "@core/database";
 
 import {
   fetchPaginated,
@@ -64,7 +66,7 @@ export function convertCalloutToData(
 }
 
 export async function fetchCallout(
-  where: FindConditions<Callout>,
+  where: FindOptionsWhere<Callout>,
   query: GetCalloutQuery,
   contact: Contact | undefined
 ): Promise<GetCalloutData | undefined> {
@@ -82,12 +84,14 @@ export async function fetchCallout(
 
   if (query.with?.includes(GetCalloutWith.HasAnswered) && contact) {
     callout.hasAnswered =
-      (await getRepository(CalloutResponse).count({ callout, contact })) > 0;
+      (await getRepository(CalloutResponse).count({
+        where: { calloutSlug: callout.slug, contactId: contact.id }
+      })) > 0;
   }
 
   if (query.with?.includes(GetCalloutWith.ResponseCount)) {
     callout.responseCount = await getRepository(CalloutResponse).count({
-      callout
+      where: { calloutSlug: callout.slug }
     });
   }
 

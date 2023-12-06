@@ -2,12 +2,13 @@ import {
   CalloutFormSchema,
   CalloutResponseAnswers
 } from "@beabee/beabee-common";
-import { getRepository, IsNull, LessThan } from "typeorm";
+import { IsNull, LessThan } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 
+import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
 import Contact from "@models/Contact";
@@ -39,7 +40,7 @@ class CalloutsService {
 
     const responses = await getRepository(CalloutResponse).find({
       loadRelationIds: true,
-      where: { contact: contact }
+      where: { contactId: contact.id }
     });
 
     const calloutsWithResponses = callouts.map((callout) => {
@@ -66,7 +67,7 @@ class CalloutsService {
         // Force the correct type as otherwise this errors, not sure why
         formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
       });
-      return await getRepository(Callout).findOneOrFail(slug);
+      return await getRepository(Callout).findOneByOrFail({ slug });
     } catch (err) {
       if (isDuplicateIndex(err, "slug")) {
         if (autoSlug === false) {
@@ -84,14 +85,16 @@ class CalloutsService {
     callout: Callout,
     contact: Contact
   ): Promise<CalloutResponse | undefined> {
-    return await getRepository(CalloutResponse).findOne({
-      where: {
-        callout: { slug: callout.slug },
-        contact: contact
-      },
-      // Get most recent response for callouts with allowMultiple
-      order: { createdAt: "DESC" }
-    });
+    return (
+      (await getRepository(CalloutResponse).findOne({
+        where: {
+          calloutSlug: callout.slug,
+          contactId: contact.id
+        },
+        // Get most recent response for callouts with allowMultiple
+        order: { createdAt: "DESC" }
+      })) || undefined
+    );
   }
 
   async setResponse(
@@ -188,7 +191,7 @@ class CalloutsService {
   ): Promise<CalloutResponse> {
     if (!response.number) {
       const lastResponse = await getRepository(CalloutResponse).findOne({
-        where: { callout: response.callout },
+        where: { calloutSlug: response.callout.slug },
         order: { number: "DESC" }
       });
 

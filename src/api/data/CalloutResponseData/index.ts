@@ -15,8 +15,10 @@ import {
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
 import { NotFoundError } from "routing-controllers";
-import { In, createQueryBuilder, getRepository } from "typeorm";
+import { In, createQueryBuilder } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+
+import { getRepository } from "@core/database";
 
 import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";

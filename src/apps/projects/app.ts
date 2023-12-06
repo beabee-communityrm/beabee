@@ -1,8 +1,9 @@
 import express from "express";
 import _ from "lodash";
 import moment from "moment";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { createQueryBuilder } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
@@ -120,11 +121,11 @@ app.get(
     const project = req.model as Project;
 
     const projectContacts = await getRepository(ProjectContact).find({
-      where: { project },
+      where: { projectId: project.id },
       relations: ["contact", "contact.profile"]
     });
     const engagements = await getRepository(ProjectEngagement).find({
-      where: { project },
+      where: { projectId: project.id },
       relations: ["byContact", "toContact"]
     });
 
@@ -189,8 +190,10 @@ app.post(
         res.redirect(req.originalUrl + "#contacts");
         break;
       case "delete":
-        await getRepository(ProjectEngagement).delete({ project });
-        await getRepository(ProjectContact).delete({ project });
+        await getRepository(ProjectEngagement).delete({
+          projectId: project.id
+        });
+        await getRepository(ProjectContact).delete({ projectId: project.id });
         await getRepository(Project).delete(project.id);
         req.flash("success", "project-deleted");
         res.redirect("/projects");
