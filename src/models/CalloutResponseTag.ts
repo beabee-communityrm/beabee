@@ -1,13 +1,17 @@
-import { CreateDateColumn, Entity, ManyToOne } from "typeorm";
+import { CreateDateColumn, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import CalloutResponse from "./CalloutResponse";
 import CalloutTag from "./CalloutTag";
 
 @Entity({})
 export default class CalloutResponseTag {
-  @ManyToOne("CalloutResponse", "tags", { primary: true })
+  @PrimaryColumn()
+  responseId!: string;
+  @ManyToOne("CalloutResponse", "tags")
   response!: CalloutResponse;
 
-  @ManyToOne("CalloutTag", { primary: true })
+  @PrimaryColumn()
+  tagId!: string;
+  @ManyToOne("CalloutTag")
   tag!: CalloutTag;
 
   @CreateDateColumn()

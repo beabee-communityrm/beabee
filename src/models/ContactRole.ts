@@ -10,7 +10,9 @@ import type Contact from "./Contact";
 
 @Entity()
 export default class ContactRole {
-  @ManyToOne("Contact", "roles", { primary: true })
+  @PrimaryColumn()
+  contactId!: string;
+  @ManyToOne("Contact", "roles")
   contact!: Contact;
 
   @PrimaryColumn()

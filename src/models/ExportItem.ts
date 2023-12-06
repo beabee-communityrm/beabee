@@ -13,6 +13,8 @@ export default class ExportItem {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  exportId!: string;
   @ManyToOne(() => Export)
   export!: Export;
 

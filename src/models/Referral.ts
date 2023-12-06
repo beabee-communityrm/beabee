@@ -17,9 +17,13 @@ export default class Referral {
   @CreateDateColumn()
   date!: Date;
 
+  @Column({ type: String, nullable: true })
+  referrerId!: string;
   @ManyToOne("Contact", { nullable: true })
   referrer!: Contact | null;
 
+  @Column()
+  refereeId!: string;
   @ManyToOne("Contact")
   referee!: Contact;
 
