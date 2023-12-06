@@ -95,6 +95,7 @@
     "@types/connect-busboy": "^1.0.3",
     "@types/connect-pg-simple": "^7.0.3",
     "@types/cookie-parser": "^1.4.6",
+    "@types/cors": "^2.8.17",
     "@types/csurf": "^1.11.5",
     "@types/discourse-sso": "^1.0.3",
     "@types/dot": "^1.1.7",
