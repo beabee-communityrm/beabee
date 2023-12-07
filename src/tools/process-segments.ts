@@ -34,7 +34,7 @@ async function processSegment(segment: Segment) {
     .map((sm) => sm.contactId);
 
   log.info(
-    `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContacts.length} old contacts`
+    `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContactIds.length} old contacts`
   );
 
   await getRepository(SegmentContact).delete({
