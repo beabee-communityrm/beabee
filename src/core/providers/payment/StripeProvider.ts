@@ -145,9 +145,8 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       this.data.subscriptionId = newSubscription.id;
     }
 
-    const { subscription, startNow } = await this.updateOrCreateContribution(
-      paymentForm
-    );
+    const { subscription, startNow } =
+      await this.updateOrCreateContribution(paymentForm);
 
     this.data.subscriptionId = subscription.id;
     this.data.payFee = paymentForm.payFee;

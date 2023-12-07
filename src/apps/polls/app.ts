@@ -224,8 +224,8 @@ app.post(
       isEmbed || callout.access === CalloutAccess.OnlyAnonymous
         ? undefined
         : pollsCode
-        ? await ContactsService.findOne({ pollsCode })
-        : req.user;
+          ? await ContactsService.findOne({ pollsCode })
+          : req.user;
 
     if (callout.access === CalloutAccess.Member && !contact) {
       return auth.handleNotAuthed(

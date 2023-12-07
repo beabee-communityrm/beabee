@@ -144,8 +144,8 @@ class EmailService {
     config.email.provider === "mandrill"
       ? new MandrillProvider(config.email.settings)
       : config.email.provider === "sendgrid"
-      ? new SendGridProvider(config.email.settings)
-      : new SMTPProvider(config.email.settings);
+        ? new SendGridProvider(config.email.settings)
+        : new SMTPProvider(config.email.settings);
 
   private defaultEmails: Partial<
     Record<Locale, Partial<Record<EmailTemplateId, Email>>>

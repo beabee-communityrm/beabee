@@ -97,8 +97,8 @@ function getSearchRuleGroup(
   return (searchType || query.type) === "basic"
     ? convertBasicSearch(query)
     : typeof query.rules === "string"
-    ? cleanRuleGroup(JSON.parse(query.rules))
-    : undefined;
+      ? cleanRuleGroup(JSON.parse(query.rules))
+      : undefined;
 }
 
 app.get(

@@ -1,14 +1,19 @@
 {
-  "extends": "@tsconfig/node16/tsconfig.json",
+  "extends": "@tsconfig/node20/tsconfig.json",
   "include": ["./src/**/*", "./test/**/*"],
   "compilerOptions": {
-    "outDir": "./built",
-    "listEmittedFiles": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "exactOptionalPropertyTypes": true,
-    "sourceMap": true,
     "resolveJsonModule": true,
+
+    // We currently rely on class fields not being initialised, especially for classes created by
+    // class-transformer (in controllers). Disabling this flag for now.
+    // More info: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#the-usedefineforclassfields-flag-and-the-declare-property-modifier
+    "useDefineForClassFields": false,
+
+    "sourceMap": true,
+    "outDir": "./built",
     "baseUrl": "./",
     "paths": {
       "@core/*": ["./src/core/*"],

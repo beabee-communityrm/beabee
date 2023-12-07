@@ -1,6 +1,6 @@
 import "module-alias/register";
 
-import inquirer, { QuestionCollection } from "inquirer";
+import { checkbox, input } from "@inquirer/prompts";
 import { getRepository } from "typeorm";
 
 import * as db from "@core/database";
@@ -9,35 +9,23 @@ import OptionsService from "@core/services/OptionsService";
 
 import Content from "@models/Content";
 
-function notEmpty(msg: string) {
-  return (s: string) => {
-    return s.trim() === "" ? msg : true;
-  };
+function notEmpty(s: string) {
+  return s.trim() !== "";
 }
 
-const questions: QuestionCollection[] = [];
-
-questions.push({
-  type: "input",
-  name: "emailDomain",
-  message: "Email Domain",
-  validate: notEmpty("You must enter an email domain")
-});
-
-questions.push({
-  type: "checkbox",
-  name: "paymentProviders",
-  message: "Payment Methods",
-  choices: [
-    { name: "Credit card (Stripe)", value: "s_card" },
-    { name: "SEPA direct debit (Stripe)", value: "s_sepa" },
-    { name: "BACS (Stripe)", value: "s_bacs" },
-    { name: "Direct debit (GoCardless)", value: "gc_direct-debit" }
-  ]
-});
-
 db.connect().then(async () => {
-  const answers = await inquirer.prompt(questions);
+  const answers = {
+    emailDomain: await input({ message: "Email Domain", validate: notEmpty }),
+    paymentProviders: await checkbox({
+      message: "Payment Methods",
+      choices: [
+        { name: "Credit card (Stripe)", value: "s_card" },
+        { name: "SEPA direct debit (Stripe)", value: "s_sepa" },
+        { name: "BACS (Stripe)", value: "s_bacs" },
+        { name: "Direct debit (GoCardless)", value: "gc_direct-debit" }
+      ]
+    })
+  };
 
   await OptionsService.set("support-email", "support@" + answers.emailDomain);
 

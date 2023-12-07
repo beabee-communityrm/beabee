@@ -52,8 +52,8 @@ function convertErrorsToMessages(errors: ErrorObject[]): string[] {
         return OptionsService.isKey(key)
           ? OptionsService.getText(key)
           : config.dev
-          ? key
-          : genericErrorMessage;
+            ? key
+            : genericErrorMessage;
       })
       // Don't show duplicate errors twice
       .filter((value, index, arr) => arr.indexOf(value) === index)

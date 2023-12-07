@@ -1,7 +1,7 @@
 import "module-alias/register";
 
 import { ContributionType } from "@beabee/beabee-common";
-import inquirer, { QuestionCollection } from "inquirer";
+import { input, password, select } from "@inquirer/prompts";
 import moment from "moment";
 import { getRepository } from "typeorm";
 
@@ -14,75 +14,44 @@ import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
 import ContactRole from "@models/ContactRole";
 
 import config from "@config";
+
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
-function notEmpty(msg: string) {
-  return (s: string) => {
-    return s.trim() === "" ? msg : true;
-  };
+function notEmpty(s: string) {
+  return s.trim() !== "";
 }
 
-const questions: QuestionCollection[] = [];
-
-// First Name
-questions.push({
-  type: "input",
-  name: "firstname",
-  message: "First Name",
-  validate: notEmpty("You must enter a first name")
-});
-
-// Last Name
-questions.push({
-  type: "input",
-  name: "lastname",
-  message: "Last Name",
-  validate: notEmpty("You must enter a last name")
-});
-
-// Email address
-questions.push({
-  type: "input",
-  name: "email",
-  message: "Email Address",
-  validate: notEmpty("You must enter an email address")
-});
-
-// Password
-questions.push({
-  type: "password",
-  name: "password",
-  message: "Password (leave empty to generate reset password link)",
-  validate: (s) => {
-    return !s.trim() || passwordRequirements(s);
-  }
-});
-
-// Member
-questions.push({
-  type: "list",
-  name: "membership",
-  message: "Would you like to grant membership to the user?",
-  choices: [
-    "Yes",
-    "Yes (expires after 1 month)",
-    "Yes (expired yesterday)",
-    "No"
-  ],
-  default: "Yes"
-});
-
-// Level question
-questions.push({
-  type: "list",
-  name: "role",
-  message: "What level of access do you wish to grant this new user?",
-  choices: ["None", "Admin", "Super Admin"],
-  default: "Super Admin"
-});
-
 db.connect().then(async () => {
-  const answers = await inquirer.prompt(questions);
+  const answers = {
+    firstname: await input({ message: "First Name", validate: notEmpty }),
+    lastname: await input({ message: "Last Name", validate: notEmpty }),
+    email: await input({ message: "Email Address", validate: notEmpty }),
+    password: await password({
+      message: "Password (leave empty to generate reset password link)",
+      validate: (s: string) => {
+        return !s.trim() || passwordRequirements(s);
+      }
+    }),
+    membership: await select({
+      message: "Would you like to grant membership to the user?",
+      choices: [
+        { value: "Yes" },
+        { value: "Yes (expires after 1 month)" },
+        { value: "Yes (expired yesterday)" },
+        { value: "No" }
+      ],
+      default: "Yes"
+    }),
+    role: await select({
+      message: "What level of access do you wish to grant this new user?",
+      choices: [
+        { value: "None" },
+        { value: "Admin" },
+        { value: "Super Admin" }
+      ],
+      default: "Super Admin"
+    })
+  };
 
   const roles = [];
 

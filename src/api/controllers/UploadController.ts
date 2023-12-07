@@ -17,6 +17,7 @@ import Contact from "@models/Contact";
 import UploadFlow from "@models/UploadFlow";
 
 import { UUIDParam } from "@api/data";
+import BadRequestError from "@api/errors/BadRequestError";
 
 async function canUploadOrFail(ipAddress: string, date: Date, max: number) {
   const uploadFlows = await getRepository(UploadFlow).find({
@@ -34,6 +35,10 @@ export class UploadController {
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @Req() req: Request
   ): Promise<{ id: string }> {
+    if (!req.ip) {
+      throw new BadRequestError();
+    }
+
     // No more than 10 uploads in a minute for all users
     const oneMinAgo = sub(new Date(), { minutes: 1 });
     await canUploadOrFail(req.ip, oneMinAgo, 10);

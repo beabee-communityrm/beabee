@@ -87,12 +87,6 @@ export default class Callout extends ItemWithStatus {
   @Column({ type: String, nullable: true })
   pollMergeField!: string | null;
 
-  @Column({ type: Date, nullable: true })
-  starts!: Date | null;
-
-  @Column({ type: Date, nullable: true })
-  expires!: Date | null;
-
   @Column()
   allowUpdate!: boolean;
 

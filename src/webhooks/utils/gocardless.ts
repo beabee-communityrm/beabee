@@ -182,8 +182,8 @@ function getSubscriptionDuration(
     subscription.interval_unit === SubscriptionIntervalUnit.Yearly
       ? "year"
       : subscription.interval_unit === SubscriptionIntervalUnit.Monthly
-      ? "month"
-      : "week";
+        ? "month"
+        : "week";
   return {
     [unit]: Number(subscription.interval)
   };

@@ -166,9 +166,8 @@ class PaymentFlowService implements PaymentFlowProvider {
     // TODO: rework join flow to properly accommodate no contributions
     if (joinFlow.joinForm.monthlyAmount !== 0) {
       completedPaymentFlow = await this.completeJoinFlow(joinFlow);
-      const paymentData = await this.getCompletedPaymentFlowData(
-        completedPaymentFlow
-      );
+      const paymentData =
+        await this.getCompletedPaymentFlowData(completedPaymentFlow);
 
       // Prefill contact data from payment provider if possible
       partialContact.firstname ||= paymentData.firstname || "";
