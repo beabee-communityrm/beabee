@@ -15,6 +15,7 @@ import config from "@config";
 
 const log = mainLogger.child({ app: "database" });
 
+// This is used by the TypeORM CLI to run migrations
 export const dataSource: DataSource = new DataSource({
   type: "postgres",
   url: config.databaseUrl,
