@@ -25,6 +25,9 @@ class CalloutWithResponse extends Callout {
 }
 
 class CalloutsService {
+  /**
+   * @deprecated
+   */
   async getVisibleCalloutsWithResponses(
     contact: Contact
   ): Promise<CalloutWithResponse[]> {

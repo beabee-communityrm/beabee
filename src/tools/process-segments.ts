@@ -29,9 +29,9 @@ async function processSegment(segment: Segment) {
   const newContacts = matchedContacts.filter((m) =>
     segmentContacts.every((sm) => sm.contactId !== m.id)
   );
-  const oldSegmentContacts = segmentContacts.filter((sm) =>
-    matchedContacts.every((m) => m.id !== sm.contactId)
-  );
+  const oldSegmentContactIds = segmentContacts
+    .filter((sm) => matchedContacts.every((m) => m.id !== sm.contactId))
+    .map((sm) => sm.contactId);
 
   log.info(
     `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContacts.length} old contacts`
@@ -39,7 +39,7 @@ async function processSegment(segment: Segment) {
 
   await getRepository(SegmentContact).delete({
     segmentId: segment.id,
-    contactId: In(oldSegmentContacts.map((sm) => sm.contact))
+    contactId: In(oldSegmentContactIds)
   });
   await getRepository(SegmentContact).insert(
     newContacts.map((contact) => ({ segment, contact }))
@@ -54,9 +54,7 @@ async function processSegment(segment: Segment) {
   const oldContacts =
     segment.newsletterTag ||
     outgoingEmails.some((oe) => oe.trigger === "onLeave")
-      ? await ContactsService.findByIds(
-          oldSegmentContacts.map((sm) => sm.contactId)
-        )
+      ? await ContactsService.findByIds(oldSegmentContactIds)
       : [];
 
   for (const outgoingEmail of outgoingEmails) {
