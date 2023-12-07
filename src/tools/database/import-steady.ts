@@ -8,7 +8,8 @@ import {
 import { parse } from "csv-parse";
 import { In } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
+import { runApp } from "@core/server";
 import { cleanEmailAddress } from "@core/utils";
 
 import ContactsService from "@core/services/ContactsService";
@@ -96,7 +97,7 @@ function convertPeriod(period: "annual" | "monthly"): ContributionPeriod {
 }
 
 function getRole(row: SteadyRow): ContactRole {
-  return db.getRepository(ContactRole).create({
+  return getRepository(ContactRole).create({
     type: "member",
     dateAdded: new Date(row.subscribed_at),
     dateExpires: row.expires_at ? new Date(row.expires_at) : null
@@ -233,7 +234,7 @@ async function addNewContact(row: SteadyRow) {
 async function processRows(rows: SteadyRow[]) {
   console.error(`Processing ${rows.length} rows`);
 
-  const existingContacts = await db.getRepository(Contact).find({
+  const existingContacts = await getRepository(Contact).find({
     where: { email: In(rows.map((row) => row.email)) }
   });
 
@@ -286,8 +287,7 @@ async function loadRows(): Promise<SteadyRow[]> {
   });
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const rows = await loadRows();
   await processRows(rows);
-  await db.close();
 });

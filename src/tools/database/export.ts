@@ -1,7 +1,6 @@
 import "module-alias/register";
-import { ObjectLiteral } from "typeorm";
 
-import * as db from "@core/database";
+import { runApp } from "@core/server";
 
 import * as models from "./anonymisers/models";
 import { anonymiseModel, clearModels } from "./anonymisers";
@@ -47,11 +46,10 @@ async function main() {
   }
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   try {
     await main();
   } catch (err) {
     console.error(err);
   }
-  await db.close();
 });

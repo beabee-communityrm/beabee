@@ -11,7 +11,6 @@ import {
 
 import { log as mainLogger } from "@core/logging";
 
-import OptionsService from "@core/services/OptionsService";
 import config from "@config";
 
 const log = mainLogger.child({ app: "database" });
@@ -55,11 +54,12 @@ export async function connect(): Promise<void> {
   try {
     dataSource = new DataSource({
       type: "postgres",
-      url: config.databaseUrl
+      url: config.databaseUrl,
+      logging: config.dev,
+      entities: [__dirname + "/../models/*.js"]
     });
     await dataSource.initialize();
     log.info("Connected to database");
-    await OptionsService.reload();
   } catch (error) {
     log.error("Error connecting to database", error);
     process.exit(1);

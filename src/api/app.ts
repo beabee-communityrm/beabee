@@ -30,14 +30,13 @@ import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { ResetDeviceController } from "./controllers/ResetDeviceController";
 import { UploadController } from "./controllers/UploadController";
 
-import * as db from "@core/database";
 import {
   log as mainLogger,
   requestErrorLogger,
   requestLogger
 } from "@core/logging";
 import sessions from "@core/sessions";
-import startServer from "@core/server";
+import { initApp, startServer } from "@core/server";
 
 import AuthService from "@core/services/AuthService";
 
@@ -65,7 +64,7 @@ app.use(cors({ origin: config.trustedOrigins }));
 
 app.use(cookie());
 
-db.connect().then(() => {
+initApp().then(() => {
   sessions(app);
 
   useExpressServer(app, {

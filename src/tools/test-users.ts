@@ -8,7 +8,8 @@ import {
 import moment from "moment";
 import { Brackets } from "typeorm";
 
-import * as db from "@core/database";
+import { createQueryBuilder } from "@core/database";
+import { runApp } from "@core/server";
 import { getActualAmount } from "@core/utils";
 
 import config from "@config";
@@ -18,8 +19,7 @@ import Contact from "@models/Contact";
 import PaymentData from "@models/PaymentData";
 
 async function logContact(type: string, conditions: Brackets[]) {
-  const qb = db
-    .createQueryBuilder(Contact, "m")
+  const qb = createQueryBuilder(Contact, "m")
     .innerJoinAndSelect("m.roles", "mp")
     .where("TRUE");
 
@@ -70,32 +70,27 @@ async function logContactVaryContributions(
 async function getFilters() {
   const now = moment.utc();
 
-  const hasScheduledPayments = db
-    .createQueryBuilder()
+  const hasScheduledPayments = createQueryBuilder()
     .subQuery()
     .select("p.contactId")
     .from(Payment, "p")
     .where("p.status = :status", { status: PaymentStatus.Pending });
-  const hasFailedPayments = db
-    .createQueryBuilder()
+  const hasFailedPayments = createQueryBuilder()
     .subQuery()
     .select("p.contactId")
     .from(Payment, "p")
     .where("p.status = 'failed'", { status: PaymentStatus.Failed });
-  const hasSubscription = db
-    .createQueryBuilder()
+  const hasSubscription = createQueryBuilder()
     .subQuery()
     .select("pd.contactId")
     .from(PaymentData, "p")
     .where("pd.subscriptionId IS NOT NULL");
-  const hasCancelled = db
-    .createQueryBuilder()
+  const hasCancelled = createQueryBuilder()
     .subQuery()
     .select("pd.contactId")
     .from(PaymentData, "md")
     .where("md.cancelledAt IS NOT NULL");
-  const isPayingFee = db
-    .createQueryBuilder()
+  const isPayingFee = createQueryBuilder()
     .subQuery()
     .select("md.contactId")
     .from(PaymentData, "md")
@@ -192,12 +187,11 @@ async function main() {
   await logContact("Super admin account", [filters.isSuperAdmin]);
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   console.log();
   try {
     await main();
   } catch (err) {
     console.error(err);
   }
-  await db.close();
 });

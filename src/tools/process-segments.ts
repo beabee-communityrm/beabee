@@ -2,8 +2,9 @@ import "module-alias/register";
 
 import { In } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
+import { runApp } from "@core/server";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
@@ -21,7 +22,7 @@ async function processSegment(segment: Segment) {
 
   const matchedContacts = await SegmentService.getSegmentContacts(segment);
 
-  const segmentContacts = (await db.getRepository(SegmentContact).find({
+  const segmentContacts = (await getRepository(SegmentContact).find({
     where: { segmentId: segment.id },
     loadRelationIds: true
   })) as unknown as WithRelationIds<SegmentContact, "contact">[];
@@ -37,15 +38,15 @@ async function processSegment(segment: Segment) {
     `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContacts.length} old contacts`
   );
 
-  await db.getRepository(SegmentContact).delete({
+  await getRepository(SegmentContact).delete({
     segmentId: segment.id,
     contactId: In(oldSegmentContacts.map((sm) => sm.contact))
   });
-  await db
-    .getRepository(SegmentContact)
-    .insert(newContacts.map((contact) => ({ segment, contact })));
+  await getRepository(SegmentContact).insert(
+    newContacts.map((contact) => ({ segment, contact }))
+  );
 
-  const outgoingEmails = await db.getRepository(SegmentOngoingEmail).find({
+  const outgoingEmails = await getRepository(SegmentOngoingEmail).find({
     where: { segmentId: segment.id },
     relations: { email: true }
   });
@@ -86,9 +87,7 @@ async function processSegment(segment: Segment) {
 async function main(segmentId?: string) {
   let segments: Segment[];
   if (segmentId) {
-    const segment = await db
-      .getRepository(Segment)
-      .findOneBy({ id: segmentId });
+    const segment = await getRepository(Segment).findOneBy({ id: segmentId });
     if (segment) {
       segments = [segment];
     } else {
@@ -96,7 +95,7 @@ async function main(segmentId?: string) {
       return;
     }
   } else {
-    segments = await db.getRepository(Segment).find();
+    segments = await getRepository(Segment).find();
   }
 
   for (const segment of segments) {
@@ -104,11 +103,10 @@ async function main(segmentId?: string) {
   }
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   try {
     await main(process.argv[2]);
   } catch (error) {
     log.error("Unexpected error", error);
   }
-  await db.close();
 });

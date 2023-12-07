@@ -3,7 +3,8 @@ import "module-alias/register";
 import { PaymentMethod } from "@beabee/beabee-common";
 import { In } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
+import { runApp } from "@core/server";
 import stripe from "@core/lib/stripe";
 import ContactsService from "@core/services/ContactsService";
 
@@ -30,8 +31,8 @@ async function* fetchInvoices(customerId: string) {
   }
 }
 
-db.connect().then(async () => {
-  const stripePaymentData = (await db.getRepository(PaymentData).find({
+runApp(async () => {
+  const stripePaymentData = (await getRepository(PaymentData).find({
     where: {
       method: In([
         PaymentMethod.StripeBACS,
@@ -117,11 +118,9 @@ db.connect().then(async () => {
     }
 
     if (isDangerMode) {
-      await db.getRepository(PaymentData).save(pd);
+      await getRepository(PaymentData).save(pd);
     } else {
       console.log(pd.cancelledAt, pd.data);
     }
   }
-
-  await db.close();
 });

@@ -2,9 +2,8 @@ import "module-alias/register";
 
 import express, { Handler } from "express";
 
-import * as db from "@core/database";
 import { requestErrorLogger, requestLogger } from "@core/logging";
-import startServer from "@core/server";
+import { initApp, startServer } from "@core/server";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 
@@ -36,4 +35,4 @@ app.use("/stripe", checkOpt("switch-webhook-stripe"), stripeApp);
 
 app.use(requestErrorLogger);
 
-db.connect().then(() => startServer(app));
+initApp().then(() => startServer(app));

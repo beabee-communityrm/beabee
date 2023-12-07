@@ -2,7 +2,8 @@ import "module-alias/register";
 
 import { Brackets } from "typeorm";
 
-import * as db from "@core/database";
+import { createQueryBuilder } from "@core/database";
+import { runApp } from "@core/server";
 
 import Contact from "@models/Contact";
 
@@ -64,8 +65,7 @@ async function main() {
     resetSecurityFlowAnonymiser
   ] as ModelAnonymiser[]);
 
-  const contacts = await db
-    .createQueryBuilder(Contact, "item")
+  const contacts = await createQueryBuilder(Contact, "item")
     .select("item.id")
     .orderBy("random()")
     .limit(400)
@@ -82,8 +82,7 @@ async function main() {
     );
   }
 
-  const callouts = await db
-    .createQueryBuilder(Callout, "item")
+  const callouts = await createQueryBuilder(Callout, "item")
     .select("item.slug")
     .orderBy("item.date", "DESC")
     .limit(20)
@@ -100,8 +99,7 @@ async function main() {
     );
   }
 
-  const responses = await db
-    .createQueryBuilder(CalloutResponse, "item")
+  const responses = await createQueryBuilder(CalloutResponse, "item")
     .select("item.id")
     .where("item.calloutSlug IN (:...callouts)", { callouts: calloutSlugs })
     .andWhere(
@@ -133,11 +131,10 @@ async function main() {
   }
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   try {
     await main();
   } catch (err) {
     console.error(err);
   }
-  await db.close();
 });

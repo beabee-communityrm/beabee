@@ -8,10 +8,9 @@ import flash from "express-flash";
 import helmet from "helmet";
 
 import appLoader from "@core/app-loader";
-import * as database from "@core/database";
 import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import quickflash from "@core/quickflash";
-import startServer from "@core/server";
+import { initApp, startServer } from "@core/server";
 import sessions from "@core/sessions";
 import { isInvalidType } from "@core/utils";
 
@@ -76,7 +75,7 @@ app.get("/favicon.png", (req, res) => {
 // Log the rest
 app.use(requestLogger);
 
-database.connect().then(async () => {
+initApp().then(async () => {
   // Load some caches and make them immediately available
   await PageSettingsService.reload();
   app.use((req, res, next) => {

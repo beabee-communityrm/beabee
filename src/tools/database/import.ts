@@ -1,20 +1,21 @@
 import "module-alias/register";
 
 import readline from "readline";
-import { getManager } from "typeorm";
+
+import { getConnection } from "@core/database";
+import { runApp } from "@core/server";
 
 import config from "@config";
-import * as db from "@core/database";
 
 if (!config.dev) {
   console.error("Can't import to live database");
   process.exit(1);
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   // File format: first line is SQL, second is params (repeated)
   try {
-    await getManager().transaction(async (manager) => {
+    await getConnection().manager.transaction(async (manager) => {
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -38,6 +39,4 @@ db.connect().then(async () => {
   } catch (err) {
     console.error(err);
   }
-
-  await db.close();
 });

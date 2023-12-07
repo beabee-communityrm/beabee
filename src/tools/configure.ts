@@ -7,12 +7,13 @@ import * as db from "@core/database";
 import OptionsService from "@core/services/OptionsService";
 
 import Content from "@models/Content";
+import { initApp } from "@core/server";
 
 function notEmpty(s: string) {
   return s.trim() !== "";
 }
 
-db.connect().then(async () => {
+initApp().then(async () => {
   const answers = {
     emailDomain: await input({ message: "Email Domain", validate: notEmpty }),
     paymentProviders: await checkbox({

@@ -4,8 +4,9 @@ import { NewsletterStatus } from "@beabee/beabee-common";
 import moment from "moment";
 import { Between } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
+import { runApp } from "@core/server";
 
 import ContactsService from "@core/services/ContactsService";
 import NewsletterService from "@core/services/NewsletterService";
@@ -30,7 +31,7 @@ async function fetchContacts(
     endDate: actualEndDate
   });
 
-  const memberships = await db.getRepository(ContactRole).find({
+  const memberships = await getRepository(ContactRole).find({
     where: {
       type: "member",
       dateExpires: Between(actualStartDate, actualEndDate)
@@ -78,7 +79,7 @@ async function processContacts(contacts: Contact[]) {
   }
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const isTest = process.argv[2] === "-n";
   try {
     const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);
@@ -89,5 +90,4 @@ db.connect().then(async () => {
   } catch (err) {
     log.error(err);
   }
-  await db.close();
 });
