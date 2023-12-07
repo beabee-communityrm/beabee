@@ -43,7 +43,7 @@ function generateResetPasswordLinks(type: "set" | "reset") {
     // Get list of contacts who match the recipients
     const contacts = await createQueryBuilder(Contact, "c")
       .select(["id", "email"])
-      .where("email IN (:...emails)", { emails })
+      .where("c.email IN (:...emails)", { emails })
       .getRawMany<{ id: string; email: string }>();
 
     const contactIdsByEmail = Object.fromEntries(
