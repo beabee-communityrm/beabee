@@ -16,6 +16,10 @@ export function getRepository<Entity extends ObjectLiteral>(
   return dataSource.getRepository(target);
 }
 
+export function getConnection(): DataSource {
+  return dataSource;
+}
+
 export async function connect(): Promise<void> {
   try {
     dataSource = new DataSource({

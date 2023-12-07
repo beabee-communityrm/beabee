@@ -2,9 +2,9 @@ import { RoleType } from "@beabee/beabee-common";
 import _pgSession from "connect-pg-simple";
 import express, { Response } from "express";
 import session from "express-session";
-import { getConnection } from "typeorm";
 import { PostgresDriver } from "typeorm/driver/postgres/PostgresDriver";
 
+import { getConnection } from "@core/database";
 import passport from "@core/lib/passport";
 
 import config from "@config";
