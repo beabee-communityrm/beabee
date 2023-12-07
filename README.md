@@ -27,7 +27,7 @@ You need:
 
 - Docker >= 19.03.8
 - Docker Compose >= 2
-- Node.js >= 16.13.1
+- Node.js >= 20.10.0
 
 NOTE: Lower non-major versions probably work but haven't been tested
 
