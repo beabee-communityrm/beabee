@@ -7,6 +7,11 @@
     "exactOptionalPropertyTypes": true,
     "resolveJsonModule": true,
 
+    // We currently rely on class fields not being initialised, especially for classes created by
+    // class-transformer (in controllers). Disabling this flag for now.
+    // More info: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#the-usedefineforclassfields-flag-and-the-declare-property-modifier
+    "useDefineForClassFields": false,
+
     "sourceMap": true,
     "outDir": "./built",
     "baseUrl": "./",
