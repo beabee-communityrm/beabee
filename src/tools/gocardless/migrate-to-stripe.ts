@@ -2,11 +2,12 @@ import "module-alias/register";
 
 import { PaymentMethod, PaymentStatus } from "@beabee/beabee-common";
 import { parse } from "csv-parse";
-import { add, startOfDay, sub } from "date-fns";
+import { add, startOfDay } from "date-fns";
 import Stripe from "stripe";
 import { Equal, In } from "typeorm";
 
-import * as db from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
+import { runApp } from "@core/server";
 import stripe from "@core/lib/stripe";
 import { stripeTypeToPaymentMethod } from "@core/utils/payment/stripe";
 
@@ -61,7 +62,7 @@ async function loadMigrationData(): Promise<MigrationRow[]> {
   });
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const now = new Date();
 
   const minPaymentDate = startOfDay(add(now, config.gracePeriod));
@@ -69,8 +70,7 @@ db.connect().then(async () => {
 
   const migrationData = await loadMigrationData();
 
-  const contacts = await db
-    .createQueryBuilder(Contact, "contact")
+  const contacts = await createQueryBuilder(Contact, "contact")
     // Only select those that are't renewing in the next 5 days
     .innerJoinAndSelect(
       "contact.roles",
@@ -89,7 +89,7 @@ db.connect().then(async () => {
 
   console.log("Found", contacts.length, "contacts");
 
-  const payments = await db.getRepository(Payment).find({
+  const payments = await getRepository(Payment).find({
     where: {
       contactId: In(contacts.map((c) => c.id)),
       status: Equal(PaymentStatus.Pending)
@@ -144,7 +144,7 @@ db.connect().then(async () => {
         // We do this directly rather than using updatePaymentMethod as it's not
         // meant for updating payment methods that are already associated with
         // the customer in Stripe
-        await db.getRepository(PaymentData).update(contact.id, {
+        await getRepository(PaymentData).update(contact.id, {
           method: stripeTypeToPaymentMethod(migrationRow.type),
           data: {
             customerId: migrationRow.customer_id,
@@ -171,6 +171,4 @@ db.connect().then(async () => {
       }
     }
   }
-
-  await db.close();
 });

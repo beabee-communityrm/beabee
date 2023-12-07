@@ -2,18 +2,18 @@ import "module-alias/register";
 
 import { checkbox, input } from "@inquirer/prompts";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
+import { runApp } from "@core/server";
 
 import OptionsService from "@core/services/OptionsService";
 
 import Content from "@models/Content";
-import { initApp } from "@core/server";
 
 function notEmpty(s: string) {
   return s.trim() !== "";
 }
 
-initApp().then(async () => {
+runApp(async () => {
   const answers = {
     emailDomain: await input({ message: "Email Domain", validate: notEmpty }),
     paymentProviders: await checkbox({
@@ -29,12 +29,10 @@ initApp().then(async () => {
 
   await OptionsService.set("support-email", "support@" + answers.emailDomain);
 
-  await db.getRepository(Content).update("join", {
+  await getRepository(Content).update("join", {
     data: () =>
       `jsonb_set(data, \'{paymentMethods}\', \'${JSON.stringify(
         answers.paymentProviders
       )}\')`
   });
-
-  await db.close();
 });
