@@ -1,6 +1,6 @@
 import "module-alias/register";
 
-import { Brackets, createQueryBuilder } from "typeorm";
+import { Brackets, ObjectLiteral, createQueryBuilder } from "typeorm";
 
 import * as db from "@core/database";
 
@@ -34,18 +34,18 @@ const contactAnonymisers = [
   contactProfileAnonymiser,
   paymentsAnonymiser,
   paymentDataAnonymiser
-] as ModelAnonymiser<unknown>[];
+] as ModelAnonymiser[];
 
 const calloutsAnonymisers = [
   calloutsAnonymiser,
   calloutTagsAnonymiser
-] as ModelAnonymiser<unknown>[];
+] as ModelAnonymiser[];
 
 const calloutResponseAnonymisers = [
   calloutResponsesAnonymiser,
   // calloutResponseCommentsAnonymiser, TODO: make sure contact exists in export
   calloutResponseTagsAnonymiser
-] as ModelAnonymiser<unknown>[];
+] as ModelAnonymiser[];
 
 async function main() {
   const valueMap = new Map<string, unknown>();
@@ -62,7 +62,7 @@ async function main() {
     segmentContactsAnonymiser,
     referralsAnonymiser,
     resetSecurityFlowAnonymiser
-  ]);
+  ] as ModelAnonymiser[]);
 
   const contacts = await createQueryBuilder(Contact, "item")
     .select("item.id")

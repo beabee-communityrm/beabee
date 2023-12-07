@@ -1,4 +1,5 @@
 import "module-alias/register";
+import { ObjectLiteral } from "typeorm";
 
 import * as db from "@core/database";
 
@@ -34,7 +35,7 @@ const anonymisers = [
   models.segmentContactsAnonymiser,
   models.segmentOngoingEmailsAnonymiser,
   models.exportItemsAnonymiser // Must be after all exportable items
-] as models.ModelAnonymiser<unknown>[];
+] as models.ModelAnonymiser[];
 
 async function main() {
   const valueMap = new Map<string, unknown>();

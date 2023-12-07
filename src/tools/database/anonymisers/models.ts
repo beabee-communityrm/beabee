@@ -4,7 +4,7 @@ import {
 } from "@beabee/beabee-common";
 import { Chance } from "chance";
 import crypto from "crypto";
-import { EntityTarget } from "typeorm";
+import { EntityTarget, ObjectLiteral } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 
 import Email from "@models/Email";
@@ -38,14 +38,14 @@ import ResetSecurityFlow from "@models/ResetSecurityFlow";
 export type PropertyMap<T> = ((prop: T) => T) | ObjectMap<T>;
 export type ObjectMap<T> = { [K in keyof T]?: PropertyMap<T[K]> };
 
-export interface ModelAnonymiser<T> {
+export interface ModelAnonymiser<T extends ObjectLiteral = ObjectLiteral> {
   model: EntityTarget<T>;
   objectMap: ObjectMap<T>;
 }
 
 // Functions to facilitate type checking when creating anonymisers
 
-function createModelAnonymiser<T>(
+function createModelAnonymiser<T extends ObjectLiteral>(
   model: EntityTarget<T>,
   objectMap: ObjectMap<T> = {}
 ): ModelAnonymiser<T> {

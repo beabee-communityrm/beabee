@@ -168,13 +168,11 @@ export async function anonymiseModel<T extends ObjectLiteral>(
   }
 }
 
-export function clearModels(anonymisers: ModelAnonymiser<unknown>[]) {
+export function clearModels(anonymisers: ModelAnonymiser<ObjectLiteral>[]) {
   // Reverse order to clear foreign keys correctly
   for (let i = anonymisers.length - 1; i >= 0; i--) {
     console.log(
-      `DELETE FROM "${
-        getRepository(anonymisers[i].model as any).metadata.tableName
-      }";`
+      `DELETE FROM "${getRepository(anonymisers[i].model).metadata.tableName}";`
     );
     console.log(); // Empty params line
   }
