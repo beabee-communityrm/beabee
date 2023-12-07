@@ -69,7 +69,7 @@ export default class GiftService {
         {
           type: "application/pdf",
           name: "Gift card.pdf",
-          content: (giftCard as any).toString("base64")
+          content: giftCard.toString("base64")
         }
       ];
 
