@@ -4,7 +4,7 @@ import express, { Response } from "express";
 import session from "express-session";
 import { PostgresDriver } from "typeorm/driver/postgres/PostgresDriver";
 
-import { getConnection } from "@core/database";
+import { dataSource } from "@core/database";
 import passport from "@core/lib/passport";
 
 import config from "@config";
@@ -33,7 +33,7 @@ export default (app: express.Express): void => {
       },
       saveUninitialized: false,
       store: new pgSession({
-        pool: (getConnection().driver as PostgresDriver).master
+        pool: (dataSource.driver as PostgresDriver).master
       }),
       resave: false,
       rolling: true

@@ -2,7 +2,7 @@ import "module-alias/register";
 
 import readline from "readline";
 
-import { getConnection } from "@core/database";
+import { dataSource } from "@core/database";
 import { runApp } from "@core/server";
 
 import config from "@config";
@@ -15,7 +15,7 @@ if (!config.dev) {
 runApp(async () => {
   // File format: first line is SQL, second is params (repeated)
   try {
-    await getConnection().manager.transaction(async (manager) => {
+    await dataSource.manager.transaction(async (manager) => {
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,

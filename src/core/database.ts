@@ -15,15 +15,18 @@ import config from "@config";
 
 const log = mainLogger.child({ app: "database" });
 
-export let dataSource: DataSource;
+export const dataSource: DataSource = new DataSource({
+  type: "postgres",
+  url: config.databaseUrl,
+  logging: config.dev,
+  entities: [__dirname + "/../models/*.js"],
+  migrations: [__dirname + "/../migrations/*.js"]
+});
+
 export function getRepository<Entity extends ObjectLiteral>(
   target: EntityTarget<Entity>
 ): Repository<Entity> {
   return dataSource.getRepository(target);
-}
-
-export function getConnection(): DataSource {
-  return dataSource;
 }
 
 export function createQueryBuilder<Entity extends ObjectLiteral>(
@@ -52,12 +55,6 @@ export function createQueryBuilder<Entity extends ObjectLiteral>(
 
 export async function connect(): Promise<void> {
   try {
-    dataSource = new DataSource({
-      type: "postgres",
-      url: config.databaseUrl,
-      logging: config.dev,
-      entities: [__dirname + "/../models/*.js"]
-    });
     await dataSource.initialize();
     log.info("Connected to database");
   } catch (error) {

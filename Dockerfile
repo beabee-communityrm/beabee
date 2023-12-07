@@ -37,8 +37,6 @@ RUN echo -n ${REVISION} > /opt/membership-system/built/revision.txt
 
 ENV NODE_ENV=production
 ENV NODE_OPTIONS=--enable-source-maps
-ENV TYPEORM_MIGRATIONS=built/migrations/*.js
-ENV TYPEORM_ENTITIES=built/models/*.js
 
 USER node
 CMD [ "node", "built/app" ]
