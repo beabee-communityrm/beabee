@@ -16,7 +16,6 @@ import {
 import { BadRequestError } from "routing-controllers";
 import {
   Brackets,
-  createQueryBuilder,
   EntityTarget,
   ObjectLiteral,
   SelectQueryBuilder,
@@ -25,6 +24,8 @@ import {
   WhereExpressionBuilder
 } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+
+import { createQueryBuilder } from "@core/database";
 
 import Contact from "@models/Contact";
 

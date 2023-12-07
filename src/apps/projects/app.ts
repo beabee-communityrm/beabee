@@ -1,9 +1,8 @@
 import express from "express";
 import _ from "lodash";
 import moment from "moment";
-import { createQueryBuilder } from "typeorm";
 
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
@@ -116,17 +115,17 @@ app.post(
 
 app.get(
   "/:id",
-  hasNewModel(Project, "id", { relations: ["owner"] }),
+  hasNewModel(Project, "id", { relations: { owner: true } }),
   wrapAsync(async (req, res) => {
     const project = req.model as Project;
 
     const projectContacts = await getRepository(ProjectContact).find({
       where: { projectId: project.id },
-      relations: ["contact", "contact.profile"]
+      relations: { contact: { profile: true } }
     });
     const engagements = await getRepository(ProjectEngagement).find({
       where: { projectId: project.id },
-      relations: ["byContact", "toContact"]
+      relations: { byContact: true, toContact: true }
     });
 
     const projectContactsWithEngagement = projectContacts.map((pm) => {

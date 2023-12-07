@@ -6,7 +6,7 @@ import {
   PaymentStatus
 } from "@beabee/beabee-common";
 import moment from "moment";
-import { Brackets, createQueryBuilder } from "typeorm";
+import { Brackets } from "typeorm";
 
 import * as db from "@core/database";
 import { getActualAmount } from "@core/utils";
@@ -18,7 +18,8 @@ import Contact from "@models/Contact";
 import PaymentData from "@models/PaymentData";
 
 async function logContact(type: string, conditions: Brackets[]) {
-  const qb = createQueryBuilder(Contact, "m")
+  const qb = db
+    .createQueryBuilder(Contact, "m")
     .innerJoinAndSelect("m.roles", "mp")
     .where("TRUE");
 
@@ -69,27 +70,32 @@ async function logContactVaryContributions(
 async function getFilters() {
   const now = moment.utc();
 
-  const hasScheduledPayments = createQueryBuilder()
+  const hasScheduledPayments = db
+    .createQueryBuilder()
     .subQuery()
     .select("p.contactId")
     .from(Payment, "p")
     .where("p.status = :status", { status: PaymentStatus.Pending });
-  const hasFailedPayments = createQueryBuilder()
+  const hasFailedPayments = db
+    .createQueryBuilder()
     .subQuery()
     .select("p.contactId")
     .from(Payment, "p")
     .where("p.status = 'failed'", { status: PaymentStatus.Failed });
-  const hasSubscription = createQueryBuilder()
+  const hasSubscription = db
+    .createQueryBuilder()
     .subQuery()
     .select("pd.contactId")
     .from(PaymentData, "p")
     .where("pd.subscriptionId IS NOT NULL");
-  const hasCancelled = createQueryBuilder()
+  const hasCancelled = db
+    .createQueryBuilder()
     .subQuery()
     .select("pd.contactId")
     .from(PaymentData, "md")
     .where("md.cancelledAt IS NOT NULL");
-  const isPayingFee = createQueryBuilder()
+  const isPayingFee = db
+    .createQueryBuilder()
     .subQuery()
     .select("md.contactId")
     .from(PaymentData, "md")

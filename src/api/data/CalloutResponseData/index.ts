@@ -15,10 +15,10 @@ import {
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
 import { NotFoundError } from "routing-controllers";
-import { In, createQueryBuilder } from "typeorm";
+import { In } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 
 import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -347,7 +347,7 @@ export async function exportCalloutResponses(
     where: {
       responseId: In(results.items.map((response) => response.id))
     },
-    relations: ["contact"],
+    relations: { contact: true },
     order: { createdAt: "ASC" }
   });
   const commentsByResponseId = groupBy(comments, (c) => c.responseId);

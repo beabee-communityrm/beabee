@@ -47,7 +47,7 @@ async function processSegment(segment: Segment) {
 
   const outgoingEmails = await db.getRepository(SegmentOngoingEmail).find({
     where: { segmentId: segment.id },
-    relations: ["email"]
+    relations: { email: true }
   });
 
   // Only fetch old contacts if we need to

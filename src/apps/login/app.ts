@@ -35,7 +35,7 @@ if (config.dev) {
           where: {
             type: req.params.id as RoleType
           },
-          relations: ["contact"]
+          relations: { contact: true }
         });
         contact = role?.contact;
       } else {

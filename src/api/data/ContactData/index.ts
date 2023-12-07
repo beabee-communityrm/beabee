@@ -1,7 +1,8 @@
 import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
-import { Brackets, createQueryBuilder } from "typeorm";
+import { Brackets } from "typeorm";
 
+import { createQueryBuilder } from "@core/database";
 import { getMembershipStatus } from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";

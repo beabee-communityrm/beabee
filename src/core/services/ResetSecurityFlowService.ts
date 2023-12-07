@@ -1,7 +1,7 @@
 import { subHours } from "date-fns";
-import { InsertResult, MoreThan, createQueryBuilder } from "typeorm";
+import { InsertResult, MoreThan } from "typeorm";
 
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 
 import ResetSecurityFlow from "@models/ResetSecurityFlow";
 import Contact from "@models/Contact";
@@ -72,7 +72,7 @@ class ResetSecurityFlowService {
   async get(id: string) {
     return await getRepository(ResetSecurityFlow).findOne({
       where: { id, date: MoreThan(subHours(new Date(), 24)) },
-      relations: ["contact"]
+      relations: { contact: true }
     });
   }
 }

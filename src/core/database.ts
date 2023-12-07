@@ -1,6 +1,13 @@
 import "reflect-metadata";
 
-import { DataSource, EntityTarget, ObjectLiteral, Repository } from "typeorm";
+import {
+  DataSource,
+  EntityTarget,
+  ObjectLiteral,
+  QueryRunner,
+  Repository,
+  SelectQueryBuilder
+} from "typeorm";
 
 import { log as mainLogger } from "@core/logging";
 
@@ -18,6 +25,30 @@ export function getRepository<Entity extends ObjectLiteral>(
 
 export function getConnection(): DataSource {
   return dataSource;
+}
+
+export function createQueryBuilder<Entity extends ObjectLiteral>(
+  entityClass: EntityTarget<Entity>,
+  alias: string,
+  queryRunner?: QueryRunner
+): SelectQueryBuilder<Entity>;
+export function createQueryBuilder(
+  queryRunner?: QueryRunner
+): SelectQueryBuilder<any>;
+export function createQueryBuilder<Entity extends ObjectLiteral>(
+  arg1?: EntityTarget<Entity> | QueryRunner,
+  alias?: string,
+  queryRunner?: QueryRunner
+): SelectQueryBuilder<Entity> {
+  if (alias) {
+    return dataSource.createQueryBuilder(
+      arg1 as EntityTarget<Entity>,
+      alias,
+      queryRunner
+    );
+  } else {
+    return dataSource.createQueryBuilder(arg1 as QueryRunner);
+  }
 }
 
 export async function connect(): Promise<void> {

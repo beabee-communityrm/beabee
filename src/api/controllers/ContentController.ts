@@ -6,11 +6,10 @@ import {
   Param,
   Patch
 } from "routing-controllers";
-import { createQueryBuilder } from "typeorm";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 import { getEmailFooter } from "@core/utils/email";
 
 import Content, { ContentId } from "@models/Content";

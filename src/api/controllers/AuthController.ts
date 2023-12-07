@@ -108,7 +108,7 @@ export class AuthController {
     if (RoleTypes.indexOf(id as RoleType) > -1) {
       const role = await getRepository(ContactRole).findOne({
         where: { type: id as RoleType },
-        relations: ["contact"]
+        relations: { contact: true }
       });
       contact = role?.contact;
     } else if (isUUID(id, "4")) {

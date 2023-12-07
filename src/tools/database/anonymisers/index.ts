@@ -1,5 +1,4 @@
 import {
-  createQueryBuilder,
   EntityTarget,
   ObjectLiteral,
   OrderByCondition,
@@ -7,7 +6,7 @@ import {
 } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import Callout from "@models/Callout";

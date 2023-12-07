@@ -1,4 +1,6 @@
-import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
+import { SelectQueryBuilder } from "typeorm";
+
+import { createQueryBuilder } from "@core/database";
 
 import Contact from "@models/Contact";
 import Referral from "@models/Referral";

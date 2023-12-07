@@ -4,7 +4,7 @@ import { PaymentMethod, PaymentStatus } from "@beabee/beabee-common";
 import { parse } from "csv-parse";
 import { add, startOfDay, sub } from "date-fns";
 import Stripe from "stripe";
-import { Equal, In, createQueryBuilder } from "typeorm";
+import { Equal, In } from "typeorm";
 
 import * as db from "@core/database";
 import stripe from "@core/lib/stripe";
@@ -69,7 +69,8 @@ db.connect().then(async () => {
 
   const migrationData = await loadMigrationData();
 
-  const contacts = await createQueryBuilder(Contact, "contact")
+  const contacts = await db
+    .createQueryBuilder(Contact, "contact")
     // Only select those that are't renewing in the next 5 days
     .innerJoinAndSelect(
       "contact.roles",

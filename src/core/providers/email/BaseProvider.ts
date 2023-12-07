@@ -1,6 +1,4 @@
-import { createQueryBuilder } from "typeorm";
-
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
@@ -43,7 +41,7 @@ function generateResetPasswordLinks(type: "set" | "reset") {
     log.info(`Creating ${emails.length} links for ${mergeField}`);
 
     // Get list of contacts who match the recipients
-    const contacts = await createQueryBuilder(Contact)
+    const contacts = await createQueryBuilder(Contact, "c")
       .select(["id", "email"])
       .where("email IN (:...emails)", { emails })
       .getRawMany<{ id: string; email: string }>();

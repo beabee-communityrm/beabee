@@ -39,7 +39,7 @@ db.connect().then(async () => {
         PaymentMethod.StripeSEPA
       ])
     },
-    relations: ["contact"]
+    relations: { contact: true }
   })) as (PaymentData & { data: StripePaymentData })[];
 
   for (const pd of stripePaymentData) {

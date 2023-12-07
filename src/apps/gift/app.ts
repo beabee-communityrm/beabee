@@ -110,7 +110,7 @@ app.post(
 
 app.get(
   "/:setupCode",
-  hasNewModel(GiftFlow, "setupCode", { relations: ["giftee"] }),
+  hasNewModel(GiftFlow, "setupCode", { relations: { giftee: true } }),
   wrapAsync(async (req, res, next) => {
     const giftFlow = req.model as GiftFlow;
 

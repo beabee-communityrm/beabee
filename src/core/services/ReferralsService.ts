@@ -103,7 +103,7 @@ export default class ReferralsService {
 
   static async getContactReferrals(referrer: Contact): Promise<Referral[]> {
     return await getRepository(Referral).find({
-      relations: ["referrerGift", "referee"],
+      relations: { referrerGift: true, referee: true },
       where: { referrerId: referrer.id }
     });
   }

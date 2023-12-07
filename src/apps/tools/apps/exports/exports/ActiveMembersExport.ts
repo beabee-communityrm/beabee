@@ -1,5 +1,6 @@
-import { Brackets, createQueryBuilder, SelectQueryBuilder } from "typeorm";
+import { Brackets, SelectQueryBuilder } from "typeorm";
 
+import { createQueryBuilder } from "@core/database";
 import { Param } from "@core/utils/params";
 
 import PaymentData from "@models/PaymentData";

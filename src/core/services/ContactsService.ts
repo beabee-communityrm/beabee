@@ -4,15 +4,9 @@ import {
   ContributionPeriod,
   NewsletterStatus
 } from "@beabee/beabee-common";
-import {
-  createQueryBuilder,
-  FindManyOptions,
-  FindOneOptions,
-  FindOptionsWhere,
-  In
-} from "typeorm";
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, In } from "typeorm";
 
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
 import { generatePassword, isValidPassword } from "@core/utils/auth";

@@ -33,7 +33,7 @@ app.use(
     // Bit of a hack to get parent app params
     const contact = await ContactsService.findOne({
       where: { id: req.allParams.uuid },
-      relations: ["profile"]
+      relations: { profile: true }
     });
     if (contact) {
       req.model = contact;
