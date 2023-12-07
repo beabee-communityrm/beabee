@@ -19,9 +19,13 @@ export default class ProjectEngagement {
   @ManyToOne("Project")
   project!: Project;
 
+  @Column()
+  byContactId!: string;
   @ManyToOne("Contact")
   byContact!: Contact;
 
+  @Column()
+  toContactId!: string;
   @ManyToOne("Contact")
   toContact!: Contact;
 

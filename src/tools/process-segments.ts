@@ -22,16 +22,15 @@ async function processSegment(segment: Segment) {
 
   const matchedContacts = await SegmentService.getSegmentContacts(segment);
 
-  const segmentContacts = (await getRepository(SegmentContact).find({
-    where: { segmentId: segment.id },
-    loadRelationIds: true
-  })) as unknown as WithRelationIds<SegmentContact, "contact">[];
+  const segmentContacts = await getRepository(SegmentContact).find({
+    where: { segmentId: segment.id }
+  });
 
   const newContacts = matchedContacts.filter((m) =>
-    segmentContacts.every((sm) => sm.contact !== m.id)
+    segmentContacts.every((sm) => sm.contactId !== m.id)
   );
   const oldSegmentContacts = segmentContacts.filter((sm) =>
-    matchedContacts.every((m) => m.id !== sm.contact)
+    matchedContacts.every((m) => m.id !== sm.contactId)
   );
 
   log.info(
@@ -56,7 +55,7 @@ async function processSegment(segment: Segment) {
     segment.newsletterTag ||
     outgoingEmails.some((oe) => oe.trigger === "onLeave")
       ? await ContactsService.findByIds(
-          oldSegmentContacts.map((sm) => sm.contact)
+          oldSegmentContacts.map((sm) => sm.contactId)
         )
       : [];
 

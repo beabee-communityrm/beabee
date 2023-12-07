@@ -67,15 +67,13 @@ app.get(
       .orderBy({ name: "ASC" })
       .getMany();
 
-    const segmentEmails = (await getRepository(SegmentOngoingEmail).find({
-      loadRelationIds: true
-    })) as unknown as WithRelationIds<SegmentOngoingEmail, "email">[];
+    const segmentEmails = await getRepository(SegmentOngoingEmail).find();
     const systemEmails = Object.values(providerTemplateMap());
 
     const emailsWithFlags = emails.map((email) => ({
       ...email,
       isSystem: systemEmails.indexOf(email.id) > -1,
-      isSegment: segmentEmails.findIndex((se) => se.email === email.id) > -1
+      isSegment: segmentEmails.findIndex((se) => se.emailId === email.id) > -1
     }));
 
     res.render("index", { emails: emailsWithFlags });

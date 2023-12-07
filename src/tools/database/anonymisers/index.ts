@@ -99,7 +99,6 @@ async function anonymiseCalloutResponses(
     );
 
     const responses = await fn(createQueryBuilder(CalloutResponse, "item"))
-      .loadAllRelationIds()
       .andWhere("item.callout = :callout", { callout: callout.slug })
       .orderBy("item.id", "ASC")
       .getMany();
@@ -149,7 +148,6 @@ export async function anonymiseModel<T extends ObjectLiteral>(
 
   for (let i = 0; ; i += 1000) {
     const items = await fn(createQueryBuilder(anonymiser.model, "item"))
-      .loadAllRelationIds()
       .orderBy(orderBy)
       .offset(i)
       .limit(1000)

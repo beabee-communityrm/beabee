@@ -93,14 +93,11 @@ db.connect().then(async () => {
     where: {
       contactId: In(contacts.map((c) => c.id)),
       status: Equal(PaymentStatus.Pending)
-    },
-    loadRelationIds: true
+    }
   });
 
   for (const contact of contacts) {
-    const contactPayments = payments.filter(
-      (p) => (p.contact as any) === contact.id
-    );
+    const contactPayments = payments.filter((p) => p.contactId === contact.id);
 
     const paymentData = contact.paymentData.data as GCPaymentData;
 

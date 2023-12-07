@@ -468,13 +468,10 @@ export async function fetchPaginatedCalloutResponses(
       const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
         .where("rt.response IN (:...ids)", { ids: responseIds })
         .innerJoinAndSelect("rt.tag", "tag")
-        .loadAllRelationIds({ relations: ["response"] })
         .getMany();
 
       for (const item of results.items) {
-        item.tags = responseTags.filter(
-          (rt) => (rt as any).response === item.id
-        );
+        item.tags = responseTags.filter((rt) => rt.responseId === item.id);
       }
     }
   }

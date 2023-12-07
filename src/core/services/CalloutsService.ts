@@ -39,16 +39,13 @@ class CalloutsService {
     });
 
     const responses = await getRepository(CalloutResponse).find({
-      loadRelationIds: true,
       where: { contactId: contact.id }
     });
 
     const calloutsWithResponses = callouts.map((callout) => {
       const pwr = new CalloutWithResponse();
       Object.assign(pwr, callout);
-      pwr.response = responses.find(
-        (r) => (r.callout as unknown as string) === callout.slug
-      )!;
+      pwr.response = responses.find((r) => r.calloutSlug === callout.slug)!;
       return pwr;
     });
 

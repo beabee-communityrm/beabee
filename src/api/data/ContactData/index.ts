@@ -283,10 +283,9 @@ export async function loadContactRoles(contacts: Contact[]): Promise<void> {
       .where("mp.contactId IN (:...ids)", {
         ids: contacts.map((t) => t.id)
       })
-      .loadAllRelationIds()
       .getMany();
     for (const contact of contacts) {
-      contact.roles = roles.filter((p) => (p.contact as any) === contact.id);
+      contact.roles = roles.filter((p) => p.contactId === contact.id);
     }
   }
 }
