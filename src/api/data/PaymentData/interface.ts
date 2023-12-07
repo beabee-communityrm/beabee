@@ -23,5 +23,5 @@ export class GetPaymentsQuery extends GetPaginatedQuery {
   with?: GetPaymentWith[];
 
   @IsIn(paymentSortFields)
-  declare sort?: string;
+  sort?: string;
 }

@@ -16,7 +16,7 @@ const sortFields = ["createdAt", "updatedAt", "name", "expires"] as const;
 
 export class GetNoticesQuery extends GetPaginatedQuery {
   @IsIn(sortFields)
-  declare sort?: string;
+  sort?: string;
 }
 
 export interface GetNoticeData extends NoticeData {
