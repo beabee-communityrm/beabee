@@ -43,9 +43,5 @@ async function main(date: string | undefined) {
 }
 
 runApp(async () => {
-  try {
-    await main(process.argv[2]);
-  } catch (err) {
-    log.error(err);
-  }
+  await main(process.argv[2]);
 });

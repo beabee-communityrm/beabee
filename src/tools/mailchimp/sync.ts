@@ -81,13 +81,9 @@ async function processContacts(contacts: Contact[]) {
 
 runApp(async () => {
   const isTest = process.argv[2] === "-n";
-  try {
-    const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);
-    const contacts = await fetchContacts(startDate, endDate);
-    if (!isTest) {
-      await processContacts(contacts);
-    }
-  } catch (err) {
-    log.error(err);
+  const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);
+  const contacts = await fetchContacts(startDate, endDate);
+  if (!isTest) {
+    await processContacts(contacts);
   }
 });

@@ -101,9 +101,5 @@ async function main(segmentId?: string) {
 }
 
 runApp(async () => {
-  try {
-    await main(process.argv[2]);
-  } catch (error) {
-    log.error("Unexpected error", error);
-  }
+  await main(process.argv[2]);
 });

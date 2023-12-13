@@ -187,11 +187,4 @@ async function main() {
   await logContact("Super admin account", [filters.isSuperAdmin]);
 }
 
-runApp(async () => {
-  console.log();
-  try {
-    await main();
-  } catch (err) {
-    console.error(err);
-  }
-});
+runApp(main);

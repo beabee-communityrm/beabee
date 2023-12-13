@@ -131,10 +131,4 @@ async function main() {
   }
 }
 
-runApp(async () => {
-  try {
-    await main();
-  } catch (err) {
-    console.error(err);
-  }
-});
+runApp(main);

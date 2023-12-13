@@ -46,7 +46,11 @@ export function startServer(app: Express) {
 }
 
 export async function runApp(fn: () => Promise<void>) {
-  await initApp();
-  await fn();
+  try {
+    await initApp();
+    await fn();
+  } catch (err) {
+    log.error("Uncaught error", err);
+  }
   await db.close();
 }
