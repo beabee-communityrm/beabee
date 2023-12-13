@@ -136,7 +136,7 @@ export function hasNewModel<T extends ObjectLiteral>(
         req.model = await getRepository(entity).findOne({
           where: {
             [prop]: req.params[prop as string]
-          } as any,
+          } as T,
           ...findOpts
         });
       } catch (err) {
