@@ -128,18 +128,18 @@ export default abstract class BaseProvider implements EmailProvider {
   }
 
   async sendTemplate(
-    template: string,
+    templateId: string,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    const email = await getRepository(Email).findOneBy({ id: template });
+    const email = await getRepository(Email).findOneBy({ id: templateId });
     if (email) {
       await this.sendEmail(email, recipients, opts);
     }
   }
 
-  async getTemplateEmail(template: string): Promise<false | Email | null> {
-    return (await getRepository(Email).findOneBy({ id: template })) || null;
+  async getTemplateEmail(templateId: string): Promise<false | Email | null> {
+    return (await getRepository(Email).findOneBy({ id: templateId })) || null;
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {
