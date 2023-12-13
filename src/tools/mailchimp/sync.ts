@@ -2,10 +2,11 @@ import "module-alias/register";
 
 import { NewsletterStatus } from "@beabee/beabee-common";
 import moment from "moment";
-import { Between, getRepository } from "typeorm";
+import { Between } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
+import { runApp } from "@core/server";
 
 import ContactsService from "@core/services/ContactsService";
 import NewsletterService from "@core/services/NewsletterService";
@@ -35,7 +36,7 @@ async function fetchContacts(
       type: "member",
       dateExpires: Between(actualStartDate, actualEndDate)
     },
-    relations: ["contact", "contact.profile"]
+    relations: { contact: { profile: true } }
   });
   log.info(`Got ${memberships.length} members`);
   return memberships.map(({ contact }) => {
@@ -78,16 +79,11 @@ async function processContacts(contacts: Contact[]) {
   }
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const isTest = process.argv[2] === "-n";
-  try {
-    const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);
-    const contacts = await fetchContacts(startDate, endDate);
-    if (!isTest) {
-      await processContacts(contacts);
-    }
-  } catch (err) {
-    log.error(err);
+  const [startDate, endDate] = process.argv.slice(isTest ? 3 : 2);
+  const contacts = await fetchContacts(startDate, endDate);
+  if (!isTest) {
+    await processContacts(contacts);
   }
-  await db.close();
 });

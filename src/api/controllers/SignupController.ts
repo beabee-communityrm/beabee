@@ -7,8 +7,8 @@ import {
   Post,
   Req
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { generatePassword } from "@core/utils/auth";
 
 import PaymentFlowService from "@core/services/PaymentFlowService";
@@ -78,7 +78,9 @@ export class SignupController {
     @Req() req: Request,
     @Body() { joinFlowId }: SignupConfirmEmailParam
   ): Promise<void> {
-    const joinFlow = await getRepository(JoinFlow).findOne(joinFlowId);
+    const joinFlow = await getRepository(JoinFlow).findOneBy({
+      id: joinFlowId
+    });
     if (!joinFlow) {
       throw new NotFoundError();
     }

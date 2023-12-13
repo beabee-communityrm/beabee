@@ -91,7 +91,9 @@ app.post(
     if (moment(giftForm.startDate).isBefore(undefined, "day")) {
       error = "flash-gifts-date-in-the-past" as const;
     } else {
-      const contact = await ContactsService.findOne({ email: giftForm.email });
+      const contact = await ContactsService.findOneBy({
+        email: giftForm.email
+      });
       if (contact) {
         error = "flash-gifts-email-duplicate" as const;
       }
@@ -108,7 +110,7 @@ app.post(
 
 app.get(
   "/:setupCode",
-  hasNewModel(GiftFlow, "setupCode", { relations: ["giftee"] }),
+  hasNewModel(GiftFlow, "setupCode", { relations: { giftee: true } }),
   wrapAsync(async (req, res, next) => {
     const giftFlow = req.model as GiftFlow;
 

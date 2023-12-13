@@ -1,6 +1,6 @@
 import express from "express";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
@@ -33,8 +33,8 @@ app.get(
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
     const ongoingEmails = await getRepository(SegmentOngoingEmail).find({
-      where: { segment },
-      relations: ["email"]
+      where: { segmentId: segment.id },
+      relations: { email: true }
     });
     res.render("segment", { segment, ongoingEmails });
   })
@@ -78,8 +78,10 @@ app.post(
         res.redirect("/members/segments/" + segment.id + "#ongoingemails");
         break;
       case "delete":
-        await getRepository(SegmentContact).delete({ segment });
-        await getRepository(SegmentOngoingEmail).delete({ segment });
+        await getRepository(SegmentContact).delete({ segmentId: segment.id });
+        await getRepository(SegmentOngoingEmail).delete({
+          segmentId: segment.id
+        });
         await getRepository(Segment).delete(segment.id);
 
         req.flash("success", "segment-deleted");
@@ -133,7 +135,7 @@ app.post(
               name: "Email to segment " + segment.name
             })
           )
-        : await getRepository(Email).findOneOrFail(data.email);
+        : await getRepository(Email).findOneByOrFail({ id: data.email });
 
     if (data.type === "ongoing") {
       await getRepository(SegmentOngoingEmail).save({

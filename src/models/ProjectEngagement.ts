@@ -14,12 +14,18 @@ export default class ProjectEngagement {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  projectId!: string;
   @ManyToOne("Project")
   project!: Project;
 
+  @Column()
+  byContactId!: string;
   @ManyToOne("Contact")
   byContact!: Contact;
 
+  @Column()
+  toContactId!: string;
   @ManyToOne("Contact")
   toContact!: Contact;
 

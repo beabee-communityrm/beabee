@@ -1,7 +1,8 @@
 import express from "express";
 import moment from "moment";
-import { Between, getRepository } from "typeorm";
+import { Between } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { isSuperAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
@@ -38,7 +39,7 @@ app.get(
         createdAt: Between(start.toDate(), end.toDate())
       },
       order: { chargeDate: "DESC" },
-      relations: ["contact"]
+      relations: { contact: true }
     });
 
     const successfulPayments = payments

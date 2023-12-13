@@ -119,7 +119,7 @@ async function handleUpdateEmail(data: MCUpdateEmailData) {
 
   log.info(`Update email from ${oldEmail} to ${newEmail}`);
 
-  const contact = await ContactsService.findOne({ email: oldEmail });
+  const contact = await ContactsService.findOneBy({ email: oldEmail });
   if (contact) {
     await ContactsService.updateContact(
       contact,
@@ -140,7 +140,7 @@ async function handleSubscribe(data: MCProfileData) {
     data: { email }
   });
 
-  const contact = await ContactsService.findOne({ email });
+  const contact = await ContactsService.findOneBy({ email });
   if (contact) {
     await ContactsService.updateContactProfile(contact, {
       newsletterStatus: NewsletterStatus.Subscribed
@@ -173,7 +173,7 @@ async function handleUnsubscribe(data: MCProfileData) {
 
   log.info("Unsubscribe " + email);
 
-  const contact = await ContactsService.findOne({ email });
+  const contact = await ContactsService.findOneBy({ email });
   if (contact) {
     await ContactsService.updateContactProfile(contact, {
       newsletterStatus: NewsletterStatus.Unsubscribed
@@ -186,7 +186,7 @@ async function handleCleaned(data: MCCleanedEmailData) {
 
   log.info("Cleaned " + email);
 
-  const contact = await ContactsService.findOne({ email });
+  const contact = await ContactsService.findOneBy({ email });
   if (contact) {
     await ContactsService.updateContactProfile(contact, {
       newsletterStatus: NewsletterStatus.Cleaned
@@ -199,7 +199,7 @@ async function handleUpdateProfile(data: MCProfileData): Promise<boolean> {
 
   log.info("Update profile for " + email);
 
-  const contact = await ContactsService.findOne({ email });
+  const contact = await ContactsService.findOneBy({ email });
   if (contact) {
     const nlContact = await NewsletterService.getNewsletterContact(email);
     await ContactsService.updateContact(contact, {

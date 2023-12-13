@@ -1,16 +1,16 @@
 import "module-alias/register";
 
-import { getRepository, In } from "typeorm";
+import { In } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
+import { runApp } from "@core/server";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import ContactsService from "@core/services/ContactsService";
 import SegmentService from "@core/services/SegmentService";
 
-import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 import SegmentContact from "@models/SegmentContact";
@@ -22,44 +22,39 @@ async function processSegment(segment: Segment) {
 
   const matchedContacts = await SegmentService.getSegmentContacts(segment);
 
-  const segmentContacts = (await getRepository(SegmentContact).find({
-    where: { segment },
-    loadRelationIds: true
-  })) as unknown as WithRelationIds<SegmentContact, "contact">[];
+  const segmentContacts = await getRepository(SegmentContact).find({
+    where: { segmentId: segment.id }
+  });
 
   const newContacts = matchedContacts.filter((m) =>
-    segmentContacts.every((sm) => sm.contact !== m.id)
+    segmentContacts.every((sm) => sm.contactId !== m.id)
   );
-  const oldSegmentContacts = segmentContacts.filter((sm) =>
-    matchedContacts.every((m) => m.id !== sm.contact)
-  );
+  const oldSegmentContactIds = segmentContacts
+    .filter((sm) => matchedContacts.every((m) => m.id !== sm.contactId))
+    .map((sm) => sm.contactId);
 
   log.info(
-    `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContacts.length} old contacts`
+    `Segment ${segment.name} has ${segmentContacts.length} existing contacts, ${newContacts.length} new contacts and ${oldSegmentContactIds.length} old contacts`
   );
 
   await getRepository(SegmentContact).delete({
-    segment,
-    contact: In(
-      oldSegmentContacts.map((sm) => sm.contact as unknown as Contact)
-    ) // Types seem strange here
+    segmentId: segment.id,
+    contactId: In(oldSegmentContactIds)
   });
   await getRepository(SegmentContact).insert(
     newContacts.map((contact) => ({ segment, contact }))
   );
 
   const outgoingEmails = await getRepository(SegmentOngoingEmail).find({
-    where: { segment },
-    relations: ["email"]
+    where: { segmentId: segment.id },
+    relations: { email: true }
   });
 
   // Only fetch old contacts if we need to
   const oldContacts =
     segment.newsletterTag ||
     outgoingEmails.some((oe) => oe.trigger === "onLeave")
-      ? await ContactsService.findByIds(
-          oldSegmentContacts.map((sm) => sm.contact)
-        )
+      ? await ContactsService.findByIds(oldSegmentContactIds)
       : [];
 
   for (const outgoingEmail of outgoingEmails) {
@@ -89,7 +84,7 @@ async function processSegment(segment: Segment) {
 async function main(segmentId?: string) {
   let segments: Segment[];
   if (segmentId) {
-    const segment = await getRepository(Segment).findOne(segmentId);
+    const segment = await getRepository(Segment).findOneBy({ id: segmentId });
     if (segment) {
       segments = [segment];
     } else {
@@ -105,11 +100,6 @@ async function main(segmentId?: string) {
   }
 }
 
-db.connect().then(async () => {
-  try {
-    await main(process.argv[2]);
-  } catch (error) {
-    log.error("Unexpected error", error);
-  }
-  await db.close();
+runApp(async () => {
+  await main(process.argv[2]);
 });

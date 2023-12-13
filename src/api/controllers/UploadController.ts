@@ -11,7 +11,9 @@ import {
   Post,
   Req
 } from "routing-controllers";
-import { MoreThan, getRepository } from "typeorm";
+import { MoreThan } from "typeorm";
+
+import { getRepository } from "@core/database";
 
 import Contact from "@models/Contact";
 import UploadFlow from "@models/UploadFlow";

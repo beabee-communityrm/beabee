@@ -30,14 +30,13 @@ import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { ResetDeviceController } from "./controllers/ResetDeviceController";
 import { UploadController } from "./controllers/UploadController";
 
-import * as db from "@core/database";
 import {
   log as mainLogger,
   requestErrorLogger,
   requestLogger
 } from "@core/logging";
 import sessions from "@core/sessions";
-import startServer from "@core/server";
+import { initApp, startServer } from "@core/server";
 
 import AuthService from "@core/services/AuthService";
 
@@ -65,69 +64,73 @@ app.use(cors({ origin: config.trustedOrigins }));
 
 app.use(cookie());
 
-db.connect().then(() => {
-  sessions(app);
+initApp()
+  .then(() => {
+    sessions(app);
 
-  useExpressServer(app, {
-    routePrefix: "/1.0",
-    controllers: [
-      ApiKeyController,
-      AuthController,
-      CalloutController,
-      CalloutResponseController,
-      CalloutResponseCommentController,
-      ContentController,
-      EmailController,
-      ContactController,
-      NoticeController,
-      PaymentController,
-      SegmentController,
-      SignupController,
-      StatsController,
-      ResetPasswordController,
-      ResetDeviceController,
-      UploadController
-    ],
-    currentUserChecker,
-    authorizationChecker,
-    validation: {
-      forbidNonWhitelisted: true,
-      forbidUnknownValues: true,
-      whitelist: true,
-      validationError: {
-        target: false,
-        value: false
+    useExpressServer(app, {
+      routePrefix: "/1.0",
+      controllers: [
+        ApiKeyController,
+        AuthController,
+        CalloutController,
+        CalloutResponseController,
+        CalloutResponseCommentController,
+        ContentController,
+        EmailController,
+        ContactController,
+        NoticeController,
+        PaymentController,
+        SegmentController,
+        SignupController,
+        StatsController,
+        ResetPasswordController,
+        ResetDeviceController,
+        UploadController
+      ],
+      currentUserChecker,
+      authorizationChecker,
+      validation: {
+        forbidNonWhitelisted: true,
+        forbidUnknownValues: true,
+        whitelist: true,
+        validationError: {
+          target: false,
+          value: false
+        }
+      },
+      defaults: {
+        paramOptions: {
+          required: true
+        }
+      },
+      defaultErrorHandler: false
+    });
+
+    app.use((req, res) => {
+      if (!res.headersSent) {
+        throw new NotFoundError();
       }
-    },
-    defaults: {
-      paramOptions: {
-        required: true
+    });
+
+    const log = mainLogger.child({ app: "response" });
+
+    app.use(function (error, req, res, next) {
+      if (error instanceof HttpError && error.httpCode < 500) {
+        res.status(error.httpCode).send(error);
+        if (error.httpCode === 400) {
+          log.notice(error);
+        }
+      } else {
+        log.error("Unhandled error: ", error);
+        res.status(500).send(new InternalServerError("Unhandled error"));
       }
-    },
-    defaultErrorHandler: false
+    } as ErrorRequestHandler);
+
+    app.use(requestErrorLogger);
+
+    startServer(app);
+  })
+  .catch((err) => {
+    mainLogger.error("Error during initialization", err);
   });
-
-  app.use((req, res) => {
-    if (!res.headersSent) {
-      throw new NotFoundError();
-    }
-  });
-
-  const log = mainLogger.child({ app: "response" });
-
-  app.use(function (error, req, res, next) {
-    if (error instanceof HttpError && error.httpCode < 500) {
-      res.status(error.httpCode).send(error);
-      if (error.httpCode === 400) {
-        log.notice(error);
-      }
-    } else {
-      log.error("Unhandled error: ", error);
-      res.status(500).send(new InternalServerError("Unhandled error"));
-    }
-  } as ErrorRequestHandler);
-
-  app.use(requestErrorLogger);
-
-  startServer(app);
-});

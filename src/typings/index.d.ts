@@ -4,10 +4,6 @@ import Contact from "@models/Contact";
 import { CalloutResponseAnswers } from "@models/CalloutResponse";
 
 declare global {
-  type WithRelationIds<E, K extends keyof E> = Omit<E, K> & {
-    [key in K]: string;
-  };
-
   type HTMLElement = never;
   type BufferSource = never;
   type FormData = never;

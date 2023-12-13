@@ -1,7 +1,8 @@
-import { getRepository } from "typeorm";
+import { getRepository } from "@core/database";
+
+import OptionsService from "@core/services/OptionsService";
 
 import PageSettings from "@models/PageSettings";
-import OptionsService from "./OptionsService";
 
 interface PageSettingsCache extends PageSettings {
   patternRegex: RegExp;

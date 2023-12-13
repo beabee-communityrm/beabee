@@ -21,12 +21,16 @@ export default class CalloutResponse {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  calloutSlug!: string;
   @ManyToOne("Callout", "responses")
   callout!: Callout;
 
   @Column()
   number!: number;
 
+  @Column({ type: String, nullable: true })
+  contactId!: string | null;
   @ManyToOne("Contact", { nullable: true })
   contact!: Contact | null;
 
@@ -54,6 +58,8 @@ export default class CalloutResponse {
   @OneToMany("CalloutResponseTag", "response")
   tags!: CalloutResponseTag[];
 
+  @Column({ type: String, nullable: true })
+  assigneeId!: string | null;
   @ManyToOne("Contact", { nullable: true })
   assignee!: Contact | null;
 

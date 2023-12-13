@@ -1,5 +1,4 @@
-import { createQueryBuilder, getRepository } from "typeorm";
-
+import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
@@ -42,9 +41,9 @@ function generateResetPasswordLinks(type: "set" | "reset") {
     log.info(`Creating ${emails.length} links for ${mergeField}`);
 
     // Get list of contacts who match the recipients
-    const contacts = await createQueryBuilder(Contact)
+    const contacts = await createQueryBuilder(Contact, "c")
       .select(["id", "email"])
-      .where("email IN (:...emails)", { emails })
+      .where("c.email IN (:...emails)", { emails })
       .getRawMany<{ id: string; email: string }>();
 
     const contactIdsByEmail = Object.fromEntries(
@@ -129,18 +128,18 @@ export default abstract class BaseProvider implements EmailProvider {
   }
 
   async sendTemplate(
-    template: string,
+    templateId: string,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    const email = await getRepository(Email).findOne(template);
+    const email = await getRepository(Email).findOneBy({ id: templateId });
     if (email) {
       await this.sendEmail(email, recipients, opts);
     }
   }
 
-  async getTemplateEmail(template: string): Promise<false | Email | null> {
-    return (await getRepository(Email).findOne(template)) || null;
+  async getTemplateEmail(templateId: string): Promise<false | Email | null> {
+    return (await getRepository(Email).findOneBy({ id: templateId })) || null;
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {

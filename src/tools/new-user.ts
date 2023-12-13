@@ -3,9 +3,9 @@ import "module-alias/register";
 import { ContributionType } from "@beabee/beabee-common";
 import { input, password, select } from "@inquirer/prompts";
 import moment from "moment";
-import { getRepository } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
+import { runApp } from "@core/server";
 import { generatePassword, passwordRequirements } from "@core/utils/auth";
 
 import ContactsService from "@core/services/ContactsService";
@@ -21,7 +21,7 @@ function notEmpty(s: string) {
   return s.trim() !== "";
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const answers = {
     firstname: await input({ message: "First Name", validate: notEmpty }),
     lastname: await input({ message: "Last Name", validate: notEmpty }),
@@ -105,6 +105,4 @@ db.connect().then(async () => {
       `Reset password link: ${config.audience}/auth/set-password/${rpFlow.id}`
     );
   }
-
-  await db.close();
 });

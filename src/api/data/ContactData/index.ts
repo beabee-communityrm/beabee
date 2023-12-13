@@ -1,7 +1,8 @@
 import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
-import { Brackets, createQueryBuilder } from "typeorm";
+import { Brackets } from "typeorm";
 
+import { createQueryBuilder } from "@core/database";
 import { getMembershipStatus } from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
@@ -282,10 +283,9 @@ export async function loadContactRoles(contacts: Contact[]): Promise<void> {
       .where("mp.contactId IN (:...ids)", {
         ids: contacts.map((t) => t.id)
       })
-      .loadAllRelationIds()
       .getMany();
     for (const contact of contacts) {
-      contact.roles = roles.filter((p) => (p.contact as any) === contact.id);
+      contact.roles = roles.filter((p) => p.contactId === contact.id);
     }
   }
 }

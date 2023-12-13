@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import { Request } from "express";
-import { getRepository } from "typeorm";
 
-import ContactsService from "./ContactsService";
+import { getRepository } from "@core/database";
+
+import ContactsService from "@core/services/ContactsService";
 
 import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
@@ -20,7 +21,9 @@ class AuthService {
       if (await this.isValidApiKey(authHeader.substring(7))) {
         // API key can act as a user
         const contactId = headers["x-contact-id"]?.toString();
-        return contactId ? await ContactsService.findOne(contactId) : true;
+        return contactId
+          ? await ContactsService.findOneBy({ id: contactId })
+          : true;
       }
       return undefined; // Invalid key, not authenticated
     }
@@ -31,7 +34,7 @@ class AuthService {
   private async isValidApiKey(key: string): Promise<boolean> {
     const [_, secret] = key.split("_");
     const secretHash = crypto.createHash("sha256").update(secret).digest("hex");
-    const apiKey = await getRepository(ApiKey).findOne({ secretHash });
+    const apiKey = await getRepository(ApiKey).findOneBy({ secretHash });
     return !!apiKey && (!apiKey.expires || apiKey.expires > new Date());
   }
 }

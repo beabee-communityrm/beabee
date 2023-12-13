@@ -14,6 +14,8 @@ export default class EmailMailing {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  emailId!: string;
   @ManyToOne("Email", "mailings")
   email!: Email;
 

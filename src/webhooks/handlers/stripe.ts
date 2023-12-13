@@ -3,8 +3,8 @@ import bodyParser from "body-parser";
 import { add } from "date-fns";
 import express from "express";
 import Stripe from "stripe";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import stripe from "@core/lib/stripe";
 import { wrapAsync } from "@core/utils";
@@ -238,7 +238,7 @@ async function findOrCreatePayment(
     return;
   }
 
-  const payment = await getRepository(Payment).findOne(invoice.id);
+  const payment = await getRepository(Payment).findOneBy({ id: invoice.id });
   if (payment) {
     return payment;
   }

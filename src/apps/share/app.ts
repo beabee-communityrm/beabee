@@ -1,6 +1,6 @@
 import express from "express";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { wrapAsync } from "@core/utils";
 
 import PageSettingsService, {
@@ -20,7 +20,7 @@ async function getCalloutShareSettings(
 ): Promise<JustPageSettings | undefined> {
   const [slug, ...rest] = uri.substring("/callouts/".length).split("/", 1);
 
-  const callout = await getRepository(Callout).findOne(slug);
+  const callout = await getRepository(Callout).findOneBy({ slug });
   if (callout) {
     return {
       shareTitle: callout.shareTitle || callout.title,

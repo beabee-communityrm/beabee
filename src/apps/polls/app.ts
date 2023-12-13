@@ -1,8 +1,8 @@
 import { CalloutResponseAnswers } from "@beabee/beabee-common";
 import express, { NextFunction, Request, Response } from "express";
 import _ from "lodash";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isLoggedIn } from "@core/middleware";
 import { setTrackingCookie } from "@core/sessions";
 import { escapeRegExp, isSocialScraper, wrapAsync } from "@core/utils";
@@ -55,13 +55,13 @@ app.get(
       `^${escapeRegExp(config.audience)}/(polls|callouts)/`
     );
     if (url && pathMatch.test(url)) {
-      const calloutId = url.replace(pathMatch, "").replace(/\/embed\/?/, "");
-      const callout = await getRepository(Callout).findOne(calloutId);
+      const slug = url.replace(pathMatch, "").replace(/\/embed\/?/, "");
+      const callout = await getRepository(Callout).findOneBy({ slug });
       if (callout) {
         res.send({
           type: "rich",
           title: callout.title,
-          html: `<iframe src="${config.audience}/polls/${calloutId}/embed" frameborder="0" style="display: block; width: 100%"></iframe>`
+          html: `<iframe src="${config.audience}/polls/${slug}/embed" frameborder="0" style="display: block; width: 100%"></iframe>`
         });
         return;
       }
@@ -75,7 +75,9 @@ app.get(
 app.get(
   "/campaign2019",
   wrapAsync(async (req, res, next) => {
-    const poll = await getRepository(Callout).findOne({ slug: "campaign2019" });
+    const poll = await getRepository(Callout).findOneBy({
+      slug: "campaign2019"
+    });
     if (auth.loggedIn(req) === auth.AuthenticationStatus.NOT_LOGGED_IN) {
       res.render("polls/campaign2019-landing", { poll });
     } else {
@@ -183,7 +185,7 @@ app.get(
     // We don't support allowMultiple callouts at the moment
     if (!isEmbed && answers && !callout.allowMultiple) {
       const contact = pollsCode
-        ? await ContactsService.findOne({ pollsCode })
+        ? await ContactsService.findOneBy({ pollsCode })
         : req.user;
       if (contact) {
         await CalloutsService.setResponse(callout, contact, answers, true);
@@ -224,7 +226,7 @@ app.post(
       isEmbed || callout.access === CalloutAccess.OnlyAnonymous
         ? undefined
         : pollsCode
-          ? await ContactsService.findOne({ pollsCode })
+          ? await ContactsService.findOneBy({ pollsCode })
           : req.user;
 
     if (callout.access === CalloutAccess.Member && !contact) {

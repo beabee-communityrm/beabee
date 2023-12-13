@@ -22,7 +22,6 @@ import {
   QueryParams,
   Res
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
@@ -33,6 +32,7 @@ import PaymentFlowService from "@core/services/PaymentFlowService";
 import PaymentService from "@core/services/PaymentService";
 import ContactMfaService from "@core/services/ContactMfaService";
 
+import { getRepository } from "@core/database";
 import { ContributionInfo } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
@@ -105,7 +105,7 @@ function TargetUser() {
         uuid.id = id;
         await validateOrReject(uuid);
 
-        const target = await ContactsService.findOne(id);
+        const target = await ContactsService.findOneBy({ id });
         if (target) {
           return target;
         } else {
@@ -196,7 +196,7 @@ export class ContactController {
   ): Promise<GetContactData> {
     if (query.with?.includes(GetContactWith.Profile)) {
       target.profile = await getRepository(ContactProfile).findOneOrFail({
-        contact: target
+        where: { contactId: target.id }
       });
     }
     const data = convertContactToData(target, {

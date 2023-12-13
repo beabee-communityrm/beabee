@@ -78,7 +78,9 @@ async function handleResync(
   try {
     await setResyncStatus("In progress: Fetching contact lists");
 
-    const contacts = await ContactsService.find({ relations: ["profile"] });
+    const contacts = await ContactsService.find({
+      relations: { profile: true }
+    });
     const nlContacts = await NewsletterService.getNewsletterContacts();
 
     const newContactsToUpload: Contact[] = [],
@@ -245,7 +247,7 @@ app.get(
     const newContactsToUpload = await ContactsService.findByIds(data.uploadIds);
     const mismatchedContacts = await ContactsService.findByIds(
       data.mismatched.map((m) => m.id),
-      { relations: ["profile"] }
+      { relations: { profile: true } }
     );
 
     res.render("report", {

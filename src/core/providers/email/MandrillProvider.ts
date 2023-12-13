@@ -65,29 +65,29 @@ export default class MandrillProvider extends BaseProvider {
   }
 
   async sendTemplate(
-    template: string,
+    templateId: string,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    log.info(`Sending template ${template}`);
+    log.info(`Sending template ${templateId}`);
 
-    if (template.startsWith("mandrill_")) {
+    if (templateId.startsWith("mandrill_")) {
       const resp = await this.instance.post("/messages/send-template", {
         message: this.createMessageData(recipients, opts),
-        template_name: template.substring(9), // Remove mandrill_
+        template_name: templateId.substring(9), // Remove mandrill_
         template_content: [],
         ...(opts?.sendAt && { send_at: opts.sendAt.toISOString() })
       });
-      log.info(`Sent template ${template}`, { data: resp.data });
+      log.info(`Sent template ${templateId}`, { data: resp.data });
     } else {
-      super.sendTemplate(template, recipients, opts);
+      super.sendTemplate(templateId, recipients, opts);
     }
   }
 
-  async getTemplateEmail(template: string): Promise<false | Email | null> {
-    return template.startsWith("mandrill_")
+  async getTemplateEmail(templateId: string): Promise<false | Email | null> {
+    return templateId.startsWith("mandrill_")
       ? false
-      : await super.getTemplateEmail(template);
+      : await super.getTemplateEmail(templateId);
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {

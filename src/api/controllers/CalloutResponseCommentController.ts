@@ -11,7 +11,7 @@ import {
 } from "@api/data/CalloutResponseCommentData/interface";
 import PartialBody from "@api/decorators/PartialBody";
 import { Paginated } from "@beabee/beabee-common";
-import CalloutResponse from "@models/CalloutResponse";
+import { getRepository } from "@core/database";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import Contact from "@models/Contact";
 import {
@@ -28,7 +28,6 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 @JsonController("/callout-response-comments")
 @Authorized("admin")
@@ -61,7 +60,7 @@ export class CalloutResponseCommentController {
   ): Promise<GetCalloutResponseCommentData | undefined> {
     const comment = await getRepository(CalloutResponseComment).findOne({
       where: { id: id },
-      relations: ["contact"]
+      relations: { contact: true }
     });
     if (comment) {
       return convertCommentToData(comment);

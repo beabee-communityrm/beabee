@@ -1,7 +1,8 @@
 import { ContributionType } from "@beabee/beabee-common";
 import _ from "lodash";
-import { createQueryBuilder, SelectQueryBuilder } from "typeorm";
+import { SelectQueryBuilder } from "typeorm";
 
+import { createQueryBuilder } from "@core/database";
 import { Param } from "@core/utils/params";
 
 import Contact from "@models/Contact";

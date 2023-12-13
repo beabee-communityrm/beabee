@@ -15,8 +15,10 @@ import {
 import { stringify } from "csv-stringify/sync";
 import { format } from "date-fns";
 import { NotFoundError } from "routing-controllers";
-import { In, createQueryBuilder, getRepository } from "typeorm";
+import { In } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+
+import { createQueryBuilder, getRepository } from "@core/database";
 
 import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -345,7 +347,7 @@ export async function exportCalloutResponses(
     where: {
       responseId: In(results.items.map((response) => response.id))
     },
-    relations: ["contact"],
+    relations: { contact: true },
     order: { createdAt: "ASC" }
   });
   const commentsByResponseId = groupBy(comments, (c) => c.responseId);
@@ -466,13 +468,10 @@ export async function fetchPaginatedCalloutResponses(
       const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
         .where("rt.response IN (:...ids)", { ids: responseIds })
         .innerJoinAndSelect("rt.tag", "tag")
-        .loadAllRelationIds({ relations: ["response"] })
         .getMany();
 
       for (const item of results.items) {
-        item.tags = responseTags.filter(
-          (rt) => (rt as any).response === item.id
-        );
+        item.tags = responseTags.filter((rt) => rt.responseId === item.id);
       }
     }
   }

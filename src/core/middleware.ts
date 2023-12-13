@@ -1,7 +1,8 @@
 import { ErrorObject, ValidateFunction } from "ajv";
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { EntityTarget, FindOneOptions, getRepository } from "typeorm";
+import { EntityTarget, FindOneOptions, ObjectLiteral } from "typeorm";
 
+import { getRepository } from "@core/database";
 import ajv from "@core/lib/ajv";
 import { wrapAsync, isInvalidType } from "@core/utils";
 import * as auth from "@core/utils/auth";
@@ -124,7 +125,7 @@ export function hasSchema(
   };
 }
 
-export function hasNewModel<T>(
+export function hasNewModel<T extends ObjectLiteral>(
   entity: EntityTarget<T>,
   prop: keyof T,
   findOpts: FindOneOptions<T> = {}
@@ -135,7 +136,7 @@ export function hasNewModel<T>(
         req.model = await getRepository(entity).findOne({
           where: {
             [prop]: req.params[prop as string]
-          },
+          } as T,
           ...findOpts
         });
       } catch (err) {

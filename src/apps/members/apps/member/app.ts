@@ -1,9 +1,9 @@
 import express from "express";
 import moment from "moment";
-import { getRepository } from "typeorm";
 
 import config from "@config";
 
+import { getRepository } from "@core/database";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 import { canSuperAdmin, generateCode } from "@core/utils/auth";
@@ -33,7 +33,7 @@ app.use(
     // Bit of a hack to get parent app params
     const contact = await ContactsService.findOne({
       where: { id: req.allParams.uuid },
-      relations: ["profile"]
+      relations: { profile: true }
     });
     if (contact) {
       req.model = contact;
@@ -54,7 +54,7 @@ app.get(
     const availableTags = await getAvailableTags();
 
     const rpFlow = await getRepository(ResetSecurityFlow).findOne({
-      where: { contact: contact },
+      where: { contactId: contact.id },
       order: { date: "DESC" }
     });
 

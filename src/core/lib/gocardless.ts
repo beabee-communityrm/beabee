@@ -39,7 +39,7 @@ gocardless.interceptors.request.use((config) => {
   });
 
   if (config.method === "post") {
-    (config.headers as any)["Idempotency-Key"] = uuidv4();
+    config.headers["Idempotency-Key"] = uuidv4();
   }
   return config;
 });

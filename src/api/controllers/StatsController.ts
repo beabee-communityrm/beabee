@@ -9,7 +9,7 @@ import {
   JsonController,
   QueryParams
 } from "routing-controllers";
-import { createQueryBuilder } from "typeorm";
+import { createQueryBuilder } from "@core/database";
 
 class GetStatsQuery {
   @Type(() => Date)

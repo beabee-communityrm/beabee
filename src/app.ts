@@ -8,10 +8,9 @@ import flash from "express-flash";
 import helmet from "helmet";
 
 import appLoader from "@core/app-loader";
-import * as database from "@core/database";
 import { log, requestErrorLogger, requestLogger } from "@core/logging";
 import quickflash from "@core/quickflash";
-import startServer from "@core/server";
+import { initApp, startServer } from "@core/server";
 import sessions from "@core/sessions";
 import { isInvalidType } from "@core/utils";
 
@@ -76,64 +75,68 @@ app.get("/favicon.png", (req, res) => {
 // Log the rest
 app.use(requestLogger);
 
-database.connect().then(async () => {
-  // Load some caches and make them immediately available
-  await PageSettingsService.reload();
-  app.use((req, res, next) => {
-    res.locals.Options = (opt: OptionKey) => OptionsService.getText(opt);
-    res.locals.Options.list = (opt: OptionKey) => OptionsService.getList(opt);
-    res.locals.Options.bool = (opt: OptionKey) => OptionsService.getBool(opt);
-    res.locals.pageSettings = PageSettingsService.getPath(req.path);
-    next();
+initApp()
+  .then(async () => {
+    // Load some caches and make them immediately available
+    await PageSettingsService.reload();
+    app.use((req, res, next) => {
+      res.locals.Options = (opt: OptionKey) => OptionsService.getText(opt);
+      res.locals.Options.list = (opt: OptionKey) => OptionsService.getList(opt);
+      res.locals.Options.bool = (opt: OptionKey) => OptionsService.getBool(opt);
+      res.locals.pageSettings = PageSettingsService.getPath(req.path);
+      next();
+    });
+
+    // Handle sessions
+    sessions(app);
+
+    // CSRF
+    app.use(csrf());
+
+    app.use(function (err, req, res, next) {
+      if (err.code == "EBADCSRFTOKEN") {
+        return res
+          .status(403)
+          .send(
+            "Error: Please make sure cookies are enabled. (CSRF token invalid)"
+          );
+      }
+      next(err);
+    } as ErrorRequestHandler);
+
+    // Include support for notifications
+    app.use(flash());
+    app.use(quickflash);
+
+    // Load apps
+    await appLoader(app);
+
+    // Hook to handle special URLs
+    //app.use( '/s', specialUrlHandler );
+
+    // Ignore QueryFailedError for invalid type, probably just bad URL
+    app.use(function (err, req, res, next) {
+      next(isInvalidType(err) ? undefined : err);
+    } as ErrorRequestHandler);
+
+    // Error 404
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    app.use(function (req, res, next) {
+      res.status(404);
+      res.render("404");
+    });
+
+    app.use(requestErrorLogger);
+
+    // Error 500
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    app.use(function (err, req, res, next) {
+      res.status(500);
+      res.render("500", { error: config.dev ? err.stack : undefined });
+    } as ErrorRequestHandler);
+
+    startServer(app);
+  })
+  .catch((err) => {
+    log.error("Error during initialization", err);
   });
-
-  // Handle sessions
-  sessions(app);
-
-  // CSRF
-  app.use(csrf());
-
-  app.use(function (err, req, res, next) {
-    if (err.code == "EBADCSRFTOKEN") {
-      return res
-        .status(403)
-        .send(
-          "Error: Please make sure cookies are enabled. (CSRF token invalid)"
-        );
-    }
-    next(err);
-  } as ErrorRequestHandler);
-
-  // Include support for notifications
-  app.use(flash());
-  app.use(quickflash);
-
-  // Load apps
-  await appLoader(app);
-
-  // Hook to handle special URLs
-  //app.use( '/s', specialUrlHandler );
-
-  // Ignore QueryFailedError for invalid type, probably just bad URL
-  app.use(function (err, req, res, next) {
-    next(isInvalidType(err) ? undefined : err);
-  } as ErrorRequestHandler);
-
-  // Error 404
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  app.use(function (req, res, next) {
-    res.status(404);
-    res.render("404");
-  });
-
-  app.use(requestErrorLogger);
-
-  // Error 500
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  app.use(function (err, req, res, next) {
-    res.status(500);
-    res.render("500", { error: config.dev ? err.stack : undefined });
-  } as ErrorRequestHandler);
-
-  startServer(app);
-});

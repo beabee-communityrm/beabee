@@ -6,9 +6,10 @@ import {
   PaymentStatus
 } from "@beabee/beabee-common";
 import moment from "moment";
-import { Brackets, createQueryBuilder } from "typeorm";
+import { Brackets } from "typeorm";
 
-import * as db from "@core/database";
+import { createQueryBuilder } from "@core/database";
+import { runApp } from "@core/server";
 import { getActualAmount } from "@core/utils";
 
 import config from "@config";
@@ -186,12 +187,4 @@ async function main() {
   await logContact("Super admin account", [filters.isSuperAdmin]);
 }
 
-db.connect().then(async () => {
-  console.log();
-  try {
-    await main();
-  } catch (err) {
-    console.error(err);
-  }
-  await db.close();
-});
+runApp(main);

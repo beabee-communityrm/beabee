@@ -1,9 +1,9 @@
 import "module-alias/register";
 
 import { checkbox, input } from "@inquirer/prompts";
-import { getRepository } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
+import { runApp } from "@core/server";
 
 import OptionsService from "@core/services/OptionsService";
 
@@ -13,7 +13,7 @@ function notEmpty(s: string) {
   return s.trim() !== "";
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const answers = {
     emailDomain: await input({ message: "Email Domain", validate: notEmpty }),
     paymentProviders: await checkbox({
@@ -35,6 +35,4 @@ db.connect().then(async () => {
         answers.paymentProviders
       )}\')`
   });
-
-  await db.close();
 });
