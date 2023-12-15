@@ -1,4 +1,8 @@
-import { ItemStatus, noticeFilters } from "@beabee/beabee-common";
+import {
+  ItemStatus,
+  NoticeFilterName,
+  noticeFilters
+} from "@beabee/beabee-common";
 
 import { Transformer } from "@api/transformers";
 import { mergeRules } from "@api/data/PaginatedData";
@@ -11,7 +15,8 @@ import { GetNoticeData, NoticeQuery } from "./notice.data";
 export class NoticeTransformer extends Transformer<
   Notice,
   GetNoticeData,
-  NoticeQuery
+  NoticeQuery,
+  NoticeFilterName
 > {
   model = Notice;
   filters = noticeFilters;

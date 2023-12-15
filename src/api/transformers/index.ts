@@ -1,39 +1,67 @@
-import { ObjectLiteral } from "typeorm";
+import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
 import { Filters, Paginated } from "@beabee/beabee-common";
-import { GetPaginatedQuery, fetchPaginated } from "@api/data/PaginatedData";
+import {
+  FieldHandlers,
+  GetPaginatedQuery,
+  fetchPaginated
+} from "@api/data/PaginatedData";
 import Contact from "@models/Contact";
 
 export abstract class Transformer<
   Model extends ObjectLiteral,
   GetData,
-  Query extends Transformer.Query
+  Query extends GetPaginatedQuery,
+  FilterName extends string
 > {
   abstract model: { new (): Model };
-  abstract filters: Filters;
+  abstract filters: Filters<FilterName>;
+
+  fieldHandlers: FieldHandlers<FilterName> | undefined;
   modelIdField = "id";
 
-  abstract convert(model: Model): GetData;
+  abstract convert(
+    model: Model,
+    query: Query,
+    runner: Contact | undefined
+  ): GetData;
 
-  protected transformQuery(q: Query, runner: Contact | undefined): Query {
-    return q;
+  protected transformQuery(query: Query, runner: Contact | undefined): Query {
+    return query;
   }
 
-  async fetch(q: Query, runner?: Contact): Promise<Paginated<GetData>> {
-    const results = await fetchPaginated(
+  protected modifyQueryBuilder(
+    qb: SelectQueryBuilder<Model>,
+    fieldPrefix: string,
+    query: Query
+  ): void {}
+
+  protected async modifyResult(
+    result: Paginated<Model>,
+    query: Query,
+    runner: Contact | undefined
+  ): Promise<void> {}
+
+  async fetch(query: Query, runner?: Contact): Promise<Paginated<GetData>> {
+    const result = await fetchPaginated(
       this.model,
       this.filters,
-      this.transformQuery(q, runner)
+      this.transformQuery(query, runner),
+      runner,
+      this.fieldHandlers,
+      (qb, fieldPrefix) => this.modifyQueryBuilder(qb, fieldPrefix, query)
     );
 
+    await this.modifyResult(result, query, runner);
+
     return {
-      ...results,
-      items: results.items.map(this.convert)
+      ...result,
+      items: result.items.map((item) => this.convert(item, query, runner))
     };
   }
 
-  async fetchOne(q: Query, runner?: Contact): Promise<GetData | undefined> {
-    const result = await this.fetch({ ...q, offset: 0, limit: 1 }, runner);
+  async fetchOne(query: Query, runner?: Contact): Promise<GetData | undefined> {
+    const result = await this.fetch({ ...query, offset: 0, limit: 1 }, runner);
     return result.items[0];
   }
 
@@ -50,8 +78,4 @@ export abstract class Transformer<
 
     return await this.fetchOne(query, runner);
   }
-}
-
-export namespace Transformer {
-  export class Query extends GetPaginatedQuery {}
 }

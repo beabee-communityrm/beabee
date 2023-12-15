@@ -76,12 +76,16 @@ import {
   Paginated,
   GetExportQuery
 } from "@api/data/PaginatedData";
-import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
 
 import PartialBody from "@api/decorators/PartialBody";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
+
+import {
+  GetPaymentData,
+  GetPaymentsQuery
+} from "@api/transformers/payment/payment.data";
 
 /**
  * The target user can either be the current user or for admins

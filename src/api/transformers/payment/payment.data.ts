@@ -1,7 +1,8 @@
 import { PaymentStatus } from "@beabee/beabee-common";
 import { IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
 
-import { GetPaginatedQuery } from "../PaginatedData";
+import { GetPaginatedQuery } from "@api/data/PaginatedData";
+
 import { GetContactData } from "@type/get-contact-data";
 
 export interface GetPaymentData {

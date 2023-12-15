@@ -1,4 +1,4 @@
-import { Paginated, fetchPaginated, mergeRules } from "@api/data/PaginatedData";
+import { Paginated } from "@api/data/PaginatedData";
 import {
   Authorized,
   CurrentUser,
@@ -7,13 +7,13 @@ import {
   QueryParams
 } from "routing-controllers";
 
+import Contact from "@models/Contact";
+
+import paymentTransformer from "@api/transformers/payment/payment.transformer";
 import {
   GetPaymentData,
-  GetPaymentsQuery,
-  fetchPaginatedPayments
-} from "@api/data/PaymentData";
-
-import Contact from "@models/Contact";
+  GetPaymentsQuery
+} from "@api/transformers/payment/payment.data";
 
 @JsonController("/payment")
 @Authorized()
@@ -23,18 +23,6 @@ export class PaymentController {
     @CurrentUser() contact: Contact,
     @QueryParams() query: GetPaymentsQuery
   ): Promise<Paginated<GetPaymentData>> {
-    const authedQuery = {
-      ...query,
-      rules: mergeRules([
-        query.rules,
-        // Non-admins can only see their own payments
-        !contact.hasRole("admin") && {
-          field: "contact",
-          operator: "equal",
-          value: [contact.id]
-        }
-      ])
-    };
-    return await fetchPaginatedPayments(authedQuery, contact);
+    return await paymentTransformer.fetch(query, contact);
   }
 }
