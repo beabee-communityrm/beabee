@@ -22,6 +22,11 @@ import Notice from "@models/Notice";
 import { UUIDParam } from "@api/data";
 import PartialBody from "@api/decorators/PartialBody";
 import NoticeTransformer from "@api/transformers/notice/notice.transformer";
+import {
+  CreateNoticeData,
+  GetNoticeData,
+  NoticeQuery
+} from "@api/transformers/notice/notice.data";
 
 @JsonController("/notice")
 @Authorized()
@@ -29,7 +34,7 @@ export class NoticeController {
   @Get("/")
   async getNotices(
     @CurrentUser() contact: Contact,
-    @QueryParams() query: NoticeTransformer.Query
+    @QueryParams() query: NoticeQuery
   ): Promise<Paginated<GetNoticeData>> {
     return await NoticeTransformer.fetch(query, contact);
   }
