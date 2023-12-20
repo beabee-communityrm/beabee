@@ -4,24 +4,23 @@ import {
   noticeFilters
 } from "@beabee/beabee-common";
 
-import { Transformer } from "@api/transformers";
+import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import { mergeRules } from "@api/data/PaginatedData";
+import { GetNoticeDto, QueryNoticeDto } from "@api/dto/NoticeDto";
 
 import Contact from "@models/Contact";
 import Notice from "@models/Notice";
 
-import { GetNoticeData, NoticeQuery } from "./notice.data";
-
-export class NoticeTransformer extends Transformer<
+export class NoticeTransformer extends BaseTransformer<
   Notice,
-  GetNoticeData,
-  NoticeQuery,
+  GetNoticeDto,
+  QueryNoticeDto,
   NoticeFilterName
 > {
   model = Notice;
   filters = noticeFilters;
 
-  convert(notice: Notice): GetNoticeData {
+  convert(notice: Notice): GetNoticeDto {
     return {
       id: notice.id,
       createdAt: notice.createdAt,
@@ -37,9 +36,9 @@ export class NoticeTransformer extends Transformer<
   }
 
   protected transformQuery(
-    query: NoticeQuery,
+    query: QueryNoticeDto,
     runner: Contact | undefined
-  ): NoticeQuery {
+  ): QueryNoticeDto {
     return {
       ...query,
       rules: mergeRules([

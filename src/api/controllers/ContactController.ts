@@ -1,8 +1,4 @@
-import {
-  ContributionPeriod,
-  paymentFilters,
-  NewsletterStatus
-} from "@beabee/beabee-common";
+import { ContributionPeriod, NewsletterStatus } from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import {
   Authorized,
@@ -39,7 +35,6 @@ import { generatePassword } from "@core/utils/auth";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import JoinFlow from "@models/JoinFlow";
-import Payment from "@models/Payment";
 
 import { UUIDParam } from "@api/data";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
@@ -70,22 +65,14 @@ import {
   ForceUpdateContributionData,
   UpdateContributionData
 } from "@api/data/ContributionData";
-import {
-  mergeRules,
-  fetchPaginated,
-  Paginated,
-  GetExportQuery
-} from "@api/data/PaginatedData";
+import { mergeRules, Paginated, GetExportQuery } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
+import { GetPaymentDto, QueryPaymentsDto } from "@api/dto/PaymentDto";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
-
-import {
-  GetPaymentData,
-  GetPaymentsQuery
-} from "@api/transformers/payment/payment.data";
+import PaymentTransformer from "@api/transformers/PaymentTransformer";
 
 /**
  * The target user can either be the current user or for admins
@@ -364,8 +351,8 @@ export class ContactController {
   @Get("/:id/payment")
   async getPayments(
     @TargetUser() target: Contact,
-    @QueryParams() query: GetPaymentsQuery
-  ): Promise<Paginated<GetPaymentData>> {
+    @QueryParams() query: QueryPaymentsDto
+  ): Promise<Paginated<GetPaymentDto>> {
     const targetQuery = {
       ...query,
       rules: mergeRules([
@@ -374,20 +361,7 @@ export class ContactController {
       ])
     };
 
-    const data = await fetchPaginated(
-      Payment,
-      paymentFilters,
-      targetQuery,
-      target
-    );
-    return {
-      ...data,
-      items: data.items.map((item) => ({
-        amount: item.amount,
-        chargeDate: item.chargeDate,
-        status: item.status
-      }))
-    };
+    return PaymentTransformer.fetch(targetQuery, target);
   }
 
   @Put("/:id/payment-method")

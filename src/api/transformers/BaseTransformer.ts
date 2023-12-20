@@ -8,9 +8,9 @@ import {
 } from "@api/data/PaginatedData";
 import Contact from "@models/Contact";
 
-export abstract class Transformer<
+export abstract class BaseTransformer<
   Model extends ObjectLiteral,
-  GetData,
+  GetDto,
   Query extends GetPaginatedQuery,
   FilterName extends string
 > {
@@ -24,7 +24,7 @@ export abstract class Transformer<
     model: Model,
     query: Query,
     runner: Contact | undefined
-  ): GetData;
+  ): GetDto;
 
   protected transformQuery(query: Query, runner: Contact | undefined): Query {
     return query;
@@ -42,7 +42,7 @@ export abstract class Transformer<
     runner: Contact | undefined
   ): Promise<void> {}
 
-  async fetch(query: Query, runner?: Contact): Promise<Paginated<GetData>> {
+  async fetch(query: Query, runner?: Contact): Promise<Paginated<GetDto>> {
     const result = await fetchPaginated(
       this.model,
       this.filters,
@@ -60,7 +60,7 @@ export abstract class Transformer<
     };
   }
 
-  async fetchOne(query: Query, runner?: Contact): Promise<GetData | undefined> {
+  async fetchOne(query: Query, runner?: Contact): Promise<GetDto | undefined> {
     const result = await this.fetch({ ...query, offset: 0, limit: 1 }, runner);
     return result.items[0];
   }
@@ -68,7 +68,7 @@ export abstract class Transformer<
   async fetchOneById(
     id: string,
     runner?: Contact
-  ): Promise<GetData | undefined> {
+  ): Promise<GetDto | undefined> {
     const query = {
       rules: {
         condition: "AND",

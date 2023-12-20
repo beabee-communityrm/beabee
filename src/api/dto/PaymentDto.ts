@@ -5,7 +5,7 @@ import { GetPaginatedQuery } from "@api/data/PaginatedData";
 
 import { GetContactData } from "@type/get-contact-data";
 
-export interface GetPaymentData {
+export interface GetPaymentDto {
   amount: number;
   chargeDate: Date;
   status: PaymentStatus;
@@ -17,7 +17,7 @@ export enum GetPaymentWith {
 }
 
 const paymentSortFields = ["amount", "chargeDate"] as const;
-export class GetPaymentsQuery extends GetPaginatedQuery {
+export class QueryPaymentsDto extends GetPaginatedQuery {
   @IsArray()
   @IsOptional()
   @IsEnum(GetPaymentWith, { each: true })

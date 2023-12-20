@@ -3,31 +3,30 @@ import {
   PaymentFilterName,
   paymentFilters
 } from "@beabee/beabee-common";
-
-import Payment from "@models/Payment";
-
-import { Transformer } from "@api/transformers";
-
-import {
-  GetPaymentData,
-  GetPaymentWith,
-  GetPaymentsQuery
-} from "./payment.data";
-import Contact from "@models/Contact";
-import { mergeRules } from "@api/data/PaginatedData";
-import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
 import { SelectQueryBuilder } from "typeorm";
 
-class PaymentTransformer extends Transformer<
+import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
+import { mergeRules } from "@api/data/PaginatedData";
+import {
+  GetPaymentDto,
+  GetPaymentWith,
+  QueryPaymentsDto
+} from "@api/dto/PaymentDto";
+import { BaseTransformer } from "@api/transformers/BaseTransformer";
+
+import Contact from "@models/Contact";
+import Payment from "@models/Payment";
+
+class PaymentTransformer extends BaseTransformer<
   Payment,
-  GetPaymentData,
-  GetPaymentsQuery,
+  GetPaymentDto,
+  QueryPaymentsDto,
   PaymentFilterName
 > {
   model = Payment;
   filters = paymentFilters;
 
-  convert(payment: Payment, query: GetPaymentsQuery): GetPaymentData {
+  convert(payment: Payment, query: QueryPaymentsDto): GetPaymentDto {
     return {
       amount: payment.amount,
       chargeDate: payment.chargeDate,
@@ -39,9 +38,9 @@ class PaymentTransformer extends Transformer<
   }
 
   protected transformQuery(
-    query: GetPaymentsQuery,
+    query: QueryPaymentsDto,
     runner: Contact | undefined
-  ): GetPaymentsQuery {
+  ): QueryPaymentsDto {
     return {
       ...query,
       rules: mergeRules([
@@ -58,7 +57,7 @@ class PaymentTransformer extends Transformer<
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Payment>,
     fieldPrefix: string,
-    query: GetPaymentsQuery
+    query: QueryPaymentsDto
   ): void {
     if (query.with?.includes(GetPaymentWith.Contact)) {
       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
@@ -67,7 +66,7 @@ class PaymentTransformer extends Transformer<
 
   protected async modifyResult(
     result: Paginated<Payment>,
-    query: GetPaymentsQuery
+    query: QueryPaymentsDto
   ): Promise<void> {
     if (query.with?.includes(GetPaymentWith.Contact)) {
       const contacts = result.items

@@ -4,7 +4,7 @@ import { IsDate, IsIn, IsOptional, IsString } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
 
-interface BaseData {
+interface BaseNotice {
   name: string;
   starts: Date | null;
   expires: Date | null;
@@ -15,19 +15,19 @@ interface BaseData {
 
 const sortFields = ["createdAt", "updatedAt", "name", "expires"] as const;
 
-export class NoticeQuery extends GetPaginatedQuery {
+export class QueryNoticeDto extends GetPaginatedQuery {
   @IsIn(sortFields)
   sort?: string;
 }
 
-export interface GetNoticeData extends BaseData {
+export interface GetNoticeDto extends BaseNotice {
   id: string;
   createdAt: Date;
   updatedAt: Date;
   status: ItemStatus;
 }
 
-export class CreateNoticeData implements BaseData {
+export class CreateNoticeDto implements BaseNotice {
   @IsString()
   name!: string;
 
