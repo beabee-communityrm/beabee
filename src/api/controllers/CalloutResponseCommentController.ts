@@ -24,7 +24,7 @@ import Contact from "@models/Contact";
 import {
   CreateCalloutResponseCommentDto,
   GetCalloutResponseCommentDto,
-  QueryCalloutResponseCommentsDto
+  ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
 
@@ -48,28 +48,28 @@ export class CalloutResponseCommentController {
 
   @Get("/")
   async getCalloutResponseComments(
-    @CurrentUser({ required: true }) contact: Contact,
-    @QueryParams() query: QueryCalloutResponseCommentsDto
+    @CurrentUser({ required: true }) caller: Contact,
+    @QueryParams() query: ListCalloutResponseCommentsDto
   ): Promise<Paginated<GetCalloutResponseCommentDto>> {
-    return await CalloutResponseCommentTransformer.fetch(query, contact);
+    return await CalloutResponseCommentTransformer.fetch(caller, query);
   }
 
   @Get("/:id")
   async getCalloutResponseComment(
-    @CurrentUser({ required: true }) contact: Contact,
+    @CurrentUser({ required: true }) caller: Contact,
     @Params() { id }: UUIDParam
   ): Promise<GetCalloutResponseCommentDto | undefined> {
-    return await CalloutResponseCommentTransformer.fetchOneById(id, contact);
+    return await CalloutResponseCommentTransformer.fetchOneById(caller, id);
   }
 
   @Patch("/:id")
   async updateCalloutResponseComment(
-    @CurrentUser({ required: true }) contact: Contact,
+    @CurrentUser({ required: true }) caller: Contact,
     @Params() { id }: UUIDParam,
     @PartialBody() data: CreateCalloutResponseCommentDto
   ): Promise<GetCalloutResponseCommentDto | undefined> {
     await getRepository(CalloutResponseComment).update(id, data);
-    return await CalloutResponseCommentTransformer.fetchOneById(id, contact);
+    return await CalloutResponseCommentTransformer.fetchOneById(caller, id);
   }
 
   @OnUndefined(204)

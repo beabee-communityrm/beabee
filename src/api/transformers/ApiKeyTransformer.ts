@@ -7,7 +7,7 @@ import {
 import { SelectQueryBuilder } from "typeorm";
 
 import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
-import { GetApiKeyDto, QueryApiKeysDto } from "@api/dto/ApiKeyDto";
+import { GetApiKeyDto } from "@api/dto/ApiKeyDto";
 
 import ApiKey from "@models/ApiKey";
 
@@ -16,7 +16,6 @@ import { BaseTransformer } from "./BaseTransformer";
 class ApiKeyTransformer extends BaseTransformer<
   ApiKey,
   GetApiKeyDto,
-  QueryApiKeysDto,
   ApiKeyFilterName
 > {
   model = ApiKey;

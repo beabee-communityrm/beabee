@@ -65,7 +65,7 @@ import {
 import { mergeRules, Paginated, GetExportQuery } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
-import { GetPaymentDto, QueryPaymentsDto } from "@api/dto/PaymentDto";
+import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { validateOrReject } from "@api/utils";
@@ -347,10 +347,11 @@ export class ContactController {
 
   @Get("/:id/payment")
   async getPayments(
+    @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @QueryParams() query: QueryPaymentsDto
+    @QueryParams() query: ListPaymentsDto
   ): Promise<Paginated<GetPaymentDto>> {
-    const targetQuery = {
+    const queryWithTarget = {
       ...query,
       rules: mergeRules([
         query.rules,
@@ -358,7 +359,7 @@ export class ContactController {
       ])
     };
 
-    return PaymentTransformer.fetch(targetQuery, target);
+    return PaymentTransformer.fetch(caller, queryWithTarget);
   }
 
   @Put("/:id/payment-method")

@@ -9,8 +9,9 @@ import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
 import { mergeRules } from "@api/data/PaginatedData";
 import {
   GetPaymentDto,
+  GetPaymentOptsDto,
   GetPaymentWith,
-  QueryPaymentsDto
+  ListPaymentsDto
 } from "@api/dto/PaymentDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 
@@ -20,27 +21,27 @@ import Payment from "@models/Payment";
 class PaymentTransformer extends BaseTransformer<
   Payment,
   GetPaymentDto,
-  QueryPaymentsDto,
-  PaymentFilterName
+  PaymentFilterName,
+  GetPaymentOptsDto
 > {
   model = Payment;
   filters = paymentFilters;
 
-  convert(payment: Payment, query: QueryPaymentsDto): GetPaymentDto {
+  convert(payment: Payment, opts: GetPaymentOptsDto): GetPaymentDto {
     return {
       amount: payment.amount,
       chargeDate: payment.chargeDate,
       status: payment.status,
-      ...(query.with?.includes(GetPaymentWith.Contact) && {
+      ...(opts.with?.includes(GetPaymentWith.Contact) && {
         contact: payment.contact && convertContactToData(payment.contact)
       })
     };
   }
 
   protected transformQuery(
-    query: QueryPaymentsDto,
+    query: ListPaymentsDto,
     runner: Contact | undefined
-  ): QueryPaymentsDto {
+  ): ListPaymentsDto {
     return {
       ...query,
       rules: mergeRules([
@@ -57,7 +58,7 @@ class PaymentTransformer extends BaseTransformer<
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Payment>,
     fieldPrefix: string,
-    query: QueryPaymentsDto
+    query: ListPaymentsDto
   ): void {
     if (query.with?.includes(GetPaymentWith.Contact)) {
       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
@@ -66,7 +67,7 @@ class PaymentTransformer extends BaseTransformer<
 
   protected async modifyResult(
     result: Paginated<Payment>,
-    query: QueryPaymentsDto
+    query: ListPaymentsDto
   ): Promise<void> {
     if (query.with?.includes(GetPaymentWith.Contact)) {
       const contacts = result.items

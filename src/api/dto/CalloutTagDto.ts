@@ -14,7 +14,7 @@ export class CreateCalloutTagDto {
   description!: string;
 }
 
-export class QueryCalloutTagsDto extends GetPaginatedQuery {
+export class ListCalloutTagsDto extends GetPaginatedQuery {
   @IsIn(["id", "name"])
   sort?: string;
 }

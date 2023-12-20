@@ -28,9 +28,7 @@ export class CreateCalloutResponseCommentDto {
   text!: string;
 }
 
-export const responseSortFields = ["createdAt", "updatedAt"] as const;
-
-export class QueryCalloutResponseCommentsDto extends GetPaginatedQuery {
-  @IsIn(responseSortFields)
+export class ListCalloutResponseCommentsDto extends GetPaginatedQuery {
+  @IsIn(["createdAt", "updatedAt"])
   sort?: string;
 }

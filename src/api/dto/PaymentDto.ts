@@ -16,13 +16,19 @@ export enum GetPaymentWith {
   Contact = "contact"
 }
 
-const paymentSortFields = ["amount", "chargeDate"] as const;
-export class QueryPaymentsDto extends GetPaginatedQuery {
+export class GetPaymentOptsDto {
+  @IsArray()
+  @IsOptional()
+  @IsEnum(GetPaymentWith, { each: true })
+  with?: GetPaymentWith[];
+}
+
+export class ListPaymentsDto extends GetPaginatedQuery {
   @IsArray()
   @IsOptional()
   @IsEnum(GetPaymentWith, { each: true })
   with?: GetPaymentWith[];
 
-  @IsIn(paymentSortFields)
+  @IsIn(["amount", "chargeDate"])
   sort?: string;
 }

@@ -9,7 +9,7 @@ import { BaseTransformer } from "./BaseTransformer";
 
 import {
   GetCalloutResponseCommentDto,
-  QueryCalloutResponseCommentsDto
+  ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
 import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
 import { mergeRules } from "@api/data/PaginatedData";
@@ -20,7 +20,6 @@ import Contact from "@models/Contact";
 class CalloutResponseCommentTransformer extends BaseTransformer<
   CalloutResponseComment,
   GetCalloutResponseCommentDto,
-  QueryCalloutResponseCommentsDto,
   CalloutResponseCommentFilterName
 > {
   model = CalloutResponseComment;
@@ -38,9 +37,9 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
   }
 
   protected transformQuery(
-    query: QueryCalloutResponseCommentsDto,
+    query: ListCalloutResponseCommentsDto,
     runner: Contact | undefined
-  ): QueryCalloutResponseCommentsDto {
+  ): ListCalloutResponseCommentsDto {
     return {
       ...query,
       rules: mergeRules([

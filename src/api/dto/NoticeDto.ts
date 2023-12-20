@@ -15,7 +15,7 @@ interface BaseNotice {
 
 const sortFields = ["createdAt", "updatedAt", "name", "expires"] as const;
 
-export class QueryNoticeDto extends GetPaginatedQuery {
+export class ListNoticesDto extends GetPaginatedQuery {
   @IsIn(sortFields)
   sort?: string;
 }

@@ -1,19 +1,24 @@
+import {
+  Filters,
+  Paginated,
+  PaginatedQuery,
+  RoleType
+} from "@beabee/beabee-common";
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
-import { Filters, Paginated, RoleType } from "@beabee/beabee-common";
-import {
-  FieldHandlers,
-  GetPaginatedQuery,
-  fetchPaginated
-} from "@api/data/PaginatedData";
-import Contact from "@models/Contact";
+import { FieldHandlers, fetchPaginated } from "@api/data/PaginatedData";
+
 import UnauthorizedError from "@api/errors/UnauthorizedError";
+import NotFoundError from "@api/errors/NotFoundError";
+
+import Contact from "@models/Contact";
 
 export abstract class BaseTransformer<
   Model extends ObjectLiteral,
   GetDto,
-  Query extends GetPaginatedQuery,
-  FilterName extends string
+  FilterName extends string,
+  GetDtoOpts = unknown,
+  Query extends GetDtoOpts & PaginatedQuery = GetDtoOpts & PaginatedQuery
 > {
   abstract model: { new (): Model };
   abstract filters: Filters<FilterName>;
@@ -22,11 +27,7 @@ export abstract class BaseTransformer<
   modelIdField = "id";
   allowedRoles: RoleType[] | undefined;
 
-  abstract convert(
-    model: Model,
-    query: Query,
-    runner: Contact | undefined
-  ): GetDto;
+  abstract convert(model: Model, opts: GetDtoOpts, runner?: Contact): GetDto;
 
   protected transformQuery(query: Query, runner: Contact | undefined): Query {
     return query;
@@ -35,7 +36,7 @@ export abstract class BaseTransformer<
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Model>,
     fieldPrefix: string,
-    query: Query
+    opts: GetDtoOpts
   ): void {}
 
   protected async modifyResult(
@@ -44,7 +45,10 @@ export abstract class BaseTransformer<
     runner: Contact | undefined
   ): Promise<void> {}
 
-  async fetch(query: Query, runner?: Contact): Promise<Paginated<GetDto>> {
+  async fetch(
+    runner: Contact | undefined,
+    query: Query
+  ): Promise<Paginated<GetDto>> {
     if (
       this.allowedRoles &&
       !this.allowedRoles.some((r) => runner?.hasRole(r))
@@ -69,22 +73,39 @@ export abstract class BaseTransformer<
     };
   }
 
-  async fetchOne(query: Query, runner?: Contact): Promise<GetDto | undefined> {
-    const result = await this.fetch({ ...query, offset: 0, limit: 1 }, runner);
+  async fetchOne(
+    runner: Contact | undefined,
+    query: Query
+  ): Promise<GetDto | undefined> {
+    const result = await this.fetch(runner, { ...query, limit: 1 });
     return result.items[0];
   }
 
   async fetchOneById(
+    runner: Contact | undefined,
     id: string,
-    runner?: Contact
+    opts?: GetDtoOpts
   ): Promise<GetDto | undefined> {
     const query = {
+      ...opts,
       rules: {
         condition: "AND",
         rules: [{ field: this.modelIdField, operator: "equal", value: [id] }]
       }
     } as Query;
 
-    return await this.fetchOne(query, runner);
+    return await this.fetchOne(runner, query);
+  }
+
+  async fetchOneByIdOrFail(
+    runner: Contact | undefined,
+    id: string,
+    opts?: GetDtoOpts
+  ): Promise<GetDto> {
+    const result = await this.fetchOneById(runner, id, opts);
+    if (!result) {
+      throw new NotFoundError();
+    }
+    return result;
   }
 }

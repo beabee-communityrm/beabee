@@ -24,7 +24,7 @@ import PartialBody from "@api/decorators/PartialBody";
 import {
   CreateNoticeDto,
   GetNoticeDto,
-  QueryNoticeDto
+  ListNoticesDto
 } from "@api/dto/NoticeDto";
 import NoticeTransformer from "@api/transformers/NoticeTransformer";
 
@@ -33,18 +33,18 @@ import NoticeTransformer from "@api/transformers/NoticeTransformer";
 export class NoticeController {
   @Get("/")
   async getNotices(
-    @CurrentUser() contact: Contact,
-    @QueryParams() query: QueryNoticeDto
+    @CurrentUser() caller: Contact,
+    @QueryParams() query: ListNoticesDto
   ): Promise<Paginated<GetNoticeDto>> {
-    return await NoticeTransformer.fetch(query, contact);
+    return await NoticeTransformer.fetch(caller, query);
   }
 
   @Get("/:id")
   async getNotice(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParam
   ): Promise<GetNoticeDto | undefined> {
-    return await NoticeTransformer.fetchOneById(id, contact);
+    return await NoticeTransformer.fetchOneById(caller, id);
   }
 
   @Post("/")
@@ -57,12 +57,12 @@ export class NoticeController {
   @Patch("/:id")
   @Authorized("admin")
   async updateNotice(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParam,
     @PartialBody() data: CreateNoticeDto
   ): Promise<GetNoticeDto | undefined> {
     await getRepository(Notice).update(id, data);
-    return await NoticeTransformer.fetchOneById(id, contact);
+    return await NoticeTransformer.fetchOneById(caller, id);
   }
 
   @OnUndefined(204)

@@ -1,6 +1,7 @@
 import {
   Authorized,
   Body,
+  CurrentUser,
   Delete,
   Get,
   JsonController,
@@ -19,17 +20,18 @@ import {
   GetContactsQuery,
   fetchPaginatedContacts
 } from "@api/data/ContactData";
-import {
-  GetSegmentData,
-  GetSegmentQuery,
-  CreateSegmentData,
-  convertSegmentToData,
-  GetSegmentWith
-} from "@api/data/SegmentData";
 import { Paginated } from "@api/data/PaginatedData";
-
+import {
+  GetSegmentDto,
+  ListSegmentsDto,
+  CreateSegmentDto,
+  GetSegmentWith,
+  GetSegmentOptsDto
+} from "@api/dto/SegmentDto";
 import PartialBody from "@api/decorators/PartialBody";
+import SegmentTransformer from "@api/transformers/SegmentTransformer";
 
+import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
@@ -41,22 +43,18 @@ import type { GetContactData } from "@type/get-contact-data";
 export class SegmentController {
   @Get("/")
   async getSegments(
-    @QueryParams() query: GetSegmentQuery
-  ): Promise<GetSegmentData[]> {
-    const segments = await getRepository(Segment).find({
-      order: { order: "ASC" }
-    });
-    const out: GetSegmentData[] = [];
-    for (const segment of segments) {
-      out.push(await convertSegmentToData(segment, query));
-    }
-    return out;
+    @CurrentUser() caller: Contact,
+    @QueryParams() query: ListSegmentsDto
+  ): Promise<GetSegmentDto[]> {
+    const result = await SegmentTransformer.fetch(caller, query);
+    return result.items;
   }
 
   @Post("/")
   async createSegment(
-    @Body() data: CreateSegmentData
-  ): Promise<GetSegmentData> {
+    @CurrentUser() caller: Contact,
+    @Body() data: CreateSegmentDto
+  ): Promise<GetSegmentDto> {
     // Default to inserting new segment at the bottom
     if (data.order === undefined) {
       const bottomSegment = await getRepository(Segment).findOne({
@@ -65,32 +63,31 @@ export class SegmentController {
       data.order = bottomSegment ? bottomSegment.order + 1 : 0;
     }
     const segment = await getRepository(Segment).save(data);
-    return convertSegmentToData(segment, {
+
+    return await SegmentTransformer.fetchOneByIdOrFail(caller, segment.id, {
       with: [GetSegmentWith.contactCount]
     });
   }
 
   @Get("/:id")
   async getSegment(
+    @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParam,
-    @QueryParams() query: GetSegmentQuery
-  ): Promise<GetSegmentData | undefined> {
-    const segment = await getRepository(Segment).findOneBy({ id });
-    if (segment) {
-      return convertSegmentToData(segment, query);
-    }
+    @QueryParams() opts: GetSegmentOptsDto
+  ): Promise<GetSegmentDto | undefined> {
+    return await SegmentTransformer.fetchOneById(caller, id, opts);
   }
 
   @Patch("/:id")
   async updateSegment(
+    @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParam,
-    @PartialBody() data: CreateSegmentData
-  ): Promise<GetSegmentData | undefined> {
+    @PartialBody() data: CreateSegmentDto
+  ): Promise<GetSegmentDto | undefined> {
     await getRepository(Segment).update(id, data);
-    return await this.getSegment(
-      { id },
-      { with: [GetSegmentWith.contactCount] }
-    );
+    return await SegmentTransformer.fetchOneById(caller, id, {
+      with: [GetSegmentWith.contactCount]
+    });
   }
 
   @Delete("/:id")

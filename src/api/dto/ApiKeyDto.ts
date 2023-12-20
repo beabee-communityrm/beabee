@@ -19,7 +19,7 @@ export interface GetApiKeyDto extends CreateApiKeyDto {
   createdAt: Date;
 }
 
-export class QueryApiKeysDto extends GetPaginatedQuery {
+export class ListApiKeysDto extends GetPaginatedQuery {
   @IsIn(["createdAt", "expires"])
   sort?: string;
 }

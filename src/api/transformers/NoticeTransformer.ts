@@ -1,12 +1,13 @@
 import {
   ItemStatus,
   NoticeFilterName,
+  PaginatedQuery,
   noticeFilters
 } from "@beabee/beabee-common";
 
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import { mergeRules } from "@api/data/PaginatedData";
-import { GetNoticeDto, QueryNoticeDto } from "@api/dto/NoticeDto";
+import { GetNoticeDto, ListNoticesDto } from "@api/dto/NoticeDto";
 
 import Contact from "@models/Contact";
 import Notice from "@models/Notice";
@@ -14,7 +15,6 @@ import Notice from "@models/Notice";
 export class NoticeTransformer extends BaseTransformer<
   Notice,
   GetNoticeDto,
-  QueryNoticeDto,
   NoticeFilterName
 > {
   model = Notice;
@@ -36,9 +36,9 @@ export class NoticeTransformer extends BaseTransformer<
   }
 
   protected transformQuery(
-    query: QueryNoticeDto,
+    query: ListNoticesDto,
     runner: Contact | undefined
-  ): QueryNoticeDto {
+  ): ListNoticesDto {
     return {
       ...query,
       rules: mergeRules([

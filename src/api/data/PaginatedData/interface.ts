@@ -6,8 +6,7 @@ import {
   RuleValue,
   RuleGroup,
   isRuleGroup,
-  FilterType,
-  ValidatedRule
+  FilterType
 } from "@beabee/beabee-common";
 import {
   plainToClass,

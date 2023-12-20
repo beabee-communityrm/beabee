@@ -1,4 +1,8 @@
-import { CalloutFormSchema, ItemStatus } from "@beabee/beabee-common";
+import {
+  CalloutFormSchema,
+  ItemStatus,
+  PaginatedQuery
+} from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -15,7 +19,7 @@ import {
   ValidateNested
 } from "class-validator";
 
-import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import { GetExportQuery, GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
@@ -36,6 +40,12 @@ export enum GetCalloutWith {
 
 const sortFields = ["title", "starts", "expires"] as const;
 
+export class GetCalloutQuery extends GetExportQuery {
+  @IsOptional()
+  @IsEnum(GetCalloutWith, { each: true })
+  with?: GetCalloutWith[];
+}
+
 export class GetCalloutsQuery extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
@@ -44,6 +54,34 @@ export class GetCalloutsQuery extends GetPaginatedQuery {
   @IsIn(sortFields)
   sort?: string;
 }
+
+// function Paginate<TBase extends { new (...args: any[]): GetExportQuery }>(
+//   Base: TBase,
+//   sortFields: readonly string[]
+// ) {
+//   class PaginatedBase extends Base implements PaginatedQuery {
+//     @IsOptional()
+//     @Min(1)
+//     @Max(100)
+//     limit?: number;
+
+//     @IsOptional()
+//     @Min(0)
+//     offset?: number;
+
+//     @IsOptional()
+//     @IsIn(["ASC", "DESC"])
+//     order?: "ASC" | "DESC";
+
+//     @IsOptional()
+//     @IsIn(sortFields)
+//     sort?: string;
+//   }
+
+//   return PaginatedBase;
+// }
+
+// const GetCalloutsQuery = Paginate(GetCalloutQuery, sortFields);
 
 interface CalloutData {
   slug?: string;
@@ -76,12 +114,6 @@ export interface GetCalloutData extends CalloutData {
   responseCount?: number;
   // With "responseViewSchema"
   responseViewSchema?: CalloutResponseViewSchema | null;
-}
-
-export class GetCalloutQuery {
-  @IsOptional()
-  @IsEnum(GetCalloutWith, { each: true })
-  with?: GetCalloutWith[];
 }
 
 class CalloutMapSchemaData implements CalloutMapSchema {

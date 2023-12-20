@@ -8,7 +8,11 @@ import {
   QueryParams
 } from "routing-controllers";
 
-import { GetPaymentDto, QueryPaymentsDto } from "@api/dto/PaymentDto";
+import {
+  GetPaymentDto,
+  GetPaymentOptsDto,
+  ListPaymentsDto
+} from "@api/dto/PaymentDto";
 import PaymentTransformer from "@api/transformers/PaymentTransformer";
 
 import Contact from "@models/Contact";
@@ -18,17 +22,18 @@ import Contact from "@models/Contact";
 export class PaymentController {
   @Get("/")
   async getPayments(
-    @CurrentUser() contact: Contact,
-    @QueryParams() query: QueryPaymentsDto
+    @CurrentUser() caller: Contact,
+    @QueryParams() query: ListPaymentsDto
   ): Promise<Paginated<GetPaymentDto>> {
-    return await PaymentTransformer.fetch(query, contact);
+    return await PaymentTransformer.fetch(caller, query);
   }
 
   @Get("/:id")
   async getPayment(
-    @CurrentUser() contact: Contact,
-    @Param("id") id: string
+    @CurrentUser() caller: Contact,
+    @Param("id") id: string,
+    @QueryParams() query: GetPaymentOptsDto
   ): Promise<GetPaymentDto | undefined> {
-    return await PaymentTransformer.fetchOneById(id, contact);
+    return await PaymentTransformer.fetchOneById(caller, id, query);
   }
 }

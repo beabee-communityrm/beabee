@@ -219,15 +219,12 @@ export class CalloutController {
     @CurrentUser() contact: Contact,
     @Param("slug") slug: string
   ): Promise<GetCalloutTagDto[]> {
-    const result = await CalloutTagTransformer.fetch(
-      {
-        rules: {
-          condition: "AND",
-          rules: [{ field: "calloutSlug", operator: "equal", value: [slug] }]
-        }
-      },
-      contact
-    );
+    const result = await CalloutTagTransformer.fetch(contact, {
+      rules: {
+        condition: "AND",
+        rules: [{ field: "calloutSlug", operator: "equal", value: [slug] }]
+      }
+    });
 
     return result.items;
   }
@@ -254,7 +251,7 @@ export class CalloutController {
     @CurrentUser() contact: Contact,
     @Param("tag") tagId: string
   ): Promise<GetCalloutTagDto | undefined> {
-    return CalloutTagTransformer.fetchOneById(tagId, contact);
+    return CalloutTagTransformer.fetchOneById(contact, tagId);
   }
 
   @Authorized("admin")
@@ -270,7 +267,7 @@ export class CalloutController {
       data
     );
 
-    return CalloutTagTransformer.fetchOneById(tagId, contact);
+    return CalloutTagTransformer.fetchOneById(contact, tagId);
   }
 
   @Authorized("admin")

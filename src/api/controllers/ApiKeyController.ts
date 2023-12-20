@@ -21,7 +21,7 @@ import Contact from "@models/Contact";
 import {
   CreateApiKeyDto,
   GetApiKeyDto,
-  QueryApiKeysDto
+  ListApiKeysDto
 } from "@api/dto/ApiKeyDto";
 import { Paginated } from "@api/data/PaginatedData";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
@@ -32,9 +32,9 @@ export class ApiKeyController {
   @Get("/")
   async getApiKeys(
     @CurrentUser({ required: true }) runner: Contact,
-    @QueryParams() query: QueryApiKeysDto
+    @QueryParams() query: ListApiKeysDto
   ): Promise<Paginated<GetApiKeyDto>> {
-    return await ApiKeyTransformer.fetch(query, runner);
+    return await ApiKeyTransformer.fetch(runner, query);
   }
 
   @Get("/:id")
@@ -42,7 +42,7 @@ export class ApiKeyController {
     @CurrentUser({ required: true }) runner: Contact,
     @Param("id") id: string
   ): Promise<GetApiKeyDto | undefined> {
-    return await ApiKeyTransformer.fetchOneById(id, runner);
+    return await ApiKeyTransformer.fetchOneById(runner, id);
   }
 
   @Post("/")
