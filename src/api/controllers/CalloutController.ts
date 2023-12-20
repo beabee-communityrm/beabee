@@ -32,14 +32,11 @@ import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 
 import {
-  convertCalloutToData,
-  CreateCalloutData,
-  fetchCallout,
-  fetchPaginatedCallouts,
-  GetCalloutData,
-  GetCalloutQuery,
-  GetCalloutsQuery
-} from "@api/data/CalloutData";
+  CreateCalloutDto,
+  GetCalloutDto,
+  GetCalloutOptsDto,
+  ListCalloutsDto
+} from "@api/dto/CalloutDto";
 import {
   CreateCalloutResponseData,
   exportCalloutResponses,
@@ -56,22 +53,21 @@ import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
+import CalloutTransformer from "@api/transformers/CalloutTransformer";
 
 @JsonController("/callout")
 export class CalloutController {
   @Get("/")
   async getCallouts(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
-    @QueryParams() query: GetCalloutsQuery
-  ): Promise<Paginated<GetCalloutData>> {
-    return fetchPaginatedCallouts(query, contact);
+    @CurrentUser({ required: false }) caller: Contact | undefined,
+    @QueryParams() query: ListCalloutsDto
+  ): Promise<Paginated<GetCalloutDto>> {
+    return CalloutTransformer.fetch(caller, query);
   }
 
   @Authorized("admin")
   @Post("/")
-  async createCallout(
-    @Body() data: CreateCalloutData
-  ): Promise<GetCalloutData> {
+  async createCallout(@Body() data: CreateCalloutDto): Promise<GetCalloutDto> {
     const callout = await CalloutsService.createCallout(
       {
         ...data,
@@ -79,16 +75,16 @@ export class CalloutController {
       },
       data.slug ? false : 0
     );
-    return convertCalloutToData(callout);
+    return CalloutTransformer.convert(callout);
   }
 
   @Get("/:slug")
   async getCallout(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutQuery
-  ): Promise<GetCalloutData | undefined> {
-    return await fetchCallout({ slug }, query, contact);
+    @QueryParams() query: GetCalloutOptsDto
+  ): Promise<GetCalloutDto | undefined> {
+    return CalloutTransformer.fetchOneById(caller, slug, query);
   }
 
   @Authorized("admin")
@@ -96,8 +92,8 @@ export class CalloutController {
   async updateCallout(
     @CurrentUser({ required: true }) contact: Contact,
     @Param("slug") slug: string,
-    @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
-  ): Promise<GetCalloutData | undefined> {
+    @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutData>
+  ): Promise<GetCalloutDto | undefined> {
     const newSlug = data.slug || slug;
 
     if (OptionsService.getText("join-survey") === slug) {
@@ -121,7 +117,7 @@ export class CalloutController {
             data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
         })
       });
-      return await fetchCallout({ slug: newSlug }, {}, contact);
+      return await CalloutTransformer.fetchOneById(contact, newSlug);
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }

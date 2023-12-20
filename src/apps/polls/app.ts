@@ -13,7 +13,9 @@ import CalloutsService from "@core/services/CalloutsService";
 
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
-import Callout, { CalloutAccess } from "@models/Callout";
+import Callout from "@models/Callout";
+
+import { CalloutAccess } from "@enums/callout-access";
 
 import schemas from "./schemas.json";
 

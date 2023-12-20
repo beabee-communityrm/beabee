@@ -1,8 +1,4 @@
-import {
-  CalloutFormSchema,
-  ItemStatus,
-  PaginatedQuery
-} from "@beabee/beabee-common";
+import { CalloutFormSchema, ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -23,13 +19,13 @@ import { GetExportQuery, GetPaginatedQuery } from "@api/data/PaginatedData";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 
-import {
-  CalloutAccess,
-  CalloutMapSchema,
-  CalloutResponseViewSchema
-} from "@models/Callout";
+import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
 import IsMapBounds from "@api/validators/IsMapBounds";
 import IsLngLat from "@api/validators/IsLngLat";
+
+import { CalloutAccess } from "@enums/callout-access";
+
+import { CalloutData } from "@type/callout-data";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -38,46 +34,22 @@ export enum GetCalloutWith {
   HasAnswered = "hasAnswered"
 }
 
-const sortFields = ["title", "starts", "expires"] as const;
-
-export class GetCalloutQuery extends GetExportQuery {
+export class GetCalloutOptsDto extends GetExportQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
 }
 
-export class GetCalloutsQuery extends GetPaginatedQuery {
+export class ListCalloutsDto extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
 
-  @IsIn(sortFields)
+  @IsIn(["title", "starts", "expires"])
   sort?: string;
 }
 
-interface CalloutData {
-  slug?: string;
-  title: string;
-  excerpt: string;
-  image: string;
-  starts: Date | null;
-  expires: Date | null;
-  allowUpdate: boolean;
-  allowMultiple: boolean;
-  access: CalloutAccess;
-  hidden: boolean;
-
-  // With "form"
-  intro?: string;
-  thanksTitle?: string;
-  thanksText?: string;
-  thanksRedirect?: string;
-  shareTitle?: string;
-  shareDescription?: string;
-  formSchema?: CalloutFormSchema;
-}
-
-export interface GetCalloutData extends CalloutData {
+export interface GetCalloutDto extends CalloutData {
   slug: string;
   status: ItemStatus;
   // With "hasAnswered"
@@ -88,7 +60,7 @@ export interface GetCalloutData extends CalloutData {
   responseViewSchema?: CalloutResponseViewSchema | null;
 }
 
-class CalloutMapSchemaData implements CalloutMapSchema {
+class CalloutMapSchemaDto implements CalloutMapSchema {
   @IsUrl()
   style!: string;
 
@@ -123,7 +95,7 @@ class CalloutMapSchemaData implements CalloutMapSchema {
   addressPatternProp!: string;
 }
 
-class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
+class CalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
   @IsArray()
   @IsString({ each: true })
   buckets!: string[];
@@ -146,11 +118,11 @@ class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => CalloutMapSchemaData)
-  map!: CalloutMapSchemaData | null;
+  @Type(() => CalloutMapSchemaDto)
+  map!: CalloutMapSchemaDto | null;
 }
 
-export class CreateCalloutData implements CalloutData {
+export class CreateCalloutDto implements CalloutData {
   @IsOptional()
   @IsSlug()
   slug?: string;
@@ -192,8 +164,8 @@ export class CreateCalloutData implements CalloutData {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => CalloutResponseViewSchemaData)
-  responseViewSchema!: CalloutResponseViewSchemaData;
+  @Type(() => CalloutResponseViewSchemaDto)
+  responseViewSchema!: CalloutResponseViewSchemaDto;
 
   @IsOptional()
   @Type(() => Date)

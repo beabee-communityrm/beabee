@@ -8,15 +8,9 @@ import {
 } from "typeorm";
 import ItemWithStatus from "./ItemWithStatus";
 import CalloutResponse from "./CalloutResponse";
+import { CalloutAccess } from "@enums/callout-access";
 
 export type CalloutTemplate = "custom" | "builder" | "ballot";
-
-export enum CalloutAccess {
-  Member = "member",
-  Guest = "guest",
-  Anonymous = "anonymous",
-  OnlyAnonymous = "only-anonymous"
-}
 
 export interface CalloutMapSchema {
   style: string;

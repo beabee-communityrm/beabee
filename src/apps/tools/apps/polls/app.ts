@@ -6,8 +6,10 @@ import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
-import Callout, { CalloutAccess } from "@models/Callout";
+import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+
+import { CalloutAccess } from "@enums/callout-access";
 
 import { createPollSchema } from "./schemas.json";
 import { exportCalloutResponses } from "@api/data/CalloutResponseData";

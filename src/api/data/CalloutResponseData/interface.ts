@@ -16,8 +16,8 @@ import {
   IsUUID
 } from "class-validator";
 import { UUIDParam } from "..";
-import { GetCalloutData } from "../CalloutData";
 import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
+import { GetCalloutDto } from "@api/dto/CalloutDto";
 import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";
 import { GetCalloutTagDto } from "@api/dto/CalloutTagDto";
 
@@ -63,7 +63,7 @@ export interface GetCalloutResponseData {
   guestName: string | null;
   guestEmail: string | null;
   answers?: CalloutResponseAnswers;
-  callout?: GetCalloutData;
+  callout?: GetCalloutDto;
   contact?: GetContactData | null;
   tags?: GetCalloutTagDto[];
   assignee?: GetContactData | null;

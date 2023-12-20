@@ -21,11 +21,17 @@ export abstract class BaseTransformer<
   Query extends GetDtoOpts & PaginatedQuery = GetDtoOpts & PaginatedQuery
 > {
   abstract model: { new (): Model };
+  modelIdField = "id";
   abstract filters: Filters<FilterName>;
 
-  fieldHandlers: FieldHandlers<FilterName> | undefined;
-  modelIdField = "id";
   allowedRoles: RoleType[] | undefined;
+
+  // TODO: could rework this once fetchPaginated has been refactored
+  protected getFieldHandlers(
+    runner: Contact | undefined
+  ): FieldHandlers<FilterName> {
+    return {};
+  }
 
   abstract convert(model: Model, opts: GetDtoOpts, caller?: Contact): GetDto;
 
@@ -36,7 +42,8 @@ export abstract class BaseTransformer<
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Model>,
     fieldPrefix: string,
-    opts: GetDtoOpts
+    opts: GetDtoOpts,
+    caller: Contact | undefined
   ): void {}
 
   protected async modifyResult(
@@ -61,8 +68,9 @@ export abstract class BaseTransformer<
       this.filters,
       this.transformQuery(query, caller),
       caller,
-      this.fieldHandlers,
-      (qb, fieldPrefix) => this.modifyQueryBuilder(qb, fieldPrefix, query)
+      this.getFieldHandlers(caller),
+      (qb, fieldPrefix) =>
+        this.modifyQueryBuilder(qb, fieldPrefix, query, caller)
     );
 
     await this.modifyResult(result, query, caller);

@@ -6,7 +6,11 @@ import {
 } from "@beabee/beabee-common";
 
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
-import { mergeRules } from "@api/data/PaginatedData";
+import {
+  FieldHandlers,
+  mergeRules,
+  statusFieldHandler
+} from "@api/data/PaginatedData";
 import { GetNoticeDto, ListNoticesDto } from "@api/dto/NoticeDto";
 
 import Contact from "@models/Contact";
@@ -19,6 +23,10 @@ export class NoticeTransformer extends BaseTransformer<
 > {
   model = Notice;
   filters = noticeFilters;
+
+  protected getFieldHandlers(): FieldHandlers<NoticeFilterName> {
+    return { status: statusFieldHandler };
+  }
 
   convert(notice: Notice): GetNoticeDto {
     return {

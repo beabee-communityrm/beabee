@@ -31,7 +31,6 @@ import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 
 import { groupBy } from "@api/utils";
 
-import { convertCalloutToData } from "../CalloutData";
 import { convertContactToData, loadContactRoles } from "../ContactData";
 import {
   mergeRules,
@@ -51,6 +50,7 @@ import {
   CreateCalloutResponseData,
   GetCalloutResponseMapData
 } from "./interface";
+import CalloutTransformer from "@api/transformers/CalloutTransformer";
 
 function convertResponseToData(
   response: CalloutResponse,
@@ -71,7 +71,7 @@ function convertResponseToData(
       assignee: response.assignee && convertContactToData(response.assignee)
     }),
     ...(_with?.includes(GetCalloutResponseWith.Callout) && {
-      callout: convertCalloutToData(response.callout)
+      callout: CalloutTransformer.convert(response.callout)
     }),
     ...(_with?.includes(GetCalloutResponseWith.Contact) && {
       contact: response.contact && convertContactToData(response.contact)

@@ -12,13 +12,15 @@ import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
 import Contact from "@models/Contact";
-import Callout, { CalloutAccess } from "@models/Callout";
+import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
 import DuplicateId from "@api/errors/DuplicateId";
-import { CreateCalloutData } from "@api/data/CalloutData";
 
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+
+import { CalloutAccess } from "@enums/callout-access";
+import { CalloutData } from "@type/callout-data";
 
 class CalloutWithResponse extends Callout {
   response?: CalloutResponse;
@@ -56,7 +58,7 @@ class CalloutsService {
   }
 
   async createCallout(
-    data: CreateCalloutData & { slug: string },
+    data: CalloutData & { slug: string },
     autoSlug: number | false
   ): Promise<Callout> {
     const slug = data.slug + (autoSlug && autoSlug > 0 ? "-" + autoSlug : "");
