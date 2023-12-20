@@ -9,7 +9,7 @@ import {
   IsString,
   IsUUID
 } from "class-validator";
-import { StartContributionData } from "./ContributionData";
+import { StartContributionData } from "../dto/ContributionDto";
 import { CompleteJoinFlowData } from "./JoinFlowData";
 
 export class CompleteUrls {

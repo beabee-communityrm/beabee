@@ -17,9 +17,9 @@ import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
 import ValidPayFee from "@api/validators/ValidPayFee";
 
-import { StartJoinFlowData } from "./JoinFlowData";
+import { StartJoinFlowData } from "../data/JoinFlowData";
 
-export class UpdateContributionData {
+export class UpdateContributionDto {
   @Validate(MinContributionAmount)
   amount!: number;
 
@@ -40,7 +40,7 @@ export class UpdateContributionData {
 }
 
 export class StartContributionData
-  extends UpdateContributionData
+  extends UpdateContributionDto
   implements StartJoinFlowData
 {
   @IsUrl()
@@ -50,7 +50,7 @@ export class StartContributionData
   paymentMethod!: PaymentMethod;
 }
 
-export class ForceUpdateContributionData {
+export class ForceUpdateContributionDto {
   @IsIn([ContributionType.Manual, ContributionType.None])
   type!: ContributionType.Manual | ContributionType.None;
 

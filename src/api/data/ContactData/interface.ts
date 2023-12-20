@@ -19,7 +19,7 @@ import { GetPaginatedQuery } from "@api/data/PaginatedData";
 
 import Address from "@models/Address";
 
-import { ForceUpdateContributionData } from "../ContributionData";
+import { ForceUpdateContributionDto } from "../../dto/ContributionDto";
 import { UUIDParam } from "..";
 
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
@@ -168,8 +168,8 @@ class CreateContactRoleData
 export class CreateContactData extends UpdateContactData {
   @IsOptional()
   @ValidateNested()
-  @Type(() => ForceUpdateContributionData)
-  contribution?: ForceUpdateContributionData;
+  @Type(() => ForceUpdateContributionDto)
+  contribution?: ForceUpdateContributionDto;
 
   @IsOptional()
   @ValidateNested({ each: true })
