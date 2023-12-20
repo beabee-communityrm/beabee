@@ -14,15 +14,15 @@ import ContactsService from "@core/services/ContactsService";
 import { login } from "@api/utils";
 import { UUIDParam } from "@api/data";
 import {
-  CreateResetDeviceData,
-  UpdateResetDeviceData
-} from "@api/data/ResetDeviceData";
+  CreateResetDeviceDto,
+  UpdateResetDeviceDto
+} from "@api/dto/ResetDeviceDto";
 
 @JsonController("/reset-device")
 export class ResetDeviceController {
   @OnUndefined(204)
   @Post()
-  async create(@Body() data: CreateResetDeviceData): Promise<void> {
+  async create(@Body() data: CreateResetDeviceDto): Promise<void> {
     await ContactsService.resetDeviceBegin(
       data.email,
       data.type,
@@ -35,7 +35,7 @@ export class ResetDeviceController {
   async complete(
     @Req() req: Request,
     @Params() { id }: UUIDParam,
-    @Body() data: UpdateResetDeviceData
+    @Body() data: UpdateResetDeviceDto
   ): Promise<void> {
     const contact = await ContactsService.resetDeviceComplete(
       id,

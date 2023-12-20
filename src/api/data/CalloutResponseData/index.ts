@@ -27,11 +27,11 @@ import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
+import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 
 import { groupBy } from "@api/utils";
 
 import { convertCalloutToData } from "../CalloutData";
-import { convertTagToData } from "../CalloutTagData";
 import { convertContactToData, loadContactRoles } from "../ContactData";
 import {
   mergeRules,
@@ -83,7 +83,7 @@ function convertResponseToData(
     }),
     ...(_with?.includes(GetCalloutResponseWith.Tags) &&
       response.tags && {
-        tags: response.tags.map((rt) => convertTagToData(rt.tag))
+        tags: response.tags.map((rt) => CalloutTagTransformer.convert(rt.tag))
       })
   };
 }

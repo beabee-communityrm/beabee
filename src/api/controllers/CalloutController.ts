@@ -49,16 +49,13 @@ import {
   GetCalloutResponseMapData,
   GetCalloutResponsesQuery
 } from "@api/data/CalloutResponseData";
-import {
-  convertTagToData,
-  CreateCalloutTagData,
-  GetCalloutTagData
-} from "@api/data/CalloutTagData";
 import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
+import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
 
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 
 @JsonController("/callout")
 export class CalloutController {
@@ -219,44 +216,61 @@ export class CalloutController {
   @Authorized("admin")
   @Get("/:slug/tags")
   async getCalloutTags(
+    @CurrentUser() contact: Contact,
     @Param("slug") slug: string
-  ): Promise<GetCalloutTagData[]> {
-    const tags = await getRepository(CalloutTag).find({
-      where: { callout: { slug } }
-    });
-    return tags.map(convertTagToData);
+  ): Promise<GetCalloutTagDto[]> {
+    const result = await CalloutTagTransformer.fetch(
+      {
+        rules: {
+          condition: "AND",
+          rules: [{ field: "calloutSlug", operator: "equal", value: [slug] }]
+        }
+      },
+      contact
+    );
+
+    return result.items;
   }
 
   @Authorized("admin")
   @Post("/:slug/tags")
   async createCalloutTag(
     @Param("slug") slug: string,
-    @Body() data: CreateCalloutTagData
-  ): Promise<GetCalloutTagData> {
+    @Body() data: CreateCalloutTagDto
+  ): Promise<GetCalloutTagDto> {
     // TODO: handle foreign key error
     const tag = await getRepository(CalloutTag).save({
       name: data.name,
       description: data.description,
-      callout: { slug }
+      calloutSlug: slug
     });
 
-    return convertTagToData(tag);
+    return CalloutTagTransformer.convert(tag);
+  }
+
+  @Authorized("admin")
+  @Get("/:slug/tags/:tag")
+  async getCalloutTag(
+    @CurrentUser() contact: Contact,
+    @Param("tag") tagId: string
+  ): Promise<GetCalloutTagDto | undefined> {
+    return CalloutTagTransformer.fetchOneById(tagId, contact);
   }
 
   @Authorized("admin")
   @Patch("/:slug/tags/:tag")
   async updateCalloutTag(
+    @CurrentUser() contact: Contact,
     @Param("slug") slug: string,
     @Param("tag") tagId: string,
-    @PartialBody() data: CreateCalloutTagData // Partial<CreateCalloutTagData>
-  ): Promise<GetCalloutTagData | undefined> {
+    @PartialBody() data: CreateCalloutTagDto // Partial<CreateCalloutTagData>
+  ): Promise<GetCalloutTagDto | undefined> {
     await getRepository(CalloutTag).update(
       { id: tagId, callout: { slug } },
       data
     );
 
-    const tag = await getRepository(CalloutTag).findOneBy({ id: tagId });
-    return tag ? convertTagToData(tag) : undefined;
+    return CalloutTagTransformer.fetchOneById(tagId, contact);
   }
 
   @Authorized("admin")

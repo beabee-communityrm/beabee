@@ -19,26 +19,35 @@ import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
 
 import {
-  CreateApiKeyData,
-  GetApiKeysQuery,
-  GetApiKeyData,
-  fetchPaginatedApiKeys
-} from "@api/data/ApiKeyData";
+  CreateApiKeyDto,
+  GetApiKeyDto,
+  QueryApiKeysDto
+} from "@api/dto/ApiKeyDto";
 import { Paginated } from "@api/data/PaginatedData";
+import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 
 @JsonController("/api-key")
 @Authorized("admin")
 export class ApiKeyController {
   @Get("/")
   async getApiKeys(
-    @QueryParams() query: GetApiKeysQuery
-  ): Promise<Paginated<GetApiKeyData>> {
-    return await fetchPaginatedApiKeys(query);
+    @CurrentUser({ required: true }) runner: Contact,
+    @QueryParams() query: QueryApiKeysDto
+  ): Promise<Paginated<GetApiKeyDto>> {
+    return await ApiKeyTransformer.fetch(query, runner);
+  }
+
+  @Get("/:id")
+  async getApiKey(
+    @CurrentUser({ required: true }) runner: Contact,
+    @Param("id") id: string
+  ): Promise<GetApiKeyDto | undefined> {
+    return await ApiKeyTransformer.fetchOneById(id, runner);
   }
 
   @Post("/")
   async createApiKey(
-    @Body() data: CreateApiKeyData,
+    @Body() data: CreateApiKeyDto,
     @CurrentUser({ required: true }) creator: Contact
   ): Promise<{ token: string }> {
     const { id, secretHash, token } = generateApiKey();

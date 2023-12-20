@@ -1,9 +1,9 @@
 import { IsDate, IsIn, IsOptional, IsString } from "class-validator";
 import { GetContactData } from "@type/get-contact-data";
-import { GetPaginatedQuery } from "../PaginatedData";
+import { GetPaginatedQuery } from "../data/PaginatedData";
 import { Type } from "class-transformer";
 
-export class CreateApiKeyData {
+export class CreateApiKeyDto {
   @IsString()
   description!: string;
 
@@ -13,13 +13,13 @@ export class CreateApiKeyData {
   expires!: Date | null;
 }
 
-export interface GetApiKeyData extends CreateApiKeyData {
+export interface GetApiKeyDto extends CreateApiKeyDto {
   id: string;
   creator: GetContactData;
   createdAt: Date;
 }
 
-export class GetApiKeysQuery extends GetPaginatedQuery {
+export class QueryApiKeysDto extends GetPaginatedQuery {
   @IsIn(["createdAt", "expires"])
   sort?: string;
 }

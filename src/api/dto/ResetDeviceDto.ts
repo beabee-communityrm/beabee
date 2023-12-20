@@ -3,7 +3,7 @@ import IsPassword from "@api/validators/IsPassword";
 import IsUrl from "@api/validators/IsUrl";
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
-export class CreateResetDeviceData {
+export class CreateResetDeviceDto {
   @IsEmail()
   email!: string;
 
@@ -15,7 +15,7 @@ export class CreateResetDeviceData {
   type!: RESET_SECURITY_FLOW_TYPE.TOTP;
 }
 
-export class UpdateResetDeviceData {
+export class UpdateResetDeviceDto {
   @Validate(IsPassword)
   password!: string;
 

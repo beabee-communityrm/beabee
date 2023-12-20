@@ -1,12 +1,13 @@
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
-import { Filters, Paginated } from "@beabee/beabee-common";
+import { Filters, Paginated, RoleType } from "@beabee/beabee-common";
 import {
   FieldHandlers,
   GetPaginatedQuery,
   fetchPaginated
 } from "@api/data/PaginatedData";
 import Contact from "@models/Contact";
+import UnauthorizedError from "@api/errors/UnauthorizedError";
 
 export abstract class BaseTransformer<
   Model extends ObjectLiteral,
@@ -19,6 +20,7 @@ export abstract class BaseTransformer<
 
   fieldHandlers: FieldHandlers<FilterName> | undefined;
   modelIdField = "id";
+  allowedRoles: RoleType[] | undefined;
 
   abstract convert(
     model: Model,
@@ -43,6 +45,13 @@ export abstract class BaseTransformer<
   ): Promise<void> {}
 
   async fetch(query: Query, runner?: Contact): Promise<Paginated<GetDto>> {
+    if (
+      this.allowedRoles &&
+      !this.allowedRoles.some((r) => runner?.hasRole(r))
+    ) {
+      throw new UnauthorizedError();
+    }
+
     const result = await fetchPaginated(
       this.model,
       this.filters,

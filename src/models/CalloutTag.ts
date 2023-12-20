@@ -12,6 +12,8 @@ export default class CalloutTag {
   @Column()
   description!: string;
 
+  @Column()
+  calloutSlug!: string;
   @ManyToOne("Callout")
   callout!: Callout;
 }
