@@ -1,11 +1,11 @@
 import { IsString } from "class-validator";
 
-export interface GetEmailData {
+export interface GetEmailDto {
   subject: string;
   body: string;
 }
 
-export class UpdateEmailData implements GetEmailData {
+export class UpdateEmailDto implements GetEmailDto {
   @IsString()
   subject!: string;
 

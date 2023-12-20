@@ -9,10 +9,12 @@ import {
   IsString,
   IsUUID
 } from "class-validator";
-import { StartContributionData } from "../dto/ContributionDto";
-import { CompleteJoinFlowData } from "./JoinFlowData";
+import { StartContributionDto } from "./ContributionDto";
+import { CompleteJoinFlowDto } from "./JoinFlowDto";
 
-export class CompleteUrls {
+import { CompleteUrls } from "@type/complete-urls";
+
+export class SignupData implements CompleteUrls {
   @IsUrl()
   loginUrl!: string;
 
@@ -21,22 +23,20 @@ export class CompleteUrls {
 
   @IsUrl()
   confirmUrl!: string;
-}
 
-export class SignupData extends CompleteUrls {
   @IsEmail()
   email!: string;
 
   @Validate(IsPassword)
   password!: string;
 
-  @Type(() => StartContributionData)
+  @Type(() => StartContributionDto)
   @ValidateNested()
   @IsOptional()
-  contribution?: StartContributionData;
+  contribution?: StartContributionDto;
 }
 
-export class SignupCompleteData extends CompleteJoinFlowData {
+export class SignupCompleteData extends CompleteJoinFlowDto {
   @IsOptional()
   @IsString()
   firstname?: string;

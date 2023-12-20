@@ -25,10 +25,11 @@ import {
 import StripeProvider from "@core/providers/payment-flow/StripeProvider";
 import GCProvider from "@core/providers/payment-flow/GCProvider";
 
-import { CompleteUrls } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+
+import { CompleteUrls } from "@type/complete-urls";
 
 const paymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,

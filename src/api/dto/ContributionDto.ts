@@ -17,7 +17,7 @@ import IsUrl from "@api/validators/IsUrl";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
 import ValidPayFee from "@api/validators/ValidPayFee";
 
-import { StartJoinFlowData } from "../data/JoinFlowData";
+import { StartJoinFlowDto } from "./JoinFlowDto";
 
 export class UpdateContributionDto {
   @Validate(MinContributionAmount)
@@ -39,9 +39,9 @@ export class UpdateContributionDto {
   }
 }
 
-export class StartContributionData
+export class StartContributionDto
   extends UpdateContributionDto
-  implements StartJoinFlowData
+  implements StartJoinFlowDto
 {
   @IsUrl()
   completeUrl!: string;

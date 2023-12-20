@@ -2,7 +2,7 @@ import { PaymentMethod } from "@beabee/beabee-common";
 import IsUrl from "@api/validators/IsUrl";
 import { IsEnum, IsOptional, IsString } from "class-validator";
 
-export class StartJoinFlowData {
+export class StartJoinFlowDto {
   @IsUrl()
   completeUrl!: string;
 
@@ -11,7 +11,7 @@ export class StartJoinFlowData {
   paymentMethod?: PaymentMethod;
 }
 
-export class CompleteJoinFlowData {
+export class CompleteJoinFlowDto {
   @IsString()
   paymentFlowId!: string;
 }

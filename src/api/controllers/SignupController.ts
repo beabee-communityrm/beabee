@@ -21,7 +21,7 @@ import {
   SignupData,
   SignupCompleteData,
   SignupConfirmEmailParam
-} from "@api/data/SignupData";
+} from "@api/dto/SignupDto";
 import { login } from "@api/utils";
 
 @JsonController("/signup")

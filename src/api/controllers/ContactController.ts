@@ -56,15 +56,12 @@ import {
 import { GetContactData } from "@type/get-contact-data";
 import { GetContactRoleData } from "@type/get-contact-role-data";
 import { GetContactWith } from "@enums/get-contact-with";
+import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
 import {
-  CompleteJoinFlowData,
-  StartJoinFlowData
-} from "@api/data/JoinFlowData";
-import {
-  StartContributionData,
-  ForceUpdateContributionData,
-  UpdateContributionData
-} from "@api/data/ContributionData";
+  StartContributionDto,
+  ForceUpdateContributionDto,
+  UpdateContributionDto
+} from "@api/dto/ContributionDto";
 import { mergeRules, Paginated, GetExportQuery } from "@api/data/PaginatedData";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -245,7 +242,7 @@ export class ContactController {
   @Patch("/:id/contribution")
   async updateContribution(
     @TargetUser() target: Contact,
-    @Body() data: UpdateContributionData
+    @Body() data: UpdateContributionDto
   ): Promise<ContributionInfo> {
     if (!(await PaymentService.canChangeContribution(target, true, data))) {
       throw new CantUpdateContribution();
@@ -259,7 +256,7 @@ export class ContactController {
   @Post("/:id/contribution")
   async startContribution(
     @TargetUser() target: Contact,
-    @Body() data: StartContributionData
+    @Body() data: StartContributionDto
   ): Promise<PaymentFlowParams> {
     return await this.handleStartUpdatePaymentMethod(target, data);
   }
@@ -324,7 +321,7 @@ export class ContactController {
   @Post("/:id/contribution/complete")
   async completeStartContribution(
     @TargetUser() target: Contact,
-    @Body() data: CompleteJoinFlowData
+    @Body() data: CompleteJoinFlowDto
   ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
     await ContactsService.updateContactContribution(target, joinFlow.joinForm);
@@ -342,7 +339,7 @@ export class ContactController {
   @Patch("/:id/contribution/force")
   async forceUpdateContribution(
     @TargetUser() target: Contact,
-    @Body() data: ForceUpdateContributionData
+    @Body() data: ForceUpdateContributionDto
   ): Promise<ContributionInfo> {
     await ContactsService.forceUpdateContactContribution(target, data);
     return await this.getContribution(target);
@@ -367,7 +364,7 @@ export class ContactController {
   @Put("/:id/payment-method")
   async updatePaymentMethod(
     @TargetUser() target: Contact,
-    @Body() data: StartJoinFlowData
+    @Body() data: StartJoinFlowDto
   ): Promise<PaymentFlowParams> {
     const paymentMethod =
       data.paymentMethod || (await PaymentService.getData(target)).method;
@@ -390,7 +387,7 @@ export class ContactController {
   @Post("/:id/payment-method/complete")
   async completeUpdatePaymentMethod(
     @TargetUser() target: Contact,
-    @Body() data: CompleteJoinFlowData
+    @Body() data: CompleteJoinFlowDto
   ): Promise<ContributionInfo> {
     await this.handleCompleteUpdatePaymentMethod(target, data);
     return await this.getContribution(target);
@@ -398,7 +395,7 @@ export class ContactController {
 
   private async handleStartUpdatePaymentMethod(
     target: Contact,
-    data: StartContributionData
+    data: StartContributionDto
   ) {
     if (!(await PaymentService.canChangeContribution(target, false, data))) {
       throw new CantUpdateContribution();
@@ -424,7 +421,7 @@ export class ContactController {
 
   private async handleCompleteUpdatePaymentMethod(
     target: Contact,
-    data: CompleteJoinFlowData
+    data: CompleteJoinFlowDto
   ): Promise<JoinFlow> {
     const joinFlow = await PaymentFlowService.getJoinFlowByPaymentId(
       data.paymentFlowId
