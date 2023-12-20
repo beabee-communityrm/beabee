@@ -62,7 +62,7 @@ export class NoticeController {
     @PartialBody() data: CreateNoticeDto
   ): Promise<GetNoticeDto | undefined> {
     await getRepository(Notice).update(id, data);
-    return this.getNotice(contact, { id });
+    return await NoticeTransformer.fetchOneById(id, contact);
   }
 
   @OnUndefined(204)

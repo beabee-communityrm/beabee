@@ -17,10 +17,10 @@ import {
 } from "class-validator";
 import { UUIDParam } from "..";
 import { GetCalloutData } from "../CalloutData";
-import { GetCalloutResponseCommentData } from "../CalloutResponseCommentData/interface";
 import { GetCalloutTagData } from "../CalloutTagData";
 import { GetContactData } from "@type/get-contact-data";
 import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
+import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
@@ -66,7 +66,7 @@ export interface GetCalloutResponseData {
   contact?: GetContactData | null;
   tags?: GetCalloutTagData[];
   assignee?: GetContactData | null;
-  latestComment?: GetCalloutResponseCommentData | null;
+  latestComment?: GetCalloutResponseCommentDto | null;
 }
 
 export interface GetCalloutResponseMapData {

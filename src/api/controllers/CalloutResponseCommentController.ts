@@ -1,19 +1,4 @@
-import { UUIDParam } from "@api/data";
-import {
-  convertCommentToData,
-  fetchPaginatedCalloutResponseComments
-} from "@api/data/CalloutResponseCommentData";
-import {
-  GetCalloutResponseCommentData,
-  GetCalloutResponseCommentsQuery,
-  CreateCalloutResponseCommentData,
-  UpdateCalloutResponseComment
-} from "@api/data/CalloutResponseCommentData/interface";
-import PartialBody from "@api/decorators/PartialBody";
 import { Paginated } from "@beabee/beabee-common";
-import { getRepository } from "@core/database";
-import CalloutResponseComment from "@models/CalloutResponseComment";
-import Contact from "@models/Contact";
 import {
   Authorized,
   Body,
@@ -29,14 +14,28 @@ import {
   QueryParams
 } from "routing-controllers";
 
+import { getRepository } from "@core/database";
+
+import { UUIDParam } from "@api/data";
+import PartialBody from "@api/decorators/PartialBody";
+
+import CalloutResponseComment from "@models/CalloutResponseComment";
+import Contact from "@models/Contact";
+import {
+  CreateCalloutResponseCommentDto,
+  GetCalloutResponseCommentDto,
+  QueryCalloutResponseCommentsDto
+} from "@api/dto/CalloutResponseCommentDto";
+import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
+
 @JsonController("/callout-response-comments")
 @Authorized("admin")
 export class CalloutResponseCommentController {
   @Post("/")
   async createCalloutReponseComment(
-    @Body() data: CreateCalloutResponseCommentData,
+    @Body() data: CreateCalloutResponseCommentDto,
     @CurrentUser({ required: true }) contact: Contact
-  ): Promise<GetCalloutResponseCommentData> {
+  ): Promise<GetCalloutResponseCommentDto> {
     const comment: CalloutResponseComment = await getRepository(
       CalloutResponseComment
     ).save({
@@ -44,36 +43,33 @@ export class CalloutResponseCommentController {
       contact: contact,
       response: { id: data.responseId }
     });
-    return convertCommentToData(comment);
+    return CalloutResponseCommentTransformer.convert(comment);
   }
 
   @Get("/")
   async getCalloutResponseComments(
-    @QueryParams() query: GetCalloutResponseCommentsQuery
-  ): Promise<Paginated<GetCalloutResponseCommentData>> {
-    return fetchPaginatedCalloutResponseComments(query);
+    @CurrentUser({ required: true }) contact: Contact,
+    @QueryParams() query: QueryCalloutResponseCommentsDto
+  ): Promise<Paginated<GetCalloutResponseCommentDto>> {
+    return await CalloutResponseCommentTransformer.fetch(query, contact);
   }
 
   @Get("/:id")
   async getCalloutResponseComment(
+    @CurrentUser({ required: true }) contact: Contact,
     @Params() { id }: UUIDParam
-  ): Promise<GetCalloutResponseCommentData | undefined> {
-    const comment = await getRepository(CalloutResponseComment).findOne({
-      where: { id: id },
-      relations: { contact: true }
-    });
-    if (comment) {
-      return convertCommentToData(comment);
-    }
+  ): Promise<GetCalloutResponseCommentDto | undefined> {
+    return await CalloutResponseCommentTransformer.fetchOneById(id, contact);
   }
 
   @Patch("/:id")
   async updateCalloutResponseComment(
+    @CurrentUser({ required: true }) contact: Contact,
     @Params() { id }: UUIDParam,
-    @PartialBody() data: UpdateCalloutResponseComment
-  ): Promise<GetCalloutResponseCommentData | undefined> {
+    @PartialBody() data: CreateCalloutResponseCommentDto
+  ): Promise<GetCalloutResponseCommentDto | undefined> {
     await getRepository(CalloutResponseComment).update(id, data);
-    return this.getCalloutResponseComment({ id });
+    return await CalloutResponseCommentTransformer.fetchOneById(id, contact);
   }
 
   @OnUndefined(204)

@@ -26,11 +26,12 @@ import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
+import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
+
 import { groupBy } from "@api/utils";
 
 import { convertCalloutToData } from "../CalloutData";
 import { convertTagToData } from "../CalloutTagData";
-import { convertCommentToData } from "../CalloutResponseCommentData";
 import { convertContactToData, loadContactRoles } from "../ContactData";
 import {
   mergeRules,
@@ -77,7 +78,8 @@ function convertResponseToData(
     }),
     ...(_with?.includes(GetCalloutResponseWith.LatestComment) && {
       latestComment:
-        response.latestComment && convertCommentToData(response.latestComment)
+        response.latestComment &&
+        CalloutResponseCommentTransformer.convert(response.latestComment)
     }),
     ...(_with?.includes(GetCalloutResponseWith.Tags) &&
       response.tags && {
