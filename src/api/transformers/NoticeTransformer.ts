@@ -37,14 +37,14 @@ export class NoticeTransformer extends BaseTransformer<
 
   protected transformQuery(
     query: ListNoticesDto,
-    runner: Contact | undefined
+    caller: Contact | undefined
   ): ListNoticesDto {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
         // Non-admins can only see open notices
-        !runner?.hasRole("admin") && {
+        !caller?.hasRole("admin") && {
           field: "status",
           operator: "equal",
           value: [ItemStatus.Open]

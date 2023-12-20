@@ -40,13 +40,13 @@ class PaymentTransformer extends BaseTransformer<
 
   protected transformQuery(
     query: ListPaymentsDto,
-    runner: Contact | undefined
+    caller: Contact | undefined
   ): ListPaymentsDto {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
-        !runner?.hasRole("admin") && {
+        !caller?.hasRole("admin") && {
           field: "contact",
           operator: "equal",
           value: ["me"]

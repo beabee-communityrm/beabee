@@ -55,34 +55,6 @@ export class GetCalloutsQuery extends GetPaginatedQuery {
   sort?: string;
 }
 
-// function Paginate<TBase extends { new (...args: any[]): GetExportQuery }>(
-//   Base: TBase,
-//   sortFields: readonly string[]
-// ) {
-//   class PaginatedBase extends Base implements PaginatedQuery {
-//     @IsOptional()
-//     @Min(1)
-//     @Max(100)
-//     limit?: number;
-
-//     @IsOptional()
-//     @Min(0)
-//     offset?: number;
-
-//     @IsOptional()
-//     @IsIn(["ASC", "DESC"])
-//     order?: "ASC" | "DESC";
-
-//     @IsOptional()
-//     @IsIn(sortFields)
-//     sort?: string;
-//   }
-
-//   return PaginatedBase;
-// }
-
-// const GetCalloutsQuery = Paginate(GetCalloutQuery, sortFields);
-
 interface CalloutData {
   slug?: string;
   title: string;

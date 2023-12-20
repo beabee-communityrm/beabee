@@ -27,9 +27,9 @@ export abstract class BaseTransformer<
   modelIdField = "id";
   allowedRoles: RoleType[] | undefined;
 
-  abstract convert(model: Model, opts: GetDtoOpts, runner?: Contact): GetDto;
+  abstract convert(model: Model, opts: GetDtoOpts, caller?: Contact): GetDto;
 
-  protected transformQuery(query: Query, runner: Contact | undefined): Query {
+  protected transformQuery(query: Query, caller: Contact | undefined): Query {
     return query;
   }
 
@@ -42,16 +42,16 @@ export abstract class BaseTransformer<
   protected async modifyResult(
     result: Paginated<Model>,
     query: Query,
-    runner: Contact | undefined
+    caller: Contact | undefined
   ): Promise<void> {}
 
   async fetch(
-    runner: Contact | undefined,
+    caller: Contact | undefined,
     query: Query
   ): Promise<Paginated<GetDto>> {
     if (
       this.allowedRoles &&
-      !this.allowedRoles.some((r) => runner?.hasRole(r))
+      !this.allowedRoles.some((r) => caller?.hasRole(r))
     ) {
       throw new UnauthorizedError();
     }
@@ -59,30 +59,30 @@ export abstract class BaseTransformer<
     const result = await fetchPaginated(
       this.model,
       this.filters,
-      this.transformQuery(query, runner),
-      runner,
+      this.transformQuery(query, caller),
+      caller,
       this.fieldHandlers,
       (qb, fieldPrefix) => this.modifyQueryBuilder(qb, fieldPrefix, query)
     );
 
-    await this.modifyResult(result, query, runner);
+    await this.modifyResult(result, query, caller);
 
     return {
       ...result,
-      items: result.items.map((item) => this.convert(item, query, runner))
+      items: result.items.map((item) => this.convert(item, query, caller))
     };
   }
 
   async fetchOne(
-    runner: Contact | undefined,
+    caller: Contact | undefined,
     query: Query
   ): Promise<GetDto | undefined> {
-    const result = await this.fetch(runner, { ...query, limit: 1 });
+    const result = await this.fetch(caller, { ...query, limit: 1 });
     return result.items[0];
   }
 
   async fetchOneById(
-    runner: Contact | undefined,
+    caller: Contact | undefined,
     id: string,
     opts?: GetDtoOpts
   ): Promise<GetDto | undefined> {
@@ -94,15 +94,15 @@ export abstract class BaseTransformer<
       }
     } as Query;
 
-    return await this.fetchOne(runner, query);
+    return await this.fetchOne(caller, query);
   }
 
   async fetchOneByIdOrFail(
-    runner: Contact | undefined,
+    caller: Contact | undefined,
     id: string,
     opts?: GetDtoOpts
   ): Promise<GetDto> {
-    const result = await this.fetchOneById(runner, id, opts);
+    const result = await this.fetchOneById(caller, id, opts);
     if (!result) {
       throw new NotFoundError();
     }

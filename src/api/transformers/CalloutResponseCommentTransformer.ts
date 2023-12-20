@@ -38,13 +38,13 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
 
   protected transformQuery(
     query: ListCalloutResponseCommentsDto,
-    runner: Contact | undefined
+    caller: Contact | undefined
   ): ListCalloutResponseCommentsDto {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
-        !runner?.hasRole("admin") && {
+        !caller?.hasRole("admin") && {
           field: "contact",
           operator: "equal",
           value: ["me"]

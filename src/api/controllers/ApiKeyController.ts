@@ -31,18 +31,18 @@ import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 export class ApiKeyController {
   @Get("/")
   async getApiKeys(
-    @CurrentUser({ required: true }) runner: Contact,
+    @CurrentUser({ required: true }) caller: Contact,
     @QueryParams() query: ListApiKeysDto
   ): Promise<Paginated<GetApiKeyDto>> {
-    return await ApiKeyTransformer.fetch(runner, query);
+    return await ApiKeyTransformer.fetch(caller, query);
   }
 
   @Get("/:id")
   async getApiKey(
-    @CurrentUser({ required: true }) runner: Contact,
+    @CurrentUser({ required: true }) caller: Contact,
     @Param("id") id: string
   ): Promise<GetApiKeyDto | undefined> {
-    return await ApiKeyTransformer.fetchOneById(runner, id);
+    return await ApiKeyTransformer.fetchOneById(caller, id);
   }
 
   @Post("/")

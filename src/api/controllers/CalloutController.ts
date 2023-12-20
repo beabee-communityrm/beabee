@@ -216,10 +216,10 @@ export class CalloutController {
   @Authorized("admin")
   @Get("/:slug/tags")
   async getCalloutTags(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string
   ): Promise<GetCalloutTagDto[]> {
-    const result = await CalloutTagTransformer.fetch(contact, {
+    const result = await CalloutTagTransformer.fetch(caller, {
       rules: {
         condition: "AND",
         rules: [{ field: "calloutSlug", operator: "equal", value: [slug] }]
@@ -248,16 +248,16 @@ export class CalloutController {
   @Authorized("admin")
   @Get("/:slug/tags/:tag")
   async getCalloutTag(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Param("tag") tagId: string
   ): Promise<GetCalloutTagDto | undefined> {
-    return CalloutTagTransformer.fetchOneById(contact, tagId);
+    return CalloutTagTransformer.fetchOneById(caller, tagId);
   }
 
   @Authorized("admin")
   @Patch("/:slug/tags/:tag")
   async updateCalloutTag(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
     @Param("tag") tagId: string,
     @PartialBody() data: CreateCalloutTagDto // Partial<CreateCalloutTagData>
@@ -267,7 +267,7 @@ export class CalloutController {
       data
     );
 
-    return CalloutTagTransformer.fetchOneById(contact, tagId);
+    return CalloutTagTransformer.fetchOneById(caller, tagId);
   }
 
   @Authorized("admin")
