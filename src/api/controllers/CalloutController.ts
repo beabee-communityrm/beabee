@@ -84,7 +84,10 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutOptsDto
   ): Promise<GetCalloutDto | undefined> {
-    return CalloutTransformer.fetchOneById(caller, slug, query);
+    return CalloutTransformer.fetchOneById(caller, slug, {
+      ...query,
+      showHiddenForAll: true
+    });
   }
 
   @Authorized("admin")

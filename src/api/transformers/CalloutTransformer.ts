@@ -108,7 +108,7 @@ class CalloutTransformer extends BaseTransformer<
     };
   }
 
-  transformQuery(
+  protected transformQuery(
     query: ListCalloutsDto,
     caller: Contact | undefined
   ): ListCalloutsDto {
@@ -141,8 +141,11 @@ class CalloutTransformer extends BaseTransformer<
             }
           ]
         },
-        // TODO: conditional on fetchOne vs fetch
-        { field: "hidden", operator: "equal", value: [false] }
+        !query.showHiddenForAll && {
+          field: "hidden",
+          operator: "equal",
+          value: [false]
+        }
       ])
     };
   }
@@ -150,9 +153,9 @@ class CalloutTransformer extends BaseTransformer<
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Callout>,
     fieldPrefix: string,
-    opts: GetCalloutOptsDto
+    query: ListCalloutsDto
   ): void {
-    if (opts.with?.includes(GetCalloutWith.ResponseCount)) {
+    if (query.with?.includes(GetCalloutWith.ResponseCount)) {
       qb.loadRelationCountAndMap(
         `${fieldPrefix}responseCount`,
         `${fieldPrefix}responses`
@@ -162,7 +165,7 @@ class CalloutTransformer extends BaseTransformer<
 
   protected async modifyResult(
     result: Paginated<Callout>,
-    query: GetCalloutOptsDto & PaginatedQuery,
+    query: ListCalloutsDto,
     caller: Contact | undefined
   ): Promise<void> {
     if (

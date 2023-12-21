@@ -1,6 +1,7 @@
 import { CalloutFormSchema, ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
+  Equals,
   IsArray,
   IsBoolean,
   IsDate,
@@ -38,6 +39,10 @@ export class GetCalloutOptsDto extends GetExportQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
+
+  // This property can only be set internally, not via query params
+  @Equals(false)
+  showHiddenForAll: boolean = false;
 }
 
 export class ListCalloutsDto extends GetPaginatedQuery {
@@ -47,6 +52,10 @@ export class ListCalloutsDto extends GetPaginatedQuery {
 
   @IsIn(["title", "starts", "expires"])
   sort?: string;
+
+  // This property can only be set internally, not via query params
+  @Equals(false)
+  showHiddenForAll: boolean = false;
 }
 
 export interface GetCalloutDto extends CalloutData {

@@ -42,7 +42,7 @@ export abstract class BaseTransformer<
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Model>,
     fieldPrefix: string,
-    opts: GetDtoOpts,
+    query: Query,
     caller: Contact | undefined
   ): void {}
 
