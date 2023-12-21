@@ -33,7 +33,6 @@ import { generatePassword } from "@core/utils/auth";
 import Contact from "@models/Contact";
 import JoinFlow from "@models/JoinFlow";
 
-import { UUIDParam } from "@api/data";
 import {
   CreateContactDto,
   GetContactDto,
@@ -47,7 +46,6 @@ import {
   GetContactMfaDto
 } from "@api/dto/ContactMfaDto";
 import {
-  ContactRoleParams,
   GetContactRoleDto,
   UpdateContactRoleDto
 } from "@api/dto/ContactRoleDto";
@@ -58,18 +56,20 @@ import {
 } from "@api/dto/ContributionDto";
 import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
 import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
+
 import { mergeRules, Paginated, GetExportQuery } from "@api/data/PaginatedData";
+import PartialBody from "@api/decorators/PartialBody";
+import { UnauthorizedError } from "@api/errors/UnauthorizedError";
+import CantUpdateContribution from "@api/errors/CantUpdateContribution";
+import NoPaymentMethod from "@api/errors/NoPaymentMethod";
+import { ContactRoleParams } from "@api/params/ContactRoleParams";
+import { UUIDParams } from "@api/params/UUIDParams";
+import { validateOrReject } from "@api/utils";
 
 import ContactExporter from "@api/transformers/ContactExporter";
 import ContactTransformer from "@api/transformers/ContactTransformer";
 import ContactRoleTransformer from "@api/transformers/ContactRoleTransformer";
 import PaymentTransformer from "@api/transformers/PaymentTransformer";
-
-import PartialBody from "@api/decorators/PartialBody";
-import { UnauthorizedError } from "@api/errors/UnauthorizedError";
-import CantUpdateContribution from "@api/errors/CantUpdateContribution";
-import NoPaymentMethod from "@api/errors/NoPaymentMethod";
-import { validateOrReject } from "@api/utils";
 
 import { GetContactWith } from "@enums/get-contact-with";
 
@@ -93,7 +93,7 @@ function TargetUser() {
 
       const id = request.params.id;
       if (auth === true || (id !== "me" && auth.hasRole("admin"))) {
-        const uuid = new UUIDParam();
+        const uuid = new UUIDParams();
         uuid.id = id;
         await validateOrReject(uuid);
 

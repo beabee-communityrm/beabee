@@ -18,8 +18,8 @@ import { getRepository } from "@core/database";
 import Contact from "@models/Contact";
 import UploadFlow from "@models/UploadFlow";
 
-import { UUIDParam } from "@api/data";
 import BadRequestError from "@api/errors/BadRequestError";
+import { UUIDParams } from "@api/params/UUIDParams";
 
 async function canUploadOrFail(ipAddress: string, date: Date, max: number) {
   const uploadFlows = await getRepository(UploadFlow).find({
@@ -64,7 +64,7 @@ export class UploadController {
   // auth_request directive to call this endpoint and it only does GET requests
   @Get("/:id")
   @OnUndefined(204)
-  async get(@Params() { id }: UUIDParam) {
+  async get(@Params() { id }: UUIDParams) {
     // Flows are valid for a minute
     const oneMinAgo = sub(new Date(), { minutes: 1 });
     const res = await getRepository(UploadFlow).update(

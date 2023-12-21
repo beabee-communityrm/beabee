@@ -1,12 +1,6 @@
-import { UUIDParam } from "@api/data";
 import { RoleType, RoleTypes } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import { IsDate, IsIn, IsOptional } from "class-validator";
-
-export class ContactRoleParams extends UUIDParam {
-  @IsIn(RoleTypes)
-  roleType!: RoleType;
-}
 
 export class UpdateContactRoleDto {
   @Type(() => Date)

@@ -6,8 +6,7 @@ import {
   Validate,
   ValidateNested,
   IsOptional,
-  IsString,
-  IsUUID
+  IsString
 } from "class-validator";
 import { StartContributionDto } from "./ContributionDto";
 import { CompleteJoinFlowDto } from "./JoinFlowDto";
@@ -44,9 +43,4 @@ export class SignupCompleteData extends CompleteJoinFlowDto {
   @IsOptional()
   @IsString()
   lastname?: string;
-}
-
-export class SignupConfirmEmailParam {
-  @IsUUID("4")
-  joinFlowId!: string;
 }

@@ -15,8 +15,6 @@ import {
   IsDefined,
   IsUUID
 } from "class-validator";
-
-import { UUIDParam } from "../data";
 import {
   GetPaginatedQuery,
   GetPaginatedRuleGroup
@@ -33,11 +31,6 @@ export enum GetCalloutResponseWith {
   Contact = "contact",
   LatestComment = "latestComment",
   Tags = "tags"
-}
-
-export class GetCalloutResponseParam extends UUIDParam {
-  @IsString()
-  slug!: string;
 }
 
 export class GetCalloutResponseOptsDto {

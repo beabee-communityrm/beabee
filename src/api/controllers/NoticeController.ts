@@ -19,13 +19,13 @@ import { getRepository } from "@core/database";
 import Contact from "@models/Contact";
 import Notice from "@models/Notice";
 
-import { UUIDParam } from "@api/data";
 import PartialBody from "@api/decorators/PartialBody";
 import {
   CreateNoticeDto,
   GetNoticeDto,
   ListNoticesDto
 } from "@api/dto/NoticeDto";
+import { UUIDParams } from "@api/params/UUIDParams";
 import NoticeTransformer from "@api/transformers/NoticeTransformer";
 
 @JsonController("/notice")
@@ -42,7 +42,7 @@ export class NoticeController {
   @Get("/:id")
   async getNotice(
     @CurrentUser() caller: Contact,
-    @Params() { id }: UUIDParam
+    @Params() { id }: UUIDParams
   ): Promise<GetNoticeDto | undefined> {
     return await NoticeTransformer.fetchOneById(caller, id);
   }
@@ -58,7 +58,7 @@ export class NoticeController {
   @Authorized("admin")
   async updateNotice(
     @CurrentUser() caller: Contact,
-    @Params() { id }: UUIDParam,
+    @Params() { id }: UUIDParams,
     @PartialBody() data: CreateNoticeDto
   ): Promise<GetNoticeDto | undefined> {
     await getRepository(Notice).update(id, data);
@@ -68,7 +68,7 @@ export class NoticeController {
   @OnUndefined(204)
   @Delete("/:id")
   @Authorized("admin")
-  async deleteNotice(@Params() { id }: UUIDParam) {
+  async deleteNotice(@Params() { id }: UUIDParams) {
     const result = await getRepository(Notice).delete(id);
     if (!result.affected) throw new NotFoundError();
   }

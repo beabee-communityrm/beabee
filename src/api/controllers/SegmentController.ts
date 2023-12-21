@@ -15,7 +15,6 @@ import {
 
 import { getRepository } from "@core/database";
 
-import { UUIDParam } from "@api/data";
 import { Paginated } from "@api/data/PaginatedData";
 import { GetContactDto, ListContactsDto } from "@api/dto/ContactDto";
 import {
@@ -26,6 +25,7 @@ import {
   GetSegmentOptsDto
 } from "@api/dto/SegmentDto";
 import PartialBody from "@api/decorators/PartialBody";
+import { UUIDParams } from "@api/params/UUIDParams";
 import ContactTransformer from "@api/transformers/ContactTransformer";
 import SegmentTransformer from "@api/transformers/SegmentTransformer";
 
@@ -69,7 +69,7 @@ export class SegmentController {
   @Get("/:id")
   async getSegment(
     @CurrentUser() caller: Contact,
-    @Params() { id }: UUIDParam,
+    @Params() { id }: UUIDParams,
     @QueryParams() opts: GetSegmentOptsDto
   ): Promise<GetSegmentDto | undefined> {
     return await SegmentTransformer.fetchOneById(caller, id, opts);
@@ -78,7 +78,7 @@ export class SegmentController {
   @Patch("/:id")
   async updateSegment(
     @CurrentUser() caller: Contact,
-    @Params() { id }: UUIDParam,
+    @Params() { id }: UUIDParams,
     @PartialBody() data: CreateSegmentDto
   ): Promise<GetSegmentDto | undefined> {
     await getRepository(Segment).update(id, data);
@@ -89,7 +89,7 @@ export class SegmentController {
 
   @Delete("/:id")
   @OnUndefined(204)
-  async deleteSegment(@Params() { id }: UUIDParam): Promise<void> {
+  async deleteSegment(@Params() { id }: UUIDParams): Promise<void> {
     await getRepository(SegmentContact).delete({ segment: { id } });
     await getRepository(SegmentOngoingEmail).delete({ segment: { id } });
     const result = await getRepository(Segment).delete(id);
@@ -101,7 +101,7 @@ export class SegmentController {
   @Get("/:id/contacts")
   async getSegmentContacts(
     @CurrentUser() caller: Contact,
-    @Params() { id }: UUIDParam,
+    @Params() { id }: UUIDParams,
     @QueryParams() query: ListContactsDto
   ): Promise<Paginated<GetContactDto> | undefined> {
     const segment = await getRepository(Segment).findOneBy({ id });

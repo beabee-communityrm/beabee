@@ -16,17 +16,18 @@ import {
 
 import { getRepository } from "@core/database";
 
-import { UUIDParam } from "@api/data";
 import PartialBody from "@api/decorators/PartialBody";
-
-import CalloutResponseComment from "@models/CalloutResponseComment";
-import Contact from "@models/Contact";
 import {
   CreateCalloutResponseCommentDto,
   GetCalloutResponseCommentDto,
   ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
+import { UUIDParams } from "@api/params/UUIDParams";
+
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
+
+import CalloutResponseComment from "@models/CalloutResponseComment";
+import Contact from "@models/Contact";
 
 @JsonController("/callout-response-comments")
 @Authorized("admin")
@@ -57,7 +58,7 @@ export class CalloutResponseCommentController {
   @Get("/:id")
   async getCalloutResponseComment(
     @CurrentUser({ required: true }) caller: Contact,
-    @Params() { id }: UUIDParam
+    @Params() { id }: UUIDParams
   ): Promise<GetCalloutResponseCommentDto | undefined> {
     return await CalloutResponseCommentTransformer.fetchOneById(caller, id);
   }
@@ -65,7 +66,7 @@ export class CalloutResponseCommentController {
   @Patch("/:id")
   async updateCalloutResponseComment(
     @CurrentUser({ required: true }) caller: Contact,
-    @Params() { id }: UUIDParam,
+    @Params() { id }: UUIDParams,
     @PartialBody() data: CreateCalloutResponseCommentDto
   ): Promise<GetCalloutResponseCommentDto | undefined> {
     await getRepository(CalloutResponseComment).update(id, data);
@@ -74,7 +75,7 @@ export class CalloutResponseCommentController {
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteCalloutResponseComment(@Params() { id }: UUIDParam) {
+  async deleteCalloutResponseComment(@Params() { id }: UUIDParams) {
     const result = await getRepository(CalloutResponseComment).delete(id);
     if (!result.affected) throw new NotFoundError();
   }

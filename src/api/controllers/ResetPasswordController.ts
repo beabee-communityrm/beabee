@@ -12,11 +12,11 @@ import {
 import ContactsService from "@core/services/ContactsService";
 
 import { login } from "@api/utils";
-import { UUIDParam } from "@api/data";
 import {
   CreateResetPasswordDto,
   UpdateResetPasswordDto
 } from "@api/dto/ResetPasswordDto";
+import { UUIDParams } from "@api/params/UUIDParams";
 
 @JsonController("/reset-password")
 export class ResetPasswordController {
@@ -30,7 +30,7 @@ export class ResetPasswordController {
   @Put("/:id")
   async complete(
     @Req() req: Request,
-    @Params() { id }: UUIDParam,
+    @Params() { id }: UUIDParams,
     @Body() data: UpdateResetPasswordDto
   ): Promise<void> {
     const contact = await ContactsService.resetPasswordComplete(id, data);
