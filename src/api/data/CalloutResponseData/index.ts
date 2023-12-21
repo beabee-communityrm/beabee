@@ -31,6 +31,7 @@ import ContactTransformer, {
 } from "../../transformers/ContactTransformer";
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
+import CalloutTransformer from "@api/transformers/CalloutTransformer";
 
 import { groupBy } from "@api/utils";
 
@@ -52,8 +53,6 @@ import {
   CreateCalloutResponseData,
   GetCalloutResponseMapData
 } from "./interface";
-import CalloutTransformer from "@api/transformers/CalloutTransformer";
-import { ContactController } from "@api/controllers/ContactController";
 
 function convertResponseToData(
   response: CalloutResponse,
