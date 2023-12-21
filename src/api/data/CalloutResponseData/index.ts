@@ -46,18 +46,18 @@ import {
 
 import {
   GetCalloutResponseWith,
-  GetCalloutResponseData,
-  GetCalloutResponsesQuery,
-  GetCalloutResponseQuery,
+  GetCalloutResponseDto,
+  ListCalloutResponsesDto,
+  GetCalloutResponseOptsDto,
   BatchUpdateCalloutResponseData,
-  CreateCalloutResponseData,
-  GetCalloutResponseMapData
-} from "./interface";
+  CreateCalloutResponseDto,
+  GetCalloutResponseMapDto
+} from "../../dto/CalloutResponseDto";
 
 function convertResponseToData(
   response: CalloutResponse,
   _with?: GetCalloutResponseWith[]
-): GetCalloutResponseData {
+): GetCalloutResponseDto {
   return {
     id: response.id,
     number: response.number,
@@ -95,7 +95,7 @@ function convertResponsesToMapData(
   formSchema: CalloutFormSchema,
   { titleProp, imageProp, map }: CalloutResponseViewSchema,
   responses: CalloutResponse[]
-): GetCalloutResponseMapData[] {
+): GetCalloutResponseMapDto[] {
   return responses.map((response) => {
     let title = "",
       images: CalloutResponseAnswer[] = [],
@@ -142,7 +142,7 @@ function convertResponsesToMapData(
   });
 }
 
-function getUpdateData(data: Partial<CreateCalloutResponseData>): {
+function getUpdateData(data: Partial<CreateCalloutResponseDto>): {
   tagUpdates: string[] | undefined;
   responseUpdates: QueryDeepPartialEntity<CalloutResponse>;
 } {
@@ -189,7 +189,7 @@ async function updateResponseTags(responseIds: string[], tagUpdates: string[]) {
 
 export async function updateCalloutResponse(
   id: string,
-  data: Partial<CreateCalloutResponseData>
+  data: Partial<CreateCalloutResponseDto>
 ): Promise<void> {
   const { tagUpdates, responseUpdates } = getUpdateData(data);
   await getRepository(CalloutResponse).update(id, responseUpdates);
@@ -412,10 +412,10 @@ export async function exportCalloutResponses(
 }
 
 export async function fetchPaginatedCalloutResponses(
-  query: GetCalloutResponsesQuery,
+  query: ListCalloutResponsesDto,
   contact: Contact,
   callout?: Callout
-): Promise<Paginated<GetCalloutResponseData>> {
+): Promise<Paginated<GetCalloutResponseDto>> {
   const [rules, filters, fieldHandlers] = await prepareQuery(
     query.rules,
     contact,
@@ -465,7 +465,7 @@ export async function fetchPaginatedCalloutResponses(
         item.assignee,
         item.latestComment?.contact
       ])
-      .filter((c) => !!c) as Contact[];
+      .filter((c): c is Contact => !!c);
     await loadContactRoles(contacts);
 
     if (query.with?.includes(GetCalloutResponseWith.Tags)) {
@@ -488,10 +488,10 @@ export async function fetchPaginatedCalloutResponses(
 }
 
 export async function fetchPaginatedCalloutResponsesForMap(
-  query: GetCalloutResponsesQuery,
+  query: ListCalloutResponsesDto,
   contact: Contact | undefined,
   callout: Callout
-): Promise<Paginated<GetCalloutResponseMapData>> {
+): Promise<Paginated<GetCalloutResponseMapDto>> {
   const responseViewSchema = callout.responseViewSchema;
   if (!responseViewSchema) {
     throw new NotFoundError();
@@ -568,9 +568,9 @@ export async function batchUpdateCalloutResponses(
 
 export async function fetchCalloutResponse(
   id: string,
-  query: GetCalloutResponseQuery,
+  query: GetCalloutResponseOptsDto,
   contact: Contact
-): Promise<GetCalloutResponseData | undefined> {
+): Promise<GetCalloutResponseDto | undefined> {
   const a = await fetchPaginatedCalloutResponses(
     {
       ...query,
@@ -586,4 +586,4 @@ export async function fetchCalloutResponse(
   return a.items[0];
 }
 
-export * from "./interface";
+export * from "../../dto/CalloutResponseDto";

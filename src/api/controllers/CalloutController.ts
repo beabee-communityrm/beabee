@@ -38,13 +38,13 @@ import {
   ListCalloutsDto
 } from "@api/dto/CalloutDto";
 import {
-  CreateCalloutResponseData,
+  CreateCalloutResponseDto,
   exportCalloutResponses,
   fetchPaginatedCalloutResponses,
   fetchPaginatedCalloutResponsesForMap,
-  GetCalloutResponseData,
-  GetCalloutResponseMapData,
-  GetCalloutResponsesQuery
+  GetCalloutResponseDto,
+  GetCalloutResponseMapDto,
+  ListCalloutResponsesDto
 } from "@api/data/CalloutResponseData";
 import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
 import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
@@ -141,8 +141,8 @@ export class CalloutController {
   async getCalloutResponses(
     @CurrentUser() contact: Contact,
     @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutResponsesQuery
-  ): Promise<Paginated<GetCalloutResponseData>> {
+    @QueryParams() query: ListCalloutResponsesDto
+  ): Promise<Paginated<GetCalloutResponseDto>> {
     const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {
       throw new NotFoundError();
@@ -174,8 +174,8 @@ export class CalloutController {
   async getCalloutResponsesMap(
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutResponsesQuery
-  ): Promise<Paginated<GetCalloutResponseMapData>> {
+    @QueryParams() query: ListCalloutResponsesDto
+  ): Promise<Paginated<GetCalloutResponseMapDto>> {
     const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {
       throw new NotFoundError();
@@ -188,7 +188,7 @@ export class CalloutController {
   async createCalloutResponse(
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @Param("slug") slug: string,
-    @Body() data: CreateCalloutResponseData
+    @Body() data: CreateCalloutResponseDto
   ): Promise<void> {
     const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {

@@ -13,12 +13,12 @@ import { UUIDParam } from "@api/data";
 import {
   BatchUpdateCalloutResponseData,
   batchUpdateCalloutResponses,
-  CreateCalloutResponseData,
+  CreateCalloutResponseDto,
   fetchCalloutResponse,
   fetchPaginatedCalloutResponses,
-  GetCalloutResponseData,
-  GetCalloutResponseQuery,
-  GetCalloutResponsesQuery,
+  GetCalloutResponseDto,
+  GetCalloutResponseOptsDto,
+  ListCalloutResponsesDto,
   updateCalloutResponse
 } from "@api/data/CalloutResponseData";
 import PartialBody from "@api/decorators/PartialBody";
@@ -30,8 +30,8 @@ export class CalloutResponseController {
   @Get("/")
   async getCalloutResponses(
     @CurrentUser() contact: Contact,
-    @QueryParams() query: GetCalloutResponsesQuery
-  ): Promise<Paginated<GetCalloutResponseData>> {
+    @QueryParams() query: ListCalloutResponsesDto
+  ): Promise<Paginated<GetCalloutResponseDto>> {
     return await fetchPaginatedCalloutResponses(query, contact);
   }
 
@@ -49,8 +49,8 @@ export class CalloutResponseController {
   async getCalloutResponse(
     @CurrentUser() contact: Contact,
     @Params() { id }: UUIDParam,
-    @QueryParams() query: GetCalloutResponseQuery
-  ): Promise<GetCalloutResponseData | undefined> {
+    @QueryParams() query: GetCalloutResponseOptsDto
+  ): Promise<GetCalloutResponseDto | undefined> {
     return await fetchCalloutResponse(id, query, contact);
   }
   @Authorized("admin")
@@ -58,8 +58,8 @@ export class CalloutResponseController {
   async updateCalloutResponse(
     @CurrentUser() contact: Contact,
     @Params() { id }: UUIDParam,
-    @PartialBody() data: CreateCalloutResponseData // Should be Partial<CreateCalloutResponseData>
-  ): Promise<GetCalloutResponseData | undefined> {
+    @PartialBody() data: CreateCalloutResponseDto // Should be Partial<CreateCalloutResponseData>
+  ): Promise<GetCalloutResponseDto | undefined> {
     await updateCalloutResponse(id, data);
     return await fetchCalloutResponse(id, {}, contact);
   }

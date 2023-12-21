@@ -16,8 +16,11 @@ import {
   IsUUID
 } from "class-validator";
 
-import { UUIDParam } from "..";
-import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
+import { UUIDParam } from "../data";
+import {
+  GetPaginatedQuery,
+  GetPaginatedRuleGroup
+} from "../data/PaginatedData";
 import { GetContactDto } from "@api/dto/ContactDto";
 import { GetCalloutDto } from "@api/dto/CalloutDto";
 import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";
@@ -32,29 +35,27 @@ export enum GetCalloutResponseWith {
   Tags = "tags"
 }
 
-export class GetCalloutResponseQuery {
-  @IsOptional()
-  @IsEnum(GetCalloutResponseWith, { each: true })
-  with?: GetCalloutResponseWith[];
-}
-
 export class GetCalloutResponseParam extends UUIDParam {
   @IsString()
   slug!: string;
 }
 
-export const responseSortFields = ["number", "createdAt", "updatedAt"] as const;
+export class GetCalloutResponseOptsDto {
+  @IsOptional()
+  @IsEnum(GetCalloutResponseWith, { each: true })
+  with?: GetCalloutResponseWith[];
+}
 
-export class GetCalloutResponsesQuery extends GetPaginatedQuery {
+export class ListCalloutResponsesDto extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutResponseWith, { each: true })
   with?: GetCalloutResponseWith[];
 
-  @IsIn(responseSortFields)
+  @IsIn(["number", "createdAt", "updatedAt"])
   sort?: string;
 }
 
-export interface GetCalloutResponseData {
+export interface GetCalloutResponseDto {
   id: string;
   number: number;
   createdAt: Date;
@@ -70,7 +71,7 @@ export interface GetCalloutResponseData {
   latestComment?: GetCalloutResponseCommentDto | null;
 }
 
-export interface GetCalloutResponseMapData {
+export interface GetCalloutResponseMapDto {
   number: number;
   answers: CalloutResponseAnswers;
   title: string;
@@ -78,7 +79,8 @@ export interface GetCalloutResponseMapData {
   address?: CalloutResponseAnswerAddress;
 }
 
-export class CreateCalloutResponseData {
+export class CreateCalloutResponseDto {
+  // TODO: validate
   @IsObject()
   answers!: CalloutResponseAnswers;
 
@@ -98,7 +100,7 @@ export class CreateCalloutResponseData {
   @IsString({ each: true })
   tags?: string[];
 
-  @IsUUID()
+  @IsUUID("4")
   @IsOptional()
   assigneeId?: string | null;
 }
@@ -110,6 +112,6 @@ export class BatchUpdateCalloutResponseData {
   rules!: GetPaginatedRuleGroup;
 
   @ValidateNested()
-  @Type(() => CreateCalloutResponseData)
-  updates!: CreateCalloutResponseData;
+  @Type(() => CreateCalloutResponseDto)
+  updates!: CreateCalloutResponseDto;
 }
