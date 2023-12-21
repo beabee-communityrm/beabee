@@ -60,6 +60,7 @@ export class SegmentController {
     }
     const segment = await getRepository(Segment).save(data);
 
+    // Use fetchOne to ensure that the segment has a contactCount
     return await SegmentTransformer.fetchOneByIdOrFail(caller, segment.id, {
       with: [GetSegmentWith.contactCount]
     });
