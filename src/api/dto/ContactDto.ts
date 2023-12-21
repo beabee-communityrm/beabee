@@ -1,4 +1,10 @@
-import { ContributionPeriod, RoleType } from "@beabee/beabee-common";
+import {
+  ContributionPeriod,
+  ContributionType,
+  MembershipStatus,
+  NewsletterStatus,
+  RoleType
+} from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsArray,
@@ -105,4 +111,27 @@ export class CreateContactDto extends UpdateContactDto {
   @ValidateNested({ each: true })
   @Type(() => CreateContactRoleDto)
   roles?: CreateContactRoleDto[];
+}
+
+export interface ExportContactDto {
+  Id: string;
+  EmailAddress: string;
+  FirstName: string;
+  LastName: string;
+  Joined: string;
+  Tags: string;
+  ContributionType: ContributionType;
+  ContributionMonthlyAmount: number | null;
+  ContributionPeriod: ContributionPeriod | null;
+  ContributionDescription: string;
+  ContributionCancelled: string;
+  MembershipStarts: string;
+  MembershipExpires: string;
+  MembershipStatus: MembershipStatus;
+  NewsletterStatus: NewsletterStatus;
+  DeliveryOptIn: boolean;
+  DeliveryAddressLine1: string;
+  DeliveryAddressLine2: string;
+  DeliveryAddressCity: string;
+  DeliveryAddressPostcode: string;
 }

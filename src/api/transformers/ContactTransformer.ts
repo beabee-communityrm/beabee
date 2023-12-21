@@ -1,11 +1,8 @@
 import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
-import { stringify } from "csv-stringify/sync";
 import { Brackets, SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
-import PaymentService, {
-  getMembershipStatus
-} from "@core/services/PaymentService";
+import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
@@ -13,11 +10,9 @@ import ContactProfile from "@models/ContactProfile";
 import PaymentData from "@models/PaymentData";
 
 import {
-  fetchPaginated,
   Paginated,
   FieldHandlers,
   FieldHandler,
-  GetPaginatedRuleGroup,
   mergeRules
 } from "@api/data/PaginatedData";
 import type {
@@ -250,57 +245,6 @@ const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
     qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
   }
 };
-
-export async function exportContacts(
-  rules: GetPaginatedRuleGroup | undefined
-): Promise<[string, string]> {
-  const exportName = `contacts-${new Date().toISOString()}.csv`;
-
-  const results = await fetchPaginated(
-    Contact,
-    contactFilters,
-    { limit: -1, ...(rules && { rules }) },
-    undefined,
-    contactFieldHandlers,
-    (qb, fieldPrefix) => {
-      qb.orderBy(`${fieldPrefix}joined`);
-      qb.leftJoinAndSelect(`${fieldPrefix}roles`, "roles");
-      qb.leftJoinAndSelect(`${fieldPrefix}profile`, "profile");
-      qb.leftJoinAndSelect(`${fieldPrefix}paymentData`, "pd");
-    }
-  );
-
-  const exportData = results.items.map((contact) => ({
-    Id: contact.id,
-    EmailAddress: contact.email,
-    FirstName: contact.firstname,
-    LastName: contact.lastname,
-    Joined: contact.joined,
-    Tags: contact.profile.tags.join(", "),
-    ContributionType: contact.contributionType,
-    ContributionMonthlyAmount: contact.contributionMonthlyAmount,
-    ContributionPeriod: contact.contributionPeriod,
-    ContributionDescription: contact.contributionDescription,
-    ContributionCancelled: contact.paymentData.cancelledAt,
-    MembershipStarts: contact.membership?.dateAdded,
-    MembershipExpires: contact.membership?.dateExpires,
-    MembershipStatus: getMembershipStatus(contact),
-    NewsletterStatus: contact.profile.newsletterStatus,
-    DeliveryOptIn: contact.profile.deliveryOptIn,
-    DeliveryAddressLine1: contact.profile.deliveryAddress?.line1 || "",
-    DeliveryAddressLine2: contact.profile.deliveryAddress?.line2 || "",
-    DeliveryAddressCity: contact.profile.deliveryAddress?.city || "",
-    DeliveryAddressPostcode: contact.profile.deliveryAddress?.postcode || ""
-  }));
-
-  return [
-    exportName,
-    stringify(exportData, {
-      cast: { date: (d) => d.toISOString() },
-      header: true
-    })
-  ];
-}
 
 export async function loadContactRoles(contacts: Contact[]): Promise<void> {
   if (contacts.length > 0) {

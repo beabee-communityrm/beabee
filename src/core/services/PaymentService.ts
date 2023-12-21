@@ -1,4 +1,4 @@
-import { PaymentMethod } from "@beabee/beabee-common";
+import { MembershipStatus, PaymentMethod } from "@beabee/beabee-common";
 
 import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
@@ -29,14 +29,14 @@ const PaymentProviders = {
   [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
 
-export function getMembershipStatus(contact: Contact) {
+export function getMembershipStatus(contact: Contact): MembershipStatus {
   return contact.membership
     ? contact.membership.isActive
       ? contact.paymentData.cancelledAt
-        ? "expiring"
-        : "active"
-      : "expired"
-    : "none";
+        ? MembershipStatus.Expiring
+        : MembershipStatus.Active
+      : MembershipStatus.Expired
+    : MembershipStatus.None;
 }
 
 type ProviderFn<T> = (p: PaymentProvider<any>, data: PaymentData) => Promise<T>;

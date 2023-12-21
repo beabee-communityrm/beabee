@@ -60,9 +60,8 @@ import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
 import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
 import { mergeRules, Paginated, GetExportQuery } from "@api/data/PaginatedData";
 
-import ContactTransformer, {
-  exportContacts
-} from "@api/transformers/ContactTransformer";
+import ContactExporter from "@api/transformers/ContactExporter";
+import ContactTransformer from "@api/transformers/ContactTransformer";
 import ContactRoleTransformer from "@api/transformers/ContactRoleTransformer";
 import PaymentTransformer from "@api/transformers/PaymentTransformer";
 
@@ -178,10 +177,14 @@ export class ContactController {
   @Authorized("admin")
   @Get(".csv")
   async exportContacts(
+    @CurrentUser() caller: Contact,
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
-    const [exportName, exportData] = await exportContacts(query.rules);
+    const [exportName, exportData] = await ContactExporter.export(
+      caller,
+      query
+    );
     res.attachment(exportName).send(exportData);
     return res;
   }
