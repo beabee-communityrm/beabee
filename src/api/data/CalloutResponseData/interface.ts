@@ -15,13 +15,13 @@ import {
   IsDefined,
   IsUUID
 } from "class-validator";
+
 import { UUIDParam } from "..";
 import { GetPaginatedQuery, GetPaginatedRuleGroup } from "../PaginatedData";
+import { GetContactDto } from "@api/dto/ContactDto";
 import { GetCalloutDto } from "@api/dto/CalloutDto";
 import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";
 import { GetCalloutTagDto } from "@api/dto/CalloutTagDto";
-
-import { GetContactData } from "@type/get-contact-data";
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
@@ -64,9 +64,9 @@ export interface GetCalloutResponseData {
   guestEmail: string | null;
   answers?: CalloutResponseAnswers;
   callout?: GetCalloutDto;
-  contact?: GetContactData | null;
+  contact?: GetContactDto | null;
   tags?: GetCalloutTagDto[];
-  assignee?: GetContactData | null;
+  assignee?: GetContactDto | null;
   latestComment?: GetCalloutResponseCommentDto | null;
 }
 

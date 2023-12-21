@@ -5,11 +5,8 @@ import { getRepository } from "@core/database";
 import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 
-import {
-  fetchPaginatedContacts,
-  contactFieldHandlers
-} from "@api/data/ContactData";
 import { buildSelectQuery } from "@api/data/PaginatedData";
+import ContactTransformer from "@api/transformers/ContactTransformer";
 
 class SegmentService {
   async createSegment(
@@ -22,28 +19,22 @@ class SegmentService {
     return await getRepository(Segment).save(segment);
   }
 
+  /** @deprecated */
   async getSegmentsWithCount(): Promise<Segment[]> {
     const segments = await getRepository(Segment).find({
       order: { order: "ASC" }
     });
     for (const segment of segments) {
-      segment.contactCount = await this.getSegmentContactCount(segment);
+      const result = await ContactTransformer.fetch(undefined, {
+        limit: 0,
+        rules: segment.ruleGroup
+      });
+      segment.contactCount = result.total;
     }
     return segments;
   }
 
-  async getSegmentContactCount(segment: Segment): Promise<number> {
-    return (
-      await fetchPaginatedContacts(
-        {
-          limit: 0,
-          rules: segment.ruleGroup
-        },
-        { withRestricted: false }
-      )
-    ).total;
-  }
-
+  /** @deprecated */
   async getSegmentContacts(segment: Segment): Promise<Contact[]> {
     const validatedRuleGroup = validateRuleGroup(
       contactFilters,
@@ -53,7 +44,7 @@ class SegmentService {
       Contact,
       validatedRuleGroup,
       undefined,
-      contactFieldHandlers
+      ContactTransformer.getFieldHandlers()
     );
 
     qb.leftJoinAndSelect("item.profile", "profile").leftJoinAndSelect(

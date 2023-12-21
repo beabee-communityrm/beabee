@@ -69,7 +69,7 @@ export interface GetCalloutDto extends CalloutData {
   responseViewSchema?: CalloutResponseViewSchema | null;
 }
 
-class CalloutMapSchemaDto implements CalloutMapSchema {
+class SetCalloutMapSchemaDto implements CalloutMapSchema {
   @IsUrl()
   style!: string;
 
@@ -104,7 +104,7 @@ class CalloutMapSchemaDto implements CalloutMapSchema {
   addressPatternProp!: string;
 }
 
-class CalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
+class SetCalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
   @IsArray()
   @IsString({ each: true })
   buckets!: string[];
@@ -127,8 +127,8 @@ class CalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => CalloutMapSchemaDto)
-  map!: CalloutMapSchemaDto | null;
+  @Type(() => SetCalloutMapSchemaDto)
+  map!: SetCalloutMapSchemaDto | null;
 }
 
 export class CreateCalloutDto implements CalloutData {
@@ -173,8 +173,8 @@ export class CreateCalloutDto implements CalloutData {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => CalloutResponseViewSchemaDto)
-  responseViewSchema!: CalloutResponseViewSchemaDto;
+  @Type(() => SetCalloutResponseViewSchemaDto)
+  responseViewSchema!: SetCalloutResponseViewSchemaDto;
 
   @IsOptional()
   @Type(() => Date)

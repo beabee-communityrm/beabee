@@ -9,9 +9,11 @@ import { wrapAsync } from "@core/utils";
 import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";
 
+import ContactTransformer from "@api/transformers/ContactTransformer";
+
 import Project from "@models/Project";
 import Contact from "@models/Contact";
-import { fetchPaginatedContacts } from "@api/data/ContactData";
+
 import { GetContactWith } from "@enums/get-contact-with";
 
 const app = express();
@@ -125,19 +127,14 @@ app.get(
     const sort = (query.sort as string) || "lastname_ASC";
     const [sortId, sortDir] = sort.split("_");
 
-    const result = await fetchPaginatedContacts(
-      {
-        offset: limit * (page - 1),
-        limit,
-        sort: sortOptions[sortId].sort,
-        order: sortDir as "ASC" | "DESC",
-        with: [GetContactWith.Profile, GetContactWith.Roles],
-        ...(searchRuleGroup && { rules: searchRuleGroup })
-      },
-      {
-        withRestricted: true
-      }
-    );
+    const result = await ContactTransformer.fetch(req.user, {
+      offset: limit * (page - 1),
+      limit,
+      sort: sortOptions[sortId].sort,
+      order: sortDir as "ASC" | "DESC",
+      with: [GetContactWith.Profile, GetContactWith.Roles],
+      ...(searchRuleGroup && { rules: searchRuleGroup })
+    });
 
     const pages = [...Array(Math.ceil(result.total / limit))].map(
       (v, page) => ({

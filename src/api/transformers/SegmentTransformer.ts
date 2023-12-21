@@ -10,6 +10,8 @@ import {
 import Segment from "@models/Segment";
 import { BaseTransformer } from "./BaseTransformer";
 import { Paginated, RoleType } from "@beabee/beabee-common";
+import ContactTransformer from "./ContactTransformer";
+import Contact from "@models/Contact";
 
 class SegmentTransformer extends BaseTransformer<
   Segment,
@@ -37,12 +39,16 @@ class SegmentTransformer extends BaseTransformer<
 
   protected async modifyResult(
     result: Paginated<Segment>,
-    query: ListSegmentsDto
+    query: ListSegmentsDto,
+    caller: Contact | undefined
   ): Promise<void> {
     if (query.with?.includes(GetSegmentWith.contactCount)) {
       for (const segment of result.items) {
-        segment.contactCount =
-          await SegmentService.getSegmentContactCount(segment);
+        const result = await ContactTransformer.fetch(caller, {
+          limit: 0,
+          rules: segment.ruleGroup
+        });
+        segment.contactCount = result.total;
       }
     }
   }

@@ -7,12 +7,12 @@ import { getRepository } from "@core/database";
 import { validateTotpToken } from "@core/utils/auth";
 
 import { LOGIN_CODES } from "@enums/login-codes";
-import {
-  CreateContactMfaData,
-  DeleteContactMfaData
-} from "@api/data/ContactData/interface";
+
 import BadRequestError from "@api/errors/BadRequestError";
 import UnauthorizedError from "@api/errors/UnauthorizedError";
+
+import { CreateContactMfaData } from "@type/create-contact-mfa-data";
+import { DeleteContactMfaData } from "@type/delete-contact-mfa-data";
 
 /**
  * Contact multi factor authentication service

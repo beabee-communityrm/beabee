@@ -1,24 +1,6 @@
-import {
-  ContributionType,
-  ContributionPeriod,
-  PaymentMethod
-} from "@beabee/beabee-common";
+import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { QueryFailedError } from "typeorm";
-
-export interface ContributionInfo {
-  type: ContributionType;
-  amount?: number;
-  nextAmount?: number;
-  period?: ContributionPeriod;
-  cancellationDate?: Date;
-  renewalDate?: Date;
-  paymentSource?: PaymentSource;
-  payFee?: boolean;
-  hasPendingPayment?: boolean;
-  membershipStatus: "active" | "expiring" | "expired" | "none";
-  membershipExpiryDate?: Date;
-}
 
 export interface PaymentForm {
   monthlyAmount: number;

@@ -11,11 +11,11 @@ import {
   GetCalloutResponseCommentDto,
   ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
-import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
 import { mergeRules } from "@api/data/PaginatedData";
 
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import Contact from "@models/Contact";
+import ContactTransformer, { loadContactRoles } from "./ContactTransformer";
 
 class CalloutResponseCommentTransformer extends BaseTransformer<
   CalloutResponseComment,
@@ -28,7 +28,7 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
   convert(comment: CalloutResponseComment): GetCalloutResponseCommentDto {
     return {
       id: comment.id,
-      contact: convertContactToData(comment.contact),
+      contact: ContactTransformer.convert(comment.contact),
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
       responseId: comment.responseId,

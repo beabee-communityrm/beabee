@@ -283,7 +283,7 @@ function buildWhere<Field extends string>(
   return [where, params];
 }
 
-// DEPRECATED: Remove once SegmentService is gone
+/** @depreciated remove once SegmentService has been cleaned up */
 export function buildSelectQuery<
   Entity extends ObjectLiteral,
   Field extends string

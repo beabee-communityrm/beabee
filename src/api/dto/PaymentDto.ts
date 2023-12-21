@@ -2,14 +2,13 @@ import { PaymentStatus } from "@beabee/beabee-common";
 import { IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
-
-import { GetContactData } from "@type/get-contact-data";
+import { GetContactDto } from "@api/dto/ContactDto";
 
 export interface GetPaymentDto {
   amount: number;
   chargeDate: Date;
   status: PaymentStatus;
-  contact?: GetContactData | null;
+  contact?: GetContactDto | null;
 }
 
 export enum GetPaymentWith {

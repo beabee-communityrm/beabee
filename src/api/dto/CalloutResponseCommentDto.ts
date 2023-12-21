@@ -1,8 +1,7 @@
 import { IsIn, IsString } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/data/PaginatedData";
-
-import { GetContactData } from "@type/get-contact-data";
+import { GetContactDto } from "@api/dto/ContactDto";
 
 interface UpdateCalloutResponseComment {
   text: string;
@@ -14,7 +13,7 @@ interface CalloutResponseCommentData extends UpdateCalloutResponseComment {
 
 export interface GetCalloutResponseCommentDto
   extends CalloutResponseCommentData {
-  contact: GetContactData;
+  contact: GetContactDto;
   id: string;
   createdAt: Date;
   updatedAt: Date;

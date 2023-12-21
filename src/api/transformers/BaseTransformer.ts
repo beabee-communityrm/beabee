@@ -16,13 +16,13 @@ import Contact from "@models/Contact";
 export abstract class BaseTransformer<
   Model extends ObjectLiteral,
   GetDto,
-  FilterName extends string,
+  FilterName extends string = never,
   GetDtoOpts = unknown,
   Query extends GetDtoOpts & PaginatedQuery = GetDtoOpts & PaginatedQuery
 > {
   abstract model: { new (): Model };
   modelIdField = "id";
-  abstract filters: Filters<FilterName>;
+  filters: Filters<FilterName> = {} as Filters<FilterName>; // TODO: better?
 
   allowedRoles: RoleType[] | undefined;
 

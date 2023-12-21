@@ -5,7 +5,6 @@ import {
 } from "@beabee/beabee-common";
 import { SelectQueryBuilder } from "typeorm";
 
-import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
 import { mergeRules } from "@api/data/PaginatedData";
 import {
   GetPaymentDto,
@@ -13,6 +12,9 @@ import {
   GetPaymentWith,
   ListPaymentsDto
 } from "@api/dto/PaymentDto";
+import ContactTransformer, {
+  loadContactRoles
+} from "@api/transformers/ContactTransformer";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 
 import Contact from "@models/Contact";
@@ -33,7 +35,7 @@ class PaymentTransformer extends BaseTransformer<
       chargeDate: payment.chargeDate,
       status: payment.status,
       ...(opts.with?.includes(GetPaymentWith.Contact) && {
-        contact: payment.contact && convertContactToData(payment.contact)
+        contact: payment.contact && ContactTransformer.convert(payment.contact)
       })
     };
   }

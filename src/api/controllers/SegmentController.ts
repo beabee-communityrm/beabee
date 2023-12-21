@@ -16,11 +16,8 @@ import {
 import { getRepository } from "@core/database";
 
 import { UUIDParam } from "@api/data";
-import {
-  GetContactsQuery,
-  fetchPaginatedContacts
-} from "@api/data/ContactData";
 import { Paginated } from "@api/data/PaginatedData";
+import { GetContactDto, ListContactsDto } from "@api/dto/ContactDto";
 import {
   GetSegmentDto,
   ListSegmentsDto,
@@ -29,14 +26,13 @@ import {
   GetSegmentOptsDto
 } from "@api/dto/SegmentDto";
 import PartialBody from "@api/decorators/PartialBody";
+import ContactTransformer from "@api/transformers/ContactTransformer";
 import SegmentTransformer from "@api/transformers/SegmentTransformer";
 
 import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
-
-import type { GetContactData } from "@type/get-contact-data";
 
 @JsonController("/segments")
 @Authorized("admin")
@@ -103,23 +99,21 @@ export class SegmentController {
 
   @Get("/:id/contacts")
   async getSegmentContacts(
+    @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParam,
-    @QueryParams() query: GetContactsQuery
-  ): Promise<Paginated<GetContactData> | undefined> {
+    @QueryParams() query: ListContactsDto
+  ): Promise<Paginated<GetContactDto> | undefined> {
     const segment = await getRepository(Segment).findOneBy({ id });
     if (segment) {
-      return await fetchPaginatedContacts(
-        {
-          ...query,
-          rules: query.rules
-            ? {
-                condition: "AND",
-                rules: [segment.ruleGroup, query.rules]
-              }
-            : segment.ruleGroup
-        },
-        { withRestricted: true }
-      );
+      return await ContactTransformer.fetch(caller, {
+        ...query,
+        rules: query.rules
+          ? {
+              condition: "AND",
+              rules: [segment.ruleGroup, query.rules]
+            }
+          : segment.ruleGroup
+      });
     }
   }
 }

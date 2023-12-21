@@ -1,9 +1,11 @@
 import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
-import { Brackets } from "typeorm";
+import { Brackets, SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
-import { getMembershipStatus } from "@core/services/PaymentService";
+import PaymentService, {
+  getMembershipStatus
+} from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
@@ -15,74 +17,157 @@ import {
   Paginated,
   FieldHandlers,
   FieldHandler,
-  GetPaginatedRuleGroup
+  GetPaginatedRuleGroup,
+  mergeRules
 } from "@api/data/PaginatedData";
+import type {
+  GetContactDto,
+  GetContactOptsDto,
+  ListContactsDto
+} from "@api/dto/ContactDto";
 
 import { GetContactWith } from "@enums/get-contact-with";
 
-import type { GetContactData } from "@type/get-contact-data";
-import type { GetContactRoleData } from "@type/get-contact-role-data";
-import type { GetContactsQuery } from "@api/data/ContactData";
+import { BaseTransformer } from "./BaseTransformer";
+import ContactRoleTransformer from "./ContactRoleTransformer";
+import ContactProfileTransformer from "./ContactProfileTransformer";
 
-interface ConvertOpts {
-  with: GetContactWith[] | undefined;
-  withRestricted: boolean;
-}
+class ContactTransformer extends BaseTransformer<
+  Contact,
+  GetContactDto,
+  ContactFilterName,
+  GetContactOptsDto
+> {
+  model = Contact;
+  filters = contactFilters;
 
-export function convertRoleToData(role: ContactRole): GetContactRoleData {
-  return {
-    role: role.type,
-    dateAdded: role.dateAdded,
-    dateExpires: role.dateExpires
-  };
-}
-
-export function convertContactToData(
-  contact: Contact,
-  opts?: ConvertOpts
-): GetContactData {
-  const activeRoles = [...contact.activeRoles];
-  if (activeRoles.includes("superadmin")) {
-    activeRoles.push("admin");
+  // TODO: Make protected once SegmentService has been cleaned up
+  getFieldHandlers() {
+    return contactFieldHandlers;
   }
 
-  return {
-    id: contact.id,
-    email: contact.email,
-    firstname: contact.firstname,
-    lastname: contact.lastname,
-    joined: contact.joined,
-    ...(contact.lastSeen && {
-      lastSeen: contact.lastSeen
-    }),
-    ...(contact.contributionAmount && {
-      contributionAmount: contact.contributionAmount
-    }),
-    ...(contact.contributionPeriod && {
-      contributionPeriod: contact.contributionPeriod
-    }),
-    activeRoles,
-    ...(opts?.with?.includes(GetContactWith.Profile) &&
-      contact.profile && {
-        profile: {
-          telephone: contact.profile.telephone,
-          twitter: contact.profile.twitter,
-          preferredContact: contact.profile.preferredContact,
-          deliveryOptIn: contact.profile.deliveryOptIn,
-          deliveryAddress: contact.profile.deliveryAddress,
-          newsletterStatus: contact.profile.newsletterStatus,
-          newsletterGroups: contact.profile.newsletterGroups,
-          ...(opts.withRestricted && {
-            tags: contact.profile.tags,
-            notes: contact.profile.notes,
-            description: contact.profile.description
-          })
-        }
+  convert(
+    contact: Contact,
+    opts?: GetContactOptsDto,
+    caller?: Contact | undefined
+  ): GetContactDto {
+    const activeRoles = [...contact.activeRoles];
+    if (activeRoles.includes("superadmin")) {
+      activeRoles.push("admin");
+    }
+
+    return {
+      id: contact.id,
+      email: contact.email,
+      firstname: contact.firstname,
+      lastname: contact.lastname,
+      joined: contact.joined,
+      ...(contact.lastSeen && {
+        lastSeen: contact.lastSeen
       }),
-    ...(opts?.with?.includes(GetContactWith.Roles) && {
-      roles: contact.roles.map(convertRoleToData)
-    })
-  };
+      ...(contact.contributionAmount && {
+        contributionAmount: contact.contributionAmount
+      }),
+      ...(contact.contributionPeriod && {
+        contributionPeriod: contact.contributionPeriod
+      }),
+      activeRoles,
+      ...(opts?.with?.includes(GetContactWith.Profile) &&
+        contact.profile && {
+          profile: ContactProfileTransformer.convert(
+            contact.profile,
+            undefined,
+            caller
+          )
+        }),
+      ...(opts?.with?.includes(GetContactWith.Roles) && {
+        roles: contact.roles.map(ContactRoleTransformer.convert)
+      }),
+      ...(opts?.with?.includes(GetContactWith.Contribution) && {
+        contribution: contact.contribution
+      })
+    };
+  }
+
+  protected transformQuery(
+    query: ListContactsDto,
+    caller: Contact | undefined
+  ): ListContactsDto {
+    return {
+      ...query,
+      rules: mergeRules([
+        query.rules,
+        !caller?.hasRole("admin") && {
+          field: "id",
+          operator: "equal",
+          value: ["me"]
+        }
+      ])
+    };
+  }
+
+  protected modifyQueryBuilder(
+    qb: SelectQueryBuilder<Contact>,
+    fieldPrefix: string,
+    query: ListContactsDto
+  ): void {
+    {
+      if (query.with?.includes(GetContactWith.Profile)) {
+        qb.innerJoinAndSelect(`${fieldPrefix}profile`, "profile");
+      }
+
+      switch (query.sort) {
+        // Add member role to allow sorting by membershipStarts and membershipExpires
+        case "membershipStarts":
+        case "membershipExpires":
+          qb.leftJoin(
+            ContactRole,
+            "cr",
+            `cr.contactId = ${fieldPrefix}id AND cr.type = 'member'`
+          )
+            .addSelect("cr.dateAdded", "membershipStarts")
+            .addSelect(
+              "COALESCE(cr.dateExpires, '-infinity'::timestamp)",
+              "membershipExpires"
+            )
+            .orderBy(`"${query.sort}"`, query.order || "ASC", "NULLS LAST");
+          break;
+
+        // Always put empty first/last names at the bottom
+        case "firstname":
+        case "lastname":
+          qb.orderBy(
+            `NULLIF(${fieldPrefix}${query.sort}, '')`,
+            query.order || "ASC",
+            "NULLS LAST"
+          );
+          break;
+      }
+
+      // Always sort by ID to ensure predictable offset and limit
+      qb.addOrderBy(`${fieldPrefix}id`, "ASC");
+    }
+  }
+
+  protected async modifyResult(
+    result: Paginated<Contact>,
+    query: ListContactsDto
+  ): Promise<void> {
+    await loadContactRoles(result.items);
+
+    if (
+      result.items.length > 0 &&
+      query.with?.includes(GetContactWith.Contribution)
+    ) {
+      if (result.items.length > 1) {
+        throw new Error("Cannot fetch contribution for multiple contacts");
+      }
+
+      result.items[0].contribution = await PaymentService.getContributionInfo(
+        result.items[0]
+      );
+    }
+  }
 }
 
 // Field handlers
@@ -91,10 +176,10 @@ function membershipField(field: keyof ContactRole): FieldHandler {
   return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`mp.contactId`)
-      .from(ContactRole, "mp")
-      .where(`mp.type = 'member'`)
-      .andWhere(args.whereFn(`mp.${field}`));
+      .select(`cr.contactId`)
+      .from(ContactRole, "cr")
+      .where(`cr.type = 'member'`)
+      .andWhere(args.whereFn(`cr.${field}`));
 
     qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
   };
@@ -122,13 +207,13 @@ const activePermission: FieldHandler = (qb, args) => {
 
   const subQb = createQueryBuilder()
     .subQuery()
-    .select(`mp.contactId`)
-    .from(ContactRole, "mp")
-    .where(`mp.type = '${roleType}'`)
-    .andWhere(`mp.dateAdded <= :now`)
+    .select(`cr.contactId`)
+    .from(ContactRole, "cr")
+    .where(`cr.type = '${roleType}'`)
+    .andWhere(`cr.dateAdded <= :now`)
     .andWhere(
       new Brackets((qb) => {
-        qb.where(`mp.dateExpires IS NULL`).orWhere(`mp.dateExpires > :now`);
+        qb.where(`cr.dateExpires IS NULL`).orWhere(`cr.dateExpires > :now`);
       })
     );
 
@@ -151,7 +236,7 @@ function paymentDataField(field: string): FieldHandler {
   };
 }
 
-export const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
+const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
   deliveryOptIn: profileField("deliveryOptIn"),
   newsletterStatus: profileField("newsletterStatus"),
   tags: profileField("tags"),
@@ -217,70 +302,11 @@ export async function exportContacts(
   ];
 }
 
-export async function fetchPaginatedContacts(
-  query: GetContactsQuery,
-  opts: Omit<ConvertOpts, "with">
-): Promise<Paginated<GetContactData>> {
-  const results = await fetchPaginated(
-    Contact,
-    contactFilters,
-    query,
-    undefined, // No contact rules in contactFilters
-    contactFieldHandlers,
-    (qb, fieldPrefix) => {
-      if (query.with?.includes(GetContactWith.Profile)) {
-        qb.innerJoinAndSelect(`${fieldPrefix}profile`, "profile");
-      }
-
-      switch (query.sort) {
-        // Add member role to allow sorting by membershipStarts and membershipExpires
-        case "membershipStarts":
-        case "membershipExpires":
-          qb.leftJoin(
-            ContactRole,
-            "mp",
-            `mp.contactId = ${fieldPrefix}id AND mp.type = 'member'`
-          )
-            .addSelect("mp.dateAdded", "membershipStarts")
-            .addSelect(
-              "COALESCE(mp.dateExpires, '-infinity'::timestamp)",
-              "membershipExpires"
-            )
-            .orderBy(`"${query.sort}"`, query.order || "ASC", "NULLS LAST");
-          break;
-
-        // Always put empty first/last names at the bottom
-        case "firstname":
-        case "lastname":
-          qb.orderBy(
-            `NULLIF(${fieldPrefix}${query.sort}, '')`,
-            query.order || "ASC",
-            "NULLS LAST"
-          );
-          break;
-      }
-
-      // Always sort by ID to ensure predictable offset and limit
-      qb.addOrderBy(`${fieldPrefix}id`, "ASC");
-    }
-  );
-
-  // Load roles after to ensure offset/limit work
-  await loadContactRoles(results.items);
-
-  return {
-    ...results,
-    items: results.items.map((item) =>
-      convertContactToData(item, { ...opts, with: query.with })
-    )
-  };
-}
-
 export async function loadContactRoles(contacts: Contact[]): Promise<void> {
   if (contacts.length > 0) {
     // Load roles after to ensure offset/limit work
-    const roles = await createQueryBuilder(ContactRole, "mp")
-      .where("mp.contactId IN (:...ids)", {
+    const roles = await createQueryBuilder(ContactRole, "cr")
+      .where("cr.contactId IN (:...ids)", {
         ids: contacts.map((t) => t.id)
       })
       .getMany();
@@ -290,4 +316,4 @@ export async function loadContactRoles(contacts: Contact[]): Promise<void> {
   }
 }
 
-export * from "./interface";
+export default new ContactTransformer();

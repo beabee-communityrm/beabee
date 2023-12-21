@@ -26,12 +26,14 @@ import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
+import ContactTransformer, {
+  loadContactRoles
+} from "../../transformers/ContactTransformer";
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 
 import { groupBy } from "@api/utils";
 
-import { convertContactToData, loadContactRoles } from "../ContactData";
 import {
   mergeRules,
   fetchPaginated,
@@ -51,6 +53,7 @@ import {
   GetCalloutResponseMapData
 } from "./interface";
 import CalloutTransformer from "@api/transformers/CalloutTransformer";
+import { ContactController } from "@api/controllers/ContactController";
 
 function convertResponseToData(
   response: CalloutResponse,
@@ -68,13 +71,14 @@ function convertResponseToData(
       answers: response.answers
     }),
     ...(_with?.includes(GetCalloutResponseWith.Assignee) && {
-      assignee: response.assignee && convertContactToData(response.assignee)
+      assignee:
+        response.assignee && ContactTransformer.convert(response.assignee)
     }),
     ...(_with?.includes(GetCalloutResponseWith.Callout) && {
       callout: CalloutTransformer.convert(response.callout)
     }),
     ...(_with?.includes(GetCalloutResponseWith.Contact) && {
-      contact: response.contact && convertContactToData(response.contact)
+      contact: response.contact && ContactTransformer.convert(response.contact)
     }),
     ...(_with?.includes(GetCalloutResponseWith.LatestComment) && {
       latestComment:

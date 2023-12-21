@@ -6,12 +6,12 @@ import {
 } from "@beabee/beabee-common";
 import { SelectQueryBuilder } from "typeorm";
 
-import { convertContactToData, loadContactRoles } from "@api/data/ContactData";
 import { GetApiKeyDto } from "@api/dto/ApiKeyDto";
 
 import ApiKey from "@models/ApiKey";
 
 import { BaseTransformer } from "./BaseTransformer";
+import ContactTransformer, { loadContactRoles } from "./ContactTransformer";
 
 class ApiKeyTransformer extends BaseTransformer<
   ApiKey,
@@ -28,7 +28,7 @@ class ApiKeyTransformer extends BaseTransformer<
       id: key.id,
       description: key.description,
       expires: key.expires,
-      creator: convertContactToData(key.creator),
+      creator: ContactTransformer.convert(key.creator),
       createdAt: key.createdAt
     };
   }

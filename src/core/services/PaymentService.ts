@@ -2,7 +2,7 @@ import { PaymentMethod } from "@beabee/beabee-common";
 
 import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import { ContributionInfo, PaymentForm } from "@core/utils";
+import { PaymentForm } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 
 import Contact from "@models/Contact";
@@ -16,8 +16,9 @@ import {
 import GCProvider from "@core/providers/payment/GCProvider";
 import ManualProvider from "@core/providers/payment/ManualProvider";
 import StripeProvider from "@core/providers/payment/StripeProvider";
-
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+
+import { ContributionInfo } from "@type/contribution-info";
 
 const log = mainLogger.child({ app: "payment-service" });
 

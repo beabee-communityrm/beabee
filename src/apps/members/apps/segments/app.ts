@@ -14,6 +14,7 @@ import SegmentContact from "@models/SegmentContact";
 
 import { EmailSchema, schemaToEmail } from "@apps/tools/apps/emails/app";
 import { cleanRuleGroup } from "@apps/members/app";
+import ContactTransformer from "@api/transformers/ContactTransformer";
 
 const app = express();
 
@@ -96,7 +97,12 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    segment.contactCount = await SegmentService.getSegmentContactCount(segment);
+    const result = await ContactTransformer.fetch(undefined, {
+      limit: 0,
+      rules: segment.ruleGroup
+    });
+    segment.contactCount = result.total;
+
     res.render("email", {
       segment,
       emails: await getRepository(Email).find()
