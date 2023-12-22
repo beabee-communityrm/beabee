@@ -23,7 +23,7 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const segments = await SegmentService.getSegmentsWithCount();
+    const segments = await SegmentService.getSegmentsWithCount(req.user);
     res.render("index", { segments });
   })
 );
@@ -97,7 +97,7 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    const result = await ContactTransformer.fetch(undefined, {
+    const result = await ContactTransformer.fetch(req.user, {
       limit: 0,
       rules: segment.ruleGroup
     });

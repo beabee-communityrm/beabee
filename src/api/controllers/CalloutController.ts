@@ -25,12 +25,8 @@ import OptionsService from "@core/services/OptionsService";
 import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
-import Contact from "@models/Contact";
-import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
-import CalloutResponseTag from "@models/CalloutResponseTag";
-import CalloutTag from "@models/CalloutTag";
-
+import { fetchPaginatedCalloutResponsesForMap } from "@api/data/CalloutResponseData";
+import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
 import {
   CreateCalloutDto,
   GetCalloutDto,
@@ -39,14 +35,10 @@ import {
 } from "@api/dto/CalloutDto";
 import {
   CreateCalloutResponseDto,
-  exportCalloutResponses,
-  fetchPaginatedCalloutResponses,
-  fetchPaginatedCalloutResponsesForMap,
   GetCalloutResponseDto,
   GetCalloutResponseMapDto,
   ListCalloutResponsesDto
-} from "@api/data/CalloutResponseData";
-import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
+} from "@api/dto/CalloutResponseDto";
 import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -54,6 +46,14 @@ import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 import CalloutTransformer from "@api/transformers/CalloutTransformer";
+import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
+import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
+
+import Contact from "@models/Contact";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseTag from "@models/CalloutResponseTag";
+import CalloutTag from "@models/CalloutTag";
 
 @JsonController("/callout")
 export class CalloutController {
@@ -93,7 +93,7 @@ export class CalloutController {
   @Authorized("admin")
   @Patch("/:slug")
   async updateCallout(
-    @CurrentUser({ required: true }) contact: Contact,
+    @CurrentUser({ required: true }) caller: Contact,
     @Param("slug") slug: string,
     @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutDto | undefined> {
@@ -120,7 +120,7 @@ export class CalloutController {
             data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
         })
       });
-      return await CalloutTransformer.fetchOneById(contact, newSlug);
+      return await CalloutTransformer.fetchOneById(caller, newSlug);
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }
@@ -139,7 +139,7 @@ export class CalloutController {
 
   @Get("/:slug/responses")
   async getCalloutResponses(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
   ): Promise<Paginated<GetCalloutResponseDto>> {
@@ -147,12 +147,13 @@ export class CalloutController {
     if (!callout) {
       throw new NotFoundError();
     }
-    return await fetchPaginatedCalloutResponses(query, contact, callout);
+    // TODO: use callout
+    return await CalloutResponseTransformer.fetch(caller, query);
   }
 
   @Get("/:slug/responses.csv")
   async exportCalloutResponses(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
@@ -161,10 +162,10 @@ export class CalloutController {
     if (!callout) {
       throw new NotFoundError();
     }
-    const [exportName, exportData] = await exportCalloutResponses(
-      query.rules,
-      contact,
-      callout
+    // TODO: use callout
+    const [exportName, exportData] = await CalloutResponseExporter.export(
+      caller,
+      query
     );
     res.attachment(exportName).send(exportData);
     return res;
@@ -172,7 +173,7 @@ export class CalloutController {
 
   @Get("/:slug/responses/map")
   async getCalloutResponsesMap(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
   ): Promise<Paginated<GetCalloutResponseMapDto>> {
@@ -180,13 +181,13 @@ export class CalloutController {
     if (!callout) {
       throw new NotFoundError();
     }
-    return await fetchPaginatedCalloutResponsesForMap(query, contact, callout);
+    return await fetchPaginatedCalloutResponsesForMap(query, caller, callout);
   }
 
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseDto
   ): Promise<void> {
@@ -195,13 +196,13 @@ export class CalloutController {
       throw new NotFoundError();
     }
 
-    if (contact && (data.guestEmail || data.guestName)) {
+    if (caller && (data.guestEmail || data.guestName)) {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
     }
 
     // TODO: support assignee/bucket/tags on create
-    if (contact) {
-      await CalloutsService.setResponse(callout, contact, data.answers);
+    if (caller) {
+      await CalloutsService.setResponse(callout, caller, data.answers);
     } else {
       await CalloutsService.setGuestResponse(
         callout,

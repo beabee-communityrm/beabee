@@ -12,7 +12,7 @@ import CalloutResponse from "@models/CalloutResponse";
 import { CalloutAccess } from "@enums/callout-access";
 
 import { createPollSchema } from "./schemas.json";
-import { exportCalloutResponses } from "@api/data/CalloutResponseData";
+import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
 
 interface CreatePollSchema {
   title: string;
@@ -178,10 +178,10 @@ app.post(
           req.flash("error", "polls-responses-password-protected");
           res.redirect(req.originalUrl);
         } else {
-          const [exportName, exportData] = await exportCalloutResponses(
-            undefined,
-            req.user!,
-            callout
+          // TODO: use callout
+          const [exportName, exportData] = await CalloutResponseExporter.export(
+            req.user,
+            {}
           );
           res.attachment(exportName).send(exportData);
         }

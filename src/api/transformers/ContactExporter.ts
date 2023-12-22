@@ -68,7 +68,7 @@ class ContactExporter extends BaseTransformer<
 
   async export(
     caller: Contact | undefined,
-    query: GetExportQuery
+    query?: GetExportQuery
   ): Promise<[string, string]> {
     const result = await this.fetch(caller, { limit: -1, ...query });
 

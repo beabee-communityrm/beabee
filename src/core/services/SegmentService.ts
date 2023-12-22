@@ -20,12 +20,12 @@ class SegmentService {
   }
 
   /** @deprecated */
-  async getSegmentsWithCount(): Promise<Segment[]> {
+  async getSegmentsWithCount(caller: Contact | undefined): Promise<Segment[]> {
     const segments = await getRepository(Segment).find({
       order: { order: "ASC" }
     });
     for (const segment of segments) {
-      const result = await ContactTransformer.fetch(undefined, {
+      const result = await ContactTransformer.fetch(caller, {
         limit: 0,
         rules: segment.ruleGroup
       });

@@ -54,43 +54,6 @@ import {
   GetCalloutResponseMapDto
 } from "../../dto/CalloutResponseDto";
 
-function convertResponseToData(
-  response: CalloutResponse,
-  _with?: GetCalloutResponseWith[]
-): GetCalloutResponseDto {
-  return {
-    id: response.id,
-    number: response.number,
-    createdAt: response.createdAt,
-    updatedAt: response.updatedAt,
-    bucket: response.bucket,
-    guestName: response.guestName,
-    guestEmail: response.guestEmail,
-    ...(_with?.includes(GetCalloutResponseWith.Answers) && {
-      answers: response.answers
-    }),
-    ...(_with?.includes(GetCalloutResponseWith.Assignee) && {
-      assignee:
-        response.assignee && ContactTransformer.convert(response.assignee)
-    }),
-    ...(_with?.includes(GetCalloutResponseWith.Callout) && {
-      callout: CalloutTransformer.convert(response.callout)
-    }),
-    ...(_with?.includes(GetCalloutResponseWith.Contact) && {
-      contact: response.contact && ContactTransformer.convert(response.contact)
-    }),
-    ...(_with?.includes(GetCalloutResponseWith.LatestComment) && {
-      latestComment:
-        response.latestComment &&
-        CalloutResponseCommentTransformer.convert(response.latestComment)
-    }),
-    ...(_with?.includes(GetCalloutResponseWith.Tags) &&
-      response.tags && {
-        tags: response.tags.map((rt) => CalloutTagTransformer.convert(rt.tag))
-      })
-  };
-}
-
 function convertResponsesToMapData(
   formSchema: CalloutFormSchema,
   { titleProp, imageProp, map }: CalloutResponseViewSchema,
@@ -316,176 +279,171 @@ async function prepareQuery(
   return [scopedRules, ...prepareFilters(callout)];
 }
 
-function commentText(comment: CalloutResponseComment) {
-  const date = format(comment.createdAt, "Pp");
-  return `${comment.contact.fullname} (${date}): ${comment.text}`;
-}
+// export async function exportCalloutResponses(
+//   ruleGroup: GetPaginatedRuleGroup | undefined,
+//   contact: Contact,
+//   callout: Callout
+// ): Promise<[string, string]> {
+//   const [rules, filters, fieldHandlers] = await prepareQuery(
+//     ruleGroup,
+//     contact,
+//     callout
+//   );
 
-export async function exportCalloutResponses(
-  ruleGroup: GetPaginatedRuleGroup | undefined,
-  contact: Contact,
-  callout: Callout
-): Promise<[string, string]> {
-  const [rules, filters, fieldHandlers] = await prepareQuery(
-    ruleGroup,
-    contact,
-    callout
-  );
+//   const results = await fetchPaginated(
+//     CalloutResponse,
+//     filters,
+//     { rules, limit: -1 },
+//     contact,
+//     fieldHandlers,
+//     (qb, fieldPrefix) => {
+//       qb.orderBy(`${fieldPrefix}createdAt`, "ASC");
+//       qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
+//       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
+//       qb.leftJoinAndSelect(`${fieldPrefix}tags`, "tags");
+//       qb.leftJoinAndSelect("tags.tag", "tag");
+//     }
+//   );
 
-  const results = await fetchPaginated(
-    CalloutResponse,
-    filters,
-    { rules, limit: -1 },
-    contact,
-    fieldHandlers,
-    (qb, fieldPrefix) => {
-      qb.orderBy(`${fieldPrefix}createdAt`, "ASC");
-      qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
-      qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-      qb.leftJoinAndSelect(`${fieldPrefix}tags`, "tags");
-      qb.leftJoinAndSelect("tags.tag", "tag");
-    }
-  );
+//   // Fetch comments for filtered responses
+//   const comments = await getRepository(CalloutResponseComment).find({
+//     where: {
+//       responseId: In(results.items.map((response) => response.id))
+//     },
+//     relations: { contact: true },
+//     order: { createdAt: "ASC" }
+//   });
+//   const commentsByResponseId = groupBy(comments, (c) => c.responseId);
 
-  // Fetch comments for filtered responses
-  const comments = await getRepository(CalloutResponseComment).find({
-    where: {
-      responseId: In(results.items.map((response) => response.id))
-    },
-    relations: { contact: true },
-    order: { createdAt: "ASC" }
-  });
-  const commentsByResponseId = groupBy(comments, (c) => c.responseId);
+//   const exportName = `responses-${
+//     callout.title
+//   }_${new Date().toISOString()}.csv`;
 
-  const exportName = `responses-${
-    callout.title
-  }_${new Date().toISOString()}.csv`;
+//   const components = getCalloutComponents(callout.formSchema).filter(
+//     (c) => c.input
+//   );
 
-  const components = getCalloutComponents(callout.formSchema).filter(
-    (c) => c.input
-  );
+//   const headers = [
+//     "Date",
+//     "Number",
+//     "Bucket",
+//     "Tags",
+//     "Assignee",
+//     "FirstName",
+//     "LastName",
+//     "FullName",
+//     "EmailAddress",
+//     "IsGuest",
+//     "Comments",
+//     ...components.map((c) => c.label || c.key)
+//   ];
 
-  const headers = [
-    "Date",
-    "Number",
-    "Bucket",
-    "Tags",
-    "Assignee",
-    "FirstName",
-    "LastName",
-    "FullName",
-    "EmailAddress",
-    "IsGuest",
-    "Comments",
-    ...components.map((c) => c.label || c.key)
-  ];
+//   const rows = results.items.map((response) => {
+//     const comments = commentsByResponseId[response.id] || [];
 
-  const rows = results.items.map((response) => {
-    const comments = commentsByResponseId[response.id] || [];
+//     return [
+//       response.createdAt,
+//       response.number,
+//       response.bucket,
+//       response.tags.map((rt) => rt.tag.name).join(", "),
+//       response.assignee?.email || "",
+//       ...(response.contact
+//         ? [
+//             response.contact.firstname,
+//             response.contact.lastname,
+//             response.contact.fullname,
+//             response.contact.email
+//           ]
+//         : ["", "", response.guestName, response.guestEmail]),
+//       !response.contact,
+//       comments.map(commentText).join(", "),
+//       ...components.map((c) =>
+//         stringifyAnswer(c, response.answers[c.slideId]?.[c.key])
+//       )
+//     ];
+//   });
 
-    return [
-      response.createdAt,
-      response.number,
-      response.bucket,
-      response.tags.map((rt) => rt.tag.name).join(", "),
-      response.assignee?.email || "",
-      ...(response.contact
-        ? [
-            response.contact.firstname,
-            response.contact.lastname,
-            response.contact.fullname,
-            response.contact.email
-          ]
-        : ["", "", response.guestName, response.guestEmail]),
-      !response.contact,
-      comments.map(commentText).join(", "),
-      ...components.map((c) =>
-        stringifyAnswer(c, response.answers[c.slideId]?.[c.key])
-      )
-    ];
-  });
+//   return [
+//     exportName,
+//     stringify([headers, ...rows], { cast: { date: (d) => d.toISOString() } })
+//   ];
+// }
 
-  return [
-    exportName,
-    stringify([headers, ...rows], { cast: { date: (d) => d.toISOString() } })
-  ];
-}
+// export async function fetchPaginatedCalloutResponses(
+//   query: ListCalloutResponsesDto,
+//   contact: Contact,
+//   callout?: Callout
+// ): Promise<Paginated<GetCalloutResponseDto>> {
+//   const [rules, filters, fieldHandlers] = await prepareQuery(
+//     query.rules,
+//     contact,
+//     callout
+//   );
 
-export async function fetchPaginatedCalloutResponses(
-  query: ListCalloutResponsesDto,
-  contact: Contact,
-  callout?: Callout
-): Promise<Paginated<GetCalloutResponseDto>> {
-  const [rules, filters, fieldHandlers] = await prepareQuery(
-    query.rules,
-    contact,
-    callout
-  );
+//   const results = await fetchPaginated(
+//     CalloutResponse,
+//     filters,
+//     { ...query, rules },
+//     contact,
+//     fieldHandlers,
+//     (qb, fieldPrefix) => {
+//       if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
+//         qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
+//       }
+//       if (query.with?.includes(GetCalloutResponseWith.Callout)) {
+//         qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
+//       }
+//       if (query.with?.includes(GetCalloutResponseWith.Contact)) {
+//         qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
+//       }
+//     }
+//   );
 
-  const results = await fetchPaginated(
-    CalloutResponse,
-    filters,
-    { ...query, rules },
-    contact,
-    fieldHandlers,
-    (qb, fieldPrefix) => {
-      if (query.with?.includes(GetCalloutResponseWith.Assignee)) {
-        qb.leftJoinAndSelect(`${fieldPrefix}assignee`, "assignee");
-      }
-      if (query.with?.includes(GetCalloutResponseWith.Callout)) {
-        qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
-      }
-      if (query.with?.includes(GetCalloutResponseWith.Contact)) {
-        qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
-      }
-    }
-  );
+//   if (results.items.length > 0) {
+//     const responseIds = results.items.map((i) => i.id);
 
-  if (results.items.length > 0) {
-    const responseIds = results.items.map((i) => i.id);
+//     if (query.with?.includes(GetCalloutResponseWith.LatestComment)) {
+//       const comments = await createQueryBuilder(CalloutResponseComment, "c")
+//         .distinctOn(["c.response"])
+//         .where("c.response IN (:...ids)", { ids: responseIds })
+//         .leftJoinAndSelect("c.contact", "contact")
+//         .orderBy({ "c.response": "ASC", "c.createdAt": "DESC" })
+//         .getMany();
 
-    if (query.with?.includes(GetCalloutResponseWith.LatestComment)) {
-      const comments = await createQueryBuilder(CalloutResponseComment, "c")
-        .distinctOn(["c.response"])
-        .where("c.response IN (:...ids)", { ids: responseIds })
-        .leftJoinAndSelect("c.contact", "contact")
-        .orderBy({ "c.response": "ASC", "c.createdAt": "DESC" })
-        .getMany();
+//       for (const item of results.items) {
+//         item.latestComment =
+//           comments.find((c) => c.responseId === item.id) || null;
+//       }
+//     }
 
-      for (const item of results.items) {
-        item.latestComment =
-          comments.find((c) => c.responseId === item.id) || null;
-      }
-    }
+//     // Load contact roles after to ensure offset/limit work
+//     const contacts = results.items
+//       .flatMap((item) => [
+//         item.contact,
+//         item.assignee,
+//         item.latestComment?.contact
+//       ])
+//       .filter((c): c is Contact => !!c);
+//     await loadContactRoles(contacts);
 
-    // Load contact roles after to ensure offset/limit work
-    const contacts = results.items
-      .flatMap((item) => [
-        item.contact,
-        item.assignee,
-        item.latestComment?.contact
-      ])
-      .filter((c): c is Contact => !!c);
-    await loadContactRoles(contacts);
+//     if (query.with?.includes(GetCalloutResponseWith.Tags)) {
+//       // Load tags after to ensure offset/limit work
+//       const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
+//         .where("rt.response IN (:...ids)", { ids: responseIds })
+//         .innerJoinAndSelect("rt.tag", "tag")
+//         .getMany();
 
-    if (query.with?.includes(GetCalloutResponseWith.Tags)) {
-      // Load tags after to ensure offset/limit work
-      const responseTags = await createQueryBuilder(CalloutResponseTag, "rt")
-        .where("rt.response IN (:...ids)", { ids: responseIds })
-        .innerJoinAndSelect("rt.tag", "tag")
-        .getMany();
+//       for (const item of results.items) {
+//         item.tags = responseTags.filter((rt) => rt.responseId === item.id);
+//       }
+//     }
+//   }
 
-      for (const item of results.items) {
-        item.tags = responseTags.filter((rt) => rt.responseId === item.id);
-      }
-    }
-  }
-
-  return {
-    ...results,
-    items: results.items.map((item) => convertResponseToData(item, query.with))
-  };
-}
+//   return {
+//     ...results,
+//     items: results.items.map((item) => convertResponseToData(item, query.with))
+//   };
+// }
 
 export async function fetchPaginatedCalloutResponsesForMap(
   query: ListCalloutResponsesDto,
@@ -566,24 +524,22 @@ export async function batchUpdateCalloutResponses(
   return result.affected || -1;
 }
 
-export async function fetchCalloutResponse(
-  id: string,
-  query: GetCalloutResponseOptsDto,
-  contact: Contact
-): Promise<GetCalloutResponseDto | undefined> {
-  const a = await fetchPaginatedCalloutResponses(
-    {
-      ...query,
-      limit: 1,
-      rules: {
-        condition: "AND",
-        rules: [{ field: "id", operator: "equal", value: [id] }]
-      }
-    },
-    contact
-  );
+// export async function fetchCalloutResponse(
+//   id: string,
+//   query: GetCalloutResponseOptsDto,
+//   contact: Contact
+// ): Promise<GetCalloutResponseDto | undefined> {
+//   const a = await fetchPaginatedCalloutResponses(
+//     {
+//       ...query,
+//       limit: 1,
+//       rules: {
+//         condition: "AND",
+//         rules: [{ field: "id", operator: "equal", value: [id] }]
+//       }
+//     },
+//     contact
+//   );
 
-  return a.items[0];
-}
-
-export * from "../../dto/CalloutResponseDto";
+//   return a.items[0];
+// }

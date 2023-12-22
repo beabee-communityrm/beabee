@@ -108,3 +108,18 @@ export class BatchUpdateCalloutResponseData {
   @Type(() => CreateCalloutResponseDto)
   updates!: CreateCalloutResponseDto;
 }
+
+export type ExportCalloutResponseDto = [
+  createdAt: string,
+  number: number,
+  bucket: string,
+  tags: string,
+  assigneeEmail: string,
+  firstname: string,
+  lastname: string,
+  fullname: string,
+  email: string,
+  isGuest: boolean,
+  comments: string,
+  ...answers: string[]
+];

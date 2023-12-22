@@ -110,7 +110,7 @@ app.get(
     const availableTags = await getAvailableTags();
 
     const totalMembers = await getRepository(Contact).count();
-    const segments = await SegmentService.getSegmentsWithCount();
+    const segments = await SegmentService.getSegmentsWithCount(req.user);
     const activeSegment = query.segment
       ? segments.find((s) => s.id === query.segment)
       : undefined;

@@ -10,18 +10,20 @@ import {
 } from "routing-controllers";
 
 import {
-  BatchUpdateCalloutResponseData,
   batchUpdateCalloutResponses,
-  CreateCalloutResponseDto,
-  fetchCalloutResponse,
-  fetchPaginatedCalloutResponses,
-  GetCalloutResponseDto,
-  GetCalloutResponseOptsDto,
-  ListCalloutResponsesDto,
   updateCalloutResponse
 } from "@api/data/CalloutResponseData";
 import PartialBody from "@api/decorators/PartialBody";
 import { UUIDParams } from "@api/params/UUIDParams";
+
+import {
+  BatchUpdateCalloutResponseData,
+  CreateCalloutResponseDto,
+  GetCalloutResponseDto,
+  GetCalloutResponseOptsDto,
+  ListCalloutResponsesDto
+} from "@api/dto/CalloutResponseDto";
+import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
 import Contact from "@models/Contact";
 
@@ -29,38 +31,38 @@ import Contact from "@models/Contact";
 export class CalloutResponseController {
   @Get("/")
   async getCalloutResponses(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @QueryParams() query: ListCalloutResponsesDto
   ): Promise<Paginated<GetCalloutResponseDto>> {
-    return await fetchPaginatedCalloutResponses(query, contact);
+    return CalloutResponseTransformer.fetch(caller, query);
   }
 
   @Authorized("admin")
   @Patch("/")
   async updateCalloutResponses(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @PartialBody() data: BatchUpdateCalloutResponseData
   ): Promise<{ affected: number }> {
-    const affected = await batchUpdateCalloutResponses(data, contact);
+    const affected = await batchUpdateCalloutResponses(data, caller);
     return { affected };
   }
 
   @Get("/:id")
   async getCalloutResponse(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParams,
     @QueryParams() query: GetCalloutResponseOptsDto
   ): Promise<GetCalloutResponseDto | undefined> {
-    return await fetchCalloutResponse(id, query, contact);
+    return await CalloutResponseTransformer.fetchOneById(caller, id, query);
   }
   @Authorized("admin")
   @Patch("/:id")
   async updateCalloutResponse(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParams,
     @PartialBody() data: CreateCalloutResponseDto // Should be Partial<CreateCalloutResponseData>
   ): Promise<GetCalloutResponseDto | undefined> {
     await updateCalloutResponse(id, data);
-    return await fetchCalloutResponse(id, {}, contact);
+    return await CalloutResponseTransformer.fetchOneById(caller, id);
   }
 }
