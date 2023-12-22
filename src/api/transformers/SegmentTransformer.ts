@@ -1,5 +1,3 @@
-import SegmentService from "@core/services/SegmentService";
-
 import {
   GetSegmentDto,
   GetSegmentOptsDto,
