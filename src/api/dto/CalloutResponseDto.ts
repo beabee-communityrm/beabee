@@ -1,7 +1,9 @@
 import {
+  CalloutComponentSchema,
   CalloutResponseAnswerAddress,
   CalloutResponseAnswerFileUpload,
-  CalloutResponseAnswers
+  CalloutResponseAnswers,
+  PaginatedQuery
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
@@ -16,6 +18,7 @@ import {
   IsUUID
 } from "class-validator";
 import {
+  GetExportQuery,
   GetPaginatedQuery,
   GetPaginatedRuleGroup
 } from "../data/PaginatedData";
@@ -23,6 +26,12 @@ import { GetContactDto } from "@api/dto/ContactDto";
 import { GetCalloutDto } from "@api/dto/CalloutDto";
 import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";
 import { GetCalloutTagDto } from "@api/dto/CalloutTagDto";
+
+import Callout, { CalloutResponseViewSchema } from "@models/Callout";
+
+export interface BaseGetCalloutResponseOptsDto {
+  callout?: Callout;
+}
 
 export enum GetCalloutResponseWith {
   Answers = "answers",
@@ -48,6 +57,12 @@ export class ListCalloutResponsesDto extends GetPaginatedQuery {
   sort?: string;
 }
 
+// TODO: this is a bit hacky
+export interface GetCalloutResponseOptsDto
+  extends BaseGetCalloutResponseOptsDto {}
+export interface ListCalloutResponsesDto
+  extends BaseGetCalloutResponseOptsDto {}
+
 export interface GetCalloutResponseDto {
   id: string;
   number: number;
@@ -62,14 +77,6 @@ export interface GetCalloutResponseDto {
   tags?: GetCalloutTagDto[];
   assignee?: GetContactDto | null;
   latestComment?: GetCalloutResponseCommentDto | null;
-}
-
-export interface GetCalloutResponseMapDto {
-  number: number;
-  answers: CalloutResponseAnswers;
-  title: string;
-  photos: CalloutResponseAnswerFileUpload[];
-  address?: CalloutResponseAnswerAddress;
 }
 
 export class CreateCalloutResponseDto {
@@ -109,6 +116,8 @@ export class BatchUpdateCalloutResponseData {
   updates!: CreateCalloutResponseDto;
 }
 
+// Export types
+
 export type ExportCalloutResponseDto = [
   createdAt: string,
   number: number,
@@ -123,3 +132,28 @@ export type ExportCalloutResponseDto = [
   comments: string,
   ...answers: string[]
 ];
+
+export interface ExportCalloutResponsesOptsDto
+  extends GetExportQuery,
+    BaseGetCalloutResponseOptsDto {
+  callout: Callout;
+  components: (CalloutComponentSchema & { slideId: string })[];
+}
+
+// Get callout response map types
+
+export interface GetCalloutResponseMapDto {
+  number: number;
+  answers: CalloutResponseAnswers;
+  title: string;
+  photos: CalloutResponseAnswerFileUpload[];
+  address?: CalloutResponseAnswerAddress;
+}
+
+export interface GetCalloutResponseMapOptsDto
+  extends BaseGetCalloutResponseOptsDto {
+  callout: Callout & { responseViewSchema: CalloutResponseViewSchema };
+}
+
+export type ListCalloutResponseMapDto = GetCalloutResponseMapOptsDto &
+  PaginatedQuery;

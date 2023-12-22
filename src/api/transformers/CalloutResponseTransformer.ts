@@ -1,9 +1,4 @@
-import {
-  CalloutResponseFilterName,
-  Paginated,
-  PaginatedQuery,
-  calloutResponseFilters
-} from "@beabee/beabee-common";
+import { Paginated } from "@beabee/beabee-common";
 
 import {
   GetCalloutResponseDto,
@@ -12,7 +7,6 @@ import {
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
 
-import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import CalloutResponse from "@models/CalloutResponse";
 import ContactTransformer, {
   loadContactRoles
@@ -22,20 +16,17 @@ import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponse
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 import Contact from "@models/Contact";
 import { SelectQueryBuilder } from "typeorm";
-import { createQueryBuilder } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
-import { mergeRules } from "@api/data/PaginatedData";
+import Callout from "@models/Callout";
+import NotFoundError from "@api/errors/NotFoundError";
+import { BaseCalloutResponseTransformer } from "./BaseCalloutResponseTransformer";
 
-class CalloutResponseTransformer extends BaseTransformer<
-  CalloutResponse,
+export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseDto,
-  CalloutResponseFilterName,
   GetCalloutResponseOptsDto
 > {
-  model = CalloutResponse;
-  filters = calloutResponseFilters;
-
   convert(
     response: CalloutResponse,
     opts: GetCalloutResponseOptsDto
@@ -71,30 +62,6 @@ class CalloutResponseTransformer extends BaseTransformer<
         response.tags && {
           tags: response.tags.map((rt) => CalloutTagTransformer.convert(rt.tag))
         })
-    };
-  }
-
-  protected transformQuery(
-    query: GetCalloutResponseOptsDto & PaginatedQuery,
-    caller: Contact | undefined
-  ): GetCalloutResponseOptsDto & PaginatedQuery {
-    return {
-      ...query,
-      rules: mergeRules([
-        query.rules,
-        // Non admins can only see their own responses
-        !caller?.hasRole("admin") && {
-          field: "contact",
-          operator: "equal",
-          value: ["me"]
-        }
-        // Only load responses for the given callout
-        // !!callout && {
-        //   field: "callout",
-        //   operator: "equal",
-        //   value: [callout.slug]
-        // }
-      ])
     };
   }
 
@@ -157,6 +124,20 @@ class CalloutResponseTransformer extends BaseTransformer<
         }
       }
     }
+  }
+
+  async fetchForCallout(
+    caller: Contact | undefined,
+    calloutSlug: string,
+    query: ListCalloutResponsesDto
+  ): Promise<Paginated<GetCalloutResponseDto>> {
+    const callout = await getRepository(Callout).findOneBy({
+      slug: calloutSlug
+    });
+    if (!callout) {
+      throw new NotFoundError();
+    }
+    return await this.fetch(caller, { ...query, callout });
   }
 }
 

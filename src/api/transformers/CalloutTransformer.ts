@@ -1,6 +1,7 @@
 import {
   CalloutFilterName,
   calloutFilters,
+  Filters,
   ItemStatus,
   PaginatedQuery
 } from "@beabee/beabee-common";
@@ -34,40 +35,44 @@ class CalloutTransformer extends BaseTransformer<
   CalloutFilterName,
   GetCalloutOptsDto
 > {
-  model = Callout;
-  modelIdField = "slug";
-  filters = calloutFilters;
+  protected model = Callout;
+  protected modelIdField = "slug";
+  protected filters = calloutFilters;
+  protected fieldHandlers = { status: statusFieldHandler };
 
-  protected getFieldHandlers(
+  protected transformFilters(
+    query: GetCalloutOptsDto & PaginatedQuery,
     caller: Contact | undefined
-  ): FieldHandlers<CalloutFilterName> {
-    return {
-      status: statusFieldHandler,
-      answeredBy: (qb, args) => {
-        // TODO: support not_equal for admins
-        if (args.operator !== "equal") {
-          throw new BadRequestError("answeredBy only supports equal");
+  ): [Partial<Filters<CalloutFilterName>>, FieldHandlers<CalloutFilterName>] {
+    return [
+      {},
+      {
+        answeredBy: (qb, args) => {
+          // TODO: support not_equal for admins
+          if (args.operator !== "equal") {
+            throw new BadRequestError("answeredBy only supports equal");
+          }
+
+          if (
+            !caller ||
+            (args.value[0] !== caller.id && !caller.hasRole("admin"))
+          ) {
+            throw new UnauthorizedError();
+          }
+
+          // TODO: deduplicate with hasAnswered
+          const subQb = createQueryBuilder()
+            .subQuery()
+            .select("cr.calloutSlug", "slug")
+            .distinctOn(["cr.calloutSlug"])
+            .from(CalloutResponse, "cr")
+            .where(args.whereFn(`cr.contactId`))
+            .orderBy("cr.calloutSlug");
+
+          qb.where(`${args.fieldPrefix}slug IN ${subQb.getQuery()}`);
         }
-
-        if (
-          !caller ||
-          (args.value[0] !== caller.id && !caller.hasRole("admin"))
-        ) {
-          throw new UnauthorizedError();
-        }
-
-        // TODO: deduplicate with hasAnswered
-        const subQb = createQueryBuilder()
-          .subQuery()
-          .select("cr.calloutSlug", "slug")
-          .distinctOn(["cr.calloutSlug"])
-          .from(CalloutResponse, "cr")
-          .where(args.whereFn(`cr.contactId`))
-          .orderBy("cr.calloutSlug");
-
-        qb.where(`${args.fieldPrefix}slug IN ${subQb.getQuery()}`);
       }
-    };
+    ];
   }
 
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {

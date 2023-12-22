@@ -178,9 +178,9 @@ app.post(
           req.flash("error", "polls-responses-password-protected");
           res.redirect(req.originalUrl);
         } else {
-          // TODO: use callout
           const [exportName, exportData] = await CalloutResponseExporter.export(
             req.user,
+            callout.slug,
             {}
           );
           res.attachment(exportName).send(exportData);

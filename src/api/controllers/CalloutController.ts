@@ -25,7 +25,6 @@ import OptionsService from "@core/services/OptionsService";
 import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
-import { fetchPaginatedCalloutResponsesForMap } from "@api/data/CalloutResponseData";
 import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
 import {
   CreateCalloutDto,
@@ -50,10 +49,11 @@ import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
 import Contact from "@models/Contact";
-import Callout from "@models/Callout";
+import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
+import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
 
 @JsonController("/callout")
 export class CalloutController {
@@ -142,13 +142,12 @@ export class CalloutController {
     @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<Paginated<GetCalloutResponseDto>> {
-    const callout = await getRepository(Callout).findOneBy({ slug });
-    if (!callout) {
-      throw new NotFoundError();
-    }
-    // TODO: use callout
-    return await CalloutResponseTransformer.fetch(caller, query);
+  ) {
+    return await CalloutResponseTransformer.fetchForCallout(
+      caller,
+      slug,
+      query
+    );
   }
 
   @Get("/:slug/responses.csv")
@@ -158,13 +157,9 @@ export class CalloutController {
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
-    const callout = await getRepository(Callout).findOneBy({ slug });
-    if (!callout) {
-      throw new NotFoundError();
-    }
-    // TODO: use callout
     const [exportName, exportData] = await CalloutResponseExporter.export(
       caller,
+      slug,
       query
     );
     res.attachment(exportName).send(exportData);
@@ -177,11 +172,11 @@ export class CalloutController {
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
   ): Promise<Paginated<GetCalloutResponseMapDto>> {
-    const callout = await getRepository(Callout).findOneBy({ slug });
-    if (!callout) {
-      throw new NotFoundError();
-    }
-    return await fetchPaginatedCalloutResponsesForMap(query, caller, callout);
+    return await CalloutResponseMapTransformer.fetchForCallout(
+      caller,
+      slug,
+      query
+    );
   }
 
   @Post("/:slug/responses")

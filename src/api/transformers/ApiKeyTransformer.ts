@@ -18,10 +18,10 @@ class ApiKeyTransformer extends BaseTransformer<
   GetApiKeyDto,
   ApiKeyFilterName
 > {
-  model = ApiKey;
-  filters = apiKeyFilters;
+  protected model = ApiKey;
+  protected filters = apiKeyFilters;
 
-  allowedRoles: RoleType[] = ["admin"];
+  protected allowedRoles: RoleType[] = ["admin"];
 
   convert(key: ApiKey): GetApiKeyDto {
     return {

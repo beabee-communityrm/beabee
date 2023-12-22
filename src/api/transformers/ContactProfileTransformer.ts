@@ -9,7 +9,8 @@ class ContactProfileTransformer extends BaseTransformer<
   ContactProfile,
   GetContactProfileDto
 > {
-  model = ContactProfile;
+  protected model = ContactProfile;
+  protected filters = {};
 
   convert(
     profile: ContactProfile,

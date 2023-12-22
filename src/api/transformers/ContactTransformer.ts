@@ -33,13 +33,10 @@ class ContactTransformer extends BaseTransformer<
   ContactFilterName,
   GetContactOptsDto
 > {
-  model = Contact;
-  filters = contactFilters;
-
-  // TODO: Make protected once SegmentService has been cleaned up
-  getFieldHandlers() {
-    return contactFieldHandlers;
-  }
+  protected model = Contact;
+  protected filters = contactFilters;
+  // TODO: make protected
+  fieldHandlers = contactFieldHandlers;
 
   convert(
     contact: Contact,

@@ -15,8 +15,8 @@ class CalloutTagTransformer extends BaseTransformer<
   GetCalloutTagDto,
   CalloutTagFilterName
 > {
-  model = CalloutTag;
-  filters = calloutTagFilters;
+  protected model = CalloutTag;
+  protected filters = calloutTagFilters;
 
   allowedRoles: RoleType[] = ["admin"];
 

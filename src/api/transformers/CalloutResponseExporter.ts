@@ -1,9 +1,6 @@
 import {
-  CalloutResponseFilterName,
   Paginated,
-  PaginatedQuery,
   RoleType,
-  calloutResponseFilters,
   getCalloutComponents,
   stringifyAnswer
 } from "@beabee/beabee-common";
@@ -13,34 +10,29 @@ import { In, SelectQueryBuilder } from "typeorm";
 
 import { getRepository } from "@core/database";
 
-import { GetExportQuery } from "@api/data/PaginatedData";
-import { ExportCalloutResponseDto } from "@api/dto/CalloutResponseDto";
-import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import {
+  ExportCalloutResponseDto,
+  ExportCalloutResponsesOptsDto
+} from "@api/dto/CalloutResponseDto";
+import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
+import NotFoundError from "@api/errors/NotFoundError";
 import { groupBy } from "@api/utils";
 
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import Contact from "@models/Contact";
+import { GetExportQuery } from "@api/data/PaginatedData";
+import Callout from "@models/Callout";
 
-function commentText(comment: CalloutResponseComment) {
-  const date = format(comment.createdAt, "Pp");
-  return `${comment.contact.fullname} (${date}): ${comment.text}`;
-}
-
-class CalloutResponseExporter extends BaseTransformer<
-  CalloutResponse,
+class CalloutResponseExporter extends BaseCalloutResponseTransformer<
   ExportCalloutResponseDto,
-  CalloutResponseFilterName,
-  GetExportQuery
+  ExportCalloutResponsesOptsDto
 > {
-  model = CalloutResponse;
-  filters = calloutResponseFilters;
-
-  allowedRoles: RoleType[] = ["admin"];
+  protected allowedRoles: RoleType[] = ["admin"];
 
   convert(
     response: CalloutResponse,
-    opts: GetExportQuery
+    opts: ExportCalloutResponsesOptsDto
   ): ExportCalloutResponseDto {
     const contact: [string, string, string, string] = response.contact
       ? [
@@ -60,7 +52,7 @@ class CalloutResponseExporter extends BaseTransformer<
       ...contact,
       !response.contact,
       response.comments?.map(commentText).join(", ") || "",
-      ...components.map((c) =>
+      ...opts.components.map((c) =>
         stringifyAnswer(c, response.answers[c.slideId]?.[c.key])
       )
     ];
@@ -78,11 +70,8 @@ class CalloutResponseExporter extends BaseTransformer<
   }
 
   protected async modifyResult(
-    result: Paginated<CalloutResponse>,
-    query: GetExportQuery & PaginatedQuery,
-    caller: Contact | undefined
+    result: Paginated<CalloutResponse>
   ): Promise<void> {
-    // Fetch comments for filtered responses
     const comments = await getRepository(CalloutResponseComment).find({
       where: {
         responseId: In(result.items.map((response) => response.id))
@@ -103,17 +92,31 @@ class CalloutResponseExporter extends BaseTransformer<
 
   async export(
     caller: Contact | undefined,
-    query?: GetExportQuery
+    calloutSlug: string,
+    query: GetExportQuery
   ): Promise<[string, string]> {
-    const result = await this.fetch(caller, { limit: -1, ...query });
-
-    const exportName = `responses-${
-      callout.title
-    }_${new Date().toISOString()}.csv`;
+    const callout = await getRepository(Callout).findOneBy({
+      slug: calloutSlug
+    });
+    if (!callout) {
+      throw new NotFoundError();
+    }
 
     const components = getCalloutComponents(callout.formSchema).filter(
       (c) => c.input
     );
+
+    const result = await this.fetch(caller, {
+      limit: -1,
+      ...query,
+      callout,
+      // Store components to avoid having to flatten them in convert()
+      components
+    });
+
+    const exportName = `responses-${
+      callout.title
+    }_${new Date().toISOString()}.csv`;
 
     const headers = [
       "Date",
@@ -137,6 +140,11 @@ class CalloutResponseExporter extends BaseTransformer<
       })
     ];
   }
+}
+
+function commentText(comment: CalloutResponseComment) {
+  const date = format(comment.createdAt, "Pp");
+  return `${comment.contact.fullname} (${date}): ${comment.text}`;
 }
 
 export default new CalloutResponseExporter();

@@ -19,10 +19,10 @@ class SegmentTransformer extends BaseTransformer<
   never,
   GetSegmentOptsDto
 > {
-  model = Segment;
-  filters = {};
+  protected model = Segment;
+  protected filters = {};
 
-  allowedRoles: RoleType[] = ["admin"];
+  protected allowedRoles: RoleType[] = ["admin"];
 
   convert(segment: Segment, opts: GetSegmentOptsDto): GetSegmentDto {
     return {

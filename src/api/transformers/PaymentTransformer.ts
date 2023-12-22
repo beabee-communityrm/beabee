@@ -26,8 +26,8 @@ class PaymentTransformer extends BaseTransformer<
   PaymentFilterName,
   GetPaymentOptsDto
 > {
-  model = Payment;
-  filters = paymentFilters;
+  protected model = Payment;
+  protected filters = paymentFilters;
 
   convert(payment: Payment, opts: GetPaymentOptsDto): GetPaymentDto {
     return {

@@ -7,7 +7,8 @@ class ContactRoleTransformer extends BaseTransformer<
   ContactRole,
   GetContactRoleDto
 > {
-  model = ContactRole;
+  protected model = ContactRole;
+  protected filters = {};
 
   convert(role: ContactRole): GetContactRoleDto {
     return {

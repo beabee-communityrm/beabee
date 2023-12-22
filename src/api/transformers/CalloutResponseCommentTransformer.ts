@@ -22,8 +22,8 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
   GetCalloutResponseCommentDto,
   CalloutResponseCommentFilterName
 > {
-  model = CalloutResponseComment;
-  filters = calloutResponseCommentFilters;
+  protected model = CalloutResponseComment;
+  protected filters = calloutResponseCommentFilters;
 
   convert(comment: CalloutResponseComment): GetCalloutResponseCommentDto {
     return {

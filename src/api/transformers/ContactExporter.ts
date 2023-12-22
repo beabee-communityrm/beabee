@@ -21,14 +21,11 @@ class ContactExporter extends BaseTransformer<
   ContactFilterName,
   GetExportQuery
 > {
-  model = Contact;
-  filters = contactFilters;
+  protected model = Contact;
+  protected filters = contactFilters;
+  protected fieldHandlers = ContactTransformer.fieldHandlers;
 
-  allowedRoles: RoleType[] = ["admin"];
-
-  getFieldHandlers() {
-    return ContactTransformer.getFieldHandlers();
-  }
+  protected allowedRoles: RoleType[] = ["admin"];
 
   convert(contact: Contact): ExportContactDto {
     return {

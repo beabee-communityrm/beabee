@@ -44,7 +44,7 @@ class SegmentService {
       Contact,
       validatedRuleGroup,
       undefined,
-      ContactTransformer.getFieldHandlers()
+      ContactTransformer.fieldHandlers
     );
 
     qb.leftJoinAndSelect("item.profile", "profile").leftJoinAndSelect(

@@ -20,23 +20,25 @@ export abstract class BaseTransformer<
   GetDtoOpts = unknown,
   Query extends GetDtoOpts & PaginatedQuery = GetDtoOpts & PaginatedQuery
 > {
-  abstract model: { new (): Model };
-  modelIdField = "id";
-  filters: Filters<FilterName> = {} as Filters<FilterName>; // TODO: better?
+  protected abstract model: { new (): Model };
+  protected modelIdField = "id";
 
-  allowedRoles: RoleType[] | undefined;
+  protected abstract filters: Filters<FilterName>;
+  protected fieldHandlers: FieldHandlers<FilterName> = {};
 
-  // TODO: could rework this once fetchPaginated has been refactored
-  protected getFieldHandlers(
-    runner: Contact | undefined
-  ): FieldHandlers<FilterName> {
-    return {};
-  }
+  protected allowedRoles: RoleType[] | undefined;
 
   abstract convert(model: Model, opts: GetDtoOpts, caller?: Contact): GetDto;
 
   protected transformQuery(query: Query, caller: Contact | undefined): Query {
     return query;
+  }
+
+  protected transformFilters(
+    query: Query,
+    caller: Contact | undefined
+  ): [Partial<Filters<FilterName>>, FieldHandlers<FilterName>] {
+    return [{}, {}];
   }
 
   protected modifyQueryBuilder(
@@ -63,12 +65,16 @@ export abstract class BaseTransformer<
       throw new UnauthorizedError();
     }
 
+    const [filters, fieldHandlers] = this.transformFilters(query, caller);
+
+    const allFilters: Filters<FilterName> = { ...this.filters, ...filters };
+
     const result = await fetchPaginated(
       this.model,
-      this.filters,
+      allFilters,
       this.transformQuery(query, caller),
       caller,
-      this.getFieldHandlers(caller),
+      { ...this.fieldHandlers, fieldHandlers },
       (qb, fieldPrefix) =>
         this.modifyQueryBuilder(qb, fieldPrefix, query, caller)
     );
