@@ -23,7 +23,7 @@ class ContactExporter extends BaseTransformer<
 > {
   protected model = Contact;
   protected filters = contactFilters;
-  protected fieldHandlers = ContactTransformer.fieldHandlers;
+  protected filterHandlers = ContactTransformer.filterHandlers;
 
   protected allowedRoles: RoleType[] = ["admin"];
 

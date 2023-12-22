@@ -97,7 +97,7 @@ export class GetPaginatedQuery
 
 export type RichRuleValue = RuleValue | Date;
 
-export interface FieldHandlerArgs {
+export interface FilterHandlerArgs {
   fieldPrefix: string;
   type: FilterType;
   field: string;
@@ -107,11 +107,11 @@ export interface FieldHandlerArgs {
   suffixFn: (field: string) => string;
 }
 
-export type FieldHandler = (
+export type FilterHandler = (
   qb: WhereExpressionBuilder,
-  args: FieldHandlerArgs
+  args: FilterHandlerArgs
 ) => void | Record<string, unknown>;
 
-export type FieldHandlers<Field extends string> = {
-  [K in Field]?: FieldHandler;
+export type FilterHandlers<Field extends string> = {
+  [K in Field]?: FilterHandler;
 };

@@ -11,10 +11,10 @@ import { SelectQueryBuilder } from "typeorm";
 import { createQueryBuilder } from "@core/database";
 
 import {
-  FieldHandlers,
+  FilterHandlers,
   mergeRules,
   Paginated,
-  statusFieldHandler
+  statusFilterHandler
 } from "@api/data/PaginatedData";
 
 import Contact from "@models/Contact";
@@ -38,12 +38,12 @@ class CalloutTransformer extends BaseTransformer<
   protected model = Callout;
   protected modelIdField = "slug";
   protected filters = calloutFilters;
-  protected fieldHandlers = { status: statusFieldHandler };
+  protected filterHandlers = { status: statusFilterHandler };
 
   protected transformFilters(
     query: GetCalloutOptsDto & PaginatedQuery,
     caller: Contact | undefined
-  ): [Partial<Filters<CalloutFilterName>>, FieldHandlers<CalloutFilterName>] {
+  ): [Partial<Filters<CalloutFilterName>>, FilterHandlers<CalloutFilterName>] {
     return [
       {},
       {

@@ -10,8 +10,8 @@ import {
 import { createQueryBuilder } from "@core/database";
 
 import {
-  FieldHandler,
-  FieldHandlers,
+  FilterHandler,
+  FilterHandlers,
   mergeRules
 } from "@api/data/PaginatedData";
 import { BaseGetCalloutResponseOptsDto } from "@api/dto/CalloutResponseDto";
@@ -32,26 +32,26 @@ export abstract class BaseCalloutResponseTransformer<
 > {
   protected model = CalloutResponse;
   protected filters = calloutResponseFilters;
-  protected fieldHandlers = calloutResponseFieldHandlers;
+  protected filterHandlers = calloutResponseFilterHandlers;
 
   protected transformFilters(
     query: GetOptsDto & PaginatedQuery
   ): [
     Partial<Filters<CalloutResponseFilterName>>,
-    FieldHandlers<CalloutResponseFilterName>
+    FilterHandlers<CalloutResponseFilterName>
   ] {
     // If looking for responses for a particular callout then add answer filtering
     if (query.callout) {
       const answerFilters = getCalloutFilters(query.callout.formSchema);
       // All handled by the same field handler
-      const answerFieldHandlers = Object.fromEntries(
+      const answerFilterHandlers = Object.fromEntries(
         Object.keys(answerFilters).map((field) => [
           field,
-          individualAnswerFieldHandler
+          individualAnswerFilterHandler
         ])
       );
 
-      return [answerFilters, answerFieldHandlers];
+      return [answerFilters, answerFilterHandlers];
     } else {
       return [{}, {}];
     }
@@ -92,7 +92,7 @@ const answerArrayOperators: Partial<
   is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
 };
 
-const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
+const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
   const answerField = `${args.fieldPrefix}answers -> :s -> :k`;
 
   if (args.type === "array") {
@@ -125,7 +125,7 @@ const individualAnswerFieldHandler: FieldHandler = (qb, args) => {
   };
 };
 
-const calloutResponseFieldHandlers: FieldHandlers<string> = {
+const calloutResponseFilterHandlers: FilterHandlers<string> = {
   answers: (qb, args) => {
     qb.where(
       args.whereFn(`(

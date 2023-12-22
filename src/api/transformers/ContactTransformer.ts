@@ -11,8 +11,8 @@ import PaymentData from "@models/PaymentData";
 
 import {
   Paginated,
-  FieldHandlers,
-  FieldHandler,
+  FilterHandlers,
+  FilterHandler,
   mergeRules
 } from "@api/data/PaginatedData";
 import type {
@@ -36,7 +36,7 @@ class ContactTransformer extends BaseTransformer<
   protected model = Contact;
   protected filters = contactFilters;
   // TODO: make protected
-  fieldHandlers = contactFieldHandlers;
+  filterHandlers = contactFilterHandlers;
 
   convert(
     contact: Contact,
@@ -164,7 +164,7 @@ class ContactTransformer extends BaseTransformer<
 
 // Field handlers
 
-function membershipField(field: keyof ContactRole): FieldHandler {
+function membershipField(field: keyof ContactRole): FilterHandler {
   return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
@@ -177,7 +177,7 @@ function membershipField(field: keyof ContactRole): FieldHandler {
   };
 }
 
-function profileField(field: keyof ContactProfile): FieldHandler {
+function profileField(field: keyof ContactProfile): FilterHandler {
   return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
@@ -189,7 +189,7 @@ function profileField(field: keyof ContactProfile): FieldHandler {
   };
 }
 
-const activePermission: FieldHandler = (qb, args) => {
+const activePermission: FilterHandler = (qb, args) => {
   const roleType = args.field === "activeMembership" ? "member" : args.value[0];
 
   const isIn =
@@ -216,7 +216,7 @@ const activePermission: FieldHandler = (qb, args) => {
   }
 };
 
-function paymentDataField(field: string): FieldHandler {
+function paymentDataField(field: string): FilterHandler {
   return (qb, args) => {
     const subQb = createQueryBuilder()
       .subQuery()
@@ -228,7 +228,7 @@ function paymentDataField(field: string): FieldHandler {
   };
 }
 
-const contactFieldHandlers: FieldHandlers<ContactFilterName> = {
+const contactFilterHandlers: FilterHandlers<ContactFilterName> = {
   deliveryOptIn: profileField("deliveryOptIn"),
   newsletterStatus: profileField("newsletterStatus"),
   tags: profileField("tags"),

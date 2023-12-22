@@ -34,8 +34,8 @@ import {
   GetPaginatedRuleGroupRule,
   Paginated,
   RichRuleValue,
-  FieldHandlers,
-  FieldHandler,
+  FilterHandlers,
+  FilterHandler,
   GetPaginatedRuleGroup
 } from "./interface";
 
@@ -116,11 +116,11 @@ const operatorsWhereByType: Record<
 
 // Generic field handlers
 
-const simpleFieldHandler: FieldHandler = (qb, args) => {
+const simpleFilterHandler: FilterHandler = (qb, args) => {
   qb.where(args.whereFn(`${args.fieldPrefix}${args.field}`));
 };
 
-export const statusFieldHandler: FieldHandler = (qb, args) => {
+export const statusFilterHandler: FilterHandler = (qb, args) => {
   // TODO: handle other operators
   if (args.operator !== "equal") {
     throw new BadRequestError("Status field only supports equal operator");
@@ -207,7 +207,7 @@ function prepareRule(
 function buildWhere<Field extends string>(
   ruleGroup: ValidatedRuleGroup<Field>,
   contact: Contact | undefined,
-  fieldHandlers: FieldHandlers<Field> | undefined,
+  filterHandlers: FilterHandlers<Field> | undefined,
   fieldPrefix: string
 ): [Brackets, Record<string, unknown>] {
   /*
@@ -241,8 +241,8 @@ function buildWhere<Field extends string>(
       const suffixFn = (field: string) =>
         field.replace(/[^:]:[a-z]/g, "$&" + suffix);
 
-      const fieldHandler = fieldHandlers?.[rule.field] || simpleFieldHandler;
-      const extraParams = fieldHandler(qb, {
+      const filterHandler = filterHandlers?.[rule.field] || simpleFilterHandler;
+      const extraParams = filterHandler(qb, {
         fieldPrefix,
         field: rule.field,
         operator: rule.operator,
@@ -291,11 +291,11 @@ export function buildSelectQuery<
   entity: EntityTarget<Entity>,
   ruleGroup: ValidatedRuleGroup<Field> | undefined,
   contact?: Contact,
-  fieldHandlers?: FieldHandlers<Field>
+  filterHandlers?: FilterHandlers<Field>
 ): SelectQueryBuilder<Entity> {
   const qb = createQueryBuilder(entity, "item");
   if (ruleGroup) {
-    qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
+    qb.where(...buildWhere(ruleGroup, contact, filterHandlers, "item."));
   }
   return qb;
 }
@@ -308,7 +308,7 @@ export async function fetchPaginated<
   filters: Filters<Field>,
   query: GetPaginatedQuery,
   contact?: Contact,
-  fieldHandlers?: FieldHandlers<Field>,
+  filterHandlers?: FilterHandlers<Field>,
   queryCallback?: (qb: SelectQueryBuilder<Entity>, fieldPrefix: string) => void
 ): Promise<Paginated<Entity>> {
   const limit = query.limit || 50;
@@ -324,7 +324,7 @@ export async function fetchPaginated<
     }
 
     if (ruleGroup) {
-      qb.where(...buildWhere(ruleGroup, contact, fieldHandlers, "item."));
+      qb.where(...buildWhere(ruleGroup, contact, filterHandlers, "item."));
     }
 
     if (query.sort) {
@@ -361,7 +361,7 @@ export async function batchUpdate<
   ruleGroup: RuleGroup,
   updates: QueryDeepPartialEntity<Entity>,
   contact?: Contact,
-  fieldHandlers?: FieldHandlers<Field>,
+  filterHandlers?: FilterHandlers<Field>,
   queryCallback?: (qb: UpdateQueryBuilder<Entity>, fieldPrefix: string) => void
 ): Promise<UpdateResult> {
   try {
@@ -369,7 +369,7 @@ export async function batchUpdate<
 
     const qb = createQueryBuilder()
       .update(entity, updates)
-      .where(...buildWhere(validatedRuleGroup, contact, fieldHandlers, ""));
+      .where(...buildWhere(validatedRuleGroup, contact, filterHandlers, ""));
 
     queryCallback?.(qb, "");
 

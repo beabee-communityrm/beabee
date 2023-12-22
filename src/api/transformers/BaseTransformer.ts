@@ -6,7 +6,7 @@ import {
 } from "@beabee/beabee-common";
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
-import { FieldHandlers, fetchPaginated } from "@api/data/PaginatedData";
+import { FilterHandlers, fetchPaginated } from "@api/data/PaginatedData";
 
 import UnauthorizedError from "@api/errors/UnauthorizedError";
 import NotFoundError from "@api/errors/NotFoundError";
@@ -24,7 +24,7 @@ export abstract class BaseTransformer<
   protected modelIdField = "id";
 
   protected abstract filters: Filters<FilterName>;
-  protected fieldHandlers: FieldHandlers<FilterName> = {};
+  protected filterHandlers: FilterHandlers<FilterName> = {};
 
   protected allowedRoles: RoleType[] | undefined;
 
@@ -37,7 +37,7 @@ export abstract class BaseTransformer<
   protected transformFilters(
     query: Query,
     caller: Contact | undefined
-  ): [Partial<Filters<FilterName>>, FieldHandlers<FilterName>] {
+  ): [Partial<Filters<FilterName>>, FilterHandlers<FilterName>] {
     return [{}, {}];
   }
 
@@ -65,7 +65,7 @@ export abstract class BaseTransformer<
       throw new UnauthorizedError();
     }
 
-    const [filters, fieldHandlers] = this.transformFilters(query, caller);
+    const [filters, filterHandlers] = this.transformFilters(query, caller);
 
     const allFilters: Filters<FilterName> = { ...this.filters, ...filters };
 
@@ -74,7 +74,7 @@ export abstract class BaseTransformer<
       allFilters,
       this.transformQuery(query, caller),
       caller,
-      { ...this.fieldHandlers, fieldHandlers },
+      { ...this.filterHandlers, ...filterHandlers },
       (qb, fieldPrefix) =>
         this.modifyQueryBuilder(qb, fieldPrefix, query, caller)
     );
