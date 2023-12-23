@@ -11,8 +11,6 @@ import { SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
 
-import { FilterHandlers } from "@api/data/PaginatedData/interface";
-
 import {
   GetCalloutWith,
   ListCalloutsDto,
@@ -25,6 +23,8 @@ import { mergeRules, statusFilterHandler } from "@api/utils/rules";
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+
+import { FilterHandlers } from "@type/filter-handlers";
 
 class CalloutTransformer extends BaseTransformer<
   Callout,

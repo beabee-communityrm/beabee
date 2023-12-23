@@ -9,10 +9,6 @@ import {
 
 import { createQueryBuilder } from "@core/database";
 
-import {
-  FilterHandler,
-  FilterHandlers
-} from "@api/data/PaginatedData/interface";
 import { BaseGetCalloutResponseOptsDto } from "@api/dto/CalloutResponseDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import { mergeRules } from "@api/utils/rules";
@@ -20,6 +16,8 @@ import { mergeRules } from "@api/utils/rules";
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
+
+import { FilterHandler, FilterHandlers } from "@type/filter-handlers";
 
 export abstract class BaseCalloutResponseTransformer<
   GetDto,

@@ -10,13 +10,14 @@ import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
 
-import { FilterHandlers } from "@api/data/PaginatedData/interface";
 import NotFoundError from "@api/errors/NotFoundError";
 import InvalidRuleError from "@api/errors/InvalidRuleError";
 import UnauthorizedError from "@api/errors/UnauthorizedError";
 import { convertRulesToWhereClause } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
+
+import { FilterHandlers } from "@type/filter-handlers";
 
 export abstract class BaseTransformer<
   Model extends ObjectLiteral,

@@ -30,12 +30,15 @@ import { createQueryBuilder } from "@core/database";
 
 import {
   GetPaginatedRuleGroupRule,
-  RichRuleValue,
-  FilterHandlers,
-  FilterHandler,
   GetPaginatedRuleGroup,
   GetPaginatedRule
 } from "@api/data/PaginatedData/interface";
+
+import {
+  FilterHandler,
+  FilterHandlers,
+  RichRuleValue
+} from "@type/filter-handlers";
 
 import Contact from "@models/Contact";
 

@@ -4,8 +4,7 @@ import {
   ruleOperators,
   RuleOperator,
   RuleValue,
-  RuleGroup,
-  FilterType
+  RuleGroup
 } from "@beabee/beabee-common";
 import { Transform, Type } from "class-transformer";
 import {
@@ -17,7 +16,6 @@ import {
   Min,
   Max
 } from "class-validator";
-import { WhereExpressionBuilder } from "typeorm";
 
 import { IsType } from "@api/validators/IsType";
 import { transformRules } from "@api/utils/rules";
@@ -76,24 +74,3 @@ export class GetPaginatedQuery
   @IsIn(["ASC", "DESC"])
   order?: "ASC" | "DESC";
 }
-
-export type RichRuleValue = RuleValue | Date;
-
-export interface FilterHandlerArgs {
-  fieldPrefix: string;
-  type: FilterType;
-  field: string;
-  operator: RuleOperator;
-  value: RichRuleValue[];
-  whereFn: (field: string) => string;
-  suffixFn: (field: string) => string;
-}
-
-export type FilterHandler = (
-  qb: WhereExpressionBuilder,
-  args: FilterHandlerArgs
-) => void | Record<string, unknown>;
-
-export type FilterHandlers<Field extends string> = {
-  [K in Field]?: FilterHandler;
-};

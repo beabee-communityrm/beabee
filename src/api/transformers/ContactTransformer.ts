@@ -12,11 +12,6 @@ import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 import ContactProfile from "@models/ContactProfile";
 import PaymentData from "@models/PaymentData";
-
-import {
-  FilterHandlers,
-  FilterHandler
-} from "@api/data/PaginatedData/interface";
 import type {
   GetContactDto,
   GetContactOptsDto,
@@ -28,6 +23,8 @@ import ContactProfileTransformer from "@api/transformers/ContactProfileTransform
 import { mergeRules } from "@api/utils/rules";
 
 import { GetContactWith } from "@enums/get-contact-with";
+
+import { FilterHandler, FilterHandlers } from "@type/filter-handlers";
 
 class ContactTransformer extends BaseTransformer<
   Contact,
