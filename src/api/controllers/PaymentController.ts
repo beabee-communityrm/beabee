@@ -1,4 +1,4 @@
-import { Paginated } from "@api/data/PaginatedData";
+import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   CurrentUser,

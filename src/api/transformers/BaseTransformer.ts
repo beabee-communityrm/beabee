@@ -1,15 +1,20 @@
 import {
   Filters,
+  InvalidRule,
   Paginated,
   PaginatedQuery,
-  RoleType
+  RoleType,
+  validateRuleGroup
 } from "@beabee/beabee-common";
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
-import { FilterHandlers, fetchPaginated } from "@api/data/PaginatedData";
+import { createQueryBuilder } from "@core/database";
 
-import UnauthorizedError from "@api/errors/UnauthorizedError";
+import { FilterHandlers } from "@api/data/PaginatedData/interface";
 import NotFoundError from "@api/errors/NotFoundError";
+import InvalidRuleError from "@api/errors/InvalidRuleError";
+import UnauthorizedError from "@api/errors/UnauthorizedError";
+import { convertRulesToWhereClause } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
 
@@ -79,22 +84,57 @@ export abstract class BaseTransformer<
   ): Promise<Paginated<GetDto>> {
     const [filters, filterHandlers] = this.preFetch(caller, query);
 
-    const result = await fetchPaginated(
-      this.model,
-      filters,
-      this.transformQuery(query, caller),
-      caller,
-      filterHandlers,
-      (qb, fieldPrefix) =>
-        this.modifyQueryBuilder(qb, fieldPrefix, query, caller)
-    );
+    query = this.transformQuery(query, caller);
 
-    await this.modifyResult(result, query, caller);
+    const limit = query.limit || 50;
+    const offset = query.offset || 0;
 
-    return {
-      ...result,
-      items: result.items.map((item) => this.convert(item, query, caller))
-    };
+    try {
+      const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
+
+      const qb = createQueryBuilder(this.model, "item").offset(offset);
+
+      if (limit !== -1) {
+        qb.limit(limit);
+      }
+
+      if (ruleGroup) {
+        qb.where(
+          ...convertRulesToWhereClause(
+            ruleGroup,
+            caller,
+            filterHandlers,
+            "item."
+          )
+        );
+      }
+
+      if (query.sort) {
+        qb.orderBy(`item."${query.sort}"`, query.order || "ASC", "NULLS LAST");
+      }
+
+      this.modifyQueryBuilder(qb, "item.", query, caller);
+
+      const [items, total] = await qb.getManyAndCount();
+
+      const result = {
+        total,
+        offset,
+        count: items.length,
+        items
+      };
+
+      await this.modifyResult(result, query, caller);
+
+      return {
+        ...result,
+        items: result.items.map((item) => this.convert(item, query, caller))
+      };
+    } catch (err) {
+      throw err instanceof InvalidRule
+        ? new InvalidRuleError(err.rule, err.message)
+        : err;
+    }
   }
 
   async fetchOne(

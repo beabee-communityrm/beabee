@@ -1,4 +1,4 @@
-import { CalloutFormSchema } from "@beabee/beabee-common";
+import { CalloutFormSchema, Paginated } from "@beabee/beabee-common";
 import { Response } from "express";
 import {
   Authorized,
@@ -25,7 +25,8 @@ import OptionsService from "@core/services/OptionsService";
 import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
-import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
+import { GetExportQuery } from "@api/data/PaginatedData/interface";
+
 import {
   CreateCalloutDto,
   GetCalloutDto,
@@ -34,7 +35,6 @@ import {
 } from "@api/dto/CalloutDto";
 import {
   CreateCalloutResponseDto,
-  GetCalloutResponseDto,
   GetCalloutResponseMapDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
@@ -46,14 +46,14 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 import CalloutTransformer from "@api/transformers/CalloutTransformer";
 import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
+import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
 import Contact from "@models/Contact";
-import Callout, { CalloutResponseViewSchema } from "@models/Callout";
+import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
-import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
 
 @JsonController("/callout")
 export class CalloutController {

@@ -1,3 +1,4 @@
+import { Paginated } from "@beabee/beabee-common";
 import {
   JsonController,
   Authorized,
@@ -23,7 +24,6 @@ import {
   GetApiKeyDto,
   ListApiKeysDto
 } from "@api/dto/ApiKeyDto";
-import { Paginated } from "@api/data/PaginatedData";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 
 @JsonController("/api-key")

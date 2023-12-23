@@ -8,20 +8,21 @@ import {
   stringifyAnswer
 } from "@beabee/beabee-common";
 
+import { getRepository } from "@core/database";
+
 import {
   GetCalloutResponseMapDto,
   GetCalloutResponseMapOptsDto,
   ListCalloutResponseMapDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
-import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
-
-import CalloutResponse from "@models/CalloutResponse";
-import { mergeRules } from "@api/data/PaginatedData";
-import Contact from "@models/Contact";
-import { getRepository } from "@core/database";
-import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import NotFoundError from "@api/errors/NotFoundError";
+import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
+import { mergeRules } from "@api/utils/rules";
+
+import Callout, { CalloutResponseViewSchema } from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
+import Contact from "@models/Contact";
 
 class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseMapDto,

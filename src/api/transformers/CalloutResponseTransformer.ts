@@ -4,8 +4,6 @@ import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity
 
 import { createQueryBuilder, getRepository } from "@core/database";
 
-import { batchUpdate } from "@api/data/PaginatedData";
-
 import {
   BatchUpdateCalloutResponseDto,
   CreateCalloutResponseDto,
@@ -22,6 +20,7 @@ import CalloutTransformer from "@api/transformers/CalloutTransformer";
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
+import { batchUpdate } from "@api/utils/rules";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";

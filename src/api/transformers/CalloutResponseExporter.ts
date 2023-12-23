@@ -18,10 +18,11 @@ import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutRes
 import NotFoundError from "@api/errors/NotFoundError";
 import { groupBy } from "@api/utils";
 
+import { GetExportQuery } from "@api/data/PaginatedData/interface";
+
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import Contact from "@models/Contact";
-import { GetExportQuery } from "@api/data/PaginatedData";
 import Callout from "@models/Callout";
 
 class CalloutResponseExporter extends BaseCalloutResponseTransformer<

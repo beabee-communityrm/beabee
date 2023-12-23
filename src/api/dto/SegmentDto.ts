@@ -11,7 +11,7 @@ import {
 import {
   GetPaginatedQuery,
   GetPaginatedRuleGroup
-} from "@api/data/PaginatedData";
+} from "@api/data/PaginatedData/interface";
 
 export enum GetSegmentWith {
   contactCount = "contactCount"

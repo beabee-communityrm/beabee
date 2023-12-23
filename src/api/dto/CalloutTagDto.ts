@@ -1,4 +1,4 @@
-import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import { GetPaginatedQuery } from "@api/data/PaginatedData/interface";
 import { IsIn, IsString } from "class-validator";
 
 export interface GetCalloutTagDto {

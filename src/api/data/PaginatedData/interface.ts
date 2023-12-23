@@ -5,15 +5,9 @@ import {
   RuleOperator,
   RuleValue,
   RuleGroup,
-  isRuleGroup,
   FilterType
 } from "@beabee/beabee-common";
-import {
-  plainToClass,
-  Transform,
-  TransformFnParams,
-  Type
-} from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
   IsString,
   IsIn,
@@ -26,19 +20,7 @@ import {
 import { WhereExpressionBuilder } from "typeorm";
 
 import { IsType } from "@api/validators/IsType";
-
-export { Paginated } from "@beabee/beabee-common";
-
-function transformRules({
-  value
-}: TransformFnParams): GetPaginatedRuleGroupRule {
-  return value.map((v: GetPaginatedRuleGroupRule) =>
-    plainToClass<GetPaginatedRuleGroupRule, unknown>(
-      isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
-      v
-    )
-  );
-}
+import { transformRules } from "@api/utils/rules";
 
 export class GetPaginatedRule implements Rule {
   @IsString()

@@ -5,7 +5,6 @@ import {
 } from "@beabee/beabee-common";
 import { SelectQueryBuilder } from "typeorm";
 
-import { mergeRules } from "@api/data/PaginatedData";
 import {
   GetPaymentDto,
   GetPaymentOptsDto,
@@ -16,6 +15,7 @@ import ContactTransformer, {
   loadContactRoles
 } from "@api/transformers/ContactTransformer";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import { mergeRules } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
 import Payment from "@models/Payment";

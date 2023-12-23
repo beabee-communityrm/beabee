@@ -1,4 +1,8 @@
-import { ContributionPeriod, NewsletterStatus } from "@beabee/beabee-common";
+import {
+  ContributionPeriod,
+  NewsletterStatus,
+  Paginated
+} from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import {
   Authorized,
@@ -57,7 +61,6 @@ import {
 import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
 import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
 
-import { mergeRules, Paginated, GetExportQuery } from "@api/data/PaginatedData";
 import PartialBody from "@api/decorators/PartialBody";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -74,6 +77,8 @@ import PaymentTransformer from "@api/transformers/PaymentTransformer";
 import { GetContactWith } from "@enums/get-contact-with";
 
 import { ContributionInfo } from "@type/contribution-info";
+import { GetExportQuery } from "@api/data/PaginatedData/interface";
+import { mergeRules } from "@api/utils/rules";
 
 /**
  * The target user can either be the current user or for admins

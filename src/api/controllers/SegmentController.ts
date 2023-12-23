@@ -1,3 +1,4 @@
+import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -15,7 +16,6 @@ import {
 
 import { getRepository } from "@core/database";
 
-import { Paginated } from "@api/data/PaginatedData";
 import { GetContactDto, ListContactsDto } from "@api/dto/ContactDto";
 import {
   GetSegmentDto,

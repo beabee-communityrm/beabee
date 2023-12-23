@@ -5,17 +5,18 @@ import {
 } from "@beabee/beabee-common";
 import { SelectQueryBuilder } from "typeorm";
 
-import { BaseTransformer } from "./BaseTransformer";
-
 import {
   GetCalloutResponseCommentDto,
   ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
-import { mergeRules } from "@api/data/PaginatedData";
+import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import ContactTransformer, {
+  loadContactRoles
+} from "@api/transformers/ContactTransformer";
+import { mergeRules } from "@api/utils/rules";
 
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import Contact from "@models/Contact";
-import ContactTransformer, { loadContactRoles } from "./ContactTransformer";
 
 class CalloutResponseCommentTransformer extends BaseTransformer<
   CalloutResponseComment,

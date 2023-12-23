@@ -17,7 +17,7 @@ import {
   ValidateNested
 } from "class-validator";
 
-import { GetPaginatedQuery } from "@api/data/PaginatedData";
+import { GetPaginatedQuery } from "@api/data/PaginatedData/interface";
 
 import {
   GetContactProfileDto,

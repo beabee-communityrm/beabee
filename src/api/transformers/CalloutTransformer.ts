@@ -3,6 +3,7 @@ import {
   calloutFilters,
   Filters,
   ItemStatus,
+  Paginated,
   PaginatedQuery
 } from "@beabee/beabee-common";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
@@ -10,24 +11,20 @@ import { SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
 
-import {
-  FilterHandlers,
-  mergeRules,
-  Paginated,
-  statusFilterHandler
-} from "@api/data/PaginatedData";
-
-import Contact from "@models/Contact";
-import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
+import { FilterHandlers } from "@api/data/PaginatedData/interface";
 
 import {
   GetCalloutWith,
   ListCalloutsDto,
   GetCalloutDto,
   GetCalloutOptsDto
-} from "../dto/CalloutDto";
-import { BaseTransformer } from "./BaseTransformer";
+} from "@api/dto/CalloutDto";
+import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import { mergeRules, statusFilterHandler } from "@api/utils/rules";
+
+import Contact from "@models/Contact";
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 
 class CalloutTransformer extends BaseTransformer<
   Callout,

@@ -13,6 +13,7 @@ import {
   getMinDateUnit,
   RuleGroup
 } from "@beabee/beabee-common";
+import { TransformFnParams, plainToClass } from "class-transformer";
 import { BadRequestError } from "routing-controllers";
 import {
   Brackets,
@@ -27,17 +28,16 @@ import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity
 
 import { createQueryBuilder } from "@core/database";
 
-import Contact from "@models/Contact";
-
 import {
-  GetPaginatedQuery,
   GetPaginatedRuleGroupRule,
-  Paginated,
   RichRuleValue,
   FilterHandlers,
   FilterHandler,
-  GetPaginatedRuleGroup
-} from "./interface";
+  GetPaginatedRuleGroup,
+  GetPaginatedRule
+} from "@api/data/PaginatedData/interface";
+
+import Contact from "@models/Contact";
 
 // Operator definitions
 
@@ -204,7 +204,7 @@ function prepareRule(
   }
 }
 
-function buildWhere<Field extends string>(
+export function convertRulesToWhereClause<Field extends string>(
   ruleGroup: ValidatedRuleGroup<Field>,
   contact: Contact | undefined,
   filterHandlers: FilterHandlers<Field> | undefined,
@@ -295,61 +295,11 @@ export function buildSelectQuery<
 ): SelectQueryBuilder<Entity> {
   const qb = createQueryBuilder(entity, "item");
   if (ruleGroup) {
-    qb.where(...buildWhere(ruleGroup, contact, filterHandlers, "item."));
+    qb.where(
+      ...convertRulesToWhereClause(ruleGroup, contact, filterHandlers, "item.")
+    );
   }
   return qb;
-}
-
-export async function fetchPaginated<
-  Entity extends ObjectLiteral,
-  Field extends string
->(
-  entity: EntityTarget<Entity>,
-  filters: Filters<Field>,
-  query: GetPaginatedQuery,
-  contact?: Contact,
-  filterHandlers?: FilterHandlers<Field>,
-  queryCallback?: (qb: SelectQueryBuilder<Entity>, fieldPrefix: string) => void
-): Promise<Paginated<Entity>> {
-  const limit = query.limit || 50;
-  const offset = query.offset || 0;
-
-  try {
-    const ruleGroup = query.rules && validateRuleGroup(filters, query.rules);
-
-    const qb = createQueryBuilder(entity, "item").offset(offset);
-
-    if (limit !== -1) {
-      qb.limit(limit);
-    }
-
-    if (ruleGroup) {
-      qb.where(...buildWhere(ruleGroup, contact, filterHandlers, "item."));
-    }
-
-    if (query.sort) {
-      qb.orderBy(`item."${query.sort}"`, query.order || "ASC", "NULLS LAST");
-    }
-
-    queryCallback?.(qb, "item.");
-
-    const [items, total] = await qb.getManyAndCount();
-
-    return {
-      total,
-      offset,
-      count: items.length,
-      items
-    };
-  } catch (err) {
-    if (err instanceof InvalidRule) {
-      const err2: any = new BadRequestError(err.message);
-      err2.rule = err.rule;
-      throw err2;
-    } else {
-      throw err;
-    }
-  }
 }
 
 export async function batchUpdate<
@@ -369,7 +319,14 @@ export async function batchUpdate<
 
     const qb = createQueryBuilder()
       .update(entity, updates)
-      .where(...buildWhere(validatedRuleGroup, contact, filterHandlers, ""));
+      .where(
+        ...convertRulesToWhereClause(
+          validatedRuleGroup,
+          contact,
+          filterHandlers,
+          ""
+        )
+      );
 
     queryCallback?.(qb, "");
 
@@ -390,8 +347,17 @@ export function mergeRules(
 ): GetPaginatedRuleGroup {
   return {
     condition: "AND",
-    rules: rules.filter((rule) => !!rule) as GetPaginatedRuleGroupRule[]
+    rules: rules.filter((rule): rule is GetPaginatedRuleGroupRule => !!rule)
   };
 }
 
-export * from "./interface";
+export function transformRules({
+  value
+}: TransformFnParams): GetPaginatedRuleGroupRule {
+  return value.map((v: GetPaginatedRuleGroupRule) =>
+    plainToClass<GetPaginatedRuleGroupRule, unknown>(
+      isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
+      v
+    )
+  );
+}

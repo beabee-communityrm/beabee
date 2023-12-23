@@ -16,7 +16,10 @@ import {
   ValidateNested
 } from "class-validator";
 
-import { GetExportQuery, GetPaginatedQuery } from "@api/data/PaginatedData";
+import {
+  GetExportQuery,
+  GetPaginatedQuery
+} from "@api/data/PaginatedData/interface";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 

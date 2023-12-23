@@ -1,13 +1,12 @@
 import {
   ItemStatus,
   NoticeFilterName,
-  PaginatedQuery,
   noticeFilters
 } from "@beabee/beabee-common";
 
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
-import { mergeRules, statusFilterHandler } from "@api/data/PaginatedData";
 import { GetNoticeDto, ListNoticesDto } from "@api/dto/NoticeDto";
+import { mergeRules, statusFilterHandler } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
 import Notice from "@models/Notice";

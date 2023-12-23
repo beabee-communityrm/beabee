@@ -11,11 +11,11 @@ import { createQueryBuilder } from "@core/database";
 
 import {
   FilterHandler,
-  FilterHandlers,
-  mergeRules
-} from "@api/data/PaginatedData";
+  FilterHandlers
+} from "@api/data/PaginatedData/interface";
 import { BaseGetCalloutResponseOptsDto } from "@api/dto/CalloutResponseDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import { mergeRules } from "@api/utils/rules";
 
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";

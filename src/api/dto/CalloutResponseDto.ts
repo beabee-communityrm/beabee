@@ -21,7 +21,7 @@ import {
   GetExportQuery,
   GetPaginatedQuery,
   GetPaginatedRuleGroup
-} from "../data/PaginatedData";
+} from "@api/data/PaginatedData/interface";
 import { GetContactDto } from "@api/dto/ContactDto";
 import { GetCalloutDto } from "@api/dto/CalloutDto";
 import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";

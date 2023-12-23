@@ -1,4 +1,8 @@
-import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
+import {
+  ContactFilterName,
+  Paginated,
+  contactFilters
+} from "@beabee/beabee-common";
 import { Brackets, SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
@@ -10,22 +14,20 @@ import ContactProfile from "@models/ContactProfile";
 import PaymentData from "@models/PaymentData";
 
 import {
-  Paginated,
   FilterHandlers,
-  FilterHandler,
-  mergeRules
-} from "@api/data/PaginatedData";
+  FilterHandler
+} from "@api/data/PaginatedData/interface";
 import type {
   GetContactDto,
   GetContactOptsDto,
   ListContactsDto
 } from "@api/dto/ContactDto";
+import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import ContactRoleTransformer from "@api/transformers/ContactRoleTransformer";
+import ContactProfileTransformer from "@api/transformers/ContactProfileTransformer";
+import { mergeRules } from "@api/utils/rules";
 
 import { GetContactWith } from "@enums/get-contact-with";
-
-import { BaseTransformer } from "./BaseTransformer";
-import ContactRoleTransformer from "./ContactRoleTransformer";
-import ContactProfileTransformer from "./ContactProfileTransformer";
 
 class ContactTransformer extends BaseTransformer<
   Contact,
