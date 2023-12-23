@@ -105,7 +105,7 @@ export class CreateCalloutResponseDto {
   assigneeId?: string | null;
 }
 
-export class BatchUpdateCalloutResponseData {
+export class BatchUpdateCalloutResponseDto {
   @IsDefined()
   @ValidateNested()
   @Type(() => GetPaginatedRuleGroup)

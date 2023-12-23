@@ -54,10 +54,10 @@ export abstract class BaseTransformer<
     caller: Contact | undefined
   ): Promise<void> {}
 
-  async fetch(
+  protected preFetch(
     caller: Contact | undefined,
     query: Query
-  ): Promise<Paginated<GetDto>> {
+  ): [Filters<FilterName>, FilterHandlers<FilterName>] {
     if (
       this.allowedRoles &&
       !this.allowedRoles.some((r) => caller?.hasRole(r))
@@ -67,14 +67,24 @@ export abstract class BaseTransformer<
 
     const [filters, filterHandlers] = this.transformFilters(query, caller);
 
-    const allFilters: Filters<FilterName> = { ...this.filters, ...filters };
+    return [
+      { ...this.filters, ...filters },
+      { ...this.filterHandlers, ...filterHandlers }
+    ];
+  }
+
+  async fetch(
+    caller: Contact | undefined,
+    query: Query
+  ): Promise<Paginated<GetDto>> {
+    const [filters, filterHandlers] = this.preFetch(caller, query);
 
     const result = await fetchPaginated(
       this.model,
-      allFilters,
+      filters,
       this.transformQuery(query, caller),
       caller,
-      { ...this.filterHandlers, ...filterHandlers },
+      filterHandlers,
       (qb, fieldPrefix) =>
         this.modifyQueryBuilder(qb, fieldPrefix, query, caller)
     );

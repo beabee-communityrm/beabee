@@ -1,27 +1,33 @@
 import { Paginated } from "@beabee/beabee-common";
+import { SelectQueryBuilder } from "typeorm";
+import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity.js";
+
+import { createQueryBuilder, getRepository } from "@core/database";
+
+import { batchUpdate } from "@api/data/PaginatedData";
 
 import {
+  BatchUpdateCalloutResponseDto,
+  CreateCalloutResponseDto,
   GetCalloutResponseDto,
   GetCalloutResponseOptsDto,
   GetCalloutResponseWith,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
-
-import CalloutResponse from "@models/CalloutResponse";
+import NotFoundError from "@api/errors/NotFoundError";
 import ContactTransformer, {
   loadContactRoles
 } from "@api/transformers/ContactTransformer";
 import CalloutTransformer from "@api/transformers/CalloutTransformer";
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
-import Contact from "@models/Contact";
-import { SelectQueryBuilder } from "typeorm";
-import { createQueryBuilder, getRepository } from "@core/database";
+import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
+
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
-import Callout from "@models/Callout";
-import NotFoundError from "@api/errors/NotFoundError";
-import { BaseCalloutResponseTransformer } from "./BaseCalloutResponseTransformer";
+import Contact from "@models/Contact";
 
 export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseDto,
@@ -138,6 +144,97 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
       throw new NotFoundError();
     }
     return await this.fetch(caller, { ...query, callout });
+  }
+
+  async update(
+    caller: Contact | undefined,
+    query: BatchUpdateCalloutResponseDto
+  ): Promise<number> {
+    const [filters, filterHandlers] = this.preFetch(caller, query);
+    const query2 = this.transformQuery(query, caller);
+
+    const { tagUpdates, responseUpdates } = getUpdateData(query2.updates);
+    const result = await batchUpdate(
+      this.model,
+      filters,
+      query2.rules,
+      responseUpdates,
+      caller,
+      filterHandlers,
+      (qb) => qb.returning(["id"])
+    );
+
+    const responses: { id: string }[] = result.raw;
+
+    if (tagUpdates) {
+      await updateResponseTags(
+        responses.map((r) => r.id),
+        tagUpdates
+      );
+    }
+
+    return result.affected || -1;
+  }
+
+  async updateOneById(
+    caller: Contact | undefined,
+    id: string,
+    updates: CreateCalloutResponseDto
+  ): Promise<boolean> {
+    const query: BatchUpdateCalloutResponseDto = {
+      rules: {
+        condition: "AND",
+        rules: [{ field: this.modelIdField, operator: "equal", value: [id] }]
+      },
+      updates
+    };
+    const affected = await this.update(caller, query);
+    return affected !== 0;
+  }
+}
+
+function getUpdateData(data: Partial<CreateCalloutResponseDto>): {
+  tagUpdates: string[] | undefined;
+  responseUpdates: QueryDeepPartialEntity<CalloutResponse>;
+} {
+  const { tags: tagUpdates, assigneeId, ...otherUpdates } = data;
+  return {
+    tagUpdates,
+    responseUpdates: {
+      ...otherUpdates,
+      ...(assigneeId !== undefined && {
+        assignee: assigneeId ? { id: assigneeId } : null
+      })
+    }
+  };
+}
+
+async function updateResponseTags(responseIds: string[], tagUpdates: string[]) {
+  const addTags = tagUpdates
+    .filter((tag) => tag.startsWith("+"))
+    .flatMap((tag) =>
+      responseIds.map((id) => ({ response: { id }, tag: { id: tag.slice(1) } }))
+    );
+  const removeTags = tagUpdates
+    .filter((tag) => tag.startsWith("-"))
+    .flatMap((tag) =>
+      responseIds.map((id) => ({ response: { id }, tag: { id: tag.slice(1) } }))
+    );
+
+  if (addTags.length > 0) {
+    await createQueryBuilder()
+      .insert()
+      .into(CalloutResponseTag)
+      .values(addTags)
+      .orIgnore()
+      .execute();
+  }
+  if (removeTags.length > 0) {
+    await createQueryBuilder()
+      .delete()
+      .from(CalloutResponseTag)
+      .where(removeTags)
+      .execute();
   }
 }
 

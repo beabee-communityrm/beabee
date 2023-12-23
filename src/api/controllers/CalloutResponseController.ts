@@ -9,15 +9,11 @@ import {
   QueryParams
 } from "routing-controllers";
 
-import {
-  batchUpdateCalloutResponses,
-  updateCalloutResponse
-} from "@api/data/CalloutResponseData";
 import PartialBody from "@api/decorators/PartialBody";
 import { UUIDParams } from "@api/params/UUIDParams";
 
 import {
-  BatchUpdateCalloutResponseData,
+  BatchUpdateCalloutResponseDto,
   CreateCalloutResponseDto,
   GetCalloutResponseDto,
   GetCalloutResponseOptsDto,
@@ -41,9 +37,9 @@ export class CalloutResponseController {
   @Patch("/")
   async updateCalloutResponses(
     @CurrentUser() caller: Contact,
-    @PartialBody() data: BatchUpdateCalloutResponseData
+    @PartialBody() data: BatchUpdateCalloutResponseDto
   ): Promise<{ affected: number }> {
-    const affected = await batchUpdateCalloutResponses(data, caller);
+    const affected = await CalloutResponseTransformer.update(caller, data);
     return { affected };
   }
 
@@ -62,7 +58,7 @@ export class CalloutResponseController {
     @Params() { id }: UUIDParams,
     @PartialBody() data: CreateCalloutResponseDto // Should be Partial<CreateCalloutResponseData>
   ): Promise<GetCalloutResponseDto | undefined> {
-    await updateCalloutResponse(id, data);
+    await CalloutResponseTransformer.updateOneById(caller, id, data);
     return await CalloutResponseTransformer.fetchOneById(caller, id);
   }
 }

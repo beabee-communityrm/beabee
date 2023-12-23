@@ -79,9 +79,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
     };
   }
 
-  protected transformQuery(
-    query: ListCalloutResponseMapDto
-  ): ListCalloutResponseMapDto {
+  protected transformQuery<T extends ListCalloutResponseMapDto>(query: T): T {
     return {
       ...query,
       rules: mergeRules([

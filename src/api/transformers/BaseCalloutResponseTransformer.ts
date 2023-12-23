@@ -57,10 +57,10 @@ export abstract class BaseCalloutResponseTransformer<
     }
   }
 
-  protected transformQuery(
-    query: GetOptsDto & PaginatedQuery,
+  protected transformQuery<T extends GetOptsDto & PaginatedQuery>(
+    query: T,
     caller: Contact | undefined
-  ): GetOptsDto & PaginatedQuery {
+  ): T {
     return {
       ...query,
       rules: mergeRules([
