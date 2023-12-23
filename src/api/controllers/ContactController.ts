@@ -37,6 +37,7 @@ import { generatePassword } from "@core/utils/auth";
 import Contact from "@models/Contact";
 import JoinFlow from "@models/JoinFlow";
 
+import { GetExportQuery } from "@api/dto/BaseDto";
 import {
   CreateContactDto,
   GetContactDto,
@@ -77,7 +78,6 @@ import PaymentTransformer from "@api/transformers/PaymentTransformer";
 import { GetContactWith } from "@enums/get-contact-with";
 
 import { ContributionInfo } from "@type/contribution-info";
-import { GetExportQuery } from "@api/data/PaginatedData/interface";
 import { mergeRules } from "@api/utils/rules";
 
 /**

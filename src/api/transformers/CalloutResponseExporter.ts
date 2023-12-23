@@ -10,6 +10,7 @@ import { In, SelectQueryBuilder } from "typeorm";
 
 import { getRepository } from "@core/database";
 
+import { GetExportQuery } from "@api/dto/BaseDto";
 import {
   ExportCalloutResponseDto,
   ExportCalloutResponsesOptsDto
@@ -17,8 +18,6 @@ import {
 import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
 import NotFoundError from "@api/errors/NotFoundError";
 import { groupBy } from "@api/utils";
-
-import { GetExportQuery } from "@api/data/PaginatedData/interface";
 
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";

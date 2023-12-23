@@ -25,7 +25,7 @@ import OptionsService from "@core/services/OptionsService";
 import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
-import { GetExportQuery } from "@api/data/PaginatedData/interface";
+import { GetExportQuery } from "@api/dto/BaseDto";
 
 import {
   CreateCalloutDto,

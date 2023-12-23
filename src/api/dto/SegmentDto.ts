@@ -8,10 +8,7 @@ import {
   ValidateNested
 } from "class-validator";
 
-import {
-  GetPaginatedQuery,
-  GetPaginatedRuleGroup
-} from "@api/data/PaginatedData/interface";
+import { GetPaginatedQuery, GetPaginatedRuleGroup } from "@api/dto/BaseDto";
 
 export enum GetSegmentWith {
   contactCount = "contactCount"

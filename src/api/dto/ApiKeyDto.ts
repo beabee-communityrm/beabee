@@ -1,9 +1,8 @@
 import { IsDate, IsIn, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer";
 
-import { GetPaginatedQuery } from "@api/data/PaginatedData/interface";
-
-import { GetContactDto } from "./ContactDto";
+import { GetPaginatedQuery } from "@api/dto/BaseDto";
+import { GetContactDto } from "@api/dto/ContactDto";
 
 export class CreateApiKeyDto {
   @IsString()

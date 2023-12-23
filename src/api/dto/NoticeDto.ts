@@ -2,7 +2,7 @@ import { ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import { IsDate, IsIn, IsOptional, IsString } from "class-validator";
 
-import { GetPaginatedQuery } from "@api/data/PaginatedData/interface";
+import { GetPaginatedQuery } from "@api/dto/BaseDto";
 
 interface BaseNotice {
   name: string;

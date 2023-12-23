@@ -17,11 +17,12 @@ import {
   IsDefined,
   IsUUID
 } from "class-validator";
+
 import {
   GetExportQuery,
   GetPaginatedQuery,
   GetPaginatedRuleGroup
-} from "@api/data/PaginatedData/interface";
+} from "@api/dto/BaseDto";
 import { GetContactDto } from "@api/dto/ContactDto";
 import { GetCalloutDto } from "@api/dto/CalloutDto";
 import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";

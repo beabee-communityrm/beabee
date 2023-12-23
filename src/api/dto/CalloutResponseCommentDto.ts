@@ -1,6 +1,6 @@
 import { IsIn, IsString } from "class-validator";
 
-import { GetPaginatedQuery } from "@api/data/PaginatedData/interface";
+import { GetPaginatedQuery } from "@api/dto/BaseDto";
 import { GetContactDto } from "@api/dto/ContactDto";
 
 interface UpdateCalloutResponseComment {

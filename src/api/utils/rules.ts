@@ -32,7 +32,7 @@ import {
   GetPaginatedRuleGroupRule,
   GetPaginatedRuleGroup,
   GetPaginatedRule
-} from "@api/data/PaginatedData/interface";
+} from "@api/dto/BaseDto";
 
 import {
   FilterHandler,

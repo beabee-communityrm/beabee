@@ -7,7 +7,7 @@ import { SelectQueryBuilder } from "typeorm";
 
 import { getMembershipStatus } from "@core/services/PaymentService";
 
-import { GetExportQuery } from "@api/data/PaginatedData/interface";
+import { GetExportQuery } from "@api/dto/BaseDto";
 import { ExportContactDto } from "@api/dto/ContactDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import ContactTransformer from "@api/transformers/ContactTransformer";

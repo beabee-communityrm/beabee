@@ -16,16 +16,13 @@ import {
   ValidateNested
 } from "class-validator";
 
-import {
-  GetExportQuery,
-  GetPaginatedQuery
-} from "@api/data/PaginatedData/interface";
+import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
-
-import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
 import IsMapBounds from "@api/validators/IsMapBounds";
 import IsLngLat from "@api/validators/IsLngLat";
+
+import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
 
 import { CalloutAccess } from "@enums/callout-access";
 
