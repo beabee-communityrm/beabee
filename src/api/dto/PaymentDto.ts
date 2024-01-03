@@ -1,13 +1,29 @@
 import { PaymentStatus } from "@beabee/beabee-common";
-import { IsArray, IsEnum, IsIn, IsOptional } from "class-validator";
+import {
+  IsArray,
+  IsDate,
+  IsEnum,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  ValidateNested
+} from "class-validator";
 
 import { GetPaginatedQuery } from "@api/dto/BaseDto";
 import { GetContactDto } from "@api/dto/ContactDto";
 
-export interface GetPaymentDto {
-  amount: number;
-  chargeDate: Date;
-  status: PaymentStatus;
+export class GetPaymentDto {
+  @IsNumber()
+  amount!: number;
+
+  @IsDate()
+  chargeDate!: Date;
+
+  @IsEnum(PaymentStatus)
+  status!: PaymentStatus;
+
+  @IsOptional()
+  @ValidateNested()
   contact?: GetContactDto | null;
 }
 

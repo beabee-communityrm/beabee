@@ -3,6 +3,7 @@ import {
   Paginated,
   calloutResponseCommentFilters
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 import { SelectQueryBuilder } from "typeorm";
 
 import {
@@ -26,6 +27,7 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
   protected model = CalloutResponseComment;
   protected filters = calloutResponseCommentFilters;
 
+  @TransformPlainToInstance(GetCalloutResponseCommentDto)
   convert(comment: CalloutResponseComment): GetCalloutResponseCommentDto {
     return {
       id: comment.id,

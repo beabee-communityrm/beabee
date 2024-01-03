@@ -3,6 +3,7 @@ import {
   PaymentFilterName,
   paymentFilters
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 import { SelectQueryBuilder } from "typeorm";
 
 import {
@@ -29,6 +30,7 @@ class PaymentTransformer extends BaseTransformer<
   protected model = Payment;
   protected filters = paymentFilters;
 
+  @TransformPlainToInstance(GetPaymentDto)
   convert(payment: Payment, opts: GetPaymentOptsDto): GetPaymentDto {
     return {
       amount: payment.amount,

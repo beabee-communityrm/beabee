@@ -3,6 +3,7 @@ import {
   NoticeFilterName,
   noticeFilters
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import { GetNoticeDto, ListNoticesDto } from "@api/dto/NoticeDto";
@@ -20,6 +21,7 @@ export class NoticeTransformer extends BaseTransformer<
   protected filters = noticeFilters;
   protected filterHandlers = { status: statusFilterHandler };
 
+  @TransformPlainToInstance(GetNoticeDto)
   convert(notice: Notice): GetNoticeDto {
     return {
       id: notice.id,

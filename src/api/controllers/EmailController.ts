@@ -1,3 +1,4 @@
+import { plainToInstance } from "class-transformer";
 import { isUUID } from "class-validator";
 import {
   Authorized,
@@ -31,11 +32,12 @@ async function findEmail(id: string): Promise<Email | null> {
   return null;
 }
 
+// TODO: move to transformer
 function emailToData(email: Email): GetEmailDto {
-  return {
+  return plainToInstance(GetEmailDto, {
     subject: email.subject,
     body: email.body
-  };
+  });
 }
 
 @Authorized("admin")

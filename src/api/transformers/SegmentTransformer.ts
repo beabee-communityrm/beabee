@@ -4,6 +4,7 @@ import {
   GetSegmentWith,
   ListSegmentsDto
 } from "@api/dto/SegmentDto";
+import { TransformPlainToInstance } from "class-transformer";
 
 import Segment from "@models/Segment";
 import { BaseTransformer } from "./BaseTransformer";
@@ -22,6 +23,7 @@ class SegmentTransformer extends BaseTransformer<
 
   protected allowedRoles: RoleType[] = ["admin"];
 
+  @TransformPlainToInstance(GetSegmentDto)
   convert(segment: Segment, opts: GetSegmentOptsDto): GetSegmentDto {
     return {
       id: segment.id,

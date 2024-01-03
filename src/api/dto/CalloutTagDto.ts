@@ -2,9 +2,12 @@ import { IsIn, IsString } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/dto/BaseDto";
 
-export interface GetCalloutTagDto {
-  id: string;
-  name: string;
+export class GetCalloutTagDto {
+  @IsString()
+  id!: string;
+
+  @IsString()
+  name!: string;
 }
 
 export class CreateCalloutTagDto {

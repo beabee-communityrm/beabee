@@ -4,6 +4,7 @@ import {
   RoleType,
   apiKeyFilters
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 import { SelectQueryBuilder } from "typeorm";
 
 import { GetApiKeyDto } from "@api/dto/ApiKeyDto";
@@ -23,6 +24,7 @@ class ApiKeyTransformer extends BaseTransformer<
 
   protected allowedRoles: RoleType[] = ["admin"];
 
+  @TransformPlainToInstance(GetApiKeyDto)
   convert(key: ApiKey): GetApiKeyDto {
     return {
       id: key.id,
