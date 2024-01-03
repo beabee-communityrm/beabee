@@ -30,6 +30,8 @@ import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { ResetDeviceController } from "./controllers/ResetDeviceController";
 import { UploadController } from "./controllers/UploadController";
 
+import { ValidateResponseInterceptor } from "./interceptors/ValidateResponseInterceptor";
+
 import {
   log as mainLogger,
   requestErrorLogger,
@@ -88,6 +90,7 @@ initApp()
         ResetDeviceController,
         UploadController
       ],
+      interceptors: [ValidateResponseInterceptor],
       currentUserChecker,
       authorizationChecker,
       validation: {
