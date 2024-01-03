@@ -3,6 +3,7 @@ import {
   Paginated,
   contactFilters
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 import { Brackets, SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
@@ -12,7 +13,7 @@ import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 import ContactProfile from "@models/ContactProfile";
 import PaymentData from "@models/PaymentData";
-import type {
+import {
   GetContactDto,
   GetContactOptsDto,
   ListContactsDto
@@ -37,6 +38,7 @@ class ContactTransformer extends BaseTransformer<
   // TODO: make protected
   filterHandlers = contactFilterHandlers;
 
+  @TransformPlainToInstance(GetContactDto)
   convert(
     contact: Contact,
     opts?: GetContactOptsDto,

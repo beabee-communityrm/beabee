@@ -1,11 +1,12 @@
 import Address from "@models/Address";
-import { IsDefined, IsString } from "class-validator";
+import { IsDefined, IsOptional, IsString } from "class-validator";
 
 export class UpdateAddressDto implements Address {
   @IsDefined()
   @IsString()
   line1!: string;
 
+  @IsOptional()
   @IsString()
   line2?: string;
 
@@ -18,4 +19,4 @@ export class UpdateAddressDto implements Address {
   postcode!: string;
 }
 
-export interface GetAddressDto extends UpdateAddressDto {}
+export class GetAddressDto extends UpdateAddressDto {}

@@ -3,14 +3,19 @@ import {
   ContributionType,
   MembershipStatus,
   NewsletterStatus,
-  RoleType
+  RoleType,
+  RoleTypes
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsArray,
+  IsBoolean,
+  IsDate,
   IsEmail,
   IsEnum,
   IsIn,
+  IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Validate,
@@ -33,12 +38,7 @@ import IsPassword from "@api/validators/IsPassword";
 import { GetContactWith } from "@enums/get-contact-with";
 
 import { ContributionInfo } from "@type/contribution-info";
-
-interface BaseContactDto {
-  email: string;
-  firstname: string;
-  lastname: string;
-}
+import { PaymentSource } from "@type/payment-source";
 
 const contactSortFields = [
   "firstname",
@@ -68,19 +68,51 @@ export class ListContactsDto extends GetPaginatedQuery {
   sort?: string;
 }
 
-export interface GetContactDto extends BaseContactDto {
-  id: string;
-  joined: Date;
-  lastSeen?: Date;
-  contributionAmount?: number;
-  contributionPeriod?: ContributionPeriod;
-  activeRoles: RoleType[];
-  profile?: GetContactProfileDto;
-  roles?: GetContactRoleDto[];
-  contribution?: ContributionInfo;
+class GetContributionInfoDto implements ContributionInfo {
+  @IsEnum(ContributionType)
+  type!: ContributionType;
+
+  @IsOptional()
+  @IsNumber()
+  amount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  nextAmount?: number;
+
+  @IsOptional()
+  @IsEnum(ContributionPeriod)
+  period?: ContributionPeriod;
+
+  @IsOptional()
+  @IsDate()
+  cancellationDate?: Date;
+
+  @IsOptional()
+  @IsDate()
+  renewalDate?: Date;
+
+  @IsOptional()
+  @IsObject() // TODO: validate properly
+  paymentSource?: PaymentSource;
+
+  @IsOptional()
+  @IsBoolean()
+  payFee?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasPendingPayment?: boolean;
+
+  @IsEnum(MembershipStatus)
+  membershipStatus!: MembershipStatus;
+
+  @IsOptional()
+  @IsDate()
+  membershipExpiryDate?: Date;
 }
 
-export class UpdateContactDto implements BaseContactDto {
+class BaseContactDto {
   @IsEmail()
   email!: string;
 
@@ -89,7 +121,46 @@ export class UpdateContactDto implements BaseContactDto {
 
   @IsString()
   lastname!: string;
+}
 
+export class GetContactDto extends BaseContactDto {
+  @IsString()
+  id!: string;
+
+  @IsDate()
+  joined!: Date;
+
+  @IsOptional()
+  @IsDate()
+  lastSeen?: Date;
+
+  @IsOptional()
+  @IsNumber()
+  contributionAmount?: number;
+
+  @IsOptional()
+  @IsEnum(ContributionPeriod)
+  contributionPeriod?: ContributionPeriod;
+
+  @IsArray()
+  @IsIn(RoleTypes, { each: true })
+  activeRoles!: RoleType[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => GetContributionInfoDto)
+  contribution?: GetContributionInfoDto;
+
+  @IsOptional()
+  @ValidateNested()
+  profile?: GetContactProfileDto;
+
+  @IsOptional()
+  @ValidateNested()
+  roles?: GetContactRoleDto[];
+}
+
+export class UpdateContactDto extends BaseContactDto {
   @IsOptional()
   @Validate(IsPassword)
   password?: string;
