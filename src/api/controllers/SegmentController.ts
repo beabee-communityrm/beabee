@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -24,6 +23,7 @@ import {
   GetSegmentWith,
   GetSegmentOptsDto
 } from "@api/dto/SegmentDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import PartialBody from "@api/decorators/PartialBody";
 import { UUIDParams } from "@api/params/UUIDParams";
 import ContactTransformer from "@api/transformers/ContactTransformer";
@@ -43,7 +43,7 @@ export class SegmentController {
     @QueryParams() query: ListSegmentsDto
   ): Promise<GetSegmentDto[]> {
     const result = await SegmentTransformer.fetch(caller, query);
-    return result.items;
+    return result.items; // TODO: return paginated
   }
 
   @Post("/")
@@ -103,7 +103,7 @@ export class SegmentController {
     @CurrentUser() caller: Contact,
     @Params() { id }: UUIDParams,
     @QueryParams() query: ListContactsDto
-  ): Promise<Paginated<GetContactDto> | undefined> {
+  ): Promise<PaginatedDto<GetContactDto> | undefined> {
     const segment = await getRepository(Segment).findOneBy({ id });
     if (segment) {
       return await ContactTransformer.fetch(caller, {

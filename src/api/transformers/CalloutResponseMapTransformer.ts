@@ -114,7 +114,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
       responseViewSchema: CalloutResponseViewSchema;
     };
 
-    return await super.fetch(caller, { ...query, callout: calloutWithSchema });
+    return await this.fetch(caller, { ...query, callout: calloutWithSchema });
   }
 }
 

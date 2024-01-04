@@ -6,10 +6,12 @@ import {
   RoleType,
   validateRuleGroup
 } from "@beabee/beabee-common";
+import { plainToInstance } from "class-transformer";
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
 
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import NotFoundError from "@api/errors/NotFoundError";
 import InvalidRuleError from "@api/errors/InvalidRuleError";
 import UnauthorizedError from "@api/errors/UnauthorizedError";
@@ -144,7 +146,7 @@ export abstract class BaseTransformer<
   async fetch(
     caller: Contact | undefined,
     query_: Query
-  ): Promise<Paginated<GetDto>> {
+  ): Promise<PaginatedDto<GetDto>> {
     const [query, filters, filterHandlers] = this.preFetch(query_, caller);
 
     const limit = query.limit || 50;
@@ -187,10 +189,10 @@ export abstract class BaseTransformer<
 
       await this.modifyResult(result, query, caller);
 
-      return {
+      return plainToInstance(PaginatedDto<GetDto>, {
         ...result,
         items: result.items.map((item) => this.convert(item, query, caller))
-      };
+      });
     } catch (err) {
       throw err instanceof InvalidRule
         ? new InvalidRuleError(err.rule, err.message)

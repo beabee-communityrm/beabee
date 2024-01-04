@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -25,6 +24,7 @@ import {
   GetNoticeDto,
   ListNoticesDto
 } from "@api/dto/NoticeDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { UUIDParams } from "@api/params/UUIDParams";
 import NoticeTransformer from "@api/transformers/NoticeTransformer";
 
@@ -35,7 +35,7 @@ export class NoticeController {
   async getNotices(
     @CurrentUser() caller: Contact,
     @QueryParams() query: ListNoticesDto
-  ): Promise<Paginated<GetNoticeDto>> {
+  ): Promise<PaginatedDto<GetNoticeDto>> {
     return await NoticeTransformer.fetch(caller, query);
   }
 

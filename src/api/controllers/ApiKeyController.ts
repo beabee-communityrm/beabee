@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import {
   JsonController,
   Authorized,
@@ -24,6 +23,7 @@ import {
   GetApiKeyDto,
   ListApiKeysDto
 } from "@api/dto/ApiKeyDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 
 @JsonController("/api-key")
@@ -33,7 +33,7 @@ export class ApiKeyController {
   async getApiKeys(
     @CurrentUser({ required: true }) caller: Contact,
     @QueryParams() query: ListApiKeysDto
-  ): Promise<Paginated<GetApiKeyDto>> {
+  ): Promise<PaginatedDto<GetApiKeyDto>> {
     return await ApiKeyTransformer.fetch(caller, query);
   }
 

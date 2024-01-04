@@ -1,8 +1,4 @@
-import {
-  ContributionPeriod,
-  NewsletterStatus,
-  Paginated
-} from "@beabee/beabee-common";
+import { ContributionPeriod, NewsletterStatus } from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import {
   Authorized,
@@ -60,6 +56,7 @@ import {
   UpdateContributionDto
 } from "@api/dto/ContributionDto";
 import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -175,7 +172,7 @@ export class ContactController {
   async getContacts(
     @CurrentUser() caller: Contact,
     @QueryParams() query: ListContactsDto
-  ): Promise<Paginated<GetContactDto>> {
+  ): Promise<PaginatedDto<GetContactDto>> {
     return await ContactTransformer.fetch(caller, query);
   }
 
@@ -354,7 +351,7 @@ export class ContactController {
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
     @QueryParams() query: ListPaymentsDto
-  ): Promise<Paginated<GetPaymentDto>> {
+  ): Promise<PaginatedDto<GetPaymentDto>> {
     return PaymentTransformer.fetch(caller, {
       ...query,
       rules: mergeRules([

@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   CurrentUser,
@@ -19,6 +18,7 @@ import {
   GetCalloutResponseOptsDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
 import Contact from "@models/Contact";
@@ -29,7 +29,7 @@ export class CalloutResponseController {
   async getCalloutResponses(
     @CurrentUser() caller: Contact,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<Paginated<GetCalloutResponseDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseDto>> {
     return CalloutResponseTransformer.fetch(caller, query);
   }
 

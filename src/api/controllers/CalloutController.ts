@@ -1,4 +1,4 @@
-import { CalloutFormSchema, Paginated } from "@beabee/beabee-common";
+import { CalloutFormSchema } from "@beabee/beabee-common";
 import { Response } from "express";
 import {
   Authorized,
@@ -39,6 +39,7 @@ import {
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
 import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
@@ -61,7 +62,7 @@ export class CalloutController {
   async getCallouts(
     @CurrentUser({ required: false }) caller: Contact | undefined,
     @QueryParams() query: ListCalloutsDto
-  ): Promise<Paginated<GetCalloutDto>> {
+  ): Promise<PaginatedDto<GetCalloutDto>> {
     return CalloutTransformer.fetch(caller, query);
   }
 
@@ -171,7 +172,7 @@ export class CalloutController {
     @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<Paginated<GetCalloutResponseMapDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseMapDto>> {
     return await CalloutResponseMapTransformer.fetchForCallout(
       caller,
       slug,

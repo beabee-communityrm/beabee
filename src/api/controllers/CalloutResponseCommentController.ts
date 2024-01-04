@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -22,6 +21,7 @@ import {
   GetCalloutResponseCommentDto,
   ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { UUIDParams } from "@api/params/UUIDParams";
 
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
@@ -51,7 +51,7 @@ export class CalloutResponseCommentController {
   async getCalloutResponseComments(
     @CurrentUser({ required: true }) caller: Contact,
     @QueryParams() query: ListCalloutResponseCommentsDto
-  ): Promise<Paginated<GetCalloutResponseCommentDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseCommentDto>> {
     return await CalloutResponseCommentTransformer.fetch(caller, query);
   }
 
