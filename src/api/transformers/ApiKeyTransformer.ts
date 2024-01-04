@@ -1,6 +1,5 @@
 import {
   ApiKeyFilterName,
-  Paginated,
   RoleType,
   apiKeyFilters
 } from "@beabee/beabee-common";
@@ -42,8 +41,8 @@ class ApiKeyTransformer extends BaseTransformer<
     qb.leftJoinAndSelect(`${fieldPrefix}creator`, "creator");
   }
 
-  protected modifyResult(result: Paginated<ApiKey>): Promise<void> {
-    return loadContactRoles(result.items.map((i) => i.creator));
+  protected modifyItems(keys: ApiKey[]): Promise<void> {
+    return loadContactRoles(keys.map((key) => key.creator));
   }
 }
 

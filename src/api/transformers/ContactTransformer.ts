@@ -1,8 +1,4 @@
-import {
-  ContactFilterName,
-  Paginated,
-  contactFilters
-} from "@beabee/beabee-common";
+import { ContactFilterName, contactFilters } from "@beabee/beabee-common";
 import { TransformPlainToInstance } from "class-transformer";
 import { Brackets, SelectQueryBuilder } from "typeorm";
 
@@ -142,22 +138,22 @@ class ContactTransformer extends BaseTransformer<
     }
   }
 
-  protected async modifyResult(
-    result: Paginated<Contact>,
+  protected async modifyItems(
+    contacts: Contact[],
     query: ListContactsDto
   ): Promise<void> {
-    await loadContactRoles(result.items);
+    await loadContactRoles(contacts);
 
     if (
-      result.items.length > 0 &&
+      contacts.length > 0 &&
       query.with?.includes(GetContactWith.Contribution)
     ) {
-      if (result.items.length > 1) {
+      if (contacts.length > 1) {
         throw new Error("Cannot fetch contribution for multiple contacts");
       }
 
-      result.items[0].contribution = await PaymentService.getContributionInfo(
-        result.items[0]
+      contacts[0].contribution = await PaymentService.getContributionInfo(
+        contacts[0]
       );
     }
   }

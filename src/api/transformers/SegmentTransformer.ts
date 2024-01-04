@@ -1,16 +1,17 @@
+import { RoleType } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
+
 import {
   GetSegmentDto,
   GetSegmentOptsDto,
   GetSegmentWith,
   ListSegmentsDto
 } from "@api/dto/SegmentDto";
-import { TransformPlainToInstance } from "class-transformer";
+import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import ContactTransformer from "@api/transformers/ContactTransformer";
 
-import Segment from "@models/Segment";
-import { BaseTransformer } from "./BaseTransformer";
-import { Paginated, RoleType } from "@beabee/beabee-common";
-import ContactTransformer from "./ContactTransformer";
 import Contact from "@models/Contact";
+import Segment from "@models/Segment";
 
 class SegmentTransformer extends BaseTransformer<
   Segment,
@@ -37,13 +38,13 @@ class SegmentTransformer extends BaseTransformer<
     };
   }
 
-  protected async modifyResult(
-    result: Paginated<Segment>,
+  protected async modifyItems(
+    segments: Segment[],
     query: ListSegmentsDto,
     caller: Contact | undefined
   ): Promise<void> {
     if (query.with?.includes(GetSegmentWith.contactCount)) {
-      for (const segment of result.items) {
+      for (const segment of segments) {
         const result = await ContactTransformer.fetch(caller, {
           limit: 0,
           rules: segment.ruleGroup

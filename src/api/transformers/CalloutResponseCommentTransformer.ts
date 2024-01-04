@@ -1,6 +1,5 @@
 import {
   CalloutResponseCommentFilterName,
-  Paginated,
   calloutResponseCommentFilters
 } from "@beabee/beabee-common";
 import { TransformPlainToInstance } from "class-transformer";
@@ -63,10 +62,10 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
     qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
   }
 
-  protected async modifyResult(
-    result: Paginated<CalloutResponseComment>
+  protected async modifyItems(
+    comments: CalloutResponseComment[]
   ): Promise<void> {
-    await loadContactRoles(result.items.map((i) => i.contact));
+    await loadContactRoles(comments.map((c) => c.contact));
   }
 }
 

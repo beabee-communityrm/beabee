@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import { SelectQueryBuilder } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity.js";
 
@@ -12,6 +11,7 @@ import {
   GetCalloutResponseWith,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import NotFoundError from "@api/errors/NotFoundError";
 import ContactTransformer, {
   loadContactRoles
@@ -86,12 +86,12 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
     }
   }
 
-  protected async modifyResult(
-    result: Paginated<CalloutResponse>,
+  protected async modifyItems(
+    responses: CalloutResponse[],
     query: ListCalloutResponsesDto
   ): Promise<void> {
-    if (result.items.length > 0) {
-      const responseIds = result.items.map((i) => i.id);
+    if (responses.length > 0) {
+      const responseIds = responses.map((r) => r.id);
 
       if (query.with?.includes(GetCalloutResponseWith.LatestComment)) {
         const comments = await createQueryBuilder(CalloutResponseComment, "c")
@@ -101,18 +101,18 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
           .orderBy({ "c.response": "ASC", "c.createdAt": "DESC" })
           .getMany();
 
-        for (const item of result.items) {
-          item.latestComment =
-            comments.find((c) => c.responseId === item.id) || null;
+        for (const response of responses) {
+          response.latestComment =
+            comments.find((c) => c.responseId === response.id) || null;
         }
       }
 
       // Load contact roles after to ensure offset/limit work
-      const contacts = result.items
-        .flatMap((item) => [
-          item.contact,
-          item.assignee,
-          item.latestComment?.contact
+      const contacts = responses
+        .flatMap((response) => [
+          response.contact,
+          response.assignee,
+          response.latestComment?.contact
         ])
         .filter((c): c is Contact => !!c);
       await loadContactRoles(contacts);
@@ -124,8 +124,10 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
           .innerJoinAndSelect("rt.tag", "tag")
           .getMany();
 
-        for (const item of result.items) {
-          item.tags = responseTags.filter((rt) => rt.responseId === item.id);
+        for (const response of responses) {
+          response.tags = responseTags.filter(
+            (rt) => rt.responseId === response.id
+          );
         }
       }
     }
@@ -135,7 +137,7 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
     caller: Contact | undefined,
     calloutSlug: string,
     query: ListCalloutResponsesDto
-  ): Promise<Paginated<GetCalloutResponseDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseDto>> {
     const callout = await getRepository(Callout).findOneBy({
       slug: calloutSlug
     });

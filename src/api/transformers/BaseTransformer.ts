@@ -1,7 +1,6 @@
 import {
   Filters,
   InvalidRule,
-  Paginated,
   PaginatedQuery,
   RoleType,
   validateRuleGroup
@@ -94,17 +93,17 @@ export abstract class BaseTransformer<
   ): void {}
 
   /**
-   * Modify the results after they are fetched.
+   * Modify the items after they are fetched.
    *
    * Use this method to add extra data to the items. Typically used to add
    * related entities to the items, or load additional data or relations which
    *
-   * @param result The result
+   * @param items The list of items
    * @param query The query
    * @param caller The contact who is requesting the results
    */
-  protected async modifyResult(
-    result: Paginated<Model>,
+  protected async modifyItems(
+    items: Model[],
     query: Query,
     caller: Contact | undefined
   ): Promise<void> {}
@@ -180,18 +179,13 @@ export abstract class BaseTransformer<
 
       const [items, total] = await qb.getManyAndCount();
 
-      const result = {
+      await this.modifyItems(items, query, caller);
+
+      return plainToInstance(PaginatedDto<GetDto>, {
         total,
         offset,
         count: items.length,
-        items
-      };
-
-      await this.modifyResult(result, query, caller);
-
-      return plainToInstance(PaginatedDto<GetDto>, {
-        ...result,
-        items: result.items.map((item) => this.convert(item, query, caller))
+        items: items.map((item) => this.convert(item, query, caller))
       });
     } catch (err) {
       throw err instanceof InvalidRule

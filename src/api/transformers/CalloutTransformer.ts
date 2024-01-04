@@ -3,7 +3,6 @@ import {
   calloutFilters,
   Filters,
   ItemStatus,
-  Paginated,
   PaginatedQuery
 } from "@beabee/beabee-common";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
@@ -165,30 +164,30 @@ class CalloutTransformer extends BaseTransformer<
     }
   }
 
-  protected async modifyResult(
-    result: Paginated<Callout>,
+  protected async modifyItems(
+    callouts: Callout[],
     query: ListCalloutsDto,
     caller: Contact | undefined
   ): Promise<void> {
     if (
       caller &&
-      result.items.length > 0 &&
+      callouts.length > 0 &&
       query.with?.includes(GetCalloutWith.HasAnswered)
     ) {
       const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
         .select("cr.calloutSlug", "slug")
         .distinctOn(["cr.calloutSlug"])
         .where("cr.calloutSlug IN (:...slugs) AND cr.contactId = :id", {
-          slugs: result.items.map((item) => item.slug),
+          slugs: callouts.map((item) => item.slug),
           id: caller.id
         })
         .orderBy("cr.calloutSlug")
         .getRawMany<{ slug: string }>();
 
-      const answeredSlugs = answeredCallouts.map((p) => p.slug);
+      const answeredSlugs = answeredCallouts.map((c) => c.slug);
 
-      for (const item of result.items) {
-        item.hasAnswered = answeredSlugs.includes(item.slug);
+      for (const callout of callouts) {
+        callout.hasAnswered = answeredSlugs.includes(callout.slug);
       }
     }
   }

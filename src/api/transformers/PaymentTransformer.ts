@@ -1,8 +1,4 @@
-import {
-  Paginated,
-  PaymentFilterName,
-  paymentFilters
-} from "@beabee/beabee-common";
+import { PaymentFilterName, paymentFilters } from "@beabee/beabee-common";
 import { TransformPlainToInstance } from "class-transformer";
 import { SelectQueryBuilder } from "typeorm";
 
@@ -69,13 +65,13 @@ class PaymentTransformer extends BaseTransformer<
     }
   }
 
-  protected async modifyResult(
-    result: Paginated<Payment>,
+  protected async modifyItems(
+    payments: Payment[],
     query: ListPaymentsDto
   ): Promise<void> {
     if (query.with?.includes(GetPaymentWith.Contact)) {
-      const contacts = result.items
-        .map((item) => item.contact)
+      const contacts = payments
+        .map((p) => p.contact)
         .filter((c): c is Contact => !!c);
 
       await loadContactRoles(contacts);
