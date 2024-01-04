@@ -12,8 +12,10 @@ import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import { createQueryBuilder, getRepository } from "@core/database";
 import { getEmailFooter } from "@core/utils/email";
 
-import Content, { ContentId } from "@models/Content";
+import Content from "@models/Content";
 import config from "@config";
+
+import { ContentId } from "@type/content-id";
 
 type OptionKeyType = "text" | "int" | "bool" | "list" | "json";
 
