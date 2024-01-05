@@ -17,6 +17,7 @@ import {
 } from "class-validator";
 
 import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
+import { LinkDto } from "@api/dto/LinkDto";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import IsMapBounds from "@api/validators/IsMapBounds";
@@ -119,8 +120,9 @@ class SetCalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
   imageFilter!: string;
 
   @IsArray()
-  // TODO: validate properly
-  links!: { text: string; url: string }[];
+  @ValidateNested({ each: true })
+  @Type(() => LinkDto)
+  links!: LinkDto[];
 
   @IsBoolean()
   gallery!: boolean;
