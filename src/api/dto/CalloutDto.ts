@@ -59,17 +59,6 @@ export class ListCalloutsDto extends GetPaginatedQuery {
   showHiddenForAll: boolean = false;
 }
 
-export interface GetCalloutDto extends CalloutData {
-  slug: string;
-  status: ItemStatus;
-  // With "hasAnswered"
-  hasAnswered?: boolean;
-  // With "responseCount"
-  responseCount?: number;
-  // With "responseViewSchema"
-  responseViewSchema?: CalloutResponseViewSchema | null;
-}
-
 class SetCalloutMapSchemaDto implements CalloutMapSchema {
   @IsUrl()
   style!: string;
@@ -105,7 +94,7 @@ class SetCalloutMapSchemaDto implements CalloutMapSchema {
   addressPatternProp!: string;
 }
 
-class SetCalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
+class CalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
   @IsArray()
   @IsString({ each: true })
   buckets!: string[];
@@ -133,7 +122,7 @@ class SetCalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
   map!: SetCalloutMapSchemaDto | null;
 }
 
-export class CreateCalloutDto implements CalloutData {
+abstract class BaseCalloutDto implements CalloutData {
   @IsOptional()
   @IsSlug()
   slug?: string;
@@ -147,36 +136,6 @@ export class CreateCalloutDto implements CalloutData {
   // TODO: Should be IsUrl but validation fails for draft callouts
   @IsString()
   image!: string;
-
-  @IsString()
-  intro!: string;
-
-  @IsString()
-  thanksTitle!: string;
-
-  @IsString()
-  thanksText!: string;
-
-  @IsOptional()
-  @IsUrl()
-  thanksRedirect?: string;
-
-  @IsOptional()
-  @IsString()
-  shareTitle?: string;
-
-  @IsOptional()
-  @IsString()
-  shareDescription?: string;
-
-  // TODO: needs validation
-  @IsObject()
-  formSchema!: CalloutFormSchema;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => SetCalloutResponseViewSchemaDto)
-  responseViewSchema!: SetCalloutResponseViewSchemaDto;
 
   @IsOptional()
   @Type(() => Date)
@@ -199,4 +158,65 @@ export class CreateCalloutDto implements CalloutData {
 
   @IsBoolean()
   hidden!: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  thanksRedirect?: string;
+
+  @IsOptional()
+  @IsString()
+  shareTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  shareDescription?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalloutResponseViewSchemaDto)
+  responseViewSchema?: CalloutResponseViewSchemaDto | null;
+}
+
+export class CreateCalloutDto extends BaseCalloutDto {
+  @IsString()
+  intro!: string;
+
+  @IsString()
+  thanksTitle!: string;
+
+  @IsString()
+  thanksText!: string;
+
+  // TODO: needs validation
+  @IsObject()
+  formSchema!: CalloutFormSchema;
+}
+
+export class GetCalloutDto extends BaseCalloutDto {
+  @IsEnum(ItemStatus)
+  status!: ItemStatus;
+
+  @IsOptional()
+  @IsString()
+  intro?: string;
+
+  @IsOptional()
+  @IsString()
+  thanksTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  thanksText?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  hasAnswered?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  responseCount?: number;
+
+  @IsOptional()
+  @IsObject()
+  formSchema?: CalloutFormSchema;
 }

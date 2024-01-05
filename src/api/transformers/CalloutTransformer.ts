@@ -5,6 +5,7 @@ import {
   ItemStatus,
   PaginatedQuery
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
 import { SelectQueryBuilder } from "typeorm";
 
@@ -71,6 +72,7 @@ class CalloutTransformer extends BaseTransformer<
     ];
   }
 
+  @TransformPlainToInstance(GetCalloutDto)
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {
     return {
       slug: callout.slug,
