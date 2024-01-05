@@ -1,3 +1,4 @@
+import { TransformPlainToInstance } from "class-transformer";
 import { SelectQueryBuilder } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity.js";
 
@@ -32,6 +33,7 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseDto,
   GetCalloutResponseOptsDto
 > {
+  @TransformPlainToInstance(GetCalloutResponseDto)
   convert(
     response: CalloutResponse,
     opts: GetCalloutResponseOptsDto
