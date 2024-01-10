@@ -40,10 +40,10 @@ class PaymentTransformer extends BaseTransformer<
     };
   }
 
-  protected transformQuery(
-    query: ListPaymentsDto,
+  protected transformQuery<T extends ListPaymentsDto>(
+    query: T,
     caller: Contact | undefined
-  ): ListPaymentsDto {
+  ): T {
     return {
       ...query,
       rules: mergeRules([

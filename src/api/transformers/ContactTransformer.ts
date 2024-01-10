@@ -80,10 +80,10 @@ class ContactTransformer extends BaseTransformer<
     };
   }
 
-  protected transformQuery(
-    query: ListContactsDto,
+  protected transformQuery<T extends ListContactsDto>(
+    query: T,
     caller: Contact | undefined
-  ): ListContactsDto {
+  ): T {
     return {
       ...query,
       rules: mergeRules([

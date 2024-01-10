@@ -110,10 +110,10 @@ class CalloutTransformer extends BaseTransformer<
     };
   }
 
-  protected transformQuery(
-    query: ListCalloutsDto,
+  protected transformQuery<T extends ListCalloutsDto>(
+    query: T,
     caller: Contact | undefined
-  ): ListCalloutsDto {
+  ): T {
     if (caller?.hasRole("admin")) {
       return query;
     }

@@ -37,10 +37,10 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
     };
   }
 
-  protected transformQuery(
-    query: ListCalloutResponseCommentsDto,
+  protected transformQuery<T extends ListCalloutResponseCommentsDto>(
+    query: T,
     caller: Contact | undefined
-  ): ListCalloutResponseCommentsDto {
+  ): T {
     return {
       ...query,
       rules: mergeRules([

@@ -35,10 +35,10 @@ export class NoticeTransformer extends BaseTransformer<
     };
   }
 
-  protected transformQuery(
-    query: ListNoticesDto,
+  protected transformQuery<T extends ListNoticesDto>(
+    query: T,
     caller: Contact | undefined
-  ): ListNoticesDto {
+  ): T {
     return {
       ...query,
       rules: mergeRules([
