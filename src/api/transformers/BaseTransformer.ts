@@ -19,6 +19,9 @@ import Contact from "@models/Contact";
 
 import { FilterHandlers } from "@type/filter-handlers";
 
+/**
+ * Base transformer for querying and converting models to DTOs
+ */
 export abstract class BaseTransformer<
   Model extends ObjectLiteral,
   GetDto,
@@ -36,10 +39,32 @@ export abstract class BaseTransformer<
 
   abstract convert(model: Model, opts: GetDtoOpts, caller?: Contact): GetDto;
 
-  protected transformQuery(query: Query, caller: Contact | undefined): Query {
+  /**
+   * Transform the query before the results are fetched.
+   *
+   * This is typically used to add extra rules that limit the results returned
+   * based on the query or caller.
+   *
+   * @param query The query
+   * @param caller The contact who is requesting the results
+   * @returns A new query
+   */
+  protected transformQuery<T extends Query>(
+    query: T,
+    caller: Contact | undefined
+  ): T {
     return query;
   }
 
+  /**
+   * Transform the filters before the results are fetched.
+   *
+   * This can be used to add extra filters and handlers depending on the query
+   *
+   * @param query The query
+   * @param caller The contact who is requesting the results
+   * @returns New filters and filter handlers
+   */
   protected transformFilters(
     query: Query,
     caller: Contact | undefined
@@ -47,6 +72,18 @@ export abstract class BaseTransformer<
     return [{}, {}];
   }
 
+  /**
+   * Modify the query builder before the results are fetched.
+   *
+   * Use this method to add extra joins, where clauses, etc. to the query builder
+   * which load any additional data needed for the results. Typically used to
+   * add joins to related entities.
+   *
+   * @param qb The query builder
+   * @param fieldPrefix The prefix to use for fields
+   * @param query The query
+   * @param caller The contact who is requesting the results
+   */
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Model>,
     fieldPrefix: string,
@@ -54,16 +91,33 @@ export abstract class BaseTransformer<
     caller: Contact | undefined
   ): void {}
 
+  /**
+   * Modify the results after they are fetched.
+   *
+   * Use this method to add extra data to the items. Typically used to add
+   * related entities to the items, or load additional data or relations which
+   *
+   * @param result The result
+   * @param query The query
+   * @param caller The contact who is requesting the results
+   */
   protected async modifyResult(
     result: Paginated<Model>,
     query: Query,
     caller: Contact | undefined
   ): Promise<void> {}
 
-  protected preFetch(
-    caller: Contact | undefined,
-    query: Query
-  ): [Filters<FilterName>, FilterHandlers<FilterName>] {
+  /**
+   * Check the caller is allowed to request te resource and prepare the query,
+   * filters and filter handlers.
+   *
+   * @param query The query
+   * @param caller The contact who is requesting the results
+   */
+  protected preFetch<T extends Query>(
+    query: T,
+    caller: Contact | undefined
+  ): [T, Filters<FilterName>, FilterHandlers<FilterName>] {
     if (
       this.allowedRoles &&
       !this.allowedRoles.some((r) => caller?.hasRole(r))
@@ -74,18 +128,24 @@ export abstract class BaseTransformer<
     const [filters, filterHandlers] = this.transformFilters(query, caller);
 
     return [
+      this.transformQuery(query, caller),
       { ...this.filters, ...filters },
       { ...this.filterHandlers, ...filterHandlers }
     ];
   }
 
+  /**
+   * Fetch a list of items
+   *
+   * @param caller The contact who is requesting the results
+   * @param query_ The query
+   * @returns A list of items that match the query
+   */
   async fetch(
     caller: Contact | undefined,
-    query: Query
+    query_: Query
   ): Promise<Paginated<GetDto>> {
-    const [filters, filterHandlers] = this.preFetch(caller, query);
-
-    query = this.transformQuery(query, caller);
+    const [query, filters, filterHandlers] = this.preFetch(query_, caller);
 
     const limit = query.limit || 50;
     const offset = query.offset || 0;
@@ -138,6 +198,13 @@ export abstract class BaseTransformer<
     }
   }
 
+  /**
+   *  Fetch a single item
+   *
+   * @param caller The contact who is requesting the results
+   * @param query The query
+   * @returns A single item or undefined if not found
+   */
   async fetchOne(
     caller: Contact | undefined,
     query: Query
@@ -146,6 +213,14 @@ export abstract class BaseTransformer<
     return result.items[0];
   }
 
+  /**
+   * Fetch a single item by it's primary key
+   *
+   * @param caller The contact who is requesting the results
+   * @param id The primary key of the item
+   * @param opts Additional options to pass to the query
+   * @returns A single item or undefined if not found
+   */
   async fetchOneById(
     caller: Contact | undefined,
     id: string,
@@ -162,6 +237,14 @@ export abstract class BaseTransformer<
     return await this.fetchOne(caller, query);
   }
 
+  /**
+   * Fetch a single item by it's primary key or throw an error if not found
+   *
+   * @param caller  The contact who is requesting the results
+   * @param id  The primary key of the item
+   * @param opts Additional options to pass to the query
+   * @returns A single item
+   */
   async fetchOneByIdOrFail(
     caller: Contact | undefined,
     id: string,

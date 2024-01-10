@@ -149,8 +149,7 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
     caller: Contact | undefined,
     query: BatchUpdateCalloutResponseDto
   ): Promise<number> {
-    const [filters, filterHandlers] = this.preFetch(caller, query);
-    const query2 = this.transformQuery(query, caller);
+    const [query2, filters, filterHandlers] = this.preFetch(query, caller);
 
     const { tagUpdates, responseUpdates } = getUpdateData(query2.updates);
     const result = await batchUpdate(
