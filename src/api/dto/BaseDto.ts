@@ -4,9 +4,15 @@ import {
   ruleOperators,
   RuleOperator,
   RuleValue,
-  RuleGroup
+  RuleGroup,
+  isRuleGroup
 } from "@beabee/beabee-common";
-import { Transform, Type } from "class-transformer";
+import {
+  Transform,
+  TransformFnParams,
+  Type,
+  plainToClass
+} from "class-transformer";
 import {
   IsString,
   IsIn,
@@ -18,7 +24,6 @@ import {
 } from "class-validator";
 
 import { IsType } from "@api/validators/IsType";
-import { transformRules } from "@api/utils/rules";
 
 export class GetPaginatedRule implements Rule {
   @IsString()
@@ -36,6 +41,16 @@ export type GetPaginatedRuleGroupRule =
   | GetPaginatedRuleGroup
   | GetPaginatedRule;
 
+function transformRules({
+  value
+}: TransformFnParams): GetPaginatedRuleGroupRule {
+  return value.map((v: GetPaginatedRuleGroupRule) =>
+    plainToClass<GetPaginatedRuleGroupRule, unknown>(
+      isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
+      v
+    )
+  );
+}
 export class GetPaginatedRuleGroup implements RuleGroup {
   @IsIn(["AND", "OR"])
   condition!: "AND" | "OR";

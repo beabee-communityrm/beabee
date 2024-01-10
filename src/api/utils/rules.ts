@@ -13,7 +13,6 @@ import {
   getMinDateUnit,
   RuleGroup
 } from "@beabee/beabee-common";
-import { TransformFnParams, plainToClass } from "class-transformer";
 import { BadRequestError } from "routing-controllers";
 import {
   Brackets,
@@ -28,10 +27,9 @@ import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity
 
 import { createQueryBuilder } from "@core/database";
 
-import {
+import type {
   GetPaginatedRuleGroupRule,
-  GetPaginatedRuleGroup,
-  GetPaginatedRule
+  GetPaginatedRuleGroup
 } from "@api/dto/BaseDto";
 
 import {
@@ -352,15 +350,4 @@ export function mergeRules(
     condition: "AND",
     rules: rules.filter((rule): rule is GetPaginatedRuleGroupRule => !!rule)
   };
-}
-
-export function transformRules({
-  value
-}: TransformFnParams): GetPaginatedRuleGroupRule {
-  return value.map((v: GetPaginatedRuleGroupRule) =>
-    plainToClass<GetPaginatedRuleGroupRule, unknown>(
-      isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
-      v
-    )
-  );
 }
