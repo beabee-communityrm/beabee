@@ -16,6 +16,7 @@ import PaymentFlowService from "@core/services/PaymentFlowService";
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
 import JoinFlow from "@models/JoinFlow";
+import Password from "@models/Password";
 
 import {
   SignupData,
@@ -33,7 +34,9 @@ export class SignupController {
   ): Promise<PaymentFlowParams | undefined> {
     const baseForm = {
       email: data.email,
-      password: await generatePassword(data.password)
+      password: data.password
+        ? await generatePassword(data.password)
+        : Password.none
     };
 
     if (data.contribution) {

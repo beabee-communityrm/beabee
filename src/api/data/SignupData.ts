@@ -28,7 +28,8 @@ export class SignupData extends CompleteUrls {
   email!: string;
 
   @Validate(IsPassword)
-  password!: string;
+  @IsOptional()
+  password?: string;
 
   @Type(() => StartContributionData)
   @ValidateNested()
