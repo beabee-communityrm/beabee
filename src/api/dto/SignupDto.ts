@@ -27,7 +27,8 @@ export class SignupData implements CompleteUrls {
   email!: string;
 
   @Validate(IsPassword)
-  password!: string;
+  @IsOptional()
+  password?: string;
 
   @Type(() => StartContributionDto)
   @ValidateNested()

@@ -20,6 +20,7 @@ import { SignupConfirmEmailParams } from "@api/params/SignupConfirmEmailParams";
 import { login } from "@api/utils";
 
 import JoinFlow from "@models/JoinFlow";
+import Password from "@models/Password";
 
 @JsonController("/signup")
 export class SignupController {
@@ -30,7 +31,9 @@ export class SignupController {
   ): Promise<PaymentFlowParams | undefined> {
     const baseForm = {
       email: data.email,
-      password: await generatePassword(data.password)
+      password: data.password
+        ? await generatePassword(data.password)
+        : Password.none
     };
 
     if (data.contribution) {
