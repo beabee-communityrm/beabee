@@ -59,10 +59,12 @@ export class SegmentController {
   ): Promise<GetSegmentData> {
     // Default to inserting new segment at the bottom
     if (data.order === undefined) {
-      const bottomSegment = await getRepository(Segment).findOne({
-        order: { order: "DESC" }
+      const segments = await getRepository(Segment).find({
+        select: { order: true },
+        order: { order: "DESC" },
+        take: 1
       });
-      data.order = bottomSegment ? bottomSegment.order + 1 : 0;
+      data.order = segments.length > 0 ? segments[0].order + 1 : 0;
     }
     const segment = await getRepository(Segment).save(data);
     return convertSegmentToData(segment, {
