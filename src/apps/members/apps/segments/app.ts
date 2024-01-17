@@ -97,11 +97,9 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    const result = await ContactTransformer.fetch(req.user, {
-      limit: 0,
+    segment.contactCount = await ContactTransformer.count(req.user, {
       rules: segment.ruleGroup
     });
-    segment.contactCount = result.total;
 
     res.render("email", {
       segment,

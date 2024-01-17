@@ -256,4 +256,15 @@ export abstract class BaseTransformer<
     }
     return result;
   }
+
+  /**
+   * Fetch the number of items that match the query
+   *
+   * @param caller The contact who is requesting the results
+   * @param query The query
+   * @returns The number of items that match the query
+   */
+  async count(caller: Contact | undefined, query: Query): Promise<number> {
+    return (await this.fetch(caller, { ...query, limit: 0 })).total;
+  }
 }
