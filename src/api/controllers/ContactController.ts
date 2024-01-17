@@ -1,7 +1,7 @@
 import {
   ContributionPeriod,
-  paymentFilters,
-  NewsletterStatus
+  NewsletterStatus,
+  Paginated
 } from "@beabee/beabee-common";
 import { Request, Response } from "express";
 import {
@@ -32,56 +32,53 @@ import PaymentFlowService from "@core/services/PaymentFlowService";
 import PaymentService from "@core/services/PaymentService";
 import ContactMfaService from "@core/services/ContactMfaService";
 
-import { getRepository } from "@core/database";
-import { ContributionInfo } from "@core/utils";
 import { generatePassword } from "@core/utils/auth";
 
 import Contact from "@models/Contact";
-import ContactProfile from "@models/ContactProfile";
 import JoinFlow from "@models/JoinFlow";
-import Payment from "@models/Payment";
 
-import { UUIDParam } from "@api/data";
-import { UnauthorizedError } from "@api/errors/UnauthorizedError";
+import { GetExportQuery } from "@api/dto/BaseDto";
 import {
-  convertContactToData,
-  CreateContactData,
-  DeleteContactMfaData,
-  fetchPaginatedContacts,
-  GetContactQuery,
-  GetContactsQuery,
-  UpdateContactRoleData,
-  UpdateContactData,
-  exportContacts,
-  convertRoleToData,
-  ContactRoleParams,
-  CreateContactMfaData,
-  GetContactMfaData
-} from "@api/data/ContactData";
-import { GetContactData } from "@type/get-contact-data";
-import { GetContactRoleData } from "@type/get-contact-role-data";
-import { GetContactWith } from "@enums/get-contact-with";
+  CreateContactDto,
+  GetContactDto,
+  GetContactOptsDto,
+  ListContactsDto,
+  UpdateContactDto
+} from "@api/dto/ContactDto";
 import {
-  CompleteJoinFlowData,
-  StartJoinFlowData
-} from "@api/data/JoinFlowData";
+  CreateContactMfaDto,
+  DeleteContactMfaDto,
+  GetContactMfaDto
+} from "@api/dto/ContactMfaDto";
 import {
-  StartContributionData,
-  ForceUpdateContributionData,
-  UpdateContributionData
-} from "@api/data/ContributionData";
+  GetContactRoleDto,
+  UpdateContactRoleDto
+} from "@api/dto/ContactRoleDto";
 import {
-  mergeRules,
-  fetchPaginated,
-  Paginated,
-  GetExportQuery
-} from "@api/data/PaginatedData";
-import { GetPaymentData, GetPaymentsQuery } from "@api/data/PaymentData";
+  StartContributionDto,
+  ForceUpdateContributionDto,
+  UpdateContributionDto
+} from "@api/dto/ContributionDto";
+import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
+import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
 
 import PartialBody from "@api/decorators/PartialBody";
+import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
+import { ContactRoleParams } from "@api/params/ContactRoleParams";
+import { UUIDParams } from "@api/params/UUIDParams";
 import { validateOrReject } from "@api/utils";
+
+import ContactExporter from "@api/transformers/ContactExporter";
+import ContactTransformer from "@api/transformers/ContactTransformer";
+import ContactRoleTransformer from "@api/transformers/ContactRoleTransformer";
+import PaymentTransformer from "@api/transformers/PaymentTransformer";
+
+import { GetContactWith } from "@enums/get-contact-with";
+
+import { ContributionInfo } from "@type/contribution-info";
+import { mergeRules } from "@api/utils/rules";
 
 /**
  * The target user can either be the current user or for admins
@@ -101,7 +98,7 @@ function TargetUser() {
 
       const id = request.params.id;
       if (auth === true || (id !== "me" && auth.hasRole("admin"))) {
-        const uuid = new UUIDParam();
+        const uuid = new UUIDParams();
         uuid.id = id;
         await validateOrReject(uuid);
 
@@ -125,7 +122,10 @@ function TargetUser() {
 export class ContactController {
   @Authorized("admin")
   @Post("/")
-  async createContact(@Body() data: CreateContactData) {
+  async createContact(
+    @CurrentUser() caller: Contact,
+    @Body() data: CreateContactDto
+  ) {
     const contact = await ContactsService.createContact(
       {
         email: data.email,
@@ -158,32 +158,38 @@ export class ContactController {
       );
     }
 
-    return convertContactToData(contact, {
-      with: [
-        ...(data.profile ? [GetContactWith.Profile] : []),
-        ...(data.roles ? [GetContactWith.Roles] : [])
-      ],
-      withRestricted: true
-    });
+    return ContactTransformer.convert(
+      contact,
+      {
+        with: [
+          ...(data.profile ? [GetContactWith.Profile] : []),
+          ...(data.roles ? [GetContactWith.Roles] : [])
+        ]
+      },
+      caller
+    );
   }
 
   @Authorized("admin")
   @Get("/")
   async getContacts(
-    @QueryParams() query: GetContactsQuery
-  ): Promise<Paginated<GetContactData>> {
-    return await fetchPaginatedContacts(query, {
-      withRestricted: true
-    });
+    @CurrentUser() caller: Contact,
+    @QueryParams() query: ListContactsDto
+  ): Promise<Paginated<GetContactDto>> {
+    return await ContactTransformer.fetch(caller, query);
   }
 
   @Authorized("admin")
   @Get(".csv")
   async exportContacts(
+    @CurrentUser() caller: Contact,
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
-    const [exportName, exportData] = await exportContacts(query.rules);
+    const [exportName, exportData] = await ContactExporter.export(
+      caller,
+      query
+    );
     res.attachment(exportName).send(exportData);
     return res;
   }
@@ -192,31 +198,17 @@ export class ContactController {
   async getContact(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @QueryParams() query: GetContactQuery
-  ): Promise<GetContactData> {
-    if (query.with?.includes(GetContactWith.Profile)) {
-      target.profile = await getRepository(ContactProfile).findOneOrFail({
-        where: { contactId: target.id }
-      });
-    }
-    const data = convertContactToData(target, {
-      with: query.with,
-      withRestricted: caller.hasRole("admin")
-    });
-    return {
-      ...data,
-      ...(query.with?.includes(GetContactWith.Contribution) && {
-        contribution: await PaymentService.getContributionInfo(target)
-      })
-    };
+    @QueryParams() query: GetContactOptsDto
+  ): Promise<GetContactDto | undefined> {
+    return await ContactTransformer.fetchOneById(caller, target.id, query);
   }
 
   @Patch("/:id")
   async updateContact(
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @PartialBody() data: UpdateContactData // Should be Partial<UpdateContactData>
-  ): Promise<GetContactData> {
+    @PartialBody() data: UpdateContactDto // Should be Partial<UpdateContactData>
+  ): Promise<GetContactDto | undefined> {
     if (data.email || data.firstname || data.lastname || data.password) {
       await ContactsService.updateContact(target, {
         ...(data.email && { email: data.email }),
@@ -239,7 +231,7 @@ export class ContactController {
       await ContactsService.updateContactProfile(target, data.profile);
     }
 
-    return await this.getContact(caller, target, {
+    return await ContactTransformer.fetchOneById(caller, target.id, {
       with: data.profile ? [GetContactWith.Profile] : []
     });
   }
@@ -254,7 +246,7 @@ export class ContactController {
   @Patch("/:id/contribution")
   async updateContribution(
     @TargetUser() target: Contact,
-    @Body() data: UpdateContributionData
+    @Body() data: UpdateContributionDto
   ): Promise<ContributionInfo> {
     if (!(await PaymentService.canChangeContribution(target, true, data))) {
       throw new CantUpdateContribution();
@@ -268,7 +260,7 @@ export class ContactController {
   @Post("/:id/contribution")
   async startContribution(
     @TargetUser() target: Contact,
-    @Body() data: StartContributionData
+    @Body() data: StartContributionDto
   ): Promise<PaymentFlowParams> {
     return await this.handleStartUpdatePaymentMethod(target, data);
   }
@@ -280,7 +272,7 @@ export class ContactController {
   @Get("/:id/mfa")
   async getContactMfa(
     @TargetUser() target: Contact
-  ): Promise<GetContactMfaData | null> {
+  ): Promise<GetContactMfaDto | null> {
     const mfa = await ContactMfaService.get(target);
     return mfa || null;
   }
@@ -293,7 +285,7 @@ export class ContactController {
   @OnUndefined(201)
   @Post("/:id/mfa")
   async createContactMfa(
-    @Body() data: CreateContactMfaData,
+    @Body() data: CreateContactMfaDto,
     @TargetUser() target: Contact
   ): Promise<void> {
     await ContactMfaService.create(target, data);
@@ -309,7 +301,7 @@ export class ContactController {
   @Delete("/:id/mfa")
   async deleteContactMfa(
     @TargetUser() target: Contact,
-    @Body() data: DeleteContactMfaData,
+    @Body() data: DeleteContactMfaDto,
     @Params() { id }: { id: string }
   ): Promise<void> {
     if (id === "me") {
@@ -333,7 +325,7 @@ export class ContactController {
   @Post("/:id/contribution/complete")
   async completeStartContribution(
     @TargetUser() target: Contact,
-    @Body() data: CompleteJoinFlowData
+    @Body() data: CompleteJoinFlowDto
   ): Promise<ContributionInfo> {
     const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
     await ContactsService.updateContactContribution(target, joinFlow.joinForm);
@@ -351,7 +343,7 @@ export class ContactController {
   @Patch("/:id/contribution/force")
   async forceUpdateContribution(
     @TargetUser() target: Contact,
-    @Body() data: ForceUpdateContributionData
+    @Body() data: ForceUpdateContributionDto
   ): Promise<ContributionInfo> {
     await ContactsService.forceUpdateContactContribution(target, data);
     return await this.getContribution(target);
@@ -359,37 +351,23 @@ export class ContactController {
 
   @Get("/:id/payment")
   async getPayments(
+    @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
-    @QueryParams() query: GetPaymentsQuery
-  ): Promise<Paginated<GetPaymentData>> {
-    const targetQuery = {
+    @QueryParams() query: ListPaymentsDto
+  ): Promise<Paginated<GetPaymentDto>> {
+    return PaymentTransformer.fetch(caller, {
       ...query,
       rules: mergeRules([
         query.rules,
         { field: "contact", operator: "equal", value: [target.id] }
       ])
-    };
-
-    const data = await fetchPaginated(
-      Payment,
-      paymentFilters,
-      targetQuery,
-      target
-    );
-    return {
-      ...data,
-      items: data.items.map((item) => ({
-        amount: item.amount,
-        chargeDate: item.chargeDate,
-        status: item.status
-      }))
-    };
+    });
   }
 
   @Put("/:id/payment-method")
   async updatePaymentMethod(
     @TargetUser() target: Contact,
-    @Body() data: StartJoinFlowData
+    @Body() data: StartJoinFlowDto
   ): Promise<PaymentFlowParams> {
     const paymentMethod =
       data.paymentMethod || (await PaymentService.getData(target)).method;
@@ -412,7 +390,7 @@ export class ContactController {
   @Post("/:id/payment-method/complete")
   async completeUpdatePaymentMethod(
     @TargetUser() target: Contact,
-    @Body() data: CompleteJoinFlowData
+    @Body() data: CompleteJoinFlowDto
   ): Promise<ContributionInfo> {
     await this.handleCompleteUpdatePaymentMethod(target, data);
     return await this.getContribution(target);
@@ -420,7 +398,7 @@ export class ContactController {
 
   private async handleStartUpdatePaymentMethod(
     target: Contact,
-    data: StartContributionData
+    data: StartContributionDto
   ) {
     if (!(await PaymentService.canChangeContribution(target, false, data))) {
       throw new CantUpdateContribution();
@@ -446,7 +424,7 @@ export class ContactController {
 
   private async handleCompleteUpdatePaymentMethod(
     target: Contact,
-    data: CompleteJoinFlowData
+    data: CompleteJoinFlowDto
   ): Promise<JoinFlow> {
     const joinFlow = await PaymentFlowService.getJoinFlowByPaymentId(
       data.paymentFlowId
@@ -477,8 +455,8 @@ export class ContactController {
     @CurrentUser() caller: Contact,
     @TargetUser() target: Contact,
     @Params() { roleType }: ContactRoleParams,
-    @Body() data: UpdateContactRoleData
-  ): Promise<GetContactRoleData> {
+    @Body() data: UpdateContactRoleDto
+  ): Promise<GetContactRoleDto> {
     if (data.dateExpires && data.dateAdded >= data.dateExpires) {
       throw new BadRequestError();
     }
@@ -492,7 +470,7 @@ export class ContactController {
       roleType,
       data
     );
-    return convertRoleToData(role);
+    return ContactRoleTransformer.convert(role);
   }
 
   @Authorized("admin")

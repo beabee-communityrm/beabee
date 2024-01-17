@@ -6,11 +6,13 @@ import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { createDateTime, wrapAsync } from "@core/utils";
 
-import Callout, { CalloutAccess } from "@models/Callout";
+import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
+import { CalloutAccess } from "@enums/callout-access";
+
 import { createPollSchema } from "./schemas.json";
-import { exportCalloutResponses } from "@api/data/CalloutResponseData";
+import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
 
 interface CreatePollSchema {
   title: string;
@@ -176,10 +178,10 @@ app.post(
           req.flash("error", "polls-responses-password-protected");
           res.redirect(req.originalUrl);
         } else {
-          const [exportName, exportData] = await exportCalloutResponses(
-            undefined,
-            req.user!,
-            callout
+          const [exportName, exportData] = await CalloutResponseExporter.export(
+            req.user,
+            callout.slug,
+            {}
           );
           res.attachment(exportName).send(exportData);
         }

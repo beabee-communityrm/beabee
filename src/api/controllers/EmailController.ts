@@ -14,7 +14,7 @@ import { getRepository } from "@core/database";
 
 import Email from "@models/Email";
 
-import { GetEmailData, UpdateEmailData } from "@api/data/EmailData";
+import { GetEmailDto, UpdateEmailDto } from "@api/dto/EmailDto";
 import ExternalEmailTemplate from "@api/errors/ExternalEmailTemplate";
 
 async function findEmail(id: string): Promise<Email | null> {
@@ -31,7 +31,7 @@ async function findEmail(id: string): Promise<Email | null> {
   return null;
 }
 
-function emailToData(email: Email): GetEmailData {
+function emailToData(email: Email): GetEmailDto {
   return {
     subject: email.subject,
     body: email.body
@@ -42,7 +42,7 @@ function emailToData(email: Email): GetEmailData {
 @JsonController("/email")
 export class EmailController {
   @Get("/:id")
-  async getEmail(@Param("id") id: string): Promise<GetEmailData | undefined> {
+  async getEmail(@Param("id") id: string): Promise<GetEmailDto | undefined> {
     const email = await findEmail(id);
     return email ? emailToData(email) : undefined;
   }
@@ -50,8 +50,8 @@ export class EmailController {
   @Put("/:id")
   async updateEmail(
     @Param("id") id: string,
-    @Body() data: UpdateEmailData
-  ): Promise<GetEmailData | undefined> {
+    @Body() data: UpdateEmailDto
+  ): Promise<GetEmailDto | undefined> {
     const email = await findEmail(id);
     if (email) {
       await getRepository(Email).update(email.id, data);

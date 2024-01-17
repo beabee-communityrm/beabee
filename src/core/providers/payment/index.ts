@@ -1,12 +1,13 @@
 import { PaymentMethod } from "@beabee/beabee-common";
 
 import { getRepository } from "@core/database";
-import { ContributionInfo, PaymentForm } from "@core/utils";
+import { PaymentForm } from "@core/utils";
 
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import Contact from "@models/Contact";
 import PaymentData, { PaymentProviderData } from "@models/PaymentData";
+import { ContributionInfo } from "@type/contribution-info";
 
 export interface UpdateContributionResult {
   startNow: boolean;

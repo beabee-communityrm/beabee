@@ -1,3 +1,4 @@
+import { Paginated } from "@beabee/beabee-common";
 import {
   JsonController,
   Authorized,
@@ -19,26 +20,34 @@ import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
 
 import {
-  CreateApiKeyData,
-  GetApiKeysQuery,
-  GetApiKeyData,
-  fetchPaginatedApiKeys
-} from "@api/data/ApiKeyData";
-import { Paginated } from "@api/data/PaginatedData";
+  CreateApiKeyDto,
+  GetApiKeyDto,
+  ListApiKeysDto
+} from "@api/dto/ApiKeyDto";
+import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 
 @JsonController("/api-key")
 @Authorized("admin")
 export class ApiKeyController {
   @Get("/")
   async getApiKeys(
-    @QueryParams() query: GetApiKeysQuery
-  ): Promise<Paginated<GetApiKeyData>> {
-    return await fetchPaginatedApiKeys(query);
+    @CurrentUser({ required: true }) caller: Contact,
+    @QueryParams() query: ListApiKeysDto
+  ): Promise<Paginated<GetApiKeyDto>> {
+    return await ApiKeyTransformer.fetch(caller, query);
+  }
+
+  @Get("/:id")
+  async getApiKey(
+    @CurrentUser({ required: true }) caller: Contact,
+    @Param("id") id: string
+  ): Promise<GetApiKeyDto | undefined> {
+    return await ApiKeyTransformer.fetchOneById(caller, id);
   }
 
   @Post("/")
   async createApiKey(
-    @Body() data: CreateApiKeyData,
+    @Body() data: CreateApiKeyDto,
     @CurrentUser({ required: true }) creator: Contact
   ): Promise<{ token: string }> {
     const { id, secretHash, token } = generateApiKey();

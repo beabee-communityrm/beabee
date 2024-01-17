@@ -7,12 +7,7 @@ import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import stripe from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import {
-  ContributionInfo,
-  getActualAmount,
-  PaymentForm,
-  PaymentSource
-} from "@core/utils";
+import { getActualAmount, PaymentForm, PaymentSource } from "@core/utils";
 import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
 import {
   createSubscription,
@@ -27,6 +22,7 @@ import { StripePaymentData } from "@models/PaymentData";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
 import config from "@config";
+import { ContributionInfo } from "@type/contribution-info";
 
 const log = mainLogger.child({ app: "stripe-payment-provider" });
 

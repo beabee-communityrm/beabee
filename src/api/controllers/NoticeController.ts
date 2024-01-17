@@ -1,4 +1,4 @@
-import { ItemStatus, noticeFilters } from "@beabee/beabee-common";
+import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -19,105 +19,57 @@ import { getRepository } from "@core/database";
 import Contact from "@models/Contact";
 import Notice from "@models/Notice";
 
-import { UUIDParam } from "@api/data";
-import {
-  CreateNoticeData,
-  GetNoticeData,
-  GetNoticesQuery
-} from "@api/data/NoticeData";
-import {
-  fetchPaginated,
-  mergeRules,
-  Paginated,
-  statusFieldHandler
-} from "@api/data/PaginatedData";
-
 import PartialBody from "@api/decorators/PartialBody";
+import {
+  CreateNoticeDto,
+  GetNoticeDto,
+  ListNoticesDto
+} from "@api/dto/NoticeDto";
+import { UUIDParams } from "@api/params/UUIDParams";
+import NoticeTransformer from "@api/transformers/NoticeTransformer";
 
 @JsonController("/notice")
 @Authorized()
 export class NoticeController {
   @Get("/")
   async getNotices(
-    @CurrentUser() contact: Contact,
-    @QueryParams() query: GetNoticesQuery
-  ): Promise<Paginated<GetNoticeData>> {
-    const authedQuery = {
-      ...query,
-      rules: mergeRules([
-        query.rules,
-        // Non-admins can only see open notices
-        !contact.hasRole("admin") && {
-          field: "status",
-          operator: "equal",
-          value: [ItemStatus.Open]
-        }
-      ])
-    };
-
-    const results = await fetchPaginated(
-      Notice,
-      noticeFilters,
-      authedQuery,
-      contact,
-      { status: statusFieldHandler }
-    );
-
-    return {
-      ...results,
-      items: results.items.map(this.noticeToData)
-    };
+    @CurrentUser() caller: Contact,
+    @QueryParams() query: ListNoticesDto
+  ): Promise<Paginated<GetNoticeDto>> {
+    return await NoticeTransformer.fetch(caller, query);
   }
 
   @Get("/:id")
   async getNotice(
-    @CurrentUser() contact: Contact,
-    @Params() { id }: UUIDParam
-  ): Promise<GetNoticeData | undefined> {
-    const notice = await getRepository(Notice).findOneBy({ id });
-    if (notice && (notice.active || contact.hasRole("admin"))) {
-      return this.noticeToData(notice);
-    }
+    @CurrentUser() caller: Contact,
+    @Params() { id }: UUIDParams
+  ): Promise<GetNoticeDto | undefined> {
+    return await NoticeTransformer.fetchOneById(caller, id);
   }
 
   @Post("/")
   @Authorized("admin")
-  async createNotice(@Body() data: CreateNoticeData): Promise<GetNoticeData> {
+  async createNotice(@Body() data: CreateNoticeDto): Promise<GetNoticeDto> {
     const notice = await getRepository(Notice).save(data);
-    return this.noticeToData(notice);
+    return NoticeTransformer.convert(notice);
   }
 
   @Patch("/:id")
   @Authorized("admin")
   async updateNotice(
-    @CurrentUser() contact: Contact,
-    @Params() { id }: UUIDParam,
-    @PartialBody() data: CreateNoticeData
-  ): Promise<GetNoticeData | undefined> {
+    @CurrentUser() caller: Contact,
+    @Params() { id }: UUIDParams,
+    @PartialBody() data: CreateNoticeDto
+  ): Promise<GetNoticeDto | undefined> {
     await getRepository(Notice).update(id, data);
-    return this.getNotice(contact, { id });
+    return await NoticeTransformer.fetchOneById(caller, id);
   }
 
   @OnUndefined(204)
   @Delete("/:id")
   @Authorized("admin")
-  async deleteNotice(@Params() { id }: UUIDParam) {
+  async deleteNotice(@Params() { id }: UUIDParams) {
     const result = await getRepository(Notice).delete(id);
     if (!result.affected) throw new NotFoundError();
-  }
-
-  private noticeToData(notice: Notice): GetNoticeData {
-    return {
-      id: notice.id,
-      createdAt: notice.createdAt,
-      updatedAt: notice.updatedAt,
-      name: notice.name,
-      text: notice.text,
-      starts: notice.starts,
-      expires: notice.expires,
-      status: notice.status,
-      ...(notice.buttonText !== null && { buttonText: notice.buttonText }),
-      ...(notice.url !== null && { url: notice.url })
-    };
   }
 }

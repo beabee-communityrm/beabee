@@ -63,5 +63,8 @@ export default class CalloutResponse {
   @ManyToOne("Contact", { nullable: true })
   assignee!: Contact | null;
 
+  @OneToMany("CalloutResponseComment", "response")
+  comments?: CalloutResponseComment[];
+
   latestComment?: CalloutResponseComment | null;
 }

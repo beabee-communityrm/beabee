@@ -9,19 +9,17 @@ import {
   QueryParams
 } from "routing-controllers";
 
-import { UUIDParam } from "@api/data";
-import {
-  BatchUpdateCalloutResponseData,
-  batchUpdateCalloutResponses,
-  CreateCalloutResponseData,
-  fetchCalloutResponse,
-  fetchPaginatedCalloutResponses,
-  GetCalloutResponseData,
-  GetCalloutResponseQuery,
-  GetCalloutResponsesQuery,
-  updateCalloutResponse
-} from "@api/data/CalloutResponseData";
 import PartialBody from "@api/decorators/PartialBody";
+import { UUIDParams } from "@api/params/UUIDParams";
+
+import {
+  BatchUpdateCalloutResponseDto,
+  CreateCalloutResponseDto,
+  GetCalloutResponseDto,
+  GetCalloutResponseOptsDto,
+  ListCalloutResponsesDto
+} from "@api/dto/CalloutResponseDto";
+import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
 import Contact from "@models/Contact";
 
@@ -29,38 +27,38 @@ import Contact from "@models/Contact";
 export class CalloutResponseController {
   @Get("/")
   async getCalloutResponses(
-    @CurrentUser() contact: Contact,
-    @QueryParams() query: GetCalloutResponsesQuery
-  ): Promise<Paginated<GetCalloutResponseData>> {
-    return await fetchPaginatedCalloutResponses(query, contact);
+    @CurrentUser() caller: Contact,
+    @QueryParams() query: ListCalloutResponsesDto
+  ): Promise<Paginated<GetCalloutResponseDto>> {
+    return CalloutResponseTransformer.fetch(caller, query);
   }
 
   @Authorized("admin")
   @Patch("/")
   async updateCalloutResponses(
-    @CurrentUser() contact: Contact,
-    @PartialBody() data: BatchUpdateCalloutResponseData
+    @CurrentUser() caller: Contact,
+    @PartialBody() data: BatchUpdateCalloutResponseDto
   ): Promise<{ affected: number }> {
-    const affected = await batchUpdateCalloutResponses(data, contact);
+    const affected = await CalloutResponseTransformer.update(caller, data);
     return { affected };
   }
 
   @Get("/:id")
   async getCalloutResponse(
-    @CurrentUser() contact: Contact,
-    @Params() { id }: UUIDParam,
-    @QueryParams() query: GetCalloutResponseQuery
-  ): Promise<GetCalloutResponseData | undefined> {
-    return await fetchCalloutResponse(id, query, contact);
+    @CurrentUser() caller: Contact,
+    @Params() { id }: UUIDParams,
+    @QueryParams() query: GetCalloutResponseOptsDto
+  ): Promise<GetCalloutResponseDto | undefined> {
+    return await CalloutResponseTransformer.fetchOneById(caller, id, query);
   }
   @Authorized("admin")
   @Patch("/:id")
   async updateCalloutResponse(
-    @CurrentUser() contact: Contact,
-    @Params() { id }: UUIDParam,
-    @PartialBody() data: CreateCalloutResponseData // Should be Partial<CreateCalloutResponseData>
-  ): Promise<GetCalloutResponseData | undefined> {
-    await updateCalloutResponse(id, data);
-    return await fetchCalloutResponse(id, {}, contact);
+    @CurrentUser() caller: Contact,
+    @Params() { id }: UUIDParams,
+    @PartialBody() data: CreateCalloutResponseDto // Should be Partial<CreateCalloutResponseData>
+  ): Promise<GetCalloutResponseDto | undefined> {
+    await CalloutResponseTransformer.updateOneById(caller, id, data);
+    return await CalloutResponseTransformer.fetchOneById(caller, id);
   }
 }

@@ -15,15 +15,12 @@ import PaymentFlowService from "@core/services/PaymentFlowService";
 
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
+import { SignupData, SignupCompleteData } from "@api/dto/SignupDto";
+import { SignupConfirmEmailParams } from "@api/params/SignupConfirmEmailParams";
+import { login } from "@api/utils";
+
 import JoinFlow from "@models/JoinFlow";
 import Password from "@models/Password";
-
-import {
-  SignupData,
-  SignupCompleteData,
-  SignupConfirmEmailParam
-} from "@api/data/SignupData";
-import { login } from "@api/utils";
 
 @JsonController("/signup")
 export class SignupController {
@@ -79,7 +76,7 @@ export class SignupController {
   @Post("/confirm-email")
   async confirmEmail(
     @Req() req: Request,
-    @Body() { joinFlowId }: SignupConfirmEmailParam
+    @Body() { joinFlowId }: SignupConfirmEmailParams
   ): Promise<void> {
     const joinFlow = await getRepository(JoinFlow).findOneBy({
       id: joinFlowId

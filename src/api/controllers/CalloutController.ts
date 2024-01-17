@@ -1,4 +1,4 @@
-import { CalloutFormSchema } from "@beabee/beabee-common";
+import { CalloutFormSchema, Paginated } from "@beabee/beabee-common";
 import { Response } from "express";
 import {
   Authorized,
@@ -25,56 +25,49 @@ import OptionsService from "@core/services/OptionsService";
 import { getRepository } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
+import { GetExportQuery } from "@api/dto/BaseDto";
+
+import {
+  CreateCalloutDto,
+  GetCalloutDto,
+  GetCalloutOptsDto,
+  ListCalloutsDto
+} from "@api/dto/CalloutDto";
+import {
+  CreateCalloutResponseDto,
+  GetCalloutResponseMapDto,
+  ListCalloutResponsesDto
+} from "@api/dto/CalloutResponseDto";
+import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
+
+import PartialBody from "@api/decorators/PartialBody";
+import DuplicateId from "@api/errors/DuplicateId";
+import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
+import CalloutTransformer from "@api/transformers/CalloutTransformer";
+import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
+import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
+import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
+
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 
-import {
-  convertCalloutToData,
-  CreateCalloutData,
-  fetchCallout,
-  fetchPaginatedCallouts,
-  GetCalloutData,
-  GetCalloutQuery,
-  GetCalloutsQuery
-} from "@api/data/CalloutData";
-import {
-  CreateCalloutResponseData,
-  exportCalloutResponses,
-  fetchPaginatedCalloutResponses,
-  fetchPaginatedCalloutResponsesForMap,
-  GetCalloutResponseData,
-  GetCalloutResponseMapData,
-  GetCalloutResponsesQuery
-} from "@api/data/CalloutResponseData";
-import {
-  convertTagToData,
-  CreateCalloutTagData,
-  GetCalloutTagData
-} from "@api/data/CalloutTagData";
-import { GetExportQuery, Paginated } from "@api/data/PaginatedData";
-
-import PartialBody from "@api/decorators/PartialBody";
-import DuplicateId from "@api/errors/DuplicateId";
-import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
-
 @JsonController("/callout")
 export class CalloutController {
   @Get("/")
   async getCallouts(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
-    @QueryParams() query: GetCalloutsQuery
-  ): Promise<Paginated<GetCalloutData>> {
-    return fetchPaginatedCallouts(query, contact);
+    @CurrentUser({ required: false }) caller: Contact | undefined,
+    @QueryParams() query: ListCalloutsDto
+  ): Promise<Paginated<GetCalloutDto>> {
+    return CalloutTransformer.fetch(caller, query);
   }
 
   @Authorized("admin")
   @Post("/")
-  async createCallout(
-    @Body() data: CreateCalloutData
-  ): Promise<GetCalloutData> {
+  async createCallout(@Body() data: CreateCalloutDto): Promise<GetCalloutDto> {
     const callout = await CalloutsService.createCallout(
       {
         ...data,
@@ -82,25 +75,28 @@ export class CalloutController {
       },
       data.slug ? false : 0
     );
-    return convertCalloutToData(callout);
+    return CalloutTransformer.convert(callout);
   }
 
   @Get("/:slug")
   async getCallout(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutQuery
-  ): Promise<GetCalloutData | undefined> {
-    return await fetchCallout({ slug }, query, contact);
+    @QueryParams() query: GetCalloutOptsDto
+  ): Promise<GetCalloutDto | undefined> {
+    return CalloutTransformer.fetchOneById(caller, slug, {
+      ...query,
+      showHiddenForAll: true
+    });
   }
 
   @Authorized("admin")
   @Patch("/:slug")
   async updateCallout(
-    @CurrentUser({ required: true }) contact: Contact,
+    @CurrentUser({ required: true }) caller: Contact,
     @Param("slug") slug: string,
-    @PartialBody() data: CreateCalloutData // Should be Partial<CreateCalloutData>
-  ): Promise<GetCalloutData | undefined> {
+    @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutData>
+  ): Promise<GetCalloutDto | undefined> {
     const newSlug = data.slug || slug;
 
     if (OptionsService.getText("join-survey") === slug) {
@@ -124,7 +120,7 @@ export class CalloutController {
             data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
         })
       });
-      return await fetchCallout({ slug: newSlug }, {}, contact);
+      return await CalloutTransformer.fetchOneById(caller, newSlug);
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }
@@ -143,32 +139,28 @@ export class CalloutController {
 
   @Get("/:slug/responses")
   async getCalloutResponses(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutResponsesQuery
-  ): Promise<Paginated<GetCalloutResponseData>> {
-    const callout = await getRepository(Callout).findOneBy({ slug });
-    if (!callout) {
-      throw new NotFoundError();
-    }
-    return await fetchPaginatedCalloutResponses(query, contact, callout);
+    @QueryParams() query: ListCalloutResponsesDto
+  ) {
+    return await CalloutResponseTransformer.fetchForCallout(
+      caller,
+      slug,
+      query
+    );
   }
 
   @Get("/:slug/responses.csv")
   async exportCalloutResponses(
-    @CurrentUser() contact: Contact,
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
-    const callout = await getRepository(Callout).findOneBy({ slug });
-    if (!callout) {
-      throw new NotFoundError();
-    }
-    const [exportName, exportData] = await exportCalloutResponses(
-      query.rules,
-      contact,
-      callout
+    const [exportName, exportData] = await CalloutResponseExporter.export(
+      caller,
+      slug,
+      query
     );
     res.attachment(exportName).send(exportData);
     return res;
@@ -176,36 +168,36 @@ export class CalloutController {
 
   @Get("/:slug/responses/map")
   async getCalloutResponsesMap(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
-    @QueryParams() query: GetCalloutResponsesQuery
-  ): Promise<Paginated<GetCalloutResponseMapData>> {
-    const callout = await getRepository(Callout).findOneBy({ slug });
-    if (!callout) {
-      throw new NotFoundError();
-    }
-    return await fetchPaginatedCalloutResponsesForMap(query, contact, callout);
+    @QueryParams() query: ListCalloutResponsesDto
+  ): Promise<Paginated<GetCalloutResponseMapDto>> {
+    return await CalloutResponseMapTransformer.fetchForCallout(
+      caller,
+      slug,
+      query
+    );
   }
 
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
-    @Body() data: CreateCalloutResponseData
+    @Body() data: CreateCalloutResponseDto
   ): Promise<void> {
     const callout = await getRepository(Callout).findOneBy({ slug });
     if (!callout) {
       throw new NotFoundError();
     }
 
-    if (contact && (data.guestEmail || data.guestName)) {
+    if (caller && (data.guestEmail || data.guestName)) {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
     }
 
     // TODO: support assignee/bucket/tags on create
-    if (contact) {
-      await CalloutsService.setResponse(callout, contact, data.answers);
+    if (caller) {
+      await CalloutsService.setResponse(callout, caller, data.answers);
     } else {
       await CalloutsService.setGuestResponse(
         callout,
@@ -219,44 +211,58 @@ export class CalloutController {
   @Authorized("admin")
   @Get("/:slug/tags")
   async getCalloutTags(
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string
-  ): Promise<GetCalloutTagData[]> {
-    const tags = await getRepository(CalloutTag).find({
-      where: { callout: { slug } }
+  ): Promise<GetCalloutTagDto[]> {
+    const result = await CalloutTagTransformer.fetch(caller, {
+      rules: {
+        condition: "AND",
+        rules: [{ field: "calloutSlug", operator: "equal", value: [slug] }]
+      }
     });
-    return tags.map(convertTagToData);
+
+    return result.items;
   }
 
   @Authorized("admin")
   @Post("/:slug/tags")
   async createCalloutTag(
     @Param("slug") slug: string,
-    @Body() data: CreateCalloutTagData
-  ): Promise<GetCalloutTagData> {
+    @Body() data: CreateCalloutTagDto
+  ): Promise<GetCalloutTagDto> {
     // TODO: handle foreign key error
     const tag = await getRepository(CalloutTag).save({
       name: data.name,
       description: data.description,
-      callout: { slug }
+      calloutSlug: slug
     });
 
-    return convertTagToData(tag);
+    return CalloutTagTransformer.convert(tag);
+  }
+
+  @Authorized("admin")
+  @Get("/:slug/tags/:tag")
+  async getCalloutTag(
+    @CurrentUser() caller: Contact,
+    @Param("tag") tagId: string
+  ): Promise<GetCalloutTagDto | undefined> {
+    return CalloutTagTransformer.fetchOneById(caller, tagId);
   }
 
   @Authorized("admin")
   @Patch("/:slug/tags/:tag")
   async updateCalloutTag(
+    @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
     @Param("tag") tagId: string,
-    @PartialBody() data: CreateCalloutTagData // Partial<CreateCalloutTagData>
-  ): Promise<GetCalloutTagData | undefined> {
+    @PartialBody() data: CreateCalloutTagDto // Partial<CreateCalloutTagData>
+  ): Promise<GetCalloutTagDto | undefined> {
     await getRepository(CalloutTag).update(
       { id: tagId, callout: { slug } },
       data
     );
 
-    const tag = await getRepository(CalloutTag).findOneBy({ id: tagId });
-    return tag ? convertTagToData(tag) : undefined;
+    return CalloutTagTransformer.fetchOneById(caller, tagId);
   }
 
   @Authorized("admin")

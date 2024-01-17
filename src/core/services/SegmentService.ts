@@ -2,14 +2,11 @@ import { contactFilters, validateRuleGroup } from "@beabee/beabee-common";
 
 import { getRepository } from "@core/database";
 
+import ContactTransformer from "@api/transformers/ContactTransformer";
+import { buildSelectQuery } from "@api/utils/rules";
+
 import Contact from "@models/Contact";
 import Segment from "@models/Segment";
-
-import {
-  fetchPaginatedContacts,
-  contactFieldHandlers
-} from "@api/data/ContactData";
-import { buildSelectQuery } from "@api/data/PaginatedData";
 
 class SegmentService {
   async createSegment(
@@ -22,28 +19,22 @@ class SegmentService {
     return await getRepository(Segment).save(segment);
   }
 
-  async getSegmentsWithCount(): Promise<Segment[]> {
+  /** @deprecated */
+  async getSegmentsWithCount(caller: Contact | undefined): Promise<Segment[]> {
     const segments = await getRepository(Segment).find({
       order: { order: "ASC" }
     });
     for (const segment of segments) {
-      segment.contactCount = await this.getSegmentContactCount(segment);
+      const result = await ContactTransformer.fetch(caller, {
+        limit: 0,
+        rules: segment.ruleGroup
+      });
+      segment.contactCount = result.total;
     }
     return segments;
   }
 
-  async getSegmentContactCount(segment: Segment): Promise<number> {
-    return (
-      await fetchPaginatedContacts(
-        {
-          limit: 0,
-          rules: segment.ruleGroup
-        },
-        { withRestricted: false }
-      )
-    ).total;
-  }
-
+  /** @deprecated */
   async getSegmentContacts(segment: Segment): Promise<Contact[]> {
     const validatedRuleGroup = validateRuleGroup(
       contactFilters,
@@ -53,7 +44,7 @@ class SegmentService {
       Contact,
       validatedRuleGroup,
       undefined,
-      contactFieldHandlers
+      ContactTransformer.filterHandlers
     );
 
     qb.leftJoinAndSelect("item.profile", "profile").leftJoinAndSelect(
