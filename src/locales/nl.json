@@ -1,0 +1,398 @@
+{
+  "accountPage": {
+    "mfa": {
+      "codeInput": {},
+      "confirmDelete": {
+        "descToken": "Om 2FA te deactiveren, voer alstublieft uw huidige 2FA-code in:"
+      },
+      "createUnknownErrorNotification": "De 2-factor authenticatie kon niet worden opgeslagen vanwege een \nonbekende fout. Probeer het opnieuw of neem contact op met de \nondersteuning.",
+      "enterCode": {},
+      "result": {},
+      "scan": {},
+      "secretInput": {},
+      "validateButton": {}
+    },
+    "newsletter": {
+      "currentStatus": {}
+    }
+  },
+  "actions": {
+    "back": "Terug",
+    "getStarted": "Start",
+    "next": "Volgende",
+    "submit": "Indienen"
+  },
+  "addContact": {
+    "errors": {}
+  },
+  "addNotice": {
+    "form": {}
+  },
+  "adminDashboard": {
+    "latestCallout": {},
+    "mostRecentMembers": {},
+    "numbers": {}
+  },
+  "adminSettings": {
+    "apikey": {
+      "confirmCreate": {},
+      "confirmDelete": {},
+      "expires": {}
+    },
+    "email": {},
+    "general": {
+      "footer": {
+        "dataPrivacy": {},
+        "otherLinks": {}
+      },
+      "socialSharing": {}
+    },
+    "theme": {
+      "colorNames": {},
+      "presetColors": {}
+    }
+  },
+  "advancedSearch": {
+    "matchType": {},
+    "matchWord": {},
+    "operators": {
+      "all": {},
+      "array": {},
+      "blob": {},
+      "boolean": {},
+      "date": {},
+      "enum": {},
+      "number": {},
+      "text": {}
+    },
+    "saveSegment": {
+      "createOrUpdate": {}
+    }
+  },
+  "apiKey": {
+    "data": {}
+  },
+  "callout": {
+    "actions": {},
+    "addAPoint": "Klik op de kaart als je een punt wilt toevoegen",
+    "addLocation": "Voeg een locatie toe",
+    "ended": "Deze oproep is geëindigd op {date}",
+    "form": {
+      "submittingResponseError": "er was een probleem om je antwoord te verwerken, probeer het opnieuw"
+    },
+    "getStarted": "Start",
+    "responseSubmitted": "Antwoord ingediend",
+    "share": {
+      "address": "Deel deze oproep met het volgende adres:",
+      "services": "Of deel snel via een van deze diensten:"
+    },
+    "views": {
+      "gallery": "Gallerij",
+      "map": "Kaart"
+    }
+  },
+  "calloutAdmin": {},
+  "calloutAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    },
+    "dates": {},
+    "settings": {
+      "answers": {},
+      "contactInfo": {},
+      "endsWith": {},
+      "openTo": {}
+    }
+  },
+  "calloutBuilder": {
+    "actions": {},
+    "nextSlide": {}
+  },
+  "calloutResponse": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "calloutResponseBuckets": {},
+  "calloutResponseComments": {
+    "actions": {},
+    "confirmDelete": {}
+  },
+  "calloutResponsePage": {
+    "actions": {},
+    "notifications": {}
+  },
+  "calloutResponsesPage": {},
+  "callouts": {
+    "data": {}
+  },
+  "calloutsAdmin": {
+    "data": {},
+    "filter": {}
+  },
+  "common": {
+    "contributionType": {},
+    "copy": "Kopiëren",
+    "hello": "Hallo",
+    "loading": "Ladt...",
+    "newsletterStatus": {},
+    "noResults": "Geen resultaten gevonden",
+    "paymentStatus": {},
+    "role": {},
+    "selectNone": "Geen",
+    "selectOne": "Kiies er één",
+    "share": "Delen",
+    "show": "Laat zien",
+    "status": {
+      "draft": "Ontwerp",
+      "ended": "Beëindigd",
+      "open": "Open",
+      "scheduled": "Gepland"
+    },
+    "thankYou": "Dankjewel",
+    "timeAgo": "{time} geleden",
+    "timeIn": "in {time}"
+  },
+  "contactContribution": {
+    "confirmCancel": {},
+    "updateNotice": {}
+  },
+  "contactOverview": {
+    "annotation": {},
+    "security": {
+      "mfa": {
+        "disabledDesc": "Deze contactpersoon heeft geen 2FA geactiveerd."
+      }
+    }
+  },
+  "contacts": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "contribution": {
+    "paymentHistory": {}
+  },
+  "createCallout": {
+    "steps": {
+      "content": {},
+      "dates": {
+        "inputs": {
+          "expires": {
+            "opts": {}
+          },
+          "starts": {
+            "opts": {}
+          }
+        }
+      },
+      "endMessage": {
+        "inputs": {
+          "action": {
+            "opts": {}
+          },
+          "text": {},
+          "title": {},
+          "url": {}
+        }
+      },
+      "mailchimp": {},
+      "settings": {
+        "inputs": {
+          "anonymous": {
+            "opts": {}
+          },
+          "editable": {
+            "opts": {}
+          },
+          "mapSchema": {
+            "addressPattern": {},
+            "addressPatternProp": {},
+            "addressProp": {},
+            "bounds": {},
+            "center": {},
+            "initialZoom": {},
+            "maxZoom": {},
+            "minZoom": {},
+            "style": {}
+          },
+          "multiple": {
+            "opts": {}
+          },
+          "responseImageFilter": {},
+          "responseImageProp": {},
+          "responseLinks": {},
+          "responseTitleProp": {},
+          "showResponses": {},
+          "visible": {
+            "opts": {}
+          },
+          "whichResponseBuckets": {},
+          "whichResponseViews": {
+            "opts": {}
+          },
+          "who": {
+            "opts": {}
+          }
+        }
+      },
+      "titleAndImage": {
+        "inputs": {
+          "description": {},
+          "image": {},
+          "intro": {},
+          "overrideShare": {
+            "opts": {}
+          },
+          "shareDescription": {},
+          "shareTitle": {},
+          "slug": {
+            "opts": {}
+          },
+          "title": {}
+        }
+      }
+    }
+  },
+  "editCallout": {},
+  "editNotice": {},
+  "footer": {
+    "contactUs": "Neem contact met ons op",
+    "impressum": "Impressum",
+    "poweredBy": "We versterken onafhankelijk lokale redacties",
+    "privacyPolicy": "Privacy verklaring",
+    "terms": "Algemene voorwaarden"
+  },
+  "forgotPassword": {},
+  "form": {
+    "email": "E-mail",
+    "errorMessages": {
+      "api": {
+        "mfa-token-required": "U heeft tweefactorauthenticatie ingeschakeld, dus u heeft de token uit \nuw authenticatie-app nodig om uw wachtwoord te resetten. Voer deze \nalstublieft in."
+      },
+      "generic": "Oeps, er ging iets fout! Neem contact op met support als het nog een keer gebeurd.",
+      "validation": "Er ontbreekt iets. Bekijk de velden hierboven."
+    },
+    "errors": {
+      "address": {},
+      "addressLine1": {},
+      "cityOrTown": {},
+      "color": {},
+      "confirmPassword": {},
+      "email": {},
+      "file": {
+        "rateLimited": "Upload mislukt: je hebt te veel bestanden geupload, wacht een paar minuten en probeer het opnieuw",
+        "tooBig": "Upload mislukt: het bestand mag niet groter zijn dan 20Mb"
+      },
+      "firstName": {},
+      "lastName": {},
+      "name": {},
+      "password": {},
+      "postCode": {},
+      "unknown": {},
+      "url": {},
+      "verifyCode": {
+        "max": "De code mag maximaal {max} tekens lang zijn.",
+        "min": "De code moet minimaal {min} tekens lang zijn."
+      }
+    },
+    "richtext": {}
+  },
+  "formRenderer": {
+    "components": {
+      "file": {
+        "browse": "Upload van je apparaat",
+        "dropFiles": "Plaats het bestand hier",
+        "or": "of",
+        "switchToFileUpload": "Verander naar bestand upload",
+        "takePicture": "Neem een foto",
+        "useCamera": "gebruik je camera"
+      }
+    }
+  },
+  "homePage": {},
+  "item": {
+    "status": {
+      "endedOn": "op {date}",
+      "endsIn": "Beëindigd op {duration}",
+      "startsIn": "Gestart in {duration}"
+    }
+  },
+  "join": {
+    "errors": {
+      "confirmEmail": {},
+      "failed": {}
+    }
+  },
+  "joinPayment": {},
+  "joinSetup": {},
+  "locale": "nl",
+  "login": {
+    "lostMfaDevice": "2FA-apparaat kwijt?"
+  },
+  "lostDevice": {
+    "description": "Voer uw e-mailadres in, dan sturen we u instructies om uw 2FA te resetten.",
+    "title": "Bent u uw 2FA-apparaat kwijt?"
+  },
+  "membershipBuilder": {
+    "steps": {
+      "accountConfirmation": {
+        "joinSurvey": {}
+      },
+      "emails": {},
+      "intro": {},
+      "joinForm": {}
+    }
+  },
+  "menu": {
+    "callouts": "Oproepen"
+  },
+  "notFound": {
+    "goBack": "Ga terug naar home",
+    "text": "Deze pagina bestaat niet. Als u denkt dat dit een vergissing is, neem dan contact op met {support}."
+  },
+  "noticeAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    }
+  },
+  "notices": {
+    "data": {}
+  },
+  "notification": {
+    "error": "Er ging iets fout. Probeer de pagina te herladen"
+  },
+  "pageTitle": {
+    "lostDevice": "Bent u uw 2FA-apparaat kwijt?",
+    "notFound": "Pagina niet gevonden",
+    "resetDevice": "Secundair Apparaat Resetten"
+  },
+  "paymentMethods": {
+    "gc_direct-debit": {},
+    "s_bacs": {},
+    "s_card": {},
+    "s_sepa": {}
+  },
+  "payments": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "paymentsAdmin": {
+    "filter": {}
+  },
+  "resetDevice": {
+    "success": "Het resetten van het 2FA-apparaat is gelukt."
+  },
+  "resetPassword": {},
+  "roleEditor": {
+    "confirmDelete": {},
+    "expires": {
+      "opts": {}
+    },
+    "starts": {
+      "opts": {}
+    }
+  },
+  "setPassword": {},
+  "tagEditor": {
+    "confirmDelete": {}
+  }
+}

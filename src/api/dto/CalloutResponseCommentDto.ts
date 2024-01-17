@@ -3,28 +3,20 @@ import { IsIn, IsString } from "class-validator";
 import { GetPaginatedQuery } from "@api/dto/BaseDto";
 import { GetContactDto } from "@api/dto/ContactDto";
 
-interface UpdateCalloutResponseComment {
-  text: string;
-}
-
-interface CalloutResponseCommentData extends UpdateCalloutResponseComment {
-  responseId: string;
-}
-
-export interface GetCalloutResponseCommentDto
-  extends CalloutResponseCommentData {
-  contact: GetContactDto;
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export class CreateCalloutResponseCommentDto {
   @IsString()
   responseId!: string;
 
   @IsString()
   text!: string;
+}
+
+export interface GetCalloutResponseCommentDto
+  extends CreateCalloutResponseCommentDto {
+  contact: GetContactDto;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class ListCalloutResponseCommentsDto extends GetPaginatedQuery {
