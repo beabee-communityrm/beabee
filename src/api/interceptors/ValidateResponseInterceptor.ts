@@ -20,19 +20,22 @@ export class ValidateResponseInterceptor implements InterceptorInterface {
 
     const request = action.request as Request;
     const groups = request.user?.hasRole("admin") ? ["admin"] : [];
+    const items = Array.isArray(content) ? content : [content];
 
-    const errors = await validate(content, {
-      groups,
-      always: true,
-      strictGroups: true,
-      whitelist: true,
-      forbidUnknownValues: true,
-      forbidNonWhitelisted: true,
-      stopAtFirstError: true
-    });
-    if (errors.length > 0) {
-      log.error("Validation failed on response", { errors });
-      throw new InternalServerError("Validation failed");
+    for (const item of items) {
+      const errors = await validate(item, {
+        groups,
+        always: true,
+        strictGroups: true,
+        whitelist: true,
+        forbidUnknownValues: true,
+        forbidNonWhitelisted: true,
+        stopAtFirstError: true
+      });
+      if (errors.length > 0) {
+        log.error("Validation failed on response", { errors });
+        throw new InternalServerError("Validation failed");
+      }
     }
 
     return content;
