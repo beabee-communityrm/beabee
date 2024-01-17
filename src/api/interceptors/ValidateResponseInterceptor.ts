@@ -7,6 +7,10 @@ import {
   InternalServerError
 } from "routing-controllers";
 
+import { log as mainLogger } from "@core/logging";
+
+const log = mainLogger.child({ app: "validate-response-interceptor" });
+
 @Interceptor()
 export class ValidateResponseInterceptor implements InterceptorInterface {
   async intercept(action: Action, content: any) {
@@ -27,7 +31,7 @@ export class ValidateResponseInterceptor implements InterceptorInterface {
       stopAtFirstError: true
     });
     if (errors.length > 0) {
-      console.log(JSON.stringify(errors, null, 2));
+      log.error("Validation failed on response", { errors });
       throw new InternalServerError("Validation failed");
     }
 
