@@ -1,3 +1,5 @@
+import { ServerResponse } from "node:http";
+
 import { validate } from "class-validator";
 import { Request } from "express";
 import {
@@ -14,7 +16,11 @@ const log = mainLogger.child({ app: "validate-response-interceptor" });
 @Interceptor()
 export class ValidateResponseInterceptor implements InterceptorInterface {
   async intercept(action: Action, content: any) {
-    if (content === undefined || content === null) {
+    if (
+      content === undefined ||
+      content === null ||
+      content instanceof ServerResponse
+    ) {
       return content;
     }
 
