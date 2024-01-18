@@ -1,5 +1,5 @@
 import { RoleTypes, RoleType } from "@beabee/beabee-common";
-import { IsEmail, IsString, isUUID, IsOptional } from "class-validator";
+import { isUUID } from "class-validator";
 import { Request, Response } from "express";
 import {
   Body,
@@ -21,31 +21,17 @@ import passport from "@core/lib/passport";
 
 import ContactsService from "@core/services/ContactsService";
 
+import { LoginDto } from "@api/dto/LoginDto";
+import { login } from "@api/utils";
+
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 
-import { login } from "@api/utils";
+import { LOGIN_CODES } from "@enums/login-codes";
 
 import { PassportLoginInfo } from "@type/passport-login-info";
 
-import { LOGIN_CODES } from "@enums/login-codes";
-
 import config from "@config";
-
-export class LoginData {
-  @IsEmail()
-  email!: string;
-
-  // We deliberately don't validate with IsPassword here so
-  // invalid passwords return a 401
-  @IsString()
-  password!: string;
-
-  /** Optional multi factor authentication token */
-  @IsString()
-  @IsOptional()
-  token?: string;
-}
 
 @JsonController("/auth")
 export class AuthController {
@@ -55,7 +41,7 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
     /** Just used for validation (`email`, `password` and `req.data.token` are in passport strategy) */
-    @Body() _: LoginData
+    @Body() _: LoginDto
   ): Promise<void> {
     const user = await new Promise<Contact>((resolve, reject) => {
       passport.authenticate(
