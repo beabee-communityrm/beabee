@@ -7,8 +7,6 @@ import {
   IsString
 } from "class-validator";
 
-import { PaymentFlowParams } from "@core/providers/payment-flow";
-
 import { StartContributionDto } from "@api/dto/ContributionDto";
 import { CompleteJoinFlowDto } from "@api/dto/JoinFlowDto";
 import IsPassword from "@api/validators/IsPassword";
@@ -37,16 +35,6 @@ export class StartSignupFlowDto implements CompleteUrls {
   @ValidateNested()
   @IsOptional()
   contribution?: StartContributionDto;
-}
-
-export class GetSignupFlowDto implements PaymentFlowParams {
-  @IsOptional()
-  @IsString()
-  clientSecret?: string;
-
-  @IsOptional()
-  @IsString()
-  redirectUrl?: string;
 }
 
 export class CompleteSignupFlowDto extends CompleteJoinFlowDto {

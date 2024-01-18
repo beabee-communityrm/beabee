@@ -14,10 +14,10 @@ import { generatePassword } from "@core/utils/auth";
 
 import PaymentFlowService from "@core/services/PaymentFlowService";
 
+import { GetPaymentFlowDto } from "@api/dto/PaymentFlowDto";
 import {
   StartSignupFlowDto,
-  CompleteSignupFlowDto,
-  GetSignupFlowDto
+  CompleteSignupFlowDto
 } from "@api/dto/SignupFlowDto";
 import { SignupConfirmEmailParams } from "@api/params/SignupConfirmEmailParams";
 import { login } from "@api/utils";
@@ -31,7 +31,7 @@ export class SignupController {
   @Post("/")
   async startSignup(
     @Body() data: StartSignupFlowDto
-  ): Promise<GetSignupFlowDto | undefined> {
+  ): Promise<GetPaymentFlowDto | undefined> {
     const baseForm = {
       email: data.email,
       password: data.password
@@ -51,7 +51,7 @@ export class SignupController {
         { email: data.email }
       );
 
-      return plainToInstance(GetSignupFlowDto, flow);
+      return plainToInstance(GetPaymentFlowDto, flow);
     } else {
       const joinFlow = await PaymentFlowService.createJoinFlow(baseForm, data);
       await PaymentFlowService.sendConfirmEmail(joinFlow);

@@ -68,7 +68,7 @@ export class ListContactsDto extends GetPaginatedQuery {
   sort?: string;
 }
 
-class GetContributionInfoDto implements ContributionInfo {
+export class GetContributionInfoDto implements ContributionInfo {
   @IsEnum(ContributionType)
   type!: ContributionType;
 

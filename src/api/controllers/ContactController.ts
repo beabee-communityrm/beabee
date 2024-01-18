@@ -1,4 +1,5 @@
 import { ContributionPeriod, NewsletterStatus } from "@beabee/beabee-common";
+import { plainToInstance } from "class-transformer";
 import { Request, Response } from "express";
 import {
   Authorized,
@@ -19,8 +20,6 @@ import {
   Res
 } from "routing-controllers";
 
-import { PaymentFlowParams } from "@core/providers/payment-flow";
-
 import AuthService from "@core/services/AuthService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
@@ -38,6 +37,7 @@ import {
   CreateContactDto,
   GetContactDto,
   GetContactOptsDto,
+  GetContributionInfoDto,
   ListContactsDto,
   UpdateContactDto
 } from "@api/dto/ContactDto";
@@ -66,6 +66,7 @@ import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { ContactRoleParams } from "@api/params/ContactRoleParams";
 import { UUIDParams } from "@api/params/UUIDParams";
 import { validateOrReject } from "@api/utils";
+import { mergeRules } from "@api/utils/rules";
 
 import ContactExporter from "@api/transformers/ContactExporter";
 import ContactTransformer from "@api/transformers/ContactTransformer";
@@ -73,9 +74,7 @@ import ContactRoleTransformer from "@api/transformers/ContactRoleTransformer";
 import PaymentTransformer from "@api/transformers/PaymentTransformer";
 
 import { GetContactWith } from "@enums/get-contact-with";
-
-import { ContributionInfo } from "@type/contribution-info";
-import { mergeRules } from "@api/utils/rules";
+import { GetPaymentFlowDto } from "@api/dto/PaymentFlowDto";
 
 /**
  * The target user can either be the current user or for admins
@@ -236,15 +235,16 @@ export class ContactController {
   @Get("/:id/contribution")
   async getContribution(
     @TargetUser() target: Contact
-  ): Promise<ContributionInfo> {
-    return await PaymentService.getContributionInfo(target);
+  ): Promise<GetContributionInfoDto> {
+    const ret = await PaymentService.getContributionInfo(target);
+    return plainToInstance(GetContributionInfoDto, ret);
   }
 
   @Patch("/:id/contribution")
   async updateContribution(
     @TargetUser() target: Contact,
     @Body() data: UpdateContributionDto
-  ): Promise<ContributionInfo> {
+  ): Promise<GetContributionInfoDto> {
     if (!(await PaymentService.canChangeContribution(target, true, data))) {
       throw new CantUpdateContribution();
     }
@@ -258,7 +258,7 @@ export class ContactController {
   async startContribution(
     @TargetUser() target: Contact,
     @Body() data: StartContributionDto
-  ): Promise<PaymentFlowParams> {
+  ): Promise<GetPaymentFlowDto> {
     return await this.handleStartUpdatePaymentMethod(target, data);
   }
 
@@ -323,7 +323,7 @@ export class ContactController {
   async completeStartContribution(
     @TargetUser() target: Contact,
     @Body() data: CompleteJoinFlowDto
-  ): Promise<ContributionInfo> {
+  ): Promise<GetContributionInfoDto> {
     const joinFlow = await this.handleCompleteUpdatePaymentMethod(target, data);
     await ContactsService.updateContactContribution(target, joinFlow.joinForm);
     return await this.getContribution(target);
@@ -341,7 +341,7 @@ export class ContactController {
   async forceUpdateContribution(
     @TargetUser() target: Contact,
     @Body() data: ForceUpdateContributionDto
-  ): Promise<ContributionInfo> {
+  ): Promise<GetContributionInfoDto> {
     await ContactsService.forceUpdateContactContribution(target, data);
     return await this.getContribution(target);
   }
@@ -365,7 +365,7 @@ export class ContactController {
   async updatePaymentMethod(
     @TargetUser() target: Contact,
     @Body() data: StartJoinFlowDto
-  ): Promise<PaymentFlowParams> {
+  ): Promise<GetPaymentFlowDto> {
     const paymentMethod =
       data.paymentMethod || (await PaymentService.getData(target)).method;
     if (!paymentMethod) {
@@ -388,7 +388,7 @@ export class ContactController {
   async completeUpdatePaymentMethod(
     @TargetUser() target: Contact,
     @Body() data: CompleteJoinFlowDto
-  ): Promise<ContributionInfo> {
+  ): Promise<GetContributionInfoDto> {
     await this.handleCompleteUpdatePaymentMethod(target, data);
     return await this.getContribution(target);
   }
@@ -396,12 +396,12 @@ export class ContactController {
   private async handleStartUpdatePaymentMethod(
     target: Contact,
     data: StartContributionDto
-  ) {
+  ): Promise<GetPaymentFlowDto> {
     if (!(await PaymentService.canChangeContribution(target, false, data))) {
       throw new CantUpdateContribution();
     }
 
-    return await PaymentFlowService.createPaymentJoinFlow(
+    const ret = await PaymentFlowService.createPaymentJoinFlow(
       {
         ...data,
         monthlyAmount: data.monthlyAmount,
@@ -417,6 +417,8 @@ export class ContactController {
       data.completeUrl,
       target
     );
+
+    return plainToInstance(GetPaymentFlowDto, ret);
   }
 
   private async handleCompleteUpdatePaymentMethod(
