@@ -1,9 +1,15 @@
+import {
+  ContributionPeriod,
+  PaymentMethod,
+  StripeFeeCountry
+} from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   IsBoolean,
+  IsEnum,
+  IsIn,
   IsNumber,
   IsObject,
-  IsOptional,
   IsString,
   ValidateNested
 } from "class-validator";
@@ -17,6 +23,7 @@ import {
   EmailContentData,
   GeneralContentData,
   JoinContentData,
+  JoinContentPeriodData,
   JoinSetupContentData,
   ProfileContentData,
   ShareContentData
@@ -76,21 +83,48 @@ export class GetGeneralContentDto implements GeneralContentData {
   @IsString()
   currencySymbol!: string;
 
-  @IsOptional()
   @IsString()
-  backgroundUrl?: string;
+  backgroundUrl!: string;
 
-  @IsOptional()
   @IsBoolean()
-  hideContribution?: boolean;
+  hideContribution!: boolean;
 
-  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => LinkDto)
-  footerLinks?: LinkDto[];
+  footerLinks!: LinkDto[];
+}
+
+class GetJoinContentPeriodDto implements JoinContentPeriodData {
+  @IsEnum(ContributionPeriod)
+  name!: ContributionPeriod;
+
+  @IsNumber({}, { each: true })
+  presetAmounts!: number[];
 }
 
 export class GetJoinContentDto implements JoinContentData {
+  @IsString()
+  title!: string;
+
+  @IsString()
+  subTitle!: string;
+
+  @IsNumber()
+  initialAmount!: number;
+
+  @IsEnum(ContributionPeriod)
+  initialPeriod!: ContributionPeriod;
+
+  @ValidateNested({ each: true })
+  @Type(() => GetJoinContentPeriodDto)
+  periods!: GetJoinContentPeriodDto[];
+
+  @IsBoolean()
+  showNoContribution!: boolean;
+
+  @IsEnum(PaymentMethod, { each: true })
+  paymentMethods!: PaymentMethod[];
+
   @IsNumber()
   minMonthlyAmount!: number;
 
@@ -100,11 +134,41 @@ export class GetJoinContentDto implements JoinContentData {
   @IsString()
   stripePublicKey!: string;
 
-  @IsString()
-  stripeCountry!: string;
+  @IsIn(["eu", "gb", "ca"])
+  stripeCountry!: StripeFeeCountry;
 }
 
 export class GetJoinSetupContentDto implements JoinSetupContentData {
+  @IsString()
+  welcome!: string;
+
+  @IsString()
+  newsletterText!: string;
+
+  @IsString()
+  newsletterOptIn!: string;
+
+  @IsString()
+  newsletterTitle!: string;
+
+  @IsBoolean()
+  showNewsletterOptIn!: boolean;
+
+  @IsString()
+  mailTitle!: string;
+
+  @IsString()
+  mailText!: string;
+
+  @IsString()
+  mailOptIn!: string;
+
+  @IsBoolean()
+  surveyRequired!: boolean;
+
+  @IsString()
+  surveyText!: string;
+
   @IsBoolean()
   showMailOptIn!: boolean;
 

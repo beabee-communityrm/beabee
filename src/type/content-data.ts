@@ -1,3 +1,9 @@
+import {
+  ContributionPeriod,
+  PaymentMethod,
+  StripeFeeCountry
+} from "@beabee/beabee-common";
+
 import { Locale } from "@locale";
 import { ContentId } from "./content-id";
 
@@ -8,15 +14,12 @@ interface FooterLink {
 
 export interface ContactsContentData {
   tags: string[];
-
   manualPaymentSources: string[];
 }
 
 export interface EmailContentData {
   supportEmail: string;
-
   supportEmailName: string;
-
   footer: string;
 }
 
@@ -32,21 +35,43 @@ export interface GeneralContentData {
   theme: object;
   currencyCode: string;
   currencySymbol: string;
-  backgroundUrl?: string;
-  hideContribution?: boolean;
-  footerLinks?: FooterLink[];
+  backgroundUrl: string;
+  hideContribution: boolean;
+  footerLinks: FooterLink[];
+}
+
+export interface JoinContentPeriodData {
+  name: ContributionPeriod;
+  presetAmounts: number[];
 }
 
 export interface JoinContentData {
+  title: string;
+  subTitle: string;
+  initialAmount: number;
+  initialPeriod: ContributionPeriod;
   minMonthlyAmount: number;
+  periods: JoinContentPeriodData[];
   showAbsorbFee: boolean;
+  showNoContribution: boolean;
+  paymentMethods: PaymentMethod[];
   stripePublicKey: string;
-  stripeCountry: string;
+  stripeCountry: StripeFeeCountry;
 }
 
 export interface JoinSetupContentData {
+  welcome: string;
+  newsletterText: string;
+  newsletterOptIn: string;
+  newsletterTitle: string;
+  showNewsletterOptIn: boolean;
   showMailOptIn: boolean;
+  mailTitle: string;
+  mailText: string;
+  mailOptIn: string;
   surveySlug: string;
+  surveyRequired: boolean;
+  surveyText: string;
 }
 
 export interface ProfileContentData {
