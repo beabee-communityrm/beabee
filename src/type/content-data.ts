@@ -22,47 +22,30 @@ export interface EmailContentData {
 
 export interface GeneralContentData {
   organisationName: string;
-
   logoUrl: string;
-
   siteUrl: string;
-
   supportEmail: string;
-
   privacyLink: string;
-
   termsLink: string;
-
   impressumLink: string;
-
   locale: Locale;
-
   theme: object;
-
   backgroundUrl: string;
-
   currencyCode: string;
-
   currencySymbol: string;
-
   hideContribution?: boolean;
-
   footerLinks?: FooterLink[];
 }
 
 export interface JoinContentData {
   minMonthlyAmount: number;
-
   showAbsorbFee: boolean;
-
   stripePublicKey: string;
-
   stripeCountry: string;
 }
 
 export interface JoinSetupContentData {
   showMailOptIn: boolean;
-
   surveySlug: string;
 }
 
@@ -72,11 +55,8 @@ export interface ProfileContentData {
 
 export interface ShareContentData {
   title: string;
-
   description: string;
-
   image: string;
-
   twitterHandle: string;
 }
 
