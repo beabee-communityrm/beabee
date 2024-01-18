@@ -1,3 +1,4 @@
+import { plainToInstance } from "class-transformer";
 import {
   Authorized,
   CurrentUser,
@@ -13,6 +14,7 @@ import { UUIDParams } from "@api/params/UUIDParams";
 
 import {
   BatchUpdateCalloutResponseDto,
+  BatchUpdateCalloutResponseResultDto,
   CreateCalloutResponseDto,
   GetCalloutResponseDto,
   GetCalloutResponseOptsDto,
@@ -38,9 +40,9 @@ export class CalloutResponseController {
   async updateCalloutResponses(
     @CurrentUser() caller: Contact,
     @PartialBody() data: BatchUpdateCalloutResponseDto
-  ): Promise<{ affected: number }> {
+  ): Promise<BatchUpdateCalloutResponseResultDto> {
     const affected = await CalloutResponseTransformer.update(caller, data);
-    return { affected };
+    return plainToInstance(BatchUpdateCalloutResponseResultDto, { affected });
   }
 
   @Get("/:id")

@@ -153,6 +153,11 @@ export class BatchUpdateCalloutResponseDto {
   updates!: CreateCalloutResponseDto;
 }
 
+export class BatchUpdateCalloutResponseResultDto {
+  @IsNumber()
+  affected!: number;
+}
+
 // Export types
 
 export type ExportCalloutResponseDto = [
