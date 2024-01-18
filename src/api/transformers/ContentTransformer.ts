@@ -122,9 +122,13 @@ const optTypeSetter = {
   json: (s: any) => JSON.stringify(s)
 } as const;
 
-type ContentValueOption = ["option", OptionKey, OptionKeyType];
-type ContentValueReadOnly = ["readonly", () => unknown];
-type ContentValueData = ["data", unknown];
+type ContentValueOption = [
+  type: "option",
+  key: OptionKey,
+  keyType: OptionKeyType
+];
+type ContentValueReadOnly = [type: "readonly", getter: () => unknown];
+type ContentValueData = [type: "data", def: unknown];
 
 type ContentValue =
   | ContentValueOption
