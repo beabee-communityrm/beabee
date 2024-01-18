@@ -68,7 +68,7 @@ export class NoticeController {
   @OnUndefined(204)
   @Delete("/:id")
   @Authorized("admin")
-  async deleteNotice(@Params() { id }: UUIDParams) {
+  async deleteNotice(@Params() { id }: UUIDParams): Promise<void> {
     const result = await getRepository(Notice).delete(id);
     if (!result.affected) throw new NotFoundError();
   }

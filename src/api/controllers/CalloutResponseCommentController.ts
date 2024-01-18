@@ -75,7 +75,9 @@ export class CalloutResponseCommentController {
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteCalloutResponseComment(@Params() { id }: UUIDParams) {
+  async deleteCalloutResponseComment(
+    @Params() { id }: UUIDParams
+  ): Promise<void> {
     const result = await getRepository(CalloutResponseComment).delete(id);
     if (!result.affected) throw new NotFoundError();
   }

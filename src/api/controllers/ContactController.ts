@@ -121,7 +121,7 @@ export class ContactController {
   async createContact(
     @CurrentUser() caller: Contact,
     @Body() data: CreateContactDto
-  ) {
+  ): Promise<GetContactDto> {
     const contact = await ContactsService.createContact(
       {
         email: data.email,

@@ -85,7 +85,7 @@ export class AuthController {
 
   @OnUndefined(204)
   @Get("/login/as/:id")
-  async loginAs(@Req() req: Request, @Param("id") id: string) {
+  async loginAs(@Req() req: Request, @Param("id") id: string): Promise<void> {
     if (!config.dev) {
       throw new NotFoundError();
     }

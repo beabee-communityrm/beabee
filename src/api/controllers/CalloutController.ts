@@ -35,6 +35,7 @@ import {
 } from "@api/dto/CalloutDto";
 import {
   CreateCalloutResponseDto,
+  GetCalloutResponseDto,
   GetCalloutResponseMapDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
@@ -143,7 +144,7 @@ export class CalloutController {
     @CurrentUser() caller: Contact,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
-  ) {
+  ): Promise<PaginatedDto<GetCalloutResponseDto>> {
     return await CalloutResponseTransformer.fetchForCallout(
       caller,
       slug,

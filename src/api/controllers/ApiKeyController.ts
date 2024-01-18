@@ -67,7 +67,7 @@ export class ApiKeyController {
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteApiKey(@Param("id") id: string) {
+  async deleteApiKey(@Param("id") id: string): Promise<void> {
     const result = await getRepository(ApiKey).delete(id);
     if (!result.affected) throw new NotFoundError();
   }
