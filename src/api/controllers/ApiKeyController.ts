@@ -1,3 +1,4 @@
+import { plainToInstance } from "class-transformer";
 import {
   JsonController,
   Authorized,
@@ -21,7 +22,8 @@ import Contact from "@models/Contact";
 import {
   CreateApiKeyDto,
   GetApiKeyDto,
-  ListApiKeysDto
+  ListApiKeysDto,
+  NewApiKeyDto
 } from "@api/dto/ApiKeyDto";
 import { PaginatedDto } from "@api/dto/PaginatedDto";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
@@ -49,7 +51,7 @@ export class ApiKeyController {
   async createApiKey(
     @Body() data: CreateApiKeyDto,
     @CurrentUser({ required: true }) creator: Contact
-  ): Promise<{ token: string }> {
+  ): Promise<NewApiKeyDto> {
     const { id, secretHash, token } = generateApiKey();
 
     await getRepository(ApiKey).save({
@@ -60,7 +62,7 @@ export class ApiKeyController {
       expires: data.expires
     });
 
-    return { token };
+    return plainToInstance(NewApiKeyDto, { token });
   }
 
   @OnUndefined(204)

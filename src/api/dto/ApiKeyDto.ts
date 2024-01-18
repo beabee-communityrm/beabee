@@ -20,6 +20,11 @@ export class CreateApiKeyDto {
   expires!: Date | null;
 }
 
+export class NewApiKeyDto {
+  @IsString()
+  token!: string;
+}
+
 export class GetApiKeyDto extends CreateApiKeyDto {
   @IsString()
   id!: string;
