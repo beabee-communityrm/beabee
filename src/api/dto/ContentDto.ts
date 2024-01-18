@@ -71,13 +71,14 @@ export class GetGeneralContentDto implements GeneralContentData {
   theme!: object;
 
   @IsString()
-  backgroundUrl!: string;
-
-  @IsString()
   currencyCode!: string;
 
   @IsString()
   currencySymbol!: string;
+
+  @IsOptional()
+  @IsString()
+  backgroundUrl?: string;
 
   @IsOptional()
   @IsBoolean()

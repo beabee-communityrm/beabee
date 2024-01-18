@@ -24,6 +24,7 @@ export class GetContactProfileDto {
   @IsBoolean()
   deliveryOptIn!: boolean;
 
+  @IsOptional()
   @ValidateNested()
   deliveryAddress!: GetAddressDto | null;
 

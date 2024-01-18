@@ -30,9 +30,9 @@ export interface GeneralContentData {
   impressumLink: string;
   locale: Locale;
   theme: object;
-  backgroundUrl: string;
   currencyCode: string;
   currencySymbol: string;
+  backgroundUrl?: string;
   hideContribution?: boolean;
   footerLinks?: FooterLink[];
 }
