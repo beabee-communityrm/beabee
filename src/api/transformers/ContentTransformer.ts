@@ -43,50 +43,54 @@ class ContentTransformer {
   async fetchOne<Id extends ContentId>(id: Id): Promise<GetContentDto<Id>> {
     const content = await getRepository(Content).findOneByOrFail({ id });
 
-    const optsData = contentOptions[id]?.map(
-      ([contentKey, optKey, optType]) => [
-        contentKey,
-        OptionsService[optTypeGetter[optType]](optKey)
-      ]
-    );
-    const readOnlyData = contentReadOnly[id]?.map(([contentKey, contentFn]) => [
-      contentKey,
-      contentFn()
-    ]);
+    const ret: Record<string, unknown> = {};
 
-    return this.convert(id, {
-      ...content.data,
-      ...(optsData && Object.fromEntries(optsData)),
-      ...(readOnlyData && Object.fromEntries(readOnlyData))
-    });
+    for (const [key, value] of Object.entries(contentData[id])) {
+      switch (value[0]) {
+        case "data":
+          ret[key] = content.data[key] || value[1];
+          break;
+        case "option":
+          ret[key] = OptionsService[optTypeGetter[value[2]]](value[1]);
+          break;
+        case "readonly":
+          ret[key] = value[1]();
+          break;
+      }
+    }
+
+    return this.convert(id, ret as any);
   }
 
   async updateOne<Id extends ContentId>(
     id: Id,
-    data: Partial<ContentData<Id>>
+    data_: Partial<ContentData<Id>>
   ): Promise<void> {
-    // Update options
-    const options = contentOptions[id];
-    if (options) {
-      const optionUpdates: Partial<
-        Record<OptionKey, string | boolean | number>
-      > = {};
+    const optionUpdates: Partial<Record<OptionKey, string | boolean | number>> =
+      {};
+    const dataUpdates: Record<string, unknown> = {};
 
-      for (const [contentKey, optKey, optType] of options) {
-        const {
-          [contentKey as keyof ContentData<Id>]: contentValue,
-          ...restData
-        } = data;
-        data = restData as Partial<ContentData<Id>>; // Remove entry from data
+    const data = data_ as Record<string, unknown>;
 
-        const optValue = optTypeSetter[optType](contentValue);
-        if (optValue !== undefined) {
-          optionUpdates[optKey] = optValue;
-        }
+    for (const [key, value] of Object.entries(contentData[id])) {
+      if (data[key] === undefined) {
+        continue;
       }
 
-      await OptionsService.set(optionUpdates);
+      switch (value[0]) {
+        case "data":
+          dataUpdates[key] = data[key];
+          break;
+        case "option":
+          const optValue = optTypeSetter[value[2]](data[key]);
+          if (optValue !== undefined) {
+            optionUpdates[value[1]] = optValue;
+          }
+          break;
+      }
     }
+
+    await OptionsService.set(optionUpdates);
 
     // Save the rest
     await createQueryBuilder()
@@ -95,7 +99,7 @@ class ContentTransformer {
         data: () => '"data" || :data::jsonb'
       })
       .where("id = :id")
-      .setParameters({ id, data })
+      .setParameters({ id, data: dataUpdates })
       .execute();
   }
 }
@@ -118,54 +122,84 @@ const optTypeSetter = {
   json: (s: any) => JSON.stringify(s)
 } as const;
 
-type ContentMap<T extends any[]> = Partial<Record<ContentId, [string, ...T][]>>;
+type ContentValueOption = ["option", OptionKey, OptionKeyType];
+type ContentValueReadOnly = ["readonly", () => unknown];
+type ContentValueData = ["data", unknown];
 
-const contentOptions: ContentMap<[OptionKey, OptionKeyType]> = {
-  general: [
-    ["organisationName", "organisation", "text"],
-    ["logoUrl", "logo", "text"],
-    ["siteUrl", "home-link-url", "text"],
-    ["supportEmail", "support-email", "text"],
-    ["privacyLink", "footer-privacy-link-url", "text"],
-    ["termsLink", "footer-terms-link-url", "text"],
-    ["impressumLink", "footer-impressum-link-url", "text"],
-    ["locale", "locale", "text"],
-    ["theme", "theme", "json"]
-  ],
-  join: [
-    ["minMonthlyAmount", "contribution-min-monthly-amount", "int"],
-    ["showAbsorbFee", "show-absorb-fee", "bool"]
-  ],
-  "join/setup": [
-    ["showMailOptIn", "show-mail-opt-in", "bool"],
-    ["surveySlug", "join-survey", "text"]
-  ],
-  contacts: [
-    ["tags", "available-tags", "list"],
-    ["manualPaymentSources", "available-manual-payment-sources", "list"]
-  ],
-  share: [
-    ["title", "share-title", "text"],
-    ["description", "share-description", "text"],
-    ["image", "share-image", "text"],
-    ["twitterHandle", "share-twitter-handle", "text"]
-  ],
-  email: [
-    ["supportEmail", "support-email", "text"],
-    ["supportEmailName", "support-email-from", "text"]
-  ]
-};
+type ContentValue =
+  | ContentValueOption
+  | ContentValueReadOnly
+  | ContentValueData;
 
-const contentReadOnly: ContentMap<[() => any]> = {
-  general: [
-    ["currencyCode", () => config.currencyCode],
-    ["currencySymbol", () => config.currencySymbol]
-  ],
-  email: [["footer", getEmailFooter]],
-  join: [
-    ["stripePublicKey", () => config.stripe.publicKey],
-    ["stripeCountry", () => config.stripe.country]
-  ]
-};
+// Just here for type checking
+function withValue<Id extends ContentId>(
+  data: Record<keyof ContentData<Id>, ContentValue>
+): Record<keyof ContentData<Id>, ContentValue> {
+  return data;
+}
+
+const contentData = {
+  contacts: withValue<"contacts">({
+    tags: ["option", "available-tags", "list"],
+    manualPaymentSources: ["option", "available-manual-payment-sources", "list"]
+  }),
+  email: withValue<"email">({
+    footer: ["readonly", getEmailFooter],
+    supportEmail: ["option", "support-email", "text"],
+    supportEmailName: ["option", "support-email-from", "text"]
+  }),
+  general: withValue<"general">({
+    backgroundUrl: ["data", ""],
+    currencyCode: ["readonly", () => config.currencyCode],
+    currencySymbol: ["readonly", () => config.currencySymbol],
+    footerLinks: ["data", []],
+    hideContribution: ["data", false],
+    logoUrl: ["option", "logo", "text"],
+    organisationName: ["option", "organisation", "text"],
+    siteUrl: ["option", "home-link-url", "text"],
+    supportEmail: ["option", "support-email", "text"],
+    theme: ["option", "theme", "json"],
+    termsLink: ["option", "footer-terms-link-url", "text"],
+    privacyLink: ["option", "footer-privacy-link-url", "text"],
+    impressumLink: ["option", "footer-impressum-link-url", "text"],
+    locale: ["option", "locale", "text"]
+  }),
+  join: withValue<"join">({
+    initialAmount: ["data", 0],
+    initialPeriod: ["data", ""],
+    minMonthlyAmount: ["option", "contribution-min-monthly-amount", "int"],
+    periods: ["data", []],
+    paymentMethods: ["data", []],
+    showAbsorbFee: ["option", "show-absorb-fee", "bool"],
+    showNoContribution: ["data", false],
+    stripeCountry: ["readonly", () => config.stripe.country],
+    stripePublicKey: ["readonly", () => config.stripe.publicKey],
+    subTitle: ["data", ""],
+    title: ["data", ""]
+  }),
+  "join/setup": withValue<"join/setup">({
+    mailOptIn: ["data", ""],
+    mailText: ["data", ""],
+    mailTitle: ["data", ""],
+    newsletterOptIn: ["data", ""],
+    newsletterText: ["data", ""],
+    newsletterTitle: ["data", ""],
+    showMailOptIn: ["option", "show-mail-opt-in", "bool"],
+    showNewsletterOptIn: ["data", false],
+    surveyRequired: ["data", false],
+    surveySlug: ["option", "join-survey", "text"],
+    surveyText: ["data", ""],
+    welcome: ["data", ""]
+  }),
+  profile: withValue<"profile">({
+    introMessage: ["data", ""]
+  }),
+  share: withValue<"share">({
+    description: ["option", "share-description", "text"],
+    image: ["option", "share-image", "text"],
+    title: ["option", "share-title", "text"],
+    twitterHandle: ["option", "share-twitter-handle", "text"]
+  })
+} as const;
 
 export default new ContentTransformer();

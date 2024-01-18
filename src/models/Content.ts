@@ -10,5 +10,5 @@ export default class Content {
   updated!: Date;
 
   @Column({ type: "jsonb" })
-  data!: object;
+  data!: Record<string, unknown>;
 }
