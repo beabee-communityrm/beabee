@@ -8,6 +8,7 @@ import {
   Param,
   Put
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import EmailService from "@core/services/EmailService";
 
@@ -15,7 +16,7 @@ import { getRepository } from "@core/database";
 
 import Email from "@models/Email";
 
-import { GetEmailDto, UpdateEmailDto } from "@api/dto/EmailDto";
+import { EmailDto } from "@api/dto/EmailDto";
 import ExternalEmailTemplate from "@api/errors/ExternalEmailTemplate";
 
 async function findEmail(id: string): Promise<Email | null> {
@@ -33,8 +34,8 @@ async function findEmail(id: string): Promise<Email | null> {
 }
 
 // TODO: move to transformer
-function emailToData(email: Email): GetEmailDto {
-  return plainToInstance(GetEmailDto, {
+function emailToData(email: Email): EmailDto {
+  return plainToInstance(EmailDto, {
     subject: email.subject,
     body: email.body
   });
@@ -44,16 +45,18 @@ function emailToData(email: Email): GetEmailDto {
 @JsonController("/email")
 export class EmailController {
   @Get("/:id")
-  async getEmail(@Param("id") id: string): Promise<GetEmailDto | undefined> {
+  @ResponseSchema(EmailDto, { statusCode: 200 })
+  async getEmail(@Param("id") id: string): Promise<EmailDto | undefined> {
     const email = await findEmail(id);
     return email ? emailToData(email) : undefined;
   }
 
   @Put("/:id")
+  @ResponseSchema(EmailDto, { statusCode: 200 })
   async updateEmail(
     @Param("id") id: string,
-    @Body() data: UpdateEmailDto
-  ): Promise<GetEmailDto | undefined> {
+    @Body() data: EmailDto
+  ): Promise<EmailDto | undefined> {
     const email = await findEmail(id);
     if (email) {
       await getRepository(Email).update(email.id, data);

@@ -1,6 +1,5 @@
 import {
   Authorized,
-  Body,
   Get,
   JsonController,
   Params,
@@ -23,7 +22,7 @@ import ContentTransformer from "@api/transformers/ContentTransformer";
 
 @JsonController("/content")
 export class ContentController {
-  @Get("/:id(?:*)")
+  @Get("/:id") // TODO: fix :id
   async get(@Params() { id }: ContentParams): Promise<GetContentDto> {
     return await ContentTransformer.fetchOne(id);
   }

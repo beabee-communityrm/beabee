@@ -11,12 +11,13 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import { getRepository } from "@core/database";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
-import { GetContactDto, ListContactsDto } from "@api/dto/ContactDto";
+import { GetContactListDto, ListContactsDto } from "@api/dto/ContactDto";
 import {
   GetSegmentDto,
   ListSegmentsDto,
@@ -24,7 +25,6 @@ import {
   GetSegmentWith,
   GetSegmentOptsDto
 } from "@api/dto/SegmentDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { UUIDParams } from "@api/params/UUIDParams";
 import ContactTransformer from "@api/transformers/ContactTransformer";
 import SegmentTransformer from "@api/transformers/SegmentTransformer";
@@ -102,11 +102,12 @@ export class SegmentController {
   }
 
   @Get("/:id/contacts")
+  @ResponseSchema(GetContactListDto, { statusCode: 200 })
   async getSegmentContacts(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams,
     @QueryParams() query: ListContactsDto
-  ): Promise<PaginatedDto<GetContactDto> | undefined> {
+  ): Promise<GetContactListDto | undefined> {
     const segment = await getRepository(Segment).findOneBy({ id });
     if (segment) {
       return await ContactTransformer.fetch(auth, {

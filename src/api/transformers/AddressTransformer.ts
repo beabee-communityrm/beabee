@@ -1,12 +1,12 @@
-import { GetAddressDto } from "@api/dto/AddressDto";
+import { AddressDto } from "@api/dto/AddressDto";
 
 import Address from "@models/Address";
 import { TransformPlainToInstance } from "class-transformer";
 
 // TODO: make Address into a proper model
 class AddressTransformer {
-  @TransformPlainToInstance(GetAddressDto)
-  convert(address: Address): GetAddressDto {
+  @TransformPlainToInstance(AddressDto)
+  convert(address: Address): AddressDto {
     return {
       line1: address.line1,
       line2: address.line2 || "",

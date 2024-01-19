@@ -1,19 +1,19 @@
 import { BaseTransformer } from "./BaseTransformer";
 import { TransformPlainToInstance } from "class-transformer";
 
-import { GetContactRoleDto } from "@api/dto/ContactRoleDto";
+import { ContactRoleDto } from "@api/dto/ContactRoleDto";
 
 import ContactRole from "@models/ContactRole";
 
 class ContactRoleTransformer extends BaseTransformer<
   ContactRole,
-  GetContactRoleDto
+  ContactRoleDto
 > {
   protected model = ContactRole;
   protected filters = {};
 
-  @TransformPlainToInstance(GetContactRoleDto)
-  convert(role: ContactRole): GetContactRoleDto {
+  @TransformPlainToInstance(ContactRoleDto)
+  convert(role: ContactRole): ContactRoleDto {
     return {
       role: role.type,
       dateAdded: role.dateAdded,

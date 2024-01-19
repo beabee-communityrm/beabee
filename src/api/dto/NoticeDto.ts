@@ -1,8 +1,16 @@
 import { ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
-import { IsDate, IsEnum, IsIn, IsOptional, IsString } from "class-validator";
+import {
+  IsDate,
+  IsEnum,
+  IsIn,
+  IsOptional,
+  IsString,
+  ValidateNested
+} from "class-validator";
 
 import { GetPaginatedQuery } from "@api/dto/BaseDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 const sortFields = ["createdAt", "updatedAt", "name", "expires"] as const;
 
@@ -49,4 +57,10 @@ export class GetNoticeDto extends CreateNoticeDto {
 
   @IsEnum(ItemStatus)
   status!: ItemStatus;
+}
+
+export class GetNoticeListDto extends PaginatedDto<GetNoticeDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetNoticeDto)
+  items!: GetNoticeDto[];
 }

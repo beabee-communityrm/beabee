@@ -27,11 +27,9 @@ import {
   GetContactProfileDto,
   UpdateContactProfileDto
 } from "@api/dto/ContactProfileDto";
-import {
-  CreateContactRoleDto,
-  GetContactRoleDto
-} from "@api/dto/ContactRoleDto";
+import { ContactRoleDto } from "@api/dto/ContactRoleDto";
 import { ForceUpdateContributionDto } from "@api/dto/ContributionDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 import IsPassword from "@api/validators/IsPassword";
 
@@ -156,8 +154,15 @@ export class GetContactDto extends BaseContactDto {
   profile?: GetContactProfileDto;
 
   @IsOptional()
-  @ValidateNested()
-  roles?: GetContactRoleDto[];
+  @ValidateNested({ each: true })
+  @Type(() => ContactRoleDto)
+  roles?: ContactRoleDto[];
+}
+
+export class GetContactListDto extends PaginatedDto<GetContactDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetContactDto)
+  items!: GetContactDto[];
 }
 
 export class UpdateContactDto extends BaseContactDto {
@@ -179,8 +184,8 @@ export class CreateContactDto extends UpdateContactDto {
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => CreateContactRoleDto)
-  roles?: CreateContactRoleDto[];
+  @Type(() => ContactRoleDto)
+  roles?: ContactRoleDto[];
 }
 
 export interface ExportContactDto {

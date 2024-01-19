@@ -30,6 +30,7 @@ import { GetContactDto } from "@api/dto/ContactDto";
 import { GetCalloutDto } from "@api/dto/CalloutDto";
 import { GetCalloutResponseCommentDto } from "@api/dto/CalloutResponseCommentDto";
 import { GetCalloutTagDto } from "@api/dto/CalloutTagDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 
@@ -101,19 +102,29 @@ export class GetCalloutResponseDto {
 
   @IsOptional()
   @ValidateNested()
+  @Type(() => GetContactDto)
   contact?: GetContactDto | null;
 
   @IsOptional()
   @ValidateNested({ each: true })
+  @Type(() => GetCalloutTagDto)
   tags?: GetCalloutTagDto[];
 
   @IsOptional()
   @ValidateNested()
+  @Type(() => GetContactDto)
   assignee?: GetContactDto | null;
 
   @IsOptional()
   @ValidateNested()
+  @Type(() => GetCalloutResponseCommentDto)
   latestComment?: GetCalloutResponseCommentDto | null;
+}
+
+export class GetCalloutResponseListDto extends PaginatedDto<GetCalloutResponseDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetCalloutResponseDto)
+  items!: GetCalloutResponseDto[];
 }
 
 export class CreateCalloutResponseDto {
@@ -199,6 +210,12 @@ export class GetCalloutResponseMapDto {
 
   @Allow()
   address?: CalloutResponseAnswerAddress;
+}
+
+export class GetCalloutResponseMapListDto extends PaginatedDto<GetCalloutResponseMapDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetCalloutResponseMapDto)
+  items!: GetCalloutResponseMapDto[];
 }
 
 export interface GetCalloutResponseMapOptsDto

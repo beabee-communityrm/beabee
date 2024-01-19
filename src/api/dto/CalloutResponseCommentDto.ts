@@ -1,7 +1,9 @@
+import { Type } from "class-transformer";
 import { IsDate, IsIn, IsString, ValidateNested } from "class-validator";
 
 import { GetPaginatedQuery } from "@api/dto/BaseDto";
 import { GetContactDto } from "@api/dto/ContactDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 export class CreateCalloutResponseCommentDto {
   @IsString()
@@ -23,6 +25,12 @@ export class GetCalloutResponseCommentDto extends CreateCalloutResponseCommentDt
 
   @IsDate()
   updatedAt!: Date;
+}
+
+export class GetCalloutResponseCommentListDto extends PaginatedDto<GetCalloutResponseCommentDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetCalloutResponseCommentDto)
+  items!: GetCalloutResponseCommentDto[];
 }
 
 export class ListCalloutResponseCommentsDto extends GetPaginatedQuery {

@@ -11,6 +11,7 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import { getRepository } from "@core/database";
 
@@ -19,9 +20,9 @@ import PartialBody from "@api/decorators/PartialBody";
 import {
   CreateNoticeDto,
   GetNoticeDto,
+  GetNoticeListDto,
   ListNoticesDto
 } from "@api/dto/NoticeDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { UUIDParams } from "@api/params/UUIDParams";
 import NoticeTransformer from "@api/transformers/NoticeTransformer";
 
@@ -33,14 +34,16 @@ import { AuthInfo } from "@type/auth-info";
 @Authorized()
 export class NoticeController {
   @Get("/")
+  @ResponseSchema(GetNoticeListDto)
   async getNotices(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListNoticesDto
-  ): Promise<PaginatedDto<GetNoticeDto>> {
+  ): Promise<GetNoticeListDto> {
     return await NoticeTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
+  @ResponseSchema(GetNoticeDto, { statusCode: 200 })
   async getNotice(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams
@@ -50,6 +53,7 @@ export class NoticeController {
 
   @Post("/")
   @Authorized("admin")
+  @ResponseSchema(GetNoticeDto)
   async createNotice(@Body() data: CreateNoticeDto): Promise<GetNoticeDto> {
     const notice = await getRepository(Notice).save(data);
     return NoticeTransformer.convert(notice);
@@ -57,6 +61,7 @@ export class NoticeController {
 
   @Patch("/:id")
   @Authorized("admin")
+  @ResponseSchema(GetNoticeDto, { statusCode: 200 })
   async updateNotice(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams,

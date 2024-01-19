@@ -28,7 +28,7 @@ import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity
 import { createQueryBuilder } from "@core/database";
 
 import type {
-  GetPaginatedRuleGroupRule,
+  GetPaginatedRuleOrGroup,
   GetPaginatedRuleGroup
 } from "@api/dto/BaseDto";
 
@@ -344,10 +344,10 @@ export async function batchUpdate<
 }
 
 export function mergeRules(
-  rules: (GetPaginatedRuleGroupRule | undefined | false)[]
+  rules: (GetPaginatedRuleOrGroup | undefined | false)[]
 ): GetPaginatedRuleGroup {
   return {
     condition: "AND",
-    rules: rules.filter((rule): rule is GetPaginatedRuleGroupRule => !!rule)
+    rules: rules.filter((rule): rule is GetPaginatedRuleOrGroup => !!rule)
   };
 }

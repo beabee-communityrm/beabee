@@ -1,11 +1,9 @@
 import { IsString } from "class-validator";
 
-export class UpdateEmailDto {
+export class EmailDto {
   @IsString()
   subject!: string;
 
   @IsString()
   body!: string;
 }
-
-export class GetEmailDto extends UpdateEmailDto {}

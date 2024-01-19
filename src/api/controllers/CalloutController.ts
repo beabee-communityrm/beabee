@@ -16,6 +16,7 @@ import {
   QueryParams,
   Res
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 import slugify from "slugify";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -30,17 +31,18 @@ import { GetExportQuery } from "@api/dto/BaseDto";
 import {
   CreateCalloutDto,
   GetCalloutDto,
+  GetCalloutListDto,
   GetCalloutOptsDto,
   ListCalloutsDto
 } from "@api/dto/CalloutDto";
 import {
   CreateCalloutResponseDto,
-  GetCalloutResponseDto,
+  GetCalloutResponseListDto,
   GetCalloutResponseMapDto,
+  GetCalloutResponseMapListDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
 import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
@@ -63,15 +65,17 @@ import { AuthInfo } from "@type/auth-info";
 @JsonController("/callout")
 export class CalloutController {
   @Get("/")
+  @ResponseSchema(GetCalloutListDto)
   async getCallouts(
     @CurrentAuth() auth: AuthInfo | undefined,
     @QueryParams() query: ListCalloutsDto
-  ): Promise<PaginatedDto<GetCalloutDto>> {
+  ): Promise<GetCalloutListDto> {
     return CalloutTransformer.fetch(auth, query);
   }
 
   @Authorized("admin")
   @Post("/")
+  @ResponseSchema(GetCalloutDto)
   async createCallout(@Body() data: CreateCalloutDto): Promise<GetCalloutDto> {
     const callout = await CalloutsService.createCallout(
       {
@@ -84,6 +88,7 @@ export class CalloutController {
   }
 
   @Get("/:slug")
+  @ResponseSchema(GetCalloutDto, { statusCode: 200 })
   async getCallout(
     @CurrentAuth() auth: AuthInfo | undefined,
     @Param("slug") slug: string,
@@ -97,6 +102,7 @@ export class CalloutController {
 
   @Authorized("admin")
   @Patch("/:slug")
+  @ResponseSchema(GetCalloutDto, { statusCode: 200 })
   async updateCallout(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
@@ -143,11 +149,12 @@ export class CalloutController {
   }
 
   @Get("/:slug/responses")
+  @ResponseSchema(GetCalloutResponseListDto)
   async getCalloutResponses(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<PaginatedDto<GetCalloutResponseDto>> {
+  ): Promise<GetCalloutResponseListDto> {
     return await CalloutResponseTransformer.fetchForCallout(auth, slug, query);
   }
 
@@ -168,11 +175,12 @@ export class CalloutController {
   }
 
   @Get("/:slug/responses/map")
+  @ResponseSchema(GetCalloutResponseMapListDto)
   async getCalloutResponsesMap(
     @CurrentAuth() auth: AuthInfo | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<PaginatedDto<GetCalloutResponseMapDto>> {
+  ): Promise<GetCalloutResponseMapListDto> {
     return await CalloutResponseMapTransformer.fetchForCallout(
       auth,
       slug,
@@ -211,6 +219,7 @@ export class CalloutController {
 
   @Authorized("admin")
   @Get("/:slug/tags")
+  @ResponseSchema(GetCalloutTagDto, { isArray: true })
   async getCalloutTags(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string
@@ -227,6 +236,7 @@ export class CalloutController {
 
   @Authorized("admin")
   @Post("/:slug/tags")
+  @ResponseSchema(GetCalloutTagDto)
   async createCalloutTag(
     @Param("slug") slug: string,
     @Body() data: CreateCalloutTagDto
@@ -243,6 +253,7 @@ export class CalloutController {
 
   @Authorized("admin")
   @Get("/:slug/tags/:tag")
+  @ResponseSchema(GetCalloutTagDto, { statusCode: 200 })
   async getCalloutTag(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("tag") tagId: string
@@ -252,6 +263,7 @@ export class CalloutController {
 
   @Authorized("admin")
   @Patch("/:slug/tags/:tag")
+  @ResponseSchema(GetCalloutTagDto, { statusCode: 200 })
   async updateCalloutTag(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
