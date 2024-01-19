@@ -17,9 +17,8 @@ import { convertRulesToWhereClause } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
 
-import { FilterHandlers } from "@type/filter-handlers";
 import { AuthInfo } from "@type/auth-info";
-import ApiKey from "@models/ApiKey";
+import { FilterHandlers } from "@type/filter-handlers";
 
 /**
  * Base transformer for querying and converting models to DTOs

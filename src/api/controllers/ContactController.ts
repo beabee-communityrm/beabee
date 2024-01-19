@@ -224,8 +224,7 @@ export class ContactController {
 
     if (data.profile) {
       if (
-        auth instanceof Contact &&
-        !auth.hasRole("admin") &&
+        !auth.roles.includes("admin") &&
         (data.profile.tags || data.profile.notes || data.profile.description)
       ) {
         throw new UnauthorizedError();
