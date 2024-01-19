@@ -10,8 +10,9 @@ import {
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import ContactTransformer from "@api/transformers/ContactTransformer";
 
-import Contact from "@models/Contact";
 import Segment from "@models/Segment";
+
+import { AuthInfo } from "@type/auth-info";
 
 class SegmentTransformer extends BaseTransformer<
   Segment,
@@ -41,11 +42,11 @@ class SegmentTransformer extends BaseTransformer<
   protected async modifyItems(
     segments: Segment[],
     query: ListSegmentsDto,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): Promise<void> {
     if (query.with?.includes(GetSegmentWith.contactCount)) {
       for (const segment of segments) {
-        const result = await ContactTransformer.fetch(caller, {
+        const result = await ContactTransformer.fetch(auth, {
           limit: 0,
           rules: segment.ruleGroup
         });

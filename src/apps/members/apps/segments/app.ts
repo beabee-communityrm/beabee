@@ -2,7 +2,7 @@ import express from "express";
 
 import { getRepository } from "@core/database";
 import { hasNewModel } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { userToAuth, wrapAsync } from "@core/utils";
 
 import SegmentService from "@core/services/SegmentService";
 
@@ -23,7 +23,9 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const segments = await SegmentService.getSegmentsWithCount(req.user);
+    const segments = await SegmentService.getSegmentsWithCount(
+      userToAuth(req.user!)
+    );
     res.render("index", { segments });
   })
 );
@@ -97,9 +99,10 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    segment.contactCount = await ContactTransformer.count(req.user, {
-      rules: segment.ruleGroup
-    });
+    segment.contactCount = await ContactTransformer.count(
+      userToAuth(req.user!),
+      { rules: segment.ruleGroup }
+    );
 
     res.render("email", {
       segment,

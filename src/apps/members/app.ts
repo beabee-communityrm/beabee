@@ -4,7 +4,7 @@ import queryString from "query-string";
 
 import { getRepository } from "@core/database";
 import { isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { userToAuth, wrapAsync } from "@core/utils";
 
 import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";
@@ -109,8 +109,10 @@ app.get(
     const { query } = req;
     const availableTags = await getAvailableTags();
 
+    const auth = userToAuth(req.user!);
+
     const totalMembers = await getRepository(Contact).count();
-    const segments = await SegmentService.getSegmentsWithCount(req.user);
+    const segments = await SegmentService.getSegmentsWithCount(auth);
     const activeSegment = query.segment
       ? segments.find((s) => s.id === query.segment)
       : undefined;
@@ -127,7 +129,7 @@ app.get(
     const sort = (query.sort as string) || "lastname_ASC";
     const [sortId, sortDir] = sort.split("_");
 
-    const result = await ContactTransformer.fetch(req.user, {
+    const result = await ContactTransformer.fetch(auth, {
       offset: limit * (page - 1),
       limit,
       sort: sortOptions[sortId].sort,

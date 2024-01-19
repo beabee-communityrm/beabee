@@ -9,8 +9,9 @@ import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import { GetNoticeDto, ListNoticesDto } from "@api/dto/NoticeDto";
 import { mergeRules, statusFilterHandler } from "@api/utils/rules";
 
-import Contact from "@models/Contact";
 import Notice from "@models/Notice";
+
+import { AuthInfo } from "@type/auth-info";
 
 export class NoticeTransformer extends BaseTransformer<
   Notice,
@@ -39,14 +40,14 @@ export class NoticeTransformer extends BaseTransformer<
 
   protected transformQuery<T extends ListNoticesDto>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): T {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
         // Non-admins can only see open notices
-        !caller?.hasRole("admin") && {
+        !auth?.roles.includes("admin") && {
           field: "status",
           operator: "equal",
           value: [ItemStatus.Open]

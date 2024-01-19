@@ -18,7 +18,9 @@ import { generateApiKey } from "@core/utils/auth";
 
 import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
+import UnauthorizedError from "@api/errors/UnauthorizedError";
 
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import {
   CreateApiKeyDto,
   GetApiKeyDto,
@@ -28,30 +30,39 @@ import {
 import { PaginatedDto } from "@api/dto/PaginatedDto";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 
+import { AuthInfo } from "@type/auth-info";
+
 @JsonController("/api-key")
 @Authorized("admin")
 export class ApiKeyController {
   @Get("/")
   async getApiKeys(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListApiKeysDto
   ): Promise<PaginatedDto<GetApiKeyDto>> {
-    return await ApiKeyTransformer.fetch(caller, query);
+    return await ApiKeyTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
   async getApiKey(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("id") id: string
   ): Promise<GetApiKeyDto | undefined> {
-    return await ApiKeyTransformer.fetchOneById(caller, id);
+    return await ApiKeyTransformer.fetchOneById(auth, id);
   }
 
   @Post("/")
   async createApiKey(
-    @Body() data: CreateApiKeyDto,
-    @CurrentUser({ required: true }) creator: Contact
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @CurrentUser({ required: true }) creator: Contact,
+    @Body() data: CreateApiKeyDto
   ): Promise<NewApiKeyDto> {
+    if (auth.method === "api-key") {
+      throw new UnauthorizedError({
+        message: "API key cannot create API keys"
+      });
+    }
+
     const { id, secretHash, token } = generateApiKey();
 
     await getRepository(ApiKey).save({

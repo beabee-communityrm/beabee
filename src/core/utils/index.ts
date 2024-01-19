@@ -1,4 +1,5 @@
 import { ContributionPeriod } from "@beabee/beabee-common";
+import { AuthInfo } from "@type/auth-info";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { QueryFailedError } from "typeorm";
 
@@ -28,6 +29,14 @@ export function wrapAsync(fn: RequestHandler): RequestHandler {
     } catch (error) {
       next(error);
     }
+  };
+}
+
+export function userToAuth(user: Express.User): AuthInfo {
+  return {
+    method: "user",
+    entity: user,
+    roles: user.activeRoles
   };
 }
 

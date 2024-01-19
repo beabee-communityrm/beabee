@@ -15,8 +15,8 @@ import { mergeRules } from "@api/utils/rules";
 
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
-import Contact from "@models/Contact";
 
+import { AuthInfo } from "@type/auth-info";
 import { FilterHandler, FilterHandlers } from "@type/filter-handlers";
 
 export abstract class BaseCalloutResponseTransformer<
@@ -57,14 +57,14 @@ export abstract class BaseCalloutResponseTransformer<
 
   protected transformQuery<T extends GetOptsDto & PaginatedQuery>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): T {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
         // Non admins can only see their own responses
-        !caller?.hasRole("admin") && {
+        !auth?.roles.includes("admin") && {
           field: "contact",
           operator: "equal",
           value: ["me"]

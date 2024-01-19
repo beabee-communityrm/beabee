@@ -29,6 +29,8 @@ import CalloutResponseComment from "@models/CalloutResponseComment";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import Contact from "@models/Contact";
 
+import { AuthInfo } from "@type/auth-info";
+
 export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseDto,
   GetCalloutResponseOptsDto
@@ -136,7 +138,7 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
   }
 
   async fetchForCallout(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     calloutSlug: string,
     query: ListCalloutResponsesDto
   ): Promise<PaginatedDto<GetCalloutResponseDto>> {
@@ -146,14 +148,14 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
     if (!callout) {
       throw new NotFoundError();
     }
-    return await this.fetch(caller, { ...query, callout });
+    return await this.fetch(auth, { ...query, callout });
   }
 
   async update(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     query: BatchUpdateCalloutResponseDto
   ): Promise<number> {
-    const [query2, filters, filterHandlers] = this.preFetch(query, caller);
+    const [query2, filters, filterHandlers] = this.preFetch(query, auth);
 
     const { tagUpdates, responseUpdates } = getUpdateData(query2.updates);
     const result = await batchUpdate(
@@ -161,7 +163,7 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
       filters,
       query2.rules,
       responseUpdates,
-      caller,
+      auth?.entity instanceof Contact ? auth.entity : undefined,
       filterHandlers,
       (qb) => qb.returning(["id"])
     );
@@ -179,7 +181,7 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
   }
 
   async updateOneById(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     id: string,
     updates: CreateCalloutResponseDto
   ): Promise<boolean> {
@@ -190,7 +192,7 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
       },
       updates
     };
-    const affected = await this.update(caller, query);
+    const affected = await this.update(auth, query);
     return affected !== 0;
   }
 }

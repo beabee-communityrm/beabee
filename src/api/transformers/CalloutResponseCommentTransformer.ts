@@ -16,7 +16,8 @@ import ContactTransformer, {
 import { mergeRules } from "@api/utils/rules";
 
 import CalloutResponseComment from "@models/CalloutResponseComment";
-import Contact from "@models/Contact";
+
+import { AuthInfo } from "@type/auth-info";
 
 class CalloutResponseCommentTransformer extends BaseTransformer<
   CalloutResponseComment,
@@ -40,13 +41,13 @@ class CalloutResponseCommentTransformer extends BaseTransformer<
 
   protected transformQuery<T extends ListCalloutResponseCommentsDto>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): T {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
-        !caller?.hasRole("admin") && {
+        !auth?.roles.includes("admin") && {
           field: "contact",
           operator: "equal",
           value: ["me"]

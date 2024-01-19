@@ -4,7 +4,7 @@ import { createQueryBuilder } from "typeorm";
 
 import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
-import { createDateTime, wrapAsync } from "@core/utils";
+import { createDateTime, userToAuth, wrapAsync } from "@core/utils";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -179,7 +179,7 @@ app.post(
           res.redirect(req.originalUrl);
         } else {
           const [exportName, exportData] = await CalloutResponseExporter.export(
-            req.user,
+            userToAuth(req.user!),
             callout.slug,
             {}
           );

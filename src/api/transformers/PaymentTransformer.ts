@@ -17,6 +17,8 @@ import { mergeRules } from "@api/utils/rules";
 import Contact from "@models/Contact";
 import Payment from "@models/Payment";
 
+import { AuthInfo } from "@type/auth-info";
+
 class PaymentTransformer extends BaseTransformer<
   Payment,
   GetPaymentDto,
@@ -40,13 +42,13 @@ class PaymentTransformer extends BaseTransformer<
 
   protected transformQuery<T extends ListPaymentsDto>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): T {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
-        !caller?.hasRole("admin") && {
+        !auth?.roles.includes("admin") && {
           field: "contact",
           operator: "equal",
           value: ["me"]

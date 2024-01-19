@@ -22,7 +22,8 @@ import { mergeRules } from "@api/utils/rules";
 
 import Callout, { CalloutResponseViewSchema } from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
-import Contact from "@models/Contact";
+
+import { AuthInfo } from "@type/auth-info";
 
 class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseMapDto,
@@ -99,7 +100,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
   }
 
   async fetchForCallout(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     calloutSlug: string,
     query: ListCalloutResponsesDto
   ): Promise<PaginatedDto<GetCalloutResponseMapDto>> {
@@ -114,7 +115,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
       responseViewSchema: CalloutResponseViewSchema;
     };
 
-    return await this.fetch(caller, { ...query, callout: calloutWithSchema });
+    return await this.fetch(auth, { ...query, callout: calloutWithSchema });
   }
 }
 
