@@ -40,6 +40,7 @@ import {
 } from "@api/dto/CalloutResponseDto";
 import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
 
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
@@ -55,14 +56,16 @@ import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 
+import { AuthInfo } from "@type/auth-info";
+
 @JsonController("/callout")
 export class CalloutController {
   @Get("/")
   async getCallouts(
-    @CurrentUser({ required: false }) caller: Contact | undefined,
+    @CurrentAuth() auth: AuthInfo | undefined,
     @QueryParams() query: ListCalloutsDto
   ): Promise<Paginated<GetCalloutDto>> {
-    return CalloutTransformer.fetch(caller, query);
+    return CalloutTransformer.fetch(auth, query);
   }
 
   @Authorized("admin")
@@ -80,11 +83,11 @@ export class CalloutController {
 
   @Get("/:slug")
   async getCallout(
-    @CurrentUser({ required: false }) caller: Contact | undefined,
+    @CurrentAuth() auth: AuthInfo | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: GetCalloutOptsDto
   ): Promise<GetCalloutDto | undefined> {
-    return CalloutTransformer.fetchOneById(caller, slug, {
+    return CalloutTransformer.fetchOneById(auth, slug, {
       ...query,
       showHiddenForAll: true
     });
@@ -93,7 +96,7 @@ export class CalloutController {
   @Authorized("admin")
   @Patch("/:slug")
   async updateCallout(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
     @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutData>
   ): Promise<GetCalloutDto | undefined> {
@@ -120,7 +123,7 @@ export class CalloutController {
             data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
         })
       });
-      return await CalloutTransformer.fetchOneById(caller, newSlug);
+      return await CalloutTransformer.fetchOneById(auth, newSlug);
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }
@@ -139,26 +142,22 @@ export class CalloutController {
 
   @Get("/:slug/responses")
   async getCalloutResponses(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
   ) {
-    return await CalloutResponseTransformer.fetchForCallout(
-      caller,
-      slug,
-      query
-    );
+    return await CalloutResponseTransformer.fetchForCallout(auth, slug, query);
   }
 
   @Get("/:slug/responses.csv")
   async exportCalloutResponses(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
     const [exportName, exportData] = await CalloutResponseExporter.export(
-      caller,
+      auth,
       slug,
       query
     );
@@ -168,12 +167,12 @@ export class CalloutController {
 
   @Get("/:slug/responses/map")
   async getCalloutResponsesMap(
-    @CurrentUser({ required: false }) caller: Contact | undefined,
+    @CurrentAuth() auth: AuthInfo | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
   ): Promise<Paginated<GetCalloutResponseMapDto>> {
     return await CalloutResponseMapTransformer.fetchForCallout(
-      caller,
+      auth,
       slug,
       query
     );
@@ -182,7 +181,7 @@ export class CalloutController {
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
-    @CurrentUser({ required: false }) caller: Contact | undefined,
+    @CurrentUser() caller: Contact | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseDto
   ): Promise<void> {
@@ -211,10 +210,10 @@ export class CalloutController {
   @Authorized("admin")
   @Get("/:slug/tags")
   async getCalloutTags(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string
   ): Promise<GetCalloutTagDto[]> {
-    const result = await CalloutTagTransformer.fetch(caller, {
+    const result = await CalloutTagTransformer.fetch(auth, {
       rules: {
         condition: "AND",
         rules: [{ field: "calloutSlug", operator: "equal", value: [slug] }]
@@ -243,16 +242,16 @@ export class CalloutController {
   @Authorized("admin")
   @Get("/:slug/tags/:tag")
   async getCalloutTag(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("tag") tagId: string
   ): Promise<GetCalloutTagDto | undefined> {
-    return CalloutTagTransformer.fetchOneById(caller, tagId);
+    return CalloutTagTransformer.fetchOneById(auth, tagId);
   }
 
   @Authorized("admin")
   @Patch("/:slug/tags/:tag")
   async updateCalloutTag(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
     @Param("tag") tagId: string,
     @PartialBody() data: CreateCalloutTagDto // Partial<CreateCalloutTagData>
@@ -262,7 +261,7 @@ export class CalloutController {
       data
     );
 
-    return CalloutTagTransformer.fetchOneById(caller, tagId);
+    return CalloutTagTransformer.fetchOneById(auth, tagId);
   }
 
   @Authorized("admin")

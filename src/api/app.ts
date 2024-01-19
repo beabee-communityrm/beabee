@@ -4,9 +4,8 @@ import "reflect-metadata";
 import { RoleType } from "@beabee/beabee-common";
 import cookie from "cookie-parser";
 import cors from "cors";
-import express, { ErrorRequestHandler } from "express";
+import express, { ErrorRequestHandler, Request } from "express";
 import {
-  Action,
   HttpError,
   InternalServerError,
   NotFoundError,
@@ -30,6 +29,8 @@ import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { ResetDeviceController } from "./controllers/ResetDeviceController";
 import { UploadController } from "./controllers/UploadController";
 
+import { AuthMiddleware } from "./middlewares/AuthMiddleware";
+
 import {
   log as mainLogger,
   requestErrorLogger,
@@ -38,22 +39,23 @@ import {
 import sessions from "@core/sessions";
 import { initApp, startServer } from "@core/server";
 
-import AuthService from "@core/services/AuthService";
+import Contact from "@models/Contact";
 
 import config from "@config";
 
-async function currentUserChecker(action: Action) {
-  const apiKeyOrContact = await AuthService.check(action.request);
+function currentUserChecker(action: { request: Request }): Contact | undefined {
   // API key isn't a user
-  return apiKeyOrContact === true ? undefined : apiKeyOrContact;
+  console.log("action", action.request.auth?.entity instanceof Contact);
+  return action.request.auth?.entity instanceof Contact
+    ? action.request.auth.entity
+    : undefined;
 }
 
-async function authorizationChecker(action: Action, roles: RoleType[]) {
-  const apiKeyOrContact = await AuthService.check(action.request);
-  // API key has superadmin abilities
-  return apiKeyOrContact === true
-    ? true
-    : roles.every((role) => apiKeyOrContact?.hasRole(role));
+function authorizationChecker(
+  action: { request: Request },
+  roles: RoleType[]
+): boolean {
+  return roles.every((r) => action.request.auth?.roles.includes(r));
 }
 
 const app = express();
@@ -88,6 +90,7 @@ initApp()
         ResetDeviceController,
         UploadController
       ],
+      middlewares: [AuthMiddleware],
       currentUserChecker,
       authorizationChecker,
       validation: {

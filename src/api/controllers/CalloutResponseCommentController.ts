@@ -16,6 +16,7 @@ import {
 
 import { getRepository } from "@core/database";
 
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
 import {
   CreateCalloutResponseCommentDto,
@@ -29,6 +30,8 @@ import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponse
 import CalloutResponseComment from "@models/CalloutResponseComment";
 import Contact from "@models/Contact";
 
+import { AuthInfo } from "@type/auth-info";
+
 @JsonController("/callout-response-comments")
 @Authorized("admin")
 export class CalloutResponseCommentController {
@@ -40,8 +43,8 @@ export class CalloutResponseCommentController {
     const comment: CalloutResponseComment = await getRepository(
       CalloutResponseComment
     ).save({
+      contact,
       text: data.text,
-      contact: contact,
       response: { id: data.responseId }
     });
     return CalloutResponseCommentTransformer.convert(comment);
@@ -49,28 +52,28 @@ export class CalloutResponseCommentController {
 
   @Get("/")
   async getCalloutResponseComments(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListCalloutResponseCommentsDto
   ): Promise<Paginated<GetCalloutResponseCommentDto>> {
-    return await CalloutResponseCommentTransformer.fetch(caller, query);
+    return await CalloutResponseCommentTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
   async getCalloutResponseComment(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams
   ): Promise<GetCalloutResponseCommentDto | undefined> {
-    return await CalloutResponseCommentTransformer.fetchOneById(caller, id);
+    return await CalloutResponseCommentTransformer.fetchOneById(auth, id);
   }
 
   @Patch("/:id")
   async updateCalloutResponseComment(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams,
     @PartialBody() data: CreateCalloutResponseCommentDto
   ): Promise<GetCalloutResponseCommentDto | undefined> {
     await getRepository(CalloutResponseComment).update(id, data);
-    return await CalloutResponseCommentTransformer.fetchOneById(caller, id);
+    return await CalloutResponseCommentTransformer.fetchOneById(auth, id);
   }
 
   @OnUndefined(204)

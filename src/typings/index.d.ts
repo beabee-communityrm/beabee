@@ -1,7 +1,10 @@
 import { ParamsDictionary } from "express-serve-static-core";
 
-import Contact from "@models/Contact";
+import ApiKey from "@models/ApiKey";
 import { CalloutResponseAnswers } from "@models/CalloutResponse";
+import Contact from "@models/Contact";
+
+import { AuthInfo as AuthInfo2 } from "@type/auth-info";
 
 declare global {
   type HTMLElement = never;
@@ -20,6 +23,7 @@ declare global {
       model: unknown;
       allParams: ParamsDictionary;
       answers?: CalloutResponseAnswers;
+      auth?: AuthInfo2;
     }
   }
 }

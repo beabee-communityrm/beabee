@@ -23,7 +23,8 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const segments = await SegmentService.getSegmentsWithCount(req.user);
+    const auth = { entity: req.user!, roles: req.user!.activeRoles };
+    const segments = await SegmentService.getSegmentsWithCount(auth);
     res.render("index", { segments });
   })
 );
@@ -97,7 +98,8 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    segment.contactCount = await ContactTransformer.count(req.user, {
+    const auth = { entity: req.user!, roles: req.user!.activeRoles };
+    segment.contactCount = await ContactTransformer.count(auth, {
       rules: segment.ruleGroup
     });
 

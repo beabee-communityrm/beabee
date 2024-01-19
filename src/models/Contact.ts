@@ -80,7 +80,11 @@ export default class Contact {
   contribution?: ContributionInfo;
 
   get activeRoles(): RoleType[] {
-    return this.roles.filter((p) => p.isActive).map((p) => p.type);
+    const ret = this.roles.filter((p) => p.isActive).map((p) => p.type);
+    if (ret.includes("superadmin")) {
+      ret.push("admin");
+    }
+    return ret;
   }
 
   hasRole(roleType: RoleType): boolean {
