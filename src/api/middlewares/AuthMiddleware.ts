@@ -3,12 +3,12 @@ import crypto from "node:crypto";
 import { Request, Response } from "express";
 import { Middleware, ExpressMiddlewareInterface } from "routing-controllers";
 
+import { getRepository } from "@core/database";
+
 import ContactsService from "@core/services/ContactsService";
 
-import { AuthInfo } from "@type/auth-info";
 import Contact from "@models/Contact";
 import ApiKey from "@models/ApiKey";
-import { getRepository } from "@core/database";
 
 @Middleware({ type: "before" })
 export class AuthMiddleware implements ExpressMiddlewareInterface {
@@ -21,11 +21,7 @@ export class AuthMiddleware implements ExpressMiddlewareInterface {
     if (entity) {
       req.auth = {
         entity,
-        roles:
-          entity instanceof Contact
-            ? entity.activeRoles
-            : // API is superadmin
-              ["admin", "superadmin"]
+        roles: entity.activeRoles
       };
     }
     next();
