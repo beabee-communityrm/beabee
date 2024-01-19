@@ -9,6 +9,7 @@ import ContactsService from "@core/services/ContactsService";
 
 import Contact from "@models/Contact";
 import ApiKey from "@models/ApiKey";
+import { AuthInfo } from "@type/auth-info";
 
 @Middleware({ type: "before" })
 export class AuthMiddleware implements ExpressMiddlewareInterface {
@@ -17,20 +18,12 @@ export class AuthMiddleware implements ExpressMiddlewareInterface {
     res: Response,
     next: (err?: any) => any
   ): Promise<void> {
-    const entity = await getAuthEntity(req);
-    if (entity) {
-      req.auth = {
-        entity,
-        roles: entity.activeRoles
-      };
-    }
+    req.auth = await getAuth(req);
     next();
   }
 }
 
-async function getAuthEntity(
-  request: Request
-): Promise<ApiKey | Contact | undefined> {
+async function getAuth(request: Request): Promise<AuthInfo | undefined> {
   const headers = request.headers;
   const authHeader = headers.authorization;
 
@@ -40,15 +33,30 @@ async function getAuthEntity(
     if (apiKey) {
       // API key can act as a user
       const contactId = headers["x-contact-id"]?.toString();
-      return contactId
-        ? await ContactsService.findOneBy({ id: contactId })
-        : apiKey;
+      if (contactId) {
+        const contact = await ContactsService.findOneBy({ id: contactId });
+        if (contact) {
+          return {
+            method: "api-key",
+            entity: contact,
+            roles: contact.activeRoles
+          };
+        }
+      } else {
+        return {
+          method: "api-key",
+          entity: apiKey,
+          roles: apiKey.activeRoles
+        };
+      }
     }
-    return undefined; // Invalid key, not authenticated
+  } else if (request.user) {
+    return {
+      method: "user",
+      entity: request.user,
+      roles: request.user.activeRoles
+    };
   }
-
-  // Otherwise use logged in user
-  return request.user as Contact | undefined;
 }
 
 async function getValidApiKey(key: string): Promise<ApiKey | undefined> {

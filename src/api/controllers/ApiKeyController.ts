@@ -18,6 +18,7 @@ import { generateApiKey } from "@core/utils/auth";
 
 import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
+import UnauthorizedError from "@api/errors/UnauthorizedError";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import {
@@ -50,9 +51,16 @@ export class ApiKeyController {
 
   @Post("/")
   async createApiKey(
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @CurrentUser({ required: true }) creator: Contact,
     @Body() data: CreateApiKeyDto
   ): Promise<{ token: string }> {
+    if (auth.method === "api-key") {
+      throw new UnauthorizedError({
+        message: "API key cannot create API keys"
+      });
+    }
+
     const { id, secretHash, token } = generateApiKey();
 
     await getRepository(ApiKey).save({

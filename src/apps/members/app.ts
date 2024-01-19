@@ -4,7 +4,7 @@ import queryString from "query-string";
 
 import { getRepository } from "@core/database";
 import { isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { userToAuth, wrapAsync } from "@core/utils";
 
 import OptionsService from "@core/services/OptionsService";
 import SegmentService from "@core/services/SegmentService";
@@ -109,7 +109,7 @@ app.get(
     const { query } = req;
     const availableTags = await getAvailableTags();
 
-    const auth = { entity: req.user!, roles: req.user!.activeRoles };
+    const auth = userToAuth(req.user!);
 
     const totalMembers = await getRepository(Contact).count();
     const segments = await SegmentService.getSegmentsWithCount(auth);

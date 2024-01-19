@@ -4,7 +4,7 @@ import { createQueryBuilder } from "typeorm";
 
 import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
-import { createDateTime, wrapAsync } from "@core/utils";
+import { createDateTime, userToAuth, wrapAsync } from "@core/utils";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -178,9 +178,8 @@ app.post(
           req.flash("error", "polls-responses-password-protected");
           res.redirect(req.originalUrl);
         } else {
-          const auth = { entity: req.user!, roles: req.user!.activeRoles };
           const [exportName, exportData] = await CalloutResponseExporter.export(
-            auth,
+            userToAuth(req.user!),
             callout.slug,
             {}
           );
