@@ -24,6 +24,7 @@ import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
+import { AuthInfo } from "@type/auth-info";
 import { FilterHandlers } from "@type/filter-handlers";
 
 class CalloutTransformer extends BaseTransformer<
@@ -39,7 +40,7 @@ class CalloutTransformer extends BaseTransformer<
 
   protected transformFilters(
     query: GetCalloutOptsDto & PaginatedQuery,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): [Partial<Filters<CalloutFilterName>>, FilterHandlers<CalloutFilterName>] {
     return [
       {},
@@ -51,8 +52,8 @@ class CalloutTransformer extends BaseTransformer<
           }
 
           if (
-            !caller ||
-            (args.value[0] !== caller.id && !caller.hasRole("admin"))
+            !auth?.roles.includes("admin") &&
+            args.value[0] !== auth?.entity.id
           ) {
             throw new UnauthorizedError();
           }
@@ -112,9 +113,9 @@ class CalloutTransformer extends BaseTransformer<
 
   protected transformQuery<T extends ListCalloutsDto>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): T {
-    if (caller?.hasRole("admin")) {
+    if (auth?.roles.includes("admin")) {
       return query;
     }
 
@@ -168,11 +169,11 @@ class CalloutTransformer extends BaseTransformer<
   protected async modifyResult(
     result: Paginated<Callout>,
     query: ListCalloutsDto,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): Promise<void> {
     if (
-      caller &&
       result.items.length > 0 &&
+      auth?.entity instanceof Contact &&
       query.with?.includes(GetCalloutWith.HasAnswered)
     ) {
       const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
@@ -180,7 +181,7 @@ class CalloutTransformer extends BaseTransformer<
         .distinctOn(["cr.calloutSlug"])
         .where("cr.calloutSlug IN (:...slugs) AND cr.contactId = :id", {
           slugs: result.items.map((item) => item.slug),
-          id: caller.id
+          id: auth.entity.id
         })
         .orderBy("cr.calloutSlug")
         .getRawMany<{ slug: string }>();

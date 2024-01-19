@@ -8,6 +8,8 @@ import { buildSelectQuery } from "@api/utils/rules";
 import Contact from "@models/Contact";
 import Segment from "@models/Segment";
 
+import { AuthInfo } from "@type/auth-info";
+
 class SegmentService {
   async createSegment(
     name: string,
@@ -20,12 +22,12 @@ class SegmentService {
   }
 
   /** @deprecated */
-  async getSegmentsWithCount(caller: Contact | undefined): Promise<Segment[]> {
+  async getSegmentsWithCount(auth: AuthInfo | undefined): Promise<Segment[]> {
     const segments = await getRepository(Segment).find({
       order: { order: "ASC" }
     });
     for (const segment of segments) {
-      const result = await ContactTransformer.fetch(caller, {
+      const result = await ContactTransformer.fetch(auth, {
         limit: 0,
         rules: segment.ruleGroup
       });

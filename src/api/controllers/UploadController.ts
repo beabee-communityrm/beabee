@@ -34,7 +34,7 @@ async function canUploadOrFail(ipAddress: string, date: Date, max: number) {
 export class UploadController {
   @Post("/")
   async create(
-    @CurrentUser({ required: false }) contact: Contact | undefined,
+    @CurrentUser() contact: Contact | undefined,
     @Req() req: Request
   ): Promise<{ id: string }> {
     if (!req.ip) {

@@ -3,6 +3,7 @@ import {
   RoleType,
   contactFilters
 } from "@beabee/beabee-common";
+import { stringify } from "csv-stringify/sync";
 import { SelectQueryBuilder } from "typeorm";
 
 import { getMembershipStatus } from "@core/services/PaymentService";
@@ -13,7 +14,8 @@ import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import ContactTransformer from "@api/transformers/ContactTransformer";
 
 import Contact from "@models/Contact";
-import { stringify } from "csv-stringify/sync";
+
+import { AuthInfo } from "@type/auth-info";
 
 class ContactExporter extends BaseTransformer<
   Contact,
@@ -64,10 +66,10 @@ class ContactExporter extends BaseTransformer<
   }
 
   async export(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     query?: GetExportQuery
   ): Promise<[string, string]> {
-    const result = await this.fetch(caller, { limit: -1, ...query });
+    const result = await this.fetch(auth, { limit: -1, ...query });
 
     const exportName = `contacts-${new Date().toISOString()}.csv`;
     return [exportName, stringify(result.items, { header: true })];

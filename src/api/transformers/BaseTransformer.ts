@@ -17,6 +17,7 @@ import { convertRulesToWhereClause } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
 
+import { AuthInfo } from "@type/auth-info";
 import { FilterHandlers } from "@type/filter-handlers";
 
 /**
@@ -37,7 +38,7 @@ export abstract class BaseTransformer<
 
   protected allowedRoles: RoleType[] | undefined;
 
-  abstract convert(model: Model, opts: GetDtoOpts, caller?: Contact): GetDto;
+  abstract convert(model: Model, opts: GetDtoOpts, auth?: AuthInfo): GetDto;
 
   /**
    * Transform the query before the results are fetched.
@@ -51,7 +52,7 @@ export abstract class BaseTransformer<
    */
   protected transformQuery<T extends Query>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): T {
     return query;
   }
@@ -67,7 +68,7 @@ export abstract class BaseTransformer<
    */
   protected transformFilters(
     query: Query,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): [Partial<Filters<FilterName>>, FilterHandlers<FilterName>] {
     return [{}, {}];
   }
@@ -88,7 +89,7 @@ export abstract class BaseTransformer<
     qb: SelectQueryBuilder<Model>,
     fieldPrefix: string,
     query: Query,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): void {}
 
   /**
@@ -104,7 +105,7 @@ export abstract class BaseTransformer<
   protected async modifyResult(
     result: Paginated<Model>,
     query: Query,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): Promise<void> {}
 
   /**
@@ -112,23 +113,23 @@ export abstract class BaseTransformer<
    * filters and filter handlers.
    *
    * @param query The query
-   * @param caller The contact who is requesting the results
+   * @param auth The contact who is requesting the results
    */
   protected preFetch<T extends Query>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): [T, Filters<FilterName>, FilterHandlers<FilterName>] {
     if (
       this.allowedRoles &&
-      !this.allowedRoles.some((r) => caller?.hasRole(r))
+      !this.allowedRoles.some((r) => auth?.roles.includes(r))
     ) {
       throw new UnauthorizedError();
     }
 
-    const [filters, filterHandlers] = this.transformFilters(query, caller);
+    const [filters, filterHandlers] = this.transformFilters(query, auth);
 
     return [
-      this.transformQuery(query, caller),
+      this.transformQuery(query, auth),
       { ...this.filters, ...filters },
       { ...this.filterHandlers, ...filterHandlers }
     ];
@@ -137,15 +138,15 @@ export abstract class BaseTransformer<
   /**
    * Fetch a list of items
    *
-   * @param caller The contact who is requesting the results
+   * @param auth The contact who is requesting the results
    * @param query_ The query
    * @returns A list of items that match the query
    */
   async fetch(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     query_: Query
   ): Promise<Paginated<GetDto>> {
-    const [query, filters, filterHandlers] = this.preFetch(query_, caller);
+    const [query, filters, filterHandlers] = this.preFetch(query_, auth);
 
     const limit = query.limit || 50;
     const offset = query.offset || 0;
@@ -163,7 +164,7 @@ export abstract class BaseTransformer<
         qb.where(
           ...convertRulesToWhereClause(
             ruleGroup,
-            caller,
+            auth?.entity instanceof Contact ? auth.entity : undefined,
             filterHandlers,
             "item."
           )
@@ -174,7 +175,7 @@ export abstract class BaseTransformer<
         qb.orderBy(`item."${query.sort}"`, query.order || "ASC", "NULLS LAST");
       }
 
-      this.modifyQueryBuilder(qb, "item.", query, caller);
+      this.modifyQueryBuilder(qb, "item.", query, auth);
 
       const [items, total] = await qb.getManyAndCount();
 
@@ -185,11 +186,11 @@ export abstract class BaseTransformer<
         items
       };
 
-      await this.modifyResult(result, query, caller);
+      await this.modifyResult(result, query, auth);
 
       return {
         ...result,
-        items: result.items.map((item) => this.convert(item, query, caller))
+        items: result.items.map((item) => this.convert(item, query, auth))
       };
     } catch (err) {
       throw err instanceof InvalidRule
@@ -201,15 +202,15 @@ export abstract class BaseTransformer<
   /**
    *  Fetch a single item
    *
-   * @param caller The contact who is requesting the results
+   * @param auth The contact who is requesting the results
    * @param query The query
    * @returns A single item or undefined if not found
    */
   async fetchOne(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     query: Query
   ): Promise<GetDto | undefined> {
-    const result = await this.fetch(caller, { ...query, limit: 1 });
+    const result = await this.fetch(auth, { ...query, limit: 1 });
     return result.items[0];
   }
 
@@ -222,7 +223,7 @@ export abstract class BaseTransformer<
    * @returns A single item or undefined if not found
    */
   async fetchOneById(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     id: string,
     opts?: GetDtoOpts
   ): Promise<GetDto | undefined> {
@@ -234,23 +235,23 @@ export abstract class BaseTransformer<
       }
     } as Query;
 
-    return await this.fetchOne(caller, query);
+    return await this.fetchOne(auth, query);
   }
 
   /**
    * Fetch a single item by it's primary key or throw an error if not found
    *
-   * @param caller  The contact who is requesting the results
+   * @param auth  The contact who is requesting the results
    * @param id  The primary key of the item
    * @param opts Additional options to pass to the query
    * @returns A single item
    */
   async fetchOneByIdOrFail(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     id: string,
     opts?: GetDtoOpts
   ): Promise<GetDto> {
-    const result = await this.fetchOneById(caller, id, opts);
+    const result = await this.fetchOneById(auth, id, opts);
     if (!result) {
       throw new NotFoundError();
     }
@@ -260,11 +261,11 @@ export abstract class BaseTransformer<
   /**
    * Fetch the number of items that match the query
    *
-   * @param caller The contact who is requesting the results
+   * @param auth The contact who is requesting the results
    * @param query The query
    * @returns The number of items that match the query
    */
-  async count(caller: Contact | undefined, query: Query): Promise<number> {
-    return (await this.fetch(caller, { ...query, limit: 0 })).total;
+  async count(auth: AuthInfo | undefined, query: Query): Promise<number> {
+    return (await this.fetch(auth, { ...query, limit: 0 })).total;
   }
 }

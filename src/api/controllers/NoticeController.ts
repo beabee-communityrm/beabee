@@ -2,7 +2,6 @@ import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
-  CurrentUser,
   Delete,
   Get,
   JsonController,
@@ -16,9 +15,7 @@ import {
 
 import { getRepository } from "@core/database";
 
-import Contact from "@models/Contact";
-import Notice from "@models/Notice";
-
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
 import {
   CreateNoticeDto,
@@ -28,23 +25,27 @@ import {
 import { UUIDParams } from "@api/params/UUIDParams";
 import NoticeTransformer from "@api/transformers/NoticeTransformer";
 
+import Notice from "@models/Notice";
+
+import { AuthInfo } from "@type/auth-info";
+
 @JsonController("/notice")
 @Authorized()
 export class NoticeController {
   @Get("/")
   async getNotices(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListNoticesDto
   ): Promise<Paginated<GetNoticeDto>> {
-    return await NoticeTransformer.fetch(caller, query);
+    return await NoticeTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
   async getNotice(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams
   ): Promise<GetNoticeDto | undefined> {
-    return await NoticeTransformer.fetchOneById(caller, id);
+    return await NoticeTransformer.fetchOneById(auth, id);
   }
 
   @Post("/")
@@ -57,12 +58,12 @@ export class NoticeController {
   @Patch("/:id")
   @Authorized("admin")
   async updateNotice(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams,
     @PartialBody() data: CreateNoticeDto
   ): Promise<GetNoticeDto | undefined> {
     await getRepository(Notice).update(id, data);
-    return await NoticeTransformer.fetchOneById(caller, id);
+    return await NoticeTransformer.fetchOneById(auth, id);
   }
 
   @OnUndefined(204)

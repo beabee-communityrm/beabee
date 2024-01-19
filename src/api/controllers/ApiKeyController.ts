@@ -19,6 +19,7 @@ import { generateApiKey } from "@core/utils/auth";
 import ApiKey from "@models/ApiKey";
 import Contact from "@models/Contact";
 
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import {
   CreateApiKeyDto,
   GetApiKeyDto,
@@ -26,29 +27,31 @@ import {
 } from "@api/dto/ApiKeyDto";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 
+import { AuthInfo } from "@type/auth-info";
+
 @JsonController("/api-key")
 @Authorized("admin")
 export class ApiKeyController {
   @Get("/")
   async getApiKeys(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListApiKeysDto
   ): Promise<Paginated<GetApiKeyDto>> {
-    return await ApiKeyTransformer.fetch(caller, query);
+    return await ApiKeyTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
   async getApiKey(
-    @CurrentUser({ required: true }) caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("id") id: string
   ): Promise<GetApiKeyDto | undefined> {
-    return await ApiKeyTransformer.fetchOneById(caller, id);
+    return await ApiKeyTransformer.fetchOneById(auth, id);
   }
 
   @Post("/")
   async createApiKey(
-    @Body() data: CreateApiKeyDto,
-    @CurrentUser({ required: true }) creator: Contact
+    @CurrentUser({ required: true }) creator: Contact,
+    @Body() data: CreateApiKeyDto
   ): Promise<{ token: string }> {
     const { id, secretHash, token } = generateApiKey();
 

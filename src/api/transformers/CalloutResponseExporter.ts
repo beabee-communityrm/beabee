@@ -21,8 +21,9 @@ import { groupBy } from "@api/utils";
 
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseComment from "@models/CalloutResponseComment";
-import Contact from "@models/Contact";
 import Callout from "@models/Callout";
+
+import { AuthInfo } from "@type/auth-info";
 
 class CalloutResponseExporter extends BaseCalloutResponseTransformer<
   ExportCalloutResponseDto,
@@ -91,7 +92,7 @@ class CalloutResponseExporter extends BaseCalloutResponseTransformer<
   }
 
   async export(
-    caller: Contact | undefined,
+    auth: AuthInfo | undefined,
     calloutSlug: string,
     query: GetExportQuery
   ): Promise<[string, string]> {
@@ -106,7 +107,7 @@ class CalloutResponseExporter extends BaseCalloutResponseTransformer<
       (c) => c.input
     );
 
-    const result = await this.fetch(caller, {
+    const result = await this.fetch(auth, {
       limit: -1,
       ...query,
       callout,

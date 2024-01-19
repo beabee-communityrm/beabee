@@ -9,7 +9,6 @@ import {
   BadRequestError,
   Body,
   createParamDecorator,
-  CurrentUser,
   Delete,
   Get,
   JsonController,
@@ -25,7 +24,6 @@ import {
 
 import { PaymentFlowParams } from "@core/providers/payment-flow";
 
-import AuthService from "@core/services/AuthService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentFlowService from "@core/services/PaymentFlowService";
@@ -62,6 +60,7 @@ import {
 import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
 import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
 
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -69,16 +68,19 @@ import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { ContactRoleParams } from "@api/params/ContactRoleParams";
 import { UUIDParams } from "@api/params/UUIDParams";
 import { validateOrReject } from "@api/utils";
+import { mergeRules } from "@api/utils/rules";
 
 import ContactExporter from "@api/transformers/ContactExporter";
 import ContactTransformer from "@api/transformers/ContactTransformer";
 import ContactRoleTransformer from "@api/transformers/ContactRoleTransformer";
 import PaymentTransformer from "@api/transformers/PaymentTransformer";
 
+import ApiKey from "@models/ApiKey";
+
 import { GetContactWith } from "@enums/get-contact-with";
 
 import { ContributionInfo } from "@type/contribution-info";
-import { mergeRules } from "@api/utils/rules";
+import { AuthInfo } from "@type/auth-info";
 
 /**
  * The target user can either be the current user or for admins
@@ -91,13 +93,13 @@ function TargetUser() {
     value: async (action): Promise<Contact> => {
       const request: Request = action.request;
 
-      const auth = await AuthService.check(request);
+      const auth = request.auth;
       if (!auth) {
         throw new UnauthorizedError();
       }
 
       const id = request.params.id;
-      if (auth === true || (id !== "me" && auth.hasRole("admin"))) {
+      if (id !== "me" && auth.roles.includes("admin")) {
         const uuid = new UUIDParams();
         uuid.id = id;
         await validateOrReject(uuid);
@@ -108,8 +110,11 @@ function TargetUser() {
         } else {
           throw new NotFoundError();
         }
-      } else if (id === "me" || id === auth.id) {
-        return auth;
+      } else if (
+        auth.entity instanceof Contact &&
+        (id === "me" || id === auth.entity.id)
+      ) {
+        return auth.entity;
       } else {
         throw new UnauthorizedError();
       }
@@ -123,7 +128,7 @@ export class ContactController {
   @Authorized("admin")
   @Post("/")
   async createContact(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @Body() data: CreateContactDto
   ) {
     const contact = await ContactsService.createContact(
@@ -166,46 +171,43 @@ export class ContactController {
           ...(data.roles ? [GetContactWith.Roles] : [])
         ]
       },
-      caller
+      auth
     );
   }
 
   @Authorized("admin")
   @Get("/")
   async getContacts(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListContactsDto
   ): Promise<Paginated<GetContactDto>> {
-    return await ContactTransformer.fetch(caller, query);
+    return await ContactTransformer.fetch(auth, query);
   }
 
   @Authorized("admin")
   @Get(".csv")
   async exportContacts(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: GetExportQuery,
     @Res() res: Response
   ): Promise<Response> {
-    const [exportName, exportData] = await ContactExporter.export(
-      caller,
-      query
-    );
+    const [exportName, exportData] = await ContactExporter.export(auth, query);
     res.attachment(exportName).send(exportData);
     return res;
   }
 
   @Get("/:id")
   async getContact(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
     @QueryParams() query: GetContactOptsDto
   ): Promise<GetContactDto | undefined> {
-    return await ContactTransformer.fetchOneById(caller, target.id, query);
+    return await ContactTransformer.fetchOneById(auth, target.id, query);
   }
 
   @Patch("/:id")
   async updateContact(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
     @PartialBody() data: UpdateContactDto // Should be Partial<UpdateContactData>
   ): Promise<GetContactDto | undefined> {
@@ -222,7 +224,7 @@ export class ContactController {
 
     if (data.profile) {
       if (
-        !caller.hasRole("admin") &&
+        !auth.roles.includes("admin") &&
         (data.profile.tags || data.profile.notes || data.profile.description)
       ) {
         throw new UnauthorizedError();
@@ -231,7 +233,7 @@ export class ContactController {
       await ContactsService.updateContactProfile(target, data.profile);
     }
 
-    return await ContactTransformer.fetchOneById(caller, target.id, {
+    return await ContactTransformer.fetchOneById(auth, target.id, {
       with: data.profile ? [GetContactWith.Profile] : []
     });
   }
@@ -351,11 +353,11 @@ export class ContactController {
 
   @Get("/:id/payment")
   async getPayments(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
     @QueryParams() query: ListPaymentsDto
   ): Promise<Paginated<GetPaymentDto>> {
-    return PaymentTransformer.fetch(caller, {
+    return PaymentTransformer.fetch(auth, {
       ...query,
       rules: mergeRules([
         query.rules,
@@ -452,7 +454,7 @@ export class ContactController {
   @Authorized("admin")
   @Put("/:id/role/:roleType")
   async updateRole(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
     @Params() { roleType }: ContactRoleParams,
     @Body() data: UpdateContactRoleDto
@@ -461,7 +463,7 @@ export class ContactController {
       throw new BadRequestError();
     }
 
-    if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
+    if (roleType === "superadmin" && !auth.roles.includes("superadmin")) {
       throw new UnauthorizedError();
     }
 
@@ -477,11 +479,11 @@ export class ContactController {
   @Delete("/:id/role/:roleType")
   @OnUndefined(201)
   async deleteRole(
-    @CurrentUser() caller: Contact,
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
     @Params() { roleType }: ContactRoleParams
   ): Promise<void> {
-    if (roleType === "superadmin" && !caller.hasRole("superadmin")) {
+    if (roleType === "superadmin" && !auth.roles.includes("superadmin")) {
       throw new UnauthorizedError();
     }
 

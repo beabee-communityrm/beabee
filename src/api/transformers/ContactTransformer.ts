@@ -24,6 +24,7 @@ import { mergeRules } from "@api/utils/rules";
 
 import { GetContactWith } from "@enums/get-contact-with";
 
+import { AuthInfo } from "@type/auth-info";
 import { FilterHandler, FilterHandlers } from "@type/filter-handlers";
 
 class ContactTransformer extends BaseTransformer<
@@ -40,19 +41,15 @@ class ContactTransformer extends BaseTransformer<
   convert(
     contact: Contact,
     opts?: GetContactOptsDto,
-    caller?: Contact | undefined
+    auth?: AuthInfo | undefined
   ): GetContactDto {
-    const activeRoles = [...contact.activeRoles];
-    if (activeRoles.includes("superadmin")) {
-      activeRoles.push("admin");
-    }
-
     return {
       id: contact.id,
       email: contact.email,
       firstname: contact.firstname,
       lastname: contact.lastname,
       joined: contact.joined,
+      activeRoles: contact.activeRoles,
       ...(contact.lastSeen && {
         lastSeen: contact.lastSeen
       }),
@@ -62,13 +59,12 @@ class ContactTransformer extends BaseTransformer<
       ...(contact.contributionPeriod && {
         contributionPeriod: contact.contributionPeriod
       }),
-      activeRoles,
       ...(opts?.with?.includes(GetContactWith.Profile) &&
         contact.profile && {
           profile: ContactProfileTransformer.convert(
             contact.profile,
             undefined,
-            caller
+            auth
           )
         }),
       ...(opts?.with?.includes(GetContactWith.Roles) && {
@@ -82,13 +78,13 @@ class ContactTransformer extends BaseTransformer<
 
   protected transformQuery<T extends ListContactsDto>(
     query: T,
-    caller: Contact | undefined
+    auth: AuthInfo | undefined
   ): T {
     return {
       ...query,
       rules: mergeRules([
         query.rules,
-        !caller?.hasRole("admin") && {
+        !auth?.roles.includes("admin") && {
           field: "id",
           operator: "equal",
           value: ["me"]
