@@ -44,8 +44,6 @@ import Contact from "@models/Contact";
 import config from "@config";
 
 function currentUserChecker(action: { request: Request }): Contact | undefined {
-  // API key isn't a user
-  console.log("action", action.request.auth?.entity instanceof Contact);
   return action.request.auth?.entity instanceof Contact
     ? action.request.auth.entity
     : undefined;

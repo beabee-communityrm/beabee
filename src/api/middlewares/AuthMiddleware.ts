@@ -40,7 +40,6 @@ async function getAuthEntity(
     if (apiKey) {
       // API key can act as a user
       const contactId = headers["x-contact-id"]?.toString();
-      console.log("contact", contactId);
       return contactId
         ? await ContactsService.findOneBy({ id: contactId })
         : apiKey;
