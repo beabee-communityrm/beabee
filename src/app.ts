@@ -2,7 +2,7 @@ import "module-alias/register";
 
 import cleanDeep from "clean-deep";
 import cookie from "cookie-parser";
-import csrf from "csurf";
+import csrf from "csurf"; // TODO: This package is deprecated, see https://www.npmjs.com/package/csurf
 import express, { ErrorRequestHandler } from "express";
 import flash from "express-flash";
 import helmet from "helmet";
