@@ -1,29 +1,49 @@
 import { ContributionPeriod } from "@beabee/beabee-common";
 import {
+  buildMessage,
+  ValidateBy,
   ValidationArguments,
-  ValidatorConstraint,
-  ValidatorConstraintInterface
+  ValidationOptions
 } from "class-validator";
 
 import OptionsService from "@core/services/OptionsService";
 
-@ValidatorConstraint({ name: "minContributionAmount" })
-export default class MinContributionAmount
-  implements ValidatorConstraintInterface
-{
-  validate(amount: unknown, args: ValidationArguments): boolean {
-    return typeof amount === "number" && amount >= this.minAmount(args);
-  }
+function getMinAmount(args: ValidationArguments | undefined): number | false {
+  const minMonthlyAmount = OptionsService.getInt(
+    "contribution-min-monthly-amount"
+  );
 
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} must be at least ${this.minAmount(args)}`;
-  }
+  const period = args && "period" in args.object && args.object.period;
+  return period === ContributionPeriod.Monthly
+    ? minMonthlyAmount
+    : period === ContributionPeriod.Annually
+      ? minMonthlyAmount * 12
+      : false;
+}
 
-  private minAmount(args: ValidationArguments) {
-    const period = (args.object as any)?.period as unknown;
-    return (
-      OptionsService.getInt("contribution-min-monthly-amount") *
-      (period === ContributionPeriod.Annually ? 12 : 1)
-    );
-  }
+export default function MinContributionAmount(
+  validationOptions?: ValidationOptions
+): PropertyDecorator {
+  return ValidateBy(
+    {
+      name: "minContributionAmount",
+      validator: {
+        validate: (value, args) => {
+          const minAmount = getMinAmount(args);
+          return (
+            minAmount !== false &&
+            typeof value === "number" &&
+            value > minAmount
+          );
+        },
+        defaultMessage: buildMessage((eachPrefix, args) => {
+          const minAmount = !!args && getMinAmount(args);
+          return minAmount === false
+            ? eachPrefix + `must have a valid period`
+            : eachPrefix + `$property must be at least ${minAmount}`;
+        }, validationOptions)
+      }
+    },
+    validationOptions
+  );
 }
