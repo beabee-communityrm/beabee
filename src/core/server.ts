@@ -20,7 +20,7 @@ export function startServer(app: Express) {
   app.set("trust proxy", true);
 
   const server = app.listen(3000);
-  NetworkCommunicatorService.startServer(app);
+  NetworkCommunicatorService.startServer();
 
   process.on("SIGTERM", () => {
     log.debug("Waiting for server to shutdown");
