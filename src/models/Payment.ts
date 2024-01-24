@@ -34,7 +34,7 @@ export default class Payment {
   @Column({ type: "real", nullable: true })
   amountRefunded!: number | null;
 
-  @Column({ type: "date" })
+  @Column()
   chargeDate!: Date;
 
   @CreateDateColumn()
