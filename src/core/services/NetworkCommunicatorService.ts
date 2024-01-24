@@ -5,7 +5,6 @@ import { sign, verify, JsonWebTokenError } from "jsonwebtoken";
 import express, { Express } from "express";
 import config from "@config";
 import { log as mainLogger } from "@core/logging";
-import OptionsService from "@core/services/OptionsService";
 import { wrapAsync } from "@core/utils";
 import { extractToken } from "@core/utils/auth";
 
@@ -71,7 +70,6 @@ class NetworkCommunicatorService {
           // Not authenticated internal service request
           return res.sendStatus(401);
         }
-        await OptionsService.reload();
         this.events.emit("reload", payloadOrError);
         res.sendStatus(200);
       })
