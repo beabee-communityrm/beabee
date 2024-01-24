@@ -2,7 +2,7 @@ import axios from "axios";
 import { Server } from "node:http";
 import { EventEmitter } from "node:events";
 import { sign, verify, JsonWebTokenError } from "jsonwebtoken";
-import express, { Express } from "express";
+import express from "express";
 import config from "@config";
 import { log as mainLogger } from "@core/logging";
 import { wrapAsync } from "@core/utils";
