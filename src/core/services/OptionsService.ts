@@ -125,7 +125,7 @@ class OptionsService {
    * @param serviceName The name of the service
    * @param actionPath The path of the action
    * @param data The data to send
-   * @returns 
+   * @returns
    */
   private async post(serviceName: string, actionPath: string, data?: any) {
     try {
@@ -155,7 +155,10 @@ class OptionsService {
     try {
       // TODO: remove hardcoded service references
       const actionPath = "reload";
-      await this.posts(["app", "api_app", "webhook_app", "telegram_bot"], actionPath)
+      await this.posts(
+        ["app", "api_app", "webhook_app", "telegram_bot"],
+        actionPath
+      );
     } catch (error) {
       log.error("Failed to notify webhook of options change", error);
     }
