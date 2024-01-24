@@ -243,3 +243,11 @@ export async function isValidPassword(
     ? LOGIN_CODES.LOGGED_IN
     : LOGIN_CODES.LOGIN_FAILED;
 }
+
+export function extractToken(authHeader?: string): string | null {
+  if (!authHeader) return null
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.split(' ')[1] || null;
+  }
+  return null
+}

@@ -6,8 +6,8 @@ import { Middleware, ExpressMiddlewareInterface } from "routing-controllers";
 import { getRepository } from "@core/database";
 
 import ContactsService from "@core/services/ContactsService";
+import { extractToken } from "@core/utils/auth";
 
-import Contact from "@models/Contact";
 import ApiKey from "@models/ApiKey";
 import { AuthInfo } from "@type/auth-info";
 
@@ -26,10 +26,11 @@ export class AuthMiddleware implements ExpressMiddlewareInterface {
 async function getAuth(request: Request): Promise<AuthInfo | undefined> {
   const headers = request.headers;
   const authHeader = headers.authorization;
+  const token = extractToken(authHeader);
 
   // If there's a bearer key check API key
-  if (authHeader?.startsWith("Bearer ")) {
-    const apiKey = await getValidApiKey(authHeader.substring(7));
+  if (token) {
+    const apiKey = await getValidApiKey(token);
     if (apiKey) {
       // API key can act as a user
       const contactId = headers["x-contact-id"]?.toString();

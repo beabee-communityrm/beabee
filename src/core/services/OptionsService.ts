@@ -1,8 +1,9 @@
-import axios from "axios";
+
 
 import { getRepository } from "@core/database";
 import _defaultOptions from "@core/defaults.json";
 import { log as mainLogger } from "@core/logging";
+import networkCommunicator from "./NetworkCommunicatorService";
 
 import Option from "@models/Option";
 
@@ -102,7 +103,7 @@ class OptionsService {
 
     if (options.length) {
       await getRepository(Option).save(options);
-      await this.notify();
+      await networkCommunicator.notify();
     }
   }
 
@@ -116,19 +117,7 @@ class OptionsService {
       option.value = defaultOptions[key];
       option.default = true;
       await getRepository(Option).delete(key);
-      await this.notify();
-    }
-  }
-
-  private async notify() {
-    try {
-      // TODO: remove hardcoded service references
-      await axios.post("http://app:4000/reload");
-      await axios.post("http://api_app:4000/reload");
-      await axios.post("http://webhook_app:4000/reload");
-      await axios.post("http://telegram_bot:4000/reload");
-    } catch (error) {
-      log.error("Failed to notify webhook of options change", error);
+      await networkCommunicator.notify();
     }
   }
 }
