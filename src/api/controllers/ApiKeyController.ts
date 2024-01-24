@@ -1,4 +1,4 @@
-import { Paginated } from "@beabee/beabee-common";
+import { plainToInstance } from "class-transformer";
 import {
   JsonController,
   Authorized,
@@ -24,8 +24,10 @@ import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import {
   CreateApiKeyDto,
   GetApiKeyDto,
-  ListApiKeysDto
+  ListApiKeysDto,
+  NewApiKeyDto
 } from "@api/dto/ApiKeyDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
 
 import { AuthInfo } from "@type/auth-info";
@@ -37,7 +39,7 @@ export class ApiKeyController {
   async getApiKeys(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListApiKeysDto
-  ): Promise<Paginated<GetApiKeyDto>> {
+  ): Promise<PaginatedDto<GetApiKeyDto>> {
     return await ApiKeyTransformer.fetch(auth, query);
   }
 
@@ -54,7 +56,7 @@ export class ApiKeyController {
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @CurrentUser({ required: true }) creator: Contact,
     @Body() data: CreateApiKeyDto
-  ): Promise<{ token: string }> {
+  ): Promise<NewApiKeyDto> {
     if (auth.method === "api-key") {
       throw new UnauthorizedError({
         message: "API key cannot create API keys"
@@ -71,12 +73,12 @@ export class ApiKeyController {
       expires: data.expires
     });
 
-    return { token };
+    return plainToInstance(NewApiKeyDto, { token });
   }
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteApiKey(@Param("id") id: string) {
+  async deleteApiKey(@Param("id") id: string): Promise<void> {
     const result = await getRepository(ApiKey).delete(id);
     if (!result.affected) throw new NotFoundError();
   }

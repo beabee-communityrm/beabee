@@ -1,6 +1,7 @@
 import { NewsletterStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
+  IsArray,
   IsBoolean,
   IsEnum,
   IsOptional,
@@ -10,18 +11,38 @@ import {
 
 import { GetAddressDto, UpdateAddressDto } from "@api/dto/AddressDto";
 
-export interface GetContactProfileDto {
-  telephone: string;
-  twitter: string;
-  preferredContact: string;
-  deliveryOptIn: boolean;
-  deliveryAddress: GetAddressDto | null;
-  newsletterStatus: NewsletterStatus;
-  newsletterGroups: string[];
+export class GetContactProfileDto {
+  @IsString()
+  telephone!: string;
 
-  // Admin only
+  @IsString()
+  twitter!: string;
+
+  @IsString()
+  preferredContact!: string;
+
+  @IsBoolean()
+  deliveryOptIn!: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  deliveryAddress!: GetAddressDto | null;
+
+  @IsEnum(NewsletterStatus)
+  newsletterStatus!: NewsletterStatus;
+
+  @IsArray()
+  @IsString({ each: true })
+  newsletterGroups!: string[];
+
+  @IsArray({ groups: ["admin"] })
+  @IsString({ groups: ["admin"], each: true })
   tags?: string[];
+
+  @IsString({ groups: ["admin"] })
   notes?: string;
+
+  @IsString({ groups: ["admin"] })
   description?: string;
 }
 

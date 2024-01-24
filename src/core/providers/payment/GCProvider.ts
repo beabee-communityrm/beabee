@@ -4,7 +4,7 @@ import moment from "moment";
 
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
-import { getActualAmount, PaymentForm, PaymentSource } from "@core/utils";
+import { getActualAmount, PaymentForm } from "@core/utils";
 import {
   updateSubscription,
   createSubscription,
@@ -25,6 +25,7 @@ import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import config from "@config";
 
 import { ContributionInfo } from "@type/contribution-info";
+import { PaymentSource } from "@type/payment-source";
 
 const log = mainLogger.child({ app: "gc-payment-provider" });
 

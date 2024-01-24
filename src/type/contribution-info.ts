@@ -1,5 +1,10 @@
-import { ContributionPeriod, ContributionType } from "@beabee/beabee-common";
-import { PaymentSource } from "@core/utils";
+import {
+  ContributionPeriod,
+  ContributionType,
+  MembershipStatus
+} from "@beabee/beabee-common";
+
+import { PaymentSource } from "./payment-source";
 
 export interface ContributionInfo {
   type: ContributionType;
@@ -11,6 +16,6 @@ export interface ContributionInfo {
   paymentSource?: PaymentSource;
   payFee?: boolean;
   hasPendingPayment?: boolean;
-  membershipStatus: "active" | "expiring" | "expired" | "none";
+  membershipStatus: MembershipStatus;
   membershipExpiryDate?: Date;
 }

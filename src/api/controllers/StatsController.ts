@@ -1,7 +1,4 @@
-import Payment from "@models/Payment";
-import Contact from "@models/Contact";
-import { Type } from "class-transformer";
-import { IsDate } from "class-validator";
+import { plainToInstance } from "class-transformer";
 import {
   Authorized,
   Get,
@@ -9,29 +6,19 @@ import {
   JsonController,
   QueryParams
 } from "routing-controllers";
+
 import { createQueryBuilder } from "@core/database";
 
-class GetStatsQuery {
-  @Type(() => Date)
-  @IsDate()
-  from!: Date;
+import { GetStatsDto, GetStatsOptsDto } from "@api/dto/StatsDto";
 
-  @Type(() => Date)
-  @IsDate()
-  to!: Date;
-}
-
-interface GetStatsData {
-  newContacts: number;
-  averageContribution: number | null;
-  totalRevenue: number | null;
-}
+import Contact from "@models/Contact";
+import Payment from "@models/Payment";
 
 @JsonController("/stats")
 export class StatsController {
   @Authorized("admin")
   @Get("/")
-  async getStats(@QueryParams() query: GetStatsQuery): Promise<GetStatsData> {
+  async getStats(@QueryParams() query: GetStatsOptsDto): Promise<GetStatsDto> {
     const newContacts = await createQueryBuilder(Contact, "m")
       .where("m.joined BETWEEN :from AND :to", query)
       .getCount();
@@ -46,10 +33,10 @@ export class StatsController {
       throw new InternalServerError("No payment data");
     }
 
-    return {
+    return plainToInstance(GetStatsDto, {
       newContacts,
       averageContribution: payments.average,
       totalRevenue: payments.total
-    };
+    });
   }
 }

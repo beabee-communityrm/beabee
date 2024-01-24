@@ -1,15 +1,16 @@
 import {
   Filters,
   InvalidRule,
-  Paginated,
   PaginatedQuery,
   RoleType,
   validateRuleGroup
 } from "@beabee/beabee-common";
+import { plainToInstance } from "class-transformer";
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
 
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import NotFoundError from "@api/errors/NotFoundError";
 import InvalidRuleError from "@api/errors/InvalidRuleError";
 import UnauthorizedError from "@api/errors/UnauthorizedError";
@@ -93,17 +94,17 @@ export abstract class BaseTransformer<
   ): void {}
 
   /**
-   * Modify the results after they are fetched.
+   * Modify the items after they are fetched.
    *
    * Use this method to add extra data to the items. Typically used to add
    * related entities to the items, or load additional data or relations which
    *
-   * @param result The result
+   * @param items The list of items
    * @param query The query
    * @param caller The contact who is requesting the results
    */
-  protected async modifyResult(
-    result: Paginated<Model>,
+  protected async modifyItems(
+    items: Model[],
     query: Query,
     auth: AuthInfo | undefined
   ): Promise<void> {}
@@ -145,7 +146,7 @@ export abstract class BaseTransformer<
   async fetch(
     auth: AuthInfo | undefined,
     query_: Query
-  ): Promise<Paginated<GetDto>> {
+  ): Promise<PaginatedDto<GetDto>> {
     const [query, filters, filterHandlers] = this.preFetch(query_, auth);
 
     const limit = query.limit || 50;
@@ -179,19 +180,14 @@ export abstract class BaseTransformer<
 
       const [items, total] = await qb.getManyAndCount();
 
-      const result = {
+      await this.modifyItems(items, query, auth);
+
+      return plainToInstance(PaginatedDto<GetDto>, {
         total,
         offset,
         count: items.length,
-        items
-      };
-
-      await this.modifyResult(result, query, auth);
-
-      return {
-        ...result,
-        items: result.items.map((item) => this.convert(item, query, auth))
-      };
+        items: items.map((item) => this.convert(item, query, auth))
+      });
     } catch (err) {
       throw err instanceof InvalidRule
         ? new InvalidRuleError(err.rule, err.message)

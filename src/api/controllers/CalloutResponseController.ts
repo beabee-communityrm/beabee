@@ -1,4 +1,4 @@
-import { Paginated } from "@beabee/beabee-common";
+import { plainToInstance } from "class-transformer";
 import {
   Authorized,
   Get,
@@ -14,11 +14,13 @@ import { UUIDParams } from "@api/params/UUIDParams";
 
 import {
   BatchUpdateCalloutResponseDto,
+  BatchUpdateCalloutResponseResultDto,
   CreateCalloutResponseDto,
   GetCalloutResponseDto,
   GetCalloutResponseOptsDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
 import { AuthInfo } from "@type/auth-info";
@@ -29,7 +31,7 @@ export class CalloutResponseController {
   async getCalloutResponses(
     @CurrentAuth() auth: AuthInfo | undefined,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<Paginated<GetCalloutResponseDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseDto>> {
     return CalloutResponseTransformer.fetch(auth, query);
   }
 
@@ -38,9 +40,9 @@ export class CalloutResponseController {
   async updateCalloutResponses(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @PartialBody() data: BatchUpdateCalloutResponseDto
-  ): Promise<{ affected: number }> {
+  ): Promise<BatchUpdateCalloutResponseResultDto> {
     const affected = await CalloutResponseTransformer.update(auth, data);
-    return { affected };
+    return plainToInstance(BatchUpdateCalloutResponseResultDto, { affected });
   }
 
   @Get("/:id")

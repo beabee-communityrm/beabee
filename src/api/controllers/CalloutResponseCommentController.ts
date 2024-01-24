@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
@@ -23,6 +22,7 @@ import {
   GetCalloutResponseCommentDto,
   ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { UUIDParams } from "@api/params/UUIDParams";
 
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
@@ -54,7 +54,7 @@ export class CalloutResponseCommentController {
   async getCalloutResponseComments(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListCalloutResponseCommentsDto
-  ): Promise<Paginated<GetCalloutResponseCommentDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseCommentDto>> {
     return await CalloutResponseCommentTransformer.fetch(auth, query);
   }
 
@@ -78,7 +78,9 @@ export class CalloutResponseCommentController {
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteCalloutResponseComment(@Params() { id }: UUIDParams) {
+  async deleteCalloutResponseComment(
+    @Params() { id }: UUIDParams
+  ): Promise<void> {
     const result = await getRepository(CalloutResponseComment).delete(id);
     if (!result.affected) throw new NotFoundError();
   }

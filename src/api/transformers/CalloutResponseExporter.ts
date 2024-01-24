@@ -1,5 +1,4 @@
 import {
-  Paginated,
   RoleType,
   getCalloutComponents,
   stringifyAnswer
@@ -70,20 +69,16 @@ class CalloutResponseExporter extends BaseCalloutResponseTransformer<
     qb.leftJoinAndSelect("tags.tag", "tag");
   }
 
-  protected async modifyResult(
-    result: Paginated<CalloutResponse>
-  ): Promise<void> {
+  protected async modifyItems(responses: CalloutResponse[]): Promise<void> {
     const comments = await getRepository(CalloutResponseComment).find({
-      where: {
-        responseId: In(result.items.map((response) => response.id))
-      },
+      where: { responseId: In(responses.map((r) => r.id)) },
       relations: { contact: true },
       order: { createdAt: "ASC" }
     });
 
     const commentsByResponseId = groupBy(comments, (c) => c.responseId);
 
-    for (const response of result.items) {
+    for (const response of responses) {
       const responseComments = commentsByResponseId[response.id];
       if (responseComments) {
         response.comments = responseComments;

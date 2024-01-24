@@ -1,5 +1,3 @@
-import IsPassword from "@api/validators/IsPassword";
-import IsUrl from "@api/validators/IsUrl";
 import { Type } from "class-transformer";
 import {
   IsEmail,
@@ -8,12 +6,15 @@ import {
   IsOptional,
   IsString
 } from "class-validator";
-import { StartContributionDto } from "./ContributionDto";
-import { CompleteJoinFlowDto } from "./JoinFlowDto";
+
+import { StartContributionDto } from "@api/dto/ContributionDto";
+import { CompleteJoinFlowDto } from "@api/dto/JoinFlowDto";
+import IsPassword from "@api/validators/IsPassword";
+import IsUrl from "@api/validators/IsUrl";
 
 import { CompleteUrls } from "@type/complete-urls";
 
-export class SignupData implements CompleteUrls {
+export class StartSignupFlowDto implements CompleteUrls {
   @IsUrl()
   loginUrl!: string;
 
@@ -36,7 +37,7 @@ export class SignupData implements CompleteUrls {
   contribution?: StartContributionDto;
 }
 
-export class SignupCompleteData extends CompleteJoinFlowDto {
+export class CompleteSignupFlowDto extends CompleteJoinFlowDto {
   @IsOptional()
   @IsString()
   firstname?: string;

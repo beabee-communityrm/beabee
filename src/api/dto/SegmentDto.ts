@@ -30,8 +30,12 @@ export class CreateSegmentDto {
   order?: number;
 }
 
-export interface GetSegmentDto extends CreateSegmentDto {
-  id: string;
+export class GetSegmentDto extends CreateSegmentDto {
+  @IsString()
+  id!: string;
+
+  @IsOptional()
+  @IsNumber()
   contactCount?: number;
 }
 

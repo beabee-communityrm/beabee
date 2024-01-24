@@ -11,9 +11,9 @@ import { generatePassword, isValidPassword } from "@core/utils/auth";
 import ContactsService from "@core/services/ContactsService";
 import ContactMfaService from "@core/services/ContactMfaService";
 
-import { LoginData } from "@api/controllers/AuthController";
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 import { LOGIN_CODES } from "@enums/login-codes";
+import { LoginDto } from "@api/dto/LoginDto";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
@@ -29,9 +29,9 @@ passport.use(
       passReqToCallback: true
     },
     async function (
-      req: { body: LoginData },
-      email: LoginData["email"],
-      password: LoginData["password"],
+      req: { body: LoginDto },
+      email: string,
+      password: string,
       done: PassportLocalDoneCallback
     ) {
       const token = req.body.token;
@@ -87,7 +87,7 @@ passport.use(
 const loginWithMfa = async (
   mfa: ContactMfaSecure,
   contact: Contact,
-  token: LoginData["token"],
+  token: string | undefined,
   done: PassportLocalDoneCallback
 ) => {
   if (mfa.type !== CONTACT_MFA_TYPE.TOTP) {

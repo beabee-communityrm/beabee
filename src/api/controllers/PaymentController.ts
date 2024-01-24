@@ -1,4 +1,3 @@
-import { Paginated } from "@beabee/beabee-common";
 import {
   Authorized,
   Get,
@@ -8,6 +7,7 @@ import {
 } from "routing-controllers";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import {
   GetPaymentDto,
   GetPaymentOptsDto,
@@ -24,7 +24,7 @@ export class PaymentController {
   async getPayments(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListPaymentsDto
-  ): Promise<Paginated<GetPaymentDto>> {
+  ): Promise<PaginatedDto<GetPaymentDto>> {
     return await PaymentTransformer.fetch(auth, query);
   }
 

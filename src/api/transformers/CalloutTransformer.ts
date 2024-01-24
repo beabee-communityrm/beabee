@@ -3,9 +3,9 @@ import {
   calloutFilters,
   Filters,
   ItemStatus,
-  Paginated,
   PaginatedQuery
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 import { BadRequestError, UnauthorizedError } from "routing-controllers";
 import { SelectQueryBuilder } from "typeorm";
 
@@ -73,6 +73,7 @@ class CalloutTransformer extends BaseTransformer<
     ];
   }
 
+  @TransformPlainToInstance(GetCalloutDto)
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {
     return {
       slug: callout.slug,
@@ -166,13 +167,13 @@ class CalloutTransformer extends BaseTransformer<
     }
   }
 
-  protected async modifyResult(
-    result: Paginated<Callout>,
+  protected async modifyItems(
+    callouts: Callout[],
     query: ListCalloutsDto,
     auth: AuthInfo | undefined
   ): Promise<void> {
     if (
-      result.items.length > 0 &&
+      callouts.length > 0 &&
       auth?.entity instanceof Contact &&
       query.with?.includes(GetCalloutWith.HasAnswered)
     ) {
@@ -180,16 +181,16 @@ class CalloutTransformer extends BaseTransformer<
         .select("cr.calloutSlug", "slug")
         .distinctOn(["cr.calloutSlug"])
         .where("cr.calloutSlug IN (:...slugs) AND cr.contactId = :id", {
-          slugs: result.items.map((item) => item.slug),
+          slugs: callouts.map((c) => c.slug),
           id: auth.entity.id
         })
         .orderBy("cr.calloutSlug")
         .getRawMany<{ slug: string }>();
 
-      const answeredSlugs = answeredCallouts.map((p) => p.slug);
+      const answeredSlugs = answeredCallouts.map((c) => c.slug);
 
-      for (const item of result.items) {
-        item.hasAnswered = answeredSlugs.includes(item.slug);
+      for (const callout of callouts) {
+        callout.hasAnswered = answeredSlugs.includes(callout.slug);
       }
     }
   }

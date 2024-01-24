@@ -1,4 +1,4 @@
-import { CalloutFormSchema, Paginated } from "@beabee/beabee-common";
+import { CalloutFormSchema } from "@beabee/beabee-common";
 import { Response } from "express";
 import {
   Authorized,
@@ -35,10 +35,12 @@ import {
 } from "@api/dto/CalloutDto";
 import {
   CreateCalloutResponseDto,
+  GetCalloutResponseDto,
   GetCalloutResponseMapDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
 import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
@@ -64,7 +66,7 @@ export class CalloutController {
   async getCallouts(
     @CurrentAuth() auth: AuthInfo | undefined,
     @QueryParams() query: ListCalloutsDto
-  ): Promise<Paginated<GetCalloutDto>> {
+  ): Promise<PaginatedDto<GetCalloutDto>> {
     return CalloutTransformer.fetch(auth, query);
   }
 
@@ -145,7 +147,7 @@ export class CalloutController {
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
-  ) {
+  ): Promise<PaginatedDto<GetCalloutResponseDto>> {
     return await CalloutResponseTransformer.fetchForCallout(auth, slug, query);
   }
 
@@ -170,7 +172,7 @@ export class CalloutController {
     @CurrentAuth() auth: AuthInfo | undefined,
     @Param("slug") slug: string,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<Paginated<GetCalloutResponseMapDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseMapDto>> {
     return await CalloutResponseMapTransformer.fetchForCallout(
       auth,
       slug,

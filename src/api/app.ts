@@ -29,6 +29,8 @@ import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { ResetDeviceController } from "./controllers/ResetDeviceController";
 import { UploadController } from "./controllers/UploadController";
 
+import { ValidateResponseInterceptor } from "./interceptors/ValidateResponseInterceptor";
+
 import { AuthMiddleware } from "./middlewares/AuthMiddleware";
 
 import {
@@ -88,6 +90,7 @@ initApp()
         ResetDeviceController,
         UploadController
       ],
+      interceptors: [ValidateResponseInterceptor],
       middlewares: [AuthMiddleware],
       currentUserChecker,
       authorizationChecker,

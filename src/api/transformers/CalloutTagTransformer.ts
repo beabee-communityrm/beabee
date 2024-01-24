@@ -3,6 +3,7 @@ import {
   RoleType,
   calloutTagFilters
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 
 import { GetCalloutTagDto } from "@api/dto/CalloutTagDto";
 
@@ -20,6 +21,7 @@ class CalloutTagTransformer extends BaseTransformer<
 
   protected allowedRoles: RoleType[] = ["admin"];
 
+  @TransformPlainToInstance(GetCalloutTagDto)
   convert(tag: CalloutTag): GetCalloutTagDto {
     return {
       id: tag.id,

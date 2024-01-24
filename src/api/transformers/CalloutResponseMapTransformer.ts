@@ -3,7 +3,6 @@ import {
   CalloutResponseAnswerAddress,
   CalloutResponseAnswerFileUpload,
   CalloutResponseAnswers,
-  Paginated,
   getCalloutComponents,
   stringifyAnswer
 } from "@beabee/beabee-common";
@@ -16,6 +15,7 @@ import {
   ListCalloutResponseMapDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import NotFoundError from "@api/errors/NotFoundError";
 import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
 import { mergeRules } from "@api/utils/rules";
@@ -103,7 +103,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
     auth: AuthInfo | undefined,
     calloutSlug: string,
     query: ListCalloutResponsesDto
-  ): Promise<Paginated<GetCalloutResponseMapDto>> {
+  ): Promise<PaginatedDto<GetCalloutResponseMapDto>> {
     const callout = await getRepository(Callout).findOneBy({
       slug: calloutSlug
     });
@@ -115,7 +115,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
       responseViewSchema: CalloutResponseViewSchema;
     };
 
-    return await super.fetch(auth, { ...query, callout: calloutWithSchema });
+    return await this.fetch(auth, { ...query, callout: calloutWithSchema });
   }
 }
 

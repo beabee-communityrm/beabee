@@ -4,8 +4,11 @@ import { getRepository } from "@core/database";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import Content, { ContentId } from "@models/Content";
 import OptionsService from "@core/services/OptionsService";
+
+import Content from "@models/Content";
+
+import { ContentId } from "@type/content-id";
 
 const app = express();
 

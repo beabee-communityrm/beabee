@@ -15,7 +15,10 @@ import {
   IsEmail,
   ValidateNested,
   IsDefined,
-  IsUUID
+  IsUUID,
+  IsNumber,
+  IsDate,
+  Allow
 } from "class-validator";
 
 import {
@@ -64,19 +67,52 @@ export interface GetCalloutResponseOptsDto
 export interface ListCalloutResponsesDto
   extends BaseGetCalloutResponseOptsDto {}
 
-export interface GetCalloutResponseDto {
-  id: string;
-  number: number;
-  createdAt: Date;
-  updatedAt: Date;
-  bucket: string;
-  guestName: string | null;
-  guestEmail: string | null;
+export class GetCalloutResponseDto {
+  @IsString()
+  id!: string;
+
+  @IsNumber()
+  number!: number;
+
+  @IsDate()
+  createdAt!: Date;
+
+  @IsDate()
+  updatedAt!: Date;
+
+  @IsString()
+  bucket!: string;
+
+  @IsOptional()
+  @IsString()
+  guestName!: string | null;
+
+  @IsOptional()
+  @IsString()
+  guestEmail!: string | null;
+
+  @IsOptional()
+  @IsObject()
   answers?: CalloutResponseAnswers;
+
+  @IsOptional()
+  @ValidateNested()
   callout?: GetCalloutDto;
+
+  @IsOptional()
+  @ValidateNested()
   contact?: GetContactDto | null;
+
+  @IsOptional()
+  @ValidateNested({ each: true })
   tags?: GetCalloutTagDto[];
+
+  @IsOptional()
+  @ValidateNested()
   assignee?: GetContactDto | null;
+
+  @IsOptional()
+  @ValidateNested()
   latestComment?: GetCalloutResponseCommentDto | null;
 }
 
@@ -117,6 +153,11 @@ export class BatchUpdateCalloutResponseDto {
   updates!: CreateCalloutResponseDto;
 }
 
+export class BatchUpdateCalloutResponseResultDto {
+  @IsNumber()
+  affected!: number;
+}
+
 // Export types
 
 export type ExportCalloutResponseDto = [
@@ -143,11 +184,20 @@ export interface ExportCalloutResponsesOptsDto
 
 // Get callout response map types
 
-export interface GetCalloutResponseMapDto {
-  number: number;
-  answers: CalloutResponseAnswers;
-  title: string;
-  photos: CalloutResponseAnswerFileUpload[];
+export class GetCalloutResponseMapDto {
+  @IsNumber()
+  number!: number;
+
+  @IsObject()
+  answers!: CalloutResponseAnswers;
+
+  @IsString()
+  title!: string;
+
+  @Allow()
+  photos!: CalloutResponseAnswerFileUpload[];
+
+  @Allow()
   address?: CalloutResponseAnswerAddress;
 }
 

@@ -13,10 +13,6 @@ export class UpdateContactRoleDto {
   dateExpires!: Date | null;
 }
 
-export interface GetContactRoleDto extends UpdateContactRoleDto {
-  role: RoleType;
-}
-
 export class CreateContactRoleDto
   extends UpdateContactRoleDto
   implements GetContactRoleDto
@@ -24,3 +20,5 @@ export class CreateContactRoleDto
   @IsIn(RoleTypes)
   role!: RoleType;
 }
+
+export class GetContactRoleDto extends CreateContactRoleDto {}
