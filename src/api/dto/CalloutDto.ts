@@ -28,6 +28,7 @@ import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
 import { CalloutAccess } from "@enums/callout-access";
 
 import { CalloutData } from "@type/callout-data";
+import { CalloutFormDto } from "./CalloutFormDto";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -187,9 +188,8 @@ export class CreateCalloutDto extends BaseCalloutDto {
   @IsString()
   thanksText!: string;
 
-  // TODO: needs validation
-  @IsObject()
-  formSchema!: CalloutFormSchema;
+  @ValidateNested()
+  formSchema!: CalloutFormDto;
 }
 
 export class GetCalloutDto extends BaseCalloutDto {
@@ -217,6 +217,6 @@ export class GetCalloutDto extends BaseCalloutDto {
   responseCount?: number;
 
   @IsOptional()
-  @IsObject()
-  formSchema?: CalloutFormSchema;
+  @ValidateNested()
+  formSchema?: CalloutFormDto;
 }
