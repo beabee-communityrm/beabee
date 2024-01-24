@@ -1,7 +1,7 @@
 import { getRepository } from "@core/database";
 import _defaultOptions from "@core/defaults.json";
 import { log as mainLogger } from "@core/logging";
-import networkCommunicator from "./NetworkCommunicatorService";
+import NetworkCommunicatorService from "./NetworkCommunicatorService";
 
 import Option from "@models/Option";
 
@@ -17,6 +17,10 @@ interface OptionWithDefault extends Option {
 
 class OptionsService {
   private optionCache: Record<OptionKey, OptionWithDefault> | undefined;
+
+  constructor() {
+    NetworkCommunicatorService.on("reload", this.reload.bind(this));
+  }
 
   isKey(s: any): s is OptionKey {
     return s in defaultOptions;
@@ -101,7 +105,7 @@ class OptionsService {
 
     if (options.length) {
       await getRepository(Option).save(options);
-      await networkCommunicator.notify();
+      await NetworkCommunicatorService.notify();
     }
   }
 
@@ -115,7 +119,7 @@ class OptionsService {
       option.value = defaultOptions[key];
       option.default = true;
       await getRepository(Option).delete(key);
-      await networkCommunicator.notify();
+      await NetworkCommunicatorService.notify();
     }
   }
 }
