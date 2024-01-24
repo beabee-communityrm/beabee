@@ -26,22 +26,15 @@ class NetworkCommunicatorService {
   /**
    * Verify a internal service request
    * @param token
-   * @returns the payload decoded if the signature is valid and optional expiration, audience, or issuer are valid. If not valid, it will return the JsonWebTokenError.
+   * @returns The payload decoded if the signature is valid and optional expiration, audience, or issuer are valid.
+   * @throws If not valid, it will throw the `JsonWebTokenError`.
    */
   private verify(authHeader?: string) {
     const token = extractToken(authHeader);
     if (!token) {
-      return new JsonWebTokenError("No token found");
+      throw new JsonWebTokenError("No token found");
     }
-    try {
-      return verify(token, config.secret);
-    } catch (error) {
-      if (error instanceof JsonWebTokenError) {
-        return error;
-      } else {
-        throw error;
-      }
-    }
+    return verify(token, config.secret);
   }
 
   /**
@@ -56,7 +49,8 @@ class NetworkCommunicatorService {
       return await axios.post(`http://${serviceName}:4000/${actionPath}`, data);
     } catch (error: any) {
       if (error.response && error.response.status === 404) {
-        log.error(`Internal service "${serviceName}" not found`, error);
+        log.warn(`Internal service "${serviceName}" not found`, error);
+        return;
       } else {
         throw error;
       }
@@ -94,13 +88,18 @@ class NetworkCommunicatorService {
     internalApp.post(
       "/reload",
       wrapAsync(async (req, res) => {
-        const payloadOrError = this.verify(req.headers?.authorization);
-        if (payloadOrError instanceof JsonWebTokenError) {
-          // Not authenticated internal service request
-          return res.sendStatus(401);
+        try {
+          const payload = this.verify(req.headers?.authorization);
+          this.events.emit("reload", payload);
+          res.sendStatus(200);
+        } catch (error) {
+          if (error instanceof JsonWebTokenError) {
+            // Not authenticated internal service request
+            return res.sendStatus(401);
+          } else {
+            throw error;
+          }
         }
-        this.events.emit("reload", payloadOrError);
-        res.sendStatus(200);
       })
     );
 
@@ -121,7 +120,8 @@ class NetworkCommunicatorService {
       const actionPath = "reload";
       await this.posts(
         ["app", "api_app", "webhook_app", "telegram_bot"],
-        actionPath
+        actionPath,
+        data
       );
     } catch (error) {
       log.error("Failed to notify webhook of options change", error);
