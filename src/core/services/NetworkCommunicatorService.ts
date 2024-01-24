@@ -20,7 +20,10 @@ class NetworkCommunicatorService {
    * @returns
    */
   private sign(payload: string | Buffer | object = {}) {
-    return sign(payload, config.secret, { algorithm: "HS256" });
+    if (!config.serviceSecret) {
+      throw new Error("No service secret found");
+    }
+    return sign(payload, config.serviceSecret, { algorithm: "HS256" });
   }
 
   /**
