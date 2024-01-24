@@ -1,5 +1,3 @@
-
-
 import { getRepository } from "@core/database";
 import _defaultOptions from "@core/defaults.json";
 import { log as mainLogger } from "@core/logging";

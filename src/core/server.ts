@@ -4,7 +4,7 @@ import * as db from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import OptionsService from "@core/services/OptionsService";
-import NetworkCommunicatorService from "@core/services/NetworkCommunicatorService"
+import NetworkCommunicatorService from "@core/services/NetworkCommunicatorService";
 
 const log = mainLogger.child({ app: "server" });
 

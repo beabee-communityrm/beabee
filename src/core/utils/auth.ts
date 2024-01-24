@@ -245,9 +245,9 @@ export async function isValidPassword(
 }
 
 export function extractToken(authHeader?: string): string | null {
-  if (!authHeader) return null
+  if (!authHeader) return null;
   if (authHeader?.startsWith("Bearer ")) {
-    return authHeader.split(' ')[1] || null;
+    return authHeader.split(" ")[1] || null;
   }
-  return null
+  return null;
 }
