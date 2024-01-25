@@ -1,8 +1,7 @@
-import axios from "axios";
-
 import { getRepository } from "@core/database";
 import _defaultOptions from "@core/defaults.json";
 import { log as mainLogger } from "@core/logging";
+import NetworkCommunicatorService from "./NetworkCommunicatorService";
 
 import Option from "@models/Option";
 
@@ -18,6 +17,10 @@ interface OptionWithDefault extends Option {
 
 class OptionsService {
   private optionCache: Record<OptionKey, OptionWithDefault> | undefined;
+
+  constructor() {
+    NetworkCommunicatorService.on("reload", this.reload.bind(this));
+  }
 
   isKey(s: any): s is OptionKey {
     return s in defaultOptions;
@@ -102,7 +105,7 @@ class OptionsService {
 
     if (options.length) {
       await getRepository(Option).save(options);
-      await this.notify();
+      await NetworkCommunicatorService.notifyAll("reload");
     }
   }
 
@@ -116,18 +119,7 @@ class OptionsService {
       option.value = defaultOptions[key];
       option.default = true;
       await getRepository(Option).delete(key);
-      await this.notify();
-    }
-  }
-
-  private async notify() {
-    try {
-      // TODO: remove hardcoded service references
-      await axios.post("http://app:4000/reload");
-      await axios.post("http://api_app:4000/reload");
-      await axios.post("http://webhook_app:4000/reload");
-    } catch (error) {
-      log.error("Failed to notify webhook of options change", error);
+      await NetworkCommunicatorService.notifyAll("reload");
     }
   }
 }
