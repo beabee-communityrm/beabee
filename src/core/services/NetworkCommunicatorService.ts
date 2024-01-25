@@ -104,7 +104,7 @@ class NetworkCommunicatorService {
   }
 
   /**
-   * Notify an internal service
+   * Notify an internal service by `serviceName`
    * @param serviceName The name of the service
    * @param actionPath The path of the action
    * @param data The data to send
@@ -150,12 +150,8 @@ class NetworkCommunicatorService {
     actionPath: string,
     payload?: string | Buffer | object
   ) {
-    try {
-      for (const serviceName in this.services) {
-        await this.notify(serviceName, actionPath, payload);
-      }
-    } catch (error) {
-
+    for (const serviceName in this.services) {
+      await this.notify(serviceName, actionPath, payload);
     }
   }
 }
