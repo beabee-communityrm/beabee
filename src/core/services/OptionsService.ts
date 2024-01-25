@@ -1,8 +1,7 @@
-import axios from "axios";
-
 import { getRepository } from "@core/database";
 import _defaultOptions from "@core/defaults.json";
 import { log as mainLogger } from "@core/logging";
+import NetworkCommunicatorService from "./NetworkCommunicatorService";
 
 import Option from "@models/Option";
 
@@ -18,6 +17,10 @@ interface OptionWithDefault extends Option {
 
 class OptionsService {
   private optionCache: Record<OptionKey, OptionWithDefault> | undefined;
+
+  constructor() {
+    NetworkCommunicatorService.on("reload", this.reload.bind(this));
+  }
 
   isKey(s: any): s is OptionKey {
     return s in defaultOptions;
@@ -102,7 +105,7 @@ class OptionsService {
 
     if (options.length) {
       await getRepository(Option).save(options);
-      await this.notify();
+      await NetworkCommunicatorService.notify();
     }
   }
 
@@ -116,51 +119,7 @@ class OptionsService {
       option.value = defaultOptions[key];
       option.default = true;
       await getRepository(Option).delete(key);
-      await this.notify();
-    }
-  }
-
-  /**
-   * Send a post request to an internal service
-   * @param serviceName The name of the service
-   * @param actionPath The path of the action
-   * @param data The data to send
-   * @returns
-   */
-  private async post(serviceName: string, actionPath: string, data?: any) {
-    try {
-      return await axios.post(`http://${serviceName}:4000/${actionPath}`, data);
-    } catch (error: any) {
-      if (error.response && error.response.status === 404) {
-        log.error(`Internal service "${serviceName}" not found`, error);
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  /**
-   * Send a post request to multiple internal services
-   * @param serviceNames The service names
-   * @param actionPath The path of the action
-   * @param data The data to send
-   */
-  private async posts(serviceNames: string[], actionPath: string, data?: any) {
-    for (const serviceName of serviceNames) {
-      await this.post(serviceName, actionPath, data);
-    }
-  }
-
-  private async notify() {
-    try {
-      // TODO: remove hardcoded service references
-      const actionPath = "reload";
-      await this.posts(
-        ["app", "api_app", "webhook_app", "telegram_bot"],
-        actionPath
-      );
-    } catch (error) {
-      log.error("Failed to notify webhook of options change", error);
+      await NetworkCommunicatorService.notify();
     }
   }
 }

@@ -1,22 +1,12 @@
-import express, { Express } from "express";
+import { Express } from "express";
 
 import * as db from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import { wrapAsync } from "@core/utils";
 
 import OptionsService from "@core/services/OptionsService";
+import NetworkCommunicatorService from "@core/services/NetworkCommunicatorService";
 
 const log = mainLogger.child({ app: "server" });
-
-const internalApp = express();
-
-internalApp.post(
-  "/reload",
-  wrapAsync(async (req, res) => {
-    await OptionsService.reload();
-    res.sendStatus(200);
-  })
-);
 
 export async function initApp() {
   log.info("Initializing app...");
@@ -30,11 +20,10 @@ export function startServer(app: Express) {
   app.set("trust proxy", true);
 
   const server = app.listen(3000);
-  const internalServer = internalApp.listen(4000);
+  NetworkCommunicatorService.startServer();
 
   process.on("SIGTERM", () => {
     log.debug("Waiting for server to shutdown");
-    internalServer.close();
     server.close();
     db.close();
 

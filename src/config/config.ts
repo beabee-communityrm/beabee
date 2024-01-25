@@ -85,6 +85,7 @@ export default {
   audience: env.s("BEABEE_AUDIENCE"),
   dev: env.b("BEABEE_DEV"),
   secret: env.s("BEABEE_SECRET"),
+  serviceSecret: env.s("BEABEE_SERVICE_SECRET"),
   session: env.s("BEABEE_SESSION", "session"),
   cookie: {
     domain: env.s("BEABEE_COOKIE_DOMAIN"),
