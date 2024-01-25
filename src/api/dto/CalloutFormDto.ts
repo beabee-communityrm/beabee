@@ -15,7 +15,11 @@ import {
   IsIn,
   IsOptional,
   IsString,
-  ValidateNested
+  ValidateBy,
+  ValidateNested,
+  ValidationOptions,
+  buildMessage,
+  validate
 } from "class-validator";
 
 const inputTypes = [
@@ -37,7 +41,6 @@ abstract class BaseCalloutComponentDto implements BaseCalloutComponentSchema {
   abstract type: string;
   abstract input?: boolean;
 
-  // TODO
   [key: string]: unknown;
 
   @IsString()
@@ -143,8 +146,36 @@ function ComponentType() {
           name: type
         }))
       ]
-    }
+    },
+    keepDiscriminatorProperty: true
   });
+}
+
+// This is hack to disable whitelist validation for components because
+// the schema for a component has loads of properties and it would take
+// a long time to list them all.
+// TODO: validate properly!
+function IsComponent(validationOptions?: ValidationOptions) {
+  return ValidateBy(
+    {
+      name: "isComponent",
+      validator: {
+        async validate(value: unknown) {
+          if (typeof value !== "object" || value === null) return false;
+          const error = await validate(value, {
+            whitelist: false,
+            forbidUnknownValues: true
+          });
+          return error.length === 0;
+        },
+        defaultMessage: buildMessage(
+          (eachPrefix) => eachPrefix + "$property must be a valid component",
+          validationOptions
+        )
+      }
+    },
+    validationOptions
+  );
 }
 
 type CalloutComponentDto =
@@ -163,7 +194,7 @@ class NestableCalloutComponentDto
   @Equals(false)
   input!: false;
 
-  @ValidateNested({ each: true })
+  @IsComponent({ each: true })
   @ComponentType()
   components!: CalloutComponentDto[];
 }
@@ -189,7 +220,7 @@ class CalloutSlideDto implements CalloutSlideSchema {
   @IsString()
   title!: string;
 
-  @ValidateNested({ each: true })
+  @IsComponent({ each: true })
   @ComponentType()
   components!: CalloutComponentDto[];
 

@@ -1,4 +1,4 @@
-import { CalloutFormSchema, ItemStatus } from "@beabee/beabee-common";
+import { ItemStatus } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
   Equals,
@@ -8,7 +8,6 @@ import {
   IsEnum,
   IsIn,
   IsNumber,
-  IsObject,
   IsOptional,
   IsString,
   Max,
@@ -17,6 +16,7 @@ import {
 } from "class-validator";
 
 import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
+import { CalloutFormDto } from "@api/dto/CalloutFormDto";
 import { LinkDto } from "@api/dto/LinkDto";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
@@ -28,7 +28,6 @@ import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
 import { CalloutAccess } from "@enums/callout-access";
 
 import { CalloutData } from "@type/callout-data";
-import { CalloutFormDto } from "./CalloutFormDto";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -189,6 +188,7 @@ export class CreateCalloutDto extends BaseCalloutDto {
   thanksText!: string;
 
   @ValidateNested()
+  @Type(() => CalloutFormDto)
   formSchema!: CalloutFormDto;
 }
 
@@ -218,5 +218,6 @@ export class GetCalloutDto extends BaseCalloutDto {
 
   @IsOptional()
   @ValidateNested()
+  @Type(() => CalloutFormDto)
   formSchema?: CalloutFormDto;
 }
