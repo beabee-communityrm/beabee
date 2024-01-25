@@ -105,7 +105,7 @@ class OptionsService {
 
     if (options.length) {
       await getRepository(Option).save(options);
-      await NetworkCommunicatorService.notify();
+      await NetworkCommunicatorService.notifyAll("reload");
     }
   }
 
@@ -119,7 +119,7 @@ class OptionsService {
       option.value = defaultOptions[key];
       option.default = true;
       await getRepository(Option).delete(key);
-      await NetworkCommunicatorService.notify();
+      await NetworkCommunicatorService.notifyAll("reload");
     }
   }
 }
