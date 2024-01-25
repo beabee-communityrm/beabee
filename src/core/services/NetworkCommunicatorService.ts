@@ -18,10 +18,10 @@ class NetworkCommunicatorService {
 
   // TODO: remove hardcoded service references
   private services: NetworkServiceMap = {
-    app: {},
-    api_app: {},
-    webhook_app: {},
-    telegram_bot: { optional: true }
+    app: { host: "http://app:4000" },
+    api_app: { host: "http://api_app:4000" },
+    webhook_app: { host: "http://webhook_app:4000" },
+    telegram_bot: { host: "http://telegram_bot:4000", optional: true }
   };
 
   /**
@@ -80,14 +80,14 @@ class NetworkCommunicatorService {
    * * Verifies the request token
    * * If the request is authenticated, it will emit the event with the payload
    * @throws JsonWebTokenError if the request is not authenticated
-   * @emits The event with the payload, e.g. "user:created" if the route is "/user/created" or 'reload' if the route is '/reload'
+   * @emits reload The `reload` event with the payload
    * @param req
    * @param res
    */
   private async onInternalServiceRequest(req: Request, res: Response) {
     // Get the action from request path
     const actionPath = req.path.substring(1);
-    // Convert action path to event name
+    // Convert action path to event name, e.g. "user:created" if the route is "/user/created" or 'reload' if the route is '/reload'
     const eventName = actionPath.replaceAll("/", ":");
     try {
       const payload = this.verify(req.headers?.authorization);
@@ -127,17 +127,16 @@ class NetworkCommunicatorService {
 
     try {
       // Payload parameter is undefined here because the payload is encrypted in the bearer token
-      return await axios.post(
-        `http://${serviceName}:4000/${actionPath}`,
-        undefined,
-        {
-          headers
-        }
-      );
+      return await axios.post(`${service.host}/${actionPath}`, undefined, {
+        headers
+      });
     } catch (error) {
       // If the service is optional and the request fails, ignore the error otherwise log it
       if (!service.optional) {
-        log.error("Failed to notify webhook of options change", error);
+        log.error(
+          `Failed to notify "${serviceName}" service of options change`,
+          error
+        );
       }
     }
   }
