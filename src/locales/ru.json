@@ -126,7 +126,6 @@
       "revenue": "Доход",
       "title": "За последние 30 дней"
     },
-    "responsesSoFar": "{n} ответ | {n} ответов | {n} ответа",
     "supportInbox": "<p>Нужна помощь? Зайдите в <a href=\"https://wiki.beabee.io/help-center-english/\" target=\"_blank\" rel=\"noopener noreferrer\">Справочный центр</a> или напишите в поддержку: <a href=\"mailto:support{'@'}beabee.io\">support{'@'}beabee.io</a></p>\n",
     "welcomeBack": "Рады снова вас видеть, {firstName}!"
   },
@@ -248,8 +247,7 @@
   },
   "calloutResponsePage": {
     "actions": {},
-    "notifications": {},
-    "selectedCount": "{n} ответ выбран | {n} ответов выбрано"
+    "notifications": {}
   },
   "calloutResponsesPage": {
     "moveToBucket": "Перенести в {bucket}",
@@ -290,11 +288,10 @@
     "copy": "Скопировать",
     "goBack": "Назад",
     "hello": "Привет,",
-    "itemsPerPage": "{items} объектов на странице",
     "joined": "Вы присоединились",
     "loading": "Загрузка...",
     "login": "Войти",
-    "month": "месяц | месяцев",
+    "month": "месяц | месяца | месяцев",
     "monthly": "ежемесячно",
     "newsletterStatus": {
       "cleaned": "Очищено",
@@ -331,7 +328,7 @@
     "timeAgo": "до {time}",
     "timeIn": "в {time}",
     "until": "до",
-    "year": "год | лет",
+    "year": "год | года | лет",
     "yes": "Да"
   },
   "contactContribution": {
@@ -621,8 +618,7 @@
     },
     "saveChanges": "Сохранить изменения",
     "saved": "Изменения сохранены",
-    "unsavedChanges": "Есть несохранённые изменения",
-    "warning": "Важно: данные на этой странице можно изменить только с согласия пользователя. Изменения увидят другие пользователи. "
+    "unsavedChanges": "Есть несохранённые изменения"
   },
   "formRenderer": {
     "components": {
@@ -638,7 +634,7 @@
   },
   "homePage": {
     "editProfile": "Настроить ваш профиль",
-    "manageYourContribution": "Изменить ваш взнос",
+    "manageContribution": "Изменить ваш взнос",
     "newCallout": "Новый опрос!",
     "openCallouts": "Открытые опросы",
     "quickActions": "Быстрые действия",

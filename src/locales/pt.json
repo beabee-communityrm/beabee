@@ -1,0 +1,885 @@
+{
+  "accountPage": {
+    "contactInformation": "Informação de contacto",
+    "deliveryAddress": "Endereço de entrega",
+    "deliveryOptIn": "Optar por receber",
+    "loginDetail": "Detalhes de login",
+    "mfa": {
+      "codeInput": {
+        "info": "Caso tenha perdido o seu disppositvo de 2FA entre em contacto connosco.",
+        "label": "Código"
+      },
+      "confirmDelete": {
+        "desc": "Tem certeza de que deseja desativar a Autenticação de Múltiplos Fatores?\n A partir de então, você só precisará de sua senha para fazer login. \nLembre-se de excluir a entrada do seu aplicativo Autenticador. Você \nsempre pode ativá-la novamente.",
+        "descToken": "Para desativar o 2FA, por favor, insira o seu código 2FA atual:",
+        "title": "Desactivar 2FA"
+      },
+      "createUnknownErrorNotification": "A autenticação de dois fatores não pôde ser salva devido a um erro \ndesconhecido. Por favor, tente novamente ou contate o suporte.",
+      "deleteUnknownErrorNotification": "A autenticação de dois fatores não pôde ser apagada devido a um erro \ndesconhecido. Por favor, tente novamente ou contate o suporte.",
+      "disabledNotification": "Autentição de dois factores desactivada com sucesso",
+      "enabledNotification": "Autentição de dois factores activada com sucesso",
+      "enterCode": {
+        "desc": "Insira o código que vem na sua app de autenticação",
+        "title": "Verificação"
+      },
+      "modalTitle": "Activar autenticação de dois factores",
+      "result": {
+        "invalidCode": "O código não pode ser validado. Tente de novo ou contacte-nos {support}",
+        "successful": "Autenticação de dois factores activada com sucesso!",
+        "title": "Feito"
+      },
+      "scan": {
+        "desc": "Faça scan do código QR abaixo, usando a sua app de autenticação.",
+        "title": "Código QR"
+      },
+      "secretInput": {
+        "desc": "Alternativamente pode inserir o seguinte código na sua app de autentiação.",
+        "label": "Código secreto"
+      },
+      "title": "Autenticação de dois factores",
+      "validateButton": {
+        "label": "Verificar token"
+      }
+    },
+    "newsletter": {
+      "cantUpdate": "Para mudar o estado deste contacto relativamente à newsletter, por favor contacte o suporte em support{'@'}beabee.io.",
+      "currentStatus": {
+        "cleaned": "Este contacto foi retirado automaticamente da lista de assinantes da newsletter, provavelmente porque o seu endereço de e-mail está a devolver as mensagens.",
+        "none": "Este contacto não assina a newsletter.",
+        "pending": "Este contacto recebeu o pedido para assinar a newsletter, e só se tornará assinante quando aceitar.",
+        "subscribed": "Este contacto assina a newsletter.",
+        "unsubscribed": "Este contacto não assina a newsletter."
+      },
+      "subscribe": "Inscrever na newsletter",
+      "title": "Newsletter",
+      "unsubscribe": "Suspender inscrição na newsletter"
+    },
+    "savedPassword": "Nova palavra-passe gravada",
+    "subTitle": "Os campos obrigatórios estão marcados com asteriscos. Toda a informação enviada por aqui é privada.",
+    "title": "Conta"
+  },
+  "actions": {
+    "add": "Adicionar",
+    "back": "Voltar atrás",
+    "backToLogin": "Voltar ao login",
+    "cancel": "Cancelar",
+    "changePassword": "Mudar palavra-passe",
+    "chooseFile": "Escolher um ficheiro",
+    "close": "Fechar",
+    "continue": "Continuar",
+    "create": "Criar",
+    "delete": "Apagar",
+    "disable": "Desactivar",
+    "edit": "Editar",
+    "enable": "Activar",
+    "endnow": "Concluir agora",
+    "export": "Exportar",
+    "getStarted": "Começar",
+    "next": "Próxima",
+    "noBack": "Não, voltar atrás",
+    "participate": "Participar",
+    "preview": "Pré-visualizar",
+    "publish": "Publicar",
+    "reopen": "Reabrir",
+    "replicate": "Replicar",
+    "reset": "Reiniciar",
+    "reset2FA": "Fazer reset de 2FA",
+    "resetPassword": "Repôr a palavra-passe",
+    "respond": "Responder",
+    "revertToDraft": "Converter em rascunho",
+    "save": "Gravar",
+    "saveAndAnother": "Gravar e adicionar outra",
+    "saveDraft": "Gravar rascunho",
+    "schedule": "Agendar",
+    "search": "Pesquisar",
+    "skip": "Saltar",
+    "submit": "Enviar",
+    "unpublish": "Despublicar",
+    "update": "Atualizar",
+    "view": "Ver",
+    "yesDelete": "Sim, apagar",
+    "yesDisable": "Sim, desactivar",
+    "yesRemove": "Sim, remover"
+  },
+  "addContact": {
+    "contactSaved": "Contacto gravado",
+    "errors": {
+      "duplicateEmail": "Este endereço de e-mail já existe"
+    },
+    "subscribeToNewsletter": "Sincronizar com ferramenta de newsletter",
+    "title": "Adicionar um contacto"
+  },
+  "addNotice": {
+    "form": {}
+  },
+  "adminDashboard": {
+    "hint1": "<p>Sabia que as chamadas podem ser criadas sem data de conclusão, e assim continuarem indefinidamente? Há mais pormenores na nossa <a href=\"https://beabee.io/en/beabee-full-feature-list/\" target=\"_blank\" rel=\"noopener noreferrer\">demonstração de funcionalidades</a></p>\n",
+    "hint2": "<p>Saiba mais sobre a <a href=\"https://beabee.io/en/beabee-model/\" target=\"_blank\" rel=\"noopener noreferrer\">visão beabee</a> no que toca ao envolvimento de comunidade e formar relações com o seu público.</p>\n",
+    "hint3": "<p>O nosso <a href=\"https://beabee.io/en/beabee-faq/\" target=\"_blank\" rel=\"noopener noreferrer\">FAQ</a> aborda questões frequentes sobre como começar e casos de estudo. Se a resposta que procura não estiver lá, contacte-nos.</p>\n",
+    "joinSlack": "Junte-se à comunidade beabee no Slack!",
+    "latestCallout": {
+      "createNew": "Criar nova?",
+      "empty": "Não há chamadas ativas neste momento.",
+      "title": "Última chamada"
+    },
+    "mostRecentMembers": {
+      "title": "Membros mais recentes"
+    },
+    "numbers": {
+      "averageContribution": "Contributo mensal médio",
+      "newMembers": "Novos membros",
+      "revenue": "Receitas",
+      "title": "Números dos últimos 30 dias"
+    },
+    "responsesSoFar": "{n} resposta dada | {n} respostas dadas",
+    "seeAllResponses": "Ver todas as respostas",
+    "supportInbox": "<p>É preciso ajuda? Temos à disposição o <a href=\"https://wiki.beabee.io/help-center-english/\" target=\"_blank\" rel=\"noopener noreferrer\">Centro de Ajuda beabee</a> ou o nosso e-mail de suporte: <a href=\"mailto:support{'@'}beabee.io\">support{'@'}beabee.io</a></p>\n",
+    "welcomeBack": "Bem-vindo/a de volta, {firstName}!"
+  },
+  "adminSettings": {
+    "apikey": {
+      "confirmCreate": {},
+      "confirmDelete": {},
+      "expires": {}
+    },
+    "email": {},
+    "general": {
+      "footer": {
+        "dataPrivacy": {},
+        "otherLinks": {}
+      },
+      "socialSharing": {}
+    },
+    "theme": {
+      "colorNames": {},
+      "presetColors": {}
+    }
+  },
+  "advancedSearch": {
+    "matchType": {},
+    "matchWord": {},
+    "operators": {
+      "all": {},
+      "array": {},
+      "blob": {},
+      "boolean": {},
+      "date": {},
+      "enum": {},
+      "number": {},
+      "text": {}
+    },
+    "saveSegment": {
+      "createOrUpdate": {}
+    }
+  },
+  "apiKey": {
+    "data": {}
+  },
+  "callout": {
+    "actions": {
+      "updateResponse": "Actualziar a sua resposta"
+    },
+    "addAPoint": "Carrega no mapa no sítio onde quer adicionar um ponto.",
+    "addLocation": "Adicionar localização",
+    "contactDetails": "Detalhes de contacto",
+    "ended": "Este callout acabou a {date}",
+    "form": {
+      "email": "O seu e-mail",
+      "guestFieldsMissing": "Diga-nos os seus detalhes de contacto",
+      "name": "O seu nome",
+      "submittingResponseError": "Houve um problema a enviar a sua resposta, por favor tente novamente"
+    },
+    "getStarted": "Começar",
+    "joinNow": "Inscreva-se agora",
+    "loginToYourAccount": "Entrar na sua conta",
+    "membersOnly": "Esta chamada está aberta apenas a membros. Para participar",
+    "responseSubmitted": "Resposta submetida",
+    "share": {
+      "address": "Pode partilhar esta chamada com este endereço:",
+      "services": "Ou partilhe rapidamente com um destes serviços:"
+    },
+    "toContributionPage": "Editar o meu contributo",
+    "updateContribution": "por favor atualize o seu contributo",
+    "views": {
+      "gallery": "Galeria",
+      "map": "Mapa"
+    },
+    "youResponded": "Já respondeu a esta chamada ♥",
+    "yourResponse": "A sua resposta"
+  },
+  "calloutAdmin": {},
+  "calloutAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    },
+    "dates": {},
+    "settings": {
+      "answers": {},
+      "contactInfo": {},
+      "endsWith": {},
+      "openTo": {}
+    }
+  },
+  "calloutBuilder": {
+    "actions": {},
+    "nextSlide": {}
+  },
+  "calloutResponse": {
+    "data": {
+      "answers": "Respostas",
+      "assignee": "Atribuído a",
+      "bucket": "Balde",
+      "callout": "Chamada",
+      "contact": "Contacto",
+      "createdAt": "Data de envio",
+      "tags": "Etiquetas",
+      "updatedAt": "Data de atualização"
+    },
+    "dataGroup": {
+      "answers": "Perguntas",
+      "response": "Resposta"
+    }
+  },
+  "calloutResponseBuckets": {
+    "inbox": "Caixa de entrada",
+    "trash": "Lixo",
+    "verified": "Verificadas"
+  },
+  "calloutResponseComments": {
+    "actions": {
+      "addComment": "Adicionar comentário",
+      "updateComment": "Editar comentário"
+    },
+    "addComment": "Adicionar um comentário",
+    "comments": "Comentários",
+    "confirmDelete": {
+      "text": "Tem a certeza que quer apagar este comentário?",
+      "title": "Apagar comentário?"
+    }
+  },
+  "calloutResponsePage": {
+    "actions": {
+      "assignTo": "Atribuir a",
+      "moveBucket": "Mover balde",
+      "toggleTag": "Ativar etiqueta"
+    },
+    "editMode": "Está no modo de edição, cuidado!",
+    "manageTags": "Gerir etiquetas",
+    "notifications": {
+      "addedAssignee": "Atribuída a {assignee}",
+      "addedTag": "Etiqueta \"{tag}\" acrescentada",
+      "movedToBucket": "Movida para {bucket}",
+      "removedAssignee": "Atribuição a {assignee} removida",
+      "removedTag": "Etiqueta \"{tag}\" removida"
+    },
+    "responseOf": "Resposta {no} de um total de {total} em {bucket}",
+    "selectedCount": "{n} resposta selecionada | {n} respostas selecionadas"
+  },
+  "calloutResponsesPage": {
+    "moveToBucket": "Mover para {bucket}",
+    "noTags": "Sem etiquetas",
+    "response": "Resposta",
+    "responseNo": "Resposta {no}",
+    "searchAssignee": "Atribuída a...",
+    "searchTag": "Etiquetada com...",
+    "showAnswer": "Resposta",
+    "showLatestComment": "Último comentário",
+    "showingOf": "Respostas {start} a {end} de um total de {total}"
+  },
+  "callouts": {
+    "archive": "Arquivo",
+    "data": {
+      "callout": "Chamada",
+      "endDate": "Data de conclusão"
+    },
+    "noArchivedCallouts": "Não há chamadas",
+    "search": "Pesquisar chamadas...",
+    "showAll": "Todas",
+    "showAnswered": "Respondidas",
+    "showingOf": "Chamadas {start} a {end} de um total de {total}"
+  },
+  "calloutsAdmin": {
+    "data": {},
+    "filter": {}
+  },
+  "common": {
+    "annually": "Anualmente",
+    "backToHome": "Voltar ao início",
+    "contributing": "Contribuindo",
+    "contributionType": {
+      "automatic": "Automática",
+      "gift": "Presente",
+      "manual": "Manual",
+      "none": "Nenhuma"
+    },
+    "copy": "Copiar",
+    "goBack": "Voltar atrás",
+    "hello": "Olá",
+    "itemsPerPage": "{items} itens por página",
+    "joined": "Juntou-se",
+    "loading": "A carregar...",
+    "login": "Login",
+    "month": "mês | meses",
+    "monthly": "Mensalmente",
+    "newsletterStatus": {
+      "cleaned": "Limpo",
+      "none": "Nenhum",
+      "pending": "Pendente",
+      "subscribed": "Inscrito",
+      "unsubscribed": "Não inscrito"
+    },
+    "no": "Não",
+    "noResults": "Nenhum resultado encontrado",
+    "pageCount": "Página {pageNumber} de {pageTotal}",
+    "paymentStatus": {
+      "cancelled": "Cancelado",
+      "failed": "Falhado",
+      "pending": "A aguardar",
+      "successful": "Sucesso"
+    },
+    "role": {
+      "admin": "Administrador",
+      "member": "Membro",
+      "superadmin": "Super Administrador"
+    },
+    "selectNone": "Nenhum",
+    "selectOne": "Escolher uma opção...",
+    "share": "Partilhar",
+    "show": "Mostrar",
+    "status": {
+      "draft": "Rascunho",
+      "ended": "Concluído",
+      "open": "Aberto",
+      "scheduled": "Agendado"
+    },
+    "thankYou": "Obrigado!",
+    "timeAgo": "há {time}",
+    "timeIn": "em {time}",
+    "until": "até",
+    "year": "ano | anos",
+    "yes": "Sim"
+  },
+  "contactContribution": {
+    "confirmCancel": {},
+    "updateNotice": {}
+  },
+  "contactOverview": {
+    "annotation": {},
+    "security": {
+      "mfa": {
+        "desc": "Este contato ativou o 2FA. Clique no botão \"{ disableLabel }\" para desativar.",
+        "disabledDesc": "Este contato não ativou o 2FA."
+      }
+    }
+  },
+  "contacts": {
+    "addContact": "Adicionar contacto",
+    "allContacts": "Todos os contactos",
+    "data": {
+      "activeMembership": "Membro ativo",
+      "activePermission": "Cargo ativo",
+      "amount": "Montante",
+      "annotationsCopy": "Contacto atualizado",
+      "contribution": "Contributo",
+      "contributionCancelled": "Contributo cancelado",
+      "contributionMonthlyAmount": "Montante mensal do contributo",
+      "contributionPeriod": "Período do contributo",
+      "contributionType": "Tipo de contributo",
+      "description": "Descrição",
+      "email": "E-mail",
+      "firstname": "Primeiro nome",
+      "groups": "Grupos",
+      "joined": "Inscreveu-se em",
+      "lastSeen": "Visto pela última vez em",
+      "lastname": "Último nome",
+      "manualPaymentSource": "Pagamento manual",
+      "membershipExpires": "Membro até",
+      "membershipStarts": "Membro desde",
+      "name": "Nome",
+      "newsletter": "Newsletter",
+      "newsletterStatus": "Assinatura da newsletter",
+      "notes": "Notas",
+      "payingFee": "Suporta a taxa?",
+      "paymentReference": "Referência do pagamento",
+      "paymentSource": "Fonte do pagamento",
+      "period": "Período",
+      "phone": "Telefone",
+      "preferredChannel": "Canal preferido",
+      "tags": "Etiquetas"
+    },
+    "dataGroup": {
+      "contact": "Contacto",
+      "contribution": "Contributo",
+      "role": "Cargo"
+    },
+    "noContacts": "Nenhum contacto ainda adicionado",
+    "noResults": "Nenhum contacto encontrado",
+    "numResults": "{n} contacto encontrado | {n} contactos encontrados",
+    "search": "Pesquisar contactos...",
+    "showingOf": "Contactos {start} a {end} de um total de {total}"
+  },
+  "contribution": {
+    "adminCancelDescription": "Se cancelar a sua contribuição deste contacto a sua adesão terminará no fim deste ciclo de pagamento a {date}.",
+    "bankAccount": "Conta bancária",
+    "billing": "Facturação",
+    "cancelContribution": "Cancelar contribuição",
+    "cancelDescription": "Se cancelar a sua contribuição a sua adesão terminará no fim deste ciclo de pagamento a {date}.",
+    "cancelMessage": "Lamentamos que queira sair.",
+    "cancelledContribution": "A sua contribuição foi cancelada.",
+    "changeBank": "Mudar para outra conta bancária",
+    "changeBankInfo": "No próximo passo vai poder inserir os detalhes bancários da sua nova conta.",
+    "contributing": "Está a contribuir",
+    "contributingAmount": "{amount} por {period}",
+    "contributionUpdateError": "Não é possível actualizar o seu pagamento já que este se encontra pendente.",
+    "dueToRenew": "A sua contribuição vai renovar a {renewalDate}.",
+    "expired": "A sua contribuição expirou.",
+    "expiredText": "Pense por favor em renovar, nem que seja pelo valor mais baixo. É uma ajuda inestimável. Obrigado!",
+    "hasPendingPayment": "O seu pagamento está presentemente a ser processado",
+    "manualPayment": "A sua contribuição está a ser page via {source}. Se começar a pagar usando o nosso sistema de contribuições vai estar a ajudar-nos a perceber quanto dinheiro recebemos por mês dos nossos membros, e será mais fácil para si gerir a sua contribuição mensal.",
+    "manualPaymentSource": "Uma ferramenta desenvolvida por outra organização",
+    "nextAmountChanging": "A sua contribuição mudará para {nextAmount} a {renewalDate}.",
+    "paymentHistory": {
+      "empty": "Os pagamentos já realizados vão aparecer aqui.",
+      "title": "Histórico de pagamentos"
+    },
+    "paymentMethod": "Método de pagamento",
+    "paymentSourceUpdateError": "Não é possível actualizar a sua conta bancária já que o sue pagamento se encontra pendente.",
+    "prorateDecreaseMessage": "Restam {monthsLeft} {months} na sua contribuição actual. A sua nova contriuibção começará a {renewalDate}.",
+    "prorateIncreaseMessage": "Tem {monthsLeft} {months} restantes na sua contribuição actual. Pode fazer um pagamento único {oneOffPayment} para arrancar com a sua contribuição desde já.",
+    "prorateNoText": "Manter-se-á na sua contribuição actual ate lá.",
+    "prorateNoTitle": "Actualizar a minha contribuição a {renewalDate}",
+    "prorateYesText": "Ser-lhe-á cobrado um pagamento único {oneOffPayment} agora e a sua contribuição será actualizada de forma imediata.",
+    "prorateYesTitle": "Actualizar a minha contribuição agora",
+    "restartContribution": "Começar a contribuir de novo",
+    "startContribution": "Começar a contribuir",
+    "startedContribution": "A sua contribuição começou.",
+    "updateContribution": "Actualizar contribuição",
+    "updatePaymentType": "Definir novo método de pagamento",
+    "updatedContribution": "A sua contribuição foi actualizada.",
+    "updatedPaymentSource": "O seu método de pagamento foi actualizado.",
+    "willExpire": "A sua contribuição vai expirar a {expires}.",
+    "willRenew": "A sua contribuição vai renovar automaticamente a {renewalDate}.",
+    "willRenewWithNewAmount": "A sua contribuição vai renovar automaticamente a {renewalDate}, passando para a nova quantia de {nextAmount}."
+  },
+  "createCallout": {
+    "steps": {
+      "content": {},
+      "dates": {
+        "inputs": {
+          "expires": {
+            "opts": {}
+          },
+          "starts": {
+            "opts": {}
+          }
+        }
+      },
+      "endMessage": {
+        "inputs": {
+          "action": {
+            "opts": {}
+          },
+          "text": {},
+          "title": {},
+          "url": {}
+        }
+      },
+      "mailchimp": {},
+      "settings": {
+        "inputs": {
+          "anonymous": {
+            "opts": {}
+          },
+          "editable": {
+            "opts": {}
+          },
+          "mapSchema": {
+            "addressPattern": {},
+            "addressPatternProp": {},
+            "addressProp": {},
+            "bounds": {},
+            "center": {},
+            "initialZoom": {},
+            "maxZoom": {},
+            "minZoom": {},
+            "style": {}
+          },
+          "multiple": {
+            "opts": {}
+          },
+          "responseImageFilter": {},
+          "responseImageProp": {},
+          "responseLinks": {},
+          "responseTitleProp": {},
+          "showResponses": {},
+          "visible": {
+            "opts": {}
+          },
+          "whichResponseBuckets": {},
+          "whichResponseViews": {
+            "opts": {}
+          },
+          "who": {
+            "opts": {}
+          }
+        }
+      },
+      "titleAndImage": {
+        "inputs": {
+          "description": {},
+          "image": {},
+          "intro": {},
+          "overrideShare": {
+            "opts": {}
+          },
+          "shareDescription": {},
+          "shareTitle": {},
+          "slug": {
+            "opts": {}
+          },
+          "title": {}
+        }
+      }
+    }
+  },
+  "editCallout": {},
+  "editNotice": {},
+  "footer": {
+    "contactUs": "Entre em contacto connosco em",
+    "handbookResources": "Manual e recursos",
+    "impressum": "Impressum",
+    "joinCommunity": "Junte-se à comunidade",
+    "poweredBy": "a impulsionar redações locais e independentes",
+    "privacyPolicy": "Política de privacidade",
+    "terms": "Termos e condições"
+  },
+  "forgotPassword": {
+    "backToLogin": "Voltar à página de login",
+    "description": "Indique-nos o seu e-mail e trataremos de enviar as instruções para repôr a sua palavra-passe.",
+    "message": "Se existir uma conta associada com o endereço {email}, receberá um e-mail dentro de momentos. Deverá ter recebido um e-mail com instruções na sua caixa de entrada. Verifique a sua pasta de spam se não tiver aparecido.",
+    "title": "Esqueceu-se da palavra-passe?"
+  },
+  "form": {
+    "addressLine1": "Endereço (linha 1)",
+    "addressLine2": "Endereço (linha 2)",
+    "cancel": "Cancelar",
+    "cityOrTown": "Localidade",
+    "deliveryOptIn": "Escolher inscrição",
+    "description": "Descrição",
+    "email": "Email",
+    "errorMessages": {
+      "api": {
+        "account-locked": "Conta trancada por demasiadas tentativas de login. Faça reset da sua password ou entre em contacto connosco.",
+        "duplicate-email": "Este endereço de e-mail já existe",
+        "invalid-token": "Token 2FA inválido",
+        "login-failed": "Combinação inválida de email e palavra-passe",
+        "mfa-token-required": "Você ativou a autenticação de dois fatores, portanto, precisa do token \nda sua aplicação de autenticação para redefinir sua senha. Por favor, \ninsira-o."
+      },
+      "generic": "Algo não correu como devia! Contacte o nosso suporte se isto voltar a acontecer.",
+      "validation": "Há elementos em falta, veja os campos acima."
+    },
+    "errors": {
+      "address": {
+        "required": "Este campo é obrigatório se quiser adicionar um endereço"
+      },
+      "addressLine1": {
+        "required": "A primeira linha do endereço é obrigatória"
+      },
+      "cityOrTown": {
+        "required": "A localidade é obrigatória"
+      },
+      "color": {
+        "pattern": "Cor inválida",
+        "required": "A cor é obrigatória"
+      },
+      "confirmPassword": {
+        "password": "Palavra-passe inválida",
+        "required": "A palavra-passe é obrigatória",
+        "sameAs": "As palavras-passe não coincidem"
+      },
+      "email": {
+        "email": "Endereço de email inválido",
+        "required": "O email é obrigatório"
+      },
+      "file": {
+        "rateLimited": "Falha no upload: fizeste upload de demasiados ficheiros, num tempo apertado. Espera um pouco e volta a tentar.",
+        "tooBig": "Falha no upload: o ficheiro deve ter menos de 20Mb."
+      },
+      "firstName": {
+        "required": "O primeiro nome é obrigatório"
+      },
+      "lastName": {
+        "required": "O último nome é obrigatório"
+      },
+      "name": {
+        "required": "O nome é obrigatório"
+      },
+      "password": {
+        "password": "Palavra-passe inválida",
+        "required": "A palavra-passe é obrigatória",
+        "sameAs": "As palavras-passe não coincidem"
+      },
+      "postCode": {
+        "required": "O código postal é obrigatório"
+      },
+      "unknown": {
+        "email": "Endereço de email inválido",
+        "max": "Este campo pode ter no máximo {max}",
+        "min": "Este campo tem de ser pelo menos {min}",
+        "required": "Este campo é obrigatório",
+        "url": "URL inválido"
+      },
+      "url": {
+        "required": "O URL é obrigatório",
+        "url": "URL inválido"
+      },
+      "verifyCode": {
+        "max": "O código deve ter no máximo {max} caracteres.",
+        "min": "O código deve ter no mínimo {min} caracteres.",
+        "required": "O código é obrigatório"
+      }
+    },
+    "firstName": "Primeiro nome",
+    "lastName": "Último nome",
+    "newPassword": "Nova palavra-passe",
+    "newPasswordConfirm": "Confirmar nova palavra-passe",
+    "notes": "Notas",
+    "password": "Palavra-passe",
+    "passwordInfo": "Definir uma palavra-passe segura: 8 ou mais caracteres, incluindo um número, letras maiúsculas e letras minúsculas.",
+    "phone": "Telefone",
+    "postCode": "Código postal",
+    "richtext": {
+      "bold": "Negrito",
+      "bulletlist": "Lista",
+      "heading": "Cabeçalho",
+      "italic": "Itálico",
+      "link": "Link",
+      "numberedlist": "Lista numerada",
+      "strikethrough": "Rasurado",
+      "underline": "Sublinhado"
+    },
+    "saveChanges": "Gravar alterações",
+    "saved": "Gravado!",
+    "unsavedChanges": "Alterações não gravadas",
+    "updated": "Atualizado"
+  },
+  "formRenderer": {
+    "components": {
+      "file": {
+        "browse": "Fazer upload do dispositivo",
+        "dropFiles": "Largar ficheiros aqui para a anexar",
+        "or": "Ou",
+        "switchToFileUpload": "Mudar para upload de ficheiros",
+        "takePicture": "Tirar foto",
+        "useCamera": "Usar câmera"
+      }
+    }
+  },
+  "homePage": {
+    "editProfile": "Editar o seu perfil de comunidade",
+    "manageContribution": "Gerir o seu contributo",
+    "newCallout": "Nova chamada!",
+    "openCallouts": "Chamadas abertas",
+    "quickActions": "Ações rápidas",
+    "title": "Página inicial",
+    "viewAllCallouts": "Ver todas as chamadas",
+    "viewOpenCallouts": "Ver chamadas abertas",
+    "welcome": "Damos-lhe as boas-vindas, {firstName}!",
+    "yourProfile": "O seu perfil"
+  },
+  "item": {
+    "status": {
+      "endedOn": "a {date}",
+      "endsIn": "Acaba em {duration}",
+      "startsIn": "Começa em {duration}"
+    }
+  },
+  "join": {
+    "absorbFeeForce": "É necessário que {amount} contributos suportem a taxa de {fee}.",
+    "absorbFeeOptIn": "Sim, posso suportar a taxa de {fee}.",
+    "absorbFeeText": "O nosso processador de pagamentos cobra-nos por transação, o que significa que perdemos uma parte de cada contributo mensal. Estaria disposto/a a suportar a taxa de {fee}? Em alternativa, pode pagar anualmente.",
+    "contribute": "Contribuir {amount} / {period}",
+    "errors": {
+      "confirmEmail": {
+        "message": "Estamos quase lá! Precisamos apenas de confirmar o seu endereço de e-mail para concluir a criação da sua conta.",
+        "proceed": "Enviámos um e-mail. Clique no link lá incluído para continuar.",
+        "title": "Confirmar endereço de e-mail"
+      },
+      "failed": {
+        "backToJoin": "Voltar à página de registo",
+        "message": "Houve um problema ao criar o seu registo, e a nossa equipa foi avisada. Por favor contacte o nosso suporte se o problema continuar.",
+        "title": "Algo não correu como devia"
+      }
+    },
+    "login": "Login",
+    "memberAccount": "Conta de membro",
+    "memberAlready": "Já é membro?",
+    "minimumContribution": "O contributo mínimo é",
+    "noContribution": "Não pretendo contribuir neste momento",
+    "notice": "Ao avançar, está a aceitar a",
+    "now": "Entrar agora!",
+    "paymentMethod": "Forma de pagamento",
+    "poweredBy": "Movido a beabee",
+    "privacy": "Política de Privacidade"
+  },
+  "joinPayment": {
+    "genericError": "Algo não correu como devia! Contacte o nosso suporte se isto voltar a acontecer.",
+    "goBack": "Faltou algo? {back}",
+    "goBackButton": "Voltar ao passo anterior",
+    "note": "Pode alterar o seu contributo e aceder ao seu historial de pagamentos a qualquer altura na sua conta de membro",
+    "willBeContributing": "O seu contributo será de {amount}/{period}"
+  },
+  "joinSetup": {
+    "confirmDetails": "Por favor confirme os seus detalhes",
+    "continue": "Tudo certo! Continuar",
+    "welcome": "Bem-vindo/a {firstName}!"
+  },
+  "locale": "pt",
+  "login": {
+    "backTo": "Voltar a {newsroomName}",
+    "forgotPassword": "Esqueceu-se da palavra-passe?",
+    "joinNow": "Junte-se agora!",
+    "lostMfaDevice": "Perdeu o seu dispositivo 2FA?",
+    "notMember": "Ainda não é membro?",
+    "title": "Fazer login"
+  },
+  "lostDevice": {
+    "description": "Por favor, insira o seu endereço de e-mail e nós lhe enviaremos instruções de como redefinir seu 2FA",
+    "message": "Se existir uma conta associada com o endereço {email}, receberá um e-mail dentro de momentos. Deverá ter recebido um e-mail com instruções na sua caixa de entrada. Verifique a sua pasta de spam se não tiver aparecido.",
+    "title": "Perdeu o seu dispositivo 2FA?"
+  },
+  "membershipBuilder": {
+    "steps": {
+      "accountConfirmation": {
+        "joinSurvey": {}
+      },
+      "emails": {},
+      "intro": {},
+      "joinForm": {}
+    }
+  },
+  "menu": {
+    "account": "Conta",
+    "admin": "Administração",
+    "adminSettings": "Definições",
+    "callouts": "Chamadas",
+    "contacts": "Contactos",
+    "contribution": "Contributo",
+    "dashboard": "Painel",
+    "home": "Página inicial",
+    "logout": "Sair",
+    "notices": "Avisos",
+    "settings": "Definições",
+    "yourProfile": "Perfil"
+  },
+  "notFound": {
+    "goBack": "Regressar à página principal",
+    "text": "Esta página não existe. Se acha que deveria existir, entre em contacto connosco {support}."
+  },
+  "noticeAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    }
+  },
+  "notices": {
+    "data": {}
+  },
+  "notification": {
+    "error": "Aconteceu algo que não devia. Experimente recarregar a página."
+  },
+  "pageTitle": {
+    "confirmEmail": "Confirme o email",
+    "duplicateEmail": "Email duplicado",
+    "failed": "Falhou",
+    "forgotPassword": "Esqueceu-se da password",
+    "join": "Junte-se",
+    "login": "Login",
+    "lostDevice": "Perdeu o seu dispositivo 2FA?",
+    "notFound": "Página Não Encontrada",
+    "resetDevice": "Redefinir Dispositivo Secundário",
+    "resetPassword": "Redefinir password",
+    "setup": "Activação"
+  },
+  "paymentMethods": {
+    "gc_direct-debit": {
+      "changeLabel": "Alterar débito direto",
+      "label": "Débito direto",
+      "setLabel": "Detalhes do seu débito direto"
+    },
+    "s_bacs": {
+      "changeLabel": "Alterar débito direto",
+      "label": "Débito direto",
+      "setLabel": "Detalhes do seu débito direto"
+    },
+    "s_card": {
+      "changeLabel": "Alterar detalhes do cartão",
+      "label": "Cartão",
+      "setLabel": "Detalhes do seu cartão"
+    },
+    "s_sepa": {
+      "changeLabel": "Alterar débito direto",
+      "label": "Débito direto",
+      "setLabel": "Detalhes do seu débito direto"
+    }
+  },
+  "payments": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "paymentsAdmin": {
+    "filter": {}
+  },
+  "resetDevice": {
+    "description": "Insira a sua password para fazer reset do seu dispositivo 2FA. Vai poder associar um novo dispositivo quando fizer login.",
+    "failed": "A redefinição do dispositivo 2FA falhou. É possível que o link tenha expirado.",
+    "invalidPassword": "Password inválida",
+    "success": "A redefinição do dispositivo 2FA foi bem-sucedida.",
+    "title": "Fazer reset do teu dispositvo 2FA?"
+  },
+  "resetPassword": {
+    "description": "Defina uma nova palavra-passe para poder entrar.",
+    "failed": "Palavra-passe não reposta",
+    "login": "Entrar na sua conta",
+    "lostDevice": "Se perdeste o teu dispositivo associado ao 2FA entra em contacto connosco",
+    "success": "A sua password foi reposta.",
+    "title": "Repôr a sua palavra-passe?"
+  },
+  "roleEditor": {
+    "add": "Adicionar cargo",
+    "addNewRole": "Adicionar um novo cargo",
+    "confirmDelete": {
+      "text": "Tem a certeza que pretende remover este cargo?",
+      "title": "Remover cargo"
+    },
+    "expires": {
+      "label": "Data de expiração para este cargo",
+      "opts": {
+        "never": "Nunca",
+        "schedule": "Definir uma data de expiração"
+      }
+    },
+    "new": "Novo cargo",
+    "starts": {
+      "label": "Data de início para este cargo",
+      "opts": {
+        "now": "Agora",
+        "schedule": "Definir uma data de início"
+      }
+    },
+    "title": "Cargos",
+    "today": "agora"
+  },
+  "setPassword": {
+    "description": "Defina uma nova palavra-passe para poder entrar.",
+    "title": "Definir uma palavra-passe"
+  },
+  "tagEditor": {
+    "add": "Adicionar etiqueta",
+    "addNewTag": "Adicionar uma etiqueta",
+    "confirmDelete": {
+      "text": "Tem a certeza que quer remover esta etiqueta? As respostas com esta etiqueta não vão ser apagadas.",
+      "title": "Remover etiqueta"
+    },
+    "name": "Nome"
+  }
+}

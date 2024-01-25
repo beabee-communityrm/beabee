@@ -1032,8 +1032,7 @@
     "saveChanges": "Änderungen speichern",
     "saved": "Gespeichert!",
     "unsavedChanges": "Ungespeicherte Änderungen",
-    "updated": "Aktualisiert",
-    "warning": "Ändere hier nur etwas, wenn du das Einverständnis hast. Änderungen werden auch den Nutzern angezeigt."
+    "updated": "Aktualisiert"
   },
   "formRenderer": {
     "components": {
@@ -1049,7 +1048,7 @@
   },
   "homePage": {
     "editProfile": "Profil bearbeiten",
-    "manageYourContribution": "Beitrag ändern",
+    "manageContribution": "Beitrag ändern",
     "newCallout": "Neuer Callout!",
     "openCallouts": "Aktuelle Callouts",
     "quickActions": "Schnellaktionen",
