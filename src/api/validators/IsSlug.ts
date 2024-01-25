@@ -1,6 +1,10 @@
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
 import slugify from "slugify";
 
+export function isSlug(slug: unknown): boolean {
+  return typeof slug === "string" && slug === slugify(slug);
+}
+
 export default function IsSlug(
   validationOptions?: ValidationOptions
 ): PropertyDecorator {
@@ -8,9 +12,7 @@ export default function IsSlug(
     {
       name: "isSlug",
       validator: {
-        validate(value) {
-          return typeof value === "string" && value === slugify(value);
-        },
+        validate: isSlug,
         defaultMessage: buildMessage(
           (eachPrefix) => eachPrefix + "$property must be a slug",
           validationOptions

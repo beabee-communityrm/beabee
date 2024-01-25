@@ -1,6 +1,6 @@
 import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
 
-function isPassword(password: unknown): boolean {
+export function isPassword(password: unknown): boolean {
   return (
     typeof password === "string" &&
     password.length >= 8 &&
