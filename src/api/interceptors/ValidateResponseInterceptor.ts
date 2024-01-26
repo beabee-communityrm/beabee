@@ -36,7 +36,7 @@ export class ValidateResponseInterceptor implements InterceptorInterface {
         whitelist: true,
         forbidUnknownValues: true,
         forbidNonWhitelisted: true,
-        stopAtFirstError: true
+        validationError: { target: false }
       });
       if (errors.length > 0) {
         log.error("Validation failed on response", { errors });
