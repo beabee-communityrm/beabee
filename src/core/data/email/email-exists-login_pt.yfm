@@ -1,0 +1,26 @@
+---
+subject: Já tem uma conta connosco
+---
+
+<p>Olá *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Tentou criar uma conta nova, mas já tem uma connosco.
+  <b>Pode fazer login usando o seguinte link:</b>
+</p>
+<p><br /></p>
+<p>
+  <a href="*|LOGINLINK|*"><b>Login</b></a>
+</p>
+<p><br /></p>
+<p>
+  Nesse mesmo link vai poder escolher uma nova password, caso se tenha esquecido
+  dela.
+</p>
+<p><br /></p>
+<p>
+  <b>Nota:</b> Os detalhes de pagamento que inseriu não foram gravados. Assim
+  que fizer login vai poder mudar os seus detalhes na hora.
+</p>
+<p><br /></p>
+<p>Até já!</p>
