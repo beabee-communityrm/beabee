@@ -30,6 +30,6 @@ export default class ApiKey {
   description!: string;
 
   get activeRoles(): RoleType[] {
-    return ["admin", "superadmin"];
+    return ["admin"];
   }
 }

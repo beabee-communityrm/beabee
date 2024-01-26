@@ -9,6 +9,7 @@ import ContactsService from "@core/services/ContactsService";
 import { extractToken } from "@core/utils/auth";
 
 import ApiKey from "@models/ApiKey";
+
 import { AuthInfo } from "@type/auth-info";
 
 @Middleware({ type: "before" })
@@ -40,7 +41,8 @@ async function getAuth(request: Request): Promise<AuthInfo | undefined> {
           return {
             method: "api-key",
             entity: contact,
-            roles: contact.activeRoles
+            // API can never acquire superadmin role
+            roles: contact.activeRoles.filter((r) => r !== "superadmin")
           };
         }
       } else {
