@@ -7,6 +7,7 @@ import {
   Patch,
   QueryParams
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
@@ -17,10 +18,10 @@ import {
   BatchUpdateCalloutResponseResultDto,
   CreateCalloutResponseDto,
   GetCalloutResponseDto,
+  GetCalloutResponseListDto,
   GetCalloutResponseOptsDto,
   ListCalloutResponsesDto
 } from "@api/dto/CalloutResponseDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
 import { AuthInfo } from "@type/auth-info";
@@ -28,10 +29,11 @@ import { AuthInfo } from "@type/auth-info";
 @JsonController("/callout-responses")
 export class CalloutResponseController {
   @Get("/")
+  @ResponseSchema(GetCalloutResponseListDto)
   async getCalloutResponses(
     @CurrentAuth() auth: AuthInfo | undefined,
     @QueryParams() query: ListCalloutResponsesDto
-  ): Promise<PaginatedDto<GetCalloutResponseDto>> {
+  ): Promise<GetCalloutResponseListDto> {
     return CalloutResponseTransformer.fetch(auth, query);
   }
 

@@ -1,7 +1,9 @@
 import Address from "@models/Address";
 import { IsDefined, IsOptional, IsString } from "class-validator";
 
-export class UpdateAddressDto implements Address {
+// Use @IsDefined() to make sure the field is present even if used within
+// PartialBody
+export class AddressDto implements Address {
   @IsDefined()
   @IsString()
   line1!: string;
@@ -18,5 +20,3 @@ export class UpdateAddressDto implements Address {
   @IsString()
   postcode!: string;
 }
-
-export class GetAddressDto extends UpdateAddressDto {}

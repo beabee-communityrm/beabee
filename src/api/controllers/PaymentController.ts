@@ -5,11 +5,12 @@ import {
   Param,
   QueryParams
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
 import {
   GetPaymentDto,
+  GetPaymentListDto,
   GetPaymentOptsDto,
   ListPaymentsDto
 } from "@api/dto/PaymentDto";
@@ -21,14 +22,16 @@ import { AuthInfo } from "@type/auth-info";
 @Authorized()
 export class PaymentController {
   @Get("/")
+  @ResponseSchema(GetPaymentListDto)
   async getPayments(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListPaymentsDto
-  ): Promise<PaginatedDto<GetPaymentDto>> {
+  ): Promise<GetPaymentListDto> {
     return await PaymentTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
+  @ResponseSchema(GetPaymentDto, { statusCode: 200 })
   async getPayment(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Param("id") id: string,

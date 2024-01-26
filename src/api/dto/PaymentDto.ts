@@ -1,4 +1,5 @@
 import { PaymentStatus } from "@beabee/beabee-common";
+import { Type } from "class-transformer";
 import {
   IsArray,
   IsDate,
@@ -11,6 +12,7 @@ import {
 
 import { GetPaginatedQuery } from "@api/dto/BaseDto";
 import { GetContactDto } from "@api/dto/ContactDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 export class GetPaymentDto {
   @IsNumber()
@@ -24,7 +26,14 @@ export class GetPaymentDto {
 
   @IsOptional()
   @ValidateNested()
+  @Type(() => GetContactDto)
   contact?: GetContactDto | null;
+}
+
+export class GetPaymentListDto extends PaginatedDto<GetPaymentDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetPaymentDto)
+  items!: GetPaymentDto[];
 }
 
 export enum GetPaymentWith {

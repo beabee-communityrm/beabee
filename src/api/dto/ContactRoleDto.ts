@@ -13,12 +13,7 @@ export class UpdateContactRoleDto {
   dateExpires!: Date | null;
 }
 
-export class CreateContactRoleDto
-  extends UpdateContactRoleDto
-  implements GetContactRoleDto
-{
+export class ContactRoleDto extends UpdateContactRoleDto {
   @IsIn(RoleTypes)
   role!: RoleType;
 }
-
-export class GetContactRoleDto extends CreateContactRoleDto {}

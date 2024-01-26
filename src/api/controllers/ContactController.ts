@@ -18,6 +18,7 @@ import {
   QueryParams,
   Res
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
@@ -34,6 +35,7 @@ import { GetExportQuery } from "@api/dto/BaseDto";
 import {
   CreateContactDto,
   GetContactDto,
+  GetContactListDto,
   GetContactOptsDto,
   GetContributionInfoDto,
   ListContactsDto,
@@ -44,18 +46,14 @@ import {
   DeleteContactMfaDto,
   GetContactMfaDto
 } from "@api/dto/ContactMfaDto";
-import {
-  GetContactRoleDto,
-  UpdateContactRoleDto
-} from "@api/dto/ContactRoleDto";
+import { ContactRoleDto, UpdateContactRoleDto } from "@api/dto/ContactRoleDto";
 import {
   StartContributionDto,
   ForceUpdateContributionDto,
   UpdateContributionDto
 } from "@api/dto/ContributionDto";
 import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
-import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
+import { GetPaymentListDto, ListPaymentsDto } from "@api/dto/PaymentDto";
 import { GetPaymentFlowDto } from "@api/dto/PaymentFlowDto";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
@@ -122,6 +120,7 @@ function TargetUser() {
 export class ContactController {
   @Authorized("admin")
   @Post("/")
+  @ResponseSchema(GetContactDto)
   async createContact(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Body() data: CreateContactDto
@@ -172,10 +171,11 @@ export class ContactController {
 
   @Authorized("admin")
   @Get("/")
+  @ResponseSchema(GetContactListDto)
   async getContacts(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListContactsDto
-  ): Promise<PaginatedDto<GetContactDto>> {
+  ): Promise<GetContactListDto> {
     return await ContactTransformer.fetch(auth, query);
   }
 
@@ -192,6 +192,7 @@ export class ContactController {
   }
 
   @Get("/:id")
+  @ResponseSchema(GetContactDto, { statusCode: 200 })
   async getContact(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
@@ -201,6 +202,7 @@ export class ContactController {
   }
 
   @Patch("/:id")
+  @ResponseSchema(GetContactDto, { statusCode: 200 })
   async updateContact(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
@@ -234,6 +236,7 @@ export class ContactController {
   }
 
   @Get("/:id/contribution")
+  @ResponseSchema(GetContributionInfoDto)
   async getContribution(
     @TargetUser() target: Contact
   ): Promise<GetContributionInfoDto> {
@@ -242,6 +245,7 @@ export class ContactController {
   }
 
   @Patch("/:id/contribution")
+  @ResponseSchema(GetContributionInfoDto)
   async updateContribution(
     @TargetUser() target: Contact,
     @Body() data: UpdateContributionDto
@@ -256,6 +260,7 @@ export class ContactController {
   }
 
   @Post("/:id/contribution")
+  @ResponseSchema(GetPaymentFlowDto)
   async startContribution(
     @TargetUser() target: Contact,
     @Body() data: StartContributionDto
@@ -268,6 +273,7 @@ export class ContactController {
    * @param target The target contact
    */
   @Get("/:id/mfa")
+  @ResponseSchema(GetContactMfaDto, { statusCode: 200 })
   async getContactMfa(
     @TargetUser() target: Contact
   ): Promise<GetContactMfaDto | null> {
@@ -321,6 +327,7 @@ export class ContactController {
   }
 
   @Post("/:id/contribution/complete")
+  @ResponseSchema(GetContributionInfoDto)
   async completeStartContribution(
     @TargetUser() target: Contact,
     @Body() data: CompleteJoinFlowDto
@@ -339,6 +346,7 @@ export class ContactController {
    */
   @Authorized("admin")
   @Patch("/:id/contribution/force")
+  @ResponseSchema(GetContributionInfoDto)
   async forceUpdateContribution(
     @TargetUser() target: Contact,
     @Body() data: ForceUpdateContributionDto
@@ -348,11 +356,12 @@ export class ContactController {
   }
 
   @Get("/:id/payment")
+  @ResponseSchema(GetPaymentListDto)
   async getPayments(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
     @QueryParams() query: ListPaymentsDto
-  ): Promise<PaginatedDto<GetPaymentDto>> {
+  ): Promise<GetPaymentListDto> {
     return PaymentTransformer.fetch(auth, {
       ...query,
       rules: mergeRules([
@@ -363,6 +372,7 @@ export class ContactController {
   }
 
   @Put("/:id/payment-method")
+  @ResponseSchema(GetPaymentFlowDto)
   async updatePaymentMethod(
     @TargetUser() target: Contact,
     @Body() data: StartJoinFlowDto
@@ -386,6 +396,7 @@ export class ContactController {
   }
 
   @Post("/:id/payment-method/complete")
+  @ResponseSchema(GetContributionInfoDto)
   async completeUpdatePaymentMethod(
     @TargetUser() target: Contact,
     @Body() data: CompleteJoinFlowDto
@@ -451,12 +462,13 @@ export class ContactController {
 
   @Authorized("admin")
   @Put("/:id/role/:roleType")
+  @ResponseSchema(ContactRoleDto)
   async updateRole(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @TargetUser() target: Contact,
     @Params() { roleType }: ContactRoleParams,
     @Body() data: UpdateContactRoleDto
-  ): Promise<GetContactRoleDto> {
+  ): Promise<ContactRoleDto> {
     if (data.dateExpires && data.dateAdded >= data.dateExpires) {
       throw new BadRequestError();
     }

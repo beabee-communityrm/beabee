@@ -14,10 +14,12 @@ import {
   Min,
   ValidateNested
 } from "class-validator";
+import { JSONSchema } from "class-validator-jsonschema";
 
 import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
 import { CalloutFormDto } from "@api/dto/CalloutFormDto";
 import { LinkDto } from "@api/dto/LinkDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import IsMapBounds from "@api/validators/IsMapBounds";
@@ -46,6 +48,12 @@ export class GetCalloutOptsDto extends GetExportQuery {
   showHiddenForAll: boolean = false;
 }
 
+export class GetCalloutListDto extends PaginatedDto<GetCalloutDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetCalloutDto)
+  items!: GetCalloutDto[];
+}
+
 export class ListCalloutsDto extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
@@ -64,9 +72,26 @@ class SetCalloutMapSchemaDto implements CalloutMapSchema {
   style!: string;
 
   @IsLngLat()
+  @JSONSchema(() => ({
+    type: "array",
+    items: { type: "number", minimum: -180, maximum: 180 },
+    minItems: 2,
+    maxItems: 2
+  }))
   center!: [number, number];
 
   @IsMapBounds()
+  @JSONSchema(() => ({
+    type: "array",
+    items: {
+      type: "array",
+      items: { type: "number", minimum: -180, maximum: 180 },
+      minItems: 2,
+      maxItems: 2
+    },
+    minItems: 2,
+    maxItems: 2
+  }))
   bounds!: [[number, number], [number, number]];
 
   @IsNumber()

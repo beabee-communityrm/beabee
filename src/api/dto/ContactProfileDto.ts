@@ -9,7 +9,7 @@ import {
   ValidateNested
 } from "class-validator";
 
-import { GetAddressDto, UpdateAddressDto } from "@api/dto/AddressDto";
+import { AddressDto } from "@api/dto/AddressDto";
 
 export class GetContactProfileDto {
   @IsString()
@@ -26,7 +26,8 @@ export class GetContactProfileDto {
 
   @IsOptional()
   @ValidateNested()
-  deliveryAddress!: GetAddressDto | null;
+  @Type(() => AddressDto)
+  deliveryAddress!: AddressDto | null;
 
   @IsEnum(NewsletterStatus)
   newsletterStatus!: NewsletterStatus;
@@ -69,8 +70,8 @@ export class UpdateContactProfileDto implements Partial<GetContactProfileDto> {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => UpdateAddressDto)
-  deliveryAddress?: UpdateAddressDto;
+  @Type(() => AddressDto)
+  deliveryAddress?: AddressDto;
 
   @IsOptional()
   @IsEnum(NewsletterStatus)

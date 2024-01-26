@@ -8,6 +8,7 @@ import {
   Post,
   Req
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import { getRepository } from "@core/database";
 import { generatePassword } from "@core/utils/auth";
@@ -29,6 +30,7 @@ import Password from "@models/Password";
 export class SignupController {
   @OnUndefined(204)
   @Post("/")
+  @ResponseSchema(GetPaymentFlowDto, { statusCode: 200 })
   async startSignup(
     @Body() data: StartSignupFlowDto
   ): Promise<GetPaymentFlowDto | undefined> {

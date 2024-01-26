@@ -12,22 +12,7 @@ import {
   useExpressServer
 } from "routing-controllers";
 
-import { ApiKeyController } from "./controllers/ApiKeyController";
-import { AuthController } from "./controllers/AuthController";
-import { CalloutController } from "./controllers/CalloutController";
-import { CalloutResponseController } from "./controllers/CalloutResponseController";
-import { CalloutResponseCommentController } from "./controllers/CalloutResponseCommentController";
-import { ContentController } from "./controllers/ContentController";
-import { EmailController } from "./controllers/EmailController";
-import { ContactController } from "./controllers/ContactController";
-import { NoticeController } from "./controllers/NoticeController";
-import { PaymentController } from "./controllers/PaymentController";
-import { SegmentController } from "./controllers/SegmentController";
-import { SignupController } from "./controllers/SignupController";
-import { StatsController } from "./controllers/StatsController";
-import { ResetPasswordController } from "./controllers/ResetPasswordController";
-import { ResetDeviceController } from "./controllers/ResetDeviceController";
-import { UploadController } from "./controllers/UploadController";
+import controllers from "@api/controllers";
 
 import { ValidateResponseInterceptor } from "./interceptors/ValidateResponseInterceptor";
 
@@ -72,24 +57,7 @@ initApp()
 
     useExpressServer(app, {
       routePrefix: "/1.0",
-      controllers: [
-        ApiKeyController,
-        AuthController,
-        CalloutController,
-        CalloutResponseController,
-        CalloutResponseCommentController,
-        ContentController,
-        EmailController,
-        ContactController,
-        NoticeController,
-        PaymentController,
-        SegmentController,
-        SignupController,
-        StatsController,
-        ResetPasswordController,
-        ResetDeviceController,
-        UploadController
-      ],
+      controllers,
       interceptors: [ValidateResponseInterceptor],
       middlewares: [AuthMiddleware],
       currentUserChecker,

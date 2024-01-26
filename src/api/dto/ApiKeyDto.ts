@@ -9,6 +9,7 @@ import { Type } from "class-transformer";
 
 import { GetPaginatedQuery } from "@api/dto/BaseDto";
 import { GetContactDto } from "@api/dto/ContactDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
 
 export class CreateApiKeyDto {
   @IsString()
@@ -39,4 +40,10 @@ export class GetApiKeyDto extends CreateApiKeyDto {
 export class ListApiKeysDto extends GetPaginatedQuery {
   @IsIn(["createdAt", "expires"])
   sort?: string;
+}
+
+export class GetApiKeysListDto extends PaginatedDto<GetApiKeyDto> {
+  @ValidateNested({ each: true })
+  @Type(() => GetApiKeyDto)
+  items!: GetApiKeyDto[];
 }

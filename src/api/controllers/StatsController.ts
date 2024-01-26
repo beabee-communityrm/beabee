@@ -6,6 +6,7 @@ import {
   JsonController,
   QueryParams
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import { createQueryBuilder } from "@core/database";
 
@@ -18,6 +19,7 @@ import Payment from "@models/Payment";
 export class StatsController {
   @Authorized("admin")
   @Get("/")
+  @ResponseSchema(GetStatsDto)
   async getStats(@QueryParams() query: GetStatsOptsDto): Promise<GetStatsDto> {
     const newContacts = await createQueryBuilder(Contact, "m")
       .where("m.joined BETWEEN :from AND :to", query)

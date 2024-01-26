@@ -22,6 +22,7 @@ import {
   Min,
   Max
 } from "class-validator";
+import { JSONSchema } from "class-validator-jsonschema";
 
 import { IsType } from "@api/validators/IsType";
 
@@ -34,23 +35,15 @@ export class GetPaginatedRule implements Rule {
 
   @IsArray()
   @IsType(["string", "boolean", "number"], { each: true })
+  @JSONSchema(() => ({
+    type: "array",
+    items: {
+      oneOf: [{ type: "string" }, { type: "boolean" }, { type: "number" }]
+    }
+  }))
   value!: RuleValue[];
 }
 
-export type GetPaginatedRuleGroupRule =
-  | GetPaginatedRuleGroup
-  | GetPaginatedRule;
-
-function transformRules({
-  value
-}: TransformFnParams): GetPaginatedRuleGroupRule {
-  return value.map((v: GetPaginatedRuleGroupRule) =>
-    plainToClass<GetPaginatedRuleGroupRule, unknown>(
-      isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
-      v
-    )
-  );
-}
 export class GetPaginatedRuleGroup implements RuleGroup {
   @IsIn(["AND", "OR"])
   condition!: "AND" | "OR";
@@ -58,9 +51,28 @@ export class GetPaginatedRuleGroup implements RuleGroup {
   @IsArray()
   @ValidateNested({ each: true })
   @Transform(transformRules)
-  rules!: GetPaginatedRuleGroupRule[];
+  @JSONSchema(() => ({
+    type: "array",
+    items: {
+      oneOf: [
+        { $ref: "#/components/schemas/GetPaginatedRule" },
+        { $ref: "#/components/schemas/GetPaginatedRuleGroup" }
+      ]
+    }
+  }))
+  rules!: GetPaginatedRuleOrGroup[];
 }
 
+export type GetPaginatedRuleOrGroup = GetPaginatedRuleGroup | GetPaginatedRule;
+
+function transformRules({ value }: TransformFnParams): GetPaginatedRuleOrGroup {
+  return value.map((v: GetPaginatedRuleOrGroup) =>
+    plainToClass<GetPaginatedRuleOrGroup, unknown>(
+      isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
+      v
+    )
+  );
+}
 export class GetExportQuery {
   @IsOptional()
   @ValidateNested()

@@ -12,6 +12,7 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 
 import { getRepository } from "@core/database";
 
@@ -20,9 +21,9 @@ import PartialBody from "@api/decorators/PartialBody";
 import {
   CreateCalloutResponseCommentDto,
   GetCalloutResponseCommentDto,
+  GetCalloutResponseCommentListDto,
   ListCalloutResponseCommentsDto
 } from "@api/dto/CalloutResponseCommentDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { UUIDParams } from "@api/params/UUIDParams";
 
 import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
@@ -36,6 +37,7 @@ import { AuthInfo } from "@type/auth-info";
 @Authorized("admin")
 export class CalloutResponseCommentController {
   @Post("/")
+  @ResponseSchema(GetCalloutResponseCommentDto)
   async createCalloutReponseComment(
     @Body() data: CreateCalloutResponseCommentDto,
     @CurrentUser({ required: true }) contact: Contact
@@ -51,14 +53,16 @@ export class CalloutResponseCommentController {
   }
 
   @Get("/")
+  @ResponseSchema(GetCalloutResponseCommentListDto)
   async getCalloutResponseComments(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @QueryParams() query: ListCalloutResponseCommentsDto
-  ): Promise<PaginatedDto<GetCalloutResponseCommentDto>> {
+  ): Promise<GetCalloutResponseCommentListDto> {
     return await CalloutResponseCommentTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
+  @ResponseSchema(GetCalloutResponseCommentDto, { statusCode: 200 })
   async getCalloutResponseComment(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams
@@ -67,6 +71,7 @@ export class CalloutResponseCommentController {
   }
 
   @Patch("/:id")
+  @ResponseSchema(GetCalloutResponseCommentDto, { statusCode: 200 })
   async updateCalloutResponseComment(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @Params() { id }: UUIDParams,

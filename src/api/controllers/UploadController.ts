@@ -12,6 +12,7 @@ import {
   Post,
   Req
 } from "routing-controllers";
+import { ResponseSchema } from "routing-controllers-openapi";
 import { MoreThan } from "typeorm";
 
 import { getRepository } from "@core/database";
@@ -35,6 +36,7 @@ async function canUploadOrFail(ipAddress: string, date: Date, max: number) {
 @JsonController("/upload")
 export class UploadController {
   @Post("/")
+  @ResponseSchema(GetUploadFlowDto)
   async create(
     @CurrentUser() contact: Contact | undefined,
     @Req() req: Request
