@@ -2,7 +2,7 @@
 subject: Fazer reset da sua autenticação de múltiplos fatores
 ---
 
-<p>Hello *|FNAME|*,</p>
+<p>Olá *|FNAME|*,</p>
 <p><br /></p>
 <p>
   Solicitou o reset da sua autenticação de múltiplos fatores. 
