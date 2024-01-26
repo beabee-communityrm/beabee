@@ -13,11 +13,14 @@ subject: Já tem uma conta connosco
   <a href="*|LOGINLINK|*"><b>Login</b></a>
 </p>
 <p><br /></p>
-<p>Nesse mesmo link vai poder escolher uma nova password, caso se tenha esquecido dela.</p>
+<p>
+  Nesse mesmo link vai poder escolher uma nova password, caso se tenha esquecido
+  dela.
+</p>
 <p><br /></p>
 <p>
-  <b>Nota:</b> Os detalhes de pagamento que inseriu não foram gravados.
-  Assim que fizer login vai poder mudar os seus detalhes na hora.
+  <b>Nota:</b> Os detalhes de pagamento que inseriu não foram gravados. Assim
+  que fizer login vai poder mudar os seus detalhes na hora.
 </p>
 <p><br /></p>
 <p>Até já!</p>
