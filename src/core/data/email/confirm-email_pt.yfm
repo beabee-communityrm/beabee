@@ -1,0 +1,18 @@
+---
+subject: Confirme por favor o seu email
+---
+
+<p>Olá *|FNAME|*,</p>
+<p><br /></p>
+<p>Para confirmar o seu email siga o seguinte link:</p>
+<p><br /></p>
+<p>
+  <a href="*|CONFIRMLINK|*"><b>Confirmar morada de email</b></a>
+</p>
+<p><br /></p>
+<p>
+  <b>Nota:</b> Se este email não foi solicitado por si pode simplesmente ignorá-lo;
+  alguém pode ter inserido o seu email por engano e a sua morada não será gravada.
+</p>
+<p><br /></p>
+<p>Até já!</p>
