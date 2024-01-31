@@ -47,7 +47,7 @@ class NetworkCommunicatorService {
     if (!token) {
       throw new JsonWebTokenError("No token found");
     }
-    return verify(token, config.secret);
+    return verify(token, config.serviceSecret);
   }
 
   // Event methods
