@@ -51,9 +51,9 @@ class NetworkCommunicatorService {
   }
 
   // Event methods
-  public on = this.events.on;
-  public once = this.events.once;
-  public off = this.events.off;
+  public on = this.events.on.bind(this.events);
+  public once = this.events.once.bind(this.events);
+  public off = this.events.off.bind(this.events);
 
   /**
    * Start the internal server
