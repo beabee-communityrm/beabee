@@ -183,7 +183,7 @@ export class CalloutController {
   @Post("/:slug/responses")
   @OnUndefined(204)
   async createCalloutResponse(
-    @CurrentUser() caller: Contact | undefined,
+    @CurrentUser({ required: false }) caller: Contact | undefined,
     @Param("slug") slug: string,
     @Body() data: CreateCalloutResponseDto
   ): Promise<void> {
