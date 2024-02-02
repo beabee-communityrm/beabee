@@ -197,15 +197,15 @@ export class CalloutController {
     }
 
     // TODO: support assignee/bucket/tags on create
-    if (caller) {
-      await CalloutsService.setResponse(callout, caller, data.answers);
-    } else {
+    if (!caller || callout.access === "only-anonymous") {
       await CalloutsService.setGuestResponse(
         callout,
         data.guestName,
         data.guestEmail,
         data.answers
       );
+    } else {
+      await CalloutsService.setResponse(callout, caller, data.answers);
     }
   }
 
