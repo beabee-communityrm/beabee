@@ -11,7 +11,7 @@ import {
   Transform,
   TransformFnParams,
   Type,
-  plainToClass
+  plainToInstance
 } from "class-transformer";
 import {
   IsString,
@@ -45,7 +45,7 @@ function transformRules({
   value
 }: TransformFnParams): GetPaginatedRuleGroupRule {
   return value.map((v: GetPaginatedRuleGroupRule) =>
-    plainToClass<GetPaginatedRuleGroupRule, unknown>(
+    plainToInstance<GetPaginatedRuleGroupRule, unknown>(
       isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
       v
     )
