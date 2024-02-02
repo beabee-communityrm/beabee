@@ -22,13 +22,15 @@ import {
   validate
 } from "class-validator";
 
+// content
+
 const inputTypes = [
-  "number",
   "address",
   "button",
   "checkbox",
   "email",
   "file",
+  "number",
   "password",
   "textfield",
   "textarea"
@@ -56,6 +58,14 @@ abstract class BaseCalloutComponentDto implements BaseCalloutComponentSchema {
   @IsOptional()
   @IsBoolean()
   adminOnly?: boolean;
+}
+
+class ContentCalloutComponentDto extends BaseCalloutComponentDto {
+  @Equals(false)
+  input!: false;
+
+  @IsIn(["content"])
+  type!: "content";
 }
 
 class InputCalloutComponentDto
@@ -125,10 +135,11 @@ class RadioCalloutComponentDto
 }
 
 function ComponentType() {
-  return Type(() => BaseCalloutComponentDto, {
+  return Type(() => InputCalloutComponentDto, {
     discriminator: {
       property: "type",
       subTypes: [
+        { value: ContentCalloutComponentDto, name: "content" },
         ...nestedTypes.map((type) => ({
           value: NestableCalloutComponentDto,
           name: type
@@ -179,6 +190,7 @@ function IsComponent(validationOptions?: ValidationOptions) {
 }
 
 type CalloutComponentDto =
+  | ContentCalloutComponentDto
   | NestableCalloutComponentDto
   | InputCalloutComponentDto
   | SelectCalloutComponentDto

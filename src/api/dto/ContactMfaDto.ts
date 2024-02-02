@@ -2,14 +2,17 @@ import { IsOptional, IsString } from "class-validator";
 
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 
-import { ContactMfaData } from "@type/contact-mfa-data";
 import { CreateContactMfaData } from "@type/create-contact-mfa-data";
 import { DeleteContactMfaData } from "@type/delete-contact-mfa-data";
+import { ContactMfaSecure } from "@type/contact-mfa-secure";
 
 /**
  * Get contact multi factor authentication validation data
  */
-export class GetContactMfaDto implements ContactMfaData {
+export class GetContactMfaDto implements ContactMfaSecure {
+  @IsString()
+  id!: string;
+
   @IsString()
   type!: CONTACT_MFA_TYPE;
 }

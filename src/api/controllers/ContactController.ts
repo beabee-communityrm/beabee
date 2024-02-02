@@ -272,7 +272,7 @@ export class ContactController {
     @TargetUser() target: Contact
   ): Promise<GetContactMfaDto | null> {
     const mfa = await ContactMfaService.get(target);
-    return mfa || null;
+    return mfa ? plainToInstance(GetContactMfaDto, mfa) : null;
   }
 
   /**
