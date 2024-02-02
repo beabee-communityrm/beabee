@@ -8,7 +8,7 @@ import {
   RadioCalloutComponentSchema,
   SelectCalloutComponentSchema
 } from "@beabee/beabee-common";
-import { Type } from "class-transformer";
+import { Transform, Type, plainToInstance } from "class-transformer";
 import {
   Equals,
   IsBoolean,
@@ -141,30 +141,28 @@ class RadioCalloutComponentDto
 }
 
 function ComponentType() {
-  return Type(() => InputCalloutComponentDto, {
-    discriminator: {
-      property: "type",
-      subTypes: [
-        { value: ContentCalloutComponentDto, name: "content" },
-        ...nestedTypes.map((type) => ({
-          value: NestableCalloutComponentDto,
-          name: type
-        })),
-        ...inputTypes.map((type) => ({
-          value: InputCalloutComponentDto,
-          name: type
-        })),
-        ...selectTypes.map((type) => ({
-          value: SelectCalloutComponentDto,
-          name: type
-        })),
-        ...radioTypes.map((type) => ({
-          value: RadioCalloutComponentDto,
-          name: type
-        }))
-      ]
-    },
-    keepDiscriminatorProperty: true
+  return Transform(({ value }) => {
+    if (!Array.isArray(value)) throw new Error("bad");
+
+    return value.map((component) => {
+      if (typeof component !== "object" || component === null)
+        throw new Error("bad");
+
+      switch (true) {
+        case inputTypes.includes(component.type):
+          return plainToInstance(InputCalloutComponentDto, component);
+        case selectTypes.includes(component.type):
+          return plainToInstance(SelectCalloutComponentDto, component);
+        case radioTypes.includes(component.type):
+          return plainToInstance(RadioCalloutComponentDto, component);
+        case nestedTypes.includes(component.type):
+          return plainToInstance(NestableCalloutComponentDto, component);
+        case "content" === component.type:
+          return plainToInstance(ContentCalloutComponentDto, component);
+        default:
+          throw new Error("bad");
+      }
+    });
   });
 }
 
