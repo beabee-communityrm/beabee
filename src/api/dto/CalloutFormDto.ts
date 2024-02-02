@@ -121,8 +121,9 @@ class RadioCalloutComponentValueDto {
   @IsString()
   value!: string;
 
+  @IsOptional()
   @IsString()
-  nextSlideId!: string;
+  nextSlideId?: string;
 }
 
 class RadioCalloutComponentDto
@@ -142,11 +143,11 @@ class RadioCalloutComponentDto
 
 function ComponentType() {
   return Transform(({ value }) => {
-    if (!Array.isArray(value)) throw new Error("bad");
+    if (!Array.isArray(value)) throw new Error("Components must be an array");
 
     return value.map((component) => {
       if (typeof component !== "object" || component === null)
-        throw new Error("bad");
+        throw new Error("Component must be an object");
 
       switch (true) {
         case inputTypes.includes(component.type):
@@ -160,7 +161,7 @@ function ComponentType() {
         case "content" === component.type:
           return plainToInstance(ContentCalloutComponentDto, component);
         default:
-          throw new Error("bad");
+          throw new Error("Unknown component type " + component.type);
       }
     });
   });
