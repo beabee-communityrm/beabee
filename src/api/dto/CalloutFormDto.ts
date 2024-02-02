@@ -28,12 +28,18 @@ const inputTypes = [
   "address",
   "button",
   "checkbox",
+  "currency",
+  "datetime",
   "email",
   "file",
   "number",
   "password",
+  "phoneNumber",
+  "signature",
   "textfield",
-  "textarea"
+  "textarea",
+  "time",
+  "url"
 ] as const;
 const nestedTypes = ["panel", "well", "tabs"] as const;
 const selectTypes = ["select"] as const;
