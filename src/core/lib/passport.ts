@@ -17,8 +17,8 @@ import { LoginDto } from "@api/dto/LoginDto";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
-import { ContactMfaSecure } from "@models/ContactMfa";
 
+import type { ContactMfaSecure } from "@type/contact-mfa-secure";
 import type { PassportLocalDoneCallback } from "@type/passport-local-done-callback";
 
 // Add support for local authentication in Passport.js

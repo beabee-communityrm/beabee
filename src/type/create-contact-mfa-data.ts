@@ -1,6 +1,7 @@
-import { ContactMfaData } from "./contact-mfa-data";
+import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 
-export interface CreateContactMfaData extends ContactMfaData {
+export interface CreateContactMfaData {
+  type: CONTACT_MFA_TYPE;
   secret: string;
   token: string;
 }
