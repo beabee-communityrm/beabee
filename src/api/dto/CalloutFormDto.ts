@@ -1,12 +1,18 @@
 import {
-  BaseCalloutComponentSchema,
   CalloutFormSchema,
   CalloutNavigationSchema,
   CalloutSlideSchema,
-  InputCalloutComponentSchema,
-  NestableCalloutComponentSchema,
-  RadioCalloutComponentSchema,
-  SelectCalloutComponentSchema
+  CalloutComponentBaseSchema,
+  CalloutComponentBaseInputSchema,
+  CalloutComponentBaseNestableSchema,
+  CalloutComponentContentSchema,
+  CalloutComponentInputSelectSchema,
+  CalloutComponentType,
+  calloutComponentNestableTypes,
+  calloutComponentInputTypes,
+  CalloutComponentBaseInputSelectableSchema,
+  calloutComponentInputSelectableTypes,
+  CalloutComponentSchema
 } from "@beabee/beabee-common";
 import { Transform, Type, plainToInstance } from "class-transformer";
 import {
@@ -22,34 +28,9 @@ import {
   validate
 } from "class-validator";
 
-// content
-
-const inputTypes = [
-  "address",
-  "button",
-  "checkbox",
-  "currency",
-  "datetime",
-  "email",
-  "file",
-  "number",
-  "password",
-  "phoneNumber",
-  "signature",
-  "textfield",
-  "textarea",
-  "time",
-  "url"
-] as const;
-const nestedTypes = ["panel", "well", "tabs"] as const;
-const selectTypes = ["select"] as const;
-const radioTypes = ["radio", "selectboxes"] as const;
-
-abstract class BaseCalloutComponentDto implements BaseCalloutComponentSchema {
-  abstract type: string;
+abstract class CalloutComponentBaseDto implements CalloutComponentBaseSchema {
+  abstract type: CalloutComponentType;
   abstract input?: boolean;
-
-  [key: string]: unknown;
 
   @IsString()
   id!: string;
@@ -64,28 +45,34 @@ abstract class BaseCalloutComponentDto implements BaseCalloutComponentSchema {
   @IsOptional()
   @IsBoolean()
   adminOnly?: boolean;
+
+  // Unused properties
+  [key: string]: unknown;
 }
 
-class ContentCalloutComponentDto extends BaseCalloutComponentDto {
+class CalloutComponentContentDto
+  extends CalloutComponentBaseDto
+  implements CalloutComponentContentSchema
+{
   @Equals(false)
   input!: false;
 
-  @IsIn(["content"])
-  type!: "content";
+  @Equals(CalloutComponentType.CONTENT)
+  type!: CalloutComponentType.CONTENT;
 }
 
-class InputCalloutComponentDto
-  extends BaseCalloutComponentDto
-  implements InputCalloutComponentSchema
+class CalloutComponentInputDto
+  extends CalloutComponentBaseDto
+  implements CalloutComponentBaseInputSchema
 {
-  @IsIn(inputTypes)
-  type!: (typeof inputTypes)[number];
+  @IsIn(calloutComponentInputTypes)
+  type!: CalloutComponentBaseInputSchema["type"];
 
   @Equals(true)
   input!: true;
 }
 
-class SelectCalloutComponentValueDto {
+class CalloutComponentInputSelectDataValueDto {
   @IsString()
   label!: string;
 
@@ -93,28 +80,28 @@ class SelectCalloutComponentValueDto {
   value!: string;
 }
 
-class SelectCalloutComponentDataDto {
+class CalloutComponentInputSelectDataDto {
   @ValidateNested({ each: true })
-  @Type(() => SelectCalloutComponentValueDto)
-  values!: SelectCalloutComponentValueDto[];
+  @Type(() => CalloutComponentInputSelectDataValueDto)
+  values!: CalloutComponentInputSelectDataValueDto[];
+
+  // Unused properties
+  [key: string]: unknown;
 }
 
-class SelectCalloutComponentDto
-  extends BaseCalloutComponentDto
-  implements SelectCalloutComponentSchema
+class CalloutComponentInputSelectDto
+  extends CalloutComponentInputDto
+  implements CalloutComponentInputSelectSchema
 {
-  @IsIn(selectTypes)
-  type!: (typeof selectTypes)[number];
-
-  @Equals(true)
-  input!: true;
+  @Equals(CalloutComponentType.INPUT_SELECT)
+  type!: CalloutComponentType.INPUT_SELECT;
 
   @ValidateNested()
-  @Type(() => SelectCalloutComponentDataDto)
-  data!: SelectCalloutComponentDataDto;
+  @Type(() => CalloutComponentInputSelectDataDto)
+  data!: CalloutComponentInputSelectDataDto;
 }
 
-class RadioCalloutComponentValueDto {
+class CalloutComponentInputSelectableValueDto {
   @IsString()
   label!: string;
 
@@ -126,19 +113,16 @@ class RadioCalloutComponentValueDto {
   nextSlideId?: string;
 }
 
-class RadioCalloutComponentDto
-  extends BaseCalloutComponentDto
-  implements RadioCalloutComponentSchema
+class CalloutComponentInputSelectableDto
+  extends CalloutComponentInputDto
+  implements CalloutComponentBaseInputSelectableSchema
 {
-  @IsIn(radioTypes)
-  type!: (typeof radioTypes)[number];
-
-  @Equals(true)
-  input!: true;
+  @Equals(calloutComponentInputSelectableTypes)
+  type!: CalloutComponentBaseInputSelectableSchema["type"];
 
   @ValidateNested({ each: true })
-  @Type(() => RadioCalloutComponentValueDto)
-  values!: RadioCalloutComponentValueDto[];
+  @Type(() => CalloutComponentInputSelectableValueDto)
+  values!: CalloutComponentInputSelectableValueDto[];
 }
 
 function ComponentType() {
@@ -149,20 +133,24 @@ function ComponentType() {
       if (typeof component !== "object" || component === null)
         throw new Error("Component must be an object");
 
-      switch (true) {
-        case inputTypes.includes(component.type):
-          return plainToInstance(InputCalloutComponentDto, component);
-        case selectTypes.includes(component.type):
-          return plainToInstance(SelectCalloutComponentDto, component);
-        case radioTypes.includes(component.type):
-          return plainToInstance(RadioCalloutComponentDto, component);
-        case nestedTypes.includes(component.type):
-          return plainToInstance(NestableCalloutComponentDto, component);
-        case "content" === component.type:
-          return plainToInstance(ContentCalloutComponentDto, component);
-        default:
-          throw new Error("Unknown component type " + component.type);
+      switch (component.type) {
+        case CalloutComponentType.CONTENT:
+          return plainToInstance(CalloutComponentContentDto, component);
+        case CalloutComponentType.INPUT_SELECT:
+          return plainToInstance(CalloutComponentInputSelectDto, component);
       }
+
+      if (calloutComponentInputSelectableTypes.includes(component.type)) {
+        return plainToInstance(CalloutComponentInputSelectableDto, component);
+      }
+      if (calloutComponentInputTypes.includes(component.type)) {
+        return plainToInstance(CalloutComponentInputDto, component);
+      }
+      if (calloutComponentNestableTypes.includes(component.type)) {
+        return plainToInstance(CalloutComponentNestableDto, component);
+      }
+
+      throw new Error("Unknown component type " + component.type);
     });
   });
 }
@@ -194,26 +182,19 @@ function IsComponent(validationOptions?: ValidationOptions) {
   );
 }
 
-type CalloutComponentDto =
-  | ContentCalloutComponentDto
-  | NestableCalloutComponentDto
-  | InputCalloutComponentDto
-  | SelectCalloutComponentDto
-  | RadioCalloutComponentDto;
-
-class NestableCalloutComponentDto
-  extends BaseCalloutComponentDto
-  implements NestableCalloutComponentSchema
+class CalloutComponentNestableDto
+  extends CalloutComponentBaseDto
+  implements CalloutComponentBaseNestableSchema
 {
-  @IsIn(nestedTypes)
-  type!: (typeof nestedTypes)[number];
+  @IsIn(calloutComponentNestableTypes)
+  type!: CalloutComponentBaseNestableSchema["type"];
 
   @Equals(false)
   input!: false;
 
   @IsComponent({ each: true })
   @ComponentType()
-  components!: CalloutComponentDto[];
+  components!: CalloutComponentSchema[];
 }
 
 class CalloutNavigationDto implements CalloutNavigationSchema {
@@ -239,7 +220,7 @@ class CalloutSlideDto implements CalloutSlideSchema {
 
   @IsComponent({ each: true })
   @ComponentType()
-  components!: CalloutComponentDto[];
+  components!: CalloutComponentSchema[];
 
   @ValidateNested()
   @Type(() => CalloutNavigationDto)

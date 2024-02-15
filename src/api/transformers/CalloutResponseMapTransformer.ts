@@ -2,7 +2,7 @@ import {
   CalloutResponseAnswer,
   CalloutResponseAnswerAddress,
   CalloutResponseAnswerFileUpload,
-  CalloutResponseAnswers,
+  CalloutResponseAnswersSlide,
   getCalloutComponents,
   stringifyAnswer
 } from "@beabee/beabee-common";
@@ -42,7 +42,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
       formSchema
     } = opts.callout;
 
-    const answers: CalloutResponseAnswers = Object.fromEntries(
+    const answers: CalloutResponseAnswersSlide = Object.fromEntries(
       formSchema.slides.map((slide) => [slide.id, {}])
     );
 

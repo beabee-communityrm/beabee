@@ -2,7 +2,7 @@ import {
   CalloutComponentSchema,
   CalloutResponseAnswerAddress,
   CalloutResponseAnswerFileUpload,
-  CalloutResponseAnswers,
+  CalloutResponseAnswersSlide,
   PaginatedQuery
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
@@ -93,7 +93,7 @@ export class GetCalloutResponseDto {
 
   @IsOptional()
   @IsObject()
-  answers?: CalloutResponseAnswers;
+  answers?: CalloutResponseAnswersSlide;
 
   @IsOptional()
   @ValidateNested()
@@ -119,7 +119,7 @@ export class GetCalloutResponseDto {
 export class CreateCalloutResponseDto {
   // TODO: validate
   @IsObject()
-  answers!: CalloutResponseAnswers;
+  answers!: CalloutResponseAnswersSlide;
 
   @IsOptional()
   @IsString()
@@ -189,7 +189,7 @@ export class GetCalloutResponseMapDto {
   number!: number;
 
   @IsObject()
-  answers!: CalloutResponseAnswers;
+  answers!: CalloutResponseAnswersSlide;
 
   @IsString()
   title!: string;

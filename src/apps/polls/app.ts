@@ -1,4 +1,4 @@
-import { CalloutResponseAnswers } from "@beabee/beabee-common";
+import { CalloutResponseAnswersSlide } from "@beabee/beabee-common";
 import express, { NextFunction, Request, Response } from "express";
 import _ from "lodash";
 
@@ -98,7 +98,7 @@ app.get("/:slug", hasNewModel(Callout, "slug"), (req, res, next) => {
 
 async function getUserAnswersAndClear(
   req: Request
-): Promise<CalloutResponseAnswers> {
+): Promise<CalloutResponseAnswersSlide> {
   const answers = req.session.answers;
   delete req.session.answers;
 
@@ -183,7 +183,7 @@ app.get(
     }
 
     // Handle partial answers from URL
-    const answers = req.query.answers as CalloutResponseAnswers;
+    const answers = req.query.answers as CalloutResponseAnswersSlide;
     // We don't support allowMultiple callouts at the moment
     if (!isEmbed && answers && !callout.allowMultiple) {
       const contact = pollsCode

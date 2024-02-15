@@ -77,15 +77,10 @@ export function createComponentAnonymiser(
         return chance.pickone([true, false]);
       case "number":
         return chance.integer();
-      case "password":
-        return chance.word();
       case "textarea":
         return chance.paragraph();
       case "textfield":
         return chance.sentence();
-      case "button":
-        return v;
-
       case "select":
       case "radio":
       case "selectboxes":
