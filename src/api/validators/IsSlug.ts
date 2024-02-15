@@ -1,9 +1,5 @@
+import { isSlug } from "@beabee/beabee-common";
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
-import slugify from "slugify";
-
-export function isSlug(slug: unknown): boolean {
-  return typeof slug === "string" && slug === slugify(slug);
-}
 
 export default function IsSlug(
   validationOptions?: ValidationOptions

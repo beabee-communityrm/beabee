@@ -1,7 +1,6 @@
-import { ContributionPeriod } from "@beabee/beabee-common";
+import { ContributionPeriod, isPeriod } from "@beabee/beabee-common";
 import {
   buildMessage,
-  isEnum,
   isNumber,
   ValidateBy,
   ValidationArguments,
@@ -18,10 +17,6 @@ function getMinAmount(period: ContributionPeriod) {
   return period === ContributionPeriod.Monthly
     ? minMonthlyAmount
     : minMonthlyAmount * 12;
-}
-
-function isPeriod(period: unknown): period is ContributionPeriod {
-  return isEnum(period, ContributionPeriod);
 }
 
 function getPeriod(

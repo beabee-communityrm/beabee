@@ -1,11 +1,5 @@
+import { isMapBounds } from "@beabee/beabee-common";
 import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
-import { isLngLat } from "./IsLngLat";
-
-export function isMapBounds(
-  value: unknown
-): value is [[number, number], [number, number]] {
-  return Array.isArray(value) && value.length === 2 && value.every(isLngLat);
-}
 
 export default function IsMapBounds(
   validationOptions?: ValidationOptions

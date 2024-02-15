@@ -1,38 +1,7 @@
-import { ContributionPeriod } from "@beabee/beabee-common";
-import {
-  ValidateBy,
-  ValidationOptions,
-  buildMessage,
-  isEnum
-} from "class-validator";
+import { ContributionPeriod, isValidPayFee } from "@beabee/beabee-common";
+import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
 
 import OptionsService from "@core/services/OptionsService";
-import { isNumber } from "lodash";
-
-export function isValidPayFee(
-  value: unknown,
-  amount: unknown,
-  period: unknown
-): boolean {
-  if (
-    typeof value !== "boolean" ||
-    !isEnum(period, ContributionPeriod) ||
-    !isNumber(amount)
-  ) {
-    return false;
-  }
-
-  // Annual contributions don't pay a fee
-  if (value && period === ContributionPeriod.Annually) {
-    return false;
-  }
-  // £1 monthly contributions must pay fee
-  if (!value && period === ContributionPeriod.Monthly && amount === 1) {
-    return false;
-  }
-
-  return true;
-}
 
 export default function IsValidPayFee(
   validationOptions?: ValidationOptions
