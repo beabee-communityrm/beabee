@@ -117,6 +117,9 @@ class CalloutMapSchemaData implements CalloutMapSchema {
 
   @IsString()
   addressPatternProp!: string;
+
+  @IsString()
+  geocodeCountries!: string;
 }
 
 class CalloutResponseViewSchemaData implements CalloutResponseViewSchema {
