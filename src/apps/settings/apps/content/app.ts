@@ -45,7 +45,10 @@ const parseData = {
       presetAmounts: p.presetAmounts.split(",").map((s) => Number(s.trim()))
     })),
     showNoContribution: data.showNoContribution === "true",
-    paymentMethods: data.paymentMethods.split(",").map((s: string) => s.trim())
+    paymentMethods: data.paymentMethods
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter((s: string) => !!s)
   }),
   "join/setup": (data: any) => ({
     ...data,
