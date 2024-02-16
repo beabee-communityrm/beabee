@@ -58,17 +58,16 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
       if (answer) {
         // answers[slideId] will definitely be defined
         answers[component.slideId]![component.key] = answer;
-      }
-
-      // Extract title, address and image answers
-      if (component.fullKey === titleProp) {
-        title = stringifyAnswer(component, answer);
-      }
-      if (component.fullKey === map?.addressProp) {
-        address = Array.isArray(answer) ? answer[0] : answer;
-      }
-      if (component.fullKey === imageProp) {
-        images = Array.isArray(answer) ? answer : [answer];
+        // Extract title, address and image answers
+        if (component.fullKey === titleProp) {
+          title = stringifyAnswer(component, answer);
+        }
+        if (component.fullKey === map?.addressProp) {
+          address = Array.isArray(answer) ? answer[0] : answer;
+        }
+        if (component.fullKey === imageProp && answer) {
+          images = Array.isArray(answer) ? answer : [answer];
+        }
       }
     }
 
@@ -96,6 +95,12 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
             operator: "equal",
             value: [bucket]
           }))
+        },
+        // Only load responses for the given callout
+        {
+          field: "callout",
+          operator: "equal",
+          value: [query.callout.slug]
         }
       ])
     };
