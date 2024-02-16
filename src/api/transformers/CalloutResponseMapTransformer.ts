@@ -96,6 +96,12 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
             operator: "equal",
             value: [bucket]
           }))
+        },
+        // Only load responses for the given callout
+        {
+          field: "callout",
+          operator: "equal",
+          value: [query.callout.slug]
         }
       ])
     };
