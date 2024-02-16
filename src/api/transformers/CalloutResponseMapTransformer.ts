@@ -6,6 +6,7 @@ import {
   getCalloutComponents,
   stringifyAnswer
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 
 import { getRepository } from "@core/database";
 
@@ -29,6 +30,7 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseMapDto,
   GetCalloutResponseMapOptsDto
 > {
+  @TransformPlainToInstance(GetCalloutResponseMapDto)
   convert(
     response: CalloutResponse,
     opts: GetCalloutResponseMapOptsDto
