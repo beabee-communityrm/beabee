@@ -40,7 +40,8 @@ export class ValidateResponseInterceptor implements InterceptorInterface {
       });
       if (errors.length > 0) {
         log.error("Validation failed on response", { errors });
-        throw new InternalServerError("Validation failed");
+        // TODO: Just log error for now
+        // throw new InternalServerError("Validation failed");
       }
     }
 
