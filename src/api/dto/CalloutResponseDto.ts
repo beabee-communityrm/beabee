@@ -197,6 +197,7 @@ export class GetCalloutResponseMapDto {
   @Allow()
   photos!: CalloutResponseAnswerFileUpload[];
 
+  @IsOptional()
   @Allow()
   address?: CalloutResponseAnswerAddress;
 }
