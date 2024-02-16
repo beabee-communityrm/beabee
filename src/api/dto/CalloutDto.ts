@@ -59,7 +59,7 @@ export class ListCalloutsDto extends GetPaginatedQuery {
   showHiddenForAll: boolean = false;
 }
 
-class SetCalloutMapSchemaDto implements CalloutMapSchema {
+class CalloutMapSchemaDto implements CalloutMapSchema {
   @IsUrl()
   style!: string;
 
@@ -92,6 +92,10 @@ class SetCalloutMapSchemaDto implements CalloutMapSchema {
 
   @IsString()
   addressPatternProp!: string;
+
+  @IsOptional()
+  @IsString()
+  geocodeCountries?: string;
 }
 
 class CalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
@@ -118,8 +122,8 @@ class CalloutResponseViewSchemaDto implements CalloutResponseViewSchema {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => SetCalloutMapSchemaDto)
-  map!: SetCalloutMapSchemaDto | null;
+  @Type(() => CalloutMapSchemaDto)
+  map!: CalloutMapSchemaDto | null;
 }
 
 abstract class BaseCalloutDto implements CalloutData {
