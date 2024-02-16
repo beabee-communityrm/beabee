@@ -22,6 +22,7 @@ export interface CalloutMapSchema {
   addressProp: string;
   addressPattern: string;
   addressPatternProp: string;
+  geocodeCountries?: string;
 }
 
 export interface CalloutResponseViewSchema {
