@@ -6,11 +6,12 @@ import {
   OneToMany,
   PrimaryGeneratedColumn
 } from "typeorm";
-import ItemWithStatus from "./ItemWithStatus";
-import CalloutResponse from "./CalloutResponse";
+
 import { CalloutAccess } from "@enums/callout-access";
 
-export type CalloutTemplate = "custom" | "builder" | "ballot";
+import ItemWithStatus from "./ItemWithStatus";
+import CalloutResponse from "./CalloutResponse";
+import type CalloutVariant from "./CalloutVariant";
 
 export interface CalloutMapSchema {
   style: string;
@@ -47,31 +48,7 @@ export default class Callout extends ItemWithStatus {
   date!: Date;
 
   @Column()
-  title!: string;
-
-  @Column()
-  excerpt!: string;
-
-  @Column()
   image!: string;
-
-  @Column()
-  intro!: string;
-
-  @Column()
-  thanksTitle!: string;
-
-  @Column()
-  thanksText!: string;
-
-  @Column({ type: String, nullable: true })
-  thanksRedirect!: string | null;
-
-  @Column({ type: String, nullable: true })
-  shareTitle!: string | null;
-
-  @Column({ type: String, nullable: true })
-  shareDescription!: string | null;
 
   @Column({ type: "jsonb" })
   formSchema!: CalloutFormSchema;
@@ -102,6 +79,9 @@ export default class Callout extends ItemWithStatus {
 
   @Column({ nullable: true })
   responsePassword?: string;
+
+  @OneToMany("CalloutVariant", "callout")
+  variants!: CalloutVariant[];
 
   hasAnswered?: boolean;
   responseCount?: number;
