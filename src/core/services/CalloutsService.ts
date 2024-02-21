@@ -2,7 +2,6 @@ import {
   CalloutFormSchema,
   CalloutResponseAnswers
 } from "@beabee/beabee-common";
-import { IsNull, LessThan } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import EmailService from "@core/services/EmailService";
@@ -22,41 +21,7 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutData } from "@type/callout-data";
 
-class CalloutWithResponse extends Callout {
-  response?: CalloutResponse;
-}
-
 class CalloutsService {
-  /**
-   * @deprecated
-   */
-  async getVisibleCalloutsWithResponses(
-    contact: Contact
-  ): Promise<CalloutWithResponse[]> {
-    const callouts = await getRepository(Callout).find({
-      where: [
-        { starts: IsNull(), hidden: false },
-        { starts: LessThan(new Date()), hidden: false }
-      ],
-      order: {
-        date: "DESC"
-      }
-    });
-
-    const responses = await getRepository(CalloutResponse).find({
-      where: { contactId: contact.id }
-    });
-
-    const calloutsWithResponses = callouts.map((callout) => {
-      const pwr = new CalloutWithResponse();
-      Object.assign(pwr, callout);
-      pwr.response = responses.find((r) => r.calloutId === callout.id)!;
-      return pwr;
-    });
-
-    return calloutsWithResponses;
-  }
-
   async createCallout(
     data: CalloutData & { slug: string },
     autoSlug: number | false
