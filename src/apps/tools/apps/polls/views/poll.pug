@@ -3,25 +3,6 @@ extends /views/base.pug
 block prepend title
 	- title = 'Callout'
 
-block append css
-	link(rel='stylesheet' href='/static/css/lib/formio.full.min.css')
-	style.
-		.formcomponents { position: sticky; top: 1rem }
-		#builder { margin-bottom: 2rem; }
-
-block append js
-	script(src='/static/js/lib/formio.full.min.js')
-	script.
-		Formio.builder(
-			document.getElementById('builder'),
-			!{JSON.stringify(poll.formSchema)},
-			{template: 'bootstrap3'}
-		).then(function (builder) {
-			builder.on('change', function() {
-				$('.js-poll-form-schema').val(JSON.stringify(builder.schema));
-			});
-		});
-
 block contents
 	.row
 		.col-md-12
@@ -44,78 +25,28 @@ block contents
 					if !poll.active
 						a(href='/polls/' + poll.slug + '?preview=1').btn.btn-xs.btn-default Preview
 				dt Responses
-				dd
-					= responsesCount
-					|
-					|
-					a(href='/tools/polls/' + poll.slug + '/responses').btn.btn-xs.btn-default See responses
-					|
-					|
-					form(method='POST' style='display: inline')
-						+csrf
-						button(name='action' value='export-responses').btn.btn-xs.btn-warning Export
+				dd= responsesCount
 
 			hr
 
 	.row
+
 		.col-md-8
-			h4 Update callout
-			include partials/poll-form
-
-	.row
-		.col-md-12
-			hr
-
-			h4 Edit form
-
-			#builder
-
-			form(method='POST').form-horizontal
-				+csrf
-
-				h5 Copy
-				.form-group
-					label(for='intro').control-label.col-md-2 Intro text
-					.col-md-10
-						textarea(name='intro' required)#intro.form-control= poll.intro
-				.form-group
-					label(for='thanksTitle').control-label.col-md-2 Thank you title
-					.col-md-10
-						input(type='text' name='thanksTitle' value=poll.thanksTitle required)#thanksTitle.form-control
-				.form-group
-					label(for='thanksText').control-label.col-md-2 Thank you text
-					.col-md-10
-						textarea(name='thanksText' required)#thanksText.form-control= poll.thanksText
-				.form-group
-					label(for='thanksRedirect').control-label.col-md-2 Thank you redirect
-					.col-md-10
-						input(type='text' name='thanksRedirect' value=poll.thanksRedirect)#thanksRedirect.form-control
-						p.help-block If you fill this in then the user won't see the thank you text above
-
-				input(type='hidden' name='formSchema' value=JSON.stringify(poll.formSchema)).js-poll-form-schema
-
-				button(name='action' value='edit-form').btn.btn-primary Save
-
-			hr
-
-	.row
-		.col-md-8
-
-			h4 Replicate callout
+			h4 Set merge fields
 
 			form(method='POST').form-horizontal
 				+csrf
 				.form-group
-					label(for='title').control-label.col-md-3 New title
+					label(for='mergeField').control-label.col-md-3 MailChimp merge field
 					.col-md-9
-						input(type='text' name='title' required)#title.form-control
+						input(type='text' name='mcMergeField' maxlength='10' value=poll.mcMergeField)#mergeField.form-control
 				.form-group
-					label(for='slug').control-label.col-md-3 New slug
+					label(for='pollMergeField').control-label.col-md-3 Poll merge field
 					.col-md-9
-						input(type='text' name='slug' required)#slug.form-control
-				button(name='action' value='replicate').btn.btn-primary Replicate
-
-			hr
+						input(type='text' name='pollMergeField' value=poll.pollMergeField)#pollMergeField.form-control
+				.form-group
+					.col-md-offset-3.col-md-9
+						button(name='action' value='update').btn.btn-success Update
 
 			h4 Clear responses
 
@@ -130,15 +61,3 @@ block contents
 						input(type='checkbox' required)
 						| This change is irreversible, confirm to proceed
 				button(name='action' value='delete-responses').btn.btn-danger Clear
-
-			hr
-
-			h4 Delete callout
-
-			form(method='POST')
-				+csrf
-				p
-					label.checkbox-inline
-						input(type='checkbox' required)
-						| This change is irreversible, confirm to proceed
-				button(name='action' value='delete').btn.btn-danger.outline Delete
