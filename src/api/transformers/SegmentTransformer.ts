@@ -1,4 +1,8 @@
-import { RoleType } from "@beabee/beabee-common";
+import {
+  RoleType,
+  SegmentFilterName,
+  segmentFilters
+} from "@beabee/beabee-common";
 import { TransformPlainToInstance } from "class-transformer";
 
 import {
@@ -17,11 +21,11 @@ import { AuthInfo } from "@type/auth-info";
 class SegmentTransformer extends BaseTransformer<
   Segment,
   GetSegmentDto,
-  never,
+  SegmentFilterName,
   GetSegmentOptsDto
 > {
   protected model = Segment;
-  protected filters = {};
+  protected filters = segmentFilters;
 
   protected allowedRoles: RoleType[] = ["admin"];
 
