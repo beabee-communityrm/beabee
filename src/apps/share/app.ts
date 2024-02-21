@@ -1,6 +1,6 @@
 import express from "express";
 
-import { getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
 import { wrapAsync } from "@core/utils";
 
 import PageSettingsService, {
@@ -18,13 +18,25 @@ app.set("views", __dirname + "/views");
 async function getCalloutShareSettings(
   uri: string
 ): Promise<JustPageSettings | undefined> {
-  const [slug, ...rest] = uri.substring("/callouts/".length).split("/", 1);
+  const [slug, rest] = uri.substring("/callouts/".length).split("/", 1);
+  const locale = rest.split("?lang=")[1] || "default";
 
-  const callout = await getRepository(Callout).findOneBy({ slug });
+  const callout = await createQueryBuilder(Callout, "c")
+    .leftJoinAndSelect("c.variants", "v", "v.locale = :locale", { locale })
+    .where("c.slug = :slug", { slug })
+    .getOne();
+
   if (callout) {
+    const variant = callout.variants.find((v) => v.locale === locale);
+    if (!variant) {
+      throw new Error(
+        `No variant found for callout ${callout.slug} and locale ${locale}`
+      );
+    }
+
     return {
-      shareTitle: callout.shareTitle || callout.title,
-      shareDescription: callout.shareDescription || callout.excerpt,
+      shareTitle: variant.shareTitle || variant.title,
+      shareDescription: variant.shareDescription || variant.excerpt,
       shareImage: callout.image,
       shareUrl: config.audience + "/callouts/" + callout.slug
     };
