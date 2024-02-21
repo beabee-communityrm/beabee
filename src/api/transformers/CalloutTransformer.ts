@@ -18,6 +18,7 @@ import {
   GetCalloutOptsDto
 } from "@api/dto/CalloutDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import { groupBy } from "@api/utils";
 import { mergeRules, statusFilterHandler } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
@@ -26,6 +27,7 @@ import CalloutResponse from "@models/CalloutResponse";
 
 import { AuthInfo } from "@type/auth-info";
 import { FilterHandlers } from "@type/filter-handlers";
+import CalloutVariant from "@models/CalloutVariant";
 
 class CalloutTransformer extends BaseTransformer<
   Callout,
@@ -75,11 +77,18 @@ class CalloutTransformer extends BaseTransformer<
 
   @TransformPlainToInstance(GetCalloutDto)
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {
+    const variant = callout.variants.find(
+      (v) => v.locale === (opts?.locale || "default")
+    );
+    if (!variant) {
+      throw new BadRequestError("No variant found for locale");
+    }
+
     return {
       id: callout.id,
       slug: callout.slug,
-      title: callout.title,
-      excerpt: callout.excerpt,
+      title: variant.title,
+      excerpt: variant.excerpt,
       image: callout.image,
       allowUpdate: callout.allowUpdate,
       allowMultiple: callout.allowMultiple,
@@ -95,16 +104,16 @@ class CalloutTransformer extends BaseTransformer<
         responseCount: callout.responseCount
       }),
       ...(opts?.with?.includes(GetCalloutWith.Form) && {
-        intro: callout.intro,
-        thanksText: callout.thanksText,
-        thanksTitle: callout.thanksTitle,
+        intro: variant.intro,
+        thanksText: variant.thanksText,
+        thanksTitle: variant.thanksTitle,
         formSchema: callout.formSchema,
-        ...(callout.thanksRedirect && {
-          thanksRedirect: callout.thanksRedirect
+        ...(variant.thanksRedirect && {
+          thanksRedirect: variant.thanksRedirect
         }),
-        ...(callout.shareTitle && { shareTitle: callout.shareTitle }),
-        ...(callout.shareDescription && {
-          shareDescription: callout.shareDescription
+        ...(variant.shareTitle && { shareTitle: variant.shareTitle }),
+        ...(variant.shareDescription && {
+          shareDescription: variant.shareDescription
         })
       }),
       ...(opts?.with?.includes(GetCalloutWith.ResponseViewSchema) && {
@@ -126,9 +135,9 @@ class CalloutTransformer extends BaseTransformer<
       throw new UnauthorizedError();
     }
 
-    // Non-admins can only query for open or ended non-hidden callouts
     return {
       ...query,
+      // Non-admins can only query for open or ended non-hidden callouts
       rules: mergeRules([
         query.rules,
         {
@@ -166,6 +175,16 @@ class CalloutTransformer extends BaseTransformer<
         `${fieldPrefix}responses`
       );
     }
+
+    // Load a locale unless we will load all of them anyway
+    if (!query.with?.includes(GetCalloutWith.Variants)) {
+      qb.leftJoinAndSelect(
+        `${fieldPrefix}variants`,
+        "v",
+        "v.locale = :locale",
+        { locale: query.locale || "default" }
+      );
+    }
   }
 
   protected async modifyItems(
@@ -173,28 +192,40 @@ class CalloutTransformer extends BaseTransformer<
     query: ListCalloutsDto,
     auth: AuthInfo | undefined
   ): Promise<void> {
-    if (
-      callouts.length > 0 &&
-      auth?.entity instanceof Contact &&
-      query.with?.includes(GetCalloutWith.HasAnswered)
-    ) {
-      const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
-        .select("cr.calloutId", "id")
-        .distinctOn(["cr.calloutId"])
-        .where(
-          "cr.calloutId IN (:...calloutIds) AND cr.contactId = :contactId",
-          {
-            calloutIds: callouts.map((c) => c.id),
-            contactId: auth.entity.id
-          }
-        )
-        .orderBy("cr.calloutId")
-        .getRawMany<{ id: string }>();
+    if (callouts.length > 0) {
+      const calloutIds = callouts.map((c) => c.id);
 
-      const answeredIds = answeredCallouts.map((c) => c.id);
+      if (query.with?.includes(GetCalloutWith.Variants)) {
+        const variants = await createQueryBuilder(CalloutVariant, "cv")
+          .where("cv.calloutId IN (:...ids)", { ids: calloutIds })
+          .getMany();
 
-      for (const callout of callouts) {
-        callout.hasAnswered = answeredIds.includes(callout.id);
+        const variantsBySlug = groupBy(variants, (v) => v.calloutId);
+
+        for (const callout of callouts) {
+          callout.variants = variantsBySlug[callout.slug] || [];
+        }
+      }
+
+      if (
+        auth?.entity instanceof Contact &&
+        query.with?.includes(GetCalloutWith.HasAnswered)
+      ) {
+        const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
+          .select("cr.calloutId", "slug")
+          .distinctOn(["cr.calloutId"])
+          .where("cr.calloutId IN (:...ids) AND cr.contactId = :id", {
+            ids: calloutIds,
+            id: auth.entity.id
+          })
+          .orderBy("cr.calloutId")
+          .getRawMany<{ slug: string }>();
+
+        const answeredSlugs = answeredCallouts.map((c) => c.slug);
+
+        for (const callout of callouts) {
+          callout.hasAnswered = answeredSlugs.includes(callout.slug);
+        }
       }
     }
   }

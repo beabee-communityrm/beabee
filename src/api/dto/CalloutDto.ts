@@ -31,15 +31,20 @@ import { CalloutData } from "@type/callout-data";
 
 export enum GetCalloutWith {
   Form = "form",
-  ResponseViewSchema = "responseViewSchema",
+  HasAnswered = "hasAnswered",
   ResponseCount = "responseCount",
-  HasAnswered = "hasAnswered"
+  ResponseViewSchema = "responseViewSchema",
+  Variants = "variants"
 }
 
 export class GetCalloutOptsDto extends GetExportQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
+
+  @IsOptional()
+  @IsString()
+  locale?: string;
 
   // This property can only be set internally, not via query params
   @Equals(false)
@@ -50,6 +55,10 @@ export class ListCalloutsDto extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
+
+  @IsOptional()
+  @IsString()
+  locale?: string;
 
   @IsIn(["title", "starts", "expires"])
   sort?: string;

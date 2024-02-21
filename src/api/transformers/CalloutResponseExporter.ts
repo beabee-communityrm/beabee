@@ -111,7 +111,7 @@ class CalloutResponseExporter extends BaseCalloutResponseTransformer<
     });
 
     const exportName = `responses-${
-      callout.title
+      callout.slug
     }_${new Date().toISOString()}.csv`;
 
     const headers = [
