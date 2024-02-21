@@ -18,6 +18,7 @@ import {
   GetCalloutOptsDto
 } from "@api/dto/CalloutDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import CalloutVariantTransformer from "@api/transformers/CalloutVariantTransformer";
 import { groupBy } from "@api/utils";
 import { mergeRules, statusFilterHandler } from "@api/utils/rules";
 
@@ -118,6 +119,9 @@ class CalloutTransformer extends BaseTransformer<
       }),
       ...(opts?.with?.includes(GetCalloutWith.ResponseViewSchema) && {
         responseViewSchema: callout.responseViewSchema
+      }),
+      ...(opts?.with?.includes(GetCalloutWith.Variants) && {
+        variants: callout.variants.map(CalloutVariantTransformer.convert)
       })
     };
   }

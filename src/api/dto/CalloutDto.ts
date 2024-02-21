@@ -17,6 +17,7 @@ import {
 
 import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
 import { CalloutFormDto } from "@api/dto/CalloutFormDto";
+import { CalloutVariantDto } from "@api/dto/CalloutVariantDto";
 import { LinkDto } from "@api/dto/LinkDto";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
@@ -188,6 +189,11 @@ abstract class BaseCalloutDto implements CalloutData {
   @ValidateNested()
   @Type(() => CalloutResponseViewSchemaDto)
   responseViewSchema?: CalloutResponseViewSchemaDto | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CalloutVariantDto)
+  variants?: CalloutVariantDto[];
 }
 
 export class CreateCalloutDto extends BaseCalloutDto {
