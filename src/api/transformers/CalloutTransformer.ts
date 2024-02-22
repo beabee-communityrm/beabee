@@ -15,7 +15,8 @@ import {
   GetCalloutWith,
   ListCalloutsDto,
   GetCalloutDto,
-  GetCalloutOptsDto
+  GetCalloutOptsDto,
+  CalloutVariantsDto
 } from "@api/dto/CalloutDto";
 import NotFoundError from "@api/errors/NotFoundError";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
@@ -79,12 +80,15 @@ class CalloutTransformer extends BaseTransformer<
 
   @TransformPlainToInstance(GetCalloutDto)
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {
-    const variant = callout.variants.find(
-      (v) => v.locale === (opts?.locale || "default")
-    );
-    if (!variant) {
-      throw new NotFoundError({ message: "No variant found for locale" });
-    }
+    const variants = Object.fromEntries(
+      callout.variants.map((variant) => [
+        variant.locale,
+        CalloutVariantTransformer.convert(variant)
+      ])
+    ) as CalloutVariantsDto;
+
+    const variant =
+      (opts?.locale && variants[opts?.locale]) || variants.default;
 
     return {
       id: callout.id,
@@ -122,7 +126,7 @@ class CalloutTransformer extends BaseTransformer<
         responseViewSchema: callout.responseViewSchema
       }),
       ...(opts?.with?.includes(GetCalloutWith.Variants) && {
-        variants: callout.variants.map(CalloutVariantTransformer.convert)
+        variants
       })
     };
   }

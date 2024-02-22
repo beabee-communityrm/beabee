@@ -14,7 +14,6 @@ import {
   QueryParams,
   Res
 } from "routing-controllers";
-import slugify from "slugify";
 
 import CalloutsService from "@core/services/CalloutsService";
 
@@ -47,11 +46,10 @@ import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
 import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
 
-import Contact from "@models/Contact";
 import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
+import Contact from "@models/Contact";
 
 import { AuthInfo } from "@type/auth-info";
 
@@ -69,10 +67,7 @@ export class CalloutController {
   @Post("/")
   async createCallout(@Body() data: CreateCalloutDto): Promise<GetCalloutDto> {
     const callout = await CalloutsService.createCallout(
-      {
-        ...data,
-        slug: data.slug || slugify(data.title, { lower: true })
-      },
+      data,
       data.slug ? false : 0
     );
     return CalloutTransformer.convert(callout);

@@ -2,10 +2,13 @@ import { CalloutFormSchema } from "@beabee/beabee-common";
 
 import { CalloutAccess } from "@enums/callout-access";
 
+import { CalloutResponseViewSchema } from "./callout-response-view-schema";
+import { CalloutVariantData } from "./callout-variant-data";
+
 export interface CalloutData {
   slug?: string;
-  title: string;
-  excerpt: string;
+  // title: string;
+  // excerpt: string;
   image: string;
   starts: Date | null;
   expires: Date | null;
@@ -13,13 +16,7 @@ export interface CalloutData {
   allowMultiple: boolean;
   access: CalloutAccess;
   hidden: boolean;
-
-  // With "form"
-  intro?: string;
-  thanksTitle?: string;
-  thanksText?: string;
-  thanksRedirect?: string;
-  shareTitle?: string;
-  shareDescription?: string;
+  responseViewSchema?: CalloutResponseViewSchema | null;
   formSchema?: CalloutFormSchema;
+  variants?: Record<string, CalloutVariantData>;
 }

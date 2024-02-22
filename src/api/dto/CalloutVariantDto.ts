@@ -1,6 +1,7 @@
+import { CalloutVariantData } from "@type/callout-variant-data";
 import { IsString, IsOptional, IsUrl } from "class-validator";
 
-export class CalloutVariantDto {
+export class CalloutVariantDto implements CalloutVariantData {
   @IsString()
   locale!: string;
 
@@ -21,13 +22,13 @@ export class CalloutVariantDto {
 
   @IsOptional()
   @IsUrl()
-  thanksRedirect?: string;
+  thanksRedirect!: string | null;
 
   @IsOptional()
   @IsString()
-  shareTitle?: string;
+  shareTitle!: string | null;
 
   @IsOptional()
   @IsString()
-  shareDescription?: string;
+  shareDescription!: string | null;
 }

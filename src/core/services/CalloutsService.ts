@@ -2,6 +2,7 @@ import {
   CalloutFormSchema,
   CalloutResponseAnswers
 } from "@beabee/beabee-common";
+import slugify from "slugify";
 import { BadRequestError } from "routing-controllers";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -26,6 +27,7 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutData } from "@type/callout-data";
+import { CalloutVariantsData } from "@type/callout-variants-data";
 
 class CalloutsService {
   /**
@@ -35,22 +37,25 @@ class CalloutsService {
    * @returns The new callout
    */
   async createCallout(
-    data: CalloutData & { slug: string },
+    data: CalloutData & { variants: CalloutVariantsData },
     autoSlug: number | false
   ): Promise<Callout> {
-    const slug = data.slug + (autoSlug && autoSlug > 0 ? "-" + autoSlug : "");
-    try {
-      await getRepository(Callout).insert(this.fixData({ ...data, slug }));
-      return await getRepository(Callout).findOneByOrFail({ slug });
-    } catch (err) {
-      if (isDuplicateIndex(err, "slug")) {
-        if (autoSlug === false) {
-          throw new DuplicateId(slug);
+    const { variants } = data;
+
+    const baseSlug =
+      data.slug || slugify(variants.default.title, { lower: true });
+
+    while (true) {
+      const slug = baseSlug + (autoSlug ? "-" + autoSlug : "");
+      try {
+        await this.saveCallout(data);
+        return await getRepository(Callout).findOneByOrFail({ slug });
+      } catch (err) {
+        if (err instanceof DuplicateId && autoSlug !== false) {
+          autoSlug++;
         } else {
-          return await this.createCallout(data, autoSlug + 1);
+          throw err;
         }
-      } else {
-        throw err;
       }
     }
   }
@@ -78,14 +83,8 @@ class CalloutsService {
       }
     }
 
-    try {
-      await getRepository(Callout).update(id, this.fixData(data));
-      return (await getRepository(Callout).findOneBy({ id })) || undefined;
-    } catch (err) {
-      throw isDuplicateIndex(err, "slug")
-        ? new DuplicateId(data.slug || "") // Can't actually be undefined
-        : err;
-    }
+    await this.saveCallout(data, id);
+    return (await getRepository(Callout).findOneBy({ id })) || undefined;
   }
 
   /**
@@ -258,19 +257,57 @@ class CalloutsService {
   }
 
   /**
-   * This is a hack used to force the correct type for formSchema, for some reason
-   * CalloutFormSchema isn't compatible with QueryDeepPartialEntity<CalloutFormSchema>
+   * Saves a callout and it's variants, handling duplicate slug errors
    * @param data
    * @returns The data
    */
-  private fixData(data: Partial<CalloutData>): QueryDeepPartialEntity<Callout> {
-    const { formSchema, ...restData } = data;
-    return {
+  private async saveCallout(
+    data: Partial<CalloutData>,
+    id?: string
+  ): Promise<boolean> {
+    const { formSchema, variants, ...restData } = data;
+
+    // For some reason CalloutFormSchema isn't compatible with
+    // QueryDeepPartialEntity<CalloutFormSchema> so we force it
+    const fixedData = {
       ...restData,
       ...(formSchema && {
         formSchema: formSchema as QueryDeepPartialEntity<CalloutFormSchema>
       })
     };
+
+    return await runTransaction(async (em) => {
+      try {
+        if (id) {
+          const result = await em.getRepository(Callout).update(id, fixedData);
+          if (result.affected === 0) {
+            return false;
+          }
+        } else {
+          const result = await em.getRepository(Callout).insert(fixedData);
+          id = result.identifiers[0].id as string;
+        }
+      } catch (err) {
+        throw isDuplicateIndex(err, "slug")
+          ? new DuplicateId(data.slug || "") // Slug can't actually be undefined here
+          : err;
+      }
+
+      // Type checker doesn't understand that id is defined here
+      const newId = id;
+
+      if (variants) {
+        await getRepository(CalloutVariant).save(
+          Object.entries(variants).map(([locale, variant]) => ({
+            ...variant,
+            locale,
+            calloutId: newId
+          }))
+        );
+      }
+
+      return true;
+    });
   }
 
   /**
@@ -315,7 +352,7 @@ class CalloutsService {
     const variant =
       callout.variants.find((v) => v.locale === "default") ||
       (await getRepository(CalloutVariant).findOneBy({
-        calloutId: callout.slug,
+        calloutId: callout.id,
         locale: "default"
       }));
 

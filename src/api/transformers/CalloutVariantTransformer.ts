@@ -19,11 +19,9 @@ class CalloutVariantTransformer extends BaseTransformer<
       intro: variant.intro,
       thanksTitle: variant.thanksTitle,
       thanksText: variant.thanksText,
-      ...(variant.thanksRedirect && { thanksRedirect: variant.thanksRedirect }),
-      ...(variant.shareTitle && { shareTitle: variant.shareTitle }),
-      ...(variant.shareDescription && {
-        shareDescription: variant.shareDescription
-      })
+      thanksRedirect: variant.thanksRedirect,
+      shareTitle: variant.shareTitle,
+      shareDescription: variant.shareDescription
     };
   }
 }

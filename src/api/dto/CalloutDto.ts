@@ -1,5 +1,10 @@
 import { ItemStatus } from "@beabee/beabee-common";
-import { Type } from "class-transformer";
+import {
+  Transform,
+  TransformFnParams,
+  Type,
+  plainToInstance
+} from "class-transformer";
 import {
   Equals,
   IsArray,
@@ -23,12 +28,14 @@ import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import IsMapBounds from "@api/validators/IsMapBounds";
 import IsLngLat from "@api/validators/IsLngLat";
+import IsVariantsObject from "@api/validators/IsVariantsObject";
 
 import { CalloutAccess } from "@enums/callout-access";
 
 import { CalloutData } from "@type/callout-data";
 import { CalloutMapSchema } from "@type/callout-map-schema";
 import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
+import { CalloutVariantsData } from "@type/callout-variants-data";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -141,12 +148,6 @@ abstract class BaseCalloutDto implements CalloutData {
   @IsSlug()
   slug?: string;
 
-  @IsString()
-  title!: string;
-
-  @IsString()
-  excerpt!: string;
-
   // TODO: Should be IsUrl but validation fails for draft callouts
   @IsString()
   image!: string;
@@ -174,41 +175,31 @@ abstract class BaseCalloutDto implements CalloutData {
   hidden!: boolean;
 
   @IsOptional()
-  @IsUrl()
-  thanksRedirect?: string;
-
-  @IsOptional()
-  @IsString()
-  shareTitle?: string;
-
-  @IsOptional()
-  @IsString()
-  shareDescription?: string;
-
-  @IsOptional()
   @ValidateNested()
   @Type(() => CalloutResponseViewSchemaDto)
   responseViewSchema?: CalloutResponseViewSchemaDto | null;
+}
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => CalloutVariantDto)
-  variants?: CalloutVariantDto[];
+export interface CalloutVariantsDto extends CalloutVariantsData {}
+
+function transformVariants(params: TransformFnParams): CalloutVariantsDto {
+  const ret: Record<string, CalloutVariantDto> = {};
+  for (const variant in params.value) {
+    ret[variant] = plainToInstance(CalloutVariantDto, params.value[variant]);
+  }
+
+  // TODO: should we be validating that the default locale is present?
+  return ret as CalloutVariantsDto;
 }
 
 export class CreateCalloutDto extends BaseCalloutDto {
-  @IsString()
-  intro!: string;
-
-  @IsString()
-  thanksTitle!: string;
-
-  @IsString()
-  thanksText!: string;
-
   @ValidateNested()
   @Type(() => CalloutFormDto)
   formSchema!: CalloutFormDto;
+
+  @IsVariantsObject()
+  @Transform(transformVariants)
+  variants!: CalloutVariantsDto;
 }
 
 export class GetCalloutDto extends BaseCalloutDto {
@@ -217,6 +208,12 @@ export class GetCalloutDto extends BaseCalloutDto {
 
   @IsEnum(ItemStatus)
   status!: ItemStatus;
+
+  @IsString()
+  title!: string;
+
+  @IsString()
+  excerpt!: string;
 
   @IsOptional()
   @IsString()
@@ -231,6 +228,18 @@ export class GetCalloutDto extends BaseCalloutDto {
   thanksText?: string;
 
   @IsOptional()
+  @IsUrl()
+  thanksRedirect?: string;
+
+  @IsOptional()
+  @IsString()
+  shareTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  shareDescription?: string;
+
+  @IsOptional()
   @IsBoolean()
   hasAnswered?: boolean;
 
@@ -242,4 +251,9 @@ export class GetCalloutDto extends BaseCalloutDto {
   @ValidateNested()
   @Type(() => CalloutFormDto)
   formSchema?: CalloutFormDto;
+
+  @IsOptional()
+  @IsVariantsObject()
+  @Transform(transformVariants)
+  variants?: CalloutVariantsDto;
 }

@@ -41,10 +41,8 @@ export type GetPaginatedRuleGroupRule =
   | GetPaginatedRuleGroup
   | GetPaginatedRule;
 
-function transformRules({
-  value
-}: TransformFnParams): GetPaginatedRuleGroupRule {
-  return value.map((v: GetPaginatedRuleGroupRule) =>
+function transformRules(params: TransformFnParams): GetPaginatedRuleGroupRule {
+  return params.value.map((v: GetPaginatedRuleGroupRule) =>
     plainToInstance<GetPaginatedRuleGroupRule, unknown>(
       isRuleGroup(v) ? GetPaginatedRuleGroup : GetPaginatedRule,
       v
