@@ -211,6 +211,23 @@ export abstract class BaseTransformer<
   }
 
   /**
+   * Fetch a single item or throw an error if not found
+   * @param auth The authorisation info
+   * @param query The query
+   * @returns A single item
+   */
+  async fetchOneOrFail(
+    auth: AuthInfo | undefined,
+    query: Query
+  ): Promise<GetDto> {
+    const result = await this.fetchOne(auth, query);
+    if (!result) {
+      throw new NotFoundError();
+    }
+    return result;
+  }
+
+  /**
    * Fetch a single item by it's primary key
    *
    * @param auth The authentication info

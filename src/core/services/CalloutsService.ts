@@ -34,22 +34,20 @@ class CalloutsService {
    * Create a new callout
    * @param data The callout data
    * @param autoSlug Whether or not to automatically add a number to the slug if it's a duplicate
-   * @returns The new callout
+   * @returns The new callout slug
    */
   async createCallout(
     data: CalloutData & { variants: CalloutVariantsData },
     autoSlug: number | false
-  ): Promise<Callout> {
-    const { variants } = data;
-
+  ): Promise<string> {
     const baseSlug =
-      data.slug || slugify(variants.default.title, { lower: true });
+      data.slug || slugify(data.variants.default.title, { lower: true });
 
     while (true) {
       const slug = baseSlug + (autoSlug ? "-" + autoSlug : "");
       try {
-        await this.saveCallout(data);
-        return await getRepository(Callout).findOneByOrFail({ slug });
+        await this.saveCallout({ ...data, slug });
+        return slug;
       } catch (err) {
         if (err instanceof DuplicateId && autoSlug !== false) {
           autoSlug++;
@@ -66,10 +64,7 @@ class CalloutsService {
    * @param data The new callout data
    * @returns The updated callout
    */
-  async updateCallout(
-    id: string,
-    data: Partial<CalloutData>
-  ): Promise<Callout | undefined> {
+  async updateCallout(id: string, data: Partial<CalloutData>): Promise<void> {
     // Prevent the join survey from being made inactive
     if (OptionsService.getText("join-survey") === id) {
       if (data.expires) {
@@ -84,7 +79,6 @@ class CalloutsService {
     }
 
     await this.saveCallout(data, id);
-    return (await getRepository(Callout).findOneBy({ id })) || undefined;
   }
 
   /**
@@ -265,12 +259,12 @@ class CalloutsService {
     data: Partial<CalloutData>,
     id?: string
   ): Promise<boolean> {
-    const { formSchema, variants, ...restData } = data;
+    const { formSchema, variants, ...calloutData } = data;
 
     // For some reason CalloutFormSchema isn't compatible with
     // QueryDeepPartialEntity<CalloutFormSchema> so we force it
     const fixedData = {
-      ...restData,
+      ...calloutData,
       ...(formSchema && {
         formSchema: formSchema as QueryDeepPartialEntity<CalloutFormSchema>
       })

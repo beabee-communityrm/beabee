@@ -65,12 +65,21 @@ export class CalloutController {
 
   @Authorized("admin")
   @Post("/")
-  async createCallout(@Body() data: CreateCalloutDto): Promise<GetCalloutDto> {
-    const callout = await CalloutsService.createCallout(
+  async createCallout(
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Body() data: CreateCalloutDto
+  ): Promise<GetCalloutDto> {
+    const slug = await CalloutsService.createCallout(
       data,
       data.slug ? false : 0
     );
-    return CalloutTransformer.convert(callout);
+    return CalloutTransformer.fetchOneOrFail(auth, {
+      rules: {
+        condition: "AND",
+        rules: [{ field: "slug", operator: "equal", value: [slug] }]
+      },
+      showHiddenForAll: true
+    });
   }
 
   @Get("/:id")
@@ -88,11 +97,12 @@ export class CalloutController {
   @Authorized("admin")
   @Patch("/:id")
   async updateCallout(
+    @CurrentAuth({ required: true }) auth: AuthInfo,
     @CalloutId() id: string,
     @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutDto>
   ): Promise<GetCalloutDto | undefined> {
-    const callout = await CalloutsService.updateCallout(id, data);
-    return callout && CalloutTransformer.convert(callout);
+    await CalloutsService.updateCallout(id, data);
+    return CalloutTransformer.fetchOneById(auth, id);
   }
 
   @Authorized("admin")
