@@ -2,7 +2,7 @@ import {
   ValidateBy,
   ValidationOptions,
   buildMessage,
-  validate
+  validateOrReject
 } from "class-validator";
 
 async function isVariantsObject(value: unknown): Promise<boolean> {
@@ -18,13 +18,10 @@ async function isVariantsObject(value: unknown): Promise<boolean> {
 
   for (const key in variants) {
     const variant = variants[key];
-    if (
-      typeof variant !== "object" ||
-      variant === null ||
-      (await validate(variant)).length > 0
-    ) {
+    if (typeof variant !== "object" || variant === null) {
       return false;
     }
+    await validateOrReject(variant, { skipMissingProperties: true });
   }
 
   return true;
@@ -39,8 +36,7 @@ export default function IsVariantsObject(
       validator: {
         validate: isVariantsObject,
         defaultMessage: buildMessage(
-          (eachPrefix) =>
-            eachPrefix + "$property must be a record CalloutVariantDto",
+          (eachPrefix) => eachPrefix + "$property must be an object",
           validationOptions
         )
       }
