@@ -62,6 +62,10 @@ import CalloutTag from "@models/CalloutTag";
 
 import { AuthInfo } from "@type/auth-info";
 
+/**
+ * Allows the use of either a callout ID or slug in the route
+ * @returns A callout ID or undefined
+ */
 function CalloutId() {
   return createParamDecorator({
     required: true,
