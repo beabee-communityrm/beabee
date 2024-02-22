@@ -13,6 +13,7 @@ import { isDuplicateIndex } from "@core/utils";
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutVariant from "@models/CalloutVariant";
 
 import DuplicateId from "@api/errors/DuplicateId";
 
@@ -104,10 +105,7 @@ class CalloutsService {
 
     const savedResponse = await this.saveResponse(response);
 
-    await EmailService.sendTemplateToAdmin("new-callout-response", {
-      callout: callout,
-      responderName: contact.fullname
-    });
+    await this.notifyAdmin(callout, contact.fullname);
 
     if (callout.mcMergeField && callout.pollMergeField) {
       const [slideId, answerKey] = callout.pollMergeField.split(".");
@@ -145,10 +143,7 @@ class CalloutsService {
 
     const savedResponse = await this.saveResponse(response);
 
-    await EmailService.sendTemplateToAdmin("new-callout-response", {
-      callout: callout,
-      responderName: guestName || "Anonymous"
-    });
+    await this.notifyAdmin(callout, guestName || "Anonymous");
 
     return savedResponse;
   }
@@ -175,6 +170,24 @@ class CalloutsService {
         throw error;
       }
     }
+  }
+
+  private async notifyAdmin(
+    callout: Callout,
+    responderName: string
+  ): Promise<void> {
+    const variant =
+      callout.variants.find((v) => v.locale === "default") ||
+      (await getRepository(CalloutVariant).findOneBy({
+        calloutSlug: callout.slug,
+        locale: "default"
+      }));
+
+    await EmailService.sendTemplateToAdmin("new-callout-response", {
+      calloutSlug: callout.slug,
+      calloutTitle: variant?.title || "Unknown title",
+      responderName: responderName
+    });
   }
 }
 
