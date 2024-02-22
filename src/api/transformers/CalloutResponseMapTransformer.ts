@@ -21,10 +21,11 @@ import NotFoundError from "@api/errors/NotFoundError";
 import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
 import { mergeRules } from "@api/utils/rules";
 
-import Callout, { CalloutResponseViewSchema } from "@models/Callout";
+import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
 import { AuthInfo } from "@type/auth-info";
+import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
 
 class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseMapDto,

@@ -24,11 +24,11 @@ import IsUrl from "@api/validators/IsUrl";
 import IsMapBounds from "@api/validators/IsMapBounds";
 import IsLngLat from "@api/validators/IsLngLat";
 
-import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
-
 import { CalloutAccess } from "@enums/callout-access";
 
 import { CalloutData } from "@type/callout-data";
+import { CalloutMapSchema } from "@type/callout-map-schema";
+import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
 
 export enum GetCalloutWith {
   Form = "form",

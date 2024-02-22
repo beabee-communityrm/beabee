@@ -10,31 +10,10 @@ import {
 import { CalloutAccess } from "@enums/callout-access";
 
 import ItemWithStatus from "./ItemWithStatus";
-import CalloutResponse from "./CalloutResponse";
+import type CalloutResponse from "./CalloutResponse";
 import type CalloutVariant from "./CalloutVariant";
 
-export interface CalloutMapSchema {
-  style: string;
-  center: [number, number];
-  bounds: [[number, number], [number, number]];
-  minZoom: number;
-  maxZoom: number;
-  initialZoom: number;
-  addressProp: string;
-  addressPattern: string;
-  addressPatternProp: string;
-  geocodeCountries?: string;
-}
-
-export interface CalloutResponseViewSchema {
-  buckets: string[];
-  titleProp: string;
-  imageProp: string;
-  imageFilter: string;
-  gallery: boolean;
-  links: { text: string; url: string }[];
-  map: CalloutMapSchema | null;
-}
+import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
 
 @Entity()
 export default class Callout extends ItemWithStatus {
@@ -74,7 +53,7 @@ export default class Callout extends ItemWithStatus {
   @Column({ default: false })
   hidden!: boolean;
 
-  @OneToMany(() => CalloutResponse, (r) => r.callout)
+  @OneToMany("CalloutResponse", "callout")
   responses!: CalloutResponse[];
 
   @Column({ nullable: true })
