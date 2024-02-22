@@ -45,10 +45,10 @@ export abstract class BaseTransformer<
    * Transform the query before the results are fetched.
    *
    * This is typically used to add extra rules that limit the results returned
-   * based on the query or caller.
+   * based on the query or auth.
    *
    * @param query The query
-   * @param caller The contact who is requesting the results
+   * @param auth The authentication info
    * @returns A new query
    */
   protected transformQuery<T extends Query>(
@@ -64,7 +64,7 @@ export abstract class BaseTransformer<
    * This can be used to add extra filters and handlers depending on the query
    *
    * @param query The query
-   * @param caller The contact who is requesting the results
+   * @param auth The authentication info
    * @returns New filters and filter handlers
    */
   protected transformFilters(
@@ -84,7 +84,7 @@ export abstract class BaseTransformer<
    * @param qb The query builder
    * @param fieldPrefix The prefix to use for fields
    * @param query The query
-   * @param caller The contact who is requesting the results
+   * @param auth The authentication info
    */
   protected modifyQueryBuilder(
     qb: SelectQueryBuilder<Model>,
@@ -101,7 +101,7 @@ export abstract class BaseTransformer<
    *
    * @param items The list of items
    * @param query The query
-   * @param caller The contact who is requesting the results
+   * @param auth The authentication info
    */
   protected async modifyItems(
     items: Model[],
@@ -110,7 +110,7 @@ export abstract class BaseTransformer<
   ): Promise<void> {}
 
   /**
-   * Check the caller is allowed to request te resource and prepare the query,
+   * Check for sufficient authentication and prepare the query,
    * filters and filter handlers.
    *
    * @param query The query
@@ -213,7 +213,7 @@ export abstract class BaseTransformer<
   /**
    * Fetch a single item by it's primary key
    *
-   * @param caller The contact who is requesting the results
+   * @param auth The authentication info
    * @param id The primary key of the item
    * @param opts Additional options to pass to the query
    * @returns A single item or undefined if not found
