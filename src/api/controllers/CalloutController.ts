@@ -1,8 +1,6 @@
-import { CalloutFormSchema } from "@beabee/beabee-common";
 import { Response } from "express";
 import {
   Authorized,
-  BadRequestError,
   Body,
   CurrentUser,
   Delete,
@@ -17,13 +15,10 @@ import {
   Res
 } from "routing-controllers";
 import slugify from "slugify";
-import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import CalloutsService from "@core/services/CalloutsService";
-import OptionsService from "@core/services/OptionsService";
 
 import { getRepository } from "@core/database";
-import { isDuplicateIndex } from "@core/utils";
 
 import { GetExportQuery } from "@api/dto/BaseDto";
 
@@ -45,7 +40,6 @@ import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { CalloutId } from "@api/decorators/CalloutId";
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
-import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 import CalloutTransformer from "@api/transformers/CalloutTransformer";
@@ -99,37 +93,11 @@ export class CalloutController {
   @Authorized("admin")
   @Patch("/:id")
   async updateCallout(
-    @CurrentAuth({ required: true }) auth: AuthInfo,
     @CalloutId() id: string,
-    @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutData>
+    @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutDto>
   ): Promise<GetCalloutDto | undefined> {
-    if (OptionsService.getText("join-survey") === id) {
-      if (data.expires) {
-        throw new BadRequestError(
-          "Cannot set an expiry date on the join survey"
-        );
-      } else if (data.starts === null) {
-        throw new BadRequestError("Cannot set join survey to draft");
-      } else if (data.starts && data.starts > new Date()) {
-        throw new BadRequestError("Cannot set join survey to scheduled");
-      }
-    }
-
-    try {
-      await getRepository(Callout).update(id, {
-        ...data,
-        // Force the correct type as otherwise this errors, not sure why
-        ...(data.formSchema && {
-          formSchema:
-            data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
-        })
-      });
-      return await CalloutTransformer.fetchOneById(auth, id);
-    } catch (err) {
-      throw isDuplicateIndex(err, "slug") && data.slug
-        ? new DuplicateId(data.slug)
-        : err;
-    }
+    const callout = await CalloutsService.updateCallout(id, data);
+    return callout && CalloutTransformer.convert(callout);
   }
 
   @Authorized("admin")

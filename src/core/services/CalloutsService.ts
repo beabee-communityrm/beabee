@@ -49,6 +49,41 @@ class CalloutsService {
     }
   }
 
+  async updateCallout(
+    slug: string,
+    data: Partial<CalloutData>
+  ): Promise<Callout | undefined> {
+    const newSlug = data.slug || slug;
+
+    // Prevent the join survey from being made inactive
+    if (OptionsService.getText("join-survey") === slug) {
+      if (data.expires) {
+        throw new BadRequestError(
+          "Cannot set an expiry date on the join survey"
+        );
+      } else if (data.starts === null) {
+        throw new BadRequestError("Cannot set join survey to draft");
+      } else if (data.starts && data.starts > new Date()) {
+        throw new BadRequestError("Cannot set join survey to scheduled");
+      }
+    }
+
+    try {
+      await getRepository(Callout).update(slug, {
+        ...data,
+        // Force the correct type as otherwise this errors, not sure why
+        ...(data.formSchema && {
+          formSchema: data.formSchema
+        })
+      });
+      return (
+        (await getRepository(Callout).findOneBy({ slug: newSlug })) || undefined
+      );
+    } catch (err) {
+      throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
+    }
+  }
+
   async getResponse(
     callout: Callout,
     contact: Contact
