@@ -90,7 +90,7 @@ app.get(
   wrapAsync(async (req, res) => {
     const poll = req.model as Callout;
     const responsesCount = await getRepository(CalloutResponse).count({
-      where: { calloutSlug: poll.slug }
+      where: { calloutId: poll.id }
     });
     res.render("poll", { poll, responsesCount });
   })
@@ -106,7 +106,7 @@ app.get(
       next("route");
     } else {
       const responses = await getRepository(CalloutResponse).find({
-        where: { calloutSlug: poll.slug },
+        where: { calloutId: poll.id },
         order: {
           createdAt: "ASC"
         },

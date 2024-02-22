@@ -22,7 +22,7 @@ export default class CalloutResponse {
   id!: string;
 
   @Column()
-  calloutSlug!: string;
+  calloutId!: string;
   @ManyToOne("Callout", "responses")
   callout!: Callout;
 

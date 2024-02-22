@@ -50,7 +50,7 @@ class CalloutsService {
     const calloutsWithResponses = callouts.map((callout) => {
       const pwr = new CalloutWithResponse();
       Object.assign(pwr, callout);
-      pwr.response = responses.find((r) => r.calloutSlug === callout.slug)!;
+      pwr.response = responses.find((r) => r.calloutId === callout.id)!;
       return pwr;
     });
 
@@ -90,7 +90,7 @@ class CalloutsService {
     return (
       (await getRepository(CalloutResponse).findOne({
         where: {
-          calloutSlug: callout.slug,
+          calloutId: callout.id,
           contactId: contact.id
         },
         // Get most recent response for callouts with allowMultiple
@@ -193,7 +193,7 @@ class CalloutsService {
   ): Promise<CalloutResponse> {
     if (!response.number) {
       const lastResponse = await getRepository(CalloutResponse).findOne({
-        where: { calloutSlug: response.callout.slug },
+        where: { calloutId: response.callout.id },
         order: { number: "DESC" }
       });
 

@@ -13,7 +13,7 @@ export default class CalloutTag {
   description!: string;
 
   @Column()
-  calloutSlug!: string;
+  calloutId!: string;
   @ManyToOne("Callout")
   callout!: Callout;
 }

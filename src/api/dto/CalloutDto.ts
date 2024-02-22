@@ -197,6 +197,9 @@ export class CreateCalloutDto extends BaseCalloutDto {
 }
 
 export class GetCalloutDto extends BaseCalloutDto {
+  @IsString()
+  id!: string;
+
   @IsEnum(ItemStatus)
   status!: ItemStatus;
 
