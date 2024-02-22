@@ -205,10 +205,10 @@ class CalloutTransformer extends BaseTransformer<
           .where("cv.calloutId IN (:...ids)", { ids: calloutIds })
           .getMany();
 
-        const variantsBySlug = groupBy(variants, (v) => v.calloutId);
+        const variantsById = groupBy(variants, (v) => v.calloutId);
 
         for (const callout of callouts) {
-          callout.variants = variantsBySlug[callout.slug] || [];
+          callout.variants = variantsById[callout.id] || [];
         }
       }
 
@@ -217,19 +217,19 @@ class CalloutTransformer extends BaseTransformer<
         query.with?.includes(GetCalloutWith.HasAnswered)
       ) {
         const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
-          .select("cr.calloutId", "slug")
+          .select("cr.calloutId", "id")
           .distinctOn(["cr.calloutId"])
           .where("cr.calloutId IN (:...ids) AND cr.contactId = :id", {
             ids: calloutIds,
             id: auth.entity.id
           })
           .orderBy("cr.calloutId")
-          .getRawMany<{ slug: string }>();
+          .getRawMany<{ id: string }>();
 
-        const answeredSlugs = answeredCallouts.map((c) => c.slug);
+        const answeredIds = answeredCallouts.map((c) => c.id);
 
         for (const callout of callouts) {
-          callout.hasAnswered = answeredSlugs.includes(callout.slug);
+          callout.hasAnswered = answeredIds.includes(callout.id);
         }
       }
     }

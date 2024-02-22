@@ -47,7 +47,7 @@ app.post(
 
     switch (req.body.action) {
       case "update":
-        await getRepository(Callout).update(callout.slug, {
+        await getRepository(Callout).update(callout.id, {
           pollMergeField: req.body.pollMergeField,
           mcMergeField: req.body.mcMergeField
         });
@@ -57,7 +57,7 @@ app.post(
 
       case "delete-responses":
         await getRepository(CalloutResponse).delete({
-          callout: { slug: callout.slug }
+          calloutId: callout.id
         });
         req.flash("success", "polls-responses-deleted");
         res.redirect("/tools/polls/" + callout.slug);

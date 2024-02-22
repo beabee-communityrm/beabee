@@ -56,19 +56,17 @@ class CalloutsService {
   }
 
   /**
-   * Update a callout with the given slug, this also handles updating the slug itself
-   * @param slug The callout slug
-   * @param data The new callout data, this can contain a new slug
+   * Update a callout
+   * @param id The callout ID
+   * @param data The new callout data
    * @returns The updated callout
    */
   async updateCallout(
-    slug: string,
+    id: string,
     data: Partial<CalloutData>
   ): Promise<Callout | undefined> {
-    const newSlug = data.slug || slug;
-
     // Prevent the join survey from being made inactive
-    if (OptionsService.getText("join-survey") === slug) {
+    if (OptionsService.getText("join-survey") === id) {
       if (data.expires) {
         throw new BadRequestError(
           "Cannot set an expiry date on the join survey"
@@ -81,21 +79,21 @@ class CalloutsService {
     }
 
     try {
-      await getRepository(Callout).update(slug, this.fixData(data));
-      return (
-        (await getRepository(Callout).findOneBy({ slug: newSlug })) || undefined
-      );
+      await getRepository(Callout).update(id, this.fixData(data));
+      return (await getRepository(Callout).findOneBy({ id })) || undefined;
     } catch (err) {
-      throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
+      throw isDuplicateIndex(err, "slug")
+        ? new DuplicateId(data.slug || "") // Can't actually be undefined
+        : err;
     }
   }
 
   /**
-   * Delete the callout with the given slug and all it's related data
-   * @param slug The callout slug
+   * Delete a callout and all it's related data
+   * @param id The callout ID
    * @returns true if the callout was deleted
    */
-  async deleteCallout(slug: string): Promise<boolean> {
+  async deleteCallout(id: string): Promise<boolean> {
     return await runTransaction(async (em) => {
       await em
         .createQueryBuilder()
@@ -107,7 +105,7 @@ class CalloutsService {
             .subQuery()
             .select("id")
             .from(CalloutResponse, "cr")
-            .where("cr.calloutSlug = :slug", { slug });
+            .where("cr.calloutId = :id", { id });
           qb.where("responseId IN " + subQuery.getQuery());
         })
         .execute();
@@ -122,16 +120,16 @@ class CalloutsService {
             .subQuery()
             .select("id")
             .from(CalloutResponse, "cr")
-            .where("cr.calloutSlug = :slug", { slug });
+            .where("cr.calloutId = :id", { id });
           qb.where("responseId IN " + subQuery.getQuery());
         })
         .execute();
 
-      await em.getRepository(CalloutResponse).delete({ calloutSlug: slug });
-      await em.getRepository(CalloutVariant).delete({ calloutSlug: slug });
-      await em.getRepository(CalloutTag).delete({ calloutSlug: slug });
+      await em.getRepository(CalloutResponse).delete({ calloutId: id });
+      await em.getRepository(CalloutVariant).delete({ calloutId: id });
+      await em.getRepository(CalloutTag).delete({ calloutId: id });
 
-      const result = await getRepository(Callout).delete(slug);
+      const result = await getRepository(Callout).delete(id);
 
       return result.affected === 1;
     });
@@ -317,7 +315,7 @@ class CalloutsService {
     const variant =
       callout.variants.find((v) => v.locale === "default") ||
       (await getRepository(CalloutVariant).findOneBy({
-        calloutSlug: callout.slug,
+        calloutId: callout.slug,
         locale: "default"
       }));
 
