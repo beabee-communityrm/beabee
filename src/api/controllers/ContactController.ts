@@ -1,11 +1,10 @@
 import { ContributionPeriod, NewsletterStatus } from "@beabee/beabee-common";
 import { plainToInstance } from "class-transformer";
-import { Request, Response } from "express";
+import { Response } from "express";
 import {
   Authorized,
   BadRequestError,
   Body,
-  createParamDecorator,
   Delete,
   Get,
   JsonController,
@@ -60,12 +59,11 @@ import { GetPaymentFlowDto } from "@api/dto/PaymentFlowDto";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
+import { TargetUser } from "@api/decorators/TargetUser";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import { ContactRoleParams } from "@api/params/ContactRoleParams";
-import { UUIDParams } from "@api/params/UUIDParams";
-import { validateOrReject } from "@api/utils";
 import { mergeRules } from "@api/utils/rules";
 
 import ContactExporter from "@api/transformers/ContactExporter";
@@ -76,46 +74,6 @@ import PaymentTransformer from "@api/transformers/PaymentTransformer";
 import { GetContactWith } from "@enums/get-contact-with";
 
 import { AuthInfo } from "@type/auth-info";
-
-/**
- * The target user can either be the current user or for admins
- * it can be any user, this decorator injects the correct target
- * and also ensures the user has the correct roles
- */
-function TargetUser() {
-  return createParamDecorator({
-    required: true,
-    value: async (action): Promise<Contact> => {
-      const request: Request = action.request;
-
-      const auth = request.auth;
-      if (!auth) {
-        throw new UnauthorizedError();
-      }
-
-      const id = request.params.id;
-      if (id !== "me" && auth.roles.includes("admin")) {
-        const uuid = new UUIDParams();
-        uuid.id = id;
-        await validateOrReject(uuid);
-
-        const target = await ContactsService.findOneBy({ id });
-        if (target) {
-          return target;
-        } else {
-          throw new NotFoundError();
-        }
-      } else if (
-        auth.entity instanceof Contact &&
-        (id === "me" || id === auth.entity.id)
-      ) {
-        return auth.entity;
-      } else {
-        throw new UnauthorizedError();
-      }
-    }
-  });
-}
 
 @JsonController("/contact")
 @Authorized()

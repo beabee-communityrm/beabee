@@ -1,5 +1,4 @@
 import { CalloutFormSchema } from "@beabee/beabee-common";
-import { isUUID } from "class-validator";
 import { Response } from "express";
 import {
   Authorized,
@@ -15,8 +14,7 @@ import {
   Patch,
   Post,
   QueryParams,
-  Res,
-  createParamDecorator
+  Res
 } from "routing-controllers";
 import slugify from "slugify";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
@@ -44,6 +42,7 @@ import {
 import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
 import { PaginatedDto } from "@api/dto/PaginatedDto";
 
+import { CalloutId } from "@api/decorators/CalloutId";
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
 import DuplicateId from "@api/errors/DuplicateId";
@@ -61,28 +60,6 @@ import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 
 import { AuthInfo } from "@type/auth-info";
-
-/**
- * Allows the use of either a callout ID or slug in the route
- * @returns A callout ID or undefined
- */
-function CalloutId() {
-  return createParamDecorator({
-    required: true,
-    value: async (action): Promise<string | undefined> => {
-      const id = action.request.params.id;
-      if (isUUID(id)) {
-        return id;
-      } else {
-        const callout = await getRepository(Callout).findOne({
-          select: { id: true },
-          where: { slug: id }
-        });
-        return callout?.id;
-      }
-    }
-  });
-}
 
 @JsonController("/callout")
 export class CalloutController {
