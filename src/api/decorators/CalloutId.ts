@@ -1,5 +1,5 @@
 import { isUUID } from "class-validator";
-import { createParamDecorator } from "routing-controllers";
+import { NotFoundError, createParamDecorator } from "routing-controllers";
 
 import { getRepository } from "@core/database";
 
@@ -21,7 +21,11 @@ export function CalloutId() {
           select: { id: true },
           where: { slug: id }
         });
-        return callout?.id;
+        if (!callout) {
+          throw new NotFoundError();
+        }
+
+        return callout.id;
       }
     }
   });
