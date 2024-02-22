@@ -102,11 +102,10 @@ export class CalloutController {
 
   @Authorized("admin")
   @OnUndefined(204)
-  @Delete("/:id")
+  @Delete("/:slug")
   async deleteCallout(@CalloutId() id: string): Promise<void> {
-    await getRepository(CalloutResponse).delete({ calloutId: id });
-    const result = await getRepository(Callout).delete(id);
-    if (result.affected === 0) {
+    const deleted = await CalloutsService.deleteCallout(id);
+    if (!deleted) {
       throw new NotFoundError();
     }
   }

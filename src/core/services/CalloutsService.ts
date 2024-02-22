@@ -2,12 +2,13 @@ import {
   CalloutFormSchema,
   CalloutResponseAnswers
 } from "@beabee/beabee-common";
+import { BadRequestError } from "routing-controllers";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 
-import { getRepository } from "@core/database";
+import { getRepository, runTransaction } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
 
 import Contact from "@models/Contact";
@@ -21,6 +22,10 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutData } from "@type/callout-data";
+import OptionsService from "./OptionsService";
+import CalloutTag from "@models/CalloutTag";
+import CalloutResponseComment from "@models/CalloutResponseComment";
+import CalloutResponseTag from "@models/CalloutResponseTag";
 
 class CalloutsService {
   async createCallout(
@@ -82,6 +87,48 @@ class CalloutsService {
     } catch (err) {
       throw isDuplicateIndex(err, "slug") ? new DuplicateId(newSlug) : err;
     }
+  }
+
+  async deleteCallout(slug: string): Promise<boolean> {
+    return await runTransaction(async (em) => {
+      await em
+        .createQueryBuilder()
+        .delete()
+        .from(CalloutResponseComment)
+        .where((qb) => {
+          const subQuery = em
+            .createQueryBuilder()
+            .subQuery()
+            .select("id")
+            .from(CalloutResponse, "cr")
+            .where("cr.calloutSlug = :slug", { slug });
+          qb.where("responseId IN " + subQuery.getQuery());
+        })
+        .execute();
+
+      await em
+        .createQueryBuilder()
+        .delete()
+        .from(CalloutResponseTag)
+        .where((qb) => {
+          const subQuery = em
+            .createQueryBuilder()
+            .subQuery()
+            .select("id")
+            .from(CalloutResponse, "cr")
+            .where("cr.calloutSlug = :slug", { slug });
+          qb.where("responseId IN " + subQuery.getQuery());
+        })
+        .execute();
+
+      await em.getRepository(CalloutResponse).delete({ calloutSlug: slug });
+      await em.getRepository(CalloutVariant).delete({ calloutSlug: slug });
+      await em.getRepository(CalloutTag).delete({ calloutSlug: slug });
+
+      const result = await getRepository(Callout).delete(slug);
+
+      return result.affected === 1;
+    });
   }
 
   async getResponse(
