@@ -7,6 +7,7 @@ import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity
 
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
+import OptionsService from "@core/services/OptionsService";
 
 import { getRepository, runTransaction } from "@core/database";
 import { isDuplicateIndex } from "@core/utils";
@@ -14,6 +15,9 @@ import { isDuplicateIndex } from "@core/utils";
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutResponseComment from "@models/CalloutResponseComment";
+import CalloutResponseTag from "@models/CalloutResponseTag";
+import CalloutTag from "@models/CalloutTag";
 import CalloutVariant from "@models/CalloutVariant";
 
 import DuplicateId from "@api/errors/DuplicateId";
@@ -22,24 +26,21 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutData } from "@type/callout-data";
-import OptionsService from "./OptionsService";
-import CalloutTag from "@models/CalloutTag";
-import CalloutResponseComment from "@models/CalloutResponseComment";
-import CalloutResponseTag from "@models/CalloutResponseTag";
 
 class CalloutsService {
+  /**
+   * Create a new callout
+   * @param data The callout data
+   * @param autoSlug Whether or not to automatically add a number to the slug if it's a duplicate
+   * @returns The new callout
+   */
   async createCallout(
     data: CalloutData & { slug: string },
     autoSlug: number | false
   ): Promise<Callout> {
     const slug = data.slug + (autoSlug && autoSlug > 0 ? "-" + autoSlug : "");
     try {
-      await getRepository(Callout).insert({
-        ...data,
-        slug,
-        // Force the correct type as otherwise this errors, not sure why
-        formSchema: data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
-      });
+      await getRepository(Callout).insert(this.fixData({ ...data, slug }));
       return await getRepository(Callout).findOneByOrFail({ slug });
     } catch (err) {
       if (isDuplicateIndex(err, "slug")) {
@@ -54,6 +55,12 @@ class CalloutsService {
     }
   }
 
+  /**
+   * Update a callout with the given slug, this also handles updating the slug itself
+   * @param slug The callout slug
+   * @param data The new callout data, this can contain a new slug
+   * @returns The updated callout
+   */
   async updateCallout(
     slug: string,
     data: Partial<CalloutData>
@@ -74,13 +81,7 @@ class CalloutsService {
     }
 
     try {
-      await getRepository(Callout).update(slug, {
-        ...data,
-        // Force the correct type as otherwise this errors, not sure why
-        ...(data.formSchema && {
-          formSchema: data.formSchema
-        })
-      });
+      await getRepository(Callout).update(slug, this.fixData(data));
       return (
         (await getRepository(Callout).findOneBy({ slug: newSlug })) || undefined
       );
@@ -89,6 +90,11 @@ class CalloutsService {
     }
   }
 
+  /**
+   * Delete the callout with the given slug and all it's related data
+   * @param slug The callout slug
+   * @returns true if the callout was deleted
+   */
   async deleteCallout(slug: string): Promise<boolean> {
     return await runTransaction(async (em) => {
       await em
@@ -131,6 +137,12 @@ class CalloutsService {
     });
   }
 
+  /**
+   * Get the most recent response for the given callout and contact
+   * @param callout The callout
+   * @param contact The contact
+   * @returns The most recent response
+   */
   async getResponse(
     callout: Callout,
     contact: Contact
@@ -147,6 +159,15 @@ class CalloutsService {
     );
   }
 
+  /**
+   * Creates a response for the given callout and contact, ensuring the contact has
+   * the correct access and the callout is active
+   * @param callout The callout
+   * @param contact The contact
+   * @param answers The response answers
+   * @param isPartial Deprecated: whether or not the answers are partial or not
+   * @returns The new callout response
+   */
   async setResponse(
     callout: Callout,
     contact: Contact,
@@ -199,6 +220,14 @@ class CalloutsService {
     return savedResponse;
   }
 
+  /**
+   * Creates a guest response for the given callout
+   * @param callout The callout
+   * @param guestName The guest's name or undefined for an anonymous response
+   * @param guestEmail The guest's email or undefined for an anonymous response
+   * @param answers The response answers
+   * @returns The new callout response
+   */
   async setGuestResponse(
     callout: Callout,
     guestName: string | undefined,
@@ -230,6 +259,27 @@ class CalloutsService {
     return savedResponse;
   }
 
+  /**
+   * This is a hack used to force the correct type for formSchema, for some reason
+   * CalloutFormSchema isn't compatible with QueryDeepPartialEntity<CalloutFormSchema>
+   * @param data
+   * @returns The data
+   */
+  private fixData(data: Partial<CalloutData>): QueryDeepPartialEntity<Callout> {
+    const { formSchema, ...restData } = data;
+    return {
+      ...restData,
+      ...(formSchema && {
+        formSchema: formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+      })
+    };
+  }
+
+  /**
+   * Handles saving the response, ensuring the number is unique and probably sequential
+   * @param response The response to save
+   * @returns The updated response
+   */
   private async saveResponse(
     response: CalloutResponse
   ): Promise<CalloutResponse> {
@@ -254,6 +304,12 @@ class CalloutsService {
     }
   }
 
+  /**
+   * Notify admins about a new response. Handles fetching the callout title
+   * in the default variant if it's not already available
+   * @param callout The callout
+   * @param responderName The name of the responder
+   */
   private async notifyAdmin(
     callout: Callout,
     responderName: string
