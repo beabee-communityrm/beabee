@@ -49,19 +49,19 @@ export class AddCalloutVariant1708534754022 implements MigrationInterface {
       `ALTER TABLE "callout" ADD "thanksRedirect" character varying`
     );
     await queryRunner.query(
-      `ALTER TABLE "callout" ADD "thanksText" character varying NOT NULL`
+      `ALTER TABLE "callout" ADD "thanksText" character varying`
     );
     await queryRunner.query(
-      `ALTER TABLE "callout" ADD "thanksTitle" character varying NOT NULL`
+      `ALTER TABLE "callout" ADD "thanksTitle" character varying`
     );
     await queryRunner.query(
-      `ALTER TABLE "callout" ADD "excerpt" character varying NOT NULL`
+      `ALTER TABLE "callout" ADD "excerpt" character varying`
     );
     await queryRunner.query(
-      `ALTER TABLE "callout" ADD "title" character varying NOT NULL`
+      `ALTER TABLE "callout" ADD "title" character varying`
     );
     await queryRunner.query(
-      `ALTER TABLE "callout" ADD "intro" character varying NOT NULL`
+      `ALTER TABLE "callout" ADD "intro" character varying`
     );
 
     await queryRunner.query(
@@ -75,7 +75,23 @@ export class AddCalloutVariant1708534754022 implements MigrationInterface {
         "shareTitle" = "callout_variant"."shareTitle",
         "shareDescription" = "callout_variant"."shareDescription"
       FROM "callout_variant"
-      WHERE "callout"."id" = "callout_variant"."calloutId" && "callout_variant"."locale" = 'default'`
+      WHERE "callout"."id" = "callout_variant"."calloutId" AND "callout_variant"."locale" = 'default'`
+    );
+
+    await queryRunner.query(
+      `ALTER TABLE "callout" ALTER COLUMN "thanksText" SET NOT NULL`
+    );
+    await queryRunner.query(
+      `ALTER TABLE "callout" ALTER COLUMN "thanksTitle" SET NOT NULL`
+    );
+    await queryRunner.query(
+      `ALTER TABLE "callout" ALTER COLUMN "excerpt" SET NOT NULL`
+    );
+    await queryRunner.query(
+      `ALTER TABLE "callout" ALTER COLUMN "title" SET NOT NULL`
+    );
+    await queryRunner.query(
+      `ALTER TABLE "callout" ALTER COLUMN "intro" SET NOT NULL`
     );
 
     await queryRunner.query(`DROP TABLE "callout_variant"`);
