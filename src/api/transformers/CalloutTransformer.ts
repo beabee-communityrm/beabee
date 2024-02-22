@@ -17,6 +17,7 @@ import {
   GetCalloutDto,
   GetCalloutOptsDto
 } from "@api/dto/CalloutDto";
+import NotFoundError from "@api/errors/NotFoundError";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import CalloutVariantTransformer from "@api/transformers/CalloutVariantTransformer";
 import { groupBy } from "@api/utils";
@@ -82,7 +83,7 @@ class CalloutTransformer extends BaseTransformer<
       (v) => v.locale === (opts?.locale || "default")
     );
     if (!variant) {
-      throw new BadRequestError("No variant found for locale");
+      throw new NotFoundError({ message: "No variant found for locale" });
     }
 
     return {
@@ -180,7 +181,7 @@ class CalloutTransformer extends BaseTransformer<
       );
     }
 
-    // Load a locale unless we will load all of them anyway
+    // Load a variant unless we will load all of them anyway
     if (!query.with?.includes(GetCalloutWith.Variants)) {
       qb.leftJoinAndSelect(
         `${fieldPrefix}variants`,
