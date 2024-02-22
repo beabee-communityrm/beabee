@@ -202,6 +202,17 @@ export class CreateCalloutDto extends BaseCalloutDto {
   variants!: CalloutVariantsDto;
 }
 
+// Everything should be optional, this is handled by @PartialBody at the moment
+export class UpdateCalloutDto extends BaseCalloutDto {
+  @ValidateNested()
+  @Type(() => CalloutFormDto)
+  formSchema!: CalloutFormDto;
+
+  @IsVariantsObject({ skipMissingProperties: true })
+  @Transform(transformVariants)
+  variants!: CalloutVariantsDto;
+}
+
 export class GetCalloutDto extends BaseCalloutDto {
   @IsString()
   id!: string;

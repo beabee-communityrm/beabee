@@ -5,7 +5,10 @@ import {
   validateOrReject
 } from "class-validator";
 
-async function isVariantsObject(value: unknown): Promise<boolean> {
+async function isVariantsObject(
+  value: unknown,
+  skipMissingProperties: boolean
+): Promise<boolean> {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -21,20 +24,21 @@ async function isVariantsObject(value: unknown): Promise<boolean> {
     if (typeof variant !== "object" || variant === null) {
       return false;
     }
-    await validateOrReject(variant, { skipMissingProperties: true });
+    await validateOrReject(variant, { skipMissingProperties });
   }
 
   return true;
 }
 
 export default function IsVariantsObject(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions & { skipMissingProperties?: boolean }
 ): PropertyDecorator {
   return ValidateBy(
     {
       name: "isVariantsObject",
       validator: {
-        validate: isVariantsObject,
+        validate: (value) =>
+          isVariantsObject(value, !!validationOptions?.skipMissingProperties),
         defaultMessage: buildMessage(
           (eachPrefix) => eachPrefix + "$property must be an object",
           validationOptions

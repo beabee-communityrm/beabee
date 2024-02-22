@@ -25,7 +25,8 @@ import {
   CreateCalloutDto,
   GetCalloutDto,
   GetCalloutOptsDto,
-  ListCalloutsDto
+  ListCalloutsDto,
+  UpdateCalloutDto
 } from "@api/dto/CalloutDto";
 import {
   CreateCalloutResponseDto,
@@ -99,7 +100,7 @@ export class CalloutController {
   async updateCallout(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @CalloutId() id: string,
-    @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutDto>
+    @PartialBody() data: UpdateCalloutDto
   ): Promise<GetCalloutDto | undefined> {
     await CalloutsService.updateCallout(id, data);
     return CalloutTransformer.fetchOneById(auth, id);
