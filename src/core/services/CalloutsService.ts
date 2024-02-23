@@ -296,7 +296,7 @@ class CalloutsService {
       const newId = id;
 
       if (variants) {
-        await getRepository(CalloutVariant).save(
+        await em.getRepository(CalloutVariant).save(
           Object.entries(variants).map(([locale, variant]) => ({
             ...variant,
             locale,
