@@ -27,13 +27,14 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutData } from "@type/callout-data";
+import NotFoundError from "@api/errors/NotFoundError";
 
 class CalloutsService {
   /**
    * Create a new callout
    * @param data The callout data
    * @param autoSlug Whether or not to automatically add a number to the slug if it's a duplicate
-   * @returns The new callout slug
+   * @returns The new callout ID
    */
   async createCallout(
     data: CalloutData,
@@ -51,8 +52,7 @@ class CalloutsService {
     while (true) {
       const slug = baseSlug + (autoSlug ? "-" + autoSlug : "");
       try {
-        await this.saveCallout({ ...data, slug });
-        return slug;
+        return await this.saveCallout({ ...data, slug });
       } catch (err) {
         if (err instanceof DuplicateId && autoSlug !== false) {
           autoSlug++;
@@ -84,6 +84,38 @@ class CalloutsService {
     }
 
     await this.saveCallout(data, id);
+  }
+
+  async duplicateCallout(id: string): Promise<string> {
+    const callout = await getRepository(Callout).findOne({
+      where: { id },
+      relations: { variants: true, tags: true }
+    });
+    if (!callout) {
+      throw new NotFoundError();
+    }
+
+    const { id: removeId, tags, variants, ...calloutData } = callout;
+
+    const data = {
+      ...calloutData,
+      variants: Object.fromEntries(
+        variants.map((variant) => [variant.name, variant])
+      )
+    };
+
+    const newId = await this.createCallout(data, 0);
+
+    if (tags.length > 0) {
+      await getRepository(CalloutTag).save(
+        tags.map((tag) => {
+          const { id, ...newTag } = tag;
+          return { ...newTag, calloutId: newId };
+        })
+      );
+    }
+
+    return newId;
   }
 
   /**
@@ -263,7 +295,7 @@ class CalloutsService {
   private async saveCallout(
     data: Partial<CalloutData>,
     id?: string
-  ): Promise<boolean> {
+  ): Promise<string> {
     const { formSchema, variants, ...calloutData } = data;
 
     // For some reason CalloutFormSchema isn't compatible with
@@ -280,7 +312,7 @@ class CalloutsService {
         if (id) {
           const result = await em.getRepository(Callout).update(id, fixedData);
           if (result.affected === 0) {
-            return false;
+            throw new NotFoundError();
           }
         } else {
           const result = await em.getRepository(Callout).insert(fixedData);
@@ -305,7 +337,7 @@ class CalloutsService {
         );
       }
 
-      return true;
+      return newId;
     });
   }
 

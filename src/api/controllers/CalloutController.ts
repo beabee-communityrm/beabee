@@ -11,6 +11,7 @@ import {
   Param,
   Patch,
   Post,
+  QueryParam,
   QueryParams,
   Res
 } from "routing-controllers";
@@ -45,6 +46,7 @@ import CalloutTransformer from "@api/transformers/CalloutTransformer";
 import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
 import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
+import { validateOrReject } from "@api/utils";
 
 import Callout from "@models/Callout";
 import CalloutResponseTag from "@models/CalloutResponseTag";
@@ -67,19 +69,23 @@ export class CalloutController {
   @Post("/")
   async createCallout(
     @CurrentAuth({ required: true }) auth: AuthInfo,
-    @Body() data: CreateCalloutDto
+    @QueryParam("fromId") fromId: string,
+    @Body({ validate: false, required: false }) data: CreateCalloutDto
   ): Promise<GetCalloutDto> {
-    const slug = await CalloutsService.createCallout(
-      data,
-      data.slug ? false : 0
-    );
-    return CalloutTransformer.fetchOneOrFail(auth, {
-      rules: {
-        condition: "AND",
-        rules: [{ field: "slug", operator: "equal", value: [slug] }]
-      },
-      showHiddenForAll: true
-    });
+    // Allow partial body if duplicating
+    await validateOrReject(data, { skipMissingProperties: !!fromId });
+
+    let id;
+    if (fromId) {
+      id = await CalloutsService.duplicateCallout(fromId);
+      if (Object.keys(data).length > 0) {
+        await CalloutsService.updateCallout(id, data);
+      }
+    } else {
+      id = await CalloutsService.createCallout(data, data.slug ? false : 0);
+    }
+
+    return CalloutTransformer.fetchOneByIdOrFail(auth, id);
   }
 
   @Get("/:id")
