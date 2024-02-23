@@ -9,7 +9,7 @@ export default class CalloutVariant {
   callout!: Callout;
 
   @PrimaryColumn()
-  locale!: string;
+  name!: string;
 
   @Column()
   title!: string;

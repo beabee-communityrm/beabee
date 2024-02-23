@@ -349,10 +349,10 @@ class CalloutsService {
     responderName: string
   ): Promise<void> {
     const variant =
-      callout.variants.find((v) => v.locale === "default") ||
+      callout.variants.find((v) => v.name === "default") ||
       (await getRepository(CalloutVariant).findOneBy({
         calloutId: callout.id,
-        locale: "default"
+        name: "default"
       }));
 
     await EmailService.sendTemplateToAdmin("new-callout-response", {

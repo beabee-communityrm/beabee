@@ -6,7 +6,11 @@ import {
   PaginatedQuery
 } from "@beabee/beabee-common";
 import { TransformPlainToInstance } from "class-transformer";
-import { BadRequestError, UnauthorizedError } from "routing-controllers";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError
+} from "routing-controllers";
 import { SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
@@ -25,10 +29,10 @@ import { mergeRules, statusFilterHandler } from "@api/utils/rules";
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutVariant from "@models/CalloutVariant";
 
 import { AuthInfo } from "@type/auth-info";
 import { FilterHandlers } from "@type/filter-handlers";
-import CalloutVariant from "@models/CalloutVariant";
 
 class CalloutTransformer extends BaseTransformer<
   Callout,
@@ -80,14 +84,14 @@ class CalloutTransformer extends BaseTransformer<
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {
     const variants = Object.fromEntries(
       callout.variants.map((variant) => [
-        variant.locale,
+        variant.name,
         CalloutVariantTransformer.convert(variant)
       ])
     );
 
-    const variant = variants[opts?.locale || "default"];
+    const variant = variants[opts?.variant || "default"];
     if (!variant) {
-      throw new BadRequestError("No variant found for locale");
+      throw new NotFoundError(`Variant ${opts?.variant} not found`);
     }
 
     return {
@@ -186,12 +190,9 @@ class CalloutTransformer extends BaseTransformer<
     }
 
     // Always load a variant for filtering and sorting
-    qb.leftJoinAndSelect(
-      `${fieldPrefix}variants`,
-      "cvd",
-      "cvd.locale = :locale",
-      { locale: query.locale || "default" }
-    );
+    qb.leftJoinAndSelect(`${fieldPrefix}variants`, "cvd", "cvd.name = :name", {
+      name: query.variant || "default"
+    });
 
     if (query.sort === "title") {
       qb.orderBy("cvd.title", query.order || "ASC");

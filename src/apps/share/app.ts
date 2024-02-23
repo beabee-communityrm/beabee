@@ -27,7 +27,7 @@ async function getCalloutShareSettings(
     .getOne();
 
   if (callout) {
-    const variant = callout.variants.find((v) => v.locale === locale);
+    const variant = callout.variants.find((v) => v.name === locale);
     if (!variant) {
       throw new Error(
         `No variant found for callout ${callout.slug} and locale ${locale}`

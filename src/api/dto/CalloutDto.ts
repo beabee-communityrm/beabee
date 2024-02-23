@@ -51,7 +51,7 @@ export class GetCalloutOptsDto extends GetExportQuery {
 
   @IsOptional()
   @IsString()
-  locale?: string;
+  variant?: string;
 
   // This property can only be set internally, not via query params
   @Equals(false)
@@ -65,7 +65,7 @@ export class ListCalloutsDto extends GetPaginatedQuery {
 
   @IsOptional()
   @IsString()
-  locale?: string;
+  variant?: string;
 
   @IsIn(["title", "starts", "expires"])
   sort?: string;

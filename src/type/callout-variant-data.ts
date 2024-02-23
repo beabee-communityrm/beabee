@@ -1,5 +1,5 @@
 export interface CalloutVariantData {
-  locale: string;
+  name: string;
   title: string;
   excerpt: string;
   intro: string;
