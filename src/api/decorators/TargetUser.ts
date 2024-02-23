@@ -1,4 +1,3 @@
-import { validateOrReject } from "class-validator";
 import { Request } from "express";
 import {
   NotFoundError,
@@ -9,6 +8,7 @@ import {
 import ContactsService from "@core/services/ContactsService";
 
 import { UUIDParams } from "@api/params/UUIDParams";
+import { validateOrReject } from "@api/utils";
 
 import Contact from "@models/Contact";
 
