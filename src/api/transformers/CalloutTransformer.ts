@@ -34,7 +34,7 @@ class CalloutTransformer extends BaseTransformer<
   GetCalloutOptsDto
 > {
   protected model = Callout;
-  protected modelIdField = "slug";
+  protected modelIdField = "id";
   protected filters = calloutFilters;
   protected filterHandlers = { status: statusFilterHandler };
 
@@ -61,13 +61,13 @@ class CalloutTransformer extends BaseTransformer<
           // TODO: deduplicate with hasAnswered
           const subQb = createQueryBuilder()
             .subQuery()
-            .select("cr.calloutSlug", "slug")
-            .distinctOn(["cr.calloutSlug"])
+            .select("cr.calloutId")
+            .distinctOn(["cr.calloutId"])
             .from(CalloutResponse, "cr")
             .where(args.whereFn(`cr.contactId`))
-            .orderBy("cr.calloutSlug");
+            .orderBy("cr.calloutId");
 
-          qb.where(`${args.fieldPrefix}slug IN ${subQb.getQuery()}`);
+          qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
         }
       }
     ];
@@ -76,6 +76,7 @@ class CalloutTransformer extends BaseTransformer<
   @TransformPlainToInstance(GetCalloutDto)
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {
     return {
+      id: callout.id,
       slug: callout.slug,
       title: callout.title,
       excerpt: callout.excerpt,
@@ -178,19 +179,22 @@ class CalloutTransformer extends BaseTransformer<
       query.with?.includes(GetCalloutWith.HasAnswered)
     ) {
       const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
-        .select("cr.calloutSlug", "slug")
-        .distinctOn(["cr.calloutSlug"])
-        .where("cr.calloutSlug IN (:...slugs) AND cr.contactId = :id", {
-          slugs: callouts.map((c) => c.slug),
-          id: auth.entity.id
-        })
-        .orderBy("cr.calloutSlug")
-        .getRawMany<{ slug: string }>();
+        .select("cr.calloutId", "id")
+        .distinctOn(["cr.calloutId"])
+        .where(
+          "cr.calloutId IN (:...calloutIds) AND cr.contactId = :contactId",
+          {
+            calloutIds: callouts.map((c) => c.id),
+            contactId: auth.entity.id
+          }
+        )
+        .orderBy("cr.calloutId")
+        .getRawMany<{ id: string }>();
 
-      const answeredSlugs = answeredCallouts.map((c) => c.slug);
+      const answeredIds = answeredCallouts.map((c) => c.id);
 
       for (const callout of callouts) {
-        callout.hasAnswered = answeredSlugs.includes(callout.slug);
+        callout.hasAnswered = answeredIds.includes(callout.id);
       }
     }
   }

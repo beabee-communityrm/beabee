@@ -99,7 +99,7 @@ async function anonymiseCalloutResponses(
     );
 
     const responses = await fn(createQueryBuilder(CalloutResponse, "item"))
-      .andWhere("item.callout = :callout", { callout: callout.slug })
+      .andWhere("item.calloutId = :id", { id: callout.id })
       .orderBy("item.id", "ASC")
       .getMany();
 

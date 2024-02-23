@@ -139,12 +139,10 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
 
   async fetchForCallout(
     auth: AuthInfo | undefined,
-    calloutSlug: string,
+    calloutId: string,
     query: ListCalloutResponsesDto
   ): Promise<PaginatedDto<GetCalloutResponseDto>> {
-    const callout = await getRepository(Callout).findOneBy({
-      slug: calloutSlug
-    });
+    const callout = await getRepository(Callout).findOneBy({ id: calloutId });
     if (!callout) {
       throw new NotFoundError();
     }

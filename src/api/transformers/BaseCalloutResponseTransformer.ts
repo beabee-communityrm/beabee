@@ -71,9 +71,9 @@ export abstract class BaseCalloutResponseTransformer<
         },
         // Only load responses for the given callout
         !!query.callout && {
-          field: "callout",
+          field: "calloutId",
           operator: "equal",
-          value: [query.callout.slug]
+          value: [query.callout.id]
         }
       ])
     };

@@ -98,9 +98,9 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
         },
         // Only load responses for the given callout
         {
-          field: "callout",
+          field: "calloutId",
           operator: "equal",
-          value: [query.callout.slug]
+          value: [query.callout.id]
         }
       ])
     };
@@ -108,12 +108,10 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
 
   async fetchForCallout(
     auth: AuthInfo | undefined,
-    calloutSlug: string,
+    calloutId: string,
     query: ListCalloutResponsesDto
   ): Promise<PaginatedDto<GetCalloutResponseMapDto>> {
-    const callout = await getRepository(Callout).findOneBy({
-      slug: calloutSlug
-    });
+    const callout = await getRepository(Callout).findOneBy({ id: calloutId });
     if (!callout?.responseViewSchema) {
       throw new NotFoundError();
     }

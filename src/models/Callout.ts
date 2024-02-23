@@ -4,7 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
-  PrimaryColumn
+  PrimaryGeneratedColumn
 } from "typeorm";
 import ItemWithStatus from "./ItemWithStatus";
 import CalloutResponse from "./CalloutResponse";
@@ -37,7 +37,10 @@ export interface CalloutResponseViewSchema {
 
 @Entity()
 export default class Callout extends ItemWithStatus {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
+
+  @Column({ unique: true })
   slug!: string;
 
   @CreateDateColumn()
