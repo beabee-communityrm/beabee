@@ -297,9 +297,9 @@ class CalloutsService {
 
       if (variants) {
         await em.getRepository(CalloutVariant).save(
-          Object.entries(variants).map(([locale, variant]) => ({
+          Object.entries(variants).map(([name, variant]) => ({
             ...variant,
-            locale,
+            name,
             calloutId: newId
           }))
         );

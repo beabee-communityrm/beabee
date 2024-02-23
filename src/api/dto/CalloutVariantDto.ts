@@ -3,9 +3,6 @@ import { IsString, IsOptional, IsUrl } from "class-validator";
 
 export class CalloutVariantDto implements CalloutVariantData {
   @IsString()
-  name!: string;
-
-  @IsString()
   title!: string;
 
   @IsString()

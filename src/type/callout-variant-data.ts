@@ -1,5 +1,4 @@
 export interface CalloutVariantData {
-  name: string;
   title: string;
   excerpt: string;
   intro: string;

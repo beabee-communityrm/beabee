@@ -13,7 +13,6 @@ class CalloutVariantTransformer extends BaseTransformer<
   @TransformPlainToInstance(CalloutVariantDto)
   convert(variant: CalloutVariant): CalloutVariantDto {
     return {
-      name: variant.name,
       title: variant.title,
       excerpt: variant.excerpt,
       intro: variant.intro,
