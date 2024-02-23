@@ -18,7 +18,6 @@ import {
   GetCalloutOptsDto,
   CalloutVariantsDto
 } from "@api/dto/CalloutDto";
-import NotFoundError from "@api/errors/NotFoundError";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import CalloutVariantTransformer from "@api/transformers/CalloutVariantTransformer";
 import { groupBy } from "@api/utils";
@@ -41,7 +40,7 @@ class CalloutTransformer extends BaseTransformer<
   protected model = Callout;
   protected modelIdField = "id";
   protected filters = calloutFilters;
-  protected filterHandlers = { status: statusFilterHandler };
+  protected filterHandlers = filterHandlers;
 
   protected transformFilters(
     query: GetCalloutOptsDto & PaginatedQuery,
@@ -185,14 +184,16 @@ class CalloutTransformer extends BaseTransformer<
       );
     }
 
-    // Load a variant unless we will load all of them anyway
-    if (!query.with?.includes(GetCalloutWith.Variants)) {
-      qb.leftJoinAndSelect(
-        `${fieldPrefix}variants`,
-        "v",
-        "v.locale = :locale",
-        { locale: query.locale || "default" }
-      );
+    // Always load a variant for filtering and sorting
+    qb.leftJoinAndSelect(
+      `${fieldPrefix}variants`,
+      "cvd",
+      "cvd.locale = :locale",
+      { locale: query.locale || "default" }
+    );
+
+    if (query.sort === "title") {
+      qb.orderBy("cvd.title", query.order || "ASC");
     }
   }
 
@@ -239,5 +240,13 @@ class CalloutTransformer extends BaseTransformer<
     }
   }
 }
+
+const filterHandlers: FilterHandlers<CalloutFilterName> = {
+  status: statusFilterHandler,
+  title: (qb, args) => {
+    // Filter by variant title
+    qb.where(args.whereFn("cvd.title"));
+  }
+};
 
 export default new CalloutTransformer();
