@@ -18,21 +18,19 @@ export class AddCalloutId1708615794655 implements MigrationInterface {
     );
     await queryRunner.query(`ALTER TABLE "callout_tag" ADD "calloutId" uuid`);
 
-    // Set new ID values in callout_response and callout_tag tables
-    const callouts: Callout[] = await queryRunner.query(
-      `SELECT slug, id FROM callout`
+    // Map callout slugs to new IDs
+    await queryRunner.query(
+      `UPDATE option SET value = callout.id FROM callout WHERE option.key = 'join-survey' AND option.value = callout.slug`
     );
-
-    for (const callout of callouts) {
-      await queryRunner.query(
-        `UPDATE "callout_response" SET "calloutId" = $1 WHERE "calloutSlug" = $2`,
-        [callout.id, callout.slug]
-      );
-      await queryRunner.query(
-        `UPDATE "callout_tag" SET "calloutId" = $1 WHERE "calloutSlug" = $2`,
-        [callout.id, callout.slug]
-      );
-    }
+    await queryRunner.query(
+      `UPDATE option SET value = callout.id FROM callout WHERE option.key = 'cancellation-survey' AND option.value = callout.slug`
+    );
+    await queryRunner.query(
+      `UPDATE callout_response SET "calloutId" = callout.id FROM callout WHERE callout_response."calloutSlug" = callout.slug`
+    );
+    await queryRunner.query(
+      `UPDATE callout_tag SET "calloutId" = callout.id FROM callout WHERE callout_tag."calloutSlug" = callout.slug`
+    );
 
     // Add NOT NULL constraint
     await queryRunner.query(
@@ -89,21 +87,19 @@ export class AddCalloutId1708615794655 implements MigrationInterface {
       `ALTER TABLE "callout_tag" ADD "calloutSlug" character varying`
     );
 
-    // Set old slug values in callout_response and callout_tag tables
-    const callouts: Callout[] = await queryRunner.query(
-      `SELECT slug, id FROM callout`
+    // Map callout IDs to old slugs
+    await queryRunner.query(
+      `UPDATE option SET value = callout.slug FROM callout WHERE option.key = 'join-survey' AND option.value = callout.id::text`
     );
-
-    for (const callout of callouts) {
-      await queryRunner.query(
-        `UPDATE "callout_response" SET "calloutSlug" = $1 WHERE "calloutId" = $2`,
-        [callout.slug, callout.id]
-      );
-      await queryRunner.query(
-        `UPDATE "callout_tag" SET "calloutSlug" = $1 WHERE "calloutId" = $2`,
-        [callout.slug, callout.id]
-      );
-    }
+    await queryRunner.query(
+      `UPDATE option SET value = callout.slug FROM callout WHERE option.key = 'cancellation-survey' AND option.value = callout.id::text`
+    );
+    await queryRunner.query(
+      `UPDATE callout_response SET "calloutSlug" = callout.slug FROM callout WHERE callout_response."calloutId" = callout.id`
+    );
+    await queryRunner.query(
+      `UPDATE callout_tag SET "calloutSlug" = callout.slug FROM callout WHERE callout_tag."calloutId" = callout.id`
+    );
 
     // Add NOT NULL constraint
     await queryRunner.query(
@@ -113,7 +109,7 @@ export class AddCalloutId1708615794655 implements MigrationInterface {
       `ALTER TABLE "callout_tag" ALTER COLUMN "calloutSlug" SET NOT NULL`
     );
 
-    // Drop new ID columns
+    // Drop constraints
     await queryRunner.query(
       `ALTER TABLE "callout" DROP CONSTRAINT "UQ_de88a9685333c7cb1ec489eecff"`
     );
