@@ -85,8 +85,10 @@ class CalloutTransformer extends BaseTransformer<
       ])
     );
 
-    const variant =
-      (opts?.locale && variants[opts?.locale]) || variants.default;
+    const variant = variants[opts?.locale || "default"];
+    if (!variant) {
+      throw new BadRequestError("No variant found for locale");
+    }
 
     return {
       id: callout.id,
