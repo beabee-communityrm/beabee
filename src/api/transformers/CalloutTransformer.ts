@@ -15,8 +15,7 @@ import {
   GetCalloutWith,
   ListCalloutsDto,
   GetCalloutDto,
-  GetCalloutOptsDto,
-  CalloutVariantsDto
+  GetCalloutOptsDto
 } from "@api/dto/CalloutDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import CalloutVariantTransformer from "@api/transformers/CalloutVariantTransformer";
@@ -84,7 +83,7 @@ class CalloutTransformer extends BaseTransformer<
         variant.locale,
         CalloutVariantTransformer.convert(variant)
       ])
-    ) as CalloutVariantsDto;
+    );
 
     const variant =
       (opts?.locale && variants[opts?.locale]) || variants.default;

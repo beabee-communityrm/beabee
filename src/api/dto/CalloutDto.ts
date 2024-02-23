@@ -35,7 +35,6 @@ import { CalloutAccess } from "@enums/callout-access";
 import { CalloutData } from "@type/callout-data";
 import { CalloutMapSchema } from "@type/callout-map-schema";
 import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
-import { CalloutVariantsData } from "@type/callout-variants-data";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -180,16 +179,14 @@ abstract class BaseCalloutDto implements CalloutData {
   responseViewSchema?: CalloutResponseViewSchemaDto | null;
 }
 
-export interface CalloutVariantsDto extends CalloutVariantsData {}
-
-function transformVariants(params: TransformFnParams): CalloutVariantsDto {
+function transformVariants(
+  params: TransformFnParams
+): Record<string, CalloutVariantDto> {
   const ret: Record<string, CalloutVariantDto> = {};
   for (const variant in params.value) {
     ret[variant] = plainToInstance(CalloutVariantDto, params.value[variant]);
   }
-
-  // TODO: should we be validating that the default locale is present?
-  return ret as CalloutVariantsDto;
+  return ret;
 }
 
 export class CreateCalloutDto extends BaseCalloutDto {
@@ -199,18 +196,7 @@ export class CreateCalloutDto extends BaseCalloutDto {
 
   @IsVariantsObject()
   @Transform(transformVariants)
-  variants!: CalloutVariantsDto;
-}
-
-// Everything should be optional, this is handled by @PartialBody at the moment
-export class UpdateCalloutDto extends BaseCalloutDto {
-  @ValidateNested()
-  @Type(() => CalloutFormDto)
-  formSchema!: CalloutFormDto;
-
-  @IsVariantsObject({ skipMissingProperties: true })
-  @Transform(transformVariants)
-  variants!: CalloutVariantsDto;
+  variants!: Record<string, CalloutVariantDto>;
 }
 
 export class GetCalloutDto extends BaseCalloutDto {
@@ -266,5 +252,5 @@ export class GetCalloutDto extends BaseCalloutDto {
   @IsOptional()
   @IsVariantsObject()
   @Transform(transformVariants)
-  variants?: CalloutVariantsDto;
+  variants?: Record<string, CalloutVariantDto>;
 }

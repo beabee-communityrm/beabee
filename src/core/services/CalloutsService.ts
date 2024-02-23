@@ -27,7 +27,6 @@ import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutData } from "@type/callout-data";
-import { CalloutVariantsData } from "@type/callout-variants-data";
 
 class CalloutsService {
   /**
@@ -37,9 +36,15 @@ class CalloutsService {
    * @returns The new callout slug
    */
   async createCallout(
-    data: CalloutData & { variants: CalloutVariantsData },
+    data: CalloutData,
     autoSlug: number | false
   ): Promise<string> {
+    if (!data.variants?.default) {
+      throw new BadRequestError(
+        "Default variant is required to create callout"
+      );
+    }
+
     const baseSlug =
       data.slug || slugify(data.variants.default.title, { lower: true });
 
