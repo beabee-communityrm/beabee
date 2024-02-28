@@ -194,7 +194,6 @@ class ContactsService {
       role.dateExpires = updates.dateExpires || role.dateExpires;
     } else {
       role = getRepository(ContactRole).create({
-        contact: contact,
         type: roleType,
         dateAdded: updates?.dateAdded || new Date(),
         dateExpires: updates?.dateExpires || null
