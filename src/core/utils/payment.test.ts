@@ -33,7 +33,7 @@ function createRole(role?: Partial<ContactRole>): ContactRole {
   });
 }
 
-describe("Renewal caulcation should be", () => {
+describe("Renewal calculation should be", () => {
   const now = new Date();
 
   const oneYearAgo = sub(now, { years: 1 });
@@ -94,10 +94,13 @@ describe("Renewal caulcation should be", () => {
   });
 
   test("this year if membership has no expiry date, is annual and date has not passed this year", () => {
+    const oneYearAgoAnd5Days = add(oneYearAgo, { days: 5 });
     const contact = createContact({
       contributionPeriod: ContributionPeriod.Annually,
-      roles: [createRole({ dateAdded: add(oneYearAgo, { days: 5 }) })]
+      roles: [createRole({ dateAdded: oneYearAgoAnd5Days })]
     });
-    expect(calcRenewalDate(contact, now)).toEqual(add(now, { days: 5 }));
+    expect(calcRenewalDate(contact, now)).toEqual(
+      add(oneYearAgoAnd5Days, { years: 1 })
+    );
   });
 });
