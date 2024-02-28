@@ -1,8 +1,8 @@
+import { ValidatorOptions, validate } from "class-validator";
 import { Request } from "express";
-import { BadRequestError } from "routing-controllers";
 
 import Contact from "@models/Contact";
-import { validate } from "class-validator";
+import { BadRequestError } from "routing-controllers";
 
 export function login(req: Request, contact: Contact): Promise<void> {
   return new Promise<void>((resolve, reject) => {
@@ -13,10 +13,26 @@ export function login(req: Request, contact: Contact): Promise<void> {
   });
 }
 
-export async function validateOrReject(data: object) {
-  const errors = await validate(data, {
-    validationError: { target: false, value: false }
+/**
+ * Validate an object using the same base options as the main API validator
+ * @param object The object
+ * @param validationOptions Other validation options
+ */
+export async function validateOrReject(
+  object: object,
+  validationOptions?: ValidatorOptions
+): Promise<void> {
+  const errors = await validate(object, {
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    forbidUnknownValues: true,
+    validationError: {
+      target: false,
+      value: false
+    },
+    ...validationOptions
   });
+
   if (errors.length > 0) {
     const error: any = new BadRequestError(
       `Invalid data, check 'errors' property for more info`

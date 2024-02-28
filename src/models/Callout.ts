@@ -11,6 +11,7 @@ import { CalloutAccess } from "@enums/callout-access";
 
 import ItemWithStatus from "./ItemWithStatus";
 import type CalloutResponse from "./CalloutResponse";
+import type CalloutTag from "./CalloutTag";
 import type CalloutVariant from "./CalloutVariant";
 
 import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
@@ -58,6 +59,9 @@ export default class Callout extends ItemWithStatus {
 
   @Column({ nullable: true })
   responsePassword?: string;
+
+  @OneToMany("CalloutTag", "callout")
+  tags!: CalloutTag[];
 
   @OneToMany("CalloutVariant", "callout")
   variants!: CalloutVariant[];
