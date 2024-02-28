@@ -383,7 +383,7 @@ class CalloutsService {
     responderName: string
   ): Promise<void> {
     const variant =
-      callout.variants.find((v) => v.name === "default") ||
+      callout.variants?.find((v) => v.name === "default") ||
       (await getRepository(CalloutVariant).findOneBy({
         calloutId: callout.id,
         name: "default"
