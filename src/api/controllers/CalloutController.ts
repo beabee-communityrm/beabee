@@ -69,7 +69,7 @@ export class CalloutController {
   @Post("/")
   async createCallout(
     @CurrentAuth({ required: true }) auth: AuthInfo,
-    @QueryParam("fromId") fromId: string,
+    @QueryParam("fromId", { required: false }) fromId: string | undefined,
     @Body({ validate: false, required: false }) data: CreateCalloutDto
   ): Promise<GetCalloutDto> {
     // Allow partial body if duplicating
