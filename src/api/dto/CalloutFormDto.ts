@@ -186,7 +186,9 @@ function IsComponent(validationOptions?: ValidationOptions) {
             whitelist: false,
             forbidUnknownValues: true
           });
-          log.notice("Component validation errors", { errors });
+          if (errors.length > 0) {
+            log.notice("Component validation errors", { errors });
+          }
           return errors.length === 0;
         },
         defaultMessage: buildMessage(
