@@ -135,9 +135,10 @@ class CalloutsService {
             .subQuery()
             .select("id")
             .from(CalloutResponse, "cr")
-            .where("cr.calloutId = :id", { id });
+            .where("cr.calloutId = :id");
           qb.where("responseId IN " + subQuery.getQuery());
         })
+        .setParameters({ id })
         .execute();
 
       await em
@@ -150,16 +151,17 @@ class CalloutsService {
             .subQuery()
             .select("id")
             .from(CalloutResponse, "cr")
-            .where("cr.calloutId = :id", { id });
+            .where("cr.calloutId = :id");
           qb.where("responseId IN " + subQuery.getQuery());
         })
+        .setParameters({ id })
         .execute();
 
       await em.getRepository(CalloutResponse).delete({ calloutId: id });
       await em.getRepository(CalloutVariant).delete({ calloutId: id });
       await em.getRepository(CalloutTag).delete({ calloutId: id });
 
-      const result = await getRepository(Callout).delete(id);
+      const result = await em.getRepository(Callout).delete({ id });
 
       return result.affected === 1;
     });
