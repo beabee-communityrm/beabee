@@ -28,6 +28,7 @@ import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
 import { CalloutAccess } from "@enums/callout-access";
 
 import { CalloutData } from "@type/callout-data";
+import { CalloutCaptcha } from "@enums/callout-captcha";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -159,6 +160,9 @@ abstract class BaseCalloutDto implements CalloutData {
 
   @IsEnum(CalloutAccess)
   access!: CalloutAccess;
+
+  @IsEnum(CalloutCaptcha)
+  captcha!: CalloutCaptcha;
 
   @IsBoolean()
   hidden!: boolean;

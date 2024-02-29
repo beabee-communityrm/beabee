@@ -84,6 +84,7 @@ class CalloutTransformer extends BaseTransformer<
       allowUpdate: callout.allowUpdate,
       allowMultiple: callout.allowMultiple,
       access: callout.access,
+      captcha: callout.captcha,
       status: callout.status,
       hidden: callout.hidden,
       starts: callout.starts,

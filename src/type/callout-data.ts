@@ -1,6 +1,7 @@
 import { CalloutFormSchema } from "@beabee/beabee-common";
 
 import { CalloutAccess } from "@enums/callout-access";
+import { CalloutCaptcha } from "@enums/callout-captcha";
 
 export interface CalloutData {
   slug?: string;
@@ -12,6 +13,7 @@ export interface CalloutData {
   allowUpdate: boolean;
   allowMultiple: boolean;
   access: CalloutAccess;
+  captcha: CalloutCaptcha;
   hidden: boolean;
 
   // With "form"
