@@ -188,8 +188,7 @@ export class CalloutController {
     @CurrentUser({ required: false }) caller: Contact | undefined,
     @CalloutId() id: string,
     @Body() data: CreateCalloutResponseDto,
-    @QueryParam("captchaToken", { required: false })
-    captchaToken: string | undefined
+    @QueryParam("captchaToken", { required: false }) captchaToken: string
   ): Promise<void> {
     const callout = await getRepository(Callout).findOneBy({ id });
     if (!callout) {
