@@ -47,7 +47,7 @@ export interface JoinContentPeriodData {
 
 export interface JoinContentData {
   title: string;
-  subTitle: string;
+  subtitle: string;
   initialAmount: number;
   initialPeriod: ContributionPeriod;
   minMonthlyAmount: number;
