@@ -178,7 +178,7 @@ const contentData = {
     showNoContribution: ["data", false],
     stripeCountry: ["readonly", () => config.stripe.country],
     stripePublicKey: ["readonly", () => config.stripe.publicKey],
-    subTitle: ["data", ""],
+    subtitle: ["data", ""],
     title: ["data", ""]
   }),
   "join/setup": withValue<"join/setup">({
