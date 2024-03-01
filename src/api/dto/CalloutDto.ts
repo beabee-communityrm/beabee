@@ -21,7 +21,7 @@ import {
 } from "class-validator";
 
 import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
-import { CalloutFormDto } from "@api/dto/CalloutFormDto";
+import { GetCalloutFormDto, SetCalloutFormDto } from "@api/dto/CalloutFormDto";
 import { CalloutVariantDto } from "@api/dto/CalloutVariantDto";
 import { LinkDto } from "@api/dto/LinkDto";
 import IsSlug from "@api/validators/IsSlug";
@@ -191,8 +191,8 @@ function transformVariants(
 
 export class CreateCalloutDto extends BaseCalloutDto {
   @ValidateNested()
-  @Type(() => CalloutFormDto)
-  formSchema!: CalloutFormDto;
+  @Type(() => SetCalloutFormDto)
+  formSchema!: SetCalloutFormDto;
 
   @IsVariantsObject()
   @Transform(transformVariants)
@@ -246,8 +246,8 @@ export class GetCalloutDto extends BaseCalloutDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => CalloutFormDto)
-  formSchema?: CalloutFormDto;
+  @Type(() => GetCalloutFormDto)
+  formSchema?: GetCalloutFormDto;
 
   @IsOptional()
   @IsVariantsObject()

@@ -1,5 +1,8 @@
-import { CalloutVariantData } from "@type/callout-variant-data";
-import { IsString, IsOptional, IsUrl } from "class-validator";
+import {
+  CalloutVariantData,
+  CalloutVariantNavigationData
+} from "@type/callout-variant-data";
+import { IsString, IsOptional, IsUrl, IsObject } from "class-validator";
 
 export class CalloutVariantDto implements CalloutVariantData {
   @IsString()
@@ -28,4 +31,10 @@ export class CalloutVariantDto implements CalloutVariantData {
   @IsOptional()
   @IsString()
   shareDescription!: string | null;
+
+  @IsObject() // TODO
+  slideNavigation!: Record<string, CalloutVariantNavigationData>;
+
+  @IsObject() // TODO
+  componentText!: Record<string, string>;
 }

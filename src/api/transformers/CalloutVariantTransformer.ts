@@ -20,7 +20,9 @@ class CalloutVariantTransformer extends BaseTransformer<
       thanksText: variant.thanksText,
       thanksRedirect: variant.thanksRedirect,
       shareTitle: variant.shareTitle,
-      shareDescription: variant.shareDescription
+      shareDescription: variant.shareDescription,
+      slideNavigation: variant.slideNavigation,
+      componentText: variant.componentText
     };
   }
 }

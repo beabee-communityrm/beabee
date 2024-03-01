@@ -34,7 +34,7 @@
     "test": "jest --setupFiles dotenv/config"
   },
   "dependencies": {
-    "@beabee/beabee-common": "^1.19.12",
+    "@beabee/beabee-common": "^1.19.13",
     "@inquirer/prompts": "^3.3.0",
     "@sendgrid/mail": "^8.1.0",
     "ajv": "^8.12.0",

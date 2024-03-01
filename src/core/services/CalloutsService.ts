@@ -26,7 +26,7 @@ import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 
 import { CalloutAccess } from "@enums/callout-access";
-import { CalloutData } from "@type/callout-data";
+import { CreateCalloutData } from "@type/callout-data";
 import NotFoundError from "@api/errors/NotFoundError";
 
 class CalloutsService {
@@ -37,7 +37,7 @@ class CalloutsService {
    * @returns The new callout ID
    */
   async createCallout(
-    data: CalloutData,
+    data: CreateCalloutData,
     autoSlug: number | false
   ): Promise<string> {
     if (!data.variants?.default) {
@@ -69,7 +69,10 @@ class CalloutsService {
    * @param data The new callout data
    * @returns The updated callout
    */
-  async updateCallout(id: string, data: Partial<CalloutData>): Promise<void> {
+  async updateCallout(
+    id: string,
+    data: Partial<CreateCalloutData>
+  ): Promise<void> {
     // Prevent the join survey from being made inactive
     if (OptionsService.getText("join-survey") === id) {
       if (data.expires) {
@@ -295,7 +298,7 @@ class CalloutsService {
    * @returns The data
    */
   private async saveCallout(
-    data: Partial<CalloutData>,
+    data: Partial<CreateCalloutData>,
     id?: string
   ): Promise<string> {
     const { formSchema, variants, ...calloutData } = data;

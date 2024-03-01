@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import type Callout from "./Callout";
+import { CalloutVariantNavigationData } from "@type/callout-variant-data";
 
 @Entity()
 export default class CalloutVariant {
@@ -34,4 +35,10 @@ export default class CalloutVariant {
 
   @Column({ type: String, nullable: true })
   shareDescription!: string | null;
+
+  @Column({ type: "jsonb" })
+  slideNavigation!: Record<string, CalloutVariantNavigationData>;
+
+  @Column({ type: "jsonb" })
+  componentText!: Record<string, string>;
 }

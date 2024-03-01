@@ -1,9 +1,8 @@
-import { CalloutFormSchema } from "@beabee/beabee-common";
-
 import { CalloutAccess } from "@enums/callout-access";
 
 import { CalloutResponseViewSchema } from "./callout-response-view-schema";
 import { CalloutVariantData } from "./callout-variant-data";
+import { CalloutFormData } from "./callout-form-data";
 
 export interface CalloutData {
   slug?: string;
@@ -17,6 +16,9 @@ export interface CalloutData {
   access: CalloutAccess;
   hidden: boolean;
   responseViewSchema?: CalloutResponseViewSchema | null;
-  formSchema?: CalloutFormSchema;
-  variants?: Record<string, CalloutVariantData>;
+}
+
+export interface CreateCalloutData extends CalloutData {
+  formSchema: CalloutFormData;
+  variants: Record<string, CalloutVariantData>;
 }

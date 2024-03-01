@@ -94,6 +94,18 @@ class CalloutTransformer extends BaseTransformer<
       throw new NotFoundError(`Variant ${opts?.variant} not found`);
     }
 
+    // Merge variant texts into form schema
+    const formSchema = {
+      slides: callout.formSchema.slides.map((slide) => ({
+        ...slide,
+        navigation: {
+          ...variant.slideNavigation[slide.id],
+          ...slide.navigation
+        }
+      })),
+      componentText: variant.componentText
+    };
+
     return {
       id: callout.id,
       slug: callout.slug,
@@ -117,7 +129,7 @@ class CalloutTransformer extends BaseTransformer<
         intro: variant.intro,
         thanksText: variant.thanksText,
         thanksTitle: variant.thanksTitle,
-        formSchema: callout.formSchema,
+        formSchema,
         ...(variant.thanksRedirect && {
           thanksRedirect: variant.thanksRedirect
         }),
