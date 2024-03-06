@@ -10,7 +10,7 @@ export class AddCalloutVariantFormTexts1709297783048
       `ALTER TABLE "callout_variant" ADD "slideNavigation" jsonb`
     );
     await queryRunner.query(
-      `ALTER TABLE "callout_variant" ADD "componentText" jsonb`
+      `ALTER TABLE "callout_variant" ADD "componentText" jsonb NOT NULL DEFAULT '{}'`
     );
 
     // Move callout slide navigation text to callout variants
@@ -31,6 +31,10 @@ export class AddCalloutVariantFormTexts1709297783048
           FROM jsonb_array_elements("formSchema"->'slides') AS slide
         ) q
       ))`);
+
+    await queryRunner.query(
+      `ALTER TABLE "callout_variant" ALTER COLUMN "slideNavigation" SET NOT NULL`
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

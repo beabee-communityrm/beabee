@@ -277,7 +277,7 @@ class GetCalloutSlideDto implements GetCalloutSlideSchema {
   navigation!: GetCalloutNavigationDto;
 }
 
-export class GetCalloutFormDto implements CalloutFormSchema {
+export class GetCalloutFormDto implements GetCalloutFormSchema {
   @ValidateNested({ each: true })
   @Type(() => GetCalloutSlideDto)
   slides!: GetCalloutSlideDto[];

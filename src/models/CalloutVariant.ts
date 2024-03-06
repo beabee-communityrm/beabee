@@ -39,6 +39,6 @@ export default class CalloutVariant {
   @Column({ type: "jsonb" })
   slideNavigation!: Record<string, CalloutVariantNavigationData>;
 
-  @Column({ type: "jsonb" })
+  @Column({ type: "jsonb", default: "{}" })
   componentText!: Record<string, string>;
 }
