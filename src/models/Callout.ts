@@ -13,8 +13,8 @@ import type CalloutResponse from "./CalloutResponse";
 import type CalloutTag from "./CalloutTag";
 import type CalloutVariant from "./CalloutVariant";
 
-import { CalloutFormData } from "@type/callout-form-data";
 import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
+import { SetCalloutFormSchema } from "@beabee/beabee-common";
 
 @Entity()
 export default class Callout extends ItemWithStatus {
@@ -31,7 +31,7 @@ export default class Callout extends ItemWithStatus {
   image!: string;
 
   @Column({ type: "jsonb" })
-  formSchema!: CalloutFormData;
+  formSchema!: SetCalloutFormSchema;
 
   @Column({ type: "jsonb", nullable: true })
   responseViewSchema!: CalloutResponseViewSchema | null;

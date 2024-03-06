@@ -1,18 +1,16 @@
 import {
   BaseCalloutComponentSchema,
-  CalloutFormSchema,
-  CalloutNavigationSchema,
-  CalloutSlideSchema,
+  GetCalloutFormSchema,
+  GetCalloutNavigationSchema,
+  GetCalloutSlideSchema,
   InputCalloutComponentSchema,
   NestableCalloutComponentSchema,
   RadioCalloutComponentSchema,
-  SelectCalloutComponentSchema
+  SelectCalloutComponentSchema,
+  SetCalloutFormSchema,
+  SetCalloutNavigationSchema,
+  SetCalloutSlideSchema
 } from "@beabee/beabee-common";
-import {
-  CalloutFormData,
-  CalloutSlideData,
-  CalloutSlideNavigationData
-} from "@type/callout-form-data";
 import { Transform, Type, plainToInstance } from "class-transformer";
 import {
   Equals,
@@ -222,12 +220,12 @@ class NestableCalloutComponentDto
   components!: CalloutComponentDto[];
 }
 
-class SetCalloutNavigationDto implements CalloutSlideNavigationData {
+class SetCalloutNavigationDto implements SetCalloutNavigationSchema {
   @IsString()
   nextSlideId!: string;
 }
 
-class SetCalloutSlideDto implements CalloutSlideData {
+class SetCalloutSlideDto implements SetCalloutSlideSchema {
   @IsString()
   id!: string;
 
@@ -243,13 +241,13 @@ class SetCalloutSlideDto implements CalloutSlideData {
   navigation!: SetCalloutNavigationDto;
 }
 
-export class SetCalloutFormDto implements CalloutFormData {
+export class SetCalloutFormDto implements SetCalloutFormSchema {
   @ValidateNested({ each: true })
   @Type(() => SetCalloutSlideDto)
   slides!: SetCalloutSlideDto[];
 }
 
-class GetCalloutNavigationDto implements CalloutNavigationSchema {
+class GetCalloutNavigationDto implements GetCalloutNavigationSchema {
   @IsString()
   prevText!: string;
 
@@ -263,7 +261,7 @@ class GetCalloutNavigationDto implements CalloutNavigationSchema {
   submitText!: string;
 }
 
-class GetCalloutSlideDto implements CalloutSlideSchema {
+class GetCalloutSlideDto implements GetCalloutSlideSchema {
   @IsString()
   id!: string;
 

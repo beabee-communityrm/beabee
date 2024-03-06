@@ -1,5 +1,3 @@
-import { CalloutNavigationSchema } from "@beabee/beabee-common";
-
 export interface CalloutVariantData {
   title: string;
   excerpt: string;
@@ -13,7 +11,8 @@ export interface CalloutVariantData {
   componentText: Record<string, string>;
 }
 
-export type CalloutVariantNavigationData = Pick<
-  CalloutNavigationSchema,
-  "prevText" | "nextText" | "submitText"
->;
+export interface CalloutVariantNavigationData {
+  prevText: string;
+  nextText: string;
+  submitText: string;
+}

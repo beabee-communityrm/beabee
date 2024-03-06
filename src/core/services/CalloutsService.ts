@@ -1,5 +1,5 @@
 import {
-  CalloutFormSchema,
+  GetCalloutFormSchema,
   CalloutResponseAnswers
 } from "@beabee/beabee-common";
 import slugify from "slugify";
@@ -303,12 +303,12 @@ class CalloutsService {
   ): Promise<string> {
     const { formSchema, variants, ...calloutData } = data;
 
-    // For some reason CalloutFormSchema isn't compatible with
-    // QueryDeepPartialEntity<CalloutFormSchema> so we force it
+    // For some reason GetCalloutFormSchema isn't compatible with
+    // QueryDeepPartialEntity<GetCalloutFormSchema> so we force it
     const fixedData = {
       ...calloutData,
       ...(formSchema && {
-        formSchema: formSchema as QueryDeepPartialEntity<CalloutFormSchema>
+        formSchema: formSchema as QueryDeepPartialEntity<GetCalloutFormSchema>
       })
     };
 
