@@ -93,6 +93,9 @@ export default {
   },
   trustedOrigins: env.ss("BEABEE_TRUSTEDORIGINS", []),
   databaseUrl: env.s("BEABEE_DATABASE_URL"),
+  captchaFox: {
+    secret: env.s("BEABEE_CAPTCHAFOX_SECRET", "")
+  },
   discourse: {
     url: env.s("BEABEE_DISCOURSE_URL", ""),
     ssoSecret: env.s("BEABEE_DISCOURSE_SSOSECRET", "")
