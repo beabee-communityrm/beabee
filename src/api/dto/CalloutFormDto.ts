@@ -22,6 +22,10 @@ import {
   validate
 } from "class-validator";
 
+import { log as mainLogger } from "@core/logging";
+
+const log = mainLogger.child({ app: "callout-form-validation" });
+
 // content
 
 const inputTypes = [
@@ -178,11 +182,14 @@ function IsComponent(validationOptions?: ValidationOptions) {
       validator: {
         async validate(value: unknown) {
           if (typeof value !== "object" || value === null) return false;
-          const error = await validate(value, {
+          const errors = await validate(value, {
             whitelist: false,
             forbidUnknownValues: true
           });
-          return error.length === 0;
+          if (errors.length > 0) {
+            log.notice("Component validation errors", { errors });
+          }
+          return errors.length === 0;
         },
         defaultMessage: buildMessage(
           (eachPrefix) => eachPrefix + "$property must be a valid component",
