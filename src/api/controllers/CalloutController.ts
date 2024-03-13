@@ -19,6 +19,7 @@ import {
 import CalloutsService from "@core/services/CalloutsService";
 
 import { getRepository } from "@core/database";
+import { verify } from "@core/lib/captchafox";
 
 import { GetExportQuery } from "@api/dto/BaseDto";
 
@@ -41,6 +42,7 @@ import { CalloutId } from "@api/decorators/CalloutId";
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+import UnauthorizedError from "@api/errors/UnauthorizedError";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
 import CalloutTransformer from "@api/transformers/CalloutTransformer";
 import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
@@ -52,6 +54,8 @@ import Callout from "@models/Callout";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 import Contact from "@models/Contact";
+
+import { CalloutCaptcha } from "@enums/callout-captcha";
 
 import { AuthInfo } from "@type/auth-info";
 
@@ -160,7 +164,8 @@ export class CalloutController {
   async createCalloutResponse(
     @CurrentUser({ required: false }) caller: Contact | undefined,
     @CalloutId() id: string,
-    @Body() data: CreateCalloutResponseDto
+    @Body() data: CreateCalloutResponseDto,
+    @QueryParam("captchaToken", { required: false }) captchaToken: string
   ): Promise<void> {
     const callout = await getRepository(Callout).findOneBy({ id });
     if (!callout) {
@@ -169,6 +174,23 @@ export class CalloutController {
 
     if (caller && (data.guestEmail || data.guestName)) {
       throw new InvalidCalloutResponse("logged-in-guest-fields");
+    }
+
+    if (
+      callout.captcha === CalloutCaptcha.All ||
+      (callout.captcha === CalloutCaptcha.Guest && !caller)
+    ) {
+      if (!captchaToken) {
+        throw new UnauthorizedError({ code: "captcha-required" });
+      }
+
+      const error = await verify(captchaToken);
+      if (error) {
+        throw new UnauthorizedError({
+          code: "captcha-failed",
+          message: "Captcha failed with error " + error
+        });
+      }
     }
 
     // TODO: support assignee/bucket/tags on create

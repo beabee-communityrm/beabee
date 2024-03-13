@@ -7,6 +7,7 @@ import {
 } from "typeorm";
 
 import { CalloutAccess } from "@enums/callout-access";
+import { CalloutCaptcha } from "@enums/callout-captcha";
 
 import ItemWithStatus from "./ItemWithStatus";
 import type CalloutResponse from "./CalloutResponse";
@@ -50,6 +51,9 @@ export default class Callout extends ItemWithStatus {
 
   @Column({ default: CalloutAccess.Member })
   access!: CalloutAccess;
+
+  @Column({ default: CalloutCaptcha.None })
+  captcha!: CalloutCaptcha;
 
   @Column({ default: false })
   hidden!: boolean;

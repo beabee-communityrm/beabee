@@ -27,6 +27,7 @@ import { SignupController } from "./controllers/SignupController";
 import { StatsController } from "./controllers/StatsController";
 import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { ResetDeviceController } from "./controllers/ResetDeviceController";
+import { RootController } from "./controllers/RootController";
 import { UploadController } from "./controllers/UploadController";
 
 import { ValidateResponseInterceptor } from "./interceptors/ValidateResponseInterceptor";
@@ -88,6 +89,7 @@ initApp()
         StatsController,
         ResetPasswordController,
         ResetDeviceController,
+        RootController,
         UploadController
       ],
       interceptors: [ValidateResponseInterceptor],

@@ -1,4 +1,5 @@
 import { CalloutAccess } from "@enums/callout-access";
+import { CalloutCaptcha } from "@enums/callout-captcha";
 
 import { CalloutResponseViewSchema } from "./callout-response-view-schema";
 import { CalloutVariantData } from "./callout-variant-data";
@@ -14,6 +15,7 @@ export interface CalloutData {
   allowUpdate: boolean;
   allowMultiple: boolean;
   access: CalloutAccess;
+  captcha: CalloutCaptcha;
   hidden: boolean;
   responseViewSchema?: CalloutResponseViewSchema | null;
 }

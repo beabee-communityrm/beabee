@@ -107,7 +107,7 @@ export class GetJoinContentDto implements JoinContentData {
   title!: string;
 
   @IsString()
-  subTitle!: string;
+  subtitle!: string;
 
   @IsNumber()
   initialAmount!: number;
