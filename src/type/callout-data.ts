@@ -7,8 +7,6 @@ import { SetCalloutFormSchema } from "@beabee/beabee-common";
 
 export interface CalloutData {
   slug?: string;
-  // title: string;
-  // excerpt: string;
   image: string;
   starts: Date | null;
   expires: Date | null;
