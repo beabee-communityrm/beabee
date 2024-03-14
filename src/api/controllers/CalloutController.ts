@@ -1,8 +1,6 @@
-import { CalloutFormSchema } from "@beabee/beabee-common";
 import { Response } from "express";
 import {
   Authorized,
-  BadRequestError,
   Body,
   CurrentUser,
   Delete,
@@ -17,15 +15,11 @@ import {
   QueryParams,
   Res
 } from "routing-controllers";
-import slugify from "slugify";
-import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 import CalloutsService from "@core/services/CalloutsService";
-import OptionsService from "@core/services/OptionsService";
 
 import { getRepository } from "@core/database";
 import { verify } from "@core/lib/captchafox";
-import { isDuplicateIndex } from "@core/utils";
 
 import { GetExportQuery } from "@api/dto/BaseDto";
 
@@ -47,7 +41,6 @@ import { PaginatedDto } from "@api/dto/PaginatedDto";
 import { CalloutId } from "@api/decorators/CalloutId";
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
-import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import UnauthorizedError from "@api/errors/UnauthorizedError";
 import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
@@ -55,12 +48,12 @@ import CalloutTransformer from "@api/transformers/CalloutTransformer";
 import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
 import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
 import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
+import { validateOrReject } from "@api/utils";
 
-import Contact from "@models/Contact";
 import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
+import Contact from "@models/Contact";
 
 import { CalloutCaptcha } from "@enums/callout-captcha";
 
@@ -78,15 +71,25 @@ export class CalloutController {
 
   @Authorized("admin")
   @Post("/")
-  async createCallout(@Body() data: CreateCalloutDto): Promise<GetCalloutDto> {
-    const callout = await CalloutsService.createCallout(
-      {
-        ...data,
-        slug: data.slug || slugify(data.title, { lower: true })
-      },
-      data.slug ? false : 0
-    );
-    return CalloutTransformer.convert(callout);
+  async createCallout(
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @QueryParam("fromId", { required: false }) fromId: string,
+    @Body({ validate: false, required: false }) data: CreateCalloutDto
+  ): Promise<GetCalloutDto> {
+    // Allow partial body if duplicating
+    await validateOrReject(data, { skipMissingProperties: !!fromId });
+
+    let id;
+    if (fromId) {
+      id = await CalloutsService.duplicateCallout(fromId);
+      if (Object.keys(data).length > 0) {
+        await CalloutsService.updateCallout(id, data);
+      }
+    } else {
+      id = await CalloutsService.createCallout(data, data.slug ? false : 0);
+    }
+
+    return CalloutTransformer.fetchOneByIdOrFail(auth, id);
   }
 
   @Get("/:id")
@@ -106,44 +109,18 @@ export class CalloutController {
   async updateCallout(
     @CurrentAuth({ required: true }) auth: AuthInfo,
     @CalloutId() id: string,
-    @PartialBody() data: CreateCalloutDto // Should be Partial<CreateCalloutData>
+    @PartialBody() data: CreateCalloutDto // Actually Partial<CreateCalloutDto>
   ): Promise<GetCalloutDto | undefined> {
-    if (OptionsService.getText("join-survey") === id) {
-      if (data.expires) {
-        throw new BadRequestError(
-          "Cannot set an expiry date on the join survey"
-        );
-      } else if (data.starts === null) {
-        throw new BadRequestError("Cannot set join survey to draft");
-      } else if (data.starts && data.starts > new Date()) {
-        throw new BadRequestError("Cannot set join survey to scheduled");
-      }
-    }
-
-    try {
-      await getRepository(Callout).update(id, {
-        ...data,
-        // Force the correct type as otherwise this errors, not sure why
-        ...(data.formSchema && {
-          formSchema:
-            data.formSchema as QueryDeepPartialEntity<CalloutFormSchema>
-        })
-      });
-      return await CalloutTransformer.fetchOneById(auth, id);
-    } catch (err) {
-      throw isDuplicateIndex(err, "slug") && data.slug
-        ? new DuplicateId(data.slug)
-        : err;
-    }
+    await CalloutsService.updateCallout(id, data);
+    return CalloutTransformer.fetchOneById(auth, id);
   }
 
   @Authorized("admin")
   @OnUndefined(204)
-  @Delete("/:id")
+  @Delete("/:slug")
   async deleteCallout(@CalloutId() id: string): Promise<void> {
-    await getRepository(CalloutResponse).delete({ calloutId: id });
-    const result = await getRepository(Callout).delete(id);
-    if (result.affected === 0) {
+    const deleted = await CalloutsService.deleteCallout(id);
+    if (!deleted) {
       throw new NotFoundError();
     }
   }

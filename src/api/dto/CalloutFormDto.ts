@@ -1,18 +1,22 @@
 import {
   BaseCalloutComponentSchema,
-  CalloutFormSchema,
-  CalloutNavigationSchema,
-  CalloutSlideSchema,
+  GetCalloutFormSchema,
+  GetCalloutNavigationSchema,
+  GetCalloutSlideSchema,
   InputCalloutComponentSchema,
   NestableCalloutComponentSchema,
   RadioCalloutComponentSchema,
-  SelectCalloutComponentSchema
+  SelectCalloutComponentSchema,
+  SetCalloutFormSchema,
+  SetCalloutNavigationSchema,
+  SetCalloutSlideSchema
 } from "@beabee/beabee-common";
 import { Transform, Type, plainToInstance } from "class-transformer";
 import {
   Equals,
   IsBoolean,
   IsIn,
+  IsObject,
   IsOptional,
   IsString,
   ValidateBy,
@@ -223,7 +227,34 @@ class NestableCalloutComponentDto
   components!: CalloutComponentDto[];
 }
 
-class CalloutNavigationDto implements CalloutNavigationSchema {
+class SetCalloutNavigationDto implements SetCalloutNavigationSchema {
+  @IsString()
+  nextSlideId!: string;
+}
+
+class SetCalloutSlideDto implements SetCalloutSlideSchema {
+  @IsString()
+  id!: string;
+
+  @IsString()
+  title!: string;
+
+  @IsComponent({ each: true })
+  @ComponentType()
+  components!: CalloutComponentDto[];
+
+  @ValidateNested()
+  @Type(() => SetCalloutNavigationDto)
+  navigation!: SetCalloutNavigationDto;
+}
+
+export class SetCalloutFormDto implements SetCalloutFormSchema {
+  @ValidateNested({ each: true })
+  @Type(() => SetCalloutSlideDto)
+  slides!: SetCalloutSlideDto[];
+}
+
+class GetCalloutNavigationDto implements GetCalloutNavigationSchema {
   @IsString()
   prevText!: string;
 
@@ -237,7 +268,7 @@ class CalloutNavigationDto implements CalloutNavigationSchema {
   submitText!: string;
 }
 
-class CalloutSlideDto implements CalloutSlideSchema {
+class GetCalloutSlideDto implements GetCalloutSlideSchema {
   @IsString()
   id!: string;
 
@@ -249,12 +280,15 @@ class CalloutSlideDto implements CalloutSlideSchema {
   components!: CalloutComponentDto[];
 
   @ValidateNested()
-  @Type(() => CalloutNavigationDto)
-  navigation!: CalloutNavigationSchema;
+  @Type(() => GetCalloutNavigationDto)
+  navigation!: GetCalloutNavigationDto;
 }
 
-export class CalloutFormDto implements CalloutFormSchema {
+export class GetCalloutFormDto implements GetCalloutFormSchema {
   @ValidateNested({ each: true })
-  @Type(() => CalloutSlideDto)
-  slides!: CalloutSlideDto[];
+  @Type(() => GetCalloutSlideDto)
+  slides!: GetCalloutSlideDto[];
+
+  @IsObject()
+  componentText!: Record<string, string>;
 }

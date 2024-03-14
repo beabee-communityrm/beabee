@@ -1,4 +1,3 @@
-import { CalloutFormSchema } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -6,36 +5,17 @@ import {
   OneToMany,
   PrimaryGeneratedColumn
 } from "typeorm";
-import ItemWithStatus from "./ItemWithStatus";
-import CalloutResponse from "./CalloutResponse";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutCaptcha } from "@enums/callout-captcha";
 
-export type CalloutTemplate = "custom" | "builder" | "ballot";
+import ItemWithStatus from "./ItemWithStatus";
+import type CalloutResponse from "./CalloutResponse";
+import type CalloutTag from "./CalloutTag";
+import type CalloutVariant from "./CalloutVariant";
 
-export interface CalloutMapSchema {
-  style: string;
-  center: [number, number];
-  bounds: [[number, number], [number, number]];
-  minZoom: number;
-  maxZoom: number;
-  initialZoom: number;
-  addressProp: string;
-  addressPattern: string;
-  addressPatternProp: string;
-  geocodeCountries?: string;
-}
-
-export interface CalloutResponseViewSchema {
-  buckets: string[];
-  titleProp: string;
-  imageProp: string;
-  imageFilter: string;
-  gallery: boolean;
-  links: { text: string; url: string }[];
-  map: CalloutMapSchema | null;
-}
+import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
+import { SetCalloutFormSchema } from "@beabee/beabee-common";
 
 @Entity()
 export default class Callout extends ItemWithStatus {
@@ -49,34 +29,10 @@ export default class Callout extends ItemWithStatus {
   date!: Date;
 
   @Column()
-  title!: string;
-
-  @Column()
-  excerpt!: string;
-
-  @Column()
   image!: string;
 
-  @Column()
-  intro!: string;
-
-  @Column()
-  thanksTitle!: string;
-
-  @Column()
-  thanksText!: string;
-
-  @Column({ type: String, nullable: true })
-  thanksRedirect!: string | null;
-
-  @Column({ type: String, nullable: true })
-  shareTitle!: string | null;
-
-  @Column({ type: String, nullable: true })
-  shareDescription!: string | null;
-
   @Column({ type: "jsonb" })
-  formSchema!: CalloutFormSchema;
+  formSchema!: SetCalloutFormSchema;
 
   @Column({ type: "jsonb", nullable: true })
   responseViewSchema!: CalloutResponseViewSchema | null;
@@ -102,11 +58,17 @@ export default class Callout extends ItemWithStatus {
   @Column({ default: false })
   hidden!: boolean;
 
-  @OneToMany(() => CalloutResponse, (r) => r.callout)
+  @OneToMany("CalloutResponse", "callout")
   responses!: CalloutResponse[];
 
   @Column({ nullable: true })
   responsePassword?: string;
+
+  @OneToMany("CalloutTag", "callout")
+  tags!: CalloutTag[];
+
+  @OneToMany("CalloutVariant", "callout")
+  variants!: CalloutVariant[];
 
   hasAnswered?: boolean;
   responseCount?: number;

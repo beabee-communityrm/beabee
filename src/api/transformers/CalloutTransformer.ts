@@ -6,7 +6,11 @@ import {
   PaginatedQuery
 } from "@beabee/beabee-common";
 import { TransformPlainToInstance } from "class-transformer";
-import { BadRequestError, UnauthorizedError } from "routing-controllers";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError
+} from "routing-controllers";
 import { SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
@@ -18,11 +22,14 @@ import {
   GetCalloutOptsDto
 } from "@api/dto/CalloutDto";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import CalloutVariantTransformer from "@api/transformers/CalloutVariantTransformer";
+import { groupBy } from "@api/utils";
 import { mergeRules, statusFilterHandler } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
+import CalloutVariant from "@models/CalloutVariant";
 
 import { AuthInfo } from "@type/auth-info";
 import { FilterHandlers } from "@type/filter-handlers";
@@ -36,7 +43,7 @@ class CalloutTransformer extends BaseTransformer<
   protected model = Callout;
   protected modelIdField = "id";
   protected filters = calloutFilters;
-  protected filterHandlers = { status: statusFilterHandler };
+  protected filterHandlers = filterHandlers;
 
   protected transformFilters(
     query: GetCalloutOptsDto & PaginatedQuery,
@@ -75,11 +82,35 @@ class CalloutTransformer extends BaseTransformer<
 
   @TransformPlainToInstance(GetCalloutDto)
   convert(callout: Callout, opts?: GetCalloutOptsDto): GetCalloutDto {
+    const variants = Object.fromEntries(
+      callout.variants.map((variant) => [
+        variant.name,
+        CalloutVariantTransformer.convert(variant)
+      ])
+    );
+
+    const variant = variants[opts?.variant || "default"];
+    if (!variant) {
+      throw new NotFoundError(`Variant ${opts?.variant} not found`);
+    }
+
+    // Merge variant texts into form schema
+    const formSchema = {
+      slides: callout.formSchema.slides.map((slide) => ({
+        ...slide,
+        navigation: {
+          ...variant.slideNavigation[slide.id],
+          ...slide.navigation
+        }
+      })),
+      componentText: variant.componentText
+    };
+
     return {
       id: callout.id,
       slug: callout.slug,
-      title: callout.title,
-      excerpt: callout.excerpt,
+      title: variant.title,
+      excerpt: variant.excerpt,
       image: callout.image,
       allowUpdate: callout.allowUpdate,
       allowMultiple: callout.allowMultiple,
@@ -96,20 +127,23 @@ class CalloutTransformer extends BaseTransformer<
         responseCount: callout.responseCount
       }),
       ...(opts?.with?.includes(GetCalloutWith.Form) && {
-        intro: callout.intro,
-        thanksText: callout.thanksText,
-        thanksTitle: callout.thanksTitle,
-        formSchema: callout.formSchema,
-        ...(callout.thanksRedirect && {
-          thanksRedirect: callout.thanksRedirect
+        intro: variant.intro,
+        thanksText: variant.thanksText,
+        thanksTitle: variant.thanksTitle,
+        formSchema,
+        ...(variant.thanksRedirect && {
+          thanksRedirect: variant.thanksRedirect
         }),
-        ...(callout.shareTitle && { shareTitle: callout.shareTitle }),
-        ...(callout.shareDescription && {
-          shareDescription: callout.shareDescription
+        ...(variant.shareTitle && { shareTitle: variant.shareTitle }),
+        ...(variant.shareDescription && {
+          shareDescription: variant.shareDescription
         })
       }),
       ...(opts?.with?.includes(GetCalloutWith.ResponseViewSchema) && {
         responseViewSchema: callout.responseViewSchema
+      }),
+      ...(opts?.with?.includes(GetCalloutWith.Variants) && {
+        variants
       })
     };
   }
@@ -127,9 +161,9 @@ class CalloutTransformer extends BaseTransformer<
       throw new UnauthorizedError();
     }
 
-    // Non-admins can only query for open or ended non-hidden callouts
     return {
       ...query,
+      // Non-admins can only query for open or ended non-hidden callouts
       rules: mergeRules([
         query.rules,
         {
@@ -167,6 +201,15 @@ class CalloutTransformer extends BaseTransformer<
         `${fieldPrefix}responses`
       );
     }
+
+    // Always load a variant for filtering and sorting
+    qb.leftJoinAndSelect(`${fieldPrefix}variants`, "cvd", "cvd.name = :name", {
+      name: query.variant || "default"
+    });
+
+    if (query.sort === "title") {
+      qb.orderBy("cvd.title", query.order || "ASC");
+    }
   }
 
   protected async modifyItems(
@@ -174,31 +217,51 @@ class CalloutTransformer extends BaseTransformer<
     query: ListCalloutsDto,
     auth: AuthInfo | undefined
   ): Promise<void> {
-    if (
-      callouts.length > 0 &&
-      auth?.entity instanceof Contact &&
-      query.with?.includes(GetCalloutWith.HasAnswered)
-    ) {
-      const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
-        .select("cr.calloutId", "id")
-        .distinctOn(["cr.calloutId"])
-        .where(
-          "cr.calloutId IN (:...calloutIds) AND cr.contactId = :contactId",
-          {
-            calloutIds: callouts.map((c) => c.id),
-            contactId: auth.entity.id
-          }
-        )
-        .orderBy("cr.calloutId")
-        .getRawMany<{ id: string }>();
+    if (callouts.length > 0) {
+      const calloutIds = callouts.map((c) => c.id);
 
-      const answeredIds = answeredCallouts.map((c) => c.id);
+      if (query.with?.includes(GetCalloutWith.Variants)) {
+        const variants = await createQueryBuilder(CalloutVariant, "cv")
+          .where("cv.calloutId IN (:...ids)", { ids: calloutIds })
+          .getMany();
 
-      for (const callout of callouts) {
-        callout.hasAnswered = answeredIds.includes(callout.id);
+        const variantsById = groupBy(variants, (v) => v.calloutId);
+
+        for (const callout of callouts) {
+          callout.variants = variantsById[callout.id] || [];
+        }
+      }
+
+      if (
+        auth?.entity instanceof Contact &&
+        query.with?.includes(GetCalloutWith.HasAnswered)
+      ) {
+        const answeredCallouts = await createQueryBuilder(CalloutResponse, "cr")
+          .select("cr.calloutId", "id")
+          .distinctOn(["cr.calloutId"])
+          .where("cr.calloutId IN (:...ids) AND cr.contactId = :id", {
+            ids: calloutIds,
+            id: auth.entity.id
+          })
+          .orderBy("cr.calloutId")
+          .getRawMany<{ id: string }>();
+
+        const answeredIds = answeredCallouts.map((c) => c.id);
+
+        for (const callout of callouts) {
+          callout.hasAnswered = answeredIds.includes(callout.id);
+        }
       }
     }
   }
 }
+
+const filterHandlers: FilterHandlers<CalloutFilterName> = {
+  status: statusFilterHandler,
+  title: (qb, args) => {
+    // Filter by variant title
+    qb.where(args.whereFn("cvd.title"));
+  }
+};
 
 export default new CalloutTransformer();

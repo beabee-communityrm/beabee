@@ -1,5 +1,10 @@
 import { ItemStatus } from "@beabee/beabee-common";
-import { Type } from "class-transformer";
+import {
+  Transform,
+  TransformFnParams,
+  Type,
+  plainToInstance
+} from "class-transformer";
 import {
   Equals,
   IsArray,
@@ -16,31 +21,38 @@ import {
 } from "class-validator";
 
 import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
-import { CalloutFormDto } from "@api/dto/CalloutFormDto";
+import { GetCalloutFormDto, SetCalloutFormDto } from "@api/dto/CalloutFormDto";
+import { CalloutVariantDto } from "@api/dto/CalloutVariantDto";
 import { LinkDto } from "@api/dto/LinkDto";
 import IsSlug from "@api/validators/IsSlug";
 import IsUrl from "@api/validators/IsUrl";
 import IsMapBounds from "@api/validators/IsMapBounds";
 import IsLngLat from "@api/validators/IsLngLat";
-
-import { CalloutMapSchema, CalloutResponseViewSchema } from "@models/Callout";
+import IsVariantsObject from "@api/validators/IsVariantsObject";
 
 import { CalloutAccess } from "@enums/callout-access";
+import { CalloutCaptcha } from "@enums/callout-captcha";
 
 import { CalloutData } from "@type/callout-data";
-import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutMapSchema } from "@type/callout-map-schema";
+import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
 
 export enum GetCalloutWith {
   Form = "form",
-  ResponseViewSchema = "responseViewSchema",
+  HasAnswered = "hasAnswered",
   ResponseCount = "responseCount",
-  HasAnswered = "hasAnswered"
+  ResponseViewSchema = "responseViewSchema",
+  Variants = "variants"
 }
 
 export class GetCalloutOptsDto extends GetExportQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
+
+  @IsOptional()
+  @IsString()
+  variant?: string;
 
   // This property can only be set internally, not via query params
   @Equals(false)
@@ -51,6 +63,10 @@ export class ListCalloutsDto extends GetPaginatedQuery {
   @IsOptional()
   @IsEnum(GetCalloutWith, { each: true })
   with?: GetCalloutWith[];
+
+  @IsOptional()
+  @IsString()
+  variant?: string;
 
   @IsIn(["title", "starts", "expires"])
   sort?: string;
@@ -132,12 +148,6 @@ abstract class BaseCalloutDto implements CalloutData {
   @IsSlug()
   slug?: string;
 
-  @IsString()
-  title!: string;
-
-  @IsString()
-  excerpt!: string;
-
   // TODO: Should be IsUrl but validation fails for draft callouts
   @IsString()
   image!: string;
@@ -168,36 +178,29 @@ abstract class BaseCalloutDto implements CalloutData {
   hidden!: boolean;
 
   @IsOptional()
-  @IsUrl()
-  thanksRedirect?: string;
-
-  @IsOptional()
-  @IsString()
-  shareTitle?: string;
-
-  @IsOptional()
-  @IsString()
-  shareDescription?: string;
-
-  @IsOptional()
   @ValidateNested()
   @Type(() => CalloutResponseViewSchemaDto)
   responseViewSchema?: CalloutResponseViewSchemaDto | null;
 }
 
+function transformVariants(
+  params: TransformFnParams
+): Record<string, CalloutVariantDto> {
+  const ret: Record<string, CalloutVariantDto> = {};
+  for (const variant in params.value) {
+    ret[variant] = plainToInstance(CalloutVariantDto, params.value[variant]);
+  }
+  return ret;
+}
+
 export class CreateCalloutDto extends BaseCalloutDto {
-  @IsString()
-  intro!: string;
-
-  @IsString()
-  thanksTitle!: string;
-
-  @IsString()
-  thanksText!: string;
-
   @ValidateNested()
-  @Type(() => CalloutFormDto)
-  formSchema!: CalloutFormDto;
+  @Type(() => SetCalloutFormDto)
+  formSchema!: SetCalloutFormDto;
+
+  @IsVariantsObject()
+  @Transform(transformVariants)
+  variants!: Record<string, CalloutVariantDto>;
 }
 
 export class GetCalloutDto extends BaseCalloutDto {
@@ -206,6 +209,12 @@ export class GetCalloutDto extends BaseCalloutDto {
 
   @IsEnum(ItemStatus)
   status!: ItemStatus;
+
+  @IsString()
+  title!: string;
+
+  @IsString()
+  excerpt!: string;
 
   @IsOptional()
   @IsString()
@@ -220,6 +229,18 @@ export class GetCalloutDto extends BaseCalloutDto {
   thanksText?: string;
 
   @IsOptional()
+  @IsUrl()
+  thanksRedirect?: string;
+
+  @IsOptional()
+  @IsString()
+  shareTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  shareDescription?: string;
+
+  @IsOptional()
   @IsBoolean()
   hasAnswered?: boolean;
 
@@ -229,6 +250,11 @@ export class GetCalloutDto extends BaseCalloutDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => CalloutFormDto)
-  formSchema?: CalloutFormDto;
+  @Type(() => GetCalloutFormDto)
+  formSchema?: GetCalloutFormDto;
+
+  @IsOptional()
+  @IsVariantsObject()
+  @Transform(transformVariants)
+  variants?: Record<string, CalloutVariantDto>;
 }
