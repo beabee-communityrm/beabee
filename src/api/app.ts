@@ -125,7 +125,11 @@ initApp()
       if (error instanceof HttpError && error.httpCode < 500) {
         res.status(error.httpCode).send(error);
         if (error.httpCode === 400) {
-          log.notice(error);
+          log.notice("Bad request, probably a validation error", {
+            body: req.body,
+            query: req.query,
+            error
+          });
         }
       } else {
         log.error("Unhandled error: ", error);
