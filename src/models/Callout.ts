@@ -70,6 +70,7 @@ export default class Callout extends ItemWithStatus {
   @OneToMany("CalloutVariant", "callout")
   variants!: CalloutVariant[];
 
+  variantNames?: string[];
   hasAnswered?: boolean;
   responseCount?: number;
 }

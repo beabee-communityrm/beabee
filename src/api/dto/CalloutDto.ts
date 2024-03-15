@@ -42,6 +42,7 @@ export enum GetCalloutWith {
   HasAnswered = "hasAnswered",
   ResponseCount = "responseCount",
   ResponseViewSchema = "responseViewSchema",
+  VariantNames = "variantNames",
   Variants = "variants"
 }
 
@@ -257,4 +258,8 @@ export class GetCalloutDto extends BaseCalloutDto {
   @IsVariantsObject()
   @Transform(transformVariants)
   variants?: Record<string, CalloutVariantDto>;
+
+  @IsOptional()
+  @IsString({ each: true })
+  variantNames?: string[];
 }
