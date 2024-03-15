@@ -223,10 +223,11 @@ class CalloutTransformer extends BaseTransformer<
     if (callouts.length > 0) {
       const calloutIds = callouts.map((c) => c.id);
 
-      if (
-        query.with?.includes(GetCalloutWith.Variants) ||
-        query.with?.includes(GetCalloutWith.VariantNames)
-      ) {
+      const withVariants = query.with?.includes(GetCalloutWith.Variants);
+      const withVariantNames = query.with?.includes(
+        GetCalloutWith.VariantNames
+      );
+      if (withVariants || withVariantNames) {
         const qb = createQueryBuilder(CalloutVariant, "cv").where(
           "cv.calloutId IN (:...ids)",
           { ids: calloutIds }
@@ -243,10 +244,10 @@ class CalloutTransformer extends BaseTransformer<
 
         for (const callout of callouts) {
           const calloutVariants = variantsById[callout.id] || [];
-          if (query.with?.includes(GetCalloutWith.VariantNames)) {
+          if (withVariantNames) {
             callout.variantNames = calloutVariants.map((v) => v.name);
           }
-          if (query.with?.includes(GetCalloutWith.Variants)) {
+          if (withVariants) {
             callout.variants = calloutVariants;
           }
         }
