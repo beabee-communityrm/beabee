@@ -26,8 +26,6 @@ async function getCalloutShareSettings(
       .map((q) => q.split("="))
       .find(([k]) => k === "lang")?.[1] || "default";
 
-  console.log("slug", slug, "locale", locale);
-
   const callout = await createQueryBuilder(Callout, "c")
     .innerJoinAndSelect("c.variants", "v", "v.name = :locale", { locale })
     .where("c.slug = :slug", { slug })
