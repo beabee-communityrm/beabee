@@ -84,6 +84,11 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
     }
     if (query.with?.includes(GetCalloutResponseWith.Callout)) {
       qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
+      qb.innerJoinAndSelect(
+        "callout.variants",
+        "variant",
+        "variant.name = 'default'"
+      );
     }
     if (query.with?.includes(GetCalloutResponseWith.Contact)) {
       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
