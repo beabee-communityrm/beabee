@@ -18,11 +18,18 @@ app.set("views", __dirname + "/views");
 async function getCalloutShareSettings(
   uri: string
 ): Promise<JustPageSettings | undefined> {
-  const [slug, rest] = uri.substring("/callouts/".length).split("/", 1);
-  const locale = rest.split("?lang=")[1] || "default";
+  const parts = uri.substring("/callouts/".length).split("?");
+  const slug = parts[0].split("/")[0];
+  const locale =
+    parts[1]
+      ?.split("&")
+      .map((q) => q.split("="))
+      .find(([k]) => k === "lang")?.[1] || "default";
+
+  console.log("slug", slug, "locale", locale);
 
   const callout = await createQueryBuilder(Callout, "c")
-    .leftJoinAndSelect("c.variants", "v", "v.locale = :locale", { locale })
+    .innerJoinAndSelect("c.variants", "v", "v.name = :locale", { locale })
     .where("c.slug = :slug", { slug })
     .getOne();
 
