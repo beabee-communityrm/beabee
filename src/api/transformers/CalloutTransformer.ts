@@ -142,6 +142,9 @@ class CalloutTransformer extends BaseTransformer<
       ...(opts?.with?.includes(GetCalloutWith.ResponseViewSchema) && {
         responseViewSchema: callout.responseViewSchema
       }),
+      ...(opts?.with?.includes(GetCalloutWith.VariantNames) && {
+        variantNames: callout.variantNames
+      }),
       ...(opts?.with?.includes(GetCalloutWith.Variants) && {
         variants
       })
@@ -220,15 +223,32 @@ class CalloutTransformer extends BaseTransformer<
     if (callouts.length > 0) {
       const calloutIds = callouts.map((c) => c.id);
 
-      if (query.with?.includes(GetCalloutWith.Variants)) {
-        const variants = await createQueryBuilder(CalloutVariant, "cv")
-          .where("cv.calloutId IN (:...ids)", { ids: calloutIds })
-          .getMany();
+      if (
+        query.with?.includes(GetCalloutWith.Variants) ||
+        query.with?.includes(GetCalloutWith.VariantNames)
+      ) {
+        const qb = createQueryBuilder(CalloutVariant, "cv").where(
+          "cv.calloutId IN (:...ids)",
+          { ids: calloutIds }
+        );
+
+        // Fetch minimal data if not requesting the variants
+        if (!query.with?.includes(GetCalloutWith.Variants)) {
+          qb.select(["cv.name", "cv.calloutId"]);
+        }
+
+        const variants = await qb.getMany();
 
         const variantsById = groupBy(variants, (v) => v.calloutId);
 
         for (const callout of callouts) {
-          callout.variants = variantsById[callout.id] || [];
+          const calloutVariants = variantsById[callout.id] || [];
+          if (query.with?.includes(GetCalloutWith.VariantNames)) {
+            callout.variantNames = calloutVariants.map((v) => v.name);
+          }
+          if (query.with?.includes(GetCalloutWith.Variants)) {
+            callout.variants = calloutVariants;
+          }
         }
       }
 
