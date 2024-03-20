@@ -12,15 +12,15 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import { getActualAmount } from "@core/utils";
-import config from "@config";
+import { getActualAmount } from "#core/utils";
+import config from "#config";
 
 import type ContactRole from "./ContactRole";
 import type ContactProfile from "./ContactProfile";
 import Password from "./Password";
 import type PaymentData from "./PaymentData";
 
-import { ContributionInfo } from "@type/contribution-info";
+import { ContributionInfo } from "#type/contribution-info";
 
 interface LoginOverride {
   code: string;
@@ -104,9 +104,9 @@ export default class Contact {
     return this.contributionMonthlyAmount === null
       ? null
       : getActualAmount(
-          this.contributionMonthlyAmount,
-          this.contributionPeriod!
-        );
+        this.contributionMonthlyAmount,
+        this.contributionPeriod!
+      );
   }
 
   get contributionDescription(): string {
@@ -119,9 +119,8 @@ export default class Contact {
     ) {
       return "None";
     } else {
-      return `${config.currencySymbol}${this.contributionAmount}/${
-        this.contributionPeriod === "monthly" ? "month" : "year"
-      }`;
+      return `${config.currencySymbol}${this.contributionAmount}/${this.contributionPeriod === "monthly" ? "month" : "year"
+        }`;
     }
   }
 

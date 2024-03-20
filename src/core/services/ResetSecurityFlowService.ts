@@ -1,12 +1,12 @@
 import { subHours } from "date-fns";
 import { InsertResult, MoreThan } from "typeorm";
 
-import { createQueryBuilder, getRepository } from "@core/database";
+import { createQueryBuilder, getRepository } from "#core/database";
 
-import ResetSecurityFlow from "@models/ResetSecurityFlow";
-import Contact from "@models/Contact";
+import ResetSecurityFlow from "#models/ResetSecurityFlow";
+import Contact from "#models/Contact";
 
-import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+import { RESET_SECURITY_FLOW_TYPE } from "#enums/reset-security-flow-type";
 
 interface InsertResetSecurityFlowResult extends InsertResult {
   raw: { id: string; contactId: string }[] | undefined;

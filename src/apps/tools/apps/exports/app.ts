@@ -2,13 +2,13 @@ import express from "express";
 import Papa from "papaparse";
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
-import { getRepository } from "@core/database";
-import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
-import { Param, parseParams } from "@core/utils/params";
+import { getRepository } from "#core/database";
+import { hasNewModel, hasSchema, isAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
+import { Param, parseParams } from "#core/utils/params";
 
-import Export, { ExportTypeId } from "@models/Export";
-import ExportItem from "@models/ExportItem";
+import Export, { ExportTypeId } from "#models/Export";
+import ExportItem from "#models/ExportItem";
 
 import { createSchema, updateSchema } from "./schemas.json";
 
@@ -192,9 +192,8 @@ app.post(
     } else if (data.action === "export") {
       const items = await exportType.getItems(data.status);
 
-      const exportName = `export-${
-        exportDetails.description
-      }_${new Date().toISOString()}.csv`;
+      const exportName = `export-${exportDetails.description
+        }_${new Date().toISOString()}.csv`;
       const exportData = await exportType.getExport(items as any);
 
       res.attachment(exportName).send(Papa.unparse(exportData as any)); // TODO: fix

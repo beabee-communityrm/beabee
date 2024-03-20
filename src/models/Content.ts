@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryColumn, UpdateDateColumn } from "typeorm";
-import { ContentId } from "@type/content-id";
+import { ContentId } from "#type/content-id";
 
 @Entity()
 export default class Content {

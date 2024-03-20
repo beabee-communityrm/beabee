@@ -1,15 +1,15 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import moment from "moment";
 import { Between } from "typeorm";
 
-import { getRepository } from "@core/database";
-import { log as mainLogger } from "@core/logging";
-import { runApp } from "@core/server";
+import { getRepository } from "#core/database";
+import { log as mainLogger } from "#core/logging";
+import { runApp } from "#core/server";
 
-import GiftService from "@core/services/GiftService";
+import GiftService from "#core/services/GiftService";
 
-import GiftFlow from "@models/GiftFlow";
+import GiftFlow from "#models/GiftFlow";
 
 const log = mainLogger.child({ app: "start-gifts" });
 

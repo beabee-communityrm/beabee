@@ -9,14 +9,14 @@ import {
   Req
 } from "routing-controllers";
 
-import ContactsService from "@core/services/ContactsService";
+import ContactsService from "#core/services/ContactsService";
 
-import { login } from "@api/utils";
+import { login } from "#api/utils";
 import {
   CreateResetDeviceDto,
   UpdateResetDeviceDto
-} from "@api/dto/ResetDeviceDto";
-import { UUIDParams } from "@api/params/UUIDParams";
+} from "#api/dto/ResetDeviceDto";
+import { UUIDParams } from "#api/params/UUIDParams";
 
 @JsonController("/reset-device")
 export class ResetDeviceController {

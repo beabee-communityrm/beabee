@@ -1,4 +1,4 @@
-import Address from "@models/Address";
+import Address from "#models/Address";
 import { IsDefined, IsOptional, IsString } from "class-validator";
 
 export class UpdateAddressDto implements Address {
@@ -19,4 +19,4 @@ export class UpdateAddressDto implements Address {
   postcode!: string;
 }
 
-export class GetAddressDto extends UpdateAddressDto {}
+export class GetAddressDto extends UpdateAddressDto { }

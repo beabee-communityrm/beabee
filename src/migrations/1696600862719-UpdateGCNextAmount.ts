@@ -1,7 +1,7 @@
 import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-import { getChargeableAmount } from "@core/utils/payment";
+import { getChargeableAmount } from "#core/utils/payment";
 
 interface PaymentQueryResults {
   id: string;

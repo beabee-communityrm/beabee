@@ -1,7 +1,7 @@
 import { ValidatorOptions, validate } from "class-validator";
 import { Request } from "express";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 import { BadRequestError } from "routing-controllers";
 
 export function login(req: Request, contact: Contact): Promise<void> {

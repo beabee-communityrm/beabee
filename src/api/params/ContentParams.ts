@@ -1,4 +1,4 @@
-import { ContentId } from "@type/content-id";
+import { ContentId } from "#type/content-id";
 import { IsIn } from "class-validator";
 
 export class ContentParams {

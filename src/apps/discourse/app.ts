@@ -1,13 +1,13 @@
 import express from "express";
 import DiscourseSSO from "discourse-sso";
 
-import config from "@config";
+import config from "#config";
 
-import { getRepository } from "@core/database";
-import { isLoggedIn } from "@core/middleware";
-import { hasUser, wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { isLoggedIn } from "#core/middleware";
+import { hasUser, wrapAsync } from "#core/utils";
 
-import ProjectContact from "@models/ProjectContact";
+import ProjectContact from "#models/ProjectContact";
 
 const sso = new DiscourseSSO(config.discourse.ssoSecret);
 

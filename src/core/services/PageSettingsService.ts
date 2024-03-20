@@ -1,8 +1,8 @@
-import { getRepository } from "@core/database";
+import { getRepository } from "#core/database";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
-import PageSettings from "@models/PageSettings";
+import PageSettings from "#models/PageSettings";
 
 interface PageSettingsCache extends PageSettings {
   patternRegex: RegExp;
@@ -22,11 +22,11 @@ export default class PageSettingsService {
     }
     return cache === "default"
       ? {
-          shareUrl: "/",
-          shareTitle: OptionsService.getText("share-title"),
-          shareDescription: OptionsService.getText("share-description"),
-          shareImage: OptionsService.getText("share-image")
-        }
+        shareUrl: "/",
+        shareTitle: OptionsService.getText("share-title"),
+        shareDescription: OptionsService.getText("share-description"),
+        shareImage: OptionsService.getText("share-image")
+      }
       : cache;
   }
 

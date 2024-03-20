@@ -1,10 +1,10 @@
 import { ParamsDictionary } from "express-serve-static-core";
 
-import ApiKey from "@models/ApiKey";
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
-import Contact from "@models/Contact";
+import ApiKey from "#models/ApiKey";
+import { CalloutResponseAnswers } from "#models/CalloutResponse";
+import Contact from "#models/Contact";
 
-import { AuthInfo as AuthInfo2 } from "@type/auth-info";
+import { AuthInfo as AuthInfo2 } from "#type/auth-info";
 
 declare global {
   type HTMLElement = never;
@@ -13,7 +13,7 @@ declare global {
   type URLSearchParams = never;
 
   namespace Express {
-    export interface User extends Contact {}
+    export interface User extends Contact { }
 
     export interface Request {
       flash(
@@ -30,7 +30,7 @@ declare global {
 
 declare module "papaparse" {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface File {}
+  interface File { }
 }
 
 declare module "express-session" {

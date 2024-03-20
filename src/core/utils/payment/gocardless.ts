@@ -12,12 +12,12 @@ import {
 } from "gocardless-nodejs/types/Types";
 import moment from "moment";
 
-import { log as mainLogger } from "@core/logging";
-import gocardless from "@core/lib/gocardless";
-import { PaymentForm } from "@core/utils";
-import { getChargeableAmount } from "@core/utils/payment";
+import { log as mainLogger } from "#core/logging";
+import gocardless from "#core/lib/gocardless";
+import { PaymentForm } from "#core/utils";
+import { getChargeableAmount } from "#core/utils/payment";
 
-import config from "@config";
+import config from "#config";
 
 const log = mainLogger.child({ app: "gc-utils" });
 

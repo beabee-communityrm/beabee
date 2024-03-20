@@ -1,6 +1,6 @@
 import { IsIn, IsString } from "class-validator";
 
-import { GetPaginatedQuery } from "@api/dto/BaseDto";
+import { GetPaginatedQuery } from "#api/dto/BaseDto";
 
 export class GetCalloutTagDto {
   @IsString()

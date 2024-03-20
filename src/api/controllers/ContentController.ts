@@ -7,7 +7,7 @@ import {
   Patch
 } from "routing-controllers";
 
-import PartialBody from "@api/decorators/PartialBody";
+import PartialBody from "#api/decorators/PartialBody";
 import {
   GetContactsContentDto,
   GetContentDto,
@@ -17,9 +17,9 @@ import {
   GetJoinSetupContentDto,
   GetProfileContentDto,
   GetShareContentDto
-} from "@api/dto/ContentDto";
-import { ContentParams } from "@api/params/ContentParams";
-import ContentTransformer from "@api/transformers/ContentTransformer";
+} from "#api/dto/ContentDto";
+import { ContentParams } from "#api/params/ContentParams";
+import ContentTransformer from "#api/transformers/ContentTransformer";
 
 @JsonController("/content")
 export class ContentController {

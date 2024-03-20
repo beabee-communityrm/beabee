@@ -6,16 +6,16 @@ import {
 import { stringify } from "csv-stringify/sync";
 import { SelectQueryBuilder } from "typeorm";
 
-import { getMembershipStatus } from "@core/services/PaymentService";
+import { getMembershipStatus } from "#core/services/PaymentService";
 
-import { GetExportQuery } from "@api/dto/BaseDto";
-import { ExportContactDto } from "@api/dto/ContactDto";
-import { BaseTransformer } from "@api/transformers/BaseTransformer";
-import ContactTransformer from "@api/transformers/ContactTransformer";
+import { GetExportQuery } from "#api/dto/BaseDto";
+import { ExportContactDto } from "#api/dto/ContactDto";
+import { BaseTransformer } from "#api/transformers/BaseTransformer";
+import ContactTransformer from "#api/transformers/ContactTransformer";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 class ContactExporter extends BaseTransformer<
   Contact,

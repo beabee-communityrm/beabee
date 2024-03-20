@@ -1,27 +1,27 @@
 import { SelectQueryBuilder } from "typeorm";
 
-import { createQueryBuilder } from "@core/database";
+import { createQueryBuilder } from "#core/database";
 
-import Contact from "@models/Contact";
-import Referral from "@models/Referral";
+import Contact from "#models/Contact";
+import Referral from "#models/Referral";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 
 function contactDetails(contact: Contact | null) {
   return contact
     ? [
-        contact.email,
-        contact.firstname,
-        contact.lastname,
-        ...(contact.profile.deliveryOptIn && contact.profile.deliveryAddress
-          ? [
-              contact.profile.deliveryAddress.line1,
-              contact.profile.deliveryAddress.line2,
-              contact.profile.deliveryAddress.city,
-              contact.profile.deliveryAddress.postcode
-            ]
-          : ["", "", "", ""])
-      ]
+      contact.email,
+      contact.firstname,
+      contact.lastname,
+      ...(contact.profile.deliveryOptIn && contact.profile.deliveryAddress
+        ? [
+          contact.profile.deliveryAddress.line1,
+          contact.profile.deliveryAddress.line2,
+          contact.profile.deliveryAddress.city,
+          contact.profile.deliveryAddress.postcode
+        ]
+        : ["", "", "", ""])
+    ]
     : ["", "", "", "", "", "", ""];
 }
 

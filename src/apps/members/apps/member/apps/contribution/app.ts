@@ -1,13 +1,13 @@
 import { ContributionType } from "@beabee/beabee-common";
 import express from "express";
 
-import { wrapAsync } from "@core/utils";
-import { calcMonthsLeft } from "@core/utils/payment";
+import { wrapAsync } from "#core/utils";
+import { calcMonthsLeft } from "#core/utils/payment";
 
-import PaymentService from "@core/services/PaymentService";
-import ContactsService from "@core/services/ContactsService";
+import PaymentService from "#core/services/PaymentService";
+import ContactsService from "#core/services/ContactsService";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
 const app = express();
 

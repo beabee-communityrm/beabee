@@ -1,9 +1,9 @@
 import { plainToInstance } from "class-transformer";
 
-import { createQueryBuilder, getRepository } from "@core/database";
-import { getEmailFooter } from "@core/utils/email";
+import { createQueryBuilder, getRepository } from "#core/database";
+import { getEmailFooter } from "#core/utils/email";
 
-import OptionsService, { OptionKey } from "@core/services/OptionsService";
+import OptionsService, { OptionKey } from "#core/services/OptionsService";
 import {
   GetContactsContentDto,
   GetContentDto,
@@ -13,14 +13,14 @@ import {
   GetJoinSetupContentDto,
   GetProfileContentDto,
   GetShareContentDto
-} from "@api/dto/ContentDto";
+} from "#api/dto/ContentDto";
 
-import Content from "@models/Content";
+import Content from "#models/Content";
 
-import config from "@config";
+import config from "#config";
 
-import { ContentId } from "@type/content-id";
-import { ContentData } from "@type/content-data";
+import { ContentId } from "#type/content-id";
+import { ContentData } from "#type/content-data";
 
 class ContentTransformer {
   convert<Id extends ContentId>(

@@ -1,6 +1,6 @@
 import { IsEmail, Validate, IsOptional, IsString } from "class-validator";
-import IsPassword from "@api/validators/IsPassword";
-import IsUrl from "@api/validators/IsUrl";
+import IsPassword from "#api/validators/IsPassword";
+import IsUrl from "#api/validators/IsUrl";
 
 export class CreateResetPasswordDto {
   @IsEmail()

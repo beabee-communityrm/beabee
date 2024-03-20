@@ -1,11 +1,11 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import { Brackets } from "typeorm";
 
-import { createQueryBuilder } from "@core/database";
-import { runApp } from "@core/server";
+import { createQueryBuilder } from "#core/database";
+import { runApp } from "#core/server";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
 import {
   ModelAnonymiser,
@@ -26,8 +26,8 @@ import {
   resetSecurityFlowAnonymiser
 } from "./anonymisers/models";
 import { anonymiseModel, clearModels } from "./anonymisers";
-import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
+import Callout from "#models/Callout";
+import CalloutResponse from "#models/CalloutResponse";
 
 const contactAnonymisers = [
   contactAnonymiser,

@@ -1,9 +1,9 @@
 import express from "express";
 
-import { isSuperAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { isSuperAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
 const app = express();
 

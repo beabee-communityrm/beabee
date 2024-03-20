@@ -4,8 +4,8 @@ import {
   PaymentMethod,
   calcPaymentFee
 } from "@beabee/beabee-common";
-import config from "@config";
-import Contact from "@models/Contact";
+import config from "#config";
+import Contact from "#models/Contact";
 import { addMonths, getYear, setYear, sub, differenceInMonths } from "date-fns";
 import { getActualAmount, PaymentForm } from ".";
 
@@ -84,9 +84,9 @@ export function getChargeableAmount(
   const amount = getActualAmount(paymentForm.monthlyAmount, paymentForm.period);
   const fee = paymentForm.payFee
     ? calcPaymentFee(
-        { amount, period: paymentForm.period, paymentMethod },
-        config.stripe.country
-      )
+      { amount, period: paymentForm.period, paymentMethod },
+      config.stripe.country
+    )
     : 0;
   return Math.round((amount + fee) * 100);
 }

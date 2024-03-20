@@ -1,6 +1,6 @@
-import "module-alias/register";
+// import "module-alias/register";
 
-import { runApp } from "@core/server";
+import { runApp } from "#core/server";
 
 import * as models from "./anonymisers/models";
 import { anonymiseModel, clearModels } from "./anonymisers";

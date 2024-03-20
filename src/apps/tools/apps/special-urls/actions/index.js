@@ -1,7 +1,7 @@
-const { Members } = require("@core/database");
+const { Members } = require("#core/database");
 const {
   default: GCPaymentService
-} = require("@core/services/GCPaymentService");
+} = require("#core/services/GCPaymentService");
 
 module.exports = [
   {

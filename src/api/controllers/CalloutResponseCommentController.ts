@@ -13,24 +13,24 @@ import {
   QueryParams
 } from "routing-controllers";
 
-import { getRepository } from "@core/database";
+import { getRepository } from "#core/database";
 
-import { CurrentAuth } from "@api/decorators/CurrentAuth";
-import PartialBody from "@api/decorators/PartialBody";
+import { CurrentAuth } from "#api/decorators/CurrentAuth";
+import PartialBody from "#api/decorators/PartialBody";
 import {
   CreateCalloutResponseCommentDto,
   GetCalloutResponseCommentDto,
   ListCalloutResponseCommentsDto
-} from "@api/dto/CalloutResponseCommentDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
-import { UUIDParams } from "@api/params/UUIDParams";
+} from "#api/dto/CalloutResponseCommentDto";
+import { PaginatedDto } from "#api/dto/PaginatedDto";
+import { UUIDParams } from "#api/params/UUIDParams";
 
-import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
+import CalloutResponseCommentTransformer from "#api/transformers/CalloutResponseCommentTransformer";
 
-import CalloutResponseComment from "@models/CalloutResponseComment";
-import Contact from "@models/Contact";
+import CalloutResponseComment from "#models/CalloutResponseComment";
+import Contact from "#models/Contact";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 @JsonController("/callout-response-comments")
 @Authorized("admin")

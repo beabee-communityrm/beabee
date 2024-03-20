@@ -1,8 +1,8 @@
 import juice from "juice";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
-import currentLocale from "@locale";
+import currentLocale from "#locale";
 
 export function getEmailFooter(): string {
   const locale = currentLocale();
@@ -16,22 +16,21 @@ export function getEmailFooter(): string {
     "organisation"
   )}</span></p>
 <p><br></p>
-<p style="color: #666;">${
-    locale.footer.contactUs
-  } <a href="mailto:${OptionsService.getText(
-    "support-email"
-  )}">${OptionsService.getText("support-email")}</a>.</p>
+<p style="color: #666;">${locale.footer.contactUs
+    } <a href="mailto:${OptionsService.getText(
+      "support-email"
+    )}">${OptionsService.getText("support-email")}</a>.</p>
 <p style="color: #666;">${[
-    [
-      locale.footer.privacyPolicy,
-      OptionsService.getText("footer-privacy-link-url")
-    ],
-    [locale.footer.terms, OptionsService.getText("footer-terms-link-url")],
-    ["Impressum", OptionsService.getText("footer-impressum-link-url")]
-  ]
-    .filter(([text, url]) => !!url)
-    .map(([text, url]) => `<a href="${url}">${text}</a>`)
-    .join(", ")}</p>
+      [
+        locale.footer.privacyPolicy,
+        OptionsService.getText("footer-privacy-link-url")
+      ],
+      [locale.footer.terms, OptionsService.getText("footer-terms-link-url")],
+      ["Impressum", OptionsService.getText("footer-impressum-link-url")]
+    ]
+      .filter(([text, url]) => !!url)
+      .map(([text, url]) => `<a href="${url}">${text}</a>`)
+      .join(", ")}</p>
 `;
 }
 

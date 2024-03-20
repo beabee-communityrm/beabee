@@ -2,14 +2,14 @@ import { ErrorObject, ValidateFunction } from "ajv";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { EntityTarget, FindOneOptions, ObjectLiteral } from "typeorm";
 
-import { getRepository } from "@core/database";
-import ajv from "@core/lib/ajv";
-import { wrapAsync, isInvalidType } from "@core/utils";
-import * as auth from "@core/utils/auth";
+import { getRepository } from "#core/database";
+import ajv from "#core/lib/ajv";
+import { wrapAsync, isInvalidType } from "#core/utils";
+import * as auth from "#core/utils/auth";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
-import config from "@config";
+import config from "#config";
 
 interface OnErrorHandler {
   (
@@ -75,8 +75,8 @@ const send400: OnErrorHandler = (errors, req, res) => {
 
 const redirectTo =
   (url: string): OnErrorHandler =>
-  (errors, req, res) =>
-    res.redirect(url);
+    (errors, req, res) =>
+      res.redirect(url);
 
 const replyWithJSON: OnErrorHandler = (errors, req, res) => {
   res.status(400).send(convertErrorsToMessages(errors));

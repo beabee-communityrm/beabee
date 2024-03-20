@@ -7,12 +7,12 @@ import {
   QueryParams
 } from "routing-controllers";
 
-import { createQueryBuilder } from "@core/database";
+import { createQueryBuilder } from "#core/database";
 
-import { GetStatsDto, GetStatsOptsDto } from "@api/dto/StatsDto";
+import { GetStatsDto, GetStatsOptsDto } from "#api/dto/StatsDto";
 
-import Contact from "@models/Contact";
-import Payment from "@models/Payment";
+import Contact from "#models/Contact";
+import Payment from "#models/Payment";
 
 @JsonController("/stats")
 export class StatsController {

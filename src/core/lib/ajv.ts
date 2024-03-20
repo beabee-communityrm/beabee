@@ -1,4 +1,4 @@
-import config from "@config";
+import config from "#config";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 

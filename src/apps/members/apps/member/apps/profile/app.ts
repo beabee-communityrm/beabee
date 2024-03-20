@@ -1,14 +1,14 @@
 import express from "express";
 
-import { hasSchema } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { hasSchema } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import ContactsService from "@core/services/ContactsService";
+import ContactsService from "#core/services/ContactsService";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
 import { updateProfileSchema } from "./schemas.json";
-import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import DuplicateEmailError from "#api/errors/DuplicateEmailError";
 
 const app = express();
 
@@ -46,11 +46,11 @@ app.post(
         deliveryOptIn: delivery_optin,
         deliveryAddress: delivery_optin
           ? {
-              line1: delivery_line1,
-              line2: delivery_line2,
-              city: delivery_city,
-              postcode: delivery_postcode
-            }
+            line1: delivery_line1,
+            line2: delivery_line2,
+            city: delivery_city,
+            postcode: delivery_postcode
+          }
           : null
       });
     } catch (error) {

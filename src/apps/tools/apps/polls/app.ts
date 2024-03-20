@@ -2,12 +2,12 @@ import express from "express";
 import moment from "moment";
 import { createQueryBuilder } from "typeorm";
 
-import { getRepository } from "@core/database";
-import { hasNewModel, isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { hasNewModel, isAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
+import Callout from "#models/Callout";
+import CalloutResponse from "#models/CalloutResponse";
 
 const app = express();
 

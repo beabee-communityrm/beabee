@@ -23,7 +23,7 @@ import {
   Max
 } from "class-validator";
 
-import { IsType } from "@api/validators/IsType";
+import { IsType } from "#api/validators/IsType";
 
 export class GetPaginatedRule implements Rule {
   @IsString()
@@ -68,8 +68,7 @@ export class GetExportQuery {
 
 export class GetPaginatedQuery
   extends GetExportQuery
-  implements PaginatedQuery
-{
+  implements PaginatedQuery {
   @IsOptional()
   @Min(1)
   @Max(100)

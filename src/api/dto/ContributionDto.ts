@@ -13,9 +13,9 @@ import {
   Validate
 } from "class-validator";
 
-import IsUrl from "@api/validators/IsUrl";
-import MinContributionAmount from "@api/validators/MinContributionAmount";
-import ValidPayFee from "@api/validators/ValidPayFee";
+import IsUrl from "#api/validators/IsUrl";
+import MinContributionAmount from "#api/validators/MinContributionAmount";
+import ValidPayFee from "#api/validators/ValidPayFee";
 
 import { StartJoinFlowDto } from "./JoinFlowDto";
 
@@ -41,8 +41,7 @@ export class UpdateContributionDto {
 
 export class StartContributionDto
   extends UpdateContributionDto
-  implements StartJoinFlowDto
-{
+  implements StartJoinFlowDto {
   @IsUrl()
   completeUrl!: string;
 

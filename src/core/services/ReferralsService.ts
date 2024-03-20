@@ -1,14 +1,14 @@
 import _ from "lodash";
 
-import { getRepository } from "@core/database";
-import { log as mainLogger } from "@core/logging";
+import { getRepository } from "#core/database";
+import { log as mainLogger } from "#core/logging";
 
-import EmailService from "@core/services/EmailService";
+import EmailService from "#core/services/EmailService";
 
-import { ReferralGiftForm } from "@models/JoinForm";
-import Contact from "@models/Contact";
-import ReferralGift from "@models/ReferralGift";
-import Referral from "@models/Referral";
+import { ReferralGiftForm } from "#models/JoinForm";
+import Contact from "#models/Contact";
+import ReferralGift from "#models/ReferralGift";
+import Referral from "#models/Referral";
 
 const log = mainLogger.child({ app: "referrals-service" });
 

@@ -7,10 +7,10 @@ import config, {
   AppConfig,
   AppConfigOverride,
   AppConfigOverrides
-} from "@config";
+} from "#config";
 
-import { log as mainLogger } from "@core/logging";
-import templateLocals from "@core/template-locals";
+import { log as mainLogger } from "#core/logging";
+import templateLocals from "#core/template-locals";
 
 let git = "";
 try {

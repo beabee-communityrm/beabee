@@ -1,4 +1,4 @@
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
 import localeDe from "./de.json";
 import localeDeInformal from "./de@informal.json";

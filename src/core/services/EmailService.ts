@@ -3,9 +3,9 @@ import moment from "moment";
 import path from "path";
 import { loadFront } from "yaml-front-matter";
 
-import { log as mainLogger } from "@core/logging";
+import { log as mainLogger } from "#core/logging";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
 import {
   EmailMergeFields,
@@ -13,17 +13,17 @@ import {
   EmailPerson,
   EmailProvider,
   EmailRecipient
-} from "@core/providers/email";
-import MandrillProvider from "@core/providers/email/MandrillProvider";
-import SendGridProvider from "@core/providers/email/SendGridProvider";
-import SMTPProvider from "@core/providers/email/SMTPProvider";
+} from "#core/providers/email";
+import MandrillProvider from "#core/providers/email/MandrillProvider";
+import SendGridProvider from "#core/providers/email/SendGridProvider";
+import SMTPProvider from "#core/providers/email/SMTPProvider";
 
-import Email from "@models/Email";
-import Contact from "@models/Contact";
-import Callout from "@models/Callout";
+import Email from "#models/Email";
+import Contact from "#models/Contact";
+import Callout from "#models/Callout";
 
-import config from "@config";
-import { isLocale, Locale } from "@locale";
+import config from "#config";
+import { isLocale, Locale } from "#locale";
 
 const log = mainLogger.child({ app: "email-service" });
 
@@ -222,8 +222,8 @@ class EmailService {
   ): Promise<void>;
   async sendTemplateToContact<
     T extends ContactEmailParams<T> extends undefined
-      ? ContactEmailTemplateId
-      : never
+    ? ContactEmailTemplateId
+    : never
   >(
     template: T,
     contact: Contact,

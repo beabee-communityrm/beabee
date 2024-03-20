@@ -2,13 +2,13 @@ import axios from "axios";
 import express from "express";
 import { Brackets } from "typeorm";
 
-import { createQueryBuilder } from "@core/database";
-import { log } from "@core/logging";
-import { isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { createQueryBuilder } from "#core/database";
+import { log } from "#core/logging";
+import { isAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import ContactRole from "@models/ContactRole";
-import ContactProfile from "@models/ContactProfile";
+import ContactRole from "#models/ContactRole";
+import ContactProfile from "#models/ContactProfile";
 
 const app = express();
 
@@ -65,9 +65,9 @@ async function getPostcodes(postcodes: string[]): Promise<PostcodeCache[]> {
     for (const result of data.result) {
       postcodeCache[result.query] = result.result
         ? {
-            latitude: result.result.latitude,
-            longitude: result.result.longitude
-          }
+          latitude: result.result.latitude,
+          longitude: result.result.longitude
+        }
         : null;
     }
   }

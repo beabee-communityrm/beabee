@@ -1,9 +1,9 @@
-import { getRepository } from "@core/database";
-import _defaultOptions from "@core/defaults.json";
-import { log as mainLogger } from "@core/logging";
+import { getRepository } from "#core/database";
+import _defaultOptions from "#core/defaults.json";
+import { log as mainLogger } from "#core/logging";
 import NetworkCommunicatorService from "./NetworkCommunicatorService";
 
-import Option from "@models/Option";
+import Option from "#models/Option";
 
 export type OptionKey = keyof typeof _defaultOptions;
 type OptionValue = string | boolean | number;

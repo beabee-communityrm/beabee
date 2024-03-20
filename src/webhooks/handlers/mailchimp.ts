@@ -2,14 +2,14 @@ import { NewsletterStatus, ContributionType } from "@beabee/beabee-common";
 import bodyParser from "body-parser";
 import express from "express";
 
-import { log as mainLogger } from "@core/logging";
-import { cleanEmailAddress, wrapAsync } from "@core/utils";
+import { log as mainLogger } from "#core/logging";
+import { cleanEmailAddress, wrapAsync } from "#core/utils";
 
-import ContactsService from "@core/services/ContactsService";
-import NewsletterService from "@core/services/NewsletterService";
-import OptionsService from "@core/services/OptionsService";
+import ContactsService from "#core/services/ContactsService";
+import NewsletterService from "#core/services/NewsletterService";
+import OptionsService from "#core/services/OptionsService";
 
-import config from "@config";
+import config from "#config";
 
 const log = mainLogger.child({ app: "webhook-mailchimp" });
 

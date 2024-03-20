@@ -9,21 +9,21 @@ import {
   Req
 } from "routing-controllers";
 
-import { getRepository } from "@core/database";
-import { generatePassword } from "@core/utils/auth";
+import { getRepository } from "#core/database";
+import { generatePassword } from "#core/utils/auth";
 
-import PaymentFlowService from "@core/services/PaymentFlowService";
+import PaymentFlowService from "#core/services/PaymentFlowService";
 
-import { GetPaymentFlowDto } from "@api/dto/PaymentFlowDto";
+import { GetPaymentFlowDto } from "#api/dto/PaymentFlowDto";
 import {
   StartSignupFlowDto,
   CompleteSignupFlowDto
-} from "@api/dto/SignupFlowDto";
-import { SignupConfirmEmailParams } from "@api/params/SignupConfirmEmailParams";
-import { login } from "@api/utils";
+} from "#api/dto/SignupFlowDto";
+import { SignupConfirmEmailParams } from "#api/params/SignupConfirmEmailParams";
+import { login } from "#api/utils";
 
-import JoinFlow from "@models/JoinFlow";
-import Password from "@models/Password";
+import JoinFlow from "#models/JoinFlow";
+import Password from "#models/Password";
 
 @JsonController("/signup")
 export class SignupController {

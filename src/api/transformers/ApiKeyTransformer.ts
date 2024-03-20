@@ -6,9 +6,9 @@ import {
 import { TransformPlainToInstance } from "class-transformer";
 import { SelectQueryBuilder } from "typeorm";
 
-import { GetApiKeyDto } from "@api/dto/ApiKeyDto";
+import { GetApiKeyDto } from "#api/dto/ApiKeyDto";
 
-import ApiKey from "@models/ApiKey";
+import ApiKey from "#models/ApiKey";
 
 import { BaseTransformer } from "./BaseTransformer";
 import ContactTransformer, { loadContactRoles } from "./ContactTransformer";

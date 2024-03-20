@@ -2,19 +2,19 @@ import { NewsletterStatus } from "@beabee/beabee-common";
 import express from "express";
 import moment from "moment";
 
-import { log as mainLogger } from "@core/logging";
-import { isSuperAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { log as mainLogger } from "#core/logging";
+import { isSuperAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import ContactsService from "@core/services/ContactsService";
-import NewsletterService from "@core/services/NewsletterService";
-import OptionsService from "@core/services/OptionsService";
+import ContactsService from "#core/services/ContactsService";
+import NewsletterService from "#core/services/NewsletterService";
+import OptionsService from "#core/services/OptionsService";
 
-import { NewsletterContact } from "@core/providers/newsletter";
+import { NewsletterContact } from "#core/providers/newsletter";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
-import config from "@config";
+import config from "#config";
 
 const log = mainLogger.child({ app: "newsletter-settings" });
 
@@ -47,11 +47,11 @@ function isMismatchedContact(contact: Contact, nlContact: NewsletterContact) {
   return (
     contact.profile.newsletterStatus !== nlContact.status ||
     groupsList(contact.profile.newsletterGroups) !==
-      groupsList(nlContact.groups) ||
+    groupsList(nlContact.groups) ||
     !!contact.membership?.isActive !==
-      nlContact.tags.includes(
-        OptionsService.getText("newsletter-active-member-tag")
-      )
+    nlContact.tags.includes(
+      OptionsService.getText("newsletter-active-member-tag")
+    )
   );
 }
 

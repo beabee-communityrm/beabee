@@ -1,20 +1,20 @@
 import express from "express";
 
-import { getRepository } from "@core/database";
-import { hasNewModel } from "@core/middleware";
-import { userToAuth, wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { hasNewModel } from "#core/middleware";
+import { userToAuth, wrapAsync } from "#core/utils";
 
-import SegmentService from "@core/services/SegmentService";
+import SegmentService from "#core/services/SegmentService";
 
-import Email from "@models/Email";
-import EmailMailing from "@models/EmailMailing";
-import Segment from "@models/Segment";
-import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
-import SegmentContact from "@models/SegmentContact";
+import Email from "#models/Email";
+import EmailMailing from "#models/EmailMailing";
+import Segment from "#models/Segment";
+import SegmentOngoingEmail from "#models/SegmentOngoingEmail";
+import SegmentContact from "#models/SegmentContact";
 
-import { EmailSchema, schemaToEmail } from "@apps/tools/apps/emails/app";
-import { cleanRuleGroup } from "@apps/members/app";
-import ContactTransformer from "@api/transformers/ContactTransformer";
+import { EmailSchema, schemaToEmail } from "#apps/tools/apps/emails/app";
+import { cleanRuleGroup } from "#apps/members/app";
+import ContactTransformer from "#api/transformers/ContactTransformer";
 
 const app = express();
 
@@ -137,11 +137,11 @@ app.post(
     const email =
       data.email === "__new__"
         ? await getRepository(Email).save(
-            schemaToEmail({
-              ...data,
-              name: "Email to segment " + segment.name
-            })
-          )
+          schemaToEmail({
+            ...data,
+            name: "Email to segment " + segment.name
+          })
+        )
         : await getRepository(Email).findOneByOrFail({ id: data.email });
 
     if (data.type === "ongoing") {

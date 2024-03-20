@@ -1,11 +1,11 @@
 import express from "express";
 import _ from "lodash";
 
-import { getRepository } from "@core/database";
-import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { hasNewModel, hasSchema, isAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import ReferralGift from "@models/ReferralGift";
+import ReferralGift from "#models/ReferralGift";
 
 import { updateSchema } from "./schemas.json";
 

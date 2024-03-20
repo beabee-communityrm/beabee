@@ -1,9 +1,9 @@
 import { isUUID } from "class-validator";
 import { NotFoundError, createParamDecorator } from "routing-controllers";
 
-import { getRepository } from "@core/database";
+import { getRepository } from "#core/database";
 
-import Callout from "@models/Callout";
+import Callout from "#models/Callout";
 
 /**
  * Allows the use of either a callout ID or slug in the route

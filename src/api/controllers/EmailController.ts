@@ -9,14 +9,14 @@ import {
   Put
 } from "routing-controllers";
 
-import EmailService from "@core/services/EmailService";
+import EmailService from "#core/services/EmailService";
 
-import { getRepository } from "@core/database";
+import { getRepository } from "#core/database";
 
-import Email from "@models/Email";
+import Email from "#models/Email";
 
-import { GetEmailDto, UpdateEmailDto } from "@api/dto/EmailDto";
-import ExternalEmailTemplate from "@api/errors/ExternalEmailTemplate";
+import { GetEmailDto, UpdateEmailDto } from "#api/dto/EmailDto";
+import ExternalEmailTemplate from "#api/errors/ExternalEmailTemplate";
 
 async function findEmail(id: string): Promise<Email | null> {
   if (isUUID(id, "4")) {

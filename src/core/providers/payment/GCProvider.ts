@@ -2,30 +2,30 @@ import { PaymentMethod } from "@beabee/beabee-common";
 import { Subscription } from "gocardless-nodejs";
 import moment from "moment";
 
-import gocardless from "@core/lib/gocardless";
-import { log as mainLogger } from "@core/logging";
-import { getActualAmount, PaymentForm } from "@core/utils";
+import gocardless from "#core/lib/gocardless";
+import { log as mainLogger } from "#core/logging";
+import { getActualAmount, PaymentForm } from "#core/utils";
 import {
   updateSubscription,
   createSubscription,
   prorateSubscription,
   hasPendingPayment,
   getSubscriptionNextChargeDate
-} from "@core/utils/payment/gocardless";
-import { calcRenewalDate } from "@core/utils/payment";
+} from "#core/utils/payment/gocardless";
+import { calcRenewalDate } from "#core/utils/payment";
 
 import { PaymentProvider, UpdateContributionResult } from ".";
-import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+import { CompletedPaymentFlow } from "#core/providers/payment-flow";
 
-import Contact from "@models/Contact";
-import { GCPaymentData } from "@models/PaymentData";
+import Contact from "#models/Contact";
+import { GCPaymentData } from "#models/PaymentData";
 
-import NoPaymentMethod from "@api/errors/NoPaymentMethod";
+import NoPaymentMethod from "#api/errors/NoPaymentMethod";
 
-import config from "@config";
+import config from "#config";
 
-import { ContributionInfo } from "@type/contribution-info";
-import { PaymentSource } from "@type/payment-source";
+import { ContributionInfo } from "#type/contribution-info";
+import { PaymentSource } from "#type/payment-source";
 
 const log = mainLogger.child({ app: "gc-payment-provider" });
 
@@ -61,11 +61,11 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       hasPendingPayment: pendingPayment,
       ...(this.data.nextAmount &&
         this.contact.contributionPeriod && {
-          nextAmount: getActualAmount(
-            this.data.nextAmount.monthly,
-            this.contact.contributionPeriod
-          )
-        }),
+        nextAmount: getActualAmount(
+          this.data.nextAmount.monthly,
+          this.contact.contributionPeriod
+        )
+      }),
       ...(paymentSource && { paymentSource })
     };
   }
@@ -161,9 +161,9 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     this.data.nextAmount = startNow
       ? null
       : {
-          monthly: paymentForm.monthlyAmount,
-          chargeable: Number(subscription.amount)
-        };
+        monthly: paymentForm.monthlyAmount,
+        chargeable: Number(subscription.amount)
+      };
 
     await this.updateData();
 

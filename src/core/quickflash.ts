@@ -1,4 +1,4 @@
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 import { NextFunction, Request, Response } from "express";
 
 export default function (

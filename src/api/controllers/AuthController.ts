@@ -16,22 +16,22 @@ import {
 
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 
-import { getRepository } from "@core/database";
-import passport from "@core/lib/passport";
+import { getRepository } from "#core/database";
+import passport from "#core/lib/passport";
 
-import ContactsService from "@core/services/ContactsService";
+import ContactsService from "#core/services/ContactsService";
 
-import { LoginDto } from "@api/dto/LoginDto";
-import { login } from "@api/utils";
+import { LoginDto } from "#api/dto/LoginDto";
+import { login } from "#api/utils";
 
-import Contact from "@models/Contact";
-import ContactRole from "@models/ContactRole";
+import Contact from "#models/Contact";
+import ContactRole from "#models/ContactRole";
 
-import { LOGIN_CODES } from "@enums/login-codes";
+import { LOGIN_CODES } from "#enums/login-codes";
 
-import { PassportLoginInfo } from "@type/passport-login-info";
+import { PassportLoginInfo } from "#type/passport-login-info";
 
-import config from "@config";
+import config from "#config";
 
 @JsonController("/auth")
 export class AuthController {

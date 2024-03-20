@@ -6,34 +6,34 @@ import {
 } from "@beabee/beabee-common";
 import { FindManyOptions, FindOneOptions, FindOptionsWhere, In } from "typeorm";
 
-import { createQueryBuilder, getRepository } from "@core/database";
-import { log as mainLogger } from "@core/logging";
-import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
-import { generatePassword, isValidPassword } from "@core/utils/auth";
-import { generateContactCode } from "@core/utils/contact";
+import { createQueryBuilder, getRepository } from "#core/database";
+import { log as mainLogger } from "#core/logging";
+import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "#core/utils";
+import { generatePassword, isValidPassword } from "#core/utils/auth";
+import { generateContactCode } from "#core/utils/contact";
 
-import ContactMfaService from "@core/services/ContactMfaService";
-import EmailService from "@core/services/EmailService";
-import NewsletterService from "@core/services/NewsletterService";
-import OptionsService from "@core/services/OptionsService";
-import PaymentService from "@core/services/PaymentService";
-import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import ContactMfaService from "#core/services/ContactMfaService";
+import EmailService from "#core/services/EmailService";
+import NewsletterService from "#core/services/NewsletterService";
+import OptionsService from "#core/services/OptionsService";
+import PaymentService from "#core/services/PaymentService";
+import ResetSecurityFlowService from "#core/services/ResetSecurityFlowService";
 
-import Contact from "@models/Contact";
-import ContactProfile from "@models/ContactProfile";
-import ContactRole from "@models/ContactRole";
-import Password from "@models/Password";
+import Contact from "#models/Contact";
+import ContactProfile from "#models/ContactProfile";
+import ContactRole from "#models/ContactRole";
+import Password from "#models/Password";
 
-import BadRequestError from "@api/errors/BadRequestError";
-import CantUpdateContribution from "@api/errors/CantUpdateContribution";
-import DuplicateEmailError from "@api/errors/DuplicateEmailError";
-import NotFoundError from "@api/errors/NotFoundError";
-import UnauthorizedError from "@api/errors/UnauthorizedError";
+import BadRequestError from "#api/errors/BadRequestError";
+import CantUpdateContribution from "#api/errors/CantUpdateContribution";
+import DuplicateEmailError from "#api/errors/DuplicateEmailError";
+import NotFoundError from "#api/errors/NotFoundError";
+import UnauthorizedError from "#api/errors/UnauthorizedError";
 
-import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
-import { LOGIN_CODES } from "@enums/login-codes";
-import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
-import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error-code";
+import { CONTACT_MFA_TYPE } from "#enums/contact-mfa-type";
+import { LOGIN_CODES } from "#enums/login-codes";
+import { RESET_SECURITY_FLOW_TYPE } from "#enums/reset-security-flow-type";
+import { RESET_SECURITY_FLOW_ERROR_CODE } from "#enums/reset-security-flow-error-code";
 
 export type PartialContact = Pick<Contact, "email" | "contributionType"> &
   Partial<Contact>;

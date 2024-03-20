@@ -1,9 +1,9 @@
-import { PaymentForm } from "@core/utils";
-import Contact from "@models/Contact";
-import { ManualPaymentData } from "@models/PaymentData";
+import { PaymentForm } from "#core/utils";
+import Contact from "#models/Contact";
+import { ManualPaymentData } from "#models/PaymentData";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "../payment-flow";
-import { ContributionInfo } from "@type/contribution-info";
+import { ContributionInfo } from "#type/contribution-info";
 
 export default class ManualProvider extends PaymentProvider<
   ManualPaymentData | {}
@@ -20,8 +20,8 @@ export default class ManualProvider extends PaymentProvider<
     };
   }
 
-  async cancelContribution(keepMandate: boolean): Promise<void> {}
-  async updateContact(updates: Partial<Contact>): Promise<void> {}
+  async cancelContribution(keepMandate: boolean): Promise<void> { }
+  async updateContact(updates: Partial<Contact>): Promise<void> { }
 
   async updateContribution(
     paymentForm: PaymentForm

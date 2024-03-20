@@ -5,12 +5,11 @@ import {
   ValidatorConstraintInterface
 } from "class-validator";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
 @ValidatorConstraint({ name: "minContributionAmount" })
 export default class MinContributionAmount
-  implements ValidatorConstraintInterface
-{
+  implements ValidatorConstraintInterface {
   validate(amount: unknown, args: ValidationArguments): boolean {
     return typeof amount === "number" && amount >= this.minAmount(args);
   }

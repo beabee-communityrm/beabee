@@ -1,6 +1,6 @@
 require("module-alias/register");
 
-const { default: gocardless } = require("@core/lib/gocardless");
+const { default: gocardless } = require("#core/lib/gocardless");
 
 async function loadData() {
   console.error("# Loading data from GoCardless...");

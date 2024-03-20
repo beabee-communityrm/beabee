@@ -1,5 +1,5 @@
-import { CalloutAccess } from "@enums/callout-access";
-import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutAccess } from "#enums/callout-access";
+import { CalloutCaptcha } from "#enums/callout-captcha";
 
 import { CalloutResponseViewSchema } from "./callout-response-view-schema";
 import { CalloutVariantData } from "./callout-variant-data";

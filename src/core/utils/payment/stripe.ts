@@ -6,14 +6,14 @@ import {
 import { differenceInMonths } from "date-fns";
 import Stripe from "stripe";
 
-import stripe from "@core/lib/stripe";
-import { log as mainLogger } from "@core/logging";
-import { PaymentForm } from "@core/utils";
-import { getChargeableAmount } from "@core/utils/payment";
+import stripe from "#core/lib/stripe";
+import { log as mainLogger } from "#core/logging";
+import { PaymentForm } from "#core/utils";
+import { getChargeableAmount } from "#core/utils/payment";
 
-import config from "@config";
+import config from "#config";
 
-import { PaymentSource } from "@type/payment-source";
+import { PaymentSource } from "#type/payment-source";
 
 const log = mainLogger.child({ app: "stripe-utils" });
 
@@ -45,8 +45,8 @@ async function calculateProrationParams(
   // as this aligns with Stripe's calculations
   const prorationTime = Math.floor(
     subscription.current_period_end -
-      (subscription.current_period_end - subscription.current_period_start) *
-        (monthsLeft / 12)
+    (subscription.current_period_end - subscription.current_period_start) *
+    (monthsLeft / 12)
   );
 
   const invoice = await stripe.invoices.retrieveUpcoming({
@@ -85,9 +85,9 @@ export async function createSubscription(
     off_session: true,
     ...(renewalDate &&
       renewalDate > new Date() && {
-        billing_cycle_anchor: Math.floor(+renewalDate / 1000),
-        proration_behavior: "none"
-      })
+      billing_cycle_anchor: Math.floor(+renewalDate / 1000),
+      proration_behavior: "none"
+    })
   });
 }
 
@@ -136,16 +136,16 @@ export async function updateSubscription(
       items: [newSubscriptionItem],
       ...(prorationAmount > 0
         ? {
-            proration_behavior: "always_invoice",
-            proration_date: prorationTime
-          }
+          proration_behavior: "always_invoice",
+          proration_date: prorationTime
+        }
         : {
-            proration_behavior: "none",
-            // Force it to change at the start of the next period, this is
-            // important when changing from monthly to annual as otherwise
-            // Stripe starts the new billing cycle immediately
-            trial_end: subscription.current_period_end
-          })
+          proration_behavior: "none",
+          // Force it to change at the start of the next period, this is
+          // important when changing from monthly to annual as otherwise
+          // Stripe starts the new billing cycle immediately
+          trial_end: subscription.current_period_end
+        })
     });
   } else {
     // Schedule the change for the next period

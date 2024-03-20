@@ -6,15 +6,15 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import { CalloutAccess } from "@enums/callout-access";
-import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutAccess } from "#enums/callout-access";
+import { CalloutCaptcha } from "#enums/callout-captcha";
 
 import ItemWithStatus from "./ItemWithStatus";
 import type CalloutResponse from "./CalloutResponse";
 import type CalloutTag from "./CalloutTag";
 import type CalloutVariant from "./CalloutVariant";
 
-import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
+import { CalloutResponseViewSchema } from "#type/callout-response-view-schema";
 import { SetCalloutFormSchema } from "@beabee/beabee-common";
 
 @Entity()

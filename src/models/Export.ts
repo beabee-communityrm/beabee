@@ -1,4 +1,4 @@
-import { ParamValue } from "@core/utils/params";
+import { ParamValue } from "#core/utils/params";
 import {
   Column,
   CreateDateColumn,

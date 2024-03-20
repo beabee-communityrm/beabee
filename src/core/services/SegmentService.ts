@@ -1,14 +1,14 @@
 import { contactFilters, validateRuleGroup } from "@beabee/beabee-common";
 
-import { getRepository } from "@core/database";
+import { getRepository } from "#core/database";
 
-import ContactTransformer from "@api/transformers/ContactTransformer";
-import { buildSelectQuery } from "@api/utils/rules";
+import ContactTransformer from "#api/transformers/ContactTransformer";
+import { buildSelectQuery } from "#api/utils/rules";
 
-import Contact from "@models/Contact";
-import Segment from "@models/Segment";
+import Contact from "#models/Contact";
+import Segment from "#models/Segment";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 class SegmentService {
   async createSegment(

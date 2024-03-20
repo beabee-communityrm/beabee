@@ -16,14 +16,14 @@
     "outDir": "./built",
     "baseUrl": "./",
     "paths": {
-      "@core/*": ["./src/core/*"],
-      "@apps/*": ["./src/apps/*"],
-      "@api/*": ["./src/api/*"],
-      "@config": ["./src/config/config"],
-      "@locale": ["./src/locales/current"],
-      "@models/*": ["./src/models/*"],
-      "@type/*": ["./src/type/*"],
-      "@enums/*": ["./src/enums/*"]
+      "#core/*": ["./src/core/*"],
+      "#apps/*": ["./src/apps/*"],
+      "#api/*": ["./src/api/*"],
+      "#config": ["./src/config/config"],
+      "#locale": ["./src/locales/current"],
+      "#models/*": ["./src/models/*"],
+      "#type/*": ["./src/type/*"],
+      "#enums/*": ["./src/enums/*"]
     },
     "typeRoots": ["./src/typings", "./node_modules/@types/"]
   }

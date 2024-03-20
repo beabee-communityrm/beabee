@@ -2,15 +2,15 @@ import { RoleTypes, RoleType } from "@beabee/beabee-common";
 import express from "express";
 import passport from "passport";
 
-import { getRepository } from "@core/database";
-import { isValidNextUrl, getNextParam, wrapAsync } from "@core/utils";
-import { loginAndRedirect } from "@core/utils/contact";
+import { getRepository } from "#core/database";
+import { isValidNextUrl, getNextParam, wrapAsync } from "#core/utils";
+import { loginAndRedirect } from "#core/utils/contact";
 
-import ContactsService from "@core/services/ContactsService";
+import ContactsService from "#core/services/ContactsService";
 
-import ContactRole from "@models/ContactRole";
+import ContactRole from "#models/ContactRole";
 
-import config from "@config";
+import config from "#config";
 
 const app = express();
 

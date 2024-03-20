@@ -4,10 +4,10 @@ const _ = require("lodash");
 const moment = require("moment");
 const Papa = require("papaparse");
 
-const { SpecialUrlGroups, SpecialUrls } = require("@core/database");
-const { hasModel, hasSchema, isAdmin } = require("@core/middleware");
-const { wrapAsync } = require("@core/utils");
-const { loadParams, parseParams } = require("@core/utils/params");
+const { SpecialUrlGroups, SpecialUrls } = require("#core/database");
+const { hasModel, hasSchema, isAdmin } = require("#core/middleware");
+const { wrapAsync } = require("#core/utils");
+const { loadParams, parseParams } = require("#core/utils/params");
 
 const actions = require("./actions");
 const {
@@ -107,9 +107,8 @@ app.post(
         });
         break;
       case "export-urls": {
-        const exportName = `export-${
-          req.model.name
-        }_${new Date().toISOString()}.csv`;
+        const exportName = `export-${req.model.name
+          }_${new Date().toISOString()}.csv`;
         const exportData = (await SpecialUrls.find({ group: req.model }))
           .filter((specialUrl) => !req.body.onlyActive || specialUrl.active)
           .map((specialUrl) => ({
