@@ -164,3 +164,21 @@ The codebase is broadly split into a few different parts
   ```
   ./src/migrations
   ```
+
+#### Webhooks
+
+Webhooks are handled by the `webhook_app` service. This is a separate service from the API to allow for scaling independently.
+
+**`/webhook/ping`** - Used to check if the webhook service is running and available, e.g. http://localhost:3001/webhook/ping
+
+
+**`/webhook/stripe`** - Stripe webhooks are handled by the `stripe` service.
+
+If you are working locally, you can use the [Stripe CLI](https://docs.stripe.com/stripe-cli) to forward webhooks to your local environment.
+
+Forward webhooks to your local environment with the following command:
+
+```bash
+stripe listen --forward-to http://localhost:3001/webhook/stripe
+```
+
