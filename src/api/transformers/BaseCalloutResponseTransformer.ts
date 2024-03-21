@@ -35,9 +35,9 @@ export abstract class BaseCalloutResponseTransformer<
   protected transformFilters(
     query: GetOptsDto & PaginatedQuery
   ): [
-      Partial<Filters<CalloutResponseFilterName>>,
-      FilterHandlers<CalloutResponseFilterName>
-    ] {
+    Partial<Filters<CalloutResponseFilterName>>,
+    FilterHandlers<CalloutResponseFilterName>
+  ] {
     // If looking for responses for a particular callout then add answer filtering
     if (query.callout) {
       const answerFilters = getCalloutFilters(query.callout.formSchema);

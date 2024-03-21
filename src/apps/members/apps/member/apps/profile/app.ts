@@ -46,11 +46,11 @@ app.post(
         deliveryOptIn: delivery_optin,
         deliveryAddress: delivery_optin
           ? {
-            line1: delivery_line1,
-            line2: delivery_line2,
-            city: delivery_city,
-            postcode: delivery_postcode
-          }
+              line1: delivery_line1,
+              line2: delivery_line2,
+              city: delivery_city,
+              postcode: delivery_postcode
+            }
           : null
       });
     } catch (error) {

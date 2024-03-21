@@ -2,7 +2,8 @@ import { addThenSetNotNull } from "#core/utils/db";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddExcerptAndImageToPoll1634125137636
-  implements MigrationInterface {
+  implements MigrationInterface
+{
   name = "AddExcerptAndImageToPoll1634125137636";
 
   public async up(queryRunner: QueryRunner): Promise<void> {

@@ -137,11 +137,11 @@ app.post(
     const email =
       data.email === "__new__"
         ? await getRepository(Email).save(
-          schemaToEmail({
-            ...data,
-            name: "Email to segment " + segment.name
-          })
-        )
+            schemaToEmail({
+              ...data,
+              name: "Email to segment " + segment.name
+            })
+          )
         : await getRepository(Email).findOneByOrFail({ id: data.email });
 
     if (data.type === "ongoing") {

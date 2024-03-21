@@ -21,8 +21,9 @@ import { DeepPartial } from "typeorm";
 const log = mainLogger.child({ app: "gocardless-api" });
 
 const gocardless = axios.create({
-  baseURL: `https://${config.gocardless.sandbox ? "api-sandbox" : "api"
-    }.gocardless.com`,
+  baseURL: `https://${
+    config.gocardless.sandbox ? "api-sandbox" : "api"
+  }.gocardless.com`,
   headers: {
     Authorization: `Bearer ${config.gocardless.accessToken}`,
     "GoCardless-Version": "2015-07-06",
@@ -194,10 +195,10 @@ export default {
         req.body &&
         req.headers["content-type"] === "application/json" &&
         req.headers["webhook-signature"] ===
-        crypto
-          .createHmac("sha256", config.gocardless.secret)
-          .update(req.body)
-          .digest("hex")
+          crypto
+            .createHmac("sha256", config.gocardless.secret)
+            .update(req.body)
+            .digest("hex")
       );
     }
   }

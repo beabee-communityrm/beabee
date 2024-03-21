@@ -84,7 +84,8 @@ class ContentCalloutComponentDto extends BaseCalloutComponentDto {
 
 class InputCalloutComponentDto
   extends BaseCalloutComponentDto
-  implements InputCalloutComponentSchema {
+  implements InputCalloutComponentSchema
+{
   @IsIn(inputTypes)
   type!: (typeof inputTypes)[number];
 
@@ -108,7 +109,8 @@ class SelectCalloutComponentDataDto {
 
 class SelectCalloutComponentDto
   extends BaseCalloutComponentDto
-  implements SelectCalloutComponentSchema {
+  implements SelectCalloutComponentSchema
+{
   @IsIn(selectTypes)
   type!: (typeof selectTypes)[number];
 
@@ -134,7 +136,8 @@ class RadioCalloutComponentValueDto {
 
 class RadioCalloutComponentDto
   extends BaseCalloutComponentDto
-  implements RadioCalloutComponentSchema {
+  implements RadioCalloutComponentSchema
+{
   @IsIn(radioTypes)
   type!: (typeof radioTypes)[number];
 
@@ -211,7 +214,8 @@ type CalloutComponentDto =
 
 class NestableCalloutComponentDto
   extends BaseCalloutComponentDto
-  implements NestableCalloutComponentSchema {
+  implements NestableCalloutComponentSchema
+{
   @IsIn(nestedTypes)
   type!: (typeof nestedTypes)[number];
 

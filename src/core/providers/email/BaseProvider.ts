@@ -85,12 +85,12 @@ const magicMergeFieldsProcessors = {
       recipient.mergeFields?.LOGINLINK
         ? recipient
         : {
-          ...recipient,
-          mergeFields: {
-            ...recipient.mergeFields,
-            LOGINLINK: `${config.audience}/auth/login`
+            ...recipient,
+            mergeFields: {
+              ...recipient.mergeFields,
+              LOGINLINK: `${config.audience}/auth/login`
+            }
           }
-        }
     );
   }
 } as const;

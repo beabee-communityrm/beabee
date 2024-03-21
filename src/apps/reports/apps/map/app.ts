@@ -65,9 +65,9 @@ async function getPostcodes(postcodes: string[]): Promise<PostcodeCache[]> {
     for (const result of data.result) {
       postcodeCache[result.query] = result.result
         ? {
-          latitude: result.result.latitude,
-          longitude: result.result.longitude
-        }
+            latitude: result.result.latitude,
+            longitude: result.result.longitude
+          }
         : null;
     }
   }

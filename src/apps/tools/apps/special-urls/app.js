@@ -107,8 +107,9 @@ app.post(
         });
         break;
       case "export-urls": {
-        const exportName = `export-${req.model.name
-          }_${new Date().toISOString()}.csv`;
+        const exportName = `export-${
+          req.model.name
+        }_${new Date().toISOString()}.csv`;
         const exportData = (await SpecialUrls.find({ group: req.model }))
           .filter((specialUrl) => !req.body.onlyActive || specialUrl.active)
           .map((specialUrl) => ({

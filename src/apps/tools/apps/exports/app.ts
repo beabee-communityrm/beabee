@@ -192,8 +192,9 @@ app.post(
     } else if (data.action === "export") {
       const items = await exportType.getItems(data.status);
 
-      const exportName = `export-${exportDetails.description
-        }_${new Date().toISOString()}.csv`;
+      const exportName = `export-${
+        exportDetails.description
+      }_${new Date().toISOString()}.csv`;
       const exportData = await exportType.getExport(items as any);
 
       res.attachment(exportName).send(Papa.unparse(exportData as any)); // TODO: fix

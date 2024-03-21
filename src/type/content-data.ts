@@ -87,17 +87,17 @@ export interface ShareContentData {
 
 export type ContentData<Id extends ContentId = ContentId> =
   Id extends "contacts"
-  ? ContactsContentData
-  : never | Id extends "email"
-  ? EmailContentData
-  : never | Id extends "general"
-  ? GeneralContentData
-  : never | Id extends "join"
-  ? JoinContentData
-  : never | Id extends "join/setup"
-  ? JoinSetupContentData
-  : never | Id extends "profile"
-  ? ProfileContentData
-  : never | Id extends "share"
-  ? ShareContentData
-  : never;
+    ? ContactsContentData
+    : never | Id extends "email"
+      ? EmailContentData
+      : never | Id extends "general"
+        ? GeneralContentData
+        : never | Id extends "join"
+          ? JoinContentData
+          : never | Id extends "join/setup"
+            ? JoinSetupContentData
+            : never | Id extends "profile"
+              ? ProfileContentData
+              : never | Id extends "share"
+                ? ShareContentData
+                : never;

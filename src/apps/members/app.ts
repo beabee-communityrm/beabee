@@ -84,10 +84,10 @@ export function cleanRuleGroup(group: RuleGroup): RuleGroup {
       "condition" in rule
         ? cleanRuleGroup(rule)
         : {
-          field: rule.field,
-          operator: rule.operator,
-          value: Array.isArray(rule.value) ? rule.value : [rule.value]
-        }
+            field: rule.field,
+            operator: rule.operator,
+            value: Array.isArray(rule.value) ? rule.value : [rule.value]
+          }
     )
   };
 }

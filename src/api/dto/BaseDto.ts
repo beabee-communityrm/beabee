@@ -68,7 +68,8 @@ export class GetExportQuery {
 
 export class GetPaginatedQuery
   extends GetExportQuery
-  implements PaginatedQuery {
+  implements PaginatedQuery
+{
   @IsOptional()
   @Min(1)
   @Max(100)

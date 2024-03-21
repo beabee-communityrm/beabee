@@ -39,26 +39,26 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
     return giftFlows.map(({ date, giftee, giftForm, setupCode }) => {
       const gifteeDetails = giftee
         ? {
-          GifteeName: giftee.fullname,
-          GifteeFirstName: giftee.firstname,
-          GifteeEmail: giftee.email,
-          GifteeExpiryDate: giftee.roles
-            .find((p) => p.type === "member")
-            ?.dateExpires?.toISOString(),
-          GifteeHasActivated: !giftee.password.hash,
-          GifteeHasConverted:
-            giftee.contributionType !== ContributionType.Gift,
-          ...addressFields(giftee.profile.deliveryAddress)
-        }
+            GifteeName: giftee.fullname,
+            GifteeFirstName: giftee.firstname,
+            GifteeEmail: giftee.email,
+            GifteeExpiryDate: giftee.roles
+              .find((p) => p.type === "member")
+              ?.dateExpires?.toISOString(),
+            GifteeHasActivated: !giftee.password.hash,
+            GifteeHasConverted:
+              giftee.contributionType !== ContributionType.Gift,
+            ...addressFields(giftee.profile.deliveryAddress)
+          }
         : {
-          GifteeName: giftForm.firstname + " " + giftForm.lastname,
-          GifteeFirstName: giftForm.firstname,
-          GifteeEmail: giftForm.email,
-          GifteeExpiryDate: "",
-          GifteeHasActivated: false,
-          GifteeHasConverted: false,
-          ...addressFields(giftForm.deliveryAddress)
-        };
+            GifteeName: giftForm.firstname + " " + giftForm.lastname,
+            GifteeFirstName: giftForm.firstname,
+            GifteeEmail: giftForm.email,
+            GifteeExpiryDate: "",
+            GifteeHasActivated: false,
+            GifteeHasConverted: false,
+            ...addressFields(giftForm.deliveryAddress)
+          };
 
       return {
         GiftPurchaseDate: date.toISOString(),

@@ -3,7 +3,8 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 import { addThenSetNotNull } from "#core/utils/db";
 
 export class AddEmailAndPasswordToJoinFlow1621513644609
-  implements MigrationInterface {
+  implements MigrationInterface
+{
   name = "AddEmailAndPasswordToJoinFlow1621513644609";
 
   public async up(queryRunner: QueryRunner): Promise<void> {

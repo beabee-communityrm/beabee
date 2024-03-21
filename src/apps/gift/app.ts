@@ -38,14 +38,14 @@ interface AddressSchema {
 
 type UpdateGiftAddressSchema =
   | {
-    sameAddress: true;
-    giftAddress: AddressSchema;
-  }
+      sameAddress: true;
+      giftAddress: AddressSchema;
+    }
   | {
-    sameAddress: false;
-    giftAddress: AddressSchema;
-    deliveryAddress: AddressSchema;
-  };
+      sameAddress: false;
+      giftAddress: AddressSchema;
+      deliveryAddress: AddressSchema;
+    };
 
 function schemaToGiftForm(data: CreateGiftSchema): GiftForm {
   const giftForm = new GiftForm();

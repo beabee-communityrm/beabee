@@ -84,9 +84,9 @@ export function getChargeableAmount(
   const amount = getActualAmount(paymentForm.monthlyAmount, paymentForm.period);
   const fee = paymentForm.payFee
     ? calcPaymentFee(
-      { amount, period: paymentForm.period, paymentMethod },
-      config.stripe.country
-    )
+        { amount, period: paymentForm.period, paymentMethod },
+        config.stripe.country
+      )
     : 0;
   return Math.round((amount + fee) * 100);
 }

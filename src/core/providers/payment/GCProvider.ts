@@ -61,11 +61,11 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
       hasPendingPayment: pendingPayment,
       ...(this.data.nextAmount &&
         this.contact.contributionPeriod && {
-        nextAmount: getActualAmount(
-          this.data.nextAmount.monthly,
-          this.contact.contributionPeriod
-        )
-      }),
+          nextAmount: getActualAmount(
+            this.data.nextAmount.monthly,
+            this.contact.contributionPeriod
+          )
+        }),
       ...(paymentSource && { paymentSource })
     };
   }
@@ -161,9 +161,9 @@ export default class GCProvider extends PaymentProvider<GCPaymentData> {
     this.data.nextAmount = startNow
       ? null
       : {
-        monthly: paymentForm.monthlyAmount,
-        chargeable: Number(subscription.amount)
-      };
+          monthly: paymentForm.monthlyAmount,
+          chargeable: Number(subscription.amount)
+        };
 
     await this.updateData();
 

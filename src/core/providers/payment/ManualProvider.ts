@@ -20,8 +20,8 @@ export default class ManualProvider extends PaymentProvider<
     };
   }
 
-  async cancelContribution(keepMandate: boolean): Promise<void> { }
-  async updateContact(updates: Partial<Contact>): Promise<void> { }
+  async cancelContribution(keepMandate: boolean): Promise<void> {}
+  async updateContact(updates: Partial<Contact>): Promise<void> {}
 
   async updateContribution(
     paymentForm: PaymentForm

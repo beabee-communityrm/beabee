@@ -222,8 +222,8 @@ class EmailService {
   ): Promise<void>;
   async sendTemplateToContact<
     T extends ContactEmailParams<T> extends undefined
-    ? ContactEmailTemplateId
-    : never
+      ? ContactEmailTemplateId
+      : never
   >(
     template: T,
     contact: Contact,

@@ -13,7 +13,7 @@ declare global {
   type URLSearchParams = never;
 
   namespace Express {
-    export interface User extends Contact { }
+    export interface User extends Contact {}
 
     export interface Request {
       flash(
@@ -30,7 +30,7 @@ declare global {
 
 declare module "papaparse" {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface File { }
+  interface File {}
 }
 
 declare module "express-session" {

@@ -69,8 +69,8 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
       }),
       ...(opts.with?.includes(GetCalloutResponseWith.Tags) &&
         response.tags && {
-        tags: response.tags.map((rt) => CalloutTagTransformer.convert(rt.tag))
-      })
+          tags: response.tags.map((rt) => CalloutTagTransformer.convert(rt.tag))
+        })
     };
   }
 

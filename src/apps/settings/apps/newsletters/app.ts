@@ -47,11 +47,11 @@ function isMismatchedContact(contact: Contact, nlContact: NewsletterContact) {
   return (
     contact.profile.newsletterStatus !== nlContact.status ||
     groupsList(contact.profile.newsletterGroups) !==
-    groupsList(nlContact.groups) ||
+      groupsList(nlContact.groups) ||
     !!contact.membership?.isActive !==
-    nlContact.tags.includes(
-      OptionsService.getText("newsletter-active-member-tag")
-    )
+      nlContact.tags.includes(
+        OptionsService.getText("newsletter-active-member-tag")
+      )
   );
 }
 

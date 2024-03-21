@@ -58,11 +58,11 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       ...(paymentSource && { paymentSource }),
       ...(this.data.nextAmount &&
         this.contact.contributionPeriod && {
-        nextAmount: getActualAmount(
-          this.data.nextAmount.monthly,
-          this.contact.contributionPeriod
-        )
-      })
+          nextAmount: getActualAmount(
+            this.data.nextAmount.monthly,
+            this.contact.contributionPeriod
+          )
+        })
     };
   }
 
@@ -151,9 +151,9 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     this.data.nextAmount = startNow
       ? null
       : {
-        chargeable: getChargeableAmount(paymentForm, this.method),
-        monthly: paymentForm.monthlyAmount
-      };
+          chargeable: getChargeableAmount(paymentForm, this.method),
+          monthly: paymentForm.monthlyAmount
+        };
 
     await this.updateData();
 

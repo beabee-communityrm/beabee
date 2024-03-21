@@ -157,8 +157,8 @@ function mcMemberToNlContact(member: MCMember): NewsletterContact {
     status: mcStatusToStatus(member.status),
     groups: member.interests
       ? Object.entries(member.interests)
-        .filter(([group, isOptedIn]) => isOptedIn)
-        .map(([group]) => group)
+          .filter(([group, isOptedIn]) => isOptedIn)
+          .map(([group]) => group)
       : [],
     tags: member.tags.map((tag) => tag.name),
     fields
@@ -211,7 +211,7 @@ export default class MailchimpProvider implements NewsletterProvider {
     try {
       const resp = await this.instance.get(this.emailUrl(email));
       return mcMemberToNlContact(resp.data);
-    } catch (err) { }
+    } catch (err) {}
   }
 
   async getContacts(): Promise<NewsletterContact[]> {

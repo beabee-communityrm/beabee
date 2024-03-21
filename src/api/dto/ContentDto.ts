@@ -197,17 +197,17 @@ export class GetShareContentDto implements ShareContentData {
 
 export type GetContentDto<Id extends ContentId = ContentId> =
   Id extends "contacts"
-  ? GetContactsContentDto
-  : never | Id extends "email"
-  ? GetEmailContentDto
-  : never | Id extends "general"
-  ? GetGeneralContentDto
-  : never | Id extends "join"
-  ? GetJoinContentDto
-  : never | Id extends "join/setup"
-  ? GetJoinSetupContentDto
-  : never | Id extends "profile"
-  ? GetProfileContentDto
-  : never | Id extends "share"
-  ? GetShareContentDto
-  : never;
+    ? GetContactsContentDto
+    : never | Id extends "email"
+      ? GetEmailContentDto
+      : never | Id extends "general"
+        ? GetGeneralContentDto
+        : never | Id extends "join"
+          ? GetJoinContentDto
+          : never | Id extends "join/setup"
+            ? GetJoinSetupContentDto
+            : never | Id extends "profile"
+              ? GetProfileContentDto
+              : never | Id extends "share"
+                ? GetShareContentDto
+                : never;

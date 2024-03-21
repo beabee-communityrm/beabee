@@ -86,11 +86,11 @@ app.post(
         },
         data.addToNewsletter
           ? {
-            newsletterStatus: NewsletterStatus.Subscribed,
-            newsletterGroups: OptionsService.getList(
-              "newsletter-default-groups"
-            )
-          }
+              newsletterStatus: NewsletterStatus.Subscribed,
+              newsletterGroups: OptionsService.getList(
+                "newsletter-default-groups"
+              )
+            }
           : undefined
       );
     } catch (error) {

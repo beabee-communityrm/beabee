@@ -19,4 +19,4 @@ export class UpdateAddressDto implements Address {
   postcode!: string;
 }
 
-export class GetAddressDto extends UpdateAddressDto { }
+export class GetAddressDto extends UpdateAddressDto {}

@@ -53,7 +53,7 @@ async function processSegment(segment: Segment) {
   // Only fetch old contacts if we need to
   const oldContacts =
     segment.newsletterTag ||
-      outgoingEmails.some((oe) => oe.trigger === "onLeave")
+    outgoingEmails.some((oe) => oe.trigger === "onLeave")
       ? await ContactsService.findByIds(oldSegmentContactIds)
       : [];
 

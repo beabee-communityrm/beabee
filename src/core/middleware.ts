@@ -75,8 +75,8 @@ const send400: OnErrorHandler = (errors, req, res) => {
 
 const redirectTo =
   (url: string): OnErrorHandler =>
-    (errors, req, res) =>
-      res.redirect(url);
+  (errors, req, res) =>
+    res.redirect(url);
 
 const replyWithJSON: OnErrorHandler = (errors, req, res) => {
   res.status(400).send(convertErrorsToMessages(errors));
