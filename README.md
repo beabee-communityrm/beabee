@@ -162,6 +162,26 @@ The codebase is broadly split into a few different parts
   ./src/migrations
   ```
 
+#### 🤲 Common Package
+
+The backend and frontend share some code through the [beabee-common](https://github.com/beabee-communityrm/beabee-common) NPM package. To contribute to the common codebase, follow these steps to clone, build, and link it to this project:
+
+```sh
+git clone https://github.com/beabee-communityrm/beabee-common.git
+cd beabee-common
+npm install
+npm run build
+npm link
+```
+
+Now you can link the common package to this project
+
+```sh
+npm link @beabee/beabee-common
+```
+
+Now you can make any changes to the common package and they will be reflected in this project.
+
 #### 📡 Webhooks
 
 Webhooks are handled by the `webhook_app` service. This is a separate service from the API to allow for scaling independently.
