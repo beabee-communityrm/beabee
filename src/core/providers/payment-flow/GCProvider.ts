@@ -1,7 +1,7 @@
-import gocardless from "@core/lib/gocardless";
-import { log as mainLogger } from "@core/logging";
+import gocardless from "#core/lib/gocardless";
+import { log as mainLogger } from "#core/logging";
 
-import JoinFlow from "@models/JoinFlow";
+import JoinFlow from "#models/JoinFlow";
 
 import {
   CompletedPaymentFlow,

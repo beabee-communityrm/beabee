@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-import { addThenSetNotNull } from "@core/utils/db";
+import { addThenSetNotNull } from "#core/utils/db";
 
 export class AddEmailAndPasswordToJoinFlow1621513644609
   implements MigrationInterface

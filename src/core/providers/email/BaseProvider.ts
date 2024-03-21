@@ -1,14 +1,14 @@
-import { createQueryBuilder, getRepository } from "@core/database";
-import { log as mainLogger } from "@core/logging";
-import { formatEmailBody } from "@core/utils/email";
+import { createQueryBuilder, getRepository } from "#core/database";
+import { log as mainLogger } from "#core/logging";
+import { formatEmailBody } from "#core/utils/email";
 
-import OptionsService from "@core/services/OptionsService";
-import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import OptionsService from "#core/services/OptionsService";
+import ResetSecurityFlowService from "#core/services/ResetSecurityFlowService";
 
-import Email from "@models/Email";
-import Contact from "@models/Contact";
+import Email from "#models/Email";
+import Contact from "#models/Contact";
 
-import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+import { RESET_SECURITY_FLOW_TYPE } from "#enums/reset-security-flow-type";
 
 import {
   EmailProvider,
@@ -18,7 +18,7 @@ import {
   PreparedEmail
 } from ".";
 
-import config from "@config";
+import config from "#config";
 
 const log = mainLogger.child({ app: "base-email-provider" });
 

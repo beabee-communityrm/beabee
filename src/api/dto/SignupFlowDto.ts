@@ -7,12 +7,12 @@ import {
   IsString
 } from "class-validator";
 
-import { StartContributionDto } from "@api/dto/ContributionDto";
-import { CompleteJoinFlowDto } from "@api/dto/JoinFlowDto";
-import IsPassword from "@api/validators/IsPassword";
-import IsUrl from "@api/validators/IsUrl";
+import { StartContributionDto } from "#api/dto/ContributionDto";
+import { CompleteJoinFlowDto } from "#api/dto/JoinFlowDto";
+import IsPassword from "#api/validators/IsPassword";
+import IsUrl from "#api/validators/IsUrl";
 
-import { CompleteUrls } from "@type/complete-urls";
+import { CompleteUrls } from "#type/complete-urls";
 
 export class StartSignupFlowDto implements CompleteUrls {
   @IsUrl()

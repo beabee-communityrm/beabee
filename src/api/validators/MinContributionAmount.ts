@@ -5,7 +5,7 @@ import {
   ValidatorConstraintInterface
 } from "class-validator";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
 @ValidatorConstraint({ name: "minContributionAmount" })
 export default class MinContributionAmount

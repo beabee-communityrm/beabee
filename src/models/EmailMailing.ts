@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from "typeorm";
-import type Email from "@models/Email";
+import type Email from "#models/Email";
 
 export type EmailMailingRecipient = Record<string, string>;
 

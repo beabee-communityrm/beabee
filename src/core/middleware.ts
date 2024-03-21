@@ -2,14 +2,14 @@ import { ErrorObject, ValidateFunction } from "ajv";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { EntityTarget, FindOneOptions, ObjectLiteral } from "typeorm";
 
-import { getRepository } from "@core/database";
-import ajv from "@core/lib/ajv";
-import { wrapAsync, isInvalidType } from "@core/utils";
-import * as auth from "@core/utils/auth";
+import { getRepository } from "#core/database";
+import ajv from "#core/lib/ajv";
+import { wrapAsync, isInvalidType } from "#core/utils";
+import * as auth from "#core/utils/auth";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
-import config from "@config";
+import config from "#config";
 
 interface OnErrorHandler {
   (

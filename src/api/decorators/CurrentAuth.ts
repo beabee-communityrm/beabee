@@ -1,9 +1,9 @@
 import { Request } from "express";
 import { createParamDecorator } from "routing-controllers";
 
-import UnauthorizedError from "@api/errors/UnauthorizedError";
+import UnauthorizedError from "#api/errors/UnauthorizedError";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 export function CurrentAuth(options?: { required?: boolean }) {
   return createParamDecorator({

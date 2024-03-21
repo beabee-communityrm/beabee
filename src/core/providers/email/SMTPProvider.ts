@@ -1,14 +1,14 @@
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
 
-import { log as mainLogger } from "@core/logging";
+import { log as mainLogger } from "#core/logging";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
 import { EmailOptions, EmailRecipient, PreparedEmail } from ".";
 import BaseProvider from "./BaseProvider";
 
-import { SMTPEmailConfig } from "@config";
+import { SMTPEmailConfig } from "#config";
 
 const log = mainLogger.child({ app: "smtp-email-provider" });
 

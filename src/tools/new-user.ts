@@ -1,21 +1,21 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import { ContributionType } from "@beabee/beabee-common";
 import { input, password, select } from "@inquirer/prompts";
 import moment from "moment";
 
-import { getRepository } from "@core/database";
-import { runApp } from "@core/server";
-import { generatePassword, passwordRequirements } from "@core/utils/auth";
+import { getRepository } from "#core/database";
+import { runApp } from "#core/server";
+import { generatePassword, passwordRequirements } from "#core/utils/auth";
 
-import ContactsService from "@core/services/ContactsService";
-import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import ContactsService from "#core/services/ContactsService";
+import ResetSecurityFlowService from "#core/services/ResetSecurityFlowService";
 
-import ContactRole from "@models/ContactRole";
+import ContactRole from "#models/ContactRole";
 
-import config from "@config";
+import config from "#config";
 
-import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+import { RESET_SECURITY_FLOW_TYPE } from "#enums/reset-security-flow-type";
 
 function notEmpty(s: string) {
   return s.trim() !== "";

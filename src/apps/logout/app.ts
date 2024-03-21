@@ -1,4 +1,4 @@
-import { wrapAsync } from "@core/utils";
+import { wrapAsync } from "#core/utils";
 import express from "express";
 
 const app = express();

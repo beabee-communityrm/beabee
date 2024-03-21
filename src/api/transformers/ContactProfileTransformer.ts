@@ -1,12 +1,12 @@
 import { TransformPlainToInstance } from "class-transformer";
 
-import { GetContactProfileDto } from "@api/dto/ContactProfileDto";
-import AddressTransformer from "@api/transformers/AddressTransformer";
-import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import { GetContactProfileDto } from "#api/dto/ContactProfileDto";
+import AddressTransformer from "#api/transformers/AddressTransformer";
+import { BaseTransformer } from "#api/transformers/BaseTransformer";
 
-import ContactProfile from "@models/ContactProfile";
+import ContactProfile from "#models/ContactProfile";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 class ContactProfileTransformer extends BaseTransformer<
   ContactProfile,

@@ -1,13 +1,13 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import { checkbox, input } from "@inquirer/prompts";
 
-import { getRepository } from "@core/database";
-import { runApp } from "@core/server";
+import { getRepository } from "#core/database";
+import { runApp } from "#core/server";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
-import Content from "@models/Content";
+import Content from "#models/Content";
 
 function notEmpty(s: string) {
   return s.trim() !== "";

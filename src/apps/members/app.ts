@@ -2,19 +2,19 @@ import { RuleGroup } from "@beabee/beabee-common";
 import express, { Request } from "express";
 import queryString from "query-string";
 
-import { getRepository } from "@core/database";
-import { isAdmin } from "@core/middleware";
-import { userToAuth, wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { isAdmin } from "#core/middleware";
+import { userToAuth, wrapAsync } from "#core/utils";
 
-import OptionsService from "@core/services/OptionsService";
-import SegmentService from "@core/services/SegmentService";
+import OptionsService from "#core/services/OptionsService";
+import SegmentService from "#core/services/SegmentService";
 
-import ContactTransformer from "@api/transformers/ContactTransformer";
+import ContactTransformer from "#api/transformers/ContactTransformer";
 
-import Project from "@models/Project";
-import Contact from "@models/Contact";
+import Project from "#models/Project";
+import Contact from "#models/Contact";
 
-import { GetContactWith } from "@enums/get-contact-with";
+import { GetContactWith } from "#enums/get-contact-with";
 
 const app = express();
 

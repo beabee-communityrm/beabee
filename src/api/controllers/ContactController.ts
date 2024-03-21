@@ -18,18 +18,18 @@ import {
   Res
 } from "routing-controllers";
 
-import ContactsService from "@core/services/ContactsService";
-import OptionsService from "@core/services/OptionsService";
-import PaymentFlowService from "@core/services/PaymentFlowService";
-import PaymentService from "@core/services/PaymentService";
-import ContactMfaService from "@core/services/ContactMfaService";
+import ContactsService from "#core/services/ContactsService";
+import OptionsService from "#core/services/OptionsService";
+import PaymentFlowService from "#core/services/PaymentFlowService";
+import PaymentService from "#core/services/PaymentService";
+import ContactMfaService from "#core/services/ContactMfaService";
 
-import { generatePassword } from "@core/utils/auth";
+import { generatePassword } from "#core/utils/auth";
 
-import Contact from "@models/Contact";
-import JoinFlow from "@models/JoinFlow";
+import Contact from "#models/Contact";
+import JoinFlow from "#models/JoinFlow";
 
-import { GetExportQuery } from "@api/dto/BaseDto";
+import { GetExportQuery } from "#api/dto/BaseDto";
 import {
   CreateContactDto,
   GetContactDto,
@@ -37,43 +37,43 @@ import {
   GetContributionInfoDto,
   ListContactsDto,
   UpdateContactDto
-} from "@api/dto/ContactDto";
+} from "#api/dto/ContactDto";
 import {
   CreateContactMfaDto,
   DeleteContactMfaDto,
   GetContactMfaDto
-} from "@api/dto/ContactMfaDto";
+} from "#api/dto/ContactMfaDto";
 import {
   GetContactRoleDto,
   UpdateContactRoleDto
-} from "@api/dto/ContactRoleDto";
+} from "#api/dto/ContactRoleDto";
 import {
   StartContributionDto,
   ForceUpdateContributionDto,
   UpdateContributionDto
-} from "@api/dto/ContributionDto";
-import { CompleteJoinFlowDto, StartJoinFlowDto } from "@api/dto/JoinFlowDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
-import { GetPaymentDto, ListPaymentsDto } from "@api/dto/PaymentDto";
-import { GetPaymentFlowDto } from "@api/dto/PaymentFlowDto";
+} from "#api/dto/ContributionDto";
+import { CompleteJoinFlowDto, StartJoinFlowDto } from "#api/dto/JoinFlowDto";
+import { PaginatedDto } from "#api/dto/PaginatedDto";
+import { GetPaymentDto, ListPaymentsDto } from "#api/dto/PaymentDto";
+import { GetPaymentFlowDto } from "#api/dto/PaymentFlowDto";
 
-import { CurrentAuth } from "@api/decorators/CurrentAuth";
-import PartialBody from "@api/decorators/PartialBody";
-import { TargetUser } from "@api/decorators/TargetUser";
-import { UnauthorizedError } from "@api/errors/UnauthorizedError";
-import CantUpdateContribution from "@api/errors/CantUpdateContribution";
-import NoPaymentMethod from "@api/errors/NoPaymentMethod";
-import { ContactRoleParams } from "@api/params/ContactRoleParams";
-import { mergeRules } from "@api/utils/rules";
+import { CurrentAuth } from "#api/decorators/CurrentAuth";
+import PartialBody from "#api/decorators/PartialBody";
+import { TargetUser } from "#api/decorators/TargetUser";
+import { UnauthorizedError } from "#api/errors/UnauthorizedError";
+import CantUpdateContribution from "#api/errors/CantUpdateContribution";
+import NoPaymentMethod from "#api/errors/NoPaymentMethod";
+import { ContactRoleParams } from "#api/params/ContactRoleParams";
+import { mergeRules } from "#api/utils/rules";
 
-import ContactExporter from "@api/transformers/ContactExporter";
-import ContactTransformer from "@api/transformers/ContactTransformer";
-import ContactRoleTransformer from "@api/transformers/ContactRoleTransformer";
-import PaymentTransformer from "@api/transformers/PaymentTransformer";
+import ContactExporter from "#api/transformers/ContactExporter";
+import ContactTransformer from "#api/transformers/ContactTransformer";
+import ContactRoleTransformer from "#api/transformers/ContactRoleTransformer";
+import PaymentTransformer from "#api/transformers/PaymentTransformer";
 
-import { GetContactWith } from "@enums/get-contact-with";
+import { GetContactWith } from "#enums/get-contact-with";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 @JsonController("/contact")
 @Authorized()

@@ -138,15 +138,28 @@
     "last 1 versions",
     "> 1%"
   ],
+  "imports": {
+    "#core/utils": "./built/core/utils/index.js",
+    "#core/defaults.json": "./built/core/defaults.json",
+    "#core/*": "./built/core/*.js",
+    "#apps/*": "./built/apps/*.js",
+    "#api/utils": "./built/api/utils/index.js",
+    "#api/*": "./built/api/*.js",
+    "#config": "./built/config/config.js",
+    "#locale": "./built/locales/current.js",
+    "#models/*": "./built/models/*.js",
+    "#type/*": "./built/type/*.js",
+    "#enums/*": "./built/enums/*.js"
+  },
   "_moduleAliases": {
-    "@core": "./built/core",
-    "@api": "./built/api",
-    "@apps": "./built/apps",
-    "@config": "./built/config/config.js",
-    "@locale": "./built/locales/current.js",
-    "@models": "./built/models",
-    "@type": "./built/type",
-    "@enums": "./built/enums"
+    "#core": "./built/core",
+    "#api": "./built/api",
+    "#apps": "./built/apps",
+    "#config": "./built/config/config.js",
+    "#locale": "./built/locales/current.js",
+    "#models": "./built/models",
+    "#type": "./built/type",
+    "#enums": "./built/enums"
   },
   "overrides": {
     "gulp-sourcemaps": {

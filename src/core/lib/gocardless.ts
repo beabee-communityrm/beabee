@@ -13,9 +13,9 @@ import {
 } from "gocardless-nodejs/types/Types";
 import { v4 as uuidv4 } from "uuid";
 
-import { log as mainLogger } from "@core/logging";
+import { log as mainLogger } from "#core/logging";
 
-import config from "@config";
+import config from "#config";
 import { DeepPartial } from "typeorm";
 
 const log = mainLogger.child({ app: "gocardless-api" });

@@ -1,5 +1,5 @@
 import { ContributionPeriod } from "@beabee/beabee-common";
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { QueryFailedError } from "typeorm";
 

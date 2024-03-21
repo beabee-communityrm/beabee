@@ -16,48 +16,48 @@ import {
   Res
 } from "routing-controllers";
 
-import CalloutsService from "@core/services/CalloutsService";
+import CalloutsService from "#core/services/CalloutsService";
 
-import { getRepository } from "@core/database";
-import { verify } from "@core/lib/captchafox";
+import { getRepository } from "#core/database";
+import { verify } from "#core/lib/captchafox";
 
-import { GetExportQuery } from "@api/dto/BaseDto";
+import { GetExportQuery } from "#api/dto/BaseDto";
 
 import {
   CreateCalloutDto,
   GetCalloutDto,
   GetCalloutOptsDto,
   ListCalloutsDto
-} from "@api/dto/CalloutDto";
+} from "#api/dto/CalloutDto";
 import {
   CreateCalloutResponseDto,
   GetCalloutResponseDto,
   GetCalloutResponseMapDto,
   ListCalloutResponsesDto
-} from "@api/dto/CalloutResponseDto";
-import { CreateCalloutTagDto, GetCalloutTagDto } from "@api/dto/CalloutTagDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
+} from "#api/dto/CalloutResponseDto";
+import { CreateCalloutTagDto, GetCalloutTagDto } from "#api/dto/CalloutTagDto";
+import { PaginatedDto } from "#api/dto/PaginatedDto";
 
-import { CalloutId } from "@api/decorators/CalloutId";
-import { CurrentAuth } from "@api/decorators/CurrentAuth";
-import PartialBody from "@api/decorators/PartialBody";
-import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
-import UnauthorizedError from "@api/errors/UnauthorizedError";
-import CalloutTagTransformer from "@api/transformers/CalloutTagTransformer";
-import CalloutTransformer from "@api/transformers/CalloutTransformer";
-import CalloutResponseExporter from "@api/transformers/CalloutResponseExporter";
-import CalloutResponseMapTransformer from "@api/transformers/CalloutResponseMapTransformer";
-import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
-import { validateOrReject } from "@api/utils";
+import { CalloutId } from "#api/decorators/CalloutId";
+import { CurrentAuth } from "#api/decorators/CurrentAuth";
+import PartialBody from "#api/decorators/PartialBody";
+import InvalidCalloutResponse from "#api/errors/InvalidCalloutResponse";
+import UnauthorizedError from "#api/errors/UnauthorizedError";
+import CalloutTagTransformer from "#api/transformers/CalloutTagTransformer";
+import CalloutTransformer from "#api/transformers/CalloutTransformer";
+import CalloutResponseExporter from "#api/transformers/CalloutResponseExporter";
+import CalloutResponseMapTransformer from "#api/transformers/CalloutResponseMapTransformer";
+import CalloutResponseTransformer from "#api/transformers/CalloutResponseTransformer";
+import { validateOrReject } from "#api/utils";
 
-import Callout from "@models/Callout";
-import CalloutResponseTag from "@models/CalloutResponseTag";
-import CalloutTag from "@models/CalloutTag";
-import Contact from "@models/Contact";
+import Callout from "#models/Callout";
+import CalloutResponseTag from "#models/CalloutResponseTag";
+import CalloutTag from "#models/CalloutTag";
+import Contact from "#models/Contact";
 
-import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutCaptcha } from "#enums/callout-captcha";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 @JsonController("/callout")
 export class CalloutController {

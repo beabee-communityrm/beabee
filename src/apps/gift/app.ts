@@ -1,18 +1,18 @@
 import express from "express";
 import moment from "moment";
 
-import config from "@config";
+import config from "#config";
 
-import { hasNewModel, hasSchema } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
-import { loginAndRedirect } from "@core/utils/contact";
+import { hasNewModel, hasSchema } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
+import { loginAndRedirect } from "#core/utils/contact";
 
-import GiftService from "@core/services/GiftService";
-import ContactsService from "@core/services/ContactsService";
-import OptionsService from "@core/services/OptionsService";
+import GiftService from "#core/services/GiftService";
+import ContactsService from "#core/services/ContactsService";
+import OptionsService from "#core/services/OptionsService";
 
-import Address from "@models/Address";
-import GiftFlow, { GiftForm } from "@models/GiftFlow";
+import Address from "#models/Address";
+import GiftFlow, { GiftForm } from "#models/GiftFlow";
 
 import { createGiftSchema, updateGiftAddressSchema } from "./schema.json";
 

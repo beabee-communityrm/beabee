@@ -25,20 +25,20 @@ import {
 } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-import { createQueryBuilder } from "@core/database";
+import { createQueryBuilder } from "#core/database";
 
 import type {
   GetPaginatedRuleGroupRule,
   GetPaginatedRuleGroup
-} from "@api/dto/BaseDto";
+} from "#api/dto/BaseDto";
 
 import {
   FilterHandler,
   FilterHandlers,
   RichRuleValue
-} from "@type/filter-handlers";
+} from "#type/filter-handlers";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
 // Operator definitions
 

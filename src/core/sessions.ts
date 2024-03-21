@@ -4,10 +4,10 @@ import express, { Response } from "express";
 import session from "express-session";
 import { PostgresDriver } from "typeorm/driver/postgres/PostgresDriver";
 
-import { dataSource } from "@core/database";
-import passport from "@core/lib/passport";
+import { dataSource } from "#core/database";
+import passport from "#core/lib/passport";
 
-import config from "@config";
+import config from "#config";
 
 const pgSession = _pgSession(session);
 

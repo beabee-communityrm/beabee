@@ -4,7 +4,7 @@ import {
   StripeFeeCountry
 } from "@beabee/beabee-common";
 
-import { Locale } from "@locale";
+import { Locale } from "#locale";
 import { ContentId } from "./content-id";
 
 interface FooterLink {

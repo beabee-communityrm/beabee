@@ -1,10 +1,10 @@
 import { ContributionType } from "@beabee/beabee-common";
 import { SelectQueryBuilder } from "typeorm";
 
-import { createQueryBuilder } from "@core/database";
+import { createQueryBuilder } from "#core/database";
 
-import Address from "@models/Address";
-import GiftFlow from "@models/GiftFlow";
+import Address from "#models/Address";
+import GiftFlow from "#models/GiftFlow";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 

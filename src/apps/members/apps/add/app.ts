@@ -6,19 +6,19 @@ import {
 } from "@beabee/beabee-common";
 import express from "express";
 
-import { getRepository } from "@core/database";
-import { hasSchema, isSuperAdmin } from "@core/middleware";
-import { createDateTime, wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { hasSchema, isSuperAdmin } from "#core/middleware";
+import { createDateTime, wrapAsync } from "#core/utils";
 
-import ContactsService from "@core/services/ContactsService";
-import OptionsService from "@core/services/OptionsService";
+import ContactsService from "#core/services/ContactsService";
+import OptionsService from "#core/services/OptionsService";
 
-import ContactRole from "@models/ContactRole";
+import ContactRole from "#models/ContactRole";
 
 import { addContactSchema } from "./schemas.json";
 
-import DuplicateEmailError from "@api/errors/DuplicateEmailError";
-import PaymentService from "@core/services/PaymentService";
+import DuplicateEmailError from "#api/errors/DuplicateEmailError";
+import PaymentService from "#core/services/PaymentService";
 
 interface BaseAddContactSchema {
   email: string;

@@ -26,7 +26,7 @@ import {
   validate
 } from "class-validator";
 
-import { log as mainLogger } from "@core/logging";
+import { log as mainLogger } from "#core/logging";
 
 const log = mainLogger.child({ app: "callout-form-validation" });
 

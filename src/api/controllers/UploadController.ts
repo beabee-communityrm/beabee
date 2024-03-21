@@ -14,14 +14,14 @@ import {
 } from "routing-controllers";
 import { MoreThan } from "typeorm";
 
-import { getRepository } from "@core/database";
+import { getRepository } from "#core/database";
 
-import Contact from "@models/Contact";
-import UploadFlow from "@models/UploadFlow";
+import Contact from "#models/Contact";
+import UploadFlow from "#models/UploadFlow";
 
-import { GetUploadFlowDto } from "@api/dto/UploadFlowDto";
-import BadRequestError from "@api/errors/BadRequestError";
-import { UUIDParams } from "@api/params/UUIDParams";
+import { GetUploadFlowDto } from "#api/dto/UploadFlowDto";
+import BadRequestError from "#api/errors/BadRequestError";
+import { UUIDParams } from "#api/params/UUIDParams";
 
 async function canUploadOrFail(ipAddress: string, date: Date, max: number) {
   const uploadFlows = await getRepository(UploadFlow).find({

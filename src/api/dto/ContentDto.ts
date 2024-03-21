@@ -14,9 +14,9 @@ import {
   ValidateNested
 } from "class-validator";
 
-import { LinkDto } from "@api/dto/LinkDto";
+import { LinkDto } from "#api/dto/LinkDto";
 
-import { Locale } from "@locale";
+import { Locale } from "#locale";
 
 import {
   ContactsContentData,
@@ -27,8 +27,8 @@ import {
   JoinSetupContentData,
   ProfileContentData,
   ShareContentData
-} from "@type/content-data";
-import { ContentId } from "@type/content-id";
+} from "#type/content-data";
+import { ContentId } from "#type/content-id";
 
 export class GetContactsContentDto implements ContactsContentData {
   @IsString({ each: true })

@@ -1,6 +1,6 @@
-import { GetAddressDto } from "@api/dto/AddressDto";
+import { GetAddressDto } from "#api/dto/AddressDto";
 
-import Address from "@models/Address";
+import Address from "#models/Address";
 import { TransformPlainToInstance } from "class-transformer";
 
 // TODO: make Address into a proper model

@@ -3,28 +3,28 @@ import { add } from "date-fns";
 import Stripe from "stripe";
 
 import { PaymentProvider, UpdateContributionResult } from ".";
-import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+import { CompletedPaymentFlow } from "#core/providers/payment-flow";
 
-import stripe from "@core/lib/stripe";
-import { log as mainLogger } from "@core/logging";
-import { getActualAmount, PaymentForm } from "@core/utils";
-import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
+import stripe from "#core/lib/stripe";
+import { log as mainLogger } from "#core/logging";
+import { getActualAmount, PaymentForm } from "#core/utils";
+import { calcRenewalDate, getChargeableAmount } from "#core/utils/payment";
 import {
   createSubscription,
   deleteSubscription,
   manadateToSource,
   updateSubscription
-} from "@core/utils/payment/stripe";
+} from "#core/utils/payment/stripe";
 
-import Contact from "@models/Contact";
-import { StripePaymentData } from "@models/PaymentData";
+import Contact from "#models/Contact";
+import { StripePaymentData } from "#models/PaymentData";
 
-import NoPaymentMethod from "@api/errors/NoPaymentMethod";
+import NoPaymentMethod from "#api/errors/NoPaymentMethod";
 
-import config from "@config";
+import config from "#config";
 
-import { ContributionInfo } from "@type/contribution-info";
-import { PaymentSource } from "@type/payment-source";
+import { ContributionInfo } from "#type/contribution-info";
+import { PaymentSource } from "#type/payment-source";
 
 const log = mainLogger.child({ app: "stripe-payment-provider" });
 

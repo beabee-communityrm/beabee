@@ -12,22 +12,22 @@ import {
   QueryParams
 } from "routing-controllers";
 
-import { getRepository } from "@core/database";
+import { getRepository } from "#core/database";
 
-import { CurrentAuth } from "@api/decorators/CurrentAuth";
-import PartialBody from "@api/decorators/PartialBody";
+import { CurrentAuth } from "#api/decorators/CurrentAuth";
+import PartialBody from "#api/decorators/PartialBody";
 import {
   CreateNoticeDto,
   GetNoticeDto,
   ListNoticesDto
-} from "@api/dto/NoticeDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
-import { UUIDParams } from "@api/params/UUIDParams";
-import NoticeTransformer from "@api/transformers/NoticeTransformer";
+} from "#api/dto/NoticeDto";
+import { PaginatedDto } from "#api/dto/PaginatedDto";
+import { UUIDParams } from "#api/params/UUIDParams";
+import NoticeTransformer from "#api/transformers/NoticeTransformer";
 
-import Notice from "@models/Notice";
+import Notice from "#models/Notice";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 @JsonController("/notice")
 @Authorized()

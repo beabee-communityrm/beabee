@@ -1,11 +1,11 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import readline from "readline";
 
-import { dataSource } from "@core/database";
-import { runApp } from "@core/server";
+import { dataSource } from "#core/database";
+import { runApp } from "#core/server";
 
-import config from "@config";
+import config from "#config";
 
 if (!config.dev) {
   console.error("Can't import to live database");

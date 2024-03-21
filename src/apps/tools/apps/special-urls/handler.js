@@ -3,10 +3,10 @@ const _ = require("lodash");
 const moment = require("moment");
 const mongoose = require("mongoose");
 
-const { SpecialUrls } = require("@core/database");
-const { wrapAsync } = require("@core/utils");
+const { SpecialUrls } = require("#core/database");
+const { wrapAsync } = require("#core/utils");
 
-const { default: EmailService } = require("@core/services/EmailService");
+const { default: EmailService } = require("#core/services/EmailService");
 
 const actions = require("./actions");
 const { getSpecialUrlUrl } = require("./utils");

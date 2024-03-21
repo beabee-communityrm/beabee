@@ -1,19 +1,19 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import { In } from "typeorm";
 
-import { getRepository } from "@core/database";
-import { log as mainLogger } from "@core/logging";
-import { runApp } from "@core/server";
+import { getRepository } from "#core/database";
+import { log as mainLogger } from "#core/logging";
+import { runApp } from "#core/server";
 
-import EmailService from "@core/services/EmailService";
-import NewsletterService from "@core/services/NewsletterService";
-import ContactsService from "@core/services/ContactsService";
-import SegmentService from "@core/services/SegmentService";
+import EmailService from "#core/services/EmailService";
+import NewsletterService from "#core/services/NewsletterService";
+import ContactsService from "#core/services/ContactsService";
+import SegmentService from "#core/services/SegmentService";
 
-import Segment from "@models/Segment";
-import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
-import SegmentContact from "@models/SegmentContact";
+import Segment from "#models/Segment";
+import SegmentOngoingEmail from "#models/SegmentOngoingEmail";
+import SegmentContact from "#models/SegmentContact";
 
 const log = mainLogger.child({ app: "process-segments" });
 

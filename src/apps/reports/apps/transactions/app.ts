@@ -2,11 +2,11 @@ import express from "express";
 import moment from "moment";
 import { Between } from "typeorm";
 
-import { getRepository } from "@core/database";
-import { isSuperAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { isSuperAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import Payment from "@models/Payment";
+import Payment from "#models/Payment";
 
 const app = express();
 

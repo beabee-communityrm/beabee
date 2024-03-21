@@ -1,15 +1,15 @@
 import express from "express";
 
-import { createQueryBuilder, getRepository } from "@core/database";
-import { wrapAsync } from "@core/utils";
+import { createQueryBuilder, getRepository } from "#core/database";
+import { wrapAsync } from "#core/utils";
 
 import PageSettingsService, {
   JustPageSettings
-} from "@core/services/PageSettingsService";
+} from "#core/services/PageSettingsService";
 
-import Callout from "@models/Callout";
+import Callout from "#models/Callout";
 
-import config from "@config";
+import config from "#config";
 
 const app = express();
 

@@ -1,7 +1,7 @@
 import { PaymentMethod } from "@beabee/beabee-common";
 
-import Address from "@models/Address";
-import JoinFlow from "@models/JoinFlow";
+import Address from "#models/Address";
+import JoinFlow from "#models/JoinFlow";
 
 export interface PaymentFlow {
   id: string;

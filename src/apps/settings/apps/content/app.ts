@@ -1,14 +1,14 @@
 import express, { Request, Response, NextFunction } from "express";
 
-import { getRepository } from "@core/database";
-import { isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { isAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
-import Content from "@models/Content";
+import Content from "#models/Content";
 
-import { ContentId } from "@type/content-id";
+import { ContentId } from "#type/content-id";
 
 const app = express();
 

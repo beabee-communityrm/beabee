@@ -1,4 +1,4 @@
-import "module-alias/register";
+// import "module-alias/register";
 import "reflect-metadata";
 
 import { RoleType } from "@beabee/beabee-common";
@@ -38,13 +38,13 @@ import {
   log as mainLogger,
   requestErrorLogger,
   requestLogger
-} from "@core/logging";
-import sessions from "@core/sessions";
-import { initApp, startServer } from "@core/server";
+} from "#core/logging";
+import sessions from "#core/sessions";
+import { initApp, startServer } from "#core/server";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
-import config from "@config";
+import config from "#config";
 
 function currentUserChecker(action: { request: Request }): Contact | undefined {
   return action.request.auth?.entity instanceof Contact

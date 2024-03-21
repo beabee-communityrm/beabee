@@ -1,4 +1,4 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import {
   ContributionPeriod,
@@ -8,15 +8,15 @@ import {
 import { parse } from "csv-parse";
 import { In } from "typeorm";
 
-import { getRepository } from "@core/database";
-import { runApp } from "@core/server";
-import { cleanEmailAddress } from "@core/utils";
+import { getRepository } from "#core/database";
+import { runApp } from "#core/server";
+import { cleanEmailAddress } from "#core/utils";
 
-import ContactsService from "@core/services/ContactsService";
+import ContactsService from "#core/services/ContactsService";
 
-import Address from "@models/Address";
-import Contact from "@models/Contact";
-import ContactRole from "@models/ContactRole";
+import Address from "#models/Address";
+import Contact from "#models/Contact";
+import ContactRole from "#models/ContactRole";
 
 const headers = [
   "first_name",

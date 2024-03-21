@@ -8,16 +8,16 @@ import { SelectQueryBuilder } from "typeorm";
 import {
   GetCalloutResponseCommentDto,
   ListCalloutResponseCommentsDto
-} from "@api/dto/CalloutResponseCommentDto";
-import { BaseTransformer } from "@api/transformers/BaseTransformer";
+} from "#api/dto/CalloutResponseCommentDto";
+import { BaseTransformer } from "#api/transformers/BaseTransformer";
 import ContactTransformer, {
   loadContactRoles
-} from "@api/transformers/ContactTransformer";
-import { mergeRules } from "@api/utils/rules";
+} from "#api/transformers/ContactTransformer";
+import { mergeRules } from "#api/utils/rules";
 
-import CalloutResponseComment from "@models/CalloutResponseComment";
+import CalloutResponseComment from "#models/CalloutResponseComment";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 class CalloutResponseCommentTransformer extends BaseTransformer<
   CalloutResponseComment,

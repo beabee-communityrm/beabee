@@ -3,12 +3,12 @@ import { Server } from "node:http";
 import { EventEmitter } from "node:events";
 import { sign, verify, JsonWebTokenError } from "jsonwebtoken";
 import express, { Request, Response } from "express";
-import config from "@config";
-import { log as mainLogger } from "@core/logging";
-import { wrapAsync } from "@core/utils";
-import { extractToken } from "@core/utils/auth";
+import config from "#config";
+import { log as mainLogger } from "#core/logging";
+import { wrapAsync } from "#core/utils";
+import { extractToken } from "#core/utils/auth";
 
-import type { NetworkServiceMap } from "@type/network-service-map";
+import type { NetworkServiceMap } from "#type/network-service-map";
 
 const log = mainLogger.child({ app: "network-communicator-service" });
 

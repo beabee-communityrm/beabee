@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
-import { addThenSetNotNull } from "@core/utils/db";
+import { addThenSetNotNull } from "#core/utils/db";
 
 export class AddButtonText1632397910432 implements MigrationInterface {
   name = "AddButtonText1632397910432";

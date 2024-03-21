@@ -2,7 +2,7 @@ require("module-alias/register");
 
 const crypto = require("crypto");
 const moment = require("moment");
-const { default: gocardless } = require("@core/lib/gocardless");
+const { default: gocardless } = require("#core/lib/gocardless");
 
 async function fetchCustomers(customerIds) {
   let customers = [],

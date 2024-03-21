@@ -1,25 +1,25 @@
 import passport from "passport";
 import passportLocal from "passport-local";
 
-import config from "@config";
+import config from "#config";
 
-import { getRepository } from "@core/database";
-import { log } from "@core/logging";
-import { cleanEmailAddress, sleep } from "@core/utils";
-import { generatePassword, isValidPassword } from "@core/utils/auth";
+import { getRepository } from "#core/database";
+import { log } from "#core/logging";
+import { cleanEmailAddress, sleep } from "#core/utils";
+import { generatePassword, isValidPassword } from "#core/utils/auth";
 
-import ContactsService from "@core/services/ContactsService";
-import ContactMfaService from "@core/services/ContactMfaService";
+import ContactsService from "#core/services/ContactsService";
+import ContactMfaService from "#core/services/ContactMfaService";
 
-import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
-import { LOGIN_CODES } from "@enums/login-codes";
-import { LoginDto } from "@api/dto/LoginDto";
-import { UnauthorizedError } from "@api/errors/UnauthorizedError";
+import { CONTACT_MFA_TYPE } from "#enums/contact-mfa-type";
+import { LOGIN_CODES } from "#enums/login-codes";
+import { LoginDto } from "#api/dto/LoginDto";
+import { UnauthorizedError } from "#api/errors/UnauthorizedError";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
-import type { ContactMfaSecure } from "@type/contact-mfa-secure";
-import type { PassportLocalDoneCallback } from "@type/passport-local-done-callback";
+import type { ContactMfaSecure } from "#type/contact-mfa-secure";
+import type { PassportLocalDoneCallback } from "#type/passport-local-done-callback";
 
 // Add support for local authentication in Passport.js
 passport.use(

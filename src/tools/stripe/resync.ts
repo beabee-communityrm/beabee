@@ -1,14 +1,14 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import { PaymentMethod } from "@beabee/beabee-common";
 import { In } from "typeorm";
 
-import { getRepository } from "@core/database";
-import { runApp } from "@core/server";
-import stripe from "@core/lib/stripe";
-import ContactsService from "@core/services/ContactsService";
+import { getRepository } from "#core/database";
+import { runApp } from "#core/server";
+import stripe from "#core/lib/stripe";
+import ContactsService from "#core/services/ContactsService";
 
-import PaymentData, { StripePaymentData } from "@models/PaymentData";
+import PaymentData, { StripePaymentData } from "#models/PaymentData";
 
 import {
   handleInvoicePaid,

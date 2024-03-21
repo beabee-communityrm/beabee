@@ -6,28 +6,28 @@ import slugify from "slugify";
 import { BadRequestError } from "routing-controllers";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
-import EmailService from "@core/services/EmailService";
-import NewsletterService from "@core/services/NewsletterService";
-import OptionsService from "@core/services/OptionsService";
+import EmailService from "#core/services/EmailService";
+import NewsletterService from "#core/services/NewsletterService";
+import OptionsService from "#core/services/OptionsService";
 
-import { getRepository, runTransaction } from "@core/database";
-import { isDuplicateIndex } from "@core/utils";
+import { getRepository, runTransaction } from "#core/database";
+import { isDuplicateIndex } from "#core/utils";
 
-import Contact from "@models/Contact";
-import Callout from "@models/Callout";
-import CalloutResponse from "@models/CalloutResponse";
-import CalloutResponseComment from "@models/CalloutResponseComment";
-import CalloutResponseTag from "@models/CalloutResponseTag";
-import CalloutTag from "@models/CalloutTag";
-import CalloutVariant from "@models/CalloutVariant";
+import Contact from "#models/Contact";
+import Callout from "#models/Callout";
+import CalloutResponse from "#models/CalloutResponse";
+import CalloutResponseComment from "#models/CalloutResponseComment";
+import CalloutResponseTag from "#models/CalloutResponseTag";
+import CalloutTag from "#models/CalloutTag";
+import CalloutVariant from "#models/CalloutVariant";
 
-import DuplicateId from "@api/errors/DuplicateId";
+import DuplicateId from "#api/errors/DuplicateId";
 
-import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+import InvalidCalloutResponse from "#api/errors/InvalidCalloutResponse";
 
-import { CalloutAccess } from "@enums/callout-access";
-import { CreateCalloutData } from "@type/callout-data";
-import NotFoundError from "@api/errors/NotFoundError";
+import { CalloutAccess } from "#enums/callout-access";
+import { CreateCalloutData } from "#type/callout-data";
+import NotFoundError from "#api/errors/NotFoundError";
 
 class CalloutsService {
   /**

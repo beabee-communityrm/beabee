@@ -1,4 +1,4 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import {
   ContributionPeriod,
@@ -8,15 +8,15 @@ import {
 import moment from "moment";
 import { Brackets } from "typeorm";
 
-import { createQueryBuilder } from "@core/database";
-import { runApp } from "@core/server";
-import { getActualAmount } from "@core/utils";
+import { createQueryBuilder } from "#core/database";
+import { runApp } from "#core/server";
+import { getActualAmount } from "#core/utils";
 
-import config from "@config";
+import config from "#config";
 
-import Payment from "@models/Payment";
-import Contact from "@models/Contact";
-import PaymentData from "@models/PaymentData";
+import Payment from "#models/Payment";
+import Contact from "#models/Contact";
+import PaymentData from "#models/PaymentData";
 
 async function logContact(type: string, conditions: Brackets[]) {
   const qb = createQueryBuilder(Contact, "m")

@@ -5,7 +5,7 @@ import {
   ValidatorConstraintInterface
 } from "class-validator";
 
-import OptionsService from "@core/services/OptionsService";
+import OptionsService from "#core/services/OptionsService";
 
 @ValidatorConstraint({ name: "validPayFee" })
 export default class ValidPayFee implements ValidatorConstraintInterface {

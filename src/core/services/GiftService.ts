@@ -3,20 +3,20 @@ import muhammara from "muhammara";
 import moment from "moment";
 import { getRepository } from "typeorm";
 
-import { log as mainLogger } from "@core/logging";
-import stripe from "@core/lib/stripe";
-import { isDuplicateIndex } from "@core/utils";
+import { log as mainLogger } from "#core/logging";
+import stripe from "#core/lib/stripe";
+import { isDuplicateIndex } from "#core/utils";
 
-import EmailService from "@core/services/EmailService";
-import ContactsService from "@core/services/ContactsService";
-import OptionsService from "@core/services/OptionsService";
+import EmailService from "#core/services/EmailService";
+import ContactsService from "#core/services/ContactsService";
+import OptionsService from "#core/services/OptionsService";
 
-import Address from "@models/Address";
-import GiftFlow, { GiftForm } from "@models/GiftFlow";
-import ContactRole from "@models/ContactRole";
+import Address from "#models/Address";
+import GiftFlow, { GiftForm } from "#models/GiftFlow";
+import ContactRole from "#models/ContactRole";
 
-import config from "@config";
-import { generateContactCode } from "@core/utils/contact";
+import config from "#config";
+import { generateContactCode } from "#core/utils/contact";
 
 const log = mainLogger.child({ app: "gift-service" });
 

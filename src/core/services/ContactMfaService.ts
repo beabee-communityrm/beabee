@@ -1,19 +1,20 @@
 import { NotFoundError } from "routing-controllers";
 
-import Contact from "@models/Contact";
-import ContactMfa from "@models/ContactMfa";
+import ContactMfa from "#models/ContactMfa";
 
-import { getRepository } from "@core/database";
-import { validateTotpToken } from "@core/utils/auth";
+import { getRepository } from "#core/database";
+import { validateTotpToken } from "#core/utils/auth";
 
-import { LOGIN_CODES } from "@enums/login-codes";
+import { LOGIN_CODES } from "#enums/login-codes";
 
-import BadRequestError from "@api/errors/BadRequestError";
-import UnauthorizedError from "@api/errors/UnauthorizedError";
+import BadRequestError from "#api/errors/BadRequestError";
+import UnauthorizedError from "#api/errors/UnauthorizedError";
 
-import { ContactMfaSecure } from "@type/contact-mfa-secure";
-import { CreateContactMfaData } from "@type/create-contact-mfa-data";
-import { DeleteContactMfaData } from "@type/delete-contact-mfa-data";
+import { ContactMfaSecure } from "#type/contact-mfa-secure";
+import { CreateContactMfaData } from "#type/create-contact-mfa-data";
+import { DeleteContactMfaData } from "#type/delete-contact-mfa-data";
+
+import type Contact from "#models/Contact";
 
 /**
  * Contact multi factor authentication service

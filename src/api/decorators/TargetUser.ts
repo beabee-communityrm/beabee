@@ -5,12 +5,12 @@ import {
   createParamDecorator
 } from "routing-controllers";
 
-import ContactsService from "@core/services/ContactsService";
+import ContactsService from "#core/services/ContactsService";
 
-import { UUIDParams } from "@api/params/UUIDParams";
-import { validateOrReject } from "@api/utils";
+import { UUIDParams } from "#api/params/UUIDParams";
+import { validateOrReject } from "#api/utils";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
 /**
  * The target user can either be the current user or for admins

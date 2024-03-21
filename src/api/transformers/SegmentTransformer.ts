@@ -10,13 +10,13 @@ import {
   GetSegmentOptsDto,
   GetSegmentWith,
   ListSegmentsDto
-} from "@api/dto/SegmentDto";
-import { BaseTransformer } from "@api/transformers/BaseTransformer";
-import ContactTransformer from "@api/transformers/ContactTransformer";
+} from "#api/dto/SegmentDto";
+import { BaseTransformer } from "#api/transformers/BaseTransformer";
+import ContactTransformer from "#api/transformers/ContactTransformer";
 
-import Segment from "@models/Segment";
+import Segment from "#models/Segment";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 class SegmentTransformer extends BaseTransformer<
   Segment,

@@ -23,7 +23,7 @@ import {
   Max
 } from "class-validator";
 
-import { IsType } from "@api/validators/IsType";
+import { IsType } from "#api/validators/IsType";
 
 export class GetPaginatedRule implements Rule {
   @IsString()

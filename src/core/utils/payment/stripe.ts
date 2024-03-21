@@ -6,14 +6,14 @@ import {
 import { differenceInMonths } from "date-fns";
 import Stripe from "stripe";
 
-import stripe from "@core/lib/stripe";
-import { log as mainLogger } from "@core/logging";
-import { PaymentForm } from "@core/utils";
-import { getChargeableAmount } from "@core/utils/payment";
+import stripe from "#core/lib/stripe";
+import { log as mainLogger } from "#core/logging";
+import { PaymentForm } from "#core/utils";
+import { getChargeableAmount } from "#core/utils/payment";
 
-import config from "@config";
+import config from "#config";
 
-import { PaymentSource } from "@type/payment-source";
+import { PaymentSource } from "#type/payment-source";
 
 const log = mainLogger.child({ app: "stripe-utils" });
 

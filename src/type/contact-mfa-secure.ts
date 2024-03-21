@@ -1,4 +1,4 @@
-import type ContactMfa from "@models/ContactMfa";
+import type ContactMfa from "#models/ContactMfa";
 
 /**
  * The **secure** contact multi factor authentication information without the `secret` key

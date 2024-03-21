@@ -1,5 +1,5 @@
 import express from "express";
-import OptionsService, { OptionKey } from "@core/services/OptionsService";
+import OptionsService, { OptionKey } from "#core/services/OptionsService";
 
 const app = express();
 

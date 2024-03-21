@@ -20,22 +20,22 @@ import {
   ValidateNested
 } from "class-validator";
 
-import { GetExportQuery, GetPaginatedQuery } from "@api/dto/BaseDto";
-import { GetCalloutFormDto, SetCalloutFormDto } from "@api/dto/CalloutFormDto";
-import { CalloutVariantDto } from "@api/dto/CalloutVariantDto";
-import { LinkDto } from "@api/dto/LinkDto";
-import IsSlug from "@api/validators/IsSlug";
-import IsUrl from "@api/validators/IsUrl";
-import IsMapBounds from "@api/validators/IsMapBounds";
-import IsLngLat from "@api/validators/IsLngLat";
-import IsVariantsObject from "@api/validators/IsVariantsObject";
+import { GetExportQuery, GetPaginatedQuery } from "#api/dto/BaseDto";
+import { GetCalloutFormDto, SetCalloutFormDto } from "#api/dto/CalloutFormDto";
+import { CalloutVariantDto } from "#api/dto/CalloutVariantDto";
+import { LinkDto } from "#api/dto/LinkDto";
+import IsSlug from "#api/validators/IsSlug";
+import IsUrl from "#api/validators/IsUrl";
+import IsMapBounds from "#api/validators/IsMapBounds";
+import IsLngLat from "#api/validators/IsLngLat";
+import IsVariantsObject from "#api/validators/IsVariantsObject";
 
-import { CalloutAccess } from "@enums/callout-access";
-import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutAccess } from "#enums/callout-access";
+import { CalloutCaptcha } from "#enums/callout-captcha";
 
-import { CalloutData } from "@type/callout-data";
-import { CalloutMapSchema } from "@type/callout-map-schema";
-import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
+import { CalloutData } from "#type/callout-data";
+import { CalloutMapSchema } from "#type/callout-map-schema";
+import { CalloutResponseViewSchema } from "#type/callout-response-view-schema";
 
 export enum GetCalloutWith {
   Form = "form",

@@ -8,9 +8,9 @@ import {
   QueryParams
 } from "routing-controllers";
 
-import { CurrentAuth } from "@api/decorators/CurrentAuth";
-import PartialBody from "@api/decorators/PartialBody";
-import { UUIDParams } from "@api/params/UUIDParams";
+import { CurrentAuth } from "#api/decorators/CurrentAuth";
+import PartialBody from "#api/decorators/PartialBody";
+import { UUIDParams } from "#api/params/UUIDParams";
 
 import {
   BatchUpdateCalloutResponseDto,
@@ -19,11 +19,11 @@ import {
   GetCalloutResponseDto,
   GetCalloutResponseOptsDto,
   ListCalloutResponsesDto
-} from "@api/dto/CalloutResponseDto";
-import { PaginatedDto } from "@api/dto/PaginatedDto";
-import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
+} from "#api/dto/CalloutResponseDto";
+import { PaginatedDto } from "#api/dto/PaginatedDto";
+import CalloutResponseTransformer from "#api/transformers/CalloutResponseTransformer";
 
-import { AuthInfo } from "@type/auth-info";
+import { AuthInfo } from "#type/auth-info";
 
 @JsonController("/callout-responses")
 export class CalloutResponseController {

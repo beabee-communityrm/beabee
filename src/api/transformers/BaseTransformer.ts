@@ -8,18 +8,18 @@ import {
 import { plainToInstance } from "class-transformer";
 import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
-import { createQueryBuilder } from "@core/database";
+import { createQueryBuilder } from "#core/database";
 
-import { PaginatedDto } from "@api/dto/PaginatedDto";
-import NotFoundError from "@api/errors/NotFoundError";
-import InvalidRuleError from "@api/errors/InvalidRuleError";
-import UnauthorizedError from "@api/errors/UnauthorizedError";
-import { convertRulesToWhereClause } from "@api/utils/rules";
+import { PaginatedDto } from "#api/dto/PaginatedDto";
+import NotFoundError from "#api/errors/NotFoundError";
+import InvalidRuleError from "#api/errors/InvalidRuleError";
+import UnauthorizedError from "#api/errors/UnauthorizedError";
+import { convertRulesToWhereClause } from "#api/utils/rules";
 
-import Contact from "@models/Contact";
+import Contact from "#models/Contact";
 
-import { AuthInfo } from "@type/auth-info";
-import { FilterHandlers } from "@type/filter-handlers";
+import { AuthInfo } from "#type/auth-info";
+import { FilterHandlers } from "#type/filter-handlers";
 
 /**
  * Base transformer for querying and converting models to DTOs

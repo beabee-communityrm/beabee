@@ -1,15 +1,15 @@
 import crypto from "crypto";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { getNextParam } from "@core/utils";
+import { getNextParam } from "#core/utils";
 import { TOTP, Secret } from "otpauth";
 
-import Contact from "@models/Contact";
-import Password from "@models/Password";
+import Contact from "#models/Contact";
+import Password from "#models/Password";
 
-import { LOGIN_CODES } from "@enums/login-codes";
+import { LOGIN_CODES } from "#enums/login-codes";
 
-import config from "@config";
+import config from "#config";
 
 export function generateJWTToken(contact: Contact): string {
   return jwt.sign({ contactId: contact.id }, config.secret);

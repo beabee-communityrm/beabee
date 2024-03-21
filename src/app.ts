@@ -1,4 +1,4 @@
-import "module-alias/register";
+// import "module-alias/register";
 
 import cleanDeep from "clean-deep";
 import cookie from "cookie-parser";
@@ -7,19 +7,19 @@ import express, { ErrorRequestHandler } from "express";
 import flash from "express-flash";
 import helmet from "helmet";
 
-import appLoader from "@core/app-loader";
-import { log, requestErrorLogger, requestLogger } from "@core/logging";
-import quickflash from "@core/quickflash";
-import { initApp, startServer } from "@core/server";
-import sessions from "@core/sessions";
-import { isInvalidType } from "@core/utils";
+import appLoader from "#core/app-loader";
+import { log, requestErrorLogger, requestLogger } from "#core/logging";
+import quickflash from "#core/quickflash";
+import { initApp, startServer } from "#core/server";
+import sessions from "#core/sessions";
+import { isInvalidType } from "#core/utils";
 
-import OptionsService, { OptionKey } from "@core/services/OptionsService";
-import PageSettingsService from "@core/services/PageSettingsService";
+import OptionsService, { OptionKey } from "#core/services/OptionsService";
+import PageSettingsService from "#core/services/PageSettingsService";
 
-//import specialUrlHandler from '@apps/tools/apps/special-urls/handler';
+//import specialUrlHandler from '#apps/tools/apps/special-urls/handler';
 
-import config from "@config";
+import config from "#config";
 
 if (!config.gocardless.sandbox && config.dev) {
   log.error(

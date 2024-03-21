@@ -1,18 +1,18 @@
 import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
 
-import { getRepository } from "@core/database";
-import { log as mainLogger } from "@core/logging";
+import { getRepository } from "#core/database";
+import { log as mainLogger } from "#core/logging";
 
-import EmailService from "@core/services/EmailService";
-import ContactsService from "@core/services/ContactsService";
-import OptionsService from "@core/services/OptionsService";
-import PaymentService from "@core/services/PaymentService";
+import EmailService from "#core/services/EmailService";
+import ContactsService from "#core/services/ContactsService";
+import OptionsService from "#core/services/OptionsService";
+import PaymentService from "#core/services/PaymentService";
 import ResetSecurityFlowService from "./ResetSecurityFlowService";
 
-import Address from "@models/Address";
-import JoinFlow from "@models/JoinFlow";
-import JoinForm from "@models/JoinForm";
-import Contact from "@models/Contact";
+import Address from "#models/Address";
+import JoinFlow from "#models/JoinFlow";
+import JoinForm from "#models/JoinForm";
+import Contact from "#models/Contact";
 
 import {
   CompletedPaymentFlow,
@@ -21,15 +21,15 @@ import {
   PaymentFlowData,
   PaymentFlowParams,
   PaymentFlowProvider
-} from "@core/providers/payment-flow";
-import StripeProvider from "@core/providers/payment-flow/StripeProvider";
-import GCProvider from "@core/providers/payment-flow/GCProvider";
+} from "#core/providers/payment-flow";
+import StripeProvider from "#core/providers/payment-flow/StripeProvider";
+import GCProvider from "#core/providers/payment-flow/GCProvider";
 
-import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+import DuplicateEmailError from "#api/errors/DuplicateEmailError";
 
-import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+import { RESET_SECURITY_FLOW_TYPE } from "#enums/reset-security-flow-type";
 
-import { CompleteUrls } from "@type/complete-urls";
+import { CompleteUrls } from "#type/complete-urls";
 
 const paymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,

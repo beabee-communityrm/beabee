@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import type Callout from "./Callout";
-import { CalloutVariantNavigationData } from "@type/callout-variant-data";
+import { CalloutVariantNavigationData } from "#type/callout-variant-data";
 
 @Entity()
 export default class CalloutVariant {

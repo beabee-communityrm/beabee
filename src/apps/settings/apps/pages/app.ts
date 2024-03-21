@@ -1,12 +1,12 @@
 import express from "express";
 
-import { getRepository } from "@core/database";
-import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { getRepository } from "#core/database";
+import { hasNewModel, hasSchema, isAdmin } from "#core/middleware";
+import { wrapAsync } from "#core/utils";
 
-import PageSettingsService from "@core/services/PageSettingsService";
+import PageSettingsService from "#core/services/PageSettingsService";
 
-import PageSettings from "@models/PageSettings";
+import PageSettings from "#models/PageSettings";
 
 import { createPageSchema } from "./schema.json";
 
