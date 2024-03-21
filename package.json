@@ -139,9 +139,11 @@
     "> 1%"
   ],
   "imports": {
+    "#core/utils": "./built/core/utils/index.js",
     "#core/defaults.json": "./built/core/defaults.json",
     "#core/*": "./built/core/*.js",
     "#apps/*": "./built/apps/*.js",
+    "#api/utils": "./built/api/utils/index.js",
     "#api/*": "./built/api/*.js",
     "#config": "./built/config/config.js",
     "#locale": "./built/locales/current.js",
