@@ -45,7 +45,9 @@ export default class GiftService {
             unit_amount: giftForm.months * GiftService.giftMonthlyAmount * 100,
             currency: config.currencyCode.toLowerCase(),
             product_data: {
-              name: `Gift membership - ${giftForm.months} month${giftForm.months != 1 ? "s" : ""}`
+              name: `Gift membership - ${giftForm.months} month${
+                giftForm.months != 1 ? "s" : ""
+              }`
             }
           }
         }

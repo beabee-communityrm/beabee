@@ -171,7 +171,6 @@ Webhooks are handled by the `webhook_app` service. This is a separate service fr
 
 **`/webhook/ping`** - Used to check if the webhook service is running and available, e.g. http://localhost:3001/webhook/ping
 
-
 **`/webhook/stripe`** - Stripe webhooks are handled by the `stripe` service.
 
 If you are working locally, you can use the [Stripe CLI](https://docs.stripe.com/stripe-cli) to forward webhooks to your local environment.
@@ -181,4 +180,3 @@ Forward webhooks to your local environment with the following command:
 ```bash
 stripe listen --forward-to http://localhost:3001/webhook/stripe
 ```
-
