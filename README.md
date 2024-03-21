@@ -1,4 +1,4 @@
-# beabee
+# 🐝 beabee
 
 This repository hosts beabee's API and legacy app. [Go here](https://beabee.io/en/home/) to find out more about beabee.
 
@@ -12,10 +12,7 @@ and repurposed by [The Bristol Cable](https://thebristolcable.org).
 ![Deploy](https://github.com/beabee-communityrm/beabee/workflows/Deploy/badge.svg)
 ![Known Vulnerabilities](https://snyk.io/test/github/beabee-communityrm/beabee/badge.svg?targetFile=package.json)
 
-Browser testing with<br/>
-<a href="https://www.browserstack.com/"><img src="https://user-images.githubusercontent.com/2084823/46341120-52388b00-c62f-11e8-8f41-270915ccc03b.png" width="150" /></a>
-
-## Install
+## 💻 Install
 
 > ⚠️⚠️⚠️ **WARNING** ⚠️⚠️⚠️
 >
@@ -67,7 +64,7 @@ Need some test data? Download it here: coming soon
 docker compose run --rm -T app node built/tools/database/import.js < <import file>
 ```
 
-## Development
+## `</>` Development
 
 Development is containerized, in general you should be able to use the following to get started
 
@@ -111,7 +108,7 @@ docker compose run app npm run typeorm migration:run
 
 > Note: If you get an `EACCES: permission denied` error, you may need to run the above commands with `docker compose run -u root`.
 
-### Documentation
+### 📰 Documentation
 
 Documentation is currently very limited, email [will.franklin@beabee.io](mailto:will.franklin@beabee.io) if you have any questions.
 
@@ -165,18 +162,74 @@ The codebase is broadly split into a few different parts
   ./src/migrations
   ```
 
-#### Webhooks
+#### 📡 Webhooks
 
 Webhooks are handled by the `webhook_app` service. This is a separate service from the API to allow for scaling independently.
 
 **`/webhook/ping`** - Used to check if the webhook service is running and available, e.g. http://localhost:3001/webhook/ping
 
-**`/webhook/stripe`** - Stripe webhooks are handled by the `stripe` service.
+**`/webhook/stripe`** - Stripe webhooks are handled by the `stripe` service, see [Payment Providers](#payment-providers) for more information.
 
-If you are working locally, you can use the [Stripe CLI](https://docs.stripe.com/stripe-cli) to forward webhooks to your local environment.
+**`/webhook/gocardless`** - GoCardless webhooks are handled by the `gocardless` service, see [Payment Providers](#payment-providers) for more information.
 
-Forward webhooks to your local environment with the following command:
+**`/webhook/mailchimp`** - Mailchimp webhooks are handled by the `mailchimp` service, see [MailChimp](#mailchimp) for more information.
 
 ```bash
+docker compose exec app node built/tools/configure
 stripe listen --forward-to http://localhost:3001/webhook/stripe
 ```
+
+### 📧 E-Mail
+
+#### Prepare for local development
+
+By default we are using [MailDev](https://github.com/maildev/maildev) for local development. For this to work it must be configured the first time, run the following command:
+
+```bash
+docker compose exec app node built/tools/configure
+```
+
+#### 📮 MailChimp
+
+MailChimp is used for sending newsletters and other marketing emails.
+
+To be able to send emails you need to create a MailChimp account and create a new API key in the [MailChimp dashboard](https://mailchimp.com/).
+
+The API key can be found in the MailChimp dashboard under the API keys section.
+
+### 💰 Payment Providers
+
+We are using stripe for membership payments.
+
+#### Prepare for local development
+
+Make shure you have defined the environment variables in the .env file:
+
+```bash
+BEABEE_STRIPE_PUBLICKEY=<public key>
+BEABEE_STRIPE_SECRETKEY=<secret key>
+```
+
+You can get the public key and secret key in the [Stripe dashboard](https://dashboard.stripe.com).
+
+To be able to recive webhooks from stripe you need to forward them to your local environment and create a webhook secret using the [Stripe CLI](https://docs.stripe.com/stripe-cli):
+
+```bash
+stripe login
+stripe listen --forward-to localhost:3001/webhook/stripe
+```
+
+Now the stripe CLI prints out the webhook secret, copy it and add it to the .env file while you keep the forwarding process running:
+
+```bash
+BEABEE_STRIPE_WEBHOOKSECRET=<webhook secret>
+```
+
+> ⚠️ To be able to create a payment in the frontend you need to be able to recive confirmation emails, so make shure you have setup [E-Mail](#email).
+
+> ⚠️ Since the enviroment variable has changed you also need to [rebuild the containers](#rebuilding-containers).
+
+## 🤝 Advertising
+
+Browser testing with<br/>
+<a href="https://www.browserstack.com/"><img src="https://user-images.githubusercontent.com/2084823/46341120-52388b00-c62f-11e8-8f41-270915ccc03b.png" width="150" /></a>
