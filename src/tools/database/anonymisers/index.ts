@@ -13,7 +13,7 @@ import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import {
   CalloutComponentSchema,
-  CalloutResponseAnswers
+  CalloutResponseAnswersSlide
 } from "@beabee/beabee-common";
 
 import {
@@ -79,7 +79,7 @@ function writeItems<T extends ObjectLiteral>(
 
 function createAnswersMap(
   components: CalloutComponentSchema[]
-): ObjectMap<CalloutResponseAnswers> {
+): ObjectMap<CalloutResponseAnswersSlide> {
   // return Object.fromEntries(
   //   components.map((c) => [c.key, createComponentAnonymiser(c)])
   // );

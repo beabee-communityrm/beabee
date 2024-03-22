@@ -1,5 +1,5 @@
+import { isMapBounds } from "@beabee/beabee-common";
 import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
-import { isLngLat } from "./IsLngLat";
 
 export default function IsMapBounds(
   validationOptions?: ValidationOptions
@@ -8,11 +8,7 @@ export default function IsMapBounds(
     {
       name: "isMapBounds",
       validator: {
-        validate(value) {
-          return (
-            Array.isArray(value) && value.length === 2 && value.every(isLngLat)
-          );
-        },
+        validate: isMapBounds,
         defaultMessage: buildMessage(
           (eachPrefix) =>
             eachPrefix + "$property must be a [[lng, lat], [lng, lat]]",

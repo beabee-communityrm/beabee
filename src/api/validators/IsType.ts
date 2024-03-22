@@ -1,7 +1,6 @@
+import { isType } from "@beabee/beabee-common";
 import { ValidateBy, ValidationOptions } from "class-validator";
 import { ValidationArguments } from "class-validator/types/validation/ValidationArguments";
-
-const IS_TYPE = "isType";
 
 export function IsType(
   types: Array<
@@ -18,9 +17,9 @@ export function IsType(
 ): PropertyDecorator {
   return ValidateBy(
     {
-      name: IS_TYPE,
+      name: "isType",
       validator: {
-        validate: (value: unknown) => types.includes(typeof value),
+        validate: (value: unknown) => isType(types, value),
         defaultMessage: ({ value }: ValidationArguments) =>
           `Current type ${typeof value} is not in [${types.join(", ")}]`
       }

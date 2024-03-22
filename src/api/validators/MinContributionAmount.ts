@@ -1,29 +1,69 @@
-import { ContributionPeriod } from "@beabee/beabee-common";
+import { ContributionPeriod, isPeriod } from "@beabee/beabee-common";
 import {
+  buildMessage,
+  isNumber,
+  ValidateBy,
   ValidationArguments,
-  ValidatorConstraint,
-  ValidatorConstraintInterface
+  ValidationOptions
 } from "class-validator";
 
 import OptionsService from "@core/services/OptionsService";
 
-@ValidatorConstraint({ name: "minContributionAmount" })
-export default class MinContributionAmount
-  implements ValidatorConstraintInterface
-{
-  validate(amount: unknown, args: ValidationArguments): boolean {
-    return typeof amount === "number" && amount >= this.minAmount(args);
-  }
+function getMinAmount(period: ContributionPeriod) {
+  const minMonthlyAmount = OptionsService.getInt(
+    "contribution-min-monthly-amount"
+  );
 
-  defaultMessage(args: ValidationArguments) {
-    return `${args.property} must be at least ${this.minAmount(args)}`;
-  }
+  return period === ContributionPeriod.Monthly
+    ? minMonthlyAmount
+    : minMonthlyAmount * 12;
+}
 
-  private minAmount(args: ValidationArguments) {
-    const period = (args.object as any)?.period as unknown;
-    return (
-      OptionsService.getInt("contribution-min-monthly-amount") *
-      (period === ContributionPeriod.Annually ? 12 : 1)
-    );
-  }
+function getPeriod(
+  args: ValidationArguments | undefined
+): ContributionPeriod | undefined {
+  return args &&
+    "period" in args.object &&
+    args.object.period &&
+    isPeriod(args.object.period)
+    ? args.object.period
+    : undefined;
+}
+
+export function minContributionAmount(
+  value: unknown,
+  period: unknown,
+  minMonthlyAmount: number
+): boolean {
+  if (!isNumber(value) || !isPeriod(period)) return false;
+
+  return period === ContributionPeriod.Monthly
+    ? value >= minMonthlyAmount
+    : value >= minMonthlyAmount * 12;
+}
+
+export default function MinContributionAmount(
+  validationOptions?: ValidationOptions
+): PropertyDecorator {
+  return ValidateBy(
+    {
+      name: "minContributionAmount",
+      validator: {
+        validate: (value, args) => {
+          const period = getPeriod(args);
+          return (
+            !!period &&
+            minContributionAmount(value, getPeriod(args), getMinAmount(period))
+          );
+        },
+        defaultMessage: buildMessage((eachPrefix, args) => {
+          const period = getPeriod(args);
+          return period
+            ? eachPrefix + `$property must be at least ${getMinAmount(period)}`
+            : eachPrefix + `must have a valid period`;
+        }, validationOptions)
+      }
+    },
+    validationOptions
+  );
 }
