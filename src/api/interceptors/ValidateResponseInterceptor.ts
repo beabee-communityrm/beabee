@@ -1,6 +1,5 @@
 import { ServerResponse } from "node:http";
 
-import { validate } from "class-validator";
 import { Request } from "express";
 import {
   Action,
@@ -10,6 +9,7 @@ import {
 } from "routing-controllers";
 
 import { log as mainLogger } from "@core/logging";
+import { validateOrReject } from "@api/utils";
 
 const log = mainLogger.child({ app: "validate-response-interceptor" });
 
@@ -28,20 +28,22 @@ export class ValidateResponseInterceptor implements InterceptorInterface {
     const groups = request.user?.hasRole("admin") ? ["admin"] : [];
     const items = Array.isArray(content) ? content : [content];
 
-    for (const item of items) {
-      const errors = await validate(item, {
-        groups,
-        always: true,
-        strictGroups: true,
-        whitelist: true,
-        forbidUnknownValues: true,
-        forbidNonWhitelisted: true,
-        validationError: { target: false }
-      });
-      if (errors.length > 0) {
-        log.error("Validation failed on response", { errors });
-        throw new InternalServerError("Validation failed");
+    try {
+      for (const item of items) {
+        await validateOrReject(item, {
+          groups,
+          always: true,
+          strictGroups: true,
+          whitelist: true,
+          forbidUnknownValues: true,
+          forbidNonWhitelisted: true,
+          validationError: { target: false }
+        });
       }
+    } catch (errors) {
+      log.error("Validation failed on response", { errors });
+      // TODO: Just log error for now
+      // throw new InternalServerError("Validation failed");
     }
 
     return content;

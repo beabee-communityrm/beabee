@@ -89,6 +89,8 @@ export function createComponentAnonymiser(
             ? component.data.values
             : component.values;
         return chance.pickone(values.map(({ value }) => value));
+      default:
+        throw new Error("Unknown component type " + component.type);
     }
   }
 

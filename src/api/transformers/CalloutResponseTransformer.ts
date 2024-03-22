@@ -84,6 +84,11 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
     }
     if (query.with?.includes(GetCalloutResponseWith.Callout)) {
       qb.innerJoinAndSelect(`${fieldPrefix}callout`, "callout");
+      qb.innerJoinAndSelect(
+        "callout.variants",
+        "variant",
+        "variant.name = 'default'"
+      );
     }
     if (query.with?.includes(GetCalloutResponseWith.Contact)) {
       qb.leftJoinAndSelect(`${fieldPrefix}contact`, "contact");
@@ -139,12 +144,10 @@ export class CalloutResponseTransformer extends BaseCalloutResponseTransformer<
 
   async fetchForCallout(
     auth: AuthInfo | undefined,
-    calloutSlug: string,
+    calloutId: string,
     query: ListCalloutResponsesDto
   ): Promise<PaginatedDto<GetCalloutResponseDto>> {
-    const callout = await getRepository(Callout).findOneBy({
-      slug: calloutSlug
-    });
+    const callout = await getRepository(Callout).findOneBy({ id: calloutId });
     if (!callout) {
       throw new NotFoundError();
     }

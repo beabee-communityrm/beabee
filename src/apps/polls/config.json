@@ -1,7 +1,0 @@
-{
-  "title": "Callouts",
-  "path": "polls",
-  "permissions": ["loggedIn"],
-  "menu": "main",
-  "priority": 4
-}

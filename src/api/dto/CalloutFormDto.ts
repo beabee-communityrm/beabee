@@ -1,7 +1,4 @@
 import {
-  CalloutFormSchema,
-  CalloutNavigationSchema,
-  CalloutSlideSchema,
   CalloutComponentBaseSchema,
   CalloutComponentBaseInputSchema,
   CalloutComponentBaseNestableSchema,
@@ -12,13 +9,22 @@ import {
   calloutComponentInputTypes,
   CalloutComponentBaseInputSelectableSchema,
   calloutComponentInputSelectableTypes,
-  CalloutComponentSchema
+  CalloutComponentSchema,
+  GetCalloutFormSchema,
+  GetCalloutNavigationSchema,
+  GetCalloutSlideSchema,
+  SetCalloutFormSchema,
+  SetCalloutNavigationSchema,
+  SetCalloutSlideSchema,
+  CalloutComponentBaseRules,
+  CalloutResponseAnswer
 } from "@beabee/beabee-common";
 import { Transform, Type, plainToInstance } from "class-transformer";
 import {
   Equals,
   IsBoolean,
   IsIn,
+  IsObject,
   IsOptional,
   IsString,
   ValidateBy,
@@ -27,6 +33,10 @@ import {
   buildMessage,
   validate
 } from "class-validator";
+
+import { log as mainLogger } from "@core/logging";
+
+const log = mainLogger.child({ app: "callout-form-validation" });
 
 abstract class CalloutComponentBaseDto implements CalloutComponentBaseSchema {
   abstract type: CalloutComponentType;
@@ -59,6 +69,27 @@ class CalloutComponentContentDto
 
   @Equals(CalloutComponentType.CONTENT)
   type!: CalloutComponentType.CONTENT;
+
+  @IsString()
+  html!: string;
+
+  @IsString()
+  label!: string;
+
+  @IsOptional()
+  @IsObject()
+  validate?: CalloutComponentBaseRules;
+
+  @IsOptional()
+  @IsBoolean()
+  multiple?: boolean;
+
+  @IsOptional()
+  defaultValue?: CalloutResponseAnswer | CalloutResponseAnswer[] | null;
+
+  @IsOptional()
+  @IsBoolean()
+  hidden?: boolean;
 }
 
 class CalloutComponentInputDto
@@ -166,11 +197,14 @@ function IsComponent(validationOptions?: ValidationOptions) {
       validator: {
         async validate(value: unknown) {
           if (typeof value !== "object" || value === null) return false;
-          const error = await validate(value, {
+          const errors = await validate(value, {
             whitelist: false,
             forbidUnknownValues: true
           });
-          return error.length === 0;
+          if (errors.length > 0) {
+            log.notice("Component validation errors", { errors });
+          }
+          return errors.length === 0;
         },
         defaultMessage: buildMessage(
           (eachPrefix) => eachPrefix + "$property must be a valid component",
@@ -197,7 +231,35 @@ class CalloutComponentNestableDto
   components!: CalloutComponentSchema[];
 }
 
-class CalloutNavigationDto implements CalloutNavigationSchema {
+class SetCalloutNavigationDto implements SetCalloutNavigationSchema {
+  @IsString()
+  nextSlideId!: string;
+}
+
+class SetCalloutSlideDto implements SetCalloutSlideSchema {
+  @IsString()
+  id!: string;
+
+  @IsString()
+  title!: string;
+
+  // @IsComponent({ each: true })
+  // @ComponentType()
+  @IsObject({ each: true }) // TODO: implement a Dto
+  components!: CalloutComponentSchema[];
+
+  @ValidateNested()
+  @Type(() => SetCalloutNavigationDto)
+  navigation!: SetCalloutNavigationDto;
+}
+
+export class SetCalloutFormDto implements SetCalloutFormSchema {
+  @ValidateNested({ each: true })
+  @Type(() => SetCalloutSlideDto)
+  slides!: SetCalloutSlideDto[];
+}
+
+class GetCalloutNavigationDto implements GetCalloutNavigationSchema {
   @IsString()
   prevText!: string;
 
@@ -211,7 +273,7 @@ class CalloutNavigationDto implements CalloutNavigationSchema {
   submitText!: string;
 }
 
-class CalloutSlideDto implements CalloutSlideSchema {
+class GetCalloutSlideDto implements GetCalloutSlideSchema {
   @IsString()
   id!: string;
 
@@ -223,12 +285,15 @@ class CalloutSlideDto implements CalloutSlideSchema {
   components!: CalloutComponentSchema[];
 
   @ValidateNested()
-  @Type(() => CalloutNavigationDto)
-  navigation!: CalloutNavigationSchema;
+  @Type(() => GetCalloutNavigationDto)
+  navigation!: GetCalloutNavigationDto;
 }
 
-export class CalloutFormDto implements CalloutFormSchema {
+export class GetCalloutFormDto implements GetCalloutFormSchema {
   @ValidateNested({ each: true })
-  @Type(() => CalloutSlideDto)
-  slides!: CalloutSlideDto[];
+  @Type(() => GetCalloutSlideDto)
+  slides!: GetCalloutSlideDto[];
+
+  @IsObject()
+  componentText!: Record<string, string>;
 }

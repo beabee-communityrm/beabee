@@ -2,6 +2,7 @@ import "reflect-metadata";
 
 import {
   DataSource,
+  EntityManager,
   EntityTarget,
   ObjectLiteral,
   QueryRunner,
@@ -23,6 +24,12 @@ export const dataSource: DataSource = new DataSource({
   entities: [__dirname + "/../models/*.js"],
   migrations: [__dirname + "/../migrations/*.js"]
 });
+
+export function runTransaction<T>(
+  runInTransaction: (em: EntityManager) => Promise<T>
+): Promise<T> {
+  return dataSource.transaction(runInTransaction);
+}
 
 export function getRepository<Entity extends ObjectLiteral>(
   target: EntityTarget<Entity>

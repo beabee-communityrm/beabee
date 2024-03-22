@@ -6,6 +6,7 @@ import {
   getCalloutComponents,
   stringifyAnswer
 } from "@beabee/beabee-common";
+import { TransformPlainToInstance } from "class-transformer";
 
 import { getRepository } from "@core/database";
 
@@ -20,15 +21,17 @@ import NotFoundError from "@api/errors/NotFoundError";
 import { BaseCalloutResponseTransformer } from "@api/transformers/BaseCalloutResponseTransformer";
 import { mergeRules } from "@api/utils/rules";
 
-import Callout, { CalloutResponseViewSchema } from "@models/Callout";
+import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 
 import { AuthInfo } from "@type/auth-info";
+import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
 
 class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
   GetCalloutResponseMapDto,
   GetCalloutResponseMapOptsDto
 > {
+  @TransformPlainToInstance(GetCalloutResponseMapDto)
   convert(
     response: CalloutResponse,
     opts: GetCalloutResponseMapOptsDto
@@ -56,17 +59,16 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
       if (answer) {
         // answers[slideId] will definitely be defined
         answers[component.slideId]![component.key] = answer;
-      }
-
-      // Extract title, address and image answers
-      if (component.fullKey === titleProp) {
-        title = stringifyAnswer(component, answer);
-      }
-      if (component.fullKey === map?.addressProp) {
-        address = Array.isArray(answer) ? answer[0] : answer;
-      }
-      if (component.fullKey === imageProp) {
-        images = Array.isArray(answer) ? answer : [answer];
+        // Extract title, address and image answers
+        if (component.fullKey === titleProp) {
+          title = stringifyAnswer(component, answer);
+        }
+        if (component.fullKey === map?.addressProp) {
+          address = Array.isArray(answer) ? answer[0] : answer;
+        }
+        if (component.fullKey === imageProp && answer) {
+          images = Array.isArray(answer) ? answer : [answer];
+        }
       }
     }
 
@@ -94,6 +96,12 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
             operator: "equal",
             value: [bucket]
           }))
+        },
+        // Only load responses for the given callout
+        {
+          field: "calloutId",
+          operator: "equal",
+          value: [query.callout.id]
         }
       ])
     };
@@ -101,12 +109,10 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
 
   async fetchForCallout(
     auth: AuthInfo | undefined,
-    calloutSlug: string,
+    calloutId: string,
     query: ListCalloutResponsesDto
   ): Promise<PaginatedDto<GetCalloutResponseMapDto>> {
-    const callout = await getRepository(Callout).findOneBy({
-      slug: calloutSlug
-    });
+    const callout = await getRepository(Callout).findOneBy({ id: calloutId });
     if (!callout?.responseViewSchema) {
       throw new NotFoundError();
     }
@@ -115,7 +121,12 @@ class CalloutResponseMapTransformer extends BaseCalloutResponseTransformer<
       responseViewSchema: CalloutResponseViewSchema;
     };
 
-    return await this.fetch(auth, { ...query, callout: calloutWithSchema });
+    return await this.fetch(auth, {
+      ...query,
+      callout: calloutWithSchema,
+      // TODO: support pagination in frontend
+      limit: 2000
+    });
   }
 }
 

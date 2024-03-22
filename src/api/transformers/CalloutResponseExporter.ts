@@ -88,11 +88,11 @@ class CalloutResponseExporter extends BaseCalloutResponseTransformer<
 
   async export(
     auth: AuthInfo | undefined,
-    calloutSlug: string,
+    calloutId: string,
     query: GetExportQuery
   ): Promise<[string, string]> {
     const callout = await getRepository(Callout).findOneBy({
-      slug: calloutSlug
+      id: calloutId
     });
     if (!callout) {
       throw new NotFoundError();
@@ -111,7 +111,7 @@ class CalloutResponseExporter extends BaseCalloutResponseTransformer<
     });
 
     const exportName = `responses-${
-      callout.title
+      callout.slug
     }_${new Date().toISOString()}.csv`;
 
     const headers = [

@@ -83,25 +83,24 @@ async function main() {
   }
 
   const callouts = await createQueryBuilder(Callout, "item")
-    .select("item.slug")
+    .select("item.id")
     .orderBy("item.date", "DESC")
     .limit(20)
     .getMany();
-  const calloutSlugs = callouts.map((c) => c.slug);
+  const calloutIds = callouts.map((c) => c.id);
 
   for (const anonymiser of calloutsAnonymisers) {
-    const pk = anonymiser === calloutsAnonymiser ? "slug" : "calloutSlug";
+    const pk = anonymiser === calloutsAnonymiser ? "id" : "calloutid";
     await anonymiseModel(
       anonymiser,
-      (qb) =>
-        qb.where(`item.${pk} IN (:...callouts)`, { callouts: calloutSlugs }),
+      (qb) => qb.where(`item.${pk} IN (:...ids)`, { ids: calloutIds }),
       valueMap
     );
   }
 
   const responses = await createQueryBuilder(CalloutResponse, "item")
     .select("item.id")
-    .where("item.calloutSlug IN (:...callouts)", { callouts: calloutSlugs })
+    .where("item.calloutId IN (:...ids)", { ids: calloutIds })
     .andWhere(
       new Brackets((qb) =>
         qb

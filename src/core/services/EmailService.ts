@@ -65,11 +65,12 @@ const adminEmailTemplates = {
     MEMBERNAME: params.contact.fullname
   }),
   "new-callout-response": (params: {
-    callout: Callout;
+    calloutSlug: string;
+    calloutTitle: string;
     responderName: string;
   }) => ({
-    CALLOUTSLUG: params.callout.slug,
-    CALLOUTTITLE: params.callout.title,
+    CALLOUTSLUG: params.calloutSlug,
+    CALLOUTTITLE: params.calloutTitle,
     RESPNAME: params.responderName
   })
 } as const;

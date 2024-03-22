@@ -27,6 +27,7 @@ import { SignupController } from "./controllers/SignupController";
 import { StatsController } from "./controllers/StatsController";
 import { ResetPasswordController } from "./controllers/ResetPasswordController";
 import { ResetDeviceController } from "./controllers/ResetDeviceController";
+import { RootController } from "./controllers/RootController";
 import { UploadController } from "./controllers/UploadController";
 
 import { ValidateResponseInterceptor } from "./interceptors/ValidateResponseInterceptor";
@@ -88,6 +89,7 @@ initApp()
         StatsController,
         ResetPasswordController,
         ResetDeviceController,
+        RootController,
         UploadController
       ],
       interceptors: [ValidateResponseInterceptor],
@@ -123,7 +125,11 @@ initApp()
       if (error instanceof HttpError && error.httpCode < 500) {
         res.status(error.httpCode).send(error);
         if (error.httpCode === 400) {
-          log.notice(error);
+          log.notice("Bad request, probably a validation error", {
+            body: req.body,
+            query: req.query,
+            error
+          });
         }
       } else {
         log.error("Unhandled error: ", error);
