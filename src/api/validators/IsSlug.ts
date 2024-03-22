@@ -1,5 +1,5 @@
-import { isSlug } from "@beabee/beabee-common";
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
+import slugify from "slugify";
 
 export default function IsSlug(
   validationOptions?: ValidationOptions
@@ -8,7 +8,9 @@ export default function IsSlug(
     {
       name: "isSlug",
       validator: {
-        validate: isSlug,
+        validate(value) {
+          return typeof value === "string" && value === slugify(value);
+        },
         defaultMessage: buildMessage(
           (eachPrefix) => eachPrefix + "$property must be a slug",
           validationOptions
