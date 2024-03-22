@@ -183,6 +183,8 @@ npm link @beabee/beabee-common
 
 Now you can make any changes to the common package and they will be reflected in this project.
 
+> If you have different Node.js versions on your machine (for example by using [nvm](https://github.com/nvm-sh/nvm)), make sure that you use the same version for beabee-common and beabee so that the linking works.
+
 #### 📡 Webhooks
 
 Webhooks are handled by the `webhook_app` service. This is a separate service from the API to allow for scaling independently.
