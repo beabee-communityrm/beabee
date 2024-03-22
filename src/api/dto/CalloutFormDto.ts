@@ -148,7 +148,7 @@ class CalloutComponentInputSelectableDto
   extends CalloutComponentInputDto
   implements CalloutComponentBaseInputSelectableSchema
 {
-  @Equals(calloutComponentInputSelectableTypes)
+  @IsIn(calloutComponentInputSelectableTypes)
   type!: CalloutComponentBaseInputSelectableSchema["type"];
 
   @ValidateNested({ each: true })
