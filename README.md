@@ -177,6 +177,7 @@ npm link
 Now you can link the common package to this project
 
 ```sh
+cd ../back/to/beabee
 npm link @beabee/beabee-common
 ```
 
