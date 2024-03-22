@@ -28,6 +28,12 @@ export interface StripeSEPAPaymentSource {
   last4: string;
 }
 
+export interface StripePayPalPaymentSource {
+  method: PaymentMethod.StripePayPal;
+  payerEmail: string;
+  payerId: string;
+}
+
 export interface ManualPaymentSource {
   method: null;
   source?: string;
@@ -39,4 +45,5 @@ export type PaymentSource =
   | StripeCardPaymentSource
   | StripeBACSPaymentSource
   | StripeSEPAPaymentSource
+  | StripePayPalPaymentSource
   | ManualPaymentSource;
