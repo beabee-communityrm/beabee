@@ -176,7 +176,7 @@ export async function deleteSubscription(
   subscriptionId: string
 ): Promise<void> {
   try {
-    await stripe.subscriptions.del(subscriptionId);
+    await stripe.subscriptions.cancel(subscriptionId);
   } catch (error) {
     // Ignore resource missing errors, the subscription might have been already removed
     if (
@@ -198,6 +198,10 @@ export function paymentMethodToStripeType(
       return "sepa_debit";
     case PaymentMethod.StripeBACS:
       return "bacs_debit";
+    case PaymentMethod.StripePayPal:
+      return "paypal";
+    case PaymentMethod.GoCardlessDirectDebit:
+      return "bacs_debit";
     default:
       throw new Error("Unexpected payment method");
   }
@@ -213,6 +217,8 @@ export function stripeTypeToPaymentMethod(
       return PaymentMethod.StripeSEPA;
     case "bacs_debit":
       return PaymentMethod.StripeBACS;
+    case "paypal":
+      return PaymentMethod.StripePayPal;
     default:
       throw new Error("Unexpected Stripe payment type");
   }
@@ -244,6 +250,12 @@ export async function manadateToSource(
       sortCode: method.bacs_debit.sort_code || "",
       last4: method.bacs_debit.last4 || ""
     };
+  } else if (method.type === "paypal" && method.paypal) {
+    return {
+      method: PaymentMethod.StripePayPal,
+      payerEmail: method.paypal.payer_email || "",
+      payerId: method.paypal.payer_id || ""
+    };
   }
 }
 
@@ -257,7 +269,6 @@ export function convertStatus(status: Stripe.Invoice.Status): PaymentStatus {
       return PaymentStatus.Successful;
 
     case "void":
-    case "deleted":
       return PaymentStatus.Cancelled;
 
     case "uncollectible":

@@ -35,12 +35,16 @@ export default class GiftService {
       payment_method_types: ["card"],
       line_items: [
         {
-          name: `Gift membership - ${giftForm.months} month${
-            giftForm.months != 1 ? "s" : ""
-          }`,
-          amount: giftForm.months * GiftService.giftMonthlyAmount * 100,
-          currency: config.currencyCode.toLowerCase(),
-          quantity: 1
+          quantity: 1,
+          price_data: {
+            unit_amount: giftForm.months * GiftService.giftMonthlyAmount * 100,
+            currency: config.currencyCode.toLowerCase(),
+            product_data: {
+              name: `Gift membership - ${giftForm.months} month${
+                giftForm.months != 1 ? "s" : ""
+              }`
+            }
+          }
         }
       ]
     });
