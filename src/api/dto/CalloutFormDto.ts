@@ -17,7 +17,9 @@ import {
   SetCalloutNavigationSchema,
   SetCalloutSlideSchema,
   CalloutComponentBaseRules,
-  CalloutResponseAnswer
+  CalloutResponseAnswer,
+  isCalloutComponentOfBaseType,
+  CalloutComponentBaseType
 } from "@beabee/beabee-common";
 import { Transform, Type, plainToInstance } from "class-transformer";
 import {
@@ -171,13 +173,25 @@ function ComponentType() {
           return plainToInstance(CalloutComponentInputSelectDto, component);
       }
 
-      if (calloutComponentInputSelectableTypes.includes(component.type)) {
+      if (
+        isCalloutComponentOfBaseType(
+          component,
+          CalloutComponentBaseType.INPUT_SELECTABLE
+        )
+      ) {
         return plainToInstance(CalloutComponentInputSelectableDto, component);
       }
-      if (calloutComponentInputTypes.includes(component.type)) {
+      if (
+        isCalloutComponentOfBaseType(component, CalloutComponentBaseType.INPUT)
+      ) {
         return plainToInstance(CalloutComponentInputDto, component);
       }
-      if (calloutComponentNestableTypes.includes(component.type)) {
+      if (
+        isCalloutComponentOfBaseType(
+          component,
+          CalloutComponentBaseType.NESTABLE
+        )
+      ) {
         return plainToInstance(CalloutComponentNestableDto, component);
       }
 
