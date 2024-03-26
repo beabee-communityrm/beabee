@@ -178,12 +178,7 @@ Webhooks are handled by the `webhook_app` service. This is a separate service fr
 
 **`/webhook/mailchimp`** - Mailchimp webhooks are handled by the `mailchimp` service, see [MailChimp](#mailchimp) for more information.
 
-```bash
-docker compose exec app node built/tools/configure
-stripe listen --forward-to http://localhost:3001/webhook/stripe
-```
-
-### 📧 E-Mail
+### 📧 E-mail
 
 #### Prepare for local development
 
@@ -192,6 +187,8 @@ By default we are using [MailDev](https://github.com/maildev/maildev) for local 
 ```bash
 docker compose exec app node built/tools/configure
 ```
+
+If the Docker Compose Stack is started, you can reach MailDev via http://localhost:3025/ by default. If you now receive an e-mail during your tests, you will find it there.
 
 #### 📮 MailChimp
 
@@ -207,11 +204,17 @@ We are using stripe for membership payments.
 
 #### Prepare for local development
 
-Make shure you have defined the environment variables in the .env file:
+Make sure you have defined the environment variables in the .env file:
 
 ```bash
 BEABEE_STRIPE_PUBLICKEY=<public key>
 BEABEE_STRIPE_SECRETKEY=<secret key>
+```
+
+And also that you have configured the payment methods using
+
+```bash
+docker compose exec app node built/tools/configure
 ```
 
 You can get the public key and secret key in the [Stripe dashboard](https://dashboard.stripe.com).
