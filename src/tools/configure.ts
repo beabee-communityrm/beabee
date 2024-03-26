@@ -22,6 +22,7 @@ runApp(async () => {
         { name: "Credit card (Stripe)", value: "s_card" },
         { name: "SEPA direct debit (Stripe)", value: "s_sepa" },
         { name: "BACS (Stripe)", value: "s_bacs" },
+        { name: "PayPal (Stripe)", value: "s_paypal" },
         { name: "Direct debit (GoCardless)", value: "gc_direct-debit" }
       ]
     })
