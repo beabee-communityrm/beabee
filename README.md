@@ -164,26 +164,7 @@ The codebase is broadly split into a few different parts
 
 #### 🤲 Common Package
 
-The backend and frontend share some code through the [beabee-common](https://github.com/beabee-communityrm/beabee-common) NPM package. To contribute to the common codebase, follow these steps to clone, build, and link it to this project:
-
-```sh
-git clone https://github.com/beabee-communityrm/beabee-common.git
-cd beabee-common
-npm install
-npm run build
-npm link
-```
-
-Now you can link the common package to this project
-
-```sh
-cd ../back/to/beabee
-npm link @beabee/beabee-common
-```
-
-Now you can make any changes to the common package and they will be reflected in this project.
-
-> If you have different Node.js versions on your machine (for example by using [nvm](https://github.com/nvm-sh/nvm)), make sure that you use the same version for beabee-common and beabee so that the linking works.
+The backend and frontend share some code through the [beabee-common](https://github.com/beabee-communityrm/beabee-common) NPM package.
 
 #### 📡 Webhooks
 
@@ -235,7 +216,7 @@ BEABEE_STRIPE_SECRETKEY=<secret key>
 
 You can get the public key and secret key in the [Stripe dashboard](https://dashboard.stripe.com).
 
-To be able to recive webhooks from stripe you need to forward them to your local environment and create a webhook secret using the [Stripe CLI](https://docs.stripe.com/stripe-cli):
+To be able to receive webhooks from stripe you need to forward them to your local environment and create a webhook secret using the [Stripe CLI](https://docs.stripe.com/stripe-cli):
 
 ```bash
 stripe login
@@ -248,9 +229,9 @@ Now the stripe CLI prints out the webhook secret, copy it and add it to the .env
 BEABEE_STRIPE_WEBHOOKSECRET=<webhook secret>
 ```
 
-> ⚠️ To be able to create a payment in the frontend you need to be able to recive confirmation emails, so make shure you have setup [E-Mail](#email).
+> ⚠️ To be able to create a payment in the frontend you need to be able to receive confirmation emails, so make sure you have setup [E-Mail](#email).
 
-> ⚠️ Since the enviroment variable has changed you also need to [rebuild the containers](#rebuilding-containers).
+> ⚠️ Since the environment variable has changed you also need to [rebuild the containers](#rebuilding-containers).
 
 ## 🤝 Advertising
 
