@@ -1,23 +1,24 @@
 ---
-subject: Fazer reset da sua autenticação de múltiplos fatores
+subject: Reset da tua autenticação de múltiplos fatores
 ---
 
 <p>Olá *|FNAME|*,</p>
 <p><br /></p>
 <p>
-  Solicitou o reset da sua autenticação de múltiplos fatores. Para fazer reset
-  do seu dispositivo actual e definir um novoa, carregue no link seguinte:
+  Pediste um reset da tua autenticação de múltiplos fatores. Para fazeres reset
+  do teu dispositivo atual e definires um novo, carrega neste link:
 </p>
 <p><br /></p>
 <p>
   <a href="*|RPLINK|*"><strong>Fazer reset do dispositivo MFA</strong></a>
 </p>
 <p><br /></p>
+<p>Nota: O link é válido por um curto espaço de tempo. Por favor não demore.</p>
+<p><br /></p>
+<p><br /></p>
+<p>Até já,</p>
+<p>Equipa Fumaça</p>
 <p>
-  <b>Nota:</b> Caso não tenho solicitado este email, ou se for um erro, por
-  favor ignore o email ou entre em contacto connosco caso precise de ajuda.
+  <b>Nota:</b> Se este reset não foi pedido por ti, ou se foi um erro, ignora
+  este email. Se tiveres dúvidas, entra em contacto connosco.
 </p>
-<p><br /></p>
-<p>PS: O link é válido por um curto espaço de tempo. Por favor não demore.</p>
-<p><br /></p>
-<p>Até já!</p>
