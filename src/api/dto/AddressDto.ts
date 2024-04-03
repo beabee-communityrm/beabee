@@ -1,5 +1,6 @@
-import Address from "@models/Address";
 import { IsDefined, IsOptional, IsString } from "class-validator";
+
+import { Address } from "@type/address";
 
 export class UpdateAddressDto implements Address {
   @IsDefined()

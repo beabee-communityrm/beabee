@@ -1,6 +1,7 @@
-import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
+
+import { Address } from "@type/address";
 
 export interface PaymentFlow {
   id: string;
