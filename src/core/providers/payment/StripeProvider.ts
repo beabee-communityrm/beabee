@@ -81,18 +81,23 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
   }
 
   async updatePaymentMethod(flow: CompletedPaymentFlow): Promise<void> {
+    const paymentMethod = await stripe.paymentMethods.retrieve(flow.mandateId);
+    const address = paymentMethod.billing_details.address;
+
     const customerData: Stripe.CustomerUpdateParams = {
       invoice_settings: {
         default_payment_method: flow.mandateId
       },
-      ...(flow.joinForm.billingAddress && {
-        address: {
-          line1: flow.joinForm.billingAddress.line1,
-          line2: flow.joinForm.billingAddress.line2 || "",
-          city: flow.joinForm.billingAddress.city,
-          postal_code: flow.joinForm.billingAddress.postcode
-        }
-      })
+      address: address
+        ? {
+            line1: address.line1 || "",
+            ...(address.city && { city: address.city }),
+            ...(address.country && { country: address.country }),
+            ...(address.line2 && { line2: address.line2 }),
+            ...(address.postal_code && { postal_code: address.postal_code }),
+            ...(address.state && { state: address.state })
+          }
+        : null
     };
 
     if (this.data.customerId) {

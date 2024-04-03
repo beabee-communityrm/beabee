@@ -69,12 +69,7 @@ export class SignupController {
     }
 
     // Merge additional data into the join form
-    if (
-      data.firstname ||
-      data.lastname ||
-      data.billingAddress ||
-      data.vatNumber
-    ) {
+    if (data.firstname || data.lastname || data.vatNumber) {
       Object.assign(joinFlow.joinForm, data);
       await getRepository(JoinFlow).save(joinFlow);
     }
