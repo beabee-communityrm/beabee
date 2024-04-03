@@ -4,7 +4,8 @@ import {
   MembershipStatus,
   NewsletterStatus,
   RoleType,
-  RoleTypes
+  RoleTypes,
+  PaymentSource
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
@@ -38,7 +39,6 @@ import IsPassword from "@api/validators/IsPassword";
 import { GetContactWith } from "@enums/get-contact-with";
 
 import { ContributionInfo } from "@type/contribution-info";
-import { PaymentSource } from "@type/payment-source";
 
 const contactSortFields = [
   "firstname",
