@@ -38,12 +38,13 @@ class StripeProvider implements PaymentFlowProvider {
 
     log.info("Fetched setup intent " + setupIntent.id);
 
-    const paymentMethod = setupIntent.payment_method as string;
+    const siPaymentMethodId = setupIntent.payment_method as string;
 
     return {
-      paymentMethod: joinFlow.joinForm.paymentMethod,
+      // paymentMethod: joinFlow.joinForm.paymentMethod,
+      joinForm: joinFlow.joinForm,
       customerId: "", // Not needed
-      mandateId: paymentMethod
+      mandateId: siPaymentMethodId
     };
   }
 

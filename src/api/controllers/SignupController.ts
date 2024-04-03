@@ -68,9 +68,14 @@ export class SignupController {
       throw new NotFoundError();
     }
 
-    if (data.firstname || data.lastname) {
-      joinFlow.joinForm.firstname = data.firstname || null;
-      joinFlow.joinForm.lastname = data.lastname || null;
+    // Merge additional data into the join form
+    if (
+      data.firstname ||
+      data.lastname ||
+      data.billingAddress ||
+      data.vatNumber
+    ) {
+      Object.assign(joinFlow.joinForm, data);
       await getRepository(JoinFlow).save(joinFlow);
     }
 

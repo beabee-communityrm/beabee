@@ -224,7 +224,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<CompletedPaymentFlowData> {
     return paymentProviders[
-      completedPaymentFlow.paymentMethod
+      completedPaymentFlow.joinForm.paymentMethod
     ].getCompletedPaymentFlowData(completedPaymentFlow);
   }
 }
