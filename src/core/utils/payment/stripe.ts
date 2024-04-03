@@ -1,7 +1,8 @@
 import {
   ContributionPeriod,
   PaymentMethod,
-  PaymentStatus
+  PaymentStatus,
+  PaymentSource
 } from "@beabee/beabee-common";
 import { differenceInMonths } from "date-fns";
 import Stripe from "stripe";
@@ -12,8 +13,6 @@ import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
 
 import config from "@config";
-
-import { PaymentSource } from "@type/payment-source";
 
 const log = mainLogger.child({ app: "stripe-utils" });
 

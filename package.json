@@ -34,7 +34,7 @@
     "test": "jest --setupFiles dotenv/config"
   },
   "dependencies": {
-    "@beabee/beabee-common": "^1.19.17",
+    "@beabee/beabee-common": "^0.20.3-alpha.2",
     "@captchafox/node": "^1.2.0",
     "@inquirer/prompts": "^3.3.0",
     "@sendgrid/mail": "^8.1.0",

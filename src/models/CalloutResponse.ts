@@ -1,4 +1,4 @@
-import { CalloutResponseAnswers } from "@beabee/beabee-common";
+import { CalloutResponseAnswersSlide } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -41,7 +41,7 @@ export default class CalloutResponse {
   guestEmail!: string | null;
 
   @Column({ type: "jsonb" })
-  answers!: CalloutResponseAnswers;
+  answers!: CalloutResponseAnswersSlide;
 
   @Column()
   isPartial!: boolean;

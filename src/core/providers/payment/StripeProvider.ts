@@ -1,4 +1,4 @@
-import { ContributionType } from "@beabee/beabee-common";
+import { ContributionType, PaymentSource } from "@beabee/beabee-common";
 import { add } from "date-fns";
 import Stripe from "stripe";
 
@@ -24,7 +24,6 @@ import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 import config from "@config";
 
 import { ContributionInfo } from "@type/contribution-info";
-import { PaymentSource } from "@type/payment-source";
 
 const log = mainLogger.child({ app: "stripe-payment-provider" });
 

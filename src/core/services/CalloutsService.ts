@@ -1,6 +1,6 @@
 import {
   GetCalloutFormSchema,
-  CalloutResponseAnswers
+  CalloutResponseAnswersSlide
 } from "@beabee/beabee-common";
 import slugify from "slugify";
 import { BadRequestError } from "routing-controllers";
@@ -204,7 +204,7 @@ class CalloutsService {
   async setResponse(
     callout: Callout,
     contact: Contact,
-    answers: CalloutResponseAnswers,
+    answers: CalloutResponseAnswersSlide,
     isPartial = false
   ): Promise<CalloutResponse> {
     if (callout.access === CalloutAccess.OnlyAnonymous) {
@@ -265,7 +265,7 @@ class CalloutsService {
     callout: Callout,
     guestName: string | undefined,
     guestEmail: string | undefined,
-    answers: CalloutResponseAnswers
+    answers: CalloutResponseAnswersSlide
   ): Promise<CalloutResponse> {
     if (callout.access === CalloutAccess.Guest && !(guestName && guestEmail)) {
       throw new InvalidCalloutResponse("guest-fields-missing");

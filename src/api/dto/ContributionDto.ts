@@ -9,24 +9,23 @@ import {
   IsIn,
   IsNumber,
   IsOptional,
-  IsString,
-  Validate
+  IsString
 } from "class-validator";
 
 import IsUrl from "@api/validators/IsUrl";
+import IsValidPayFee from "@api/validators/IsValidPayFee";
 import MinContributionAmount from "@api/validators/MinContributionAmount";
-import ValidPayFee from "@api/validators/ValidPayFee";
 
 import { StartJoinFlowDto } from "./JoinFlowDto";
 
 export class UpdateContributionDto {
-  @Validate(MinContributionAmount)
+  @MinContributionAmount()
   amount!: number;
 
   @IsEnum(ContributionPeriod)
   period!: ContributionPeriod;
 
-  @Validate(ValidPayFee)
+  @IsValidPayFee()
   payFee!: boolean;
 
   @IsBoolean()
