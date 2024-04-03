@@ -39,9 +39,6 @@ export default class JoinForm implements PaymentForm, ReferralGiftForm {
   @Column({ type: String, nullable: true })
   lastname?: string | null;
 
-  @Column({ type: "jsonb", nullable: true })
-  billingAddress?: Address | null;
-
   @Column({ type: String, nullable: true })
   vatNumber?: string | null;
 

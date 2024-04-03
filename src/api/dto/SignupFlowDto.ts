@@ -42,8 +42,7 @@ export class StartSignupFlowDto implements CompleteUrls {
 
 export class CompleteSignupFlowDto
   extends CompleteJoinFlowDto
-  implements
-    Pick<JoinForm, "firstname" | "lastname" | "billingAddress" | "vatNumber">
+  implements Pick<JoinForm, "firstname" | "lastname" | "vatNumber">
 {
   @IsOptional()
   @IsString()
@@ -52,11 +51,6 @@ export class CompleteSignupFlowDto
   @IsOptional()
   @IsString()
   lastname?: string;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateAddressDto)
-  billingAddress?: UpdateAddressDto;
 
   @IsOptional()
   @IsString()
