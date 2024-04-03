@@ -6,8 +6,9 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import type Address from "./Address";
 import type Contact from "./Contact";
+
+import { Address } from "@type/address";
 
 export class GiftForm {
   @Column()

@@ -8,8 +8,6 @@ import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 import ResetSecurityFlowService from "./ResetSecurityFlowService";
-
-import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Contact from "@models/Contact";
@@ -29,6 +27,7 @@ import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
+import { Address } from "@type/address";
 import { CompleteUrls } from "@type/complete-urls";
 
 const paymentProviders = {
@@ -224,7 +223,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<CompletedPaymentFlowData> {
     return paymentProviders[
-      completedPaymentFlow.paymentMethod
+      completedPaymentFlow.joinForm.paymentMethod
     ].getCompletedPaymentFlowData(completedPaymentFlow);
   }
 }

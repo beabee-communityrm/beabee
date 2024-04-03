@@ -1,8 +1,9 @@
 import { NewsletterStatus } from "@beabee/beabee-common";
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 
-import type Address from "./Address";
 import type Contact from "./Contact";
+
+import { Address } from "@type/address";
 
 @Entity()
 export default class ContactProfile {

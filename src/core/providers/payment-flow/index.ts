@@ -1,7 +1,7 @@
-import { PaymentMethod } from "@beabee/beabee-common";
-
-import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
+import JoinForm from "@models/JoinForm";
+
+import { Address } from "@type/address";
 
 export interface PaymentFlow {
   id: string;
@@ -20,7 +20,7 @@ export interface PaymentFlowData {
 }
 
 export interface CompletedPaymentFlow {
-  paymentMethod: PaymentMethod;
+  joinForm: JoinForm;
   customerId: string;
   mandateId: string;
 }

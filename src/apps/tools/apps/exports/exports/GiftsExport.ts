@@ -3,8 +3,9 @@ import { SelectQueryBuilder } from "typeorm";
 
 import { createQueryBuilder } from "@core/database";
 
-import Address from "@models/Address";
 import GiftFlow from "@models/GiftFlow";
+
+import { Address } from "@type/address";
 
 import BaseExport, { ExportResult } from "./BaseExport";
 
