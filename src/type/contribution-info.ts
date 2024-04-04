@@ -1,10 +1,9 @@
 import {
   ContributionPeriod,
   ContributionType,
-  MembershipStatus
+  MembershipStatus,
+  PaymentSource
 } from "@beabee/beabee-common";
-
-import { PaymentSource } from "./payment-source";
 
 export interface ContributionInfo {
   type: ContributionType;

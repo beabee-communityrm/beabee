@@ -34,7 +34,7 @@
     "test": "jest --setupFiles dotenv/config"
   },
   "dependencies": {
-    "@beabee/beabee-common": "^0.20.2",
+    "@beabee/beabee-common": "^0.20.3",
     "@captchafox/node": "^1.2.0",
     "@inquirer/prompts": "^3.3.0",
     "@sendgrid/mail": "^8.1.0",
@@ -83,7 +83,7 @@
     "reflect-metadata": "^0.1.13",
     "routing-controllers": "^0.10.4",
     "slugify": "^1.6.6",
-    "stripe": "^9.16.0",
+    "stripe": "^14.21.0",
     "tar-stream": "^3.1.6",
     "typeorm": "^0.3.17",
     "uuid": "^9.0.1",
