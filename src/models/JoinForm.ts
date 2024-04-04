@@ -1,7 +1,10 @@
 import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
 import { Column } from "typeorm";
+
 import { PaymentForm } from "@core/utils";
 import Password from "./Password";
+
+import { Address } from "@type/address";
 
 export interface ReferralGiftForm {
   referralGift?: string | null;
@@ -14,12 +17,6 @@ export default class JoinForm implements PaymentForm, ReferralGiftForm {
 
   @Column(() => Password)
   password!: Password;
-
-  @Column({ type: String, nullable: true })
-  firstname?: string | null;
-
-  @Column({ type: String, nullable: true })
-  lastname?: string | null;
 
   @Column({ type: "real" })
   monthlyAmount!: number;
@@ -35,6 +32,15 @@ export default class JoinForm implements PaymentForm, ReferralGiftForm {
 
   @Column()
   paymentMethod!: PaymentMethod;
+
+  @Column({ type: String, nullable: true })
+  firstname?: string | null;
+
+  @Column({ type: String, nullable: true })
+  lastname?: string | null;
+
+  @Column({ type: String, nullable: true })
+  vatNumber?: string | null;
 
   @Column({ type: String, nullable: true })
   referralCode?: string | null;

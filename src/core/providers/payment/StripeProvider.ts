@@ -79,28 +79,47 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
     await this.updateData();
   }
 
-  async updatePaymentMethod(
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<void> {
+  async updatePaymentMethod(flow: CompletedPaymentFlow): Promise<void> {
+    const paymentMethod = await stripe.paymentMethods.retrieve(flow.mandateId);
+    const address = paymentMethod.billing_details.address;
+
+    const customerData: Stripe.CustomerUpdateParams = {
+      invoice_settings: {
+        default_payment_method: flow.mandateId
+      },
+      address: address
+        ? {
+            line1: address.line1 || "",
+            ...(address.city && { city: address.city }),
+            ...(address.country && { country: address.country }),
+            ...(address.line2 && { line2: address.line2 }),
+            ...(address.postal_code && { postal_code: address.postal_code }),
+            ...(address.state && { state: address.state })
+          }
+        : null
+    };
+
     if (this.data.customerId) {
       log.info("Attach new payment source to " + this.data.customerId);
-      await stripe.paymentMethods.attach(completedPaymentFlow.mandateId, {
+      await stripe.paymentMethods.attach(flow.mandateId, {
         customer: this.data.customerId
       });
-      await stripe.customers.update(this.data.customerId, {
-        invoice_settings: {
-          default_payment_method: completedPaymentFlow.mandateId
-        }
-      });
+      await stripe.customers.update(this.data.customerId, customerData);
     } else {
       log.info("Create new customer");
       const customer = await stripe.customers.create({
         email: this.contact.email,
         name: `${this.contact.firstname} ${this.contact.lastname}`,
-        payment_method: completedPaymentFlow.mandateId,
-        invoice_settings: {
-          default_payment_method: completedPaymentFlow.mandateId
-        }
+        payment_method: flow.mandateId,
+        ...(flow.joinForm.vatNumber && {
+          tax_id_data: [
+            {
+              type: "eu_vat",
+              value: flow.joinForm.vatNumber
+            }
+          ]
+        }),
+        ...customerData
       });
       this.data.customerId = customer.id;
     }
@@ -110,7 +129,7 @@ export default class StripeProvider extends PaymentProvider<StripePaymentData> {
       await stripe.paymentMethods.detach(this.data.mandateId);
     }
 
-    this.data.mandateId = completedPaymentFlow.mandateId;
+    this.data.mandateId = flow.mandateId;
 
     await this.updateData();
   }

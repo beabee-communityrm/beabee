@@ -11,8 +11,9 @@ import GiftService from "@core/services/GiftService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
-import Address from "@models/Address";
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
+
+import { Address } from "@type/address";
 
 import { createGiftSchema, updateGiftAddressSchema } from "./schema.json";
 
