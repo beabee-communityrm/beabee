@@ -1,13 +1,14 @@
-import { createQueryBuilder, getRepository, InsertResult } from "typeorm";
-
+import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { formatEmailBody } from "@core/utils/email";
 
 import OptionsService from "@core/services/OptionsService";
+import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
 
 import Email from "@models/Email";
 import Contact from "@models/Contact";
-import ResetSecurityFlow from "@models/ResetSecurityFlow";
+
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
 import {
   EmailProvider,
@@ -20,10 +21,6 @@ import {
 import config from "@config";
 
 const log = mainLogger.child({ app: "base-email-provider" });
-
-interface InsertResetPasswordResult extends InsertResult {
-  raw: { id: string; contactId: string }[] | undefined;
-}
 
 function generateResetPasswordLinks(type: "set" | "reset") {
   const mergeField = type === "set" ? "SPLINK" : "RPLINK";
@@ -44,27 +41,18 @@ function generateResetPasswordLinks(type: "set" | "reset") {
     log.info(`Creating ${emails.length} links for ${mergeField}`);
 
     // Get list of contacts who match the recipients
-    const contacts = await createQueryBuilder(Contact)
+    const contacts = await createQueryBuilder(Contact, "c")
       .select(["id", "email"])
-      .where("email IN (:...emails)", { emails })
+      .where("c.email IN (:...emails)", { emails })
       .getRawMany<{ id: string; email: string }>();
 
     const contactIdsByEmail = Object.fromEntries(
       contacts.map((m) => [m.email, m.id])
     );
 
-    // Create reset password flows for matching contacts
-    const rpInsertResult: InsertResetPasswordResult = await createQueryBuilder()
-      .insert()
-      .into(ResetSecurityFlow)
-      .values(
-        Object.values(contactIdsByEmail).map((id) => ({ contact: { id } }))
-      )
-      .returning(["id", "contact"])
-      .execute();
-
-    const rpFlowIdsByContactId = Object.fromEntries(
-      (rpInsertResult.raw || []).map((rpFlow) => [rpFlow.contactId, rpFlow.id])
+    const rpFlowIdsByContactId = await ResetSecurityFlowService.createManyRaw(
+      Object.values(contactIdsByEmail),
+      RESET_SECURITY_FLOW_TYPE.PASSWORD
     );
 
     return recipients.map((recipient) => {
@@ -131,9 +119,8 @@ export default abstract class BaseProvider implements EmailProvider {
     let preparedRecipients = recipients;
     for (const mergeField of magicMergeFields) {
       if (email.body.includes(`*|${mergeField}|*`)) {
-        preparedRecipients = await magicMergeFieldsProcessors[mergeField](
-          preparedRecipients
-        );
+        preparedRecipients =
+          await magicMergeFieldsProcessors[mergeField](preparedRecipients);
       }
     }
 
@@ -141,18 +128,18 @@ export default abstract class BaseProvider implements EmailProvider {
   }
 
   async sendTemplate(
-    template: string,
+    templateId: string,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void> {
-    const email = await getRepository(Email).findOne(template);
+    const email = await getRepository(Email).findOneBy({ id: templateId });
     if (email) {
       await this.sendEmail(email, recipients, opts);
     }
   }
 
-  async getTemplateEmail(template: string): Promise<false | Email | null> {
-    return (await getRepository(Email).findOne(template)) || null;
+  async getTemplateEmail(templateId: string): Promise<false | Email | null> {
+    return (await getRepository(Email).findOneBy({ id: templateId })) || null;
   }
 
   async getTemplates(): Promise<EmailTemplate[]> {

@@ -1,26 +1,24 @@
 import passport from "passport";
 import passportLocal from "passport-local";
-import { getRepository } from "typeorm";
 
 import config from "@config";
 
+import { getRepository } from "@core/database";
 import { log } from "@core/logging";
 import { cleanEmailAddress, sleep } from "@core/utils";
-import { generatePassword, hashPassword } from "@core/utils/auth";
+import { generatePassword, isValidPassword } from "@core/utils/auth";
 
-import OptionsService from "@core/services/OptionsService";
 import ContactsService from "@core/services/ContactsService";
 import ContactMfaService from "@core/services/ContactMfaService";
-import authService from "@core/services/AuthService";
 
-import { LoginData } from "@api/controllers/AuthController";
 import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 import { LOGIN_CODES } from "@enums/login-codes";
+import { LoginDto } from "@api/dto/LoginDto";
 import { UnauthorizedError } from "@api/errors/UnauthorizedError";
 
 import Contact from "@models/Contact";
-import { ContactMfaSecure } from "@models/ContactMfa";
 
+import type { ContactMfaSecure } from "@type/contact-mfa-secure";
 import type { PassportLocalDoneCallback } from "@type/passport-local-done-callback";
 
 // Add support for local authentication in Passport.js
@@ -31,48 +29,26 @@ passport.use(
       passReqToCallback: true
     },
     async function (
-      req: { body: LoginData },
-      email: LoginData["email"],
-      password: LoginData["password"],
+      req: { body: LoginDto },
+      email: string,
+      password: string,
       done: PassportLocalDoneCallback
     ) {
       const token = req.body.token;
-      if (email) email = cleanEmailAddress(email);
 
-      const contact = await ContactsService.findOne({ email });
+      email = cleanEmailAddress(email);
+
+      const contact = await ContactsService.findOneBy({ email });
+
+      let code = LOGIN_CODES.LOGIN_FAILED;
 
       // Check if contact for email exists
       if (contact) {
-        const tries = contact.password.tries || 0;
+        code = await isValidPassword(contact.password, password);
 
-        // Has account exceeded it's password tries?
-        if (tries >= config.passwordTries) {
-          return done(null, false, { message: LOGIN_CODES.LOCKED });
-        }
-
-        // Check if password salt is set
-        if (!contact.password.salt) {
-          return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
-        }
-
-        // Generate hash from password
-        const hash = await hashPassword(
-          password,
-          contact.password.salt,
-          contact.password.iterations
-        );
-
-        if (await authService.isValidPassword(contact.password, password)) {
+        if (code === LOGIN_CODES.LOGGED_IN) {
           // Reset tries
-          if (tries > 0) {
-            await ContactsService.resetPasswordTries(contact);
-            return done(null, contact, {
-              message: OptionsService.getText("flash-account-attempts").replace(
-                "%",
-                tries.toString()
-              )
-            });
-          }
+          await ContactsService.resetPasswordTries(contact);
 
           // Check if password needs to be rehashed
           if (contact.password.iterations < config.passwordIterations) {
@@ -90,15 +66,13 @@ passport.use(
           // User is logged in without 2FA
           return done(null, contact, { message: LOGIN_CODES.LOGGED_IN });
         } else {
-          // If password doesn't match, increment tries and save
-          contact.password.tries = tries + 1;
           await ContactsService.incrementPasswordTries(contact);
         }
       }
 
       // Delay by 1 second to slow down password guessing
       await sleep(1000);
-      return done(null, false, { message: LOGIN_CODES.LOGIN_FAILED });
+      return done(null, false, { message: code });
     }
   )
 );
@@ -113,7 +87,7 @@ passport.use(
 const loginWithMfa = async (
   mfa: ContactMfaSecure,
   contact: Contact,
-  token: LoginData["token"],
+  token: string | undefined,
   done: PassportLocalDoneCallback
 ) => {
   if (mfa.type !== CONTACT_MFA_TYPE.TOTP) {
@@ -163,7 +137,7 @@ passport.serializeUser(function (data, done) {
 passport.deserializeUser(async function (data, done) {
   try {
     if (typeof data === "string") {
-      const contact = await ContactsService.findOne(data);
+      const contact = await ContactsService.findOneBy({ id: data });
       if (contact) {
         // Debounce last seen updates, we don't need to know to the second
         const now = new Date();

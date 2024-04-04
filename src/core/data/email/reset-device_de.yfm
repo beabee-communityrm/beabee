@@ -3,15 +3,29 @@ subject: Anfrage zum Zurücksetzen Ihres Multi-Faktor-Authentifizierungsgeräts
 ---
 
 <p>Sehr geehrte*r *|FNAME|* *|LNAME|*,</p>
-
-<p>wir haben eine Anfrage zum Zurücksetzen Ihres Multi-Faktor-Authentifizierungsgeräts erhalten. Um die Zurücksetzung zu
-    bestätigen und ein neues Gerät einzurichten, klicken Sie bitte auf den folgenden Link:</p>
-
-<p><a href="*|RPLINK|*"><strong>Multi-Faktor-Authentifizierung zurücksetzen</strong></a></p>
-
-<p>Wenn Sie diese Zurücksetzung nicht angefordert haben oder es sich um einen Fehler handelt, können Sie diese Nachricht
-    ignorieren oder uns für weitere Unterstützung kontaktieren.</p>
-
-<p>Bitte beachten Sie, dass der obige Link aus Sicherheitsgründen nur für eine begrenzte Zeit gültig ist.</p>
-
+<p><br /></p>
+<p>
+  wir haben eine Anfrage zum Zurücksetzen Ihres
+  Multi-Faktor-Authentifizierungsgeräts erhalten. Um die Zurücksetzung zu
+  bestätigen und ein neues Gerät einzurichten, klicken Sie bitte auf den
+  folgenden Link:
+</p>
+<p><br /></p>
+<p>
+  <a href="*|RPLINK|*"
+    ><strong>Multi-Faktor-Authentifizierung zurücksetzen</strong></a
+  >
+</p>
+<p><br /></p>
+<p>
+  Wenn Sie diese Zurücksetzung nicht angefordert haben oder es sich um einen
+  Fehler handelt, können Sie diese Nachricht ignorieren oder uns für weitere
+  Unterstützung kontaktieren.
+</p>
+<p><br /></p>
+<p>
+  Bitte beachten Sie, dass der obige Link aus Sicherheitsgründen nur für eine
+  begrenzte Zeit gültig ist.
+</p>
+<p><br /></p>
 <p>Mit freundlichen Grüßen</p>

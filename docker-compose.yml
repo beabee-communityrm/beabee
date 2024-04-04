@@ -11,7 +11,6 @@ x-base-app: &base-app
     - .env
   environment:
     NODE_ENV: development
-    TYPEORM_MIGRATIONS_DIR: src/migrations/
 
 services:
   db:
@@ -26,9 +25,9 @@ services:
       - 6543:5432 # To connect to the database from the host machine
 
   mail:
-    image: mailhog/mailhog:latest
+    image: maildev/maildev:2.1.0
     ports:
-      - ${MAIL_PORT}:8025
+      - ${MAIL_PORT}:1080
 
   app: *base-app
 

@@ -1,7 +1,8 @@
 import axios from "axios";
 import express from "express";
-import { Brackets, createQueryBuilder } from "typeorm";
+import { Brackets } from "typeorm";
 
+import { createQueryBuilder } from "@core/database";
 import { log } from "@core/logging";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";

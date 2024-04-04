@@ -2,17 +2,12 @@ import "module-alias/register";
 
 import { PaymentMethod, PaymentStatus } from "@beabee/beabee-common";
 import { parse } from "csv-parse";
-import { add, startOfDay, sub } from "date-fns";
+import { add, startOfDay } from "date-fns";
 import Stripe from "stripe";
-import {
-  Equal,
-  FindConditions,
-  In,
-  createQueryBuilder,
-  getRepository
-} from "typeorm";
+import { Equal, In } from "typeorm";
 
-import * as db from "@core/database";
+import { createQueryBuilder, getRepository } from "@core/database";
+import { runApp } from "@core/server";
 import stripe from "@core/lib/stripe";
 import { stripeTypeToPaymentMethod } from "@core/utils/payment/stripe";
 
@@ -67,7 +62,7 @@ async function loadMigrationData(): Promise<MigrationRow[]> {
   });
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const now = new Date();
 
   const minPaymentDate = startOfDay(add(now, config.gracePeriod));
@@ -96,16 +91,13 @@ db.connect().then(async () => {
 
   const payments = await getRepository(Payment).find({
     where: {
-      contact: In(contacts.map((c) => c.id)),
+      contactId: In(contacts.map((c) => c.id)),
       status: Equal(PaymentStatus.Pending)
-    } as FindConditions<Payment>,
-    loadRelationIds: true
+    }
   });
 
   for (const contact of contacts) {
-    const contactPayments = payments.filter(
-      (p) => (p.contact as any) === contact.id
-    );
+    const contactPayments = payments.filter((p) => p.contactId === contact.id);
 
     const paymentData = contact.paymentData.data as GCPaymentData;
 
@@ -179,6 +171,4 @@ db.connect().then(async () => {
       }
     }
   }
-
-  await db.close();
 });

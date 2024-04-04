@@ -1,10 +1,11 @@
 import "module-alias/register";
 
 import moment from "moment";
-import { Between, getRepository } from "typeorm";
+import { Between } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
+import { runApp } from "@core/server";
 
 import GiftService from "@core/services/GiftService";
 
@@ -41,11 +42,6 @@ async function main(date: string | undefined) {
   }
 }
 
-db.connect().then(async () => {
-  try {
-    await main(process.argv[2]);
-  } catch (err) {
-    log.error(err);
-  }
-  await db.close();
+runApp(async () => {
+  await main(process.argv[2]);
 });

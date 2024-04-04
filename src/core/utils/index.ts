@@ -1,24 +1,7 @@
-import {
-  ContributionType,
-  ContributionPeriod,
-  PaymentMethod
-} from "@beabee/beabee-common";
+import { ContributionPeriod } from "@beabee/beabee-common";
+import { AuthInfo } from "@type/auth-info";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { QueryFailedError } from "typeorm";
-
-export interface ContributionInfo {
-  type: ContributionType;
-  amount?: number;
-  nextAmount?: number;
-  period?: ContributionPeriod;
-  cancellationDate?: Date;
-  renewalDate?: Date;
-  paymentSource?: PaymentSource;
-  payFee?: boolean;
-  hasPendingPayment?: boolean;
-  membershipStatus: "active" | "expiring" | "expired" | "none";
-  membershipExpiryDate?: Date;
-}
 
 export interface PaymentForm {
   monthlyAmount: number;
@@ -26,47 +9,6 @@ export interface PaymentForm {
   payFee: boolean;
   prorate: boolean;
 }
-
-export interface GoCardlessDirectDebitPaymentSource {
-  method: PaymentMethod.GoCardlessDirectDebit;
-  bankName: string;
-  accountHolderName: string;
-  accountNumberEnding: string;
-}
-
-export interface StripeCardPaymentSource {
-  method: PaymentMethod.StripeCard;
-  last4: string;
-  expiryMonth: number;
-  expiryYear: number;
-}
-
-export interface StripeBACSPaymentSource {
-  method: PaymentMethod.StripeBACS;
-  sortCode: string;
-  last4: string;
-}
-
-export interface StripeSEPAPaymentSource {
-  method: PaymentMethod.StripeSEPA;
-  country: string;
-  bankCode: string;
-  branchCode: string;
-  last4: string;
-}
-
-export interface ManualPaymentSource {
-  method: null;
-  source?: string;
-  reference?: string;
-}
-
-export type PaymentSource =
-  | GoCardlessDirectDebitPaymentSource
-  | StripeCardPaymentSource
-  | StripeBACSPaymentSource
-  | StripeSEPAPaymentSource
-  | ManualPaymentSource;
 
 export function getActualAmount(
   amount: number,
@@ -87,6 +29,14 @@ export function wrapAsync(fn: RequestHandler): RequestHandler {
     } catch (error) {
       next(error);
     }
+  };
+}
+
+export function userToAuth(user: Express.User): AuthInfo {
+  return {
+    method: "user",
+    entity: user,
+    roles: user.activeRoles
   };
 }
 

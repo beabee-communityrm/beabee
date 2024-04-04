@@ -85,12 +85,17 @@ export default {
   audience: env.s("BEABEE_AUDIENCE"),
   dev: env.b("BEABEE_DEV"),
   secret: env.s("BEABEE_SECRET"),
+  serviceSecret: env.s("BEABEE_SERVICE_SECRET"),
   session: env.s("BEABEE_SESSION", "session"),
   cookie: {
     domain: env.s("BEABEE_COOKIE_DOMAIN"),
     secure: env.b("BEABEE_COOKIE_SECURE", true)
   },
   trustedOrigins: env.ss("BEABEE_TRUSTEDORIGINS", []),
+  databaseUrl: env.s("BEABEE_DATABASE_URL"),
+  captchaFox: {
+    secret: env.s("BEABEE_CAPTCHAFOX_SECRET", "")
+  },
   discourse: {
     url: env.s("BEABEE_DISCOURSE_URL", ""),
     ssoSecret: env.s("BEABEE_DISCOURSE_SSOSECRET", "")
@@ -109,13 +114,13 @@ export default {
             }
           }
         : emailProvider === "mandrill"
-        ? {
-            apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY")
-          }
-        : {
-            apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY"),
-            testMode: env.b("BEABEE_EMAIL_SETTIGS_TESTMODE", false)
-          }
+          ? {
+              apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY")
+            }
+          : {
+              apiKey: env.s("BEABEE_EMAIL_SETTINGS_APIKEY"),
+              testMode: env.b("BEABEE_EMAIL_SETTIGS_TESTMODE", false)
+            }
   } as EmailConfig,
   newsletter: {
     provider: newsletterProvider,

@@ -3,8 +3,8 @@ import bodyParser from "body-parser";
 import { add } from "date-fns";
 import express from "express";
 import Stripe from "stripe";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import stripe from "@core/lib/stripe";
 import { wrapAsync } from "@core/utils";
@@ -43,40 +43,32 @@ app.post(
 
       switch (evt.type) {
         case "checkout.session.completed":
-          await handleCheckoutSessionCompleted(
-            evt.data.object as Stripe.Checkout.Session
-          );
+          await handleCheckoutSessionCompleted(evt.data.object);
           break;
 
         case "customer.deleted":
-          handleCustomerDeleted(evt.data.object as Stripe.Customer);
+          handleCustomerDeleted(evt.data.object);
           break;
 
         case "customer.subscription.updated":
-          await handleCustomerSubscriptionUpdated(
-            evt.data.object as Stripe.Subscription
-          );
+          await handleCustomerSubscriptionUpdated(evt.data.object);
           break;
 
         case "customer.subscription.deleted":
-          await handleCustomerSubscriptionDeleted(
-            evt.data.object as Stripe.Subscription
-          );
+          await handleCustomerSubscriptionDeleted(evt.data.object);
           break;
 
         case "invoice.created":
         case "invoice.updated":
-          await handleInvoiceUpdated(evt.data.object as Stripe.Invoice);
+          await handleInvoiceUpdated(evt.data.object);
           break;
 
         case "invoice.paid":
-          await handleInvoicePaid(evt.data.object as Stripe.Invoice);
+          await handleInvoicePaid(evt.data.object);
           break;
 
         case "payment_method.detached":
-          await handlePaymentMethodDetached(
-            evt.data.object as Stripe.PaymentMethod
-          );
+          await handlePaymentMethodDetached(evt.data.object);
       }
     } catch (err: any) {
       log.error(`Got webhook error: ${err.message}`, err);
@@ -188,6 +180,7 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice) {
     add(new Date(line.period.end * 1000), config.gracePeriod)
   );
 
+  // TODO: Clean types
   const stripeData = data.data as StripePaymentData;
   if (line.amount === stripeData.nextAmount?.chargeable) {
     await ContactsService.updateContact(data.contact, {
@@ -238,7 +231,7 @@ async function findOrCreatePayment(
     return;
   }
 
-  const payment = await getRepository(Payment).findOne(invoice.id);
+  const payment = await getRepository(Payment).findOneBy({ id: invoice.id });
   if (payment) {
     return payment;
   }

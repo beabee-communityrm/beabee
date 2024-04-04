@@ -6,6 +6,7 @@ import { add, sub } from "date-fns";
 import { calcRenewalDate } from "./payment";
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
+import Password from "@models/Password";
 
 import config from "@config";
 
@@ -14,7 +15,7 @@ function createContact(contact?: Partial<Contact>): Contact {
     referralCode: "AB123",
     pollsCode: "AB234",
     roles: [],
-    password: { hash: "", salt: "", iterations: 0, tries: 0 },
+    password: Password.none,
     email: "test@example.com",
     firstname: "",
     lastname: "",
@@ -32,7 +33,7 @@ function createRole(role?: Partial<ContactRole>): ContactRole {
   });
 }
 
-describe("Renewal caulcation should be", () => {
+describe("Renewal calculation should be", () => {
   const now = new Date();
 
   const oneYearAgo = sub(now, { years: 1 });
@@ -93,10 +94,13 @@ describe("Renewal caulcation should be", () => {
   });
 
   test("this year if membership has no expiry date, is annual and date has not passed this year", () => {
+    const oneYearAgoAnd5Days = add(oneYearAgo, { days: 5 });
     const contact = createContact({
       contributionPeriod: ContributionPeriod.Annually,
-      roles: [createRole({ dateAdded: add(oneYearAgo, { days: 5 }) })]
+      roles: [createRole({ dateAdded: oneYearAgoAnd5Days })]
     });
-    expect(calcRenewalDate(contact, now)).toEqual(add(now, { days: 5 }));
+    expect(calcRenewalDate(contact, now)).toEqual(
+      add(oneYearAgoAnd5Days, { years: 1 })
+    );
   });
 });

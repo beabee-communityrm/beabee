@@ -1,8 +1,8 @@
-import { PaymentMethod } from "@beabee/beabee-common";
-import { createQueryBuilder, getRepository } from "typeorm";
+import { MembershipStatus, PaymentMethod } from "@beabee/beabee-common";
 
-import { ContributionInfo, PaymentForm } from "@core/utils";
+import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
+import { PaymentForm } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 
 import Contact from "@models/Contact";
@@ -16,8 +16,9 @@ import {
 import GCProvider from "@core/providers/payment/GCProvider";
 import ManualProvider from "@core/providers/payment/ManualProvider";
 import StripeProvider from "@core/providers/payment/StripeProvider";
-
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+
+import { ContributionInfo } from "@type/contribution-info";
 
 const log = mainLogger.child({ app: "payment-service" });
 
@@ -25,24 +26,27 @@ const PaymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,
   [PaymentMethod.StripeSEPA]: StripeProvider,
   [PaymentMethod.StripeBACS]: StripeProvider,
+  [PaymentMethod.StripePayPal]: StripeProvider,
   [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
 
-export function getMembershipStatus(contact: Contact) {
+export function getMembershipStatus(contact: Contact): MembershipStatus {
   return contact.membership
     ? contact.membership.isActive
       ? contact.paymentData.cancelledAt
-        ? "expiring"
-        : "active"
-      : "expired"
-    : "none";
+        ? MembershipStatus.Expiring
+        : MembershipStatus.Active
+      : MembershipStatus.Expired
+    : MembershipStatus.None;
 }
 
 type ProviderFn<T> = (p: PaymentProvider<any>, data: PaymentData) => Promise<T>;
 
 class PaymentService {
   async getData(contact: Contact): Promise<PaymentData> {
-    const data = await getRepository(PaymentData).findOneOrFail(contact.id);
+    const data = await getRepository(PaymentData).findOneByOrFail({
+      contactId: contact.id
+    });
     log.info("Loaded data for " + contact.id, { data });
     // Load full contact into data
     return { ...data, contact: contact };
@@ -58,7 +62,8 @@ class PaymentService {
       .where(`data->>:key = :value`, { key, value })
       .getOne();
 
-    return data;
+    // TODO: check undefined
+    return data || undefined;
   }
 
   async updateDataBy(contact: Contact, key: string, value: unknown) {
@@ -132,7 +137,7 @@ class PaymentService {
   }
 
   async getPayments(contact: Contact): Promise<Payment[]> {
-    return await getRepository(Payment).find({ contact: contact });
+    return await getRepository(Payment).findBy({ contactId: contact.id });
   }
 
   async createContact(contact: Contact): Promise<void> {
@@ -156,7 +161,10 @@ class PaymentService {
     const ret = await this.provider(contact, (p) =>
       p.updateContribution(paymentForm)
     );
-    await getRepository(PaymentData).update({ contact }, { cancelledAt: null });
+    await getRepository(PaymentData).update(
+      { contactId: contact.id },
+      { cancelledAt: null }
+    );
     return ret;
   }
 
@@ -195,15 +203,15 @@ class PaymentService {
     log.info("Cancel contribution for " + contact.id);
     await this.provider(contact, (p) => p.cancelContribution(keepMandate));
     await getRepository(PaymentData).update(
-      { contact },
+      { contactId: contact.id },
       { cancelledAt: new Date() }
     );
   }
 
   async permanentlyDeleteContact(contact: Contact): Promise<void> {
     await this.provider(contact, (p) => p.permanentlyDeleteContact());
-    await getRepository(PaymentData).delete({ contact: contact });
-    await getRepository(Payment).delete({ contact: contact });
+    await getRepository(PaymentData).delete({ contactId: contact.id });
+    await getRepository(Payment).delete({ contactId: contact.id });
   }
 }
 

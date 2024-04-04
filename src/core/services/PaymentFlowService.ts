@@ -1,18 +1,18 @@
 import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import EmailService from "@core/services/EmailService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
+import ResetSecurityFlowService from "./ResetSecurityFlowService";
 
 import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Contact from "@models/Contact";
-import ResetSecurityFlow from "@models/ResetSecurityFlow";
 
 import {
   CompletedPaymentFlow,
@@ -25,13 +25,17 @@ import {
 import StripeProvider from "@core/providers/payment-flow/StripeProvider";
 import GCProvider from "@core/providers/payment-flow/GCProvider";
 
-import { CompleteUrls } from "@api/data/SignupData";
 import DuplicateEmailError from "@api/errors/DuplicateEmailError";
+
+import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
+
+import { CompleteUrls } from "@type/complete-urls";
 
 const paymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,
   [PaymentMethod.StripeSEPA]: StripeProvider,
   [PaymentMethod.StripeBACS]: StripeProvider,
+  [PaymentMethod.StripePayPal]: StripeProvider,
   [PaymentMethod.GoCardlessDirectDebit]: GCProvider
 };
 
@@ -85,8 +89,8 @@ class PaymentFlowService implements PaymentFlowProvider {
 
   async getJoinFlowByPaymentId(
     paymentFlowId: string
-  ): Promise<JoinFlow | undefined> {
-    return await getRepository(JoinFlow).findOne({ paymentFlowId });
+  ): Promise<JoinFlow | null> {
+    return await getRepository(JoinFlow).findOneBy({ paymentFlowId });
   }
 
   async completeJoinFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
@@ -99,7 +103,7 @@ class PaymentFlowService implements PaymentFlowProvider {
   async sendConfirmEmail(joinFlow: JoinFlow): Promise<void> {
     log.info("Send confirm email for " + joinFlow.id);
 
-    const contact = await ContactsService.findOne({
+    const contact = await ContactsService.findOneBy({
       email: joinFlow.joinForm.email
     });
 
@@ -113,7 +117,10 @@ class PaymentFlowService implements PaymentFlowProvider {
           }
         );
       } else {
-        const rpFlow = await getRepository(ResetSecurityFlow).save({ contact });
+        const rpFlow = await ResetSecurityFlowService.create(
+          contact,
+          RESET_SECURITY_FLOW_TYPE.PASSWORD
+        );
         await EmailService.sendTemplateToContact(
           "email-exists-set-password",
           contact,
@@ -141,7 +148,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     // get a confirm email if they are already an active member
     let contact = await ContactsService.findOne({
       where: { email: joinFlow.joinForm.email },
-      relations: ["profile"]
+      relations: { profile: true }
     });
     if (contact?.membership?.isActive) {
       throw new DuplicateEmailError();
@@ -161,9 +168,8 @@ class PaymentFlowService implements PaymentFlowProvider {
     // TODO: rework join flow to properly accommodate no contributions
     if (joinFlow.joinForm.monthlyAmount !== 0) {
       completedPaymentFlow = await this.completeJoinFlow(joinFlow);
-      const paymentData = await this.getCompletedPaymentFlowData(
-        completedPaymentFlow
-      );
+      const paymentData =
+        await this.getCompletedPaymentFlowData(completedPaymentFlow);
 
       // Prefill contact data from payment provider if possible
       partialContact.firstname ||= paymentData.firstname || "";

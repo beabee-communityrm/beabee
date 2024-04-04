@@ -9,34 +9,31 @@ import {
   Req
 } from "routing-controllers";
 
-import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import ContactsService from "@core/services/ContactsService";
 
 import { login } from "@api/utils";
-import { UUIDParam } from "@api/data";
 import {
-  CreateResetPasswordData,
-  UpdateResetPasswordData
-} from "@api/data/ResetPasswordData";
+  CreateResetPasswordDto,
+  UpdateResetPasswordDto
+} from "@api/dto/ResetPasswordDto";
+import { UUIDParams } from "@api/params/UUIDParams";
 
 @JsonController("/reset-password")
 export class ResetPasswordController {
   @OnUndefined(204)
   @Post()
-  async create(@Body() data: CreateResetPasswordData): Promise<void> {
-    await ResetSecurityFlowService.resetPasswordBegin(data);
+  async create(@Body() data: CreateResetPasswordDto): Promise<void> {
+    await ContactsService.resetPasswordBegin(data.email, data.resetUrl);
   }
 
   @OnUndefined(204)
   @Put("/:id")
   async complete(
     @Req() req: Request,
-    @Params() { id }: UUIDParam,
-    @Body() data: UpdateResetPasswordData
+    @Params() { id }: UUIDParams,
+    @Body() data: UpdateResetPasswordDto
   ): Promise<void> {
-    const contact = await ResetSecurityFlowService.resetPasswordComplete(
-      id,
-      data
-    );
+    const contact = await ContactsService.resetPasswordComplete(id, data);
     await login(req, contact);
   }
 }

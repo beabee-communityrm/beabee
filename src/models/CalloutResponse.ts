@@ -1,4 +1,4 @@
-import { CalloutResponseAnswers } from "@beabee/beabee-common";
+import { CalloutResponseAnswersSlide } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -21,12 +21,16 @@ export default class CalloutResponse {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  calloutId!: string;
   @ManyToOne("Callout", "responses")
   callout!: Callout;
 
   @Column()
   number!: number;
 
+  @Column({ type: String, nullable: true })
+  contactId!: string | null;
   @ManyToOne("Contact", { nullable: true })
   contact!: Contact | null;
 
@@ -37,7 +41,7 @@ export default class CalloutResponse {
   guestEmail!: string | null;
 
   @Column({ type: "jsonb" })
-  answers!: CalloutResponseAnswers;
+  answers!: CalloutResponseAnswersSlide;
 
   @Column()
   isPartial!: boolean;
@@ -54,8 +58,13 @@ export default class CalloutResponse {
   @OneToMany("CalloutResponseTag", "response")
   tags!: CalloutResponseTag[];
 
+  @Column({ type: String, nullable: true })
+  assigneeId!: string | null;
   @ManyToOne("Contact", { nullable: true })
   assignee!: Contact | null;
+
+  @OneToMany("CalloutResponseComment", "response")
+  comments?: CalloutResponseComment[];
 
   latestComment?: CalloutResponseComment | null;
 }

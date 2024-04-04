@@ -1,4 +1,6 @@
 import { NewsletterStatus } from "@beabee/beabee-common";
+
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import {
@@ -10,10 +12,9 @@ import MailchimpProvider from "@core/providers/newsletter/MailchimpProvider";
 import NoneProvider from "@core/providers/newsletter/NoneProvider";
 
 import Contact from "@models/Contact";
+import ContactProfile from "@models/ContactProfile";
 
 import config from "@config";
-import { getRepository } from "typeorm";
-import ContactProfile from "@models/ContactProfile";
 
 const log = mainLogger.child({ app: "newsletter-service" });
 
@@ -34,8 +35,8 @@ async function contactToNlUpdate(
 ): Promise<UpdateNewsletterContact | undefined> {
   // TODO: Fix that it relies on contact.profile being loaded
   if (!contact.profile) {
-    contact.profile = await getRepository(ContactProfile).findOneOrFail({
-      contact: contact
+    contact.profile = await getRepository(ContactProfile).findOneByOrFail({
+      contactId: contact.id
     });
   }
 

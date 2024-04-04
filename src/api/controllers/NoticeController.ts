@@ -1,8 +1,6 @@
-import { ItemStatus, noticeFilters } from "@beabee/beabee-common";
 import {
   Authorized,
   Body,
-  CurrentUser,
   Delete,
   Get,
   JsonController,
@@ -13,110 +11,66 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
-import Contact from "@models/Contact";
+import { getRepository } from "@core/database";
+
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
+import PartialBody from "@api/decorators/PartialBody";
+import {
+  CreateNoticeDto,
+  GetNoticeDto,
+  ListNoticesDto
+} from "@api/dto/NoticeDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
+import { UUIDParams } from "@api/params/UUIDParams";
+import NoticeTransformer from "@api/transformers/NoticeTransformer";
+
 import Notice from "@models/Notice";
 
-import { UUIDParam } from "@api/data";
-import {
-  CreateNoticeData,
-  GetNoticeData,
-  GetNoticesQuery
-} from "@api/data/NoticeData";
-import {
-  fetchPaginated,
-  mergeRules,
-  Paginated,
-  statusFieldHandler
-} from "@api/data/PaginatedData";
-
-import PartialBody from "@api/decorators/PartialBody";
+import { AuthInfo } from "@type/auth-info";
 
 @JsonController("/notice")
 @Authorized()
 export class NoticeController {
   @Get("/")
   async getNotices(
-    @CurrentUser() contact: Contact,
-    @QueryParams() query: GetNoticesQuery
-  ): Promise<Paginated<GetNoticeData>> {
-    const authedQuery = {
-      ...query,
-      rules: mergeRules([
-        query.rules,
-        // Non-admins can only see open notices
-        !contact.hasRole("admin") && {
-          field: "status",
-          operator: "equal",
-          value: [ItemStatus.Open]
-        }
-      ])
-    };
-
-    const results = await fetchPaginated(
-      Notice,
-      noticeFilters,
-      authedQuery,
-      contact,
-      { status: statusFieldHandler }
-    );
-
-    return {
-      ...results,
-      items: results.items.map(this.noticeToData)
-    };
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @QueryParams() query: ListNoticesDto
+  ): Promise<PaginatedDto<GetNoticeDto>> {
+    return await NoticeTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
   async getNotice(
-    @CurrentUser() contact: Contact,
-    @Params() { id }: UUIDParam
-  ): Promise<GetNoticeData | undefined> {
-    const notice = await getRepository(Notice).findOne(id);
-    if (notice && (notice.active || contact.hasRole("admin"))) {
-      return this.noticeToData(notice);
-    }
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Params() { id }: UUIDParams
+  ): Promise<GetNoticeDto | undefined> {
+    return await NoticeTransformer.fetchOneById(auth, id);
   }
 
   @Post("/")
   @Authorized("admin")
-  async createNotice(@Body() data: CreateNoticeData): Promise<GetNoticeData> {
+  async createNotice(@Body() data: CreateNoticeDto): Promise<GetNoticeDto> {
     const notice = await getRepository(Notice).save(data);
-    return this.noticeToData(notice);
+    return NoticeTransformer.convert(notice);
   }
 
   @Patch("/:id")
   @Authorized("admin")
   async updateNotice(
-    @CurrentUser() contact: Contact,
-    @Params() { id }: UUIDParam,
-    @PartialBody() data: CreateNoticeData
-  ): Promise<GetNoticeData | undefined> {
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Params() { id }: UUIDParams,
+    @PartialBody() data: CreateNoticeDto
+  ): Promise<GetNoticeDto | undefined> {
     await getRepository(Notice).update(id, data);
-    return this.getNotice(contact, { id });
+    return await NoticeTransformer.fetchOneById(auth, id);
   }
 
   @OnUndefined(204)
   @Delete("/:id")
   @Authorized("admin")
-  async deleteNotice(@Params() { id }: UUIDParam) {
+  async deleteNotice(@Params() { id }: UUIDParams): Promise<void> {
     const result = await getRepository(Notice).delete(id);
     if (!result.affected) throw new NotFoundError();
-  }
-
-  private noticeToData(notice: Notice): GetNoticeData {
-    return {
-      id: notice.id,
-      createdAt: notice.createdAt,
-      updatedAt: notice.updatedAt,
-      name: notice.name,
-      text: notice.text,
-      starts: notice.starts,
-      expires: notice.expires,
-      status: notice.status,
-      ...(notice.buttonText !== null && { buttonText: notice.buttonText }),
-      ...(notice.url !== null && { url: notice.url })
-    };
   }
 }

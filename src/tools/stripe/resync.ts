@@ -1,9 +1,10 @@
 import "module-alias/register";
 
 import { PaymentMethod } from "@beabee/beabee-common";
-import { In, getRepository } from "typeorm";
+import { In } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
+import { runApp } from "@core/server";
 import stripe from "@core/lib/stripe";
 import ContactsService from "@core/services/ContactsService";
 
@@ -30,7 +31,7 @@ async function* fetchInvoices(customerId: string) {
   }
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const stripePaymentData = (await getRepository(PaymentData).find({
     where: {
       method: In([
@@ -39,7 +40,7 @@ db.connect().then(async () => {
         PaymentMethod.StripeSEPA
       ])
     },
-    relations: ["contact"]
+    relations: { contact: true }
   })) as (PaymentData & { data: StripePaymentData })[];
 
   for (const pd of stripePaymentData) {
@@ -122,6 +123,4 @@ db.connect().then(async () => {
       console.log(pd.cancelledAt, pd.data);
     }
   }
-
-  await db.close();
 });

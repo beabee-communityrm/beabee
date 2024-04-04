@@ -1,17 +1,19 @@
-import { getRepository } from "typeorm";
-import { BadRequestError, NotFoundError } from "routing-controllers";
+import { NotFoundError } from "routing-controllers";
 
 import Contact from "@models/Contact";
-import { ContactMfa, ContactMfaSecure } from "@models/ContactMfa";
+import ContactMfa from "@models/ContactMfa";
 
+import { getRepository } from "@core/database";
 import { validateTotpToken } from "@core/utils/auth";
 
 import { LOGIN_CODES } from "@enums/login-codes";
-import {
-  CreateContactMfaData,
-  DeleteContactMfaData
-} from "@api/data/ContactData/interface";
-import { ForbiddenError } from "@api/errors/ForbiddenError";
+
+import BadRequestError from "@api/errors/BadRequestError";
+import UnauthorizedError from "@api/errors/UnauthorizedError";
+
+import { ContactMfaSecure } from "@type/contact-mfa-secure";
+import { CreateContactMfaData } from "@type/create-contact-mfa-data";
+import { DeleteContactMfaData } from "@type/delete-contact-mfa-data";
 
 /**
  * Contact multi factor authentication service
@@ -49,7 +51,7 @@ class ContactMfaService {
     const { isValid } = validateTotpToken(data.secret, data.token, 2);
 
     if (!isValid) {
-      throw new BadRequestError(LOGIN_CODES.INVALID_TOKEN);
+      throw new UnauthorizedError({ code: LOGIN_CODES.INVALID_TOKEN });
     }
 
     const mfa = await getRepository(ContactMfa).save({
@@ -70,7 +72,7 @@ class ContactMfaService {
    */
   async deleteSecure(contact: Contact, data: DeleteContactMfaData) {
     if (!data.token) {
-      throw new ForbiddenError({
+      throw new BadRequestError({
         code: LOGIN_CODES.MISSING_TOKEN,
         message:
           "The contact itself needs to enter the old code to delete its MFA"
@@ -78,7 +80,7 @@ class ContactMfaService {
     }
     const tokenValidation = await this.checkToken(contact, data.token, 2);
     if (!tokenValidation.isValid) {
-      throw new ForbiddenError({
+      throw new UnauthorizedError({
         code: LOGIN_CODES.INVALID_TOKEN,
         message: "Invalid token"
       });
@@ -157,7 +159,7 @@ class ContactMfaService {
    * @returns The **insecure** contact MFA with the `secret` key
    */
   private async getByIdInsecure(id: string): Promise<ContactMfa | null> {
-    const mfa = await getRepository(ContactMfa).findOne(id);
+    const mfa = await getRepository(ContactMfa).findOneBy({ id });
     return mfa || null;
   }
 

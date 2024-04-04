@@ -1,9 +1,8 @@
-import "module-alias/register";
 import express from "express";
 import _ from "lodash";
 import moment from "moment";
-import { createQueryBuilder, getRepository } from "typeorm";
 
+import { createQueryBuilder, getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
@@ -116,17 +115,17 @@ app.post(
 
 app.get(
   "/:id",
-  hasNewModel(Project, "id", { relations: ["owner"] }),
+  hasNewModel(Project, "id", { relations: { owner: true } }),
   wrapAsync(async (req, res) => {
     const project = req.model as Project;
 
     const projectContacts = await getRepository(ProjectContact).find({
-      where: { project },
-      relations: ["contact", "contact.profile"]
+      where: { projectId: project.id },
+      relations: { contact: { profile: true } }
     });
     const engagements = await getRepository(ProjectEngagement).find({
-      where: { project },
-      relations: ["byContact", "toContact"]
+      where: { projectId: project.id },
+      relations: { byContact: true, toContact: true }
     });
 
     const projectContactsWithEngagement = projectContacts.map((pm) => {
@@ -190,8 +189,10 @@ app.post(
         res.redirect(req.originalUrl + "#contacts");
         break;
       case "delete":
-        await getRepository(ProjectEngagement).delete({ project });
-        await getRepository(ProjectContact).delete({ project });
+        await getRepository(ProjectEngagement).delete({
+          projectId: project.id
+        });
+        await getRepository(ProjectContact).delete({ projectId: project.id });
         await getRepository(Project).delete(project.id);
         req.flash("success", "project-deleted");
         res.redirect("/projects");

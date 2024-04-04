@@ -17,6 +17,8 @@ export default class Payment {
   @Column({ type: String, nullable: true })
   subscriptionId!: string | null;
 
+  @Column({ type: String, nullable: true })
+  contactId!: string | null;
   @ManyToOne("Contact", { nullable: true })
   contact!: Contact | null;
 
@@ -32,7 +34,7 @@ export default class Payment {
   @Column({ type: "real", nullable: true })
   amountRefunded!: number | null;
 
-  @Column({ type: "date" })
+  @Column()
   chargeDate!: Date;
 
   @CreateDateColumn()

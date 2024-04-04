@@ -1,3 +1,4 @@
+import { plainToInstance } from "class-transformer";
 import { isUUID } from "class-validator";
 import {
   Authorized,
@@ -7,49 +8,52 @@ import {
   Param,
   Put
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 import EmailService from "@core/services/EmailService";
 
+import { getRepository } from "@core/database";
+
 import Email from "@models/Email";
 
-import { GetEmailData, UpdateEmailData } from "@api/data/EmailData";
+import { GetEmailDto, UpdateEmailDto } from "@api/dto/EmailDto";
 import ExternalEmailTemplate from "@api/errors/ExternalEmailTemplate";
 
-async function findEmail(id: string): Promise<Email | undefined> {
+async function findEmail(id: string): Promise<Email | null> {
   if (isUUID(id, "4")) {
-    return await getRepository(Email).findOne(id);
+    return await getRepository(Email).findOneBy({ id });
   } else if (EmailService.isTemplateId(id)) {
     const maybeEmail = await EmailService.getTemplateEmail(id);
-    if (maybeEmail === false) {
+    if (maybeEmail) {
+      return maybeEmail;
+    } else if (maybeEmail === false) {
       throw new ExternalEmailTemplate();
-    } else {
-      return maybeEmail || undefined;
     }
   }
+  return null;
 }
 
-function emailToData(email: Email): GetEmailData {
-  return {
+// TODO: move to transformer
+function emailToData(email: Email): GetEmailDto {
+  return plainToInstance(GetEmailDto, {
     subject: email.subject,
     body: email.body
-  };
+  });
 }
 
 @Authorized("admin")
 @JsonController("/email")
 export class EmailController {
   @Get("/:id")
-  async getEmail(@Param("id") id: string): Promise<GetEmailData | undefined> {
+  async getEmail(@Param("id") id: string): Promise<GetEmailDto | undefined> {
     const email = await findEmail(id);
-    return email && emailToData(email);
+    return email ? emailToData(email) : undefined;
   }
 
   @Put("/:id")
   async updateEmail(
     @Param("id") id: string,
-    @Body() data: UpdateEmailData
-  ): Promise<GetEmailData | undefined> {
+    @Body() data: UpdateEmailDto
+  ): Promise<GetEmailDto | undefined> {
     const email = await findEmail(id);
     if (email) {
       await getRepository(Email).update(email.id, data);

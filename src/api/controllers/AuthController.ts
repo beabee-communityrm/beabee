@@ -1,5 +1,5 @@
 import { RoleTypes, RoleType } from "@beabee/beabee-common";
-import { IsEmail, IsString, isUUID, IsOptional } from "class-validator";
+import { isUUID } from "class-validator";
 import { Request, Response } from "express";
 import {
   Body,
@@ -13,39 +13,25 @@ import {
   Req,
   Res
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
 import { UnauthorizedError } from "../errors/UnauthorizedError";
 
+import { getRepository } from "@core/database";
 import passport from "@core/lib/passport";
 
 import ContactsService from "@core/services/ContactsService";
 
+import { LoginDto } from "@api/dto/LoginDto";
+import { login } from "@api/utils";
+
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 
-import { login } from "@api/utils";
+import { LOGIN_CODES } from "@enums/login-codes";
 
 import { PassportLoginInfo } from "@type/passport-login-info";
 
-import { LOGIN_CODES } from "@enums/login-codes";
-
 import config from "@config";
-
-export class LoginData {
-  @IsEmail()
-  email!: string;
-
-  // We deliberately don't validate with IsPassword here so
-  // invalid passwords return a 401
-  @IsString()
-  password!: string;
-
-  /** Optional multi factor authentication token */
-  @IsString()
-  @IsOptional()
-  token?: string;
-}
 
 @JsonController("/auth")
 export class AuthController {
@@ -55,7 +41,7 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
     /** Just used for validation (`email`, `password` and `req.data.token` are in passport strategy) */
-    @Body() _: LoginData
+    @Body() _: LoginDto
   ): Promise<void> {
     const user = await new Promise<Contact>((resolve, reject) => {
       passport.authenticate(
@@ -99,7 +85,7 @@ export class AuthController {
 
   @OnUndefined(204)
   @Get("/login/as/:id")
-  async loginAs(@Req() req: Request, @Param("id") id: string) {
+  async loginAs(@Req() req: Request, @Param("id") id: string): Promise<void> {
     if (!config.dev) {
       throw new NotFoundError();
     }
@@ -107,12 +93,12 @@ export class AuthController {
     let contact: Contact | undefined;
     if (RoleTypes.indexOf(id as RoleType) > -1) {
       const role = await getRepository(ContactRole).findOne({
-        where: { type: id },
-        relations: ["contact"]
+        where: { type: id as RoleType },
+        relations: { contact: true }
       });
       contact = role?.contact;
     } else if (isUUID(id, "4")) {
-      contact = await ContactsService.findOne(id);
+      contact = await ContactsService.findOneBy({ id });
     }
 
     if (contact) {

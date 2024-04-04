@@ -1,0 +1,21 @@
+---
+subject: Confirma o teu email
+---
+
+<p>Olá *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Precisamos só de confirmar o teu email. Para confirmares, basta que carregues
+  neste link:
+</p>
+<p><br /></p>
+<p>
+  <a href="*|CONFIRMLINK|*"><b>Confirmar email</b></a>
+</p>
+<p><br /></p>
+<p>
+  <b>Nota:</b> Se este email não foi pedido por ti, podes ignorá-lo. Alguém pode
+  ter inserido o teu email por engano e não o vamos gravar.
+</p>
+<p><br /></p>
+<p>Até já!</p>

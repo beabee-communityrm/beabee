@@ -1,3 +1,4 @@
+import { RoleType } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -5,6 +6,7 @@ import {
   ManyToOne,
   PrimaryColumn
 } from "typeorm";
+
 import type Contact from "./Contact";
 
 @Entity()
@@ -26,4 +28,8 @@ export default class ApiKey {
 
   @Column()
   description!: string;
+
+  get activeRoles(): RoleType[] {
+    return ["admin"];
+  }
 }

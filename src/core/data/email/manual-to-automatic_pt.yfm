@@ -1,0 +1,19 @@
+---
+subject: O teu método de pagamento foi actualizado
+---
+
+<p>Olá *|FNAME|*,</p>
+<p><br /></p>
+<p>Obrigada por atualizares o teu pagamento.</p>
+<p><br /></p>
+<p>
+  <b>
+    A tua contribuição vai ser cobrada no próximo ciclo de pagamento. Lembra-te
+    de cancelar outras contribuições que possas ter ativas para evitar que
+    pagues a dobrar.
+  </b>
+</p>
+<p><br /></p>
+<p>Se tiveres dúvidas, fala connosco.</p>
+<p><br /></p>
+<p>Até já!</p>

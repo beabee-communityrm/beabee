@@ -1,6 +1,6 @@
 import express from "express";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 

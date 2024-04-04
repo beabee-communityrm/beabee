@@ -1,19 +1,3 @@
-import { UUIDParam } from "@api/data";
-import {
-  convertCommentToData,
-  fetchPaginatedCalloutResponseComments
-} from "@api/data/CalloutResponseCommentData";
-import {
-  GetCalloutResponseCommentData,
-  GetCalloutResponseCommentsQuery,
-  CreateCalloutResponseCommentData,
-  UpdateCalloutResponseComment
-} from "@api/data/CalloutResponseCommentData/interface";
-import PartialBody from "@api/decorators/PartialBody";
-import { Paginated } from "@beabee/beabee-common";
-import CalloutResponse from "@models/CalloutResponse";
-import CalloutResponseComment from "@models/CalloutResponseComment";
-import Contact from "@models/Contact";
 import {
   Authorized,
   Body,
@@ -28,58 +12,75 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { getRepository } from "typeorm";
+
+import { getRepository } from "@core/database";
+
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
+import PartialBody from "@api/decorators/PartialBody";
+import {
+  CreateCalloutResponseCommentDto,
+  GetCalloutResponseCommentDto,
+  ListCalloutResponseCommentsDto
+} from "@api/dto/CalloutResponseCommentDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
+import { UUIDParams } from "@api/params/UUIDParams";
+
+import CalloutResponseCommentTransformer from "@api/transformers/CalloutResponseCommentTransformer";
+
+import CalloutResponseComment from "@models/CalloutResponseComment";
+import Contact from "@models/Contact";
+
+import { AuthInfo } from "@type/auth-info";
 
 @JsonController("/callout-response-comments")
 @Authorized("admin")
 export class CalloutResponseCommentController {
   @Post("/")
   async createCalloutReponseComment(
-    @Body() data: CreateCalloutResponseCommentData,
+    @Body() data: CreateCalloutResponseCommentDto,
     @CurrentUser({ required: true }) contact: Contact
-  ): Promise<GetCalloutResponseCommentData> {
+  ): Promise<GetCalloutResponseCommentDto> {
     const comment: CalloutResponseComment = await getRepository(
       CalloutResponseComment
     ).save({
+      contact,
       text: data.text,
-      contact: contact,
       response: { id: data.responseId }
     });
-    return convertCommentToData(comment);
+    return CalloutResponseCommentTransformer.convert(comment);
   }
 
   @Get("/")
   async getCalloutResponseComments(
-    @QueryParams() query: GetCalloutResponseCommentsQuery
-  ): Promise<Paginated<GetCalloutResponseCommentData>> {
-    return fetchPaginatedCalloutResponseComments(query);
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @QueryParams() query: ListCalloutResponseCommentsDto
+  ): Promise<PaginatedDto<GetCalloutResponseCommentDto>> {
+    return await CalloutResponseCommentTransformer.fetch(auth, query);
   }
 
   @Get("/:id")
   async getCalloutResponseComment(
-    @Params() { id }: UUIDParam
-  ): Promise<GetCalloutResponseCommentData | undefined> {
-    const comment = await getRepository(CalloutResponseComment).findOne({
-      where: { id: id },
-      relations: ["contact"]
-    });
-    if (comment) {
-      return convertCommentToData(comment);
-    }
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Params() { id }: UUIDParams
+  ): Promise<GetCalloutResponseCommentDto | undefined> {
+    return await CalloutResponseCommentTransformer.fetchOneById(auth, id);
   }
 
   @Patch("/:id")
   async updateCalloutResponseComment(
-    @Params() { id }: UUIDParam,
-    @PartialBody() data: UpdateCalloutResponseComment
-  ): Promise<GetCalloutResponseCommentData | undefined> {
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Params() { id }: UUIDParams,
+    @PartialBody() data: CreateCalloutResponseCommentDto
+  ): Promise<GetCalloutResponseCommentDto | undefined> {
     await getRepository(CalloutResponseComment).update(id, data);
-    return this.getCalloutResponseComment({ id });
+    return await CalloutResponseCommentTransformer.fetchOneById(auth, id);
   }
 
   @OnUndefined(204)
   @Delete("/:id")
-  async deleteCalloutResponseComment(@Params() { id }: UUIDParam) {
+  async deleteCalloutResponseComment(
+    @Params() { id }: UUIDParams
+  ): Promise<void> {
     const result = await getRepository(CalloutResponseComment).delete(id);
     if (!result.affected) throw new NotFoundError();
   }

@@ -6,9 +6,10 @@ import {
   NewsletterStatus
 } from "@beabee/beabee-common";
 import { parse } from "csv-parse";
-import { In, getRepository } from "typeorm";
+import { In } from "typeorm";
 
-import * as db from "@core/database";
+import { getRepository } from "@core/database";
+import { runApp } from "@core/server";
 import { cleanEmailAddress } from "@core/utils";
 
 import ContactsService from "@core/services/ContactsService";
@@ -286,8 +287,7 @@ async function loadRows(): Promise<SteadyRow[]> {
   });
 }
 
-db.connect().then(async () => {
+runApp(async () => {
   const rows = await loadRows();
   await processRows(rows);
-  await db.close();
 });

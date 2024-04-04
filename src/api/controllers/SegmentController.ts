@@ -11,90 +11,88 @@ import {
   Post,
   QueryParams
 } from "routing-controllers";
-import { getRepository } from "typeorm";
 
-import { UUIDParam } from "@api/data";
-import {
-  GetContactsQuery,
-  fetchPaginatedContacts
-} from "@api/data/ContactData";
-import {
-  GetSegmentData,
-  GetSegmentQuery,
-  CreateSegmentData,
-  convertSegmentToData,
-  GetSegmentWith
-} from "@api/data/SegmentData";
-import { Paginated } from "@api/data/PaginatedData";
+import { getRepository } from "@core/database";
 
+import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import PartialBody from "@api/decorators/PartialBody";
+import { GetContactDto, ListContactsDto } from "@api/dto/ContactDto";
+import {
+  GetSegmentDto,
+  ListSegmentsDto,
+  CreateSegmentDto,
+  GetSegmentWith,
+  GetSegmentOptsDto
+} from "@api/dto/SegmentDto";
+import { PaginatedDto } from "@api/dto/PaginatedDto";
+import { UUIDParams } from "@api/params/UUIDParams";
+import ContactTransformer from "@api/transformers/ContactTransformer";
+import SegmentTransformer from "@api/transformers/SegmentTransformer";
 
 import Segment from "@models/Segment";
 import SegmentContact from "@models/SegmentContact";
 import SegmentOngoingEmail from "@models/SegmentOngoingEmail";
 
-import type { GetContactData } from "@type/get-contact-data";
+import { AuthInfo } from "@type/auth-info";
 
 @JsonController("/segments")
 @Authorized("admin")
 export class SegmentController {
   @Get("/")
   async getSegments(
-    @QueryParams() query: GetSegmentQuery
-  ): Promise<GetSegmentData[]> {
-    const segments = await getRepository(Segment).find({
-      order: { order: "ASC" }
-    });
-    const out: GetSegmentData[] = [];
-    for (const segment of segments) {
-      out.push(await convertSegmentToData(segment, query));
-    }
-    return out;
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @QueryParams() query: ListSegmentsDto
+  ): Promise<GetSegmentDto[]> {
+    const result = await SegmentTransformer.fetch(auth, query);
+    return result.items; // TODO: return paginated
   }
 
   @Post("/")
   async createSegment(
-    @Body() data: CreateSegmentData
-  ): Promise<GetSegmentData> {
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Body() data: CreateSegmentDto
+  ): Promise<GetSegmentDto> {
     // Default to inserting new segment at the bottom
     if (data.order === undefined) {
-      const bottomSegment = await getRepository(Segment).findOne({
-        order: { order: "DESC" }
+      const segments = await getRepository(Segment).find({
+        select: { order: true },
+        order: { order: "DESC" },
+        take: 1
       });
-      data.order = bottomSegment ? bottomSegment.order + 1 : 0;
+      data.order = segments.length > 0 ? segments[0].order + 1 : 0;
     }
     const segment = await getRepository(Segment).save(data);
-    return convertSegmentToData(segment, {
+
+    // Use fetchOne to ensure that the segment has a contactCount
+    return await SegmentTransformer.fetchOneByIdOrFail(auth, segment.id, {
       with: [GetSegmentWith.contactCount]
     });
   }
 
   @Get("/:id")
   async getSegment(
-    @Params() { id }: UUIDParam,
-    @QueryParams() query: GetSegmentQuery
-  ): Promise<GetSegmentData | undefined> {
-    const segment = await getRepository(Segment).findOne(id);
-    if (segment) {
-      return convertSegmentToData(segment, query);
-    }
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Params() { id }: UUIDParams,
+    @QueryParams() opts: GetSegmentOptsDto
+  ): Promise<GetSegmentDto | undefined> {
+    return await SegmentTransformer.fetchOneById(auth, id, opts);
   }
 
   @Patch("/:id")
   async updateSegment(
-    @Params() { id }: UUIDParam,
-    @PartialBody() data: CreateSegmentData
-  ): Promise<GetSegmentData | undefined> {
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Params() { id }: UUIDParams,
+    @PartialBody() data: CreateSegmentDto
+  ): Promise<GetSegmentDto | undefined> {
     await getRepository(Segment).update(id, data);
-    return await this.getSegment(
-      { id },
-      { with: [GetSegmentWith.contactCount] }
-    );
+    return await SegmentTransformer.fetchOneById(auth, id, {
+      with: [GetSegmentWith.contactCount]
+    });
   }
 
   @Delete("/:id")
   @OnUndefined(204)
-  async deleteSegment(@Params() { id }: UUIDParam): Promise<void> {
+  async deleteSegment(@Params() { id }: UUIDParams): Promise<void> {
     await getRepository(SegmentContact).delete({ segment: { id } });
     await getRepository(SegmentOngoingEmail).delete({ segment: { id } });
     const result = await getRepository(Segment).delete(id);
@@ -105,23 +103,21 @@ export class SegmentController {
 
   @Get("/:id/contacts")
   async getSegmentContacts(
-    @Params() { id }: UUIDParam,
-    @QueryParams() query: GetContactsQuery
-  ): Promise<Paginated<GetContactData> | undefined> {
-    const segment = await getRepository(Segment).findOne(id);
+    @CurrentAuth({ required: true }) auth: AuthInfo,
+    @Params() { id }: UUIDParams,
+    @QueryParams() query: ListContactsDto
+  ): Promise<PaginatedDto<GetContactDto> | undefined> {
+    const segment = await getRepository(Segment).findOneBy({ id });
     if (segment) {
-      return await fetchPaginatedContacts(
-        {
-          ...query,
-          rules: query.rules
-            ? {
-                condition: "AND",
-                rules: [segment.ruleGroup, query.rules]
-              }
-            : segment.ruleGroup
-        },
-        { withRestricted: true }
-      );
+      return await ContactTransformer.fetch(auth, {
+        ...query,
+        rules: query.rules
+          ? {
+              condition: "AND",
+              rules: [segment.ruleGroup, query.rules]
+            }
+          : segment.ruleGroup
+      });
     }
   }
 }

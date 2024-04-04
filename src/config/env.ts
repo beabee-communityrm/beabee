@@ -37,8 +37,8 @@ export function b(name: string, def?: boolean): boolean {
 export function e<T extends readonly string[]>(
   name: string,
   options: T,
-  def?: typeof options[number]
-): typeof options[number] {
+  def?: (typeof options)[number]
+): (typeof options)[number] {
   const value = s(name, def);
   assert(
     options.indexOf(value) !== -1,

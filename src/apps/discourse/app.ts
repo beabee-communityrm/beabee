@@ -1,10 +1,9 @@
-import "module-alias/register";
 import express from "express";
 import DiscourseSSO from "discourse-sso";
-import { getRepository } from "typeorm";
 
 import config from "@config";
 
+import { getRepository } from "@core/database";
 import { isLoggedIn } from "@core/middleware";
 import { hasUser, wrapAsync } from "@core/utils";
 
@@ -24,8 +23,8 @@ app.get(
 
       if (payload && sig && sso.validate(payload as string, sig as string)) {
         const projectContacts = await getRepository(ProjectContact).find({
-          where: { contact: req.user },
-          relations: ["project"]
+          where: { contactId: req.user.id },
+          relations: { project: true }
         });
 
         const groups = projectContacts

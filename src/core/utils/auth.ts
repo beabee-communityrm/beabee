@@ -7,6 +7,8 @@ import { TOTP, Secret } from "otpauth";
 import Contact from "@models/Contact";
 import Password from "@models/Password";
 
+import { LOGIN_CODES } from "@enums/login-codes";
+
 import config from "@config";
 
 export function generateJWTToken(contact: Contact): string {
@@ -215,4 +217,37 @@ export function passwordRequirements(password: string): string | true {
   if (password.match(/[a-z]/g) === null) return "password-err-letter-low";
 
   return true;
+}
+
+/**
+ * Check if password hash matches the raw password.
+ * @param passwordData Password data from database
+ * @param passwordRaw Raw password
+ * @returns Whether the password is valid or not
+ */
+export async function isValidPassword(
+  passwordData: Password,
+  passwordRaw: string
+): Promise<LOGIN_CODES> {
+  if (passwordData.tries >= config.passwordTries) {
+    return LOGIN_CODES.LOCKED;
+  }
+
+  const hash = await hashPassword(
+    passwordRaw,
+    passwordData.salt,
+    passwordData.iterations
+  );
+  // Check if password hash matches
+  return !!passwordData.salt && hash === passwordData.hash
+    ? LOGIN_CODES.LOGGED_IN
+    : LOGIN_CODES.LOGIN_FAILED;
+}
+
+export function extractToken(authHeader?: string): string | null {
+  if (!authHeader) return null;
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.split(" ")[1] || null;
+  }
+  return null;
 }

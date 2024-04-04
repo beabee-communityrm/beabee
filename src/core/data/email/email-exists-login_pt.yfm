@@ -1,0 +1,26 @@
+---
+subject: Já tens uma conta criada
+---
+
+<p>Olá *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Tentaste criar uma nova conta, mas reparámos que já tens uma criada.
+  <b>Podes fazer o login através deste link:</b>
+</p>
+<p><br /></p>
+<p>
+  <a href="*|LOGINLINK|*"><b>Login</b></a>
+</p>
+<p><br /></p>
+<p>
+  Se te esqueceste da tua palavra-passe, vais poder criar uma nova através do
+  link acima.
+</p>
+<p><br /></p>
+<p>
+  <b>Nota:</b> Os dados de pagamento que inseriste não foram gravados. Assim que
+  fizeres login vais poder mudar os teus dados.
+</p>
+<p><br /></p>
+<p>Até já!</p>

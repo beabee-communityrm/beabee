@@ -1,8 +1,8 @@
 import express from "express";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel } from "@core/middleware";
-import { wrapAsync } from "@core/utils";
+import { userToAuth, wrapAsync } from "@core/utils";
 
 import SegmentService from "@core/services/SegmentService";
 
@@ -14,6 +14,7 @@ import SegmentContact from "@models/SegmentContact";
 
 import { EmailSchema, schemaToEmail } from "@apps/tools/apps/emails/app";
 import { cleanRuleGroup } from "@apps/members/app";
+import ContactTransformer from "@api/transformers/ContactTransformer";
 
 const app = express();
 
@@ -22,7 +23,9 @@ app.set("views", __dirname + "/views");
 app.get(
   "/",
   wrapAsync(async (req, res) => {
-    const segments = await SegmentService.getSegmentsWithCount();
+    const segments = await SegmentService.getSegmentsWithCount(
+      userToAuth(req.user!)
+    );
     res.render("index", { segments });
   })
 );
@@ -33,8 +36,8 @@ app.get(
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
     const ongoingEmails = await getRepository(SegmentOngoingEmail).find({
-      where: { segment },
-      relations: ["email"]
+      where: { segmentId: segment.id },
+      relations: { email: true }
     });
     res.render("segment", { segment, ongoingEmails });
   })
@@ -78,8 +81,10 @@ app.post(
         res.redirect("/members/segments/" + segment.id + "#ongoingemails");
         break;
       case "delete":
-        await getRepository(SegmentContact).delete({ segment });
-        await getRepository(SegmentOngoingEmail).delete({ segment });
+        await getRepository(SegmentContact).delete({ segmentId: segment.id });
+        await getRepository(SegmentOngoingEmail).delete({
+          segmentId: segment.id
+        });
         await getRepository(Segment).delete(segment.id);
 
         req.flash("success", "segment-deleted");
@@ -94,7 +99,11 @@ app.get(
   hasNewModel(Segment, "id"),
   wrapAsync(async (req, res) => {
     const segment = req.model as Segment;
-    segment.contactCount = await SegmentService.getSegmentContactCount(segment);
+    segment.contactCount = await ContactTransformer.count(
+      userToAuth(req.user!),
+      { rules: segment.ruleGroup }
+    );
+
     res.render("email", {
       segment,
       emails: await getRepository(Email).find()
@@ -133,7 +142,7 @@ app.post(
               name: "Email to segment " + segment.name
             })
           )
-        : await getRepository(Email).findOneOrFail(data.email);
+        : await getRepository(Email).findOneByOrFail({ id: data.email });
 
     if (data.type === "ongoing") {
       await getRepository(SegmentOngoingEmail).save({

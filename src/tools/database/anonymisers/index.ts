@@ -1,19 +1,19 @@
 import {
-  createQueryBuilder,
   EntityTarget,
-  getRepository,
+  ObjectLiteral,
   OrderByCondition,
   SelectQueryBuilder
 } from "typeorm";
 import { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
+import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import {
   CalloutComponentSchema,
-  CalloutResponseAnswers
+  CalloutResponseAnswersSlide
 } from "@beabee/beabee-common";
 
 import {
@@ -63,7 +63,10 @@ function anonymiseItem<T>(
   return newItem;
 }
 
-function writeItems<T>(model: EntityTarget<T>, items: T[]) {
+function writeItems<T extends ObjectLiteral>(
+  model: EntityTarget<T>,
+  items: T[]
+) {
   const [query, params] = createQueryBuilder()
     .insert()
     .into(model)
@@ -76,7 +79,7 @@ function writeItems<T>(model: EntityTarget<T>, items: T[]) {
 
 function createAnswersMap(
   components: CalloutComponentSchema[]
-): ObjectMap<CalloutResponseAnswers> {
+): ObjectMap<CalloutResponseAnswersSlide> {
   // return Object.fromEntries(
   //   components.map((c) => [c.key, createComponentAnonymiser(c)])
   // );
@@ -96,8 +99,7 @@ async function anonymiseCalloutResponses(
     );
 
     const responses = await fn(createQueryBuilder(CalloutResponse, "item"))
-      .loadAllRelationIds()
-      .andWhere("item.callout = :callout", { callout: callout.slug })
+      .andWhere("item.calloutId = :id", { id: callout.id })
       .orderBy("item.id", "ASC")
       .getMany();
 
@@ -126,7 +128,7 @@ async function anonymiseCalloutResponses(
   }
 }
 
-export async function anonymiseModel<T>(
+export async function anonymiseModel<T extends ObjectLiteral>(
   anonymiser: ModelAnonymiser<T>,
   fn: (qb: SelectQueryBuilder<T>) => SelectQueryBuilder<T>,
   valueMap: Map<string, unknown>
@@ -146,7 +148,6 @@ export async function anonymiseModel<T>(
 
   for (let i = 0; ; i += 1000) {
     const items = await fn(createQueryBuilder(anonymiser.model, "item"))
-      .loadAllRelationIds()
       .orderBy(orderBy)
       .offset(i)
       .limit(1000)
@@ -164,7 +165,7 @@ export async function anonymiseModel<T>(
   }
 }
 
-export function clearModels(anonymisers: ModelAnonymiser<unknown>[]) {
+export function clearModels(anonymisers: ModelAnonymiser<ObjectLiteral>[]) {
   // Reverse order to clear foreign keys correctly
   for (let i = anonymisers.length - 1; i >= 0; i--) {
     console.log(

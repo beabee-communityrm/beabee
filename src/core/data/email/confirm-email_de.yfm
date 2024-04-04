@@ -4,7 +4,10 @@ subject: Bestätigen Sie Ihre E-Mail-Adresse‌
 
 <p>Hallo *|FNAME|* *|LNAME|*,</p>
 <p><br /></p>
-<p>bitte bestätige Sie ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:</p>
+<p>
+  bitte bestätige Sie ihre E-Mail-Adresse, indem Sie auf den folgenden Link
+  klicken:
+</p>
 <p><br /></p>
 <p>
   <a href="*|CONFIRMLINK|*"><b>E-Mail-Adresse bestätigen</b></a>

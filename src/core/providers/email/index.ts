@@ -40,10 +40,10 @@ export interface EmailProvider {
     opts?: EmailOptions
   ): Promise<void>;
   sendTemplate(
-    template: string,
+    templateId: string,
     recipients: EmailRecipient[],
     opts?: EmailOptions
   ): Promise<void>;
-  getTemplateEmail(template: string): Promise<false | Email | null>;
+  getTemplateEmail(templateId: string): Promise<false | Email | null>;
   getTemplates(): Promise<EmailTemplate[]>;
 }

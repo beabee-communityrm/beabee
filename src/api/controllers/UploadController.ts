@@ -1,3 +1,4 @@
+import { plainToInstance } from "class-transformer";
 import { sub } from "date-fns";
 import { Request } from "express";
 import {
@@ -11,12 +12,16 @@ import {
   Post,
   Req
 } from "routing-controllers";
-import { MoreThan, getRepository } from "typeorm";
+import { MoreThan } from "typeorm";
+
+import { getRepository } from "@core/database";
 
 import Contact from "@models/Contact";
 import UploadFlow from "@models/UploadFlow";
 
-import { UUIDParam } from "@api/data";
+import { GetUploadFlowDto } from "@api/dto/UploadFlowDto";
+import BadRequestError from "@api/errors/BadRequestError";
+import { UUIDParams } from "@api/params/UUIDParams";
 
 async function canUploadOrFail(ipAddress: string, date: Date, max: number) {
   const uploadFlows = await getRepository(UploadFlow).find({
@@ -33,7 +38,11 @@ export class UploadController {
   async create(
     @CurrentUser({ required: false }) contact: Contact | undefined,
     @Req() req: Request
-  ): Promise<{ id: string }> {
+  ): Promise<GetUploadFlowDto> {
+    if (!req.ip) {
+      throw new BadRequestError();
+    }
+
     // No more than 10 uploads in a minute for all users
     const oneMinAgo = sub(new Date(), { minutes: 1 });
     await canUploadOrFail(req.ip, oneMinAgo, 10);
@@ -50,14 +59,14 @@ export class UploadController {
       used: false
     });
 
-    return { id: newUploadFlow.id };
+    return plainToInstance(GetUploadFlowDto, { id: newUploadFlow.id });
   }
 
   // This should be a POST request as it's not idempotent, but we use nginx's
   // auth_request directive to call this endpoint and it only does GET requests
   @Get("/:id")
   @OnUndefined(204)
-  async get(@Params() { id }: UUIDParam) {
+  async get(@Params() { id }: UUIDParams): Promise<void> {
     // Flows are valid for a minute
     const oneMinAgo = sub(new Date(), { minutes: 1 });
     const res = await getRepository(UploadFlow).update(

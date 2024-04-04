@@ -9,33 +9,37 @@ import {
   Req
 } from "routing-controllers";
 
-import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import ContactsService from "@core/services/ContactsService";
 
 import { login } from "@api/utils";
-import { UUIDParam } from "@api/data";
 import {
-  CreateResetDeviceData,
-  UpdateResetDeviceData
-} from "@api/data/ResetDeviceData";
+  CreateResetDeviceDto,
+  UpdateResetDeviceDto
+} from "@api/dto/ResetDeviceDto";
+import { UUIDParams } from "@api/params/UUIDParams";
 
 @JsonController("/reset-device")
 export class ResetDeviceController {
   @OnUndefined(204)
   @Post()
-  async create(@Body() data: CreateResetDeviceData): Promise<void> {
-    await ResetSecurityFlowService.resetDeviceBegin(data);
+  async create(@Body() data: CreateResetDeviceDto): Promise<void> {
+    await ContactsService.resetDeviceBegin(
+      data.email,
+      data.type,
+      data.resetUrl
+    );
   }
 
   @OnUndefined(204)
   @Put("/:id")
   async complete(
     @Req() req: Request,
-    @Params() { id }: UUIDParam,
-    @Body() data: UpdateResetDeviceData
+    @Params() { id }: UUIDParams,
+    @Body() data: UpdateResetDeviceDto
   ): Promise<void> {
-    const contact = await ResetSecurityFlowService.resetDeviceComplete(
+    const contact = await ContactsService.resetDeviceComplete(
       id,
-      data
+      data.password
     );
     await login(req, contact);
   }

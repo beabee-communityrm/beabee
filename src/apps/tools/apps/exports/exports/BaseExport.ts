@@ -1,4 +1,4 @@
-import { SelectQueryBuilder } from "typeorm";
+import { ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
 import { Param } from "@core/utils/params";
 
@@ -9,7 +9,7 @@ export type ExportResult =
   | Record<string, unknown>[]
   | { fields: string[]; data: unknown[][] };
 
-export default abstract class BaseExport<T> {
+export default abstract class BaseExport<T extends ObjectLiteral> {
   abstract readonly exportName: string;
   abstract readonly itemName: string;
   abstract readonly itemStatuses: string[];

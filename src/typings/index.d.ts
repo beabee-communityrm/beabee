@@ -1,13 +1,12 @@
 import { ParamsDictionary } from "express-serve-static-core";
 
+import ApiKey from "@models/ApiKey";
+import { CalloutResponseAnswersSlide } from "@models/CalloutResponse";
 import Contact from "@models/Contact";
-import { CalloutResponseAnswers } from "@models/CalloutResponse";
+
+import { AuthInfo as AuthInfo2 } from "@type/auth-info";
 
 declare global {
-  type WithRelationIds<E, K extends keyof E> = Omit<E, K> & {
-    [key in K]: string;
-  };
-
   type HTMLElement = never;
   type BufferSource = never;
   type FormData = never;
@@ -23,7 +22,8 @@ declare global {
       ): void;
       model: unknown;
       allParams: ParamsDictionary;
-      answers?: CalloutResponseAnswers;
+      answers?: CalloutResponseAnswersSlide;
+      auth: AuthInfo2 | undefined;
     }
   }
 }
@@ -36,6 +36,6 @@ declare module "papaparse" {
 declare module "express-session" {
   interface SessionData {
     method?: "plain" | "totp";
-    answers: CalloutResponseAnswers | undefined;
+    answers: CalloutResponseAnswersSlide | undefined;
   }
 }

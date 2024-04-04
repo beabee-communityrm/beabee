@@ -1,11 +1,14 @@
 import express, { Request, Response, NextFunction } from "express";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
-import Content, { ContentId } from "@models/Content";
 import OptionsService from "@core/services/OptionsService";
+
+import Content from "@models/Content";
+
+import { ContentId } from "@type/content-id";
 
 const app = express();
 
@@ -42,7 +45,10 @@ const parseData = {
       presetAmounts: p.presetAmounts.split(",").map((s) => Number(s.trim()))
     })),
     showNoContribution: data.showNoContribution === "true",
-    paymentMethods: data.paymentMethods.split(",").map((s: string) => s.trim())
+    paymentMethods: data.paymentMethods
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter((s: string) => !!s)
   }),
   "join/setup": (data: any) => ({
     ...data,

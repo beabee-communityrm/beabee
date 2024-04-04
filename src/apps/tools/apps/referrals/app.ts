@@ -1,7 +1,7 @@
 import express from "express";
 import _ from "lodash";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { hasNewModel, hasSchema, isAdmin } from "@core/middleware";
 import { wrapAsync } from "@core/utils";
 
