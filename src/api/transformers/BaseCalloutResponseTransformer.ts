@@ -65,12 +65,14 @@ export abstract class BaseCalloutResponseTransformer<
     }
   };
 
-  protected transformFilters(
+  protected async transformFilters(
     query: GetOptsDto & PaginatedQuery
-  ): [
-    Partial<Filters<CalloutResponseFilterName>>,
-    FilterHandlers<CalloutResponseFilterName>
-  ] {
+  ): Promise<
+    [
+      Partial<Filters<CalloutResponseFilterName>>,
+      FilterHandlers<CalloutResponseFilterName>
+    ]
+  > {
     // If looking for responses for a particular callout then add answer filtering
     if (query.callout) {
       const answerFilters = getCalloutFilters(query.callout.formSchema);
