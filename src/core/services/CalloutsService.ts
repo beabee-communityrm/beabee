@@ -11,6 +11,7 @@ import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 
 import { getRepository, runTransaction } from "@core/database";
+import { log as mainLogger } from "@core/logging";
 import { isDuplicateIndex } from "@core/utils";
 
 import Contact from "@models/Contact";
@@ -22,12 +23,13 @@ import CalloutTag from "@models/CalloutTag";
 import CalloutVariant from "@models/CalloutVariant";
 
 import DuplicateId from "@api/errors/DuplicateId";
-
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
+import NotFoundError from "@api/errors/NotFoundError";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CreateCalloutData } from "@type/callout-data";
-import NotFoundError from "@api/errors/NotFoundError";
+
+const log = mainLogger.child({ app: "callouts-service" });
 
 class CalloutsService {
   /**
@@ -51,6 +53,7 @@ class CalloutsService {
 
     while (true) {
       const slug = baseSlug + (autoSlug ? "-" + autoSlug : "");
+      log.info("Creating callout with slug " + slug);
       try {
         return await this.saveCallout({ ...data, slug });
       } catch (err) {
@@ -73,6 +76,7 @@ class CalloutsService {
     id: string,
     data: Partial<CreateCalloutData>
   ): Promise<void> {
+    log.info("Updating callout " + id);
     // Prevent the join survey from being made inactive
     if (OptionsService.getText("join-survey") === id) {
       if (data.expires) {
@@ -127,6 +131,8 @@ class CalloutsService {
    * @returns true if the callout was deleted
    */
   async deleteCallout(id: string): Promise<boolean> {
+    log.info("Deleting callout " + id);
+
     return await runTransaction(async (em) => {
       await em
         .createQueryBuilder()
@@ -341,6 +347,8 @@ class CalloutsService {
           }))
         );
       }
+
+      log.info("Saved callout " + newId);
 
       return newId;
     });
