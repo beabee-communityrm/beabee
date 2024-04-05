@@ -14,6 +14,10 @@ export function CalloutId() {
     required: true,
     value: async (action): Promise<string | undefined> => {
       const id = action.request.params.id;
+      if (!id) {
+        throw new NotFoundError();
+      }
+
       if (isUUID(id)) {
         return id;
       } else {

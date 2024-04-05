@@ -117,7 +117,7 @@ export class CalloutController {
 
   @Authorized("admin")
   @OnUndefined(204)
-  @Delete("/:slug")
+  @Delete("/:id")
   async deleteCallout(@CalloutId() id: string): Promise<void> {
     const deleted = await CalloutsService.deleteCallout(id);
     if (!deleted) {
