@@ -115,18 +115,19 @@ const answerArrayOperators: Partial<
   is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
 };
 
-const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
+export const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
   const answerField = `${args.fieldPrefix}answers -> :slideId -> :answerKey`;
 
   if (args.type === "array") {
+    // Override operator function for array types
     const operatorFn = answerArrayOperators[args.operator];
     if (!operatorFn) {
       // Shouln't be able to happen as rule has been validated
       throw new Error("Invalid ValidatedRule");
     }
     qb.where(args.suffixFn(operatorFn(answerField)));
-    // is_empty and is_not_empty need special treatment for JSONB values
   } else if (args.operator === "is_empty" || args.operator === "is_not_empty") {
+    // is_empty and is_not_empty need special treatment for JSONB values
     const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
     qb.where(
       args.suffixFn(
@@ -134,6 +135,7 @@ const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
       )
     );
   } else if (args.type === "number" || args.type === "boolean") {
+    // Cast from JSONB to native type for comparison
     const cast = args.type === "number" ? "numeric" : "boolean";
     qb.where(args.whereFn(`(${answerField})::${cast}`));
   } else {
