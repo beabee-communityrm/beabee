@@ -30,7 +30,40 @@ export abstract class BaseCalloutResponseTransformer<
 > {
   protected model = CalloutResponse;
   protected filters = calloutResponseFilters;
-  protected filterHandlers = calloutResponseFilterHandlers;
+  protected filterHandlers: FilterHandlers<string> = {
+    /**
+     * Text search across all answers in a response by aggregating them into a
+     * single string
+     */
+    answers: (qb, args) => {
+      qb.where(
+        args.whereFn(`(
+        SELECT string_agg(answer.value, '')
+        FROM jsonb_each(${args.fieldPrefix}answers) AS slide, jsonb_each_text(slide.value) AS answer
+      )`)
+      );
+    },
+    /**
+     * Filter for responses with a specific tag
+     */
+    tags: (qb, args) => {
+      const subQb = createQueryBuilder()
+        .subQuery()
+        .select("crt.responseId")
+        .from(CalloutResponseTag, "crt");
+
+      if (args.operator === "contains" || args.operator === "not_contains") {
+        subQb.where(args.suffixFn("crt.tag = :a"));
+      }
+
+      const inOp =
+        args.operator === "not_contains" || args.operator === "is_not_empty"
+          ? "NOT IN"
+          : "IN";
+
+      qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
+    }
+  };
 
   protected transformFilters(
     query: GetOptsDto & PaginatedQuery
@@ -121,32 +154,4 @@ const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
     s: slideId,
     k: answerKey
   };
-};
-
-const calloutResponseFilterHandlers: FilterHandlers<string> = {
-  answers: (qb, args) => {
-    qb.where(
-      args.whereFn(`(
-        SELECT string_agg(answer.value, '')
-        FROM jsonb_each(${args.fieldPrefix}answers) AS slide, jsonb_each_text(slide.value) AS answer
-      )`)
-    );
-  },
-  tags: (qb, args) => {
-    const subQb = createQueryBuilder()
-      .subQuery()
-      .select("crt.responseId")
-      .from(CalloutResponseTag, "crt");
-
-    if (args.operator === "contains" || args.operator === "not_contains") {
-      subQb.where(args.suffixFn("crt.tag = :a"));
-    }
-
-    const inOp =
-      args.operator === "not_contains" || args.operator === "is_not_empty"
-        ? "NOT IN"
-        : "IN";
-
-    qb.where(`${args.fieldPrefix}id ${inOp} ${subQb.getQuery()}`);
-  }
 };
