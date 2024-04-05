@@ -116,7 +116,7 @@ const answerArrayOperators: Partial<
 };
 
 const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
-  const answerField = `${args.fieldPrefix}answers -> :s -> :k`;
+  const answerField = `${args.fieldPrefix}answers -> :slideId -> :answerKey`;
 
   if (args.type === "array") {
     const operatorFn = answerArrayOperators[args.operator];
@@ -138,12 +138,11 @@ const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
     qb.where(args.whereFn(`(${answerField})::${cast}`));
   } else {
     // Extract as text instead of JSONB (note ->> instead of ->)
-    qb.where(args.whereFn(`${args.fieldPrefix}answers -> :s ->> :k`));
+    qb.where(
+      args.whereFn(`${args.fieldPrefix}answers -> :slideId ->> :answerKey`)
+    );
   }
 
   const [_, slideId, answerKey] = args.field.split(".");
-  return {
-    s: slideId,
-    k: answerKey
-  };
+  return { slideId, answerKey };
 };

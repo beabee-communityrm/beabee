@@ -238,9 +238,9 @@ export function convertRulesToWhereClause<Field extends string>(
       params["a" + suffix] = value[0];
       params["b" + suffix] = value[1];
 
-      // Replace :[a-z] but avoid replacing casts e.g. ::boolean
+      // Add suffixes to parameters but avoid replacing casts e.g. ::boolean
       const suffixFn = (field: string) =>
-        field.replace(/[^:]:[a-z]/g, "$&" + suffix);
+        field.replace(/[^:]:[a-zA-Z]+/g, "$&" + suffix);
 
       let filterHandler = filterHandlers?.[rule.field];
       // See if there is a root field handler if the field is nested
