@@ -242,7 +242,16 @@ export function convertRulesToWhereClause<Field extends string>(
       const suffixFn = (field: string) =>
         field.replace(/[^:]:[a-z]/g, "$&" + suffix);
 
-      const filterHandler = filterHandlers?.[rule.field] || simpleFilterHandler;
+      let filterHandler = filterHandlers?.[rule.field];
+      // See if there is a root field handler if the field is nested
+      if (!filterHandler && rule.field.includes(".")) {
+        const [field] = rule.field.split(".", 2);
+        filterHandler = filterHandlers?.[field as Field]; // TODO: fix type
+      }
+      if (!filterHandler) {
+        filterHandler = simpleFilterHandler;
+      }
+
       const extraParams = filterHandler(qb, {
         fieldPrefix,
         field: rule.field,

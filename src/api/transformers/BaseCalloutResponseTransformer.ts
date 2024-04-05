@@ -74,20 +74,10 @@ export abstract class BaseCalloutResponseTransformer<
     ]
   > {
     // If looking for responses for a particular callout then add answer filtering
-    if (query.callout) {
-      const answerFilters = getCalloutFilters(query.callout.formSchema);
-      // All handled by the same field handler
-      const answerFilterHandlers = Object.fromEntries(
-        Object.keys(answerFilters).map((field) => [
-          field,
-          individualAnswerFilterHandler
-        ])
-      );
-
-      return [answerFilters, answerFilterHandlers];
-    } else {
-      return [{}, {}];
-    }
+    const filters = query.callout
+      ? getCalloutFilters(query.callout.formSchema)
+      : {};
+    return [filters, { answers: individualAnswerFilterHandler }];
   }
 
   protected transformQuery<T extends GetOptsDto & PaginatedQuery>(
