@@ -118,9 +118,16 @@ const operatorsWhereByType: Record<
 // Generic field handlers
 
 const simpleFilterHandler: FilterHandler = (qb, args) => {
-  qb.where(args.whereFn(`${args.fieldPrefix}${args.field}`));
+  qb.where(args.convertToWhereClause(`${args.fieldPrefix}${args.field}`));
 };
 
+/**
+ * Status is a virtual field that maps to starts and expires, this function
+ * applies the correct filter for the status field value
+ *
+ * @param qb The query builder
+ * @param args The rule arguments
+ */
 export const statusFilterHandler: FilterHandler = (qb, args) => {
   // TODO: handle other operators
   if (args.operator !== "equal") {
@@ -170,6 +177,19 @@ function coalesceField(field: string): string {
   return `COALESCE(${field}, '')`;
 }
 
+/**
+ * Takes a rule and returns a field mapping function and the values to compare
+ *
+ * - For text and blob fields, we add COALESE to the field if it's nullable so
+ *   NULL values are treated as empty strings
+ * - For date fields, we DATE_TRUNC the field to the day or more specific unit if
+ *   provided and turn the value into a Date object
+ * - For contact fields, it maps "me" to the contact id
+ * - Otherwise, it returns the field and value as is
+ * @param rule The rule to prepare
+ * @param contact
+ * @returns a field mapping function and the values to compare
+ */
 function prepareRule(
   rule: ValidatedRule<string>,
   contact: Contact | undefined
@@ -205,18 +225,24 @@ function prepareRule(
   }
 }
 
+/**
+ * The query builder doesn't support having the same parameter names for
+ * different parts of the query and subqueries, so we have to ensure each query
+ * parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
+ * the end of each parameter for each rule.
+ *
+ * @param ruleGroup The rule group
+ * @param contact
+ * @param filterHandlers
+ * @param fieldPrefix
+ * @returns
+ */
 export function convertRulesToWhereClause(
   ruleGroup: ValidatedRuleGroup<string>,
   contact: Contact | undefined,
   filterHandlers: FilterHandlers<string> | undefined,
   fieldPrefix: string
 ): [Brackets, Record<string, unknown>] {
-  /*
-    The query builder doesn't support having the same parameter names for
-    different parts of the query and subqueries, so we have to ensure each query
-    parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
-    the end of each parameter for each rule.
-  */
   const params: Record<string, unknown> = {
     // Some queries need a current date parameter
     now: new Date()
@@ -236,38 +262,37 @@ export function convertRulesToWhereClause(
 
   function parseRule(rule: ValidatedRule<string>) {
     return (qb: WhereExpressionBuilder): void => {
-      const operatorFn = operatorsWhereByType[rule.type][rule.operator];
-      if (!operatorFn) {
+      const applyOperator = operatorsWhereByType[rule.type][rule.operator];
+      if (!applyOperator) {
         // Shouln't be able to happen as rule has been validated
         throw new Error("Invalid ValidatedRule");
       }
 
-      const suffix = "_" + ruleNo;
-      const [fieldFn, value] = prepareRule(rule, contact);
+      const paramSuffix = "_" + ruleNo;
+      const [transformField, value] = prepareRule(rule, contact);
 
       // Add values as params
-      params["valueA" + suffix] = value[0];
-      params["valueB" + suffix] = value[1];
+      params["valueA" + paramSuffix] = value[0];
+      params["valueB" + paramSuffix] = value[1];
 
       // Add suffixes to parameters but avoid replacing casts e.g. ::boolean
-      const suffixFn = (field: string) =>
-        field.replace(/[^:]:[a-zA-Z]+/g, "$&" + suffix);
+      const addParamSuffix = (field: string) =>
+        field.replace(/[^:]:[a-zA-Z]+/g, "$&" + paramSuffix);
 
-      const filterHandler = getFilterHandler(rule.field);
-
-      const extraParams = filterHandler(qb, {
+      const newParams = getFilterHandler(rule.field)(qb, {
         fieldPrefix,
         field: rule.field,
         operator: rule.operator,
         type: rule.type,
         value,
-        whereFn: (field) => suffixFn(operatorFn(fieldFn(field))),
-        suffixFn
+        convertToWhereClause: (field) =>
+          addParamSuffix(applyOperator(transformField(field))),
+        addParamSuffix
       });
 
-      if (extraParams) {
-        for (const [key, value] of Object.entries(extraParams)) {
-          params[key + suffix] = value;
+      if (newParams) {
+        for (const [key, value] of Object.entries(newParams)) {
+          params[key + paramSuffix] = value;
         }
       }
 

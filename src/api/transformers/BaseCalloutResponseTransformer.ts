@@ -37,7 +37,7 @@ export abstract class BaseCalloutResponseTransformer<
      */
     answers: (qb, args) => {
       qb.where(
-        args.whereFn(`(
+        args.convertToWhereClause(`(
         SELECT string_agg(answer.value, '')
         FROM jsonb_each(${args.fieldPrefix}answers) AS slide, jsonb_each_text(slide.value) AS answer
       )`)
@@ -53,7 +53,7 @@ export abstract class BaseCalloutResponseTransformer<
         .from(CalloutResponseTag, "crt");
 
       if (args.operator === "contains" || args.operator === "not_contains") {
-        subQb.where(args.suffixFn("crt.tag = :valueA"));
+        subQb.where(args.addParamSuffix("crt.tag = :valueA"));
       }
 
       const inOp =
@@ -122,23 +122,25 @@ export const individualAnswerFilterHandler: FilterHandler = (qb, args) => {
       // Shouln't be able to happen as rule has been validated
       throw new Error("Invalid ValidatedRule");
     }
-    qb.where(args.suffixFn(operatorFn(answerField)));
+    qb.where(args.addParamSuffix(operatorFn(answerField)));
   } else if (args.operator === "is_empty" || args.operator === "is_not_empty") {
     // is_empty and is_not_empty need special treatment for JSONB values
     const operator = args.operator === "is_empty" ? "IN" : "NOT IN";
     qb.where(
-      args.suffixFn(
+      args.addParamSuffix(
         `COALESCE(${answerField}, 'null') ${operator} ('null', '""')`
       )
     );
   } else if (args.type === "number" || args.type === "boolean") {
     // Cast from JSONB to native type for comparison
     const cast = args.type === "number" ? "numeric" : "boolean";
-    qb.where(args.whereFn(`(${answerField})::${cast}`));
+    qb.where(args.convertToWhereClause(`(${answerField})::${cast}`));
   } else {
     // Extract as text instead of JSONB (note ->> instead of ->)
     qb.where(
-      args.whereFn(`${args.fieldPrefix}answers -> :slideId ->> :answerKey`)
+      args.convertToWhereClause(
+        `${args.fieldPrefix}answers -> :slideId ->> :answerKey`
+      )
     );
   }
 

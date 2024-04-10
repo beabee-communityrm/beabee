@@ -47,7 +47,7 @@ class CalloutTransformer extends BaseTransformer<
     status: statusFilterHandler,
     title: (qb, args) => {
       // Filter by variant title
-      qb.where(args.whereFn("cvd.title"));
+      qb.where(args.convertToWhereClause("cvd.title"));
     }
   };
 
@@ -79,7 +79,7 @@ class CalloutTransformer extends BaseTransformer<
             .select("cr.calloutId")
             .distinctOn(["cr.calloutId"])
             .from(CalloutResponse, "cr")
-            .where(args.whereFn(`cr.contactId`))
+            .where(args.convertToWhereClause(`cr.contactId`))
             .orderBy("cr.calloutId");
 
           qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);

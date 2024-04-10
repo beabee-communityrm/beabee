@@ -88,27 +88,39 @@ export abstract class BaseContactTransformer<
 // Field handlers
 
 function membershipField(field: keyof ContactRole): FilterHandler {
-  return (qb, args) => {
+  return (qb, { fieldPrefix, convertToWhereClause }) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`cr.contactId`)
       .from(ContactRole, "cr")
       .where(`cr.type = 'member'`)
-      .andWhere(args.whereFn(`cr.${field}`));
+      .andWhere(convertToWhereClause(`cr.${field}`));
 
-    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
+    qb.where(`${fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
 function profileField(field: keyof ContactProfile): FilterHandler {
-  return (qb, args) => {
+  return (qb, { fieldPrefix, convertToWhereClause }) => {
     const subQb = createQueryBuilder()
       .subQuery()
       .select(`profile.contactId`)
       .from(ContactProfile, "profile")
-      .where(args.whereFn(`profile.${field}`));
+      .where(convertToWhereClause(`profile.${field}`));
 
-    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
+    qb.where(`${fieldPrefix}id IN ${subQb.getQuery()}`);
+  };
+}
+
+function paymentDataField(field: string): FilterHandler {
+  return (qb, { fieldPrefix, convertToWhereClause }) => {
+    const subQb = createQueryBuilder()
+      .subQuery()
+      .select(`pd.contactId`)
+      .from(PaymentData, "pd")
+      .where(convertToWhereClause(`pd.${field}`));
+
+    qb.where(`${fieldPrefix}id IN ${subQb.getQuery()}`);
   };
 }
 
@@ -139,20 +151,9 @@ const activePermission: FilterHandler = (qb, args) => {
   }
 };
 
-function paymentDataField(field: string): FilterHandler {
-  return (qb, args) => {
-    const subQb = createQueryBuilder()
-      .subQuery()
-      .select(`pd.contactId`)
-      .from(PaymentData, "pd")
-      .where(args.whereFn(`pd.${field}`));
-
-    qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
-  };
-}
-
 const calloutResponseFilterHandler: FilterHandler = (qb, args) => {
-  const [_, calloutId, ...answerFields] = args.field.split(".");
+  // Split out callouts.<id>.responses.<answerFields...>
+  const [, calloutId, , ...answerFields] = args.field.split(".");
 
   const subQb = createQueryBuilder()
     .subQuery()
@@ -164,7 +165,7 @@ const calloutResponseFilterHandler: FilterHandler = (qb, args) => {
     field: answerFields.join(".")
   });
 
-  subQb.andWhere(args.suffixFn(`item.calloutId = :calloutId`));
+  subQb.andWhere(args.addParamSuffix(`item.calloutId = :calloutId`));
 
   qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
 
