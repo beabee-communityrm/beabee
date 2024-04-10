@@ -205,10 +205,10 @@ function prepareRule(
   }
 }
 
-export function convertRulesToWhereClause<Field extends string>(
-  ruleGroup: ValidatedRuleGroup<Field>,
+export function convertRulesToWhereClause(
+  ruleGroup: ValidatedRuleGroup<string>,
   contact: Contact | undefined,
-  filterHandlers: FilterHandlers<Field> | undefined,
+  filterHandlers: FilterHandlers<string> | undefined,
   fieldPrefix: string
 ): [Brackets, Record<string, unknown>] {
   /*
@@ -223,7 +223,18 @@ export function convertRulesToWhereClause<Field extends string>(
   };
   let ruleNo = 0;
 
-  function parseRule(rule: ValidatedRule<Field>) {
+  function getFilterHandler(field: string): FilterHandler {
+    let filterHandler = filterHandlers?.[field];
+    // See if there is a catch all field handler for subfields
+    if (!filterHandler && field.includes(".")) {
+      const catchallField = field.split(".", 1)[0] + ".";
+      filterHandler = filterHandlers?.[catchallField];
+    }
+
+    return filterHandler || simpleFilterHandler;
+  }
+
+  function parseRule(rule: ValidatedRule<string>) {
     return (qb: WhereExpressionBuilder): void => {
       const operatorFn = operatorsWhereByType[rule.type][rule.operator];
       if (!operatorFn) {
@@ -242,15 +253,7 @@ export function convertRulesToWhereClause<Field extends string>(
       const suffixFn = (field: string) =>
         field.replace(/[^:]:[a-zA-Z]+/g, "$&" + suffix);
 
-      let filterHandler = filterHandlers?.[rule.field];
-      // See if there is a root field handler if the field is nested
-      if (!filterHandler && rule.field.includes(".")) {
-        const [field] = rule.field.split(".", 2);
-        filterHandler = filterHandlers?.[field as Field]; // TODO: fix type
-      }
-      if (!filterHandler) {
-        filterHandler = simpleFilterHandler;
-      }
+      const filterHandler = getFilterHandler(rule.field);
 
       const extraParams = filterHandler(qb, {
         fieldPrefix,
@@ -272,7 +275,7 @@ export function convertRulesToWhereClause<Field extends string>(
     };
   }
 
-  function parseRuleGroup(ruleGroup: ValidatedRuleGroup<Field>) {
+  function parseRuleGroup(ruleGroup: ValidatedRuleGroup<string>) {
     return (qb: WhereExpressionBuilder): void => {
       if (ruleGroup.rules.length > 0) {
         qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");

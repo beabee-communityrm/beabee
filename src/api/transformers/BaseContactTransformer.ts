@@ -25,8 +25,6 @@ import { isUUID } from "class-validator";
 import { individualAnswerFilterHandler } from "./BaseCalloutResponseTransformer";
 import CalloutResponse from "@models/CalloutResponse";
 
-type ContactFilterName2 = ContactFilterName | "callouts" | `callouts.${string}`;
-
 function flattenRules(rules: RuleGroup): Rule[] {
   return rules.rules.flatMap((rule) =>
     isRuleGroup(rule) ? flattenRules(rule) : rule
@@ -41,7 +39,7 @@ export abstract class BaseContactTransformer<
   protected filters: Filters<ContactFilterName> = contactFilters;
 
   // TODO: should be protected once SegmentService is refactored
-  filterHandlers: FilterHandlers<ContactFilterName2> = {
+  filterHandlers: FilterHandlers<string> = {
     deliveryOptIn: profileField("deliveryOptIn"),
     newsletterStatus: profileField("newsletterStatus"),
     tags: profileField("tags"),
@@ -58,33 +56,32 @@ export abstract class BaseContactTransformer<
 
   protected async transformFilters(
     query: GetOptsDto & PaginatedQuery
-  ): Promise<
-    [Partial<Filters<ContactFilterName2>>, FilterHandlers<ContactFilterName2>]
-  > {
+  ): Promise<[Partial<Filters<ContactFilterName>>, FilterHandlers<string>]> {
     const rules = query.rules ? flattenRules(query.rules) : [];
 
     // Load callouts referenced in a filter
     const calloutIds = rules
       .filter((r) => r.field.startsWith("callouts."))
       .map((r) => {
-        const [_, calloutId] = r.field.split(".");
+        const [_, calloutId] = r.field.split(".", 2);
         return calloutId;
       })
       .filter((v, i, a) => a.indexOf(v) === i)
       .filter((id) => isUUID(id));
 
-    const filters: Partial<Filters<ContactFilterName2>> = {};
+    const filters: Partial<Filters> = {};
     for (const calloutId of calloutIds) {
       const callout = await getRepository(Callout).findOneBy({ id: calloutId });
       if (callout) {
         const calloutFilters = getCalloutFilters(callout.formSchema);
         for (const key in calloutFilters) {
-          filters[`callouts.${calloutId}.${key}`] = calloutFilters[key];
+          filters[`callouts.${calloutId}.responses.${key}`] =
+            calloutFilters[key];
         }
       }
     }
 
-    return [filters, { callouts: calloutFilterHandler }];
+    return [filters, { "callouts.": calloutResponseFilterHandler }];
   }
 }
 
@@ -154,7 +151,7 @@ function paymentDataField(field: string): FilterHandler {
   };
 }
 
-const calloutFilterHandler: FilterHandler = (qb, args) => {
+const calloutResponseFilterHandler: FilterHandler = (qb, args) => {
   const [_, calloutId, ...answerFields] = args.field.split(".");
 
   const subQb = createQueryBuilder()

@@ -68,16 +68,13 @@ export abstract class BaseCalloutResponseTransformer<
   protected async transformFilters(
     query: GetOptsDto & PaginatedQuery
   ): Promise<
-    [
-      Partial<Filters<CalloutResponseFilterName>>,
-      FilterHandlers<CalloutResponseFilterName>
-    ]
+    [Partial<Filters<CalloutResponseFilterName>>, FilterHandlers<string>]
   > {
     // If looking for responses for a particular callout then add answer filtering
     const filters = query.callout
       ? getCalloutFilters(query.callout.formSchema)
       : {};
-    return [filters, { answers: individualAnswerFilterHandler }];
+    return [filters, { "answers.": individualAnswerFilterHandler }];
   }
 
   protected transformQuery<T extends GetOptsDto & PaginatedQuery>(
