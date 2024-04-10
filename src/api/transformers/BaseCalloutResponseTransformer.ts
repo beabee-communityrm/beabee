@@ -53,7 +53,7 @@ export abstract class BaseCalloutResponseTransformer<
         .from(CalloutResponseTag, "crt");
 
       if (args.operator === "contains" || args.operator === "not_contains") {
-        subQb.where(args.suffixFn("crt.tag = :a"));
+        subQb.where(args.suffixFn("crt.tag = :valueA"));
       }
 
       const inOp =
@@ -106,8 +106,8 @@ export abstract class BaseCalloutResponseTransformer<
 const answerArrayOperators: Partial<
   Record<RuleOperator, (field: string) => string>
 > = {
-  contains: (field) => `(${field} -> :a)::boolean`,
-  not_contains: (field) => `NOT (${field} -> :a)::boolean`,
+  contains: (field) => `(${field} -> :valueA)::boolean`,
+  not_contains: (field) => `NOT (${field} -> :valueA)::boolean`,
   is_empty: (field) => `NOT jsonb_path_exists(${field}, '$.* ? (@ == true)')`,
   is_not_empty: (field) => `jsonb_path_exists(${field}, '$.* ? (@ == true)')`
 };

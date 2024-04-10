@@ -43,8 +43,8 @@ import Contact from "@models/Contact";
 // Operator definitions
 
 const equalityOperatorsWhere = {
-  equal: (field: string) => `${field} = :a`,
-  not_equal: (field: string) => `${field} <> :a`
+  equal: (field: string) => `${field} = :valueA`,
+  not_equal: (field: string) => `${field} <> :valueA`
 };
 
 const nullableOperatorsWhere = {
@@ -53,8 +53,8 @@ const nullableOperatorsWhere = {
 };
 
 const blobOperatorsWhere = {
-  contains: (field: string) => `${field} ILIKE '%' || :a || '%'`,
-  not_contains: (field: string) => `${field} NOT ILIKE '%' || :a || '%'`,
+  contains: (field: string) => `${field} ILIKE '%' || :valueA || '%'`,
+  not_contains: (field: string) => `${field} NOT ILIKE '%' || :valueA || '%'`,
   is_empty: (field: string) => `${field} = ''`,
   is_not_empty: (field: string) => `${field} <> ''`
 };
@@ -62,12 +62,12 @@ const blobOperatorsWhere = {
 const numericOperatorsWhere = {
   ...equalityOperatorsWhere,
   ...nullableOperatorsWhere,
-  less: (field: string) => `${field} < :a`,
-  less_or_equal: (field: string) => `${field} <= :a`,
-  greater: (field: string) => `${field} > :a`,
-  greater_or_equal: (field: string) => `${field} >= :a`,
-  between: (field: string) => `${field} BETWEEN :a AND :b`,
-  not_between: (field: string) => `${field} NOT BETWEEN :a AND :b`
+  less: (field: string) => `${field} < :valueA`,
+  less_or_equal: (field: string) => `${field} <= :valueA`,
+  greater: (field: string) => `${field} > :valueA`,
+  greater_or_equal: (field: string) => `${field} >= :valueA`,
+  between: (field: string) => `${field} BETWEEN :valueA AND :valueB`,
+  not_between: (field: string) => `${field} NOT BETWEEN :valueA AND :valueB`
 };
 
 function withOperators<T extends FilterType>(
@@ -87,10 +87,10 @@ const operatorsWhereByType: Record<
   text: withOperators("text", {
     ...equalityOperatorsWhere,
     ...blobOperatorsWhere,
-    begins_with: (field) => `${field} ILIKE :a || '%'`,
-    not_begins_with: (field) => `${field} NOT ILIKE :a || '%'`,
-    ends_with: (field) => `${field} ILIKE '%' || :a`,
-    not_ends_with: (field) => `${field} NOT ILIKE '%' || :a`
+    begins_with: (field) => `${field} ILIKE :valueA || '%'`,
+    not_begins_with: (field) => `${field} NOT ILIKE :valueA || '%'`,
+    ends_with: (field) => `${field} ILIKE '%' || :valueA`,
+    not_ends_with: (field) => `${field} NOT ILIKE '%' || :valueA`
   }),
   blob: withOperators("blob", blobOperatorsWhere),
   date: withOperators("date", numericOperatorsWhere),
@@ -100,8 +100,8 @@ const operatorsWhereByType: Record<
     equal: equalityOperatorsWhere.equal
   }),
   array: withOperators("array", {
-    contains: (field) => `${field} ? :a`,
-    not_contains: (field) => `${field} ? :a = FALSE`,
+    contains: (field) => `${field} ? :valueA`,
+    not_contains: (field) => `${field} ? :valueA = FALSE`,
     is_empty: (field) => `${field} ->> 0 IS NULL`,
     is_not_empty: (field) => `${field} ->> 0 IS NOT NULL`
   }),
@@ -246,8 +246,8 @@ export function convertRulesToWhereClause(
       const [fieldFn, value] = prepareRule(rule, contact);
 
       // Add values as params
-      params["a" + suffix] = value[0];
-      params["b" + suffix] = value[1];
+      params["valueA" + suffix] = value[0];
+      params["valueB" + suffix] = value[1];
 
       // Add suffixes to parameters but avoid replacing casts e.g. ::boolean
       const suffixFn = (field: string) =>
