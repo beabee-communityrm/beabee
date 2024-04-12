@@ -67,6 +67,7 @@
     "chooseFile": "Choose file",
     "close": "Close",
     "continue": "Continue",
+    "copy": "Copy",
     "create": "Create",
     "delete": "Delete",
     "disable": "Disable",
@@ -75,6 +76,7 @@
     "endnow": "End now",
     "export": "Export",
     "getStarted": "Get started",
+    "goBack": "Go back",
     "next": "Next",
     "noBack": "No, go back",
     "participate": "Participate",
@@ -92,6 +94,7 @@
     "saveDraft": "Save draft",
     "schedule": "Schedule",
     "search": "Search",
+    "share": "Share",
     "skip": "Skip",
     "submit": "Submit",
     "unpublish": "Unpublish",
@@ -321,7 +324,8 @@
       "updateResponse": "Update your response"
     },
     "addAPoint": "Click on the map where you want to add a point",
-    "addLocation": "Add a new location",
+    "addLocation": "Add a new entry",
+    "confirmHuman": "Please confirm you are human",
     "contactDetails": "Contact details",
     "ended": "This callout ended on {date}",
     "form": {
@@ -330,6 +334,8 @@
       "name": "Your name",
       "submittingResponseError": "There was a problem submitting your response, please try again"
     },
+    "fromMap": "From a point in the map",
+    "fromMyLocation": "From my location",
     "getStarted": "Get started",
     "joinNow": "Join now",
     "loginToYourAccount": "Login to your account",
@@ -409,7 +415,15 @@
     "prevButton": "Back button text",
     "showAdvancedOptions": "Show advanced options",
     "slideNo": "Slide {no}",
-    "submitButton": "Submit button text"
+    "submitButton": "Submit button text",
+    "translationFields": {
+      "description": "Description",
+      "label": "Label",
+      "option": "Option {n}",
+      "placeholder": "Placeholder"
+    },
+    "translationsText": "Set the translations for each component in your form",
+    "translationsTitle": "Translations"
   },
   "calloutResponse": {
     "data": {
@@ -506,24 +520,23 @@
     }
   },
   "common": {
-    "annually": "Annually",
     "backToHome": "Back to home",
     "contributing": "Contributing",
+    "contributionPeriod": {
+      "annually": "Annually",
+      "monthly": "Monthly"
+    },
     "contributionType": {
       "automatic": "Automatic",
       "gift": "Gift",
       "manual": "Manual",
       "none": "None"
     },
-    "copy": "Copy",
-    "goBack": "Go back",
     "hello": "Hello",
     "itemsPerPage": "{items} items per page",
     "joined": "Joined",
     "loading": "Loading...",
     "login": "Login",
-    "month": "month | months",
-    "monthly": "Monthly",
     "newsletterStatus": {
       "cleaned": "Cleaned",
       "none": "None",
@@ -540,6 +553,10 @@
       "pending": "Pending",
       "successful": "Successful"
     },
+    "perMonth": "/ month",
+    "perMonthText": "a month",
+    "perYear": "/ year",
+    "perYearText": "a year",
     "role": {
       "admin": "Admin",
       "member": "Member",
@@ -547,7 +564,6 @@
     },
     "selectNone": "-- None --",
     "selectOne": "Select one...",
-    "share": "Share",
     "show": "Show",
     "status": {
       "draft": "Draft",
@@ -559,7 +575,6 @@
     "timeAgo": "{time} ago",
     "timeIn": "in {time}",
     "until": "until",
-    "year": "year | years",
     "yes": "Yes"
   },
   "contactContribution": {
@@ -659,7 +674,6 @@
     "changeBank": "Change to a different bank account",
     "changeBankInfo": "You'll be asked for the details of your new bank account in the next step.",
     "contributing": "You're contributing",
-    "contributingAmount": "{amount} a {period}",
     "contributionUpdateError": "You can't update your contribution at the moment as you have a payment pending",
     "dueToRenew": "Your contribution is due to renew on {renewalDate}.",
     "expired": "Your contribution expired.",
@@ -674,8 +688,10 @@
     },
     "paymentMethod": "Payment method",
     "paymentSourceUpdateError": "You can't update your bank account at the moment as you have a payment pending",
-    "prorateDecreaseMessage": "You have {monthsLeft} {months} left on your current contribution, your new contribution will start on {renewalDate}.",
-    "prorateIncreaseMessage": "You have {monthsLeft} {months} left on your current contribution. You can make a one-off payment of {oneOffPayment} to start your new contribution immediately.",
+    "prorateDecreaseMessage": "You have one month left on your current contribution. | You have {n} months left on your current contribution.",
+    "prorateDecreaseMessageWillStart": "Your new contribution will start on {renewalDate}.",
+    "prorateIncreaseMessage": "You have one month left on your current contribution. | You have {n} months left on your current contribution.",
+    "prorateIncreaseMessageOneOff": "You can make a one-off payment of {oneOffPayment} to start your new contribution immediately.",
     "prorateNoText": "You'll stay on your current contribution until then.",
     "prorateNoTitle": "Update my contribution on {renewalDate}",
     "prorateYesText": "You'll be charged a one-off payment of {oneOffPayment} now and your contribution will be updated immedately",
@@ -783,6 +799,9 @@
             "center": {
               "label": "Initial map center"
             },
+            "geocodeCountries": {
+              "label": "Restrict location search results to specific countries?"
+            },
             "initialZoom": {
               "label": "Initial zoom level"
             },
@@ -804,6 +823,15 @@
             "opts": {
               "no": "No, only one response",
               "yes": "Yes"
+            }
+          },
+          "requireCaptcha": {
+            "help": "<p>If you enable <strong>bot spam protection</strong> users will be required to complete a Captcha to confirm they are human. This is useful to prevent your callout being spammed by bots</p>\n",
+            "label": "Enable bot spam protection on the callout?",
+            "opts": {
+              "all": "Yes, ask all users to confirm they are human",
+              "guests": "Yes, ask guests to confirm they are human",
+              "none": "No"
             }
           },
           "responseImageFilter": {
@@ -1038,11 +1066,14 @@
     "components": {
       "file": {
         "browse": "upload from device",
-        "dropFiles": "Drop files to attach,",
+        "dropFiles": "Drop files to attach",
         "or": "or",
         "switchToFileUpload": "Switch to file upload",
         "takePicture": "Take Picture",
         "useCamera": "use camera"
+      },
+      "multiple": {
+        "addAnother": "Add another"
       }
     }
   },
@@ -1060,7 +1091,6 @@
   },
   "item": {
     "status": {
-      "endedOn": "on {date}",
       "endsIn": "Ends in {duration}",
       "startsIn": "Starts in {duration}"
     }
@@ -1069,7 +1099,7 @@
     "absorbFeeForce": "{amount} contributions must absorb the {fee} fee.",
     "absorbFeeOptIn": "Yes, I'll absorb the {fee} fee.",
     "absorbFeeText": "Our payment processor charges us per transaction which means we receive less from monthly contributions. Are you happy to absorb the {fee} transaction fee?  Alternatively you could pay annually.",
-    "contribute": "Contribute {amount} / {period}",
+    "contribute": "Contribute {contribution}",
     "errors": {
       "confirmEmail": {
         "message": "Almost there! We just need to confirm your email address to finish setting up your membership.",
@@ -1098,14 +1128,13 @@
     "goBack": "Did you miss something? {back}",
     "goBackButton": "Back to the previous screen",
     "note": "You'll be able to modify your contribution and access your payment history at any time in your member account",
-    "willBeContributing": "You'll be contributing {amount}/{period}"
+    "willBeContributing": "You'll be contributing {contribution}"
   },
   "joinSetup": {
     "confirmDetails": "Please confirm your details",
     "continue": "All good! Continue",
     "welcome": "Welcome {firstName}!"
   },
-  "locale": "en",
   "login": {
     "backTo": "Back to {newsroomName}",
     "forgotPassword": "Forgot your password?",
@@ -1226,6 +1255,7 @@
     "notFound": "Page not found",
     "resetDevice": "Reset 2FA device",
     "resetPassword": "Reset password",
+    "setPassword": "Set password",
     "setup": "Setup"
   },
   "paymentMethods": {
@@ -1243,6 +1273,11 @@
       "changeLabel": "Change card details",
       "label": "Card",
       "setLabel": "Your card details"
+    },
+    "s_paypal": {
+      "changeLabel": "Change PayPal details",
+      "label": "PayPal",
+      "setLabel": "Your PayPal details"
     },
     "s_sepa": {
       "changeLabel": "Change direct debit",
