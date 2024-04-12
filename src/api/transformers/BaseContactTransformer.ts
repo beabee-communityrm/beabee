@@ -165,7 +165,9 @@ const calloutResponseFilterHandler: FilterHandler = (qb, args) => {
     field: answerFields.join(".")
   });
 
-  subQb.andWhere(args.addParamSuffix(`item.calloutId = :calloutId`));
+  subQb
+    .andWhere(args.addParamSuffix("item.calloutId = :calloutId"))
+    .andWhere("item.contactId IS NOT NULL");
 
   qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
 
