@@ -179,7 +179,8 @@ const contentData = {
     stripeCountry: ["readonly", () => config.stripe.country],
     stripePublicKey: ["readonly", () => config.stripe.publicKey],
     subtitle: ["data", ""],
-    title: ["data", ""]
+    title: ["data", ""],
+    taxRate: ["option", "tax-rate", "int"]
   }),
   "join/setup": withValue<"join/setup">({
     mailOptIn: ["data", ""],

@@ -136,6 +136,9 @@ export class GetJoinContentDto implements JoinContentData {
 
   @IsIn(["eu", "gb", "ca"])
   stripeCountry!: StripeFeeCountry;
+
+  @IsNumber()
+  taxRate!: number;
 }
 
 export class GetJoinSetupContentDto implements JoinSetupContentData {

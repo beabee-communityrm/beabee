@@ -57,6 +57,7 @@ export interface JoinContentData {
   paymentMethods: PaymentMethod[];
   stripePublicKey: string;
   stripeCountry: StripeFeeCountry;
+  taxRate: number;
 }
 
 export interface JoinSetupContentData {
