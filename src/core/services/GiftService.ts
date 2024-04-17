@@ -4,7 +4,7 @@ import moment from "moment";
 
 import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import stripe from "@core/lib/stripe";
+import { stripe } from "@core/lib/stripe";
 import { isDuplicateIndex } from "@core/utils";
 import { generateContactCode } from "@core/utils/contact";
 

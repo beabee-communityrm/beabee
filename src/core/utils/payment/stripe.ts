@@ -7,7 +7,7 @@ import {
 import { differenceInMonths } from "date-fns";
 import Stripe from "stripe";
 
-import stripe from "@core/lib/stripe";
+import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
 import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";

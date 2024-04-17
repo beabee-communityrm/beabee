@@ -1,59 +1,46 @@
-import _Stripe from "stripe";
+import Stripe from "stripe";
 import config from "@config";
-import OptionsService, { OptionKey } from "@core/services/OptionsService";
+import OptionsService from "@core/services/OptionsService";
 
-class TaxRatesResource extends _Stripe.TaxRatesResource {
-  constructor() {
-    super();
+export const stripe = new Stripe(config.stripe.secretKey, {
+  apiVersion: "2023-10-16",
+  typescript: true
+});
+
+/**
+ * Update or create the Beabee default tax rate on Stripe,
+ * We currently only support this onle one tax rate.
+ * */
+export const taxRateUpdateOrCreateDefault = async function (
+  this: Stripe.TaxRatesResource,
+  data: Stripe.TaxRateUpdateParams &
+    Partial<Stripe.TaxRateCreateParams> &
+    Pick<Stripe.TaxRateCreateParams, "percentage" | "metadata">,
+  id?: string,
+  options?: Stripe.RequestOptions
+) {
+  const defaultDisplayName = OptionsService.get(
+    "tax-rate-strapi-default-display-name"
+  ).value;
+  const taxRateInclusive =
+    OptionsService.get("tax-rate-inclusive").value === "true";
+
+  if (!id) {
+    id = (await this.list()).data.find(
+      (taxRate) => taxRate.display_name === defaultDisplayName
+    )?.id;
   }
 
-  /** Update or create the default tax rate */
-  public async updateOrCreateDefault(
-    data: _Stripe.TaxRateUpdateParams &
-      Partial<_Stripe.TaxRateCreateParams> &
-      Pick<_Stripe.TaxRateCreateParams, "country" | "percentage" | "metadata">,
-    id?: string,
-    options?: _Stripe.RequestOptions
-  ) {
-    const defaultDisplayName = OptionsService.get(
-      "tax-rate-strapi-default-display-name"
-    ).value;
-    const taxRateInclusive =
-      OptionsService.get("tax-rate-inclusive").value === "true";
-
-    if (!id) {
-      id = (await this.list()).data.find(
-        (taxRate) => taxRate.display_name === defaultDisplayName
-      )?.id;
-    }
-
-    if (id) {
-      return this.update(id, data, options);
-    }
-
-    const create: _Stripe.TaxRateCreateParams = {
-      display_name: defaultDisplayName,
-      inclusive: taxRateInclusive,
-      ...data
-    };
-
-    return await this.create(create, options);
+  if (id) {
+    return this.update(id, data, options);
   }
-}
 
-class Stripe extends _Stripe {
-  taxRates: TaxRatesResource;
-  constructor(
-    apiKey = config.stripe.secretKey,
-    options: _Stripe.StripeConfig = {
-      apiVersion: "2023-10-16" as "2023-10-16",
-      typescript: true as true
-    }
-  ) {
-    super(apiKey, options);
+  const create: Stripe.TaxRateCreateParams = {
+    display_name: defaultDisplayName,
+    inclusive: taxRateInclusive,
+    country: config.stripe.country,
+    ...data
+  };
 
-    this.taxRates = new TaxRatesResource();
-  }
-}
-
-export default new Stripe();
+  return await this.create(create, options);
+}.bind(stripe.taxRates);

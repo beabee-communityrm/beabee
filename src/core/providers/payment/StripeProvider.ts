@@ -5,7 +5,7 @@ import Stripe from "stripe";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
-import stripe from "@core/lib/stripe";
+import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
 import { getActualAmount, PaymentForm } from "@core/utils";
 import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
