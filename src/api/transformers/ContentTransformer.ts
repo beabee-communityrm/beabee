@@ -180,7 +180,8 @@ const contentData = {
     stripePublicKey: ["readonly", () => config.stripe.publicKey],
     subtitle: ["data", ""],
     title: ["data", ""],
-    taxRate: ["option", "tax-rate", "int"]
+    taxRate: ["option", "tax-rate-percentage", "int"],
+    taxRateStrapiId: ["option", "tax-rate-strapi-default-id", "text"]
   }),
   "join/setup": withValue<"join/setup">({
     mailOptIn: ["data", ""],

@@ -58,6 +58,7 @@ export interface JoinContentData {
   stripePublicKey: string;
   stripeCountry: StripeFeeCountry;
   taxRate: number;
+  taxRateStrapiId: string;
 }
 
 export interface JoinSetupContentData {

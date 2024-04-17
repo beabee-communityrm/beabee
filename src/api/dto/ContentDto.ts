@@ -139,6 +139,9 @@ export class GetJoinContentDto implements JoinContentData {
 
   @IsNumber()
   taxRate!: number;
+
+  @IsString()
+  taxRateStrapiId!: string;
 }
 
 export class GetJoinSetupContentDto implements JoinSetupContentData {

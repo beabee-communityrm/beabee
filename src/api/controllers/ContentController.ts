@@ -20,6 +20,7 @@ import {
 } from "@api/dto/ContentDto";
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
+import stripe from "@core/lib/stripe";
 
 @JsonController("/content")
 export class ContentController {
@@ -33,7 +34,7 @@ export class ContentController {
   async updateContacts(
     @PartialBody() data: GetContactsContentDto
   ): Promise<GetContactsContentDto> {
-    ContentTransformer.updateOne("contacts", data);
+    await ContentTransformer.updateOne("contacts", data);
     return ContentTransformer.fetchOne("contacts");
   }
 
@@ -42,7 +43,7 @@ export class ContentController {
   async updateEmail(
     @PartialBody() data: GetEmailContentDto
   ): Promise<GetEmailContentDto> {
-    ContentTransformer.updateOne("email", data);
+    await ContentTransformer.updateOne("email", data);
     return ContentTransformer.fetchOne("email");
   }
 
@@ -51,7 +52,7 @@ export class ContentController {
   async updateGeneral(
     @PartialBody() data: GetGeneralContentDto
   ): Promise<GetGeneralContentDto> {
-    ContentTransformer.updateOne("general", data);
+    await ContentTransformer.updateOne("general", data);
     return ContentTransformer.fetchOne("general");
   }
 
@@ -60,7 +61,18 @@ export class ContentController {
   async updateJoin(
     @PartialBody() data: GetJoinContentDto
   ): Promise<GetJoinContentDto> {
-    ContentTransformer.updateOne("join", data);
+    await ContentTransformer.updateOne("join", data);
+    if (data.taxRate) {
+      const general = await ContentTransformer.fetchOne("general");
+      const taxRate = await stripe.taxRates.updateOrCreateDefault(
+        {
+          country: general.currencyCode,
+          percentage: data.taxRate
+        },
+        data.taxRateStrapiId
+      );
+      data.taxRateStrapiId = taxRate.id;
+    }
     return ContentTransformer.fetchOne("join");
   }
 
@@ -69,7 +81,7 @@ export class ContentController {
   async updateJoinSetup(
     @PartialBody() data: GetJoinSetupContentDto
   ): Promise<GetJoinSetupContentDto> {
-    ContentTransformer.updateOne("join/setup", data);
+    await ContentTransformer.updateOne("join/setup", data);
     return ContentTransformer.fetchOne("join/setup");
   }
 
@@ -78,7 +90,7 @@ export class ContentController {
   async updateProfile(
     @PartialBody() data: GetProfileContentDto
   ): Promise<GetProfileContentDto> {
-    ContentTransformer.updateOne("profile", data);
+    await ContentTransformer.updateOne("profile", data);
     return ContentTransformer.fetchOne("profile");
   }
 
@@ -87,7 +99,7 @@ export class ContentController {
   async updateShare(
     @PartialBody() data: GetShareContentDto
   ): Promise<GetShareContentDto> {
-    ContentTransformer.updateOne("share", data);
+    await ContentTransformer.updateOne("share", data);
     return ContentTransformer.fetchOne("share");
   }
 }
