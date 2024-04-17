@@ -100,7 +100,7 @@ class PaymentFlowService implements PaymentFlowProvider {
   }
 
   async sendConfirmEmail(joinFlow: JoinFlow): Promise<void> {
-    log.info("Send confirm email for " + joinFlow.id);
+    log.info("Send confirm email for join flow " + joinFlow.id);
 
     const contact = await ContactsService.findOneBy({
       email: joinFlow.joinForm.email
@@ -205,7 +205,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     completeUrl: string,
     data: PaymentFlowData
   ): Promise<PaymentFlow> {
-    log.info("Create payment flow for " + joinFlow.id);
+    log.info("Create payment flow for join flow " + joinFlow.id);
     return paymentProviders[joinFlow.joinForm.paymentMethod].createPaymentFlow(
       joinFlow,
       completeUrl,
@@ -214,7 +214,7 @@ class PaymentFlowService implements PaymentFlowProvider {
   }
 
   async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
-    log.info("Complete payment flow for " + joinFlow.id);
+    log.info("Complete payment flow for join flow " + joinFlow.id);
     return paymentProviders[
       joinFlow.joinForm.paymentMethod
     ].completePaymentFlow(joinFlow);

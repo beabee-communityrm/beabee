@@ -333,7 +333,10 @@ class ContactsService {
       paymentForm
     );
 
-    log.info("Updated contribution", { startNow, expiryDate });
+    log.info("Updated contribution for " + contact.id, {
+      startNow,
+      expiryDate
+    });
 
     await this.updateContact(contact, {
       contributionType: ContributionType.Automatic,
