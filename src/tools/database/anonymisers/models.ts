@@ -173,14 +173,9 @@ export const contactContributionAnonymiser = createModelAnonymiser(
   ContactContribution,
   {
     contactId: () => uuidv4(),
-    data: createObjectMap<ContactContribution["data"]>({
-      customerId: randomId(12, "CU"),
-      mandateId: randomId(12, "MD"),
-      subscriptionId: randomId(12, "SB"),
-      source: () =>
-        chance.pickone(["Standing Order", "PayPal", "Cash in hand"]),
-      reference: () => chance.word()
-    })
+    customerId: randomId(12, "CU"),
+    mandateId: randomId(12, "MD"),
+    subscriptionId: randomId(12, "SB")
   }
 );
 

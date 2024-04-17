@@ -14,7 +14,6 @@ import { convertStatus } from "@core/utils/payment/gocardless";
 import ContactsService from "@core/services/ContactsService";
 import PaymentService from "@core/services/PaymentService";
 
-import { GCPaymentData } from "@models/ContactContribution";
 import Payment from "@models/Payment";
 
 import config from "@config";
@@ -105,11 +104,10 @@ async function confirmPayment(payment: Payment): Promise<void> {
     await calcConfirmedPaymentPeriodEnd(payment)
   );
 
-  const data = await PaymentService.getData(payment.contact);
-  const gcData = data.data as GCPaymentData;
-  if (payment.amount === gcData.nextAmount?.chargeable) {
+  const contribution = await PaymentService.getData(payment.contact);
+  if (payment.amount === contribution.nextAmount?.chargeable) {
     await ContactsService.updateContact(payment.contact, {
-      contributionMonthlyAmount: gcData.nextAmount?.monthly
+      contributionMonthlyAmount: contribution.nextAmount?.monthly
     });
     await PaymentService.updateDataBy(payment.contact, "nextAmount", null);
   }

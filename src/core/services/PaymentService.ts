@@ -41,7 +41,7 @@ export function getMembershipStatus(contact: Contact): MembershipStatus {
 }
 
 type ProviderFn<T> = (
-  p: PaymentProvider<any>,
+  p: PaymentProvider,
   data: ContactContribution
 ) => Promise<T>;
 
@@ -179,22 +179,27 @@ class PaymentService {
       completedPaymentFlow
     });
 
-    const data = await this.getData(contact);
+    const contribution = await this.getData(contact);
     const newMethod = completedPaymentFlow.joinForm.paymentMethod;
-    if (data.method !== newMethod) {
-      log.info(
-        "Changing payment method, cancelling any previous contribution",
-        { oldMethod: data.method, data: data.data, newMethod }
+    if (contribution.method !== newMethod) {
+      log.info("Changing payment method, cancelling previous contribution", {
+        contribution,
+        newMethod
+      });
+      await this.providerFromData(contribution, (p) =>
+        p.cancelContribution(false)
       );
-      await this.providerFromData(data, (p) => p.cancelContribution(false));
 
-      data.method = newMethod;
-      data.cancelledAt = new Date();
-      data.data = {};
-      await getRepository(ContactContribution).save(data);
+      // TODO: clear contribution properly
+      contribution.method = newMethod;
+      contribution.cancelledAt = new Date();
+      contribution.customerId = null;
+      contribution.mandateId = null;
+      contribution.subscriptionId = null;
+      await getRepository(ContactContribution).save(contribution);
     }
 
-    await this.providerFromData(data, (p) =>
+    await this.providerFromData(contribution, (p) =>
       p.updatePaymentMethod(completedPaymentFlow)
     );
   }

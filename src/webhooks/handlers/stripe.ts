@@ -15,9 +15,7 @@ import ContactsService from "@core/services/ContactsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Payment from "@models/Payment";
-import ContactContribution, {
-  StripePaymentData
-} from "@models/ContactContribution";
+import ContactContribution from "@models/ContactContribution";
 
 import config from "@config";
 
@@ -157,8 +155,8 @@ export async function handleInvoiceUpdated(invoice: Stripe.Invoice) {
 // Invoice has been paid, if this is related to a subscription then extend the
 // user's membership to the new end of the subscription
 export async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  const data = await getInvoiceData(invoice);
-  if (!data || !invoice.subscription) {
+  const contribution = await getContributionFromInvoice(invoice);
+  if (!contribution || !invoice.subscription) {
     return;
   }
 
@@ -177,18 +175,16 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }
 
   await ContactsService.extendContactRole(
-    data.contact,
+    contribution.contact,
     "member",
     add(new Date(line.period.end * 1000), config.gracePeriod)
   );
 
-  // TODO: Clean types
-  const stripeData = data.data as StripePaymentData;
-  if (line.amount === stripeData.nextAmount?.chargeable) {
-    await ContactsService.updateContact(data.contact, {
-      contributionMonthlyAmount: stripeData.nextAmount.monthly
+  if (line.amount === contribution.nextAmount?.chargeable) {
+    await ContactsService.updateContact(contribution.contact, {
+      contributionMonthlyAmount: contribution.nextAmount.monthly
     });
-    await PaymentService.updateDataBy(data.contact, "nextAmount", null);
+    await PaymentService.updateDataBy(contribution.contact, "nextAmount", null);
   }
 }
 
@@ -208,7 +204,7 @@ async function handlePaymentMethodDetached(
 
 // A couple of helpers
 
-async function getInvoiceData(
+async function getContributionFromInvoice(
   invoice: Stripe.Invoice
 ): Promise<ContactContribution | undefined> {
   if (invoice.customer) {
@@ -228,8 +224,8 @@ async function getInvoiceData(
 async function findOrCreatePayment(
   invoice: Stripe.Invoice
 ): Promise<Payment | undefined> {
-  const data = await getInvoiceData(invoice);
-  if (!data) {
+  const contribution = await getContributionFromInvoice(invoice);
+  if (!contribution) {
     return;
   }
 
@@ -242,9 +238,9 @@ async function findOrCreatePayment(
   newPayment.id = invoice.id;
 
   log.info(
-    `Creating payment for ${data.contact.id} with invoice ${invoice.id}`
+    `Creating payment for ${contribution.contact.id} with invoice ${invoice.id}`
   );
-  newPayment.contact = data.contact;
+  newPayment.contact = contribution.contact;
   newPayment.subscriptionId = invoice.subscription as string | null;
   return newPayment;
 }

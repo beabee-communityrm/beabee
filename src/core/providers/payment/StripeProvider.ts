@@ -17,7 +17,6 @@ import {
 } from "@core/utils/payment/stripe";
 
 import Contact from "@models/Contact";
-import { StripePaymentData } from "@models/ContactContribution";
 
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
@@ -27,7 +26,7 @@ import { ContributionInfo } from "@type/contribution-info";
 
 const log = mainLogger.child({ app: "stripe-payment-provider" });
 
-export default class StripeProvider extends PaymentProvider<StripePaymentData> {
+export default class StripeProvider extends PaymentProvider {
   async canChangeContribution(useExistingMandate: boolean): Promise<boolean> {
     return !useExistingMandate || !!this.data.mandateId;
   }

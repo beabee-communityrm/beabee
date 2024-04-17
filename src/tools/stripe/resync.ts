@@ -8,9 +8,7 @@ import { runApp } from "@core/server";
 import stripe from "@core/lib/stripe";
 import ContactsService from "@core/services/ContactsService";
 
-import ContactContribution, {
-  StripePaymentData
-} from "@models/ContactContribution";
+import ContactContribution from "@models/ContactContribution";
 
 import {
   handleInvoicePaid,
@@ -34,7 +32,7 @@ async function* fetchInvoices(customerId: string) {
 }
 
 runApp(async () => {
-  const stripePaymentData = (await getRepository(ContactContribution).find({
+  const contributions = await getRepository(ContactContribution).find({
     where: {
       method: In([
         PaymentMethod.StripeBACS,
@@ -43,62 +41,67 @@ runApp(async () => {
       ])
     },
     relations: { contact: true }
-  })) as (ContactContribution & { data: StripePaymentData })[];
+  });
 
-  for (const pd of stripePaymentData) {
-    console.log(`# Checking ${pd.contact.email}`);
+  for (const contribution of contributions) {
+    console.log(`# Checking ${contribution.contact.email}`);
     if (!isDangerMode) {
-      console.log(pd.cancelledAt, pd.data);
+      console.log(contribution.cancelledAt, contribution);
     }
 
     // Check if subscription is still valid
-    if (pd.data.subscriptionId) {
+    if (contribution.subscriptionId) {
       try {
         const subscription = await stripe.subscriptions.retrieve(
-          pd.data.subscriptionId
+          contribution.subscriptionId
         );
         if (subscription.status === "canceled") {
-          console.log(`Cancelling subscription ${pd.data.subscriptionId}`);
-          pd.cancelledAt = subscription.canceled_at
+          console.log(`Cancelling subscription ${contribution.subscriptionId}`);
+          contribution.cancelledAt = subscription.canceled_at
             ? new Date(subscription.canceled_at * 1000)
             : new Date();
 
-          pd.data.subscriptionId = null;
+          contribution.subscriptionId = null;
         } else if (subscription.status === "incomplete_expired") {
           console.log(
-            `Removing incomplete subscription ${pd.data.subscriptionId}`
+            `Removing incomplete subscription ${contribution.subscriptionId}`
           );
-          pd.data.subscriptionId = null;
+          contribution.subscriptionId = null;
           if (isDangerMode) {
-            await ContactsService.revokeContactRole(pd.contact, "member");
+            await ContactsService.revokeContactRole(
+              contribution.contact,
+              "member"
+            );
           }
         }
       } catch (e) {
-        console.log(`Removing missing subscription ${pd.data.subscriptionId}`);
-        pd.data.subscriptionId = null;
+        console.log(
+          `Removing missing subscription ${contribution.subscriptionId}`
+        );
+        contribution.subscriptionId = null;
       }
     }
 
     // Check if mandate has been detached
-    if (pd.data.mandateId) {
+    if (contribution.mandateId) {
       try {
         const paymentMethod = await stripe.paymentMethods.retrieve(
           // pd.data.customerId,
-          pd.data.mandateId
+          contribution.mandateId
         );
         if (!paymentMethod.customer) {
-          console.log(`Detaching payment method ${pd.data.mandateId}`);
-          pd.data.mandateId = null;
+          console.log(`Detaching payment method ${contribution.mandateId}`);
+          contribution.mandateId = null;
         }
       } catch (e) {
-        console.log(`Removing mandate ${pd.data.mandateId}`);
-        pd.data.mandateId = null;
+        console.log(`Removing mandate ${contribution.mandateId}`);
+        contribution.mandateId = null;
       }
     }
 
-    if (pd.data.customerId) {
+    if (contribution.customerId) {
       // Update list of invoices
-      for await (const invoice of fetchInvoices(pd.data.customerId)) {
+      for await (const invoice of fetchInvoices(contribution.customerId)) {
         if (isDangerMode) {
           await handleInvoiceUpdated(invoice);
           if (invoice.paid) {
@@ -110,19 +113,19 @@ runApp(async () => {
       }
 
       // Check if customer has been deleted
-      const customer = await stripe.customers.retrieve(pd.data.customerId);
+      const customer = await stripe.customers.retrieve(contribution.customerId);
       if (customer.deleted) {
-        console.log(`Removing deleted customer ${pd.data.customerId}`);
-        pd.data.customerId = null;
-        pd.data.mandateId = null;
-        pd.data.subscriptionId = null;
+        console.log(`Removing deleted customer ${contribution.customerId}`);
+        contribution.customerId = null;
+        contribution.mandateId = null;
+        contribution.subscriptionId = null;
       }
     }
 
     if (isDangerMode) {
-      await getRepository(ContactContribution).save(pd);
+      await getRepository(ContactContribution).save(contribution);
     } else {
-      console.log(pd.cancelledAt, pd.data);
+      console.log(contribution.cancelledAt, contribution);
     }
   }
 });
