@@ -31,7 +31,7 @@ class ContactExporter extends BaseContactTransformer<
       ContributionPeriod: contact.contributionPeriod,
       ContributionDescription: contact.contributionDescription,
       ContributionCancelled:
-        contact.paymentData.cancelledAt?.toISOString() || "",
+        contact.contribution.cancelledAt?.toISOString() || "",
       MembershipStarts: contact.membership?.dateAdded.toISOString() || "",
       MembershipExpires: contact.membership?.dateExpires?.toISOString() || "",
       MembershipStatus: getMembershipStatus(contact),
@@ -51,7 +51,7 @@ class ContactExporter extends BaseContactTransformer<
     qb.orderBy(`${fieldPrefix}joined`);
     qb.leftJoinAndSelect(`${fieldPrefix}roles`, "roles");
     qb.leftJoinAndSelect(`${fieldPrefix}profile`, "profile");
-    qb.leftJoinAndSelect(`${fieldPrefix}paymentData`, "pd");
+    qb.leftJoinAndSelect(`${fieldPrefix}contribution`, "contribution");
   }
 
   async export(

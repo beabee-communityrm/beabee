@@ -17,7 +17,7 @@ import {
 } from "@core/utils/payment/stripe";
 
 import Contact from "@models/Contact";
-import { StripePaymentData } from "@models/PaymentData";
+import { StripePaymentData } from "@models/ContactContribution";
 
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 

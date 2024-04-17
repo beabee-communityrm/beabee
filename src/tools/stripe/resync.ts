@@ -8,7 +8,9 @@ import { runApp } from "@core/server";
 import stripe from "@core/lib/stripe";
 import ContactsService from "@core/services/ContactsService";
 
-import PaymentData, { StripePaymentData } from "@models/PaymentData";
+import ContactContribution, {
+  StripePaymentData
+} from "@models/ContactContribution";
 
 import {
   handleInvoicePaid,
@@ -32,7 +34,7 @@ async function* fetchInvoices(customerId: string) {
 }
 
 runApp(async () => {
-  const stripePaymentData = (await getRepository(PaymentData).find({
+  const stripePaymentData = (await getRepository(ContactContribution).find({
     where: {
       method: In([
         PaymentMethod.StripeBACS,
@@ -41,7 +43,7 @@ runApp(async () => {
       ])
     },
     relations: { contact: true }
-  })) as (PaymentData & { data: StripePaymentData })[];
+  })) as (ContactContribution & { data: StripePaymentData })[];
 
   for (const pd of stripePaymentData) {
     console.log(`# Checking ${pd.contact.email}`);
@@ -118,7 +120,7 @@ runApp(async () => {
     }
 
     if (isDangerMode) {
-      await getRepository(PaymentData).save(pd);
+      await getRepository(ContactContribution).save(pd);
     } else {
       console.log(pd.cancelledAt, pd.data);
     }

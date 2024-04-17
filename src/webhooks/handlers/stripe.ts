@@ -15,7 +15,9 @@ import ContactsService from "@core/services/ContactsService";
 import PaymentService from "@core/services/PaymentService";
 
 import Payment from "@models/Payment";
-import PaymentData, { StripePaymentData } from "@models/PaymentData";
+import ContactContribution, {
+  StripePaymentData
+} from "@models/ContactContribution";
 
 import config from "@config";
 
@@ -208,7 +210,7 @@ async function handlePaymentMethodDetached(
 
 async function getInvoiceData(
   invoice: Stripe.Invoice
-): Promise<PaymentData | undefined> {
+): Promise<ContactContribution | undefined> {
   if (invoice.customer) {
     const data = await PaymentService.getDataBy(
       "customerId",

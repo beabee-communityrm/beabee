@@ -16,7 +16,7 @@ const anonymisers = [
   models.giftFlowAnonymiser,
   models.noticesAnonymiser,
   models.optionsAnonymiser,
-  models.paymentDataAnonymiser,
+  models.contactContributionAnonymiser,
   models.paymentsAnonymiser,
   models.pageSettingsAnonymiser,
   models.calloutsAnonymiser,

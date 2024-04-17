@@ -7,7 +7,7 @@ import { calcRenewalDate } from "@core/utils/payment";
 
 import Contact from "@models/Contact";
 import Payment from "@models/Payment";
-import PaymentData from "@models/PaymentData";
+import ContactContribution from "@models/ContactContribution";
 
 import {
   PaymentProvider,
@@ -33,18 +33,21 @@ const PaymentProviders = {
 export function getMembershipStatus(contact: Contact): MembershipStatus {
   return contact.membership
     ? contact.membership.isActive
-      ? contact.paymentData.cancelledAt
+      ? contact.contribution.cancelledAt
         ? MembershipStatus.Expiring
         : MembershipStatus.Active
       : MembershipStatus.Expired
     : MembershipStatus.None;
 }
 
-type ProviderFn<T> = (p: PaymentProvider<any>, data: PaymentData) => Promise<T>;
+type ProviderFn<T> = (
+  p: PaymentProvider<any>,
+  data: ContactContribution
+) => Promise<T>;
 
 class PaymentService {
-  async getData(contact: Contact): Promise<PaymentData> {
-    const data = await getRepository(PaymentData).findOneByOrFail({
+  async getData(contact: Contact): Promise<ContactContribution> {
+    const data = await getRepository(ContactContribution).findOneByOrFail({
       contactId: contact.id
     });
     log.info("Loaded data for contact " + contact.id, { data });
@@ -55,9 +58,9 @@ class PaymentService {
   async getDataBy(
     key: string,
     value: string
-  ): Promise<PaymentData | undefined> {
-    const data = await createQueryBuilder(PaymentData, "pd")
-      .innerJoinAndSelect("pd.contact", "m")
+  ): Promise<ContactContribution | undefined> {
+    const data = await createQueryBuilder(ContactContribution, "cc")
+      .innerJoinAndSelect("cc.contact", "m")
       .leftJoinAndSelect("m.roles", "mp")
       .where(`data->>:key = :value`, { key, value })
       .getOne();
@@ -68,7 +71,7 @@ class PaymentService {
 
   async updateDataBy(contact: Contact, key: string, value: unknown) {
     await createQueryBuilder()
-      .update(PaymentData)
+      .update(ContactContribution)
       .set({ data: () => "jsonb_set(data, :key, :value)" })
       .where("contact = :id")
       .setParameters({
@@ -86,7 +89,7 @@ class PaymentService {
   }
 
   private async providerFromData<T>(
-    data: PaymentData,
+    data: ContactContribution,
     fn: ProviderFn<T>
   ): Promise<T> {
     const Provider = data.method
@@ -113,7 +116,7 @@ class PaymentService {
     return await this.provider<ContributionInfo>(contact, async (p, d) => {
       // Store payment data in contact for getMembershipStatus
       // TODO: fix this!
-      contact.paymentData = d;
+      contact.contribution = d;
 
       const renewalDate = !d.cancelledAt && calcRenewalDate(contact);
 
@@ -142,7 +145,7 @@ class PaymentService {
 
   async createContact(contact: Contact): Promise<void> {
     log.info("Create contact for contact " + contact.id);
-    await getRepository(PaymentData).save({ contact });
+    await getRepository(ContactContribution).save({ contact });
   }
 
   async updateContact(
@@ -161,7 +164,7 @@ class PaymentService {
     const ret = await this.provider(contact, (p) =>
       p.updateContribution(paymentForm)
     );
-    await getRepository(PaymentData).update(
+    await getRepository(ContactContribution).update(
       { contactId: contact.id },
       { cancelledAt: null }
     );
@@ -188,7 +191,7 @@ class PaymentService {
       data.method = newMethod;
       data.cancelledAt = new Date();
       data.data = {};
-      await getRepository(PaymentData).save(data);
+      await getRepository(ContactContribution).save(data);
     }
 
     await this.providerFromData(data, (p) =>
@@ -202,7 +205,7 @@ class PaymentService {
   ): Promise<void> {
     log.info("Cancel contribution for contact " + contact.id);
     await this.provider(contact, (p) => p.cancelContribution(keepMandate));
-    await getRepository(PaymentData).update(
+    await getRepository(ContactContribution).update(
       { contactId: contact.id },
       { cancelledAt: new Date() }
     );
@@ -210,7 +213,7 @@ class PaymentService {
 
   async permanentlyDeleteContact(contact: Contact): Promise<void> {
     await this.provider(contact, (p) => p.permanentlyDeleteContact());
-    await getRepository(PaymentData).delete({ contactId: contact.id });
+    await getRepository(ContactContribution).delete({ contactId: contact.id });
     await getRepository(Payment).delete({ contactId: contact.id });
   }
 }

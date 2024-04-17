@@ -37,10 +37,10 @@ export type PaymentProviderData =
   | {};
 
 @Entity()
-export default class PaymentData {
+export default class ContactContribution {
   @PrimaryColumn()
   contactId!: string;
-  @OneToOne("Contact", "paymentData")
+  @OneToOne("Contact", "contribution")
   @JoinColumn()
   contact!: Contact;
 
