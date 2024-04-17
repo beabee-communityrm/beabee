@@ -63,7 +63,7 @@ const app = express();
 
 app.use(requestLogger);
 
-app.use(cors({ origin: config.trustedOrigins }));
+app.use(cors({ origin: config.trustedOrigins, credentials: true }));
 
 app.use(cookie());
 
