@@ -6,26 +6,26 @@
     "loginDetail": "Detalhes de login",
     "mfa": {
       "codeInput": {
-        "info": "Caso tenha perdido o seu disppositvo de 2FA entre em contacto connosco.",
+        "info": "Caso tenhas perdido o teu disppositvo de 2FA entra em contacto connosco.",
         "label": "Código"
       },
       "confirmDelete": {
-        "desc": "Tem certeza de que deseja desativar a Autenticação de Múltiplos Fatores?\n A partir de então, você só precisará de sua senha para fazer login. \nLembre-se de excluir a entrada do seu aplicativo Autenticador. Você \nsempre pode ativá-la novamente.",
-        "descToken": "Para desativar o 2FA, por favor, insira o seu código 2FA atual:",
-        "title": "Desactivar 2FA"
+        "desc": "Tens a certeza de que queres desativar a autenticação de múltiplos fatores? A partir daí, passas a só precisar da tua palavra-passe para fazer login. Lembra-te de eliminar a entrada no tua app de autenticação. Podes sempre ativá-la novamente.",
+        "descToken": "Para desativar o 2FA, por favor, insere o teu código 2FA atual:",
+        "title": "Desativar 2FA"
       },
-      "createUnknownErrorNotification": "A autenticação de dois fatores não pôde ser salva devido a um erro \ndesconhecido. Por favor, tente novamente ou contate o suporte.",
-      "deleteUnknownErrorNotification": "A autenticação de dois fatores não pôde ser apagada devido a um erro \ndesconhecido. Por favor, tente novamente ou contate o suporte.",
-      "disabledNotification": "Autentição de dois factores desactivada com sucesso",
-      "enabledNotification": "Autentição de dois factores activada com sucesso",
+      "createUnknownErrorNotification": "A autenticação de dois fatores não pôde ser salva devido a um erro \ndesconhecido. Por favor, tenta novamente ou fala connosco.",
+      "deleteUnknownErrorNotification": "A autenticação de dois fatores não pôde ser eliminada devido a um erro \ndesconhecido. Por favor, tenta novamente ou fala connosco.",
+      "disabledNotification": "Autenticação de dois factores desativada com sucesso",
+      "enabledNotification": "Autenticação de dois factores ativada com sucesso",
       "enterCode": {
-        "desc": "Insira o código que vem na sua app de autenticação",
+        "desc": "Introduz o código que vem na tua app de autenticação",
         "title": "Verificação"
       },
-      "modalTitle": "Activar autenticação de dois factores",
+      "modalTitle": "Ativar autenticação de dois factores",
       "result": {
-        "invalidCode": "O código não pode ser validado. Tente de novo ou contacte-nos {support}",
-        "successful": "Autenticação de dois factores activada com sucesso!",
+        "invalidCode": "O código não pode ser validado. Tenta de novo ou contacta-nos {support}",
+        "successful": "Autenticação de dois factores ativada com sucesso.",
         "title": "Feito"
       },
       "scan": {
@@ -33,7 +33,7 @@
         "title": "Código QR"
       },
       "secretInput": {
-        "desc": "Alternativamente pode inserir o seguinte código na sua app de autentiação.",
+        "desc": "Alternativamente podes inserir o seguinte código na tua app de autenticação.",
         "label": "Código secreto"
       },
       "title": "Autenticação de dois factores",
@@ -42,7 +42,7 @@
       }
     },
     "newsletter": {
-      "cantUpdate": "Para mudar o estado deste contacto relativamente à newsletter, por favor contacte o suporte em support{'@'}beabee.io.",
+      "cantUpdate": "Para mudar o estado deste contacto relativamente à newsletter, por favor contacte o apoio ao cliente em support{'@'}beabee.io.",
       "currentStatus": {
         "cleaned": "Este contacto foi retirado automaticamente da lista de assinantes da newsletter, provavelmente porque o seu endereço de e-mail está a devolver as mensagens.",
         "none": "Este contacto não assina a newsletter.",
@@ -67,14 +67,16 @@
     "chooseFile": "Escolher um ficheiro",
     "close": "Fechar",
     "continue": "Continuar",
+    "copy": "Copiar",
     "create": "Criar",
     "delete": "Apagar",
-    "disable": "Desactivar",
+    "disable": "Desativar",
     "edit": "Editar",
-    "enable": "Activar",
+    "enable": "Ativar",
     "endnow": "Concluir agora",
     "export": "Exportar",
     "getStarted": "Começar",
+    "goBack": "Voltar atrás",
     "next": "Próxima",
     "noBack": "Não, voltar atrás",
     "participate": "Participar",
@@ -92,6 +94,7 @@
     "saveDraft": "Gravar rascunho",
     "schedule": "Agendar",
     "search": "Pesquisar",
+    "share": "Partilhar",
     "skip": "Saltar",
     "submit": "Enviar",
     "unpublish": "Despublicar",
@@ -104,19 +107,19 @@
   "addContact": {
     "contactSaved": "Contacto gravado",
     "errors": {
-      "duplicateEmail": "Este endereço de e-mail já existe"
+      "duplicateEmail": "Este endereço de email já existe"
     },
-    "subscribeToNewsletter": "Sincronizar com ferramenta de newsletter",
+    "subscribeToNewsletter": "Sincronizar com newsletter tool",
     "title": "Adicionar um contacto"
   },
   "addNotice": {
     "form": {}
   },
   "adminDashboard": {
-    "hint1": "<p>Sabia que as chamadas podem ser criadas sem data de conclusão, e assim continuarem indefinidamente? Há mais pormenores na nossa <a href=\"https://beabee.io/en/beabee-full-feature-list/\" target=\"_blank\" rel=\"noopener noreferrer\">demonstração de funcionalidades</a></p>\n",
-    "hint2": "<p>Saiba mais sobre a <a href=\"https://beabee.io/en/beabee-model/\" target=\"_blank\" rel=\"noopener noreferrer\">visão beabee</a> no que toca ao envolvimento de comunidade e formar relações com o seu público.</p>\n",
-    "hint3": "<p>O nosso <a href=\"https://beabee.io/en/beabee-faq/\" target=\"_blank\" rel=\"noopener noreferrer\">FAQ</a> aborda questões frequentes sobre como começar e casos de estudo. Se a resposta que procura não estiver lá, contacte-nos.</p>\n",
-    "joinSlack": "Junte-se à comunidade beabee no Slack!",
+    "hint1": "<p>Sabias que as chamadas podem ser criadas sem data de conclusão, e assim continuarem indefinidamente? Há mais pormenores na nossa <a href=\"https://beabee.io/en/beabee-full-feature-list/\" target=\"_blank\" rel=\"noopener noreferrer\">demonstração de funcionalidades</a></p>\n",
+    "hint2": "<p>Sabe mais sobre a <a href=\"https://beabee.io/en/beabee-model/\" target=\"_blank\" rel=\"noopener noreferrer\">visão beabee</a> no que toca ao envolvimento da comunidade e formar relações com o seu público.</p>\n",
+    "hint3": "<p>O nosso <a href=\"https://beabee.io/en/beabee-faq/\" target=\"_blank\" rel=\"noopener noreferrer\">FAQ</a> abordamos questões frequentes sobre como começar e casos de estudo. Se a resposta que procuras não estiver lá, contacta-nos.</p>\n",
+    "joinSlack": "Junta-te à comunidade beabee no Slack!",
     "latestCallout": {
       "createNew": "Criar nova?",
       "empty": "Não há chamadas ativas neste momento.",
@@ -126,15 +129,15 @@
       "title": "Membros mais recentes"
     },
     "numbers": {
-      "averageContribution": "Contributo mensal médio",
+      "averageContribution": "Contribuição mensal média",
       "newMembers": "Novos membros",
       "revenue": "Receitas",
       "title": "Números dos últimos 30 dias"
     },
     "responsesSoFar": "{n} resposta dada | {n} respostas dadas",
     "seeAllResponses": "Ver todas as respostas",
-    "supportInbox": "<p>É preciso ajuda? Temos à disposição o <a href=\"https://wiki.beabee.io/help-center-english/\" target=\"_blank\" rel=\"noopener noreferrer\">Centro de Ajuda beabee</a> ou o nosso e-mail de suporte: <a href=\"mailto:support{'@'}beabee.io\">support{'@'}beabee.io</a></p>\n",
-    "welcomeBack": "Bem-vindo/a de volta, {firstName}!"
+    "supportInbox": "<p>Tens alguma dúvida? Consulta o <a href=\"https://wiki.beabee.io/help-center-english/\" target=\"_blank\" rel=\"noopener noreferrer\">Centro de Ajuda beabee</a> ou fala connosco: <a href=\"mailto:support{'@'}beabee.io\">support{'@'}beabee.io</a></p>\n",
+    "welcomeBack": "Boas-vindas, {firstName}!"
   },
   "adminSettings": {
     "apikey": {
@@ -177,35 +180,36 @@
   },
   "callout": {
     "actions": {
-      "updateResponse": "Actualziar a sua resposta"
+      "updateResponse": "Actualiza a tua resposta"
     },
-    "addAPoint": "Carrega no mapa no sítio onde quer adicionar um ponto.",
+    "addAPoint": "Carrega no mapa no sítio onde queres adicionar o ponto.",
     "addLocation": "Adicionar localização",
+    "confirmHuman": "Confirma por favor que és um humano",
     "contactDetails": "Detalhes de contacto",
     "ended": "Este callout acabou a {date}",
     "form": {
-      "email": "O seu e-mail",
-      "guestFieldsMissing": "Diga-nos os seus detalhes de contacto",
-      "name": "O seu nome",
-      "submittingResponseError": "Houve um problema a enviar a sua resposta, por favor tente novamente"
+      "email": "O teu email",
+      "guestFieldsMissing": "Dá-nos os teus contactos",
+      "name": "O teu nome",
+      "submittingResponseError": "Houve um problema a enviar a tua resposta, por favor tenta novamente"
     },
     "getStarted": "Começar",
-    "joinNow": "Inscreva-se agora",
-    "loginToYourAccount": "Entrar na sua conta",
+    "joinNow": "Inscreve-te agora",
+    "loginToYourAccount": "Entra na tua conta",
     "membersOnly": "Esta chamada está aberta apenas a membros. Para participar",
     "responseSubmitted": "Resposta submetida",
     "share": {
-      "address": "Pode partilhar esta chamada com este endereço:",
-      "services": "Ou partilhe rapidamente com um destes serviços:"
+      "address": "Podes partilhar esta chamada com este endereço:",
+      "services": "Ou partilha rapidamente com uma destas plataformas:"
     },
-    "toContributionPage": "Editar o meu contributo",
-    "updateContribution": "por favor atualize o seu contributo",
+    "toContributionPage": "Editar a minha contribuição",
+    "updateContribution": "Por favor atualiza a tua contribuição",
     "views": {
       "gallery": "Galeria",
       "map": "Mapa"
     },
-    "youResponded": "Já respondeu a esta chamada ♥",
-    "yourResponse": "A sua resposta"
+    "youResponded": "Já respondeste a esta chamada ♥",
+    "yourResponse": "A tua resposta"
   },
   "calloutAdmin": {},
   "calloutAdminOverview": {
@@ -222,7 +226,13 @@
   },
   "calloutBuilder": {
     "actions": {},
-    "nextSlide": {}
+    "nextSlide": {},
+    "translationFields": {
+      "description": "Description",
+      "label": "Label",
+      "option": "Option {n}",
+      "placeholder": "Placeholder"
+    }
   },
   "calloutResponse": {
     "data": {
@@ -253,7 +263,7 @@
     "addComment": "Adicionar um comentário",
     "comments": "Comentários",
     "confirmDelete": {
-      "text": "Tem a certeza que quer apagar este comentário?",
+      "text": "Tens a certeza que queres apagar este comentário?",
       "title": "Apagar comentário?"
     }
   },
@@ -303,24 +313,23 @@
     "filter": {}
   },
   "common": {
-    "annually": "Anualmente",
     "backToHome": "Voltar ao início",
-    "contributing": "Contribuindo",
+    "contributing": "A contribuir",
+    "contributionPeriod": {
+      "annually": "Anualmente",
+      "monthly": "Mensalmente"
+    },
     "contributionType": {
       "automatic": "Automática",
       "gift": "Presente",
       "manual": "Manual",
       "none": "Nenhuma"
     },
-    "copy": "Copiar",
-    "goBack": "Voltar atrás",
     "hello": "Olá",
     "itemsPerPage": "{items} itens por página",
-    "joined": "Juntou-se",
+    "joined": "Juntaste-te",
     "loading": "A carregar...",
     "login": "Login",
-    "month": "mês | meses",
-    "monthly": "Mensalmente",
     "newsletterStatus": {
       "cleaned": "Limpo",
       "none": "Nenhum",
@@ -337,14 +346,17 @@
       "pending": "A aguardar",
       "successful": "Sucesso"
     },
+    "perMonth": "/ mês",
+    "perMonthText": "por mês",
+    "perYear": "/ ano",
+    "perYearText": "por ano",
     "role": {
       "admin": "Administrador",
       "member": "Membro",
       "superadmin": "Super Administrador"
     },
     "selectNone": "Nenhum",
-    "selectOne": "Escolher uma opção...",
-    "share": "Partilhar",
+    "selectOne": "Escolhe uma opção...",
     "show": "Mostrar",
     "status": {
       "draft": "Rascunho",
@@ -356,7 +368,6 @@
     "timeAgo": "há {time}",
     "timeIn": "em {time}",
     "until": "até",
-    "year": "ano | anos",
     "yes": "Sim"
   },
   "contactContribution": {
@@ -367,7 +378,7 @@
     "annotation": {},
     "security": {
       "mfa": {
-        "desc": "Este contato ativou o 2FA. Clique no botão \"{ disableLabel }\" para desativar.",
+        "desc": "Este contato ativou o 2FA. Clica no botão \"{ disableLabel }\" para desativar.",
         "disabledDesc": "Este contato não ativou o 2FA."
       }
     }
@@ -380,13 +391,13 @@
       "activePermission": "Cargo ativo",
       "amount": "Montante",
       "annotationsCopy": "Contacto atualizado",
-      "contribution": "Contributo",
-      "contributionCancelled": "Contributo cancelado",
-      "contributionMonthlyAmount": "Montante mensal do contributo",
-      "contributionPeriod": "Período do contributo",
+      "contribution": "Contribuição",
+      "contributionCancelled": "Contribuição cancelada",
+      "contributionMonthlyAmount": "Valor mensal da contribuição",
+      "contributionPeriod": "Período da contribuição",
       "contributionType": "Tipo de contributo",
       "description": "Descrição",
-      "email": "E-mail",
+      "email": "Email",
       "firstname": "Primeiro nome",
       "groups": "Grupos",
       "joined": "Inscreveu-se em",
@@ -399,7 +410,7 @@
       "newsletter": "Newsletter",
       "newsletterStatus": "Assinatura da newsletter",
       "notes": "Notas",
-      "payingFee": "Suporta a taxa?",
+      "payingFee": "Paga a taxa?",
       "paymentReference": "Referência do pagamento",
       "paymentSource": "Fonte do pagamento",
       "period": "Período",
@@ -409,7 +420,7 @@
     },
     "dataGroup": {
       "contact": "Contacto",
-      "contribution": "Contributo",
+      "contribution": "Contribuição",
       "role": "Cargo"
     },
     "noContacts": "Nenhum contacto ainda adicionado",
@@ -419,47 +430,47 @@
     "showingOf": "Contactos {start} a {end} de um total de {total}"
   },
   "contribution": {
-    "adminCancelDescription": "Se cancelar a sua contribuição deste contacto a sua adesão terminará no fim deste ciclo de pagamento a {date}.",
+    "adminCancelDescription": "Se cancelares a contribuição deste contacto, a sua adesão terminará no fim deste ciclo de pagamento a {date}.",
     "bankAccount": "Conta bancária",
-    "billing": "Facturação",
+    "billing": "Faturação",
     "cancelContribution": "Cancelar contribuição",
-    "cancelDescription": "Se cancelar a sua contribuição a sua adesão terminará no fim deste ciclo de pagamento a {date}.",
-    "cancelMessage": "Lamentamos que queira sair.",
-    "cancelledContribution": "A sua contribuição foi cancelada.",
+    "cancelDescription": "Se cancelares a tua contribuição, a tua adesão terminará no fim deste ciclo de pagamento a {date}.",
+    "cancelMessage": "Ficamos tristes que nos deixes.",
+    "cancelledContribution": "A tua contribuição foi cancelada.",
     "changeBank": "Mudar para outra conta bancária",
-    "changeBankInfo": "No próximo passo vai poder inserir os detalhes bancários da sua nova conta.",
-    "contributing": "Está a contribuir",
-    "contributingAmount": "{amount} por {period}",
-    "contributionUpdateError": "Não é possível actualizar o seu pagamento já que este se encontra pendente.",
-    "dueToRenew": "A sua contribuição vai renovar a {renewalDate}.",
-    "expired": "A sua contribuição expirou.",
-    "expiredText": "Pense por favor em renovar, nem que seja pelo valor mais baixo. É uma ajuda inestimável. Obrigado!",
-    "hasPendingPayment": "O seu pagamento está presentemente a ser processado",
-    "manualPayment": "A sua contribuição está a ser page via {source}. Se começar a pagar usando o nosso sistema de contribuições vai estar a ajudar-nos a perceber quanto dinheiro recebemos por mês dos nossos membros, e será mais fácil para si gerir a sua contribuição mensal.",
+    "changeBankInfo": "No próximo passo, vais poder inserir os detalhes bancários da tua nova conta.",
+    "contributing": "Estás a contribuir",
+    "contributionUpdateError": "Não é possível atualizar a tua contribuição porque tens um pagamento pendente.",
+    "dueToRenew": "A tua contribuição vai renovar a {renewalDate}.",
+    "expired": "A tua contribuição expirou.",
+    "expiredText": "Considera renovar a tua contribuição mensal, nem que seja pelo valor mais baixo. É muito importante para o nosso jornalismo. Obrigado!",
+    "hasPendingPayment": "O teu pagamento está agora a ser processado",
+    "manualPayment": "A tua contribuição está a ser paga via {source}. Se começares a pagar através do nosso sistema de contribuições, será mais fácil para ti gerires a tua contribuição mensal e vais ajudar-nos a perceber quanto dinheiro recebemos por mês da nossa Comunidade.",
     "manualPaymentSource": "Uma ferramenta desenvolvida por outra organização",
-    "nextAmountChanging": "A sua contribuição mudará para {nextAmount} a {renewalDate}.",
     "paymentHistory": {
       "empty": "Os pagamentos já realizados vão aparecer aqui.",
       "title": "Histórico de pagamentos"
     },
     "paymentMethod": "Método de pagamento",
-    "paymentSourceUpdateError": "Não é possível actualizar a sua conta bancária já que o sue pagamento se encontra pendente.",
-    "prorateDecreaseMessage": "Restam {monthsLeft} {months} na sua contribuição actual. A sua nova contriuibção começará a {renewalDate}.",
-    "prorateIncreaseMessage": "Tem {monthsLeft} {months} restantes na sua contribuição actual. Pode fazer um pagamento único {oneOffPayment} para arrancar com a sua contribuição desde já.",
-    "prorateNoText": "Manter-se-á na sua contribuição actual ate lá.",
-    "prorateNoTitle": "Actualizar a minha contribuição a {renewalDate}",
-    "prorateYesText": "Ser-lhe-á cobrado um pagamento único {oneOffPayment} agora e a sua contribuição será actualizada de forma imediata.",
-    "prorateYesTitle": "Actualizar a minha contribuição agora",
-    "restartContribution": "Começar a contribuir de novo",
+    "paymentSourceUpdateError": "Não é possível atualizar a sua conta bancária porque o pagamento está pendente.",
+    "prorateDecreaseMessage": "Resta 1 mês na sua contribuição atual. | Restam {n} meses na tua contribuição atual.",
+    "prorateDecreaseMessageWillStart": "A tua nova contribuição vai começar a {renewalDate}.",
+    "prorateIncreaseMessage": "Tens 1 mês restante na sua contribuição atual. | Tens {n} meses restantes na tua contribuição atual.",
+    "prorateIncreaseMessageOneOff": "Podes fazer um pagamento único {oneOffPayment} para arrancar com a sua contribuição desde já.",
+    "prorateNoText": "Vais manter a tua contribuição atual ate lá.",
+    "prorateNoTitle": "Atualizar a minha contribuição a {renewalDate}",
+    "prorateYesText": "Vamos cobrar-te um pagamento único {oneOffPayment} agora e a tua contribuição será atualizada de forma imediata.",
+    "prorateYesTitle": "Atualizar a minha contribuição agora",
+    "restartContribution": "Voltar a contribuir",
     "startContribution": "Começar a contribuir",
-    "startedContribution": "A sua contribuição começou.",
-    "updateContribution": "Actualizar contribuição",
+    "startedContribution": "A tua contribuição começou.",
+    "updateContribution": "Atualizar contribuição",
     "updatePaymentType": "Definir novo método de pagamento",
-    "updatedContribution": "A sua contribuição foi actualizada.",
-    "updatedPaymentSource": "O seu método de pagamento foi actualizado.",
-    "willExpire": "A sua contribuição vai expirar a {expires}.",
-    "willRenew": "A sua contribuição vai renovar automaticamente a {renewalDate}.",
-    "willRenewWithNewAmount": "A sua contribuição vai renovar automaticamente a {renewalDate}, passando para a nova quantia de {nextAmount}."
+    "updatedContribution": "A tua contribuição foi atualizada.",
+    "updatedPaymentSource": "O teu método de pagamento foi atualizado.",
+    "willExpire": "A tua contribuição vai expirar a {expires}.",
+    "willRenew": "A tua contribuição vai renovar automaticamente a {renewalDate}.",
+    "willRenewWithNewAmount": "A tua contribuição vai renovar automaticamente a {renewalDate}, passando para a nova quantia de {nextAmount}."
   },
   "createCallout": {
     "steps": {
@@ -499,12 +510,16 @@
             "addressProp": {},
             "bounds": {},
             "center": {},
+            "geocodeCountries": {},
             "initialZoom": {},
             "maxZoom": {},
             "minZoom": {},
             "style": {}
           },
           "multiple": {
+            "opts": {}
+          },
+          "requireCaptcha": {
             "opts": {}
           },
           "responseImageFilter": {},
@@ -545,19 +560,19 @@
   "editCallout": {},
   "editNotice": {},
   "footer": {
-    "contactUs": "Entre em contacto connosco em",
+    "contactUs": "Entra em contacto connosco em",
     "handbookResources": "Manual e recursos",
     "impressum": "Impressum",
-    "joinCommunity": "Junte-se à comunidade",
-    "poweredBy": "a impulsionar redações locais e independentes",
+    "joinCommunity": "Junta-te à Comunidade",
+    "poweredBy": "A apoiar redações locais e independentes",
     "privacyPolicy": "Política de privacidade",
     "terms": "Termos e condições"
   },
   "forgotPassword": {
     "backToLogin": "Voltar à página de login",
-    "description": "Indique-nos o seu e-mail e trataremos de enviar as instruções para repôr a sua palavra-passe.",
-    "message": "Se existir uma conta associada com o endereço {email}, receberá um e-mail dentro de momentos. Deverá ter recebido um e-mail com instruções na sua caixa de entrada. Verifique a sua pasta de spam se não tiver aparecido.",
-    "title": "Esqueceu-se da palavra-passe?"
+    "description": "Deixa-nos o teu e-mail e nós enviamos-te as instruções para repores a tua palavra-passe.",
+    "message": "Se existir uma conta associada com o endereço {email}, vais receber um email dentro de momentos. Se não receberes, vê na tua caixa de spam.",
+    "title": "Esqueceste-te da palavra-passe?"
   },
   "form": {
     "addressLine1": "Endereço (linha 1)",
@@ -569,18 +584,18 @@
     "email": "Email",
     "errorMessages": {
       "api": {
-        "account-locked": "Conta trancada por demasiadas tentativas de login. Faça reset da sua password ou entre em contacto connosco.",
+        "account-locked": "Conta bloqueada por demasiadas tentativas de login. Faz reset da tua password ou fala connosco.",
         "duplicate-email": "Este endereço de e-mail já existe",
         "invalid-token": "Token 2FA inválido",
         "login-failed": "Combinação inválida de email e palavra-passe",
-        "mfa-token-required": "Você ativou a autenticação de dois fatores, portanto, precisa do token \nda sua aplicação de autenticação para redefinir sua senha. Por favor, \ninsira-o."
+        "mfa-token-required": "Ativaste a autenticação de dois fatores. Introduz o token da tua aplicação de autenticação para continuar."
       },
-      "generic": "Algo não correu como devia! Contacte o nosso suporte se isto voltar a acontecer.",
-      "validation": "Há elementos em falta, veja os campos acima."
+      "generic": "Ups, houve aqui um erro. Fala connosco se isto voltar a acontecer.",
+      "validation": "Falta alguma coisa. Verifica os campos acima."
     },
     "errors": {
       "address": {
-        "required": "Este campo é obrigatório se quiser adicionar um endereço"
+        "required": "Este campo é obrigatório se quiseres adicionar um endereço"
       },
       "addressLine1": {
         "required": "A primeira linha do endereço é obrigatória"
@@ -602,7 +617,7 @@
         "required": "O email é obrigatório"
       },
       "file": {
-        "rateLimited": "Falha no upload: fizeste upload de demasiados ficheiros, num tempo apertado. Espera um pouco e volta a tentar.",
+        "rateLimited": "Falha no upload: fizeste upload de demasiados ficheiros recentemente. Espera um pouco e volta a tentar.",
         "tooBig": "Falha no upload: o ficheiro deve ter menos de 20Mb."
       },
       "firstName": {
@@ -645,7 +660,7 @@
     "newPasswordConfirm": "Confirmar nova palavra-passe",
     "notes": "Notas",
     "password": "Palavra-passe",
-    "passwordInfo": "Definir uma palavra-passe segura: 8 ou mais caracteres, incluindo um número, letras maiúsculas e letras minúsculas.",
+    "passwordInfo": "Define uma palavra-passe segura: 8 ou mais caracteres, incluindo um número, letras maiúsculas e letras minúsculas.",
     "phone": "Telefone",
     "postCode": "Código postal",
     "richtext": {
@@ -667,29 +682,31 @@
     "components": {
       "file": {
         "browse": "Fazer upload do dispositivo",
-        "dropFiles": "Largar ficheiros aqui para a anexar",
+        "dropFiles": "Deixar ficheiros aqui para a anexar",
         "or": "Ou",
         "switchToFileUpload": "Mudar para upload de ficheiros",
         "takePicture": "Tirar foto",
         "useCamera": "Usar câmera"
+      },
+      "multiple": {
+        "addAnother": "Adicionar outro"
       }
     }
   },
   "homePage": {
-    "editProfile": "Editar o seu perfil de comunidade",
-    "manageContribution": "Gerir o seu contributo",
+    "editProfile": "Editar o teu perfil de comunidade",
+    "manageContribution": "Gerir o teu contributo",
     "newCallout": "Nova chamada!",
     "openCallouts": "Chamadas abertas",
     "quickActions": "Ações rápidas",
     "title": "Página inicial",
     "viewAllCallouts": "Ver todas as chamadas",
     "viewOpenCallouts": "Ver chamadas abertas",
-    "welcome": "Damos-lhe as boas-vindas, {firstName}!",
-    "yourProfile": "O seu perfil"
+    "welcome": "Damos-te as boas-vindas, {firstName}!",
+    "yourProfile": "O teu perfil"
   },
   "item": {
     "status": {
-      "endedOn": "a {date}",
       "endsIn": "Acaba em {duration}",
       "startsIn": "Começa em {duration}"
     }
@@ -697,56 +714,55 @@
   "join": {
     "absorbFeeForce": "É necessário que {amount} contributos suportem a taxa de {fee}.",
     "absorbFeeOptIn": "Sim, posso suportar a taxa de {fee}.",
-    "absorbFeeText": "O nosso processador de pagamentos cobra-nos por transação, o que significa que perdemos uma parte de cada contributo mensal. Estaria disposto/a a suportar a taxa de {fee}? Em alternativa, pode pagar anualmente.",
-    "contribute": "Contribuir {amount} / {period}",
+    "absorbFeeText": "O nosso processador de pagamentos cobra-nos por transação, o que significa que perdemos uma parte de cada contributo mensal. Poderias suportar a taxa de {fee}? ",
+    "contribute": "Contribuir {contribution}",
     "errors": {
       "confirmEmail": {
-        "message": "Estamos quase lá! Precisamos apenas de confirmar o seu endereço de e-mail para concluir a criação da sua conta.",
-        "proceed": "Enviámos um e-mail. Clique no link lá incluído para continuar.",
-        "title": "Confirmar endereço de e-mail"
+        "message": "Está quase! Precisamos apenas de confirmar o teu email para passares a fazer parte da comunidade.",
+        "proceed": "Enviámos-te um email. Clica no link para continuar.",
+        "title": "Confirmar endereço de email"
       },
       "failed": {
         "backToJoin": "Voltar à página de registo",
-        "message": "Houve um problema ao criar o seu registo, e a nossa equipa foi avisada. Por favor contacte o nosso suporte se o problema continuar.",
-        "title": "Algo não correu como devia"
+        "message": "Houve um problema ao criar a tua conta e a nossa equipa já foi avisada. Entra em contacto connosco se o problema continuar.",
+        "title": "Houve aqui um problema."
       }
     },
     "login": "Login",
     "memberAccount": "Conta de membro",
-    "memberAlready": "Já é membro?",
+    "memberAlready": "Já és membro?",
     "minimumContribution": "O contributo mínimo é",
     "noContribution": "Não pretendo contribuir neste momento",
-    "notice": "Ao avançar, está a aceitar a",
+    "notice": "Ao avançar, estás a aceitar a",
     "now": "Entrar agora!",
     "paymentMethod": "Forma de pagamento",
-    "poweredBy": "Movido a beabee",
+    "poweredBy": "Powered by beabee",
     "privacy": "Política de Privacidade"
   },
   "joinPayment": {
-    "genericError": "Algo não correu como devia! Contacte o nosso suporte se isto voltar a acontecer.",
-    "goBack": "Faltou algo? {back}",
+    "genericError": "Ups, houve aqui um erro. Fala connosco se isto voltar a acontecer.",
+    "goBack": "Esqueceste-te de alguma coisa? {back}",
     "goBackButton": "Voltar ao passo anterior",
-    "note": "Pode alterar o seu contributo e aceder ao seu historial de pagamentos a qualquer altura na sua conta de membro",
-    "willBeContributing": "O seu contributo será de {amount}/{period}"
+    "note": "Podes alterar a tua contribuição e aceder ao teu historial de pagamentos a qualquer altura na tua conta.",
+    "willBeContributing": "O tua contribuição será de {contribution}"
   },
   "joinSetup": {
-    "confirmDetails": "Por favor confirme os seus detalhes",
-    "continue": "Tudo certo! Continuar",
-    "welcome": "Bem-vindo/a {firstName}!"
+    "confirmDetails": "Por favor confirma os teus detalhes",
+    "continue": "Parece-nos tudo bem. Continuar",
+    "welcome": "Boas-vindas, {firstName}!"
   },
-  "locale": "pt",
   "login": {
     "backTo": "Voltar a {newsroomName}",
-    "forgotPassword": "Esqueceu-se da palavra-passe?",
-    "joinNow": "Junte-se agora!",
-    "lostMfaDevice": "Perdeu o seu dispositivo 2FA?",
-    "notMember": "Ainda não é membro?",
+    "forgotPassword": "Esqueceste-te da palavra-passe?",
+    "joinNow": "Junta-te agora!",
+    "lostMfaDevice": "Perdeste o teu dispositivo 2FA?",
+    "notMember": "Ainda não és membro?",
     "title": "Fazer login"
   },
   "lostDevice": {
     "description": "Por favor, insira o seu endereço de e-mail e nós lhe enviaremos instruções de como redefinir seu 2FA",
     "message": "Se existir uma conta associada com o endereço {email}, receberá um e-mail dentro de momentos. Deverá ter recebido um e-mail com instruções na sua caixa de entrada. Verifique a sua pasta de spam se não tiver aparecido.",
-    "title": "Perdeu o seu dispositivo 2FA?"
+    "title": "Perdeste o teu dispositivo 2FA?"
   },
   "membershipBuilder": {
     "steps": {
@@ -764,7 +780,7 @@
     "adminSettings": "Definições",
     "callouts": "Chamadas",
     "contacts": "Contactos",
-    "contribution": "Contributo",
+    "contribution": "Contribuição",
     "dashboard": "Painel",
     "home": "Página inicial",
     "logout": "Sair",
@@ -774,7 +790,7 @@
   },
   "notFound": {
     "goBack": "Regressar à página principal",
-    "text": "Esta página não existe. Se acha que deveria existir, entre em contacto connosco {support}."
+    "text": "Esta página não existe. Se achas que devia existir, entra em contacto connosco {support}."
   },
   "noticeAdminOverview": {
     "actions": {
@@ -785,41 +801,43 @@
     "data": {}
   },
   "notification": {
-    "error": "Aconteceu algo que não devia. Experimente recarregar a página."
+    "error": "Houve aqui um erro. Experimenta recarregar a página."
   },
   "pageTitle": {
-    "confirmEmail": "Confirme o email",
+    "confirmEmail": "Confirma o email",
     "duplicateEmail": "Email duplicado",
     "failed": "Falhou",
-    "forgotPassword": "Esqueceu-se da password",
-    "join": "Junte-se",
+    "forgotPassword": "Esqueceste-te da palavra-passe",
+    "join": "Junta-te",
     "login": "Login",
-    "lostDevice": "Perdeu o seu dispositivo 2FA?",
-    "notFound": "Página Não Encontrada",
-    "resetDevice": "Redefinir Dispositivo Secundário",
-    "resetPassword": "Redefinir password",
-    "setup": "Activação"
+    "lostDevice": "Perdeste o seu dispositivo 2FA?",
+    "notFound": "Página não encontrada",
+    "resetDevice": "Redefinir dispositivo secundário",
+    "resetPassword": "Redefinir palavra-passe",
+    "setPassword": "Definir uma palavra-passe",
+    "setup": "Setup"
   },
   "paymentMethods": {
     "gc_direct-debit": {
       "changeLabel": "Alterar débito direto",
       "label": "Débito direto",
-      "setLabel": "Detalhes do seu débito direto"
+      "setLabel": "Detalhes do teu débito direto"
     },
     "s_bacs": {
       "changeLabel": "Alterar débito direto",
       "label": "Débito direto",
-      "setLabel": "Detalhes do seu débito direto"
+      "setLabel": "Detalhes do teu débito direto"
     },
     "s_card": {
       "changeLabel": "Alterar detalhes do cartão",
       "label": "Cartão",
-      "setLabel": "Detalhes do seu cartão"
+      "setLabel": "Detalhes do teu cartão"
     },
+    "s_paypal": {},
     "s_sepa": {
       "changeLabel": "Alterar débito direto",
       "label": "Débito direto",
-      "setLabel": "Detalhes do seu débito direto"
+      "setLabel": "Detalhes do teu débito direto"
     }
   },
   "payments": {
@@ -830,25 +848,25 @@
     "filter": {}
   },
   "resetDevice": {
-    "description": "Insira a sua password para fazer reset do seu dispositivo 2FA. Vai poder associar um novo dispositivo quando fizer login.",
+    "description": "Insere a tua palavra-pase para fazer reset do seu dispositivo 2FA. Vais poder associar um novo dispositivo quando fizeres login.",
     "failed": "A redefinição do dispositivo 2FA falhou. É possível que o link tenha expirado.",
-    "invalidPassword": "Password inválida",
+    "invalidPassword": "Palavra-passe inválida",
     "success": "A redefinição do dispositivo 2FA foi bem-sucedida.",
     "title": "Fazer reset do teu dispositvo 2FA?"
   },
   "resetPassword": {
-    "description": "Defina uma nova palavra-passe para poder entrar.",
-    "failed": "Palavra-passe não reposta",
-    "login": "Entrar na sua conta",
+    "description": "Define uma nova palavra-passe para poderes entrar.",
+    "failed": "O reset de palavra-passe falhou, o link talvez tenha expirado.",
+    "login": "Entrar na tua conta",
     "lostDevice": "Se perdeste o teu dispositivo associado ao 2FA entra em contacto connosco",
-    "success": "A sua password foi reposta.",
-    "title": "Repôr a sua palavra-passe?"
+    "success": "A tua password foi atualizada.",
+    "title": "Repôr a tua palavra-passe?"
   },
   "roleEditor": {
     "add": "Adicionar cargo",
     "addNewRole": "Adicionar um novo cargo",
     "confirmDelete": {
-      "text": "Tem a certeza que pretende remover este cargo?",
+      "text": "Tens a certeza que pretendes remover este cargo?",
       "title": "Remover cargo"
     },
     "expires": {
@@ -870,14 +888,14 @@
     "today": "agora"
   },
   "setPassword": {
-    "description": "Defina uma nova palavra-passe para poder entrar.",
+    "description": "Define uma nova palavra-passe para poderes entrar.",
     "title": "Definir uma palavra-passe"
   },
   "tagEditor": {
     "add": "Adicionar etiqueta",
     "addNewTag": "Adicionar uma etiqueta",
     "confirmDelete": {
-      "text": "Tem a certeza que quer remover esta etiqueta? As respostas com esta etiqueta não vão ser apagadas.",
+      "text": "Tens a certeza que queres eliminar esta etiqueta? As respostas com esta etiqueta não vão ser apagadas.",
       "title": "Remover etiqueta"
     },
     "name": "Nome"

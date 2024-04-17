@@ -311,6 +311,7 @@ class ContactsService {
     contact: Contact,
     paymentForm: PaymentForm
   ): Promise<void> {
+    log.info("Update contribution for " + contact.id, { paymentForm });
     // At the moment the only possibility is to go from whatever contribution
     // type the user was before to an automatic contribution
     const wasManual = contact.contributionType === ContributionType.Manual;
@@ -323,6 +324,7 @@ class ContactsService {
       contact.contributionPeriod === ContributionPeriod.Annually &&
       paymentForm.period !== ContributionPeriod.Annually
     ) {
+      log.info("Can't update contribution for " + contact.id);
       throw new CantUpdateContribution();
     }
 
@@ -331,7 +333,10 @@ class ContactsService {
       paymentForm
     );
 
-    log.info("Updated contribution", { startNow, expiryDate });
+    log.info("Updated contribution for " + contact.id, {
+      startNow,
+      expiryDate
+    });
 
     await this.updateContact(contact, {
       contributionType: ContributionType.Automatic,
@@ -352,6 +357,7 @@ class ContactsService {
     contact: Contact,
     email: "cancelled-contribution" | "cancelled-contribution-no-survey"
   ): Promise<void> {
+    log.info("Cancel contribution for " + contact.id);
     await PaymentService.cancelContribution(contact);
 
     await EmailService.sendTemplateToContact(email, contact);
