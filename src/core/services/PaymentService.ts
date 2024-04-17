@@ -47,7 +47,7 @@ class PaymentService {
     const data = await getRepository(PaymentData).findOneByOrFail({
       contactId: contact.id
     });
-    log.info("Loaded data for " + contact.id, { data });
+    log.info("Loaded data for contact " + contact.id, { data });
     // Load full contact into data
     return { ...data, contact: contact };
   }
@@ -104,7 +104,7 @@ class PaymentService {
       p.canChangeContribution(useExistingPaymentSource, paymentForm)
     );
     log.info(
-      `User ${contact.id} ${ret ? "can" : "cannot"} change contribution`
+      `Contact ${contact.id} ${ret ? "can" : "cannot"} change contribution`
     );
     return ret;
   }
@@ -141,7 +141,7 @@ class PaymentService {
   }
 
   async createContact(contact: Contact): Promise<void> {
-    log.info("Create contact for " + contact.id);
+    log.info("Create contact for contact " + contact.id);
     await getRepository(PaymentData).save({ contact });
   }
 
@@ -149,7 +149,7 @@ class PaymentService {
     contact: Contact,
     updates: Partial<Contact>
   ): Promise<void> {
-    log.info("Update contact for " + contact.id);
+    log.info("Update contact for contact " + contact.id);
     await this.provider(contact, (p) => p.updateContact(updates));
   }
 
@@ -157,7 +157,7 @@ class PaymentService {
     contact: Contact,
     paymentForm: PaymentForm
   ): Promise<UpdateContributionResult> {
-    log.info("Update contribution for " + contact.id);
+    log.info("Update contribution for contact " + contact.id);
     const ret = await this.provider(contact, (p) =>
       p.updateContribution(paymentForm)
     );
@@ -172,7 +172,7 @@ class PaymentService {
     contact: Contact,
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<void> {
-    log.info("Update payment method for " + contact.id, {
+    log.info("Update payment method for contact " + contact.id, {
       completedPaymentFlow
     });
 
@@ -200,7 +200,7 @@ class PaymentService {
     contact: Contact,
     keepMandate = false
   ): Promise<void> {
-    log.info("Cancel contribution for " + contact.id);
+    log.info("Cancel contribution for contact " + contact.id);
     await this.provider(contact, (p) => p.cancelContribution(keepMandate));
     await getRepository(PaymentData).update(
       { contactId: contact.id },
