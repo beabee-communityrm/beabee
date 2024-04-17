@@ -104,12 +104,10 @@ app.post(
     }
 
     if (data.type === ContributionType.Manual) {
-      await PaymentService.updateDataBy(contact, "source", data.source || null);
-      await PaymentService.updateDataBy(
-        contact,
-        "reference",
-        data.reference || null
-      );
+      await PaymentService.updateData(contact, {
+        mandateId: data.source || null,
+        customerId: data.reference || null
+      });
       await ContactsService.updateContact(contact, {
         contributionPeriod: data.period || null,
         contributionMonthlyAmount: data.amount || null

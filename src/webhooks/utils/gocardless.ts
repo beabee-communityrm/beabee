@@ -104,12 +104,12 @@ async function confirmPayment(payment: Payment): Promise<void> {
     await calcConfirmedPaymentPeriodEnd(payment)
   );
 
-  const contribution = await PaymentService.getData(payment.contact);
+  const contribution = await PaymentService.getContribution(payment.contact);
   if (payment.amount === contribution.nextAmount?.chargeable) {
     await ContactsService.updateContact(payment.contact, {
       contributionMonthlyAmount: contribution.nextAmount?.monthly
     });
-    await PaymentService.updateDataBy(payment.contact, "nextAmount", null);
+    await PaymentService.updateData(payment.contact, { nextAmount: null });
   }
   // TODO: resubscribe to newsletter
 }
@@ -200,10 +200,13 @@ export async function cancelSubscription(
 ): Promise<void> {
   log.info("Cancel subscription " + subscriptionId);
 
-  const data = await PaymentService.getDataBy("subscriptionId", subscriptionId);
-  if (data) {
+  const contribution = await PaymentService.getContributionBy(
+    "subscriptionId",
+    subscriptionId
+  );
+  if (contribution) {
     await ContactsService.cancelContactContribution(
-      data.contact,
+      contribution.contact,
       "cancelled-contribution"
     );
   } else {
@@ -212,14 +215,17 @@ export async function cancelSubscription(
 }
 
 export async function cancelMandate(mandateId: string): Promise<void> {
-  const data = await PaymentService.getDataBy("mandateId", mandateId);
-  if (data) {
+  const contribution = await PaymentService.getContributionBy(
+    "mandateId",
+    mandateId
+  );
+  if (contribution) {
     log.info("Cancel mandate " + mandateId, {
-      contactId: data.contact.id,
+      contactId: contribution.contact.id,
       mandateId
     });
 
-    await PaymentService.updateDataBy(data.contact, "mandateId", null);
+    await PaymentService.updateData(contribution.contact, { mandateId: null });
   } else {
     log.info("Unlinked mandate " + mandateId);
   }
@@ -236,20 +242,20 @@ async function findOrCreatePayment(
     return payment;
   }
 
-  const data = await PaymentService.getDataBy(
+  const contribution = await PaymentService.getContributionBy(
     "mandateId",
     gcPayment.links!.mandate!
   );
 
   // If not found then the mandate wasn't created by us
-  if (data) {
+  if (contribution) {
     log.info("Create payment " + gcPayment.id, {
-      contactId: data.contact.id,
+      contactId: contribution.contact.id,
       gcPaymentId: gcPayment.id
     });
     const newPayment = new Payment();
     newPayment.id = gcPayment.id!;
-    newPayment.contact = data.contact;
+    newPayment.contact = contribution.contact;
     if (gcPayment.links?.subscription) {
       newPayment.subscriptionId = gcPayment.links.subscription;
     }

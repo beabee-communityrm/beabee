@@ -1,6 +1,6 @@
 import { MembershipStatus, PaymentMethod } from "@beabee/beabee-common";
 
-import { createQueryBuilder, getRepository } from "@core/database";
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { PaymentForm } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
@@ -46,46 +46,34 @@ type ProviderFn<T> = (
 ) => Promise<T>;
 
 class PaymentService {
-  async getData(contact: Contact): Promise<ContactContribution> {
-    const data = await getRepository(ContactContribution).findOneByOrFail({
+  async getContribution(contact: Contact): Promise<ContactContribution> {
+    const contribution = await getRepository(
+      ContactContribution
+    ).findOneByOrFail({
       contactId: contact.id
     });
-    log.info("Loaded data for contact " + contact.id, { data });
-    // Load full contact into data
-    return { ...data, contact: contact };
+    // No need to refetch contact, just add it in
+    return { ...contribution, contact };
   }
 
-  async getDataBy(
-    key: string,
+  async getContributionBy(
+    key: "customerId" | "mandateId" | "subscriptionId",
     value: string
-  ): Promise<ContactContribution | undefined> {
-    const data = await createQueryBuilder(ContactContribution, "cc")
-      .innerJoinAndSelect("cc.contact", "m")
-      .leftJoinAndSelect("m.roles", "mp")
-      .where(`data->>:key = :value`, { key, value })
-      .getOne();
-
-    // TODO: check undefined
-    return data || undefined;
+  ): Promise<ContactContribution | null> {
+    return await getRepository(ContactContribution).findOne({
+      where: { [key]: value },
+      relations: { contact: true }
+    });
   }
 
-  async updateDataBy(contact: Contact, key: string, value: unknown) {
-    await createQueryBuilder()
-      .update(ContactContribution)
-      .set({ data: () => "jsonb_set(data, :key, :value)" })
-      .where("contact = :id")
-      .setParameters({
-        key: `{${key}}`,
-        value: JSON.stringify(value),
-        id: contact.id
-      })
-      .execute();
+  async updateData(contact: Contact, updates: Partial<ContactContribution>) {
+    await getRepository(ContactContribution).update(contact.id, updates);
   }
 
   private async provider(contact: Contact, fn: ProviderFn<void>): Promise<void>;
   private async provider<T>(contact: Contact, fn: ProviderFn<T>): Promise<T>;
   private async provider<T>(contact: Contact, fn: ProviderFn<T>): Promise<T> {
-    return this.providerFromData(await this.getData(contact), fn);
+    return this.providerFromData(await this.getContribution(contact), fn);
   }
 
   private async providerFromData<T>(
@@ -179,7 +167,7 @@ class PaymentService {
       completedPaymentFlow
     });
 
-    const contribution = await this.getData(contact);
+    const contribution = await this.getContribution(contact);
     const newMethod = completedPaymentFlow.joinForm.paymentMethod;
     if (contribution.method !== newMethod) {
       log.info("Changing payment method, cancelling previous contribution", {

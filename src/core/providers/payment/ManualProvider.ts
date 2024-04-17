@@ -13,10 +13,10 @@ export default class ManualProvider extends PaymentProvider {
       paymentSource: {
         method: null,
         ...(this.data.customerId && {
-          customerId: this.data.customerId
+          reference: this.data.customerId
         }),
         ...(this.data.mandateId && {
-          mandateId: this.data.mandateId
+          source: this.data.mandateId
         })
       }
     };

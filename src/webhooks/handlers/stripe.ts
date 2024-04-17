@@ -87,13 +87,16 @@ async function handleCheckoutSessionCompleted(
 
 // Customer has been deleted, remove any reference to it in our system
 async function handleCustomerDeleted(customer: Stripe.Customer) {
-  const data = await PaymentService.getDataBy("customerId", customer.id);
-  if (data) {
+  const contribution = await PaymentService.getContributionBy(
+    "customerId",
+    customer.id
+  );
+  if (contribution) {
     log.info("Delete customer from " + customer.id, {
       customerId: customer.id,
-      contactId: data.contact.id
+      contactId: contribution.contact.id
     });
-    await PaymentService.updateDataBy(data.contact, "customerId", null);
+    await PaymentService.updateData(contribution.contact, { customerId: null });
   }
 }
 
@@ -104,16 +107,18 @@ async function handleCustomerSubscriptionUpdated(
   subscription: Stripe.Subscription
 ) {
   if (subscription.status === "incomplete_expired") {
-    const data = await PaymentService.getDataBy(
+    const contribution = await PaymentService.getContributionBy(
       "subscriptionId",
       subscription.id
     );
-    if (data) {
+    if (contribution) {
       log.info(
-        `Subscription ${subscription.id} never started, revoking membership from ${data.contact.id}`
+        `Subscription ${subscription.id} never started, revoking membership from ${contribution.contact.id}`
       );
-      await ContactsService.revokeContactRole(data.contact, "member");
-      await PaymentService.updateDataBy(data.contact, "subscriptionId", null);
+      await ContactsService.revokeContactRole(contribution.contact, "member");
+      await PaymentService.updateData(contribution.contact, {
+        subscriptionId: null
+      });
     }
   }
 }
@@ -123,13 +128,13 @@ async function handleCustomerSubscriptionDeleted(
   subscription: Stripe.Subscription
 ) {
   log.info("Cancel subscription " + subscription.id);
-  const data = await PaymentService.getDataBy(
+  const contribution = await PaymentService.getContributionBy(
     "subscriptionId",
     subscription.id
   );
-  if (data) {
+  if (contribution) {
     await ContactsService.cancelContactContribution(
-      data.contact,
+      contribution.contact,
       "cancelled-contribution"
     );
   }
@@ -184,7 +189,7 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice) {
     await ContactsService.updateContact(contribution.contact, {
       contributionMonthlyAmount: contribution.nextAmount.monthly
     });
-    await PaymentService.updateDataBy(contribution.contact, "nextAmount", null);
+    await PaymentService.updateData(contribution.contact, { nextAmount: null });
   }
 }
 
@@ -192,13 +197,16 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice) {
 async function handlePaymentMethodDetached(
   paymentMethod: Stripe.PaymentMethod
 ) {
-  const data = await PaymentService.getDataBy("mandateId", paymentMethod.id);
-  if (data) {
+  const contribution = await PaymentService.getContributionBy(
+    "mandateId",
+    paymentMethod.id
+  );
+  if (contribution) {
     log.info("Detached payment method " + paymentMethod.id, {
       mandateId: paymentMethod.id,
-      contactId: data.contact.id
+      contactId: contribution.contact.id
     });
-    await PaymentService.updateDataBy(data.contact, "mandateId", null);
+    await PaymentService.updateData(contribution.contact, { mandateId: null });
   }
 }
 
@@ -206,18 +214,19 @@ async function handlePaymentMethodDetached(
 
 async function getContributionFromInvoice(
   invoice: Stripe.Invoice
-): Promise<ContactContribution | undefined> {
+): Promise<ContactContribution | null> {
   if (invoice.customer) {
-    const data = await PaymentService.getDataBy(
+    const contribution = await PaymentService.getContributionBy(
       "customerId",
       invoice.customer as string
     );
-    if (!data) {
+    if (!contribution) {
       log.info("Ignoring invoice with unknown customer " + invoice.id);
     }
-    return data;
+    return contribution;
   } else {
     log.info("Ignoring invoice without customer " + invoice.id);
+    return null;
   }
 }
 
