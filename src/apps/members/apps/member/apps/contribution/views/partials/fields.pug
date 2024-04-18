@@ -1,4 +1,4 @@
-- paymentData = paymentData || {};
+- contribution = contribution || {};
 - member = member || {}
 
 .js-reveal
@@ -28,9 +28,9 @@
         select(name='source')#source.form-control
           option
           each source in Options.list('available-manual-payment-sources')
-            option(selected=paymentData.source === source)= source
+            option(selected=contribution.source === source)= source
 
     +input( 'text', 'Reference', 'reference', {
       left: 3, right: 6,
-      value: paymentData.reference
+      value: contribution.reference
     })
