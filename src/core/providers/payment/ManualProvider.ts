@@ -1,6 +1,6 @@
 import { PaymentForm } from "@core/utils";
 import Contact from "@models/Contact";
-import { ManualPaymentData } from "@models/PaymentData";
+import { ManualPaymentData } from "@models/ContactContribution";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "../payment-flow";
 import { ContributionInfo } from "@type/contribution-info";

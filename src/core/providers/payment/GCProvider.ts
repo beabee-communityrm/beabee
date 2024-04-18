@@ -18,7 +18,7 @@ import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import Contact from "@models/Contact";
-import { GCPaymentData } from "@models/PaymentData";
+import { GCPaymentData } from "@models/ContactContribution";
 
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 

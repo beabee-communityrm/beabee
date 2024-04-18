@@ -14,7 +14,7 @@ import { convertStatus } from "@core/utils/payment/gocardless";
 import ContactsService from "@core/services/ContactsService";
 import PaymentService from "@core/services/PaymentService";
 
-import { GCPaymentData } from "@models/PaymentData";
+import { GCPaymentData } from "@models/ContactContribution";
 import Payment from "@models/Payment";
 
 import config from "@config";

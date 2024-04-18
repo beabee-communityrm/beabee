@@ -15,7 +15,9 @@ import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
 import Payment from "@models/Payment";
-import PaymentData, { GCPaymentData } from "@models/PaymentData";
+import ContactContribution, {
+  GCPaymentData
+} from "@models/ContactContribution";
 
 import config from "@config";
 
@@ -80,9 +82,9 @@ runApp(async () => {
     )
     // Only select those which haven't cancelled and use GoCardless
     .innerJoinAndSelect(
-      "contact.paymentData",
-      "pd",
-      "pd.cancelledAt IS NULL AND pd.method = :method",
+      "contact.contribution",
+      "cc",
+      "cc.cancelledAt IS NULL AND cc.method = :method",
       { method: PaymentMethod.GoCardlessDirectDebit }
     )
     .getMany();
@@ -99,7 +101,7 @@ runApp(async () => {
   for (const contact of contacts) {
     const contactPayments = payments.filter((p) => p.contactId === contact.id);
 
-    const paymentData = contact.paymentData.data as GCPaymentData;
+    const paymentData = contact.contribution.data as GCPaymentData;
 
     const migrationRow = migrationData.find(
       (row) => row.old_customer_id === paymentData.customerId
@@ -144,7 +146,7 @@ runApp(async () => {
         // We do this directly rather than using updatePaymentMethod as it's not
         // meant for updating payment methods that are already associated with
         // the customer in Stripe
-        await getRepository(PaymentData).update(contact.id, {
+        await getRepository(ContactContribution).update(contact.id, {
           method: stripeTypeToPaymentMethod(migrationRow.type),
           data: {
             customerId: migrationRow.customer_id,

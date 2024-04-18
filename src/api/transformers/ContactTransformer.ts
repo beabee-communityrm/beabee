@@ -58,7 +58,7 @@ class ContactTransformer extends BaseContactTransformer<
         roles: contact.roles.map(ContactRoleTransformer.convert)
       }),
       ...(opts?.with?.includes(GetContactWith.Contribution) && {
-        contribution: contact.contribution
+        contribution: contact.contributionInfo
       })
     };
   }
@@ -137,7 +137,7 @@ class ContactTransformer extends BaseContactTransformer<
         throw new Error("Cannot fetch contribution for multiple contacts");
       }
 
-      contacts[0].contribution = await PaymentService.getContributionInfo(
+      contacts[0].contributionInfo = await PaymentService.getContributionInfo(
         contacts[0]
       );
     }

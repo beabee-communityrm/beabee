@@ -17,7 +17,7 @@ import { BaseTransformer } from "@api/transformers/BaseTransformer";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
-import PaymentData from "@models/PaymentData";
+import ContactContribution from "@models/ContactContribution";
 
 import { FilterHandler, FilterHandlers } from "@type/filter-handlers";
 import Callout from "@models/Callout";
@@ -47,9 +47,9 @@ export abstract class BaseContactTransformer<
     activeMembership: activePermission,
     membershipStarts: membershipField("dateAdded"),
     membershipExpires: membershipField("dateExpires"),
-    contributionCancelled: paymentDataField("cancelledAt"),
+    contributionCancelled: contributionField("cancelledAt"),
     manualPaymentSource: (qb, args) => {
-      paymentDataField("data ->> 'source'")(qb, args);
+      contributionField("data ->> 'source'")(qb, args);
       qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
     }
   };
@@ -112,13 +112,13 @@ function profileField(field: keyof ContactProfile): FilterHandler {
   };
 }
 
-function paymentDataField(field: string): FilterHandler {
+function contributionField(field: string): FilterHandler {
   return (qb, { fieldPrefix, convertToWhereClause }) => {
     const subQb = createQueryBuilder()
       .subQuery()
-      .select(`pd.contactId`)
-      .from(PaymentData, "pd")
-      .where(convertToWhereClause(`pd.${field}`));
+      .select(`cc.contactId`)
+      .from(ContactContribution, "cc")
+      .where(convertToWhereClause(`cc.${field}`));
 
     qb.where(`${fieldPrefix}id IN ${subQb.getQuery()}`);
   };
