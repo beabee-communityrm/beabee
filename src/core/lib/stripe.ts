@@ -37,7 +37,7 @@ export const taxRateUpdateOrCreateDefault = async function (
 
   const create: Stripe.TaxRateCreateParams = {
     display_name: defaultDisplayName,
-    inclusive: taxRateInclusive,
+    inclusive: taxRateInclusive, // Determines whether the tax percentage is added to, or included in, the overall amount, see https://docs.stripe.com/billing/taxes/tax-rates#inclusive-vs-exclusive-tax
     country: config.stripe.country,
     ...data
   };

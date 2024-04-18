@@ -9,14 +9,14 @@ import {
 
 import PartialBody from "@api/decorators/PartialBody";
 import {
-  GetContactsContentDto,
+  GetContentContactsDto,
   GetContentDto,
-  GetEmailContentDto,
-  GetGeneralContentDto,
-  GetJoinContentDto,
-  GetJoinSetupContentDto,
-  GetProfileContentDto,
-  GetShareContentDto
+  GetContentEmailDto,
+  GetContentGeneralDto,
+  GetContentJoinDto,
+  GetContentJoinSetupDto,
+  GetContentProfileDto,
+  GetContentShareDto
 } from "@api/dto/ContentDto";
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
@@ -32,8 +32,8 @@ export class ContentController {
   @Authorized("admin")
   @Patch("/contacts")
   async updateContacts(
-    @PartialBody() data: GetContactsContentDto
-  ): Promise<GetContactsContentDto> {
+    @PartialBody() data: GetContentContactsDto
+  ): Promise<GetContentContactsDto> {
     await ContentTransformer.updateOne("contacts", data);
     return ContentTransformer.fetchOne("contacts");
   }
@@ -41,8 +41,8 @@ export class ContentController {
   @Authorized("admin")
   @Patch("/email")
   async updateEmail(
-    @PartialBody() data: GetEmailContentDto
-  ): Promise<GetEmailContentDto> {
+    @PartialBody() data: GetContentEmailDto
+  ): Promise<GetContentEmailDto> {
     await ContentTransformer.updateOne("email", data);
     return ContentTransformer.fetchOne("email");
   }
@@ -50,8 +50,8 @@ export class ContentController {
   @Authorized("admin")
   @Patch("/general")
   async updateGeneral(
-    @PartialBody() data: GetGeneralContentDto
-  ): Promise<GetGeneralContentDto> {
+    @PartialBody() data: GetContentGeneralDto
+  ): Promise<GetContentGeneralDto> {
     await ContentTransformer.updateOne("general", data);
     return ContentTransformer.fetchOne("general");
   }
@@ -59,8 +59,8 @@ export class ContentController {
   @Authorized("admin")
   @Patch("/join")
   async updateJoin(
-    @PartialBody() data: GetJoinContentDto
-  ): Promise<GetJoinContentDto> {
+    @PartialBody() data: GetContentJoinDto
+  ): Promise<GetContentJoinDto> {
     if (data.taxRate) {
       const taxRate = await taxRateUpdateOrCreateDefault(
         {
@@ -77,8 +77,8 @@ export class ContentController {
   @Authorized("admin")
   @Patch("/join/setup")
   async updateJoinSetup(
-    @PartialBody() data: GetJoinSetupContentDto
-  ): Promise<GetJoinSetupContentDto> {
+    @PartialBody() data: GetContentJoinSetupDto
+  ): Promise<GetContentJoinSetupDto> {
     await ContentTransformer.updateOne("join/setup", data);
     return ContentTransformer.fetchOne("join/setup");
   }
@@ -86,8 +86,8 @@ export class ContentController {
   @Authorized("admin")
   @Patch("/profile")
   async updateProfile(
-    @PartialBody() data: GetProfileContentDto
-  ): Promise<GetProfileContentDto> {
+    @PartialBody() data: GetContentProfileDto
+  ): Promise<GetContentProfileDto> {
     await ContentTransformer.updateOne("profile", data);
     return ContentTransformer.fetchOne("profile");
   }
@@ -95,8 +95,8 @@ export class ContentController {
   @Authorized("admin")
   @Patch("/share")
   async updateShare(
-    @PartialBody() data: GetShareContentDto
-  ): Promise<GetShareContentDto> {
+    @PartialBody() data: GetContentShareDto
+  ): Promise<GetContentShareDto> {
     await ContentTransformer.updateOne("share", data);
     return ContentTransformer.fetchOne("share");
   }

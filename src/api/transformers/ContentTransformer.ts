@@ -5,14 +5,14 @@ import { getEmailFooter } from "@core/utils/email";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import {
-  GetContactsContentDto,
+  GetContentContactsDto,
   GetContentDto,
-  GetEmailContentDto,
-  GetGeneralContentDto,
-  GetJoinContentDto,
-  GetJoinSetupContentDto,
-  GetProfileContentDto,
-  GetShareContentDto
+  GetContentEmailDto,
+  GetContentGeneralDto,
+  GetContentJoinDto,
+  GetContentJoinSetupDto,
+  GetContentProfileDto,
+  GetContentShareDto
 } from "@api/dto/ContentDto";
 
 import Content from "@models/Content";
@@ -28,13 +28,13 @@ class ContentTransformer {
     data: ContentData<Id>
   ): GetContentDto<Id> {
     const Dto = {
-      contacts: GetContactsContentDto,
-      email: GetEmailContentDto,
-      general: GetGeneralContentDto,
-      join: GetJoinContentDto,
-      "join/setup": GetJoinSetupContentDto,
-      profile: GetProfileContentDto,
-      share: GetShareContentDto
+      contacts: GetContentContactsDto,
+      email: GetContentEmailDto,
+      general: GetContentGeneralDto,
+      join: GetContentJoinDto,
+      "join/setup": GetContentJoinSetupDto,
+      profile: GetContentProfileDto,
+      share: GetContentShareDto
     }[id];
 
     return plainToInstance(Dto as any, data);

@@ -74,12 +74,12 @@ async function calculateProrationParams(
  * @returns {string[]} The tax rate id
  */
 async function getDefaultTaxRates() {
-  const joinContent = await ContentTransformer.fetchOne("join");
-  if (!joinContent.taxRateStrapiId) {
+  const ContentJoin = await ContentTransformer.fetchOne("join");
+  if (!ContentJoin.taxRateStrapiId) {
     console.warn("No tax rate found for the join content");
     return undefined;
   }
-  return [joinContent.taxRateStrapiId];
+  return [ContentJoin.taxRateStrapiId];
 }
 
 export async function createSubscription(
