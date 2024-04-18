@@ -12,6 +12,8 @@ import { log as mainLogger } from "@core/logging";
 import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
 
+import ContentTransformer from "@api/transformers/ContentTransformer";
+
 import config from "@config";
 
 const log = mainLogger.child({ app: "stripe-utils" });
@@ -67,18 +69,38 @@ async function calculateProrationParams(
   };
 }
 
+/**
+ * Fetches the default tax rate from the join content
+ * @returns {string[]} The tax rate id
+ */
+async function getDefaultTaxRates() {
+  const joinContent = await ContentTransformer.fetchOne("join");
+  if (!joinContent.taxRateStrapiId) {
+    console.warn("No tax rate found for the join content");
+    return undefined;
+  }
+  return [joinContent.taxRateStrapiId];
+}
+
 export async function createSubscription(
   customerId: string,
   paymentForm: PaymentForm,
   paymentMethod: PaymentMethod,
-  renewalDate?: Date
+  renewalDate?: Date,
+  defaultTaxRates?: string[]
 ): Promise<Stripe.Subscription> {
   log.info("Creating subscription on " + customerId, {
     paymentForm,
     renewalDate
   });
 
-  return await stripe.subscriptions.create({
+  // If no tax rates are provided, we fetch the default tax rate from the join content
+  // Currently, this should always be the case
+  if (!defaultTaxRates) {
+    defaultTaxRates = await getDefaultTaxRates();
+  }
+
+  const params: Stripe.SubscriptionCreateParams = {
     customer: customerId,
     items: [{ price_data: getPriceData(paymentForm, paymentMethod) }],
     off_session: true,
@@ -87,13 +109,20 @@ export async function createSubscription(
         billing_cycle_anchor: Math.floor(+renewalDate / 1000),
         proration_behavior: "none"
       })
-  });
+  };
+
+  if (defaultTaxRates) {
+    params.default_tax_rates = defaultTaxRates;
+  }
+
+  return await stripe.subscriptions.create(params);
 }
 
 export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm,
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod,
+  defaultTaxRates?: string[]
 ): Promise<{ subscription: Stripe.Subscription; startNow: boolean }> {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ["schedule"]
@@ -129,9 +158,13 @@ export async function updateSubscription(
   const startNow = prorationAmount === 0 || paymentForm.prorate;
 
   if (startNow) {
-    // Start new contribution immediately (monthly or prorated annuals)
-    log.info(`Updating subscription for ${subscription.id}`);
-    await stripe.subscriptions.update(subscriptionId, {
+    // If no tax rates are provided, we fetch the default tax rate from the join content
+    // Currently, this should always be the case
+    if (!defaultTaxRates) {
+      defaultTaxRates = await getDefaultTaxRates();
+    }
+
+    const params: Stripe.SubscriptionUpdateParams = {
       items: [newSubscriptionItem],
       ...(prorationAmount > 0
         ? {
@@ -145,7 +178,15 @@ export async function updateSubscription(
             // Stripe starts the new billing cycle immediately
             trial_end: subscription.current_period_end
           })
-    });
+    };
+
+    if (defaultTaxRates) {
+      params.default_tax_rates = defaultTaxRates;
+    }
+
+    // Start new contribution immediately (monthly or prorated annuals)
+    log.info(`Updating subscription for ${subscription.id}`);
+    await stripe.subscriptions.update(subscriptionId, params);
   } else {
     // Schedule the change for the next period
     log.info(`Creating new schedule for ${subscription.id}`);

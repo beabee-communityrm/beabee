@@ -9,7 +9,7 @@ export const stripe = new Stripe(config.stripe.secretKey, {
 
 /**
  * Update or create the Beabee default tax rate on Stripe,
- * We currently only support this onle one tax rate.
+ * we currently only support this single tax rate.
  * */
 export const taxRateUpdateOrCreateDefault = async function (
   this: Stripe.TaxRatesResource,
@@ -44,3 +44,5 @@ export const taxRateUpdateOrCreateDefault = async function (
 
   return await this.create(create, options);
 }.bind(stripe.taxRates);
+
+export { Stripe };
