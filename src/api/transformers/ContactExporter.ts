@@ -1,8 +1,4 @@
-import {
-  ContactFilterName,
-  RoleType,
-  contactFilters
-} from "@beabee/beabee-common";
+import { RoleType } from "@beabee/beabee-common";
 import { stringify } from "csv-stringify/sync";
 import { SelectQueryBuilder } from "typeorm";
 
@@ -10,23 +6,16 @@ import { getMembershipStatus } from "@core/services/PaymentService";
 
 import { GetExportQuery } from "@api/dto/BaseDto";
 import { ExportContactDto } from "@api/dto/ContactDto";
-import { BaseTransformer } from "@api/transformers/BaseTransformer";
-import ContactTransformer from "@api/transformers/ContactTransformer";
 
 import Contact from "@models/Contact";
 
 import { AuthInfo } from "@type/auth-info";
+import { BaseContactTransformer } from "./BaseContactTransformer";
 
-class ContactExporter extends BaseTransformer<
-  Contact,
+class ContactExporter extends BaseContactTransformer<
   ExportContactDto,
-  ContactFilterName,
   GetExportQuery
 > {
-  protected model = Contact;
-  protected filters = contactFilters;
-  protected filterHandlers = ContactTransformer.filterHandlers;
-
   protected allowedRoles: RoleType[] = ["admin"];
 
   convert(contact: Contact): ExportContactDto {

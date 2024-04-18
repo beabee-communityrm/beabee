@@ -43,8 +43,8 @@ import Contact from "@models/Contact";
 // Operator definitions
 
 const equalityOperatorsWhere = {
-  equal: (field: string) => `${field} = :a`,
-  not_equal: (field: string) => `${field} <> :a`
+  equal: (field: string) => `${field} = :valueA`,
+  not_equal: (field: string) => `${field} <> :valueA`
 };
 
 const nullableOperatorsWhere = {
@@ -53,8 +53,8 @@ const nullableOperatorsWhere = {
 };
 
 const blobOperatorsWhere = {
-  contains: (field: string) => `${field} ILIKE '%' || :a || '%'`,
-  not_contains: (field: string) => `${field} NOT ILIKE '%' || :a || '%'`,
+  contains: (field: string) => `${field} ILIKE '%' || :valueA || '%'`,
+  not_contains: (field: string) => `${field} NOT ILIKE '%' || :valueA || '%'`,
   is_empty: (field: string) => `${field} = ''`,
   is_not_empty: (field: string) => `${field} <> ''`
 };
@@ -62,12 +62,12 @@ const blobOperatorsWhere = {
 const numericOperatorsWhere = {
   ...equalityOperatorsWhere,
   ...nullableOperatorsWhere,
-  less: (field: string) => `${field} < :a`,
-  less_or_equal: (field: string) => `${field} <= :a`,
-  greater: (field: string) => `${field} > :a`,
-  greater_or_equal: (field: string) => `${field} >= :a`,
-  between: (field: string) => `${field} BETWEEN :a AND :b`,
-  not_between: (field: string) => `${field} NOT BETWEEN :a AND :b`
+  less: (field: string) => `${field} < :valueA`,
+  less_or_equal: (field: string) => `${field} <= :valueA`,
+  greater: (field: string) => `${field} > :valueA`,
+  greater_or_equal: (field: string) => `${field} >= :valueA`,
+  between: (field: string) => `${field} BETWEEN :valueA AND :valueB`,
+  not_between: (field: string) => `${field} NOT BETWEEN :valueA AND :valueB`
 };
 
 function withOperators<T extends FilterType>(
@@ -87,10 +87,10 @@ const operatorsWhereByType: Record<
   text: withOperators("text", {
     ...equalityOperatorsWhere,
     ...blobOperatorsWhere,
-    begins_with: (field) => `${field} ILIKE :a || '%'`,
-    not_begins_with: (field) => `${field} NOT ILIKE :a || '%'`,
-    ends_with: (field) => `${field} ILIKE '%' || :a`,
-    not_ends_with: (field) => `${field} NOT ILIKE '%' || :a`
+    begins_with: (field) => `${field} ILIKE :valueA || '%'`,
+    not_begins_with: (field) => `${field} NOT ILIKE :valueA || '%'`,
+    ends_with: (field) => `${field} ILIKE '%' || :valueA`,
+    not_ends_with: (field) => `${field} NOT ILIKE '%' || :valueA`
   }),
   blob: withOperators("blob", blobOperatorsWhere),
   date: withOperators("date", numericOperatorsWhere),
@@ -100,8 +100,8 @@ const operatorsWhereByType: Record<
     equal: equalityOperatorsWhere.equal
   }),
   array: withOperators("array", {
-    contains: (field) => `${field} ? :a`,
-    not_contains: (field) => `${field} ? :a = FALSE`,
+    contains: (field) => `${field} ? :valueA`,
+    not_contains: (field) => `${field} ? :valueA = FALSE`,
     is_empty: (field) => `${field} ->> 0 IS NULL`,
     is_not_empty: (field) => `${field} ->> 0 IS NOT NULL`
   }),
@@ -118,9 +118,16 @@ const operatorsWhereByType: Record<
 // Generic field handlers
 
 const simpleFilterHandler: FilterHandler = (qb, args) => {
-  qb.where(args.whereFn(`${args.fieldPrefix}${args.field}`));
+  qb.where(args.convertToWhereClause(`${args.fieldPrefix}${args.field}`));
 };
 
+/**
+ * Status is a virtual field that maps to starts and expires, this function
+ * applies the correct filter for the status field value
+ *
+ * @param qb The query builder
+ * @param args The rule arguments
+ */
 export const statusFilterHandler: FilterHandler = (qb, args) => {
   // TODO: handle other operators
   if (args.operator !== "equal") {
@@ -170,6 +177,19 @@ function coalesceField(field: string): string {
   return `COALESCE(${field}, '')`;
 }
 
+/**
+ * Takes a rule and returns a field mapping function and the values to compare
+ *
+ * - For text and blob fields, we add COALESE to the field if it's nullable so
+ *   NULL values are treated as empty strings
+ * - For date fields, we DATE_TRUNC the field to the day or more specific unit if
+ *   provided and turn the value into a Date object
+ * - For contact fields, it maps "me" to the contact id
+ * - Otherwise, it returns the field and value as is
+ * @param rule The rule to prepare
+ * @param contact
+ * @returns a field mapping function and the values to compare
+ */
 function prepareRule(
   rule: ValidatedRule<string>,
   contact: Contact | undefined
@@ -205,57 +225,74 @@ function prepareRule(
   }
 }
 
-export function convertRulesToWhereClause<Field extends string>(
-  ruleGroup: ValidatedRuleGroup<Field>,
+/**
+ * The query builder doesn't support having the same parameter names for
+ * different parts of the query and subqueries, so we have to ensure each query
+ * parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
+ * the end of each parameter for each rule.
+ *
+ * @param ruleGroup The rule group
+ * @param contact
+ * @param filterHandlers
+ * @param fieldPrefix
+ * @returns
+ */
+export function convertRulesToWhereClause(
+  ruleGroup: ValidatedRuleGroup<string>,
   contact: Contact | undefined,
-  filterHandlers: FilterHandlers<Field> | undefined,
+  filterHandlers: FilterHandlers<string> | undefined,
   fieldPrefix: string
 ): [Brackets, Record<string, unknown>] {
-  /*
-    The query builder doesn't support having the same parameter names for
-    different parts of the query and subqueries, so we have to ensure each query
-    parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
-    the end of each parameter for each rule.
-  */
   const params: Record<string, unknown> = {
     // Some queries need a current date parameter
     now: new Date()
   };
   let ruleNo = 0;
 
-  function parseRule(rule: ValidatedRule<Field>) {
+  function getFilterHandler(field: string): FilterHandler {
+    let filterHandler = filterHandlers?.[field];
+    // See if there is a catch all field handler for subfields
+    if (!filterHandler && field.includes(".")) {
+      const catchallField = field.split(".", 1)[0] + ".";
+      filterHandler = filterHandlers?.[catchallField];
+    }
+
+    return filterHandler || simpleFilterHandler;
+  }
+
+  function parseRule(rule: ValidatedRule<string>) {
     return (qb: WhereExpressionBuilder): void => {
-      const operatorFn = operatorsWhereByType[rule.type][rule.operator];
-      if (!operatorFn) {
+      const applyOperator = operatorsWhereByType[rule.type][rule.operator];
+      if (!applyOperator) {
         // Shouln't be able to happen as rule has been validated
         throw new Error("Invalid ValidatedRule");
       }
 
-      const suffix = "_" + ruleNo;
-      const [fieldFn, value] = prepareRule(rule, contact);
+      const paramSuffix = "_" + ruleNo;
+      const [transformField, value] = prepareRule(rule, contact);
 
       // Add values as params
-      params["a" + suffix] = value[0];
-      params["b" + suffix] = value[1];
+      params["valueA" + paramSuffix] = value[0];
+      params["valueB" + paramSuffix] = value[1];
 
-      // Replace :[a-z] but avoid replacing casts e.g. ::boolean
-      const suffixFn = (field: string) =>
-        field.replace(/[^:]:[a-z]/g, "$&" + suffix);
+      // Add suffixes to parameters but avoid replacing casts e.g. ::boolean
+      const addParamSuffix = (field: string) =>
+        field.replace(/[^:]:[a-zA-Z]+/g, "$&" + paramSuffix);
 
-      const filterHandler = filterHandlers?.[rule.field] || simpleFilterHandler;
-      const extraParams = filterHandler(qb, {
+      const newParams = getFilterHandler(rule.field)(qb, {
         fieldPrefix,
         field: rule.field,
         operator: rule.operator,
         type: rule.type,
         value,
-        whereFn: (field) => suffixFn(operatorFn(fieldFn(field))),
-        suffixFn
+        convertToWhereClause: (field) =>
+          addParamSuffix(applyOperator(transformField(field))),
+        addParamSuffix
       });
 
-      if (extraParams) {
-        for (const [key, value] of Object.entries(extraParams)) {
-          params[key + suffix] = value;
+      if (newParams) {
+        for (const [key, value] of Object.entries(newParams)) {
+          params[key + paramSuffix] = value;
         }
       }
 
@@ -263,7 +300,7 @@ export function convertRulesToWhereClause<Field extends string>(
     };
   }
 
-  function parseRuleGroup(ruleGroup: ValidatedRuleGroup<Field>) {
+  function parseRuleGroup(ruleGroup: ValidatedRuleGroup<string>) {
     return (qb: WhereExpressionBuilder): void => {
       if (ruleGroup.rules.length > 0) {
         qb.where(ruleGroup.condition === "AND" ? "TRUE" : "FALSE");
