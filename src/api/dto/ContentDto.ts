@@ -137,6 +137,9 @@ export class GetContentJoinDto implements ContentJoinData {
   @IsIn(["eu", "gb", "ca"])
   stripeCountry!: StripeFeeCountry;
 
+  @IsBoolean()
+  taxRateEnabled!: boolean;
+
   @IsNumber()
   taxRate!: number;
 

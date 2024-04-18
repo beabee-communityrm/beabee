@@ -12,6 +12,7 @@
   "support-email": "membership@example.com",
   "support-email-from": "UK Makerspace Membership",
   "contribution-min-monthly-amount": "1",
+  "tax-rate-enabled": "false",
   "tax-rate-percentage": "7",
   "tax-rate-strapi-default-id": "",
   "tax-rate-strapi-default-display-name": "beabee-default-tax-rate",

@@ -57,6 +57,7 @@ export interface ContentJoinData {
   paymentMethods: PaymentMethod[];
   stripePublicKey: string;
   stripeCountry: StripeFeeCountry;
+  taxRateEnabled: boolean;
   taxRate: number;
   taxRateStrapiId: string;
 }

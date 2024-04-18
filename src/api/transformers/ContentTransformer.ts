@@ -180,6 +180,7 @@ const contentData = {
     stripePublicKey: ["readonly", () => config.stripe.publicKey],
     subtitle: ["data", ""],
     title: ["data", ""],
+    taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
     taxRate: ["option", "tax-rate-percentage", "int"],
     taxRateStrapiId: ["option", "tax-rate-strapi-default-id", "text"]
   }),
