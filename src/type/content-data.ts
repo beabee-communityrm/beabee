@@ -59,7 +59,6 @@ export interface ContentJoinData {
   stripeCountry: StripeFeeCountry;
   taxRateEnabled: boolean;
   taxRate: number;
-  taxRateStrapiId: string;
 }
 
 export interface ContentJoinSetupData {

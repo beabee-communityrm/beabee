@@ -5,7 +5,11 @@ import {
   PaymentSource
 } from "@beabee/beabee-common";
 import { differenceInMonths } from "date-fns";
-import Stripe from "stripe";
+import {
+  Stripe,
+  stripeTaxRateGetDefaultDisplayName,
+  stripeTaxRateGetByDisplayName
+} from "@core/lib/stripe";
 
 import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
@@ -69,19 +73,6 @@ async function calculateProrationParams(
   };
 }
 
-/**
- * Fetches the default tax rate from the join content
- * @returns {string[]} The tax rate id
- */
-async function getDefaultTaxRates() {
-  const ContentJoin = await ContentTransformer.fetchOne("join");
-  if (!ContentJoin.taxRateStrapiId) {
-    console.warn("No tax rate found for the join content");
-    return undefined;
-  }
-  return [ContentJoin.taxRateStrapiId];
-}
-
 export async function createSubscription(
   customerId: string,
   paymentForm: PaymentForm,
@@ -94,10 +85,15 @@ export async function createSubscription(
     renewalDate
   });
 
-  // If no tax rates are provided, we fetch the default tax rate from the join content
+  // If no tax rates are provided, we fetch the default tax rate from stripe
   // Currently, this should always be the case
   if (!defaultTaxRates) {
-    defaultTaxRates = await getDefaultTaxRates();
+    const taxRate = await stripeTaxRateGetByDisplayName(
+      stripeTaxRateGetDefaultDisplayName()
+    );
+    if (taxRate) {
+      defaultTaxRates = [taxRate.id];
+    }
   }
 
   const params: Stripe.SubscriptionCreateParams = {
@@ -158,10 +154,15 @@ export async function updateSubscription(
   const startNow = prorationAmount === 0 || paymentForm.prorate;
 
   if (startNow) {
-    // If no tax rates are provided, we fetch the default tax rate from the join content
+    // If no tax rates are provided, we fetch the default tax rate from stripe
     // Currently, this should always be the case
     if (!defaultTaxRates) {
-      defaultTaxRates = await getDefaultTaxRates();
+      const taxRate = await stripeTaxRateGetByDisplayName(
+        stripeTaxRateGetDefaultDisplayName()
+      );
+      if (taxRate) {
+        defaultTaxRates = [taxRate.id];
+      }
     }
 
     const params: Stripe.SubscriptionUpdateParams = {

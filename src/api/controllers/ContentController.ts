@@ -20,7 +20,7 @@ import {
 } from "@api/dto/ContentDto";
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
-import { stripe, taxRateUpdateOrCreateDefault } from "@core/lib/stripe";
+import { stripeTaxRateCreateOrRecreateDefault } from "@core/lib/stripe";
 
 @JsonController("/content")
 export class ContentController {
@@ -62,13 +62,7 @@ export class ContentController {
     @PartialBody() data: GetContentJoinDto
   ): Promise<GetContentJoinDto> {
     if (data.taxRate) {
-      const taxRate = await taxRateUpdateOrCreateDefault(
-        {
-          percentage: data.taxRate
-        },
-        data.taxRateStrapiId
-      );
-      data.taxRateStrapiId = taxRate.id;
+      await stripeTaxRateCreateOrRecreateDefault(data.taxRate);
     }
     await ContentTransformer.updateOne("join", data);
     return ContentTransformer.fetchOne("join");

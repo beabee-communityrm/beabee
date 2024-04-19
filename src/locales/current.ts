@@ -6,7 +6,7 @@ import localeEn from "./en.json";
 import localePt from "./pt.json";
 import localeRu from "./ru.json";
 
-const locales = {
+export const locales = {
   de: localeDe,
   "de@informal": localeDeInformal,
   en: localeEn,

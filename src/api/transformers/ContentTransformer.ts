@@ -181,8 +181,7 @@ const contentData = {
     subtitle: ["data", ""],
     title: ["data", ""],
     taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
-    taxRate: ["option", "tax-rate-percentage", "int"],
-    taxRateStrapiId: ["option", "tax-rate-strapi-default-id", "text"]
+    taxRate: ["option", "tax-rate-percentage", "int"]
   }),
   "join/setup": withValue<"join/setup">({
     mailOptIn: ["data", ""],
