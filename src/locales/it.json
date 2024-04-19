@@ -1,0 +1,420 @@
+{
+  "accountPage": {
+    "mfa": {
+      "codeInput": {},
+      "confirmDelete": {},
+      "enterCode": {},
+      "result": {},
+      "scan": {},
+      "secretInput": {},
+      "validateButton": {}
+    },
+    "newsletter": {
+      "currentStatus": {}
+    }
+  },
+  "actions": {
+    "add": "Aggiungi",
+    "back": "Indietro",
+    "continue": "Prosegui"
+  },
+  "addContact": {
+    "errors": {}
+  },
+  "addNotice": {
+    "form": {}
+  },
+  "adminDashboard": {
+    "latestCallout": {},
+    "mostRecentMembers": {},
+    "numbers": {}
+  },
+  "adminSettings": {
+    "apikey": {
+      "confirmCreate": {},
+      "confirmDelete": {},
+      "expires": {}
+    },
+    "email": {},
+    "general": {
+      "footer": {
+        "dataPrivacy": {},
+        "otherLinks": {}
+      },
+      "socialSharing": {}
+    },
+    "payment": {},
+    "theme": {
+      "colorNames": {},
+      "presetColors": {}
+    }
+  },
+  "advancedSearch": {
+    "matchType": {},
+    "matchWord": {},
+    "operators": {
+      "all": {},
+      "array": {},
+      "blob": {},
+      "boolean": {},
+      "date": {},
+      "enum": {},
+      "number": {},
+      "text": {}
+    },
+    "saveSegment": {
+      "createOrUpdate": {}
+    }
+  },
+  "apiKey": {
+    "data": {}
+  },
+  "callout": {
+    "actions": {},
+    "form": {},
+    "share": {},
+    "views": {}
+  },
+  "calloutAdmin": {},
+  "calloutAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    },
+    "dates": {},
+    "settings": {
+      "answers": {},
+      "contactInfo": {},
+      "endsWith": {},
+      "openTo": {}
+    }
+  },
+  "calloutBuilder": {
+    "actions": {},
+    "nextSlide": {},
+    "translationFields": {}
+  },
+  "calloutResponse": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "calloutResponseBuckets": {},
+  "calloutResponseComments": {
+    "actions": {},
+    "confirmDelete": {}
+  },
+  "calloutResponsePage": {
+    "actions": {},
+    "notifications": {}
+  },
+  "calloutResponsesPage": {},
+  "callouts": {
+    "data": {}
+  },
+  "calloutsAdmin": {
+    "data": {},
+    "filter": {}
+  },
+  "common": {
+    "backToHome": "Torna alla home",
+    "contributing": "Contribuire a",
+    "contributionPeriod": {
+      "annually": "all'anno",
+      "monthly": "al mese"
+    },
+    "contributionType": {
+      "automatic": "Automatico",
+      "gift": "Regalo",
+      "manual": "Manuale",
+      "none": "Nessuno"
+    },
+    "hello": "Ciao",
+    "joined": "Iscritto",
+    "loading": "Caricamento...",
+    "login": "Login",
+    "newsletterStatus": {
+      "cleaned": "Pulito",
+      "none": "Nessuno",
+      "pending": "In attesa",
+      "subscribed": "Iscritto",
+      "unsubscribed": "Annulla l'iscrizione"
+    },
+    "no": "No",
+    "noResults": "Nessun risultato",
+    "pageCount": "Pagina {pageNumber} di {pageTotal}",
+    "paymentStatus": {
+      "cancelled": "Cancellato",
+      "failed": "Errore",
+      "pending": "In attesa",
+      "successful": "Riuscito"
+    },
+    "perMonth": "/ mese",
+    "perMonthText": "al mese",
+    "perYear": "/ anno",
+    "perYearText": "all'anno",
+    "role": {},
+    "selectNone": "-- Nessuno --",
+    "selectOne": "Seleziona",
+    "show": "Mostra",
+    "status": {
+      "draft": "Bozza",
+      "ended": "Chiuso",
+      "open": "Aperto",
+      "scheduled": "Programmato"
+    },
+    "thankYou": "Grazie!",
+    "timeAgo": "{time} fa",
+    "timeIn": "in {time}",
+    "until": "fino",
+    "yes": "Sì"
+  },
+  "contactContribution": {
+    "confirmCancel": {},
+    "updateNotice": {}
+  },
+  "contactOverview": {
+    "annotation": {},
+    "security": {
+      "mfa": {}
+    }
+  },
+  "contacts": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "contribution": {
+    "paymentHistory": {},
+    "paymentMethod": "Metodo di pagamento"
+  },
+  "createCallout": {
+    "steps": {
+      "content": {},
+      "dates": {
+        "inputs": {
+          "expires": {
+            "opts": {}
+          },
+          "starts": {
+            "opts": {}
+          }
+        }
+      },
+      "endMessage": {
+        "inputs": {
+          "action": {
+            "opts": {}
+          },
+          "text": {},
+          "title": {},
+          "url": {}
+        }
+      },
+      "mailchimp": {},
+      "settings": {
+        "inputs": {
+          "anonymous": {
+            "opts": {}
+          },
+          "editable": {
+            "opts": {}
+          },
+          "mapSchema": {
+            "addressPattern": {},
+            "addressPatternProp": {},
+            "addressProp": {},
+            "bounds": {},
+            "center": {},
+            "geocodeCountries": {},
+            "initialZoom": {},
+            "maxZoom": {},
+            "minZoom": {},
+            "style": {}
+          },
+          "multiple": {
+            "opts": {}
+          },
+          "requireCaptcha": {
+            "opts": {}
+          },
+          "responseImageFilter": {},
+          "responseImageProp": {},
+          "responseLinks": {},
+          "responseTitleProp": {},
+          "showResponses": {},
+          "visible": {
+            "opts": {}
+          },
+          "whichResponseBuckets": {},
+          "whichResponseViews": {
+            "opts": {}
+          },
+          "who": {
+            "opts": {}
+          }
+        }
+      },
+      "titleAndImage": {
+        "inputs": {
+          "description": {},
+          "image": {},
+          "intro": {},
+          "overrideShare": {
+            "opts": {}
+          },
+          "shareDescription": {},
+          "shareTitle": {},
+          "slug": {
+            "opts": {}
+          },
+          "title": {}
+        }
+      }
+    }
+  },
+  "editCallout": {},
+  "editNotice": {},
+  "footer": {
+    "contactUs": "Contact us at",
+    "handbookResources": "Handbook & Resources",
+    "impressum": "Impressum",
+    "joinCommunity": "Join the Community",
+    "poweredBy": "powering independent local newsrooms",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms and Conditions"
+  },
+  "forgotPassword": {},
+  "form": {
+    "errorMessages": {
+      "api": {}
+    },
+    "errors": {
+      "address": {},
+      "addressLine1": {},
+      "cityOrTown": {},
+      "color": {},
+      "confirmPassword": {},
+      "email": {},
+      "file": {},
+      "firstName": {},
+      "lastName": {},
+      "name": {},
+      "password": {},
+      "postCode": {},
+      "unknown": {},
+      "url": {},
+      "verifyCode": {}
+    },
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "passwordInfo": "Crea una password sicura: almeno 8 caratteri, un numero, una lettera minuscola e una maiuscola.",
+    "richtext": {}
+  },
+  "formRenderer": {
+    "components": {
+      "file": {},
+      "multiple": {}
+    }
+  },
+  "homePage": {
+    "welcome": "Benvenutə!"
+  },
+  "item": {
+    "status": {}
+  },
+  "join": {
+    "absorbFeeOptIn": "Sì, intendo coprire i {fee} della transazione.",
+    "absorbFeeText": "La nostra piattaforma di pagamento addebita un costo per la transazione. Significa che mensilmente riceveremo meno rispetto alla quota che hai scelto. Vuoi coprire il costo della transazione? Il pagamento annuale, invece, non prevede costi ulteriori.  ",
+    "contribute": "Contribuisci con {contribution}",
+    "errors": {
+      "confirmEmail": {
+        "message": "Ci sei quasi! Devi solo confermare il tuo indirizzo mail. Controlla la tua casella di posta.",
+        "proceed": "Ti abbiamo inviato una mail. Clicca il link all'interno per procedere. ",
+        "title": "Conferma il tuo account."
+      },
+      "failed": {
+        "title": "Qualcosa è andato storto"
+      }
+    },
+    "login": "Log in",
+    "memberAccount": "Il tuo account",
+    "memberAlready": "Sei già iscritto?",
+    "paymentMethod": "Metodo di pagamento"
+  },
+  "joinPayment": {
+    "genericError": "Ops! Qualcosa è andato storto",
+    "goBack": "Ti sei perso qualcosa? {back}",
+    "goBackButton": "Torna alla schermata precedente",
+    "note": "Potrai modificare l'ammontare del tuo contributo e accedere allo storico delle tue donazioni in qualsiasi momento tramite il tuo account.",
+    "willBeContributing": "Contribuirai con {contribution}"
+  },
+  "joinSetup": {
+    "confirmDetails": "Per favore, conferma i tuoi dettagli.",
+    "continue": "Ottimo! Prosegui",
+    "welcome": "Benvenutə {firstName}!"
+  },
+  "login": {
+    "forgotPassword": "Hai dimenticato la password?",
+    "joinNow": "Iscriviti!",
+    "notMember": "Non sei iscritto?",
+    "title": "Accedi al tuo account"
+  },
+  "lostDevice": {},
+  "membershipBuilder": {
+    "steps": {
+      "accountConfirmation": {
+        "joinSurvey": {}
+      },
+      "emails": {},
+      "intro": {},
+      "joinForm": {}
+    }
+  },
+  "menu": {},
+  "notFound": {},
+  "noticeAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    }
+  },
+  "notices": {
+    "data": {}
+  },
+  "notification": {},
+  "pageTitle": {},
+  "paymentMethods": {
+    "gc_direct-debit": {
+      "label": "Addebito diretto"
+    },
+    "s_bacs": {
+      "label": "Addebito diretto"
+    },
+    "s_card": {
+      "label": "Carta di credito"
+    },
+    "s_paypal": {},
+    "s_sepa": {
+      "label": "Addebito diretto"
+    }
+  },
+  "payments": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "paymentsAdmin": {
+    "filter": {}
+  },
+  "resetDevice": {},
+  "resetPassword": {},
+  "roleEditor": {
+    "confirmDelete": {},
+    "expires": {
+      "opts": {}
+    },
+    "starts": {
+      "opts": {}
+    }
+  },
+  "setPassword": {},
+  "tagEditor": {
+    "confirmDelete": {}
+  }
+}
