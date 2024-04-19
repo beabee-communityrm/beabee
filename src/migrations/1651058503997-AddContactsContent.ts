@@ -7,5 +7,5 @@ export class AddContactsContent1651058503997 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> { }
+  public async down(queryRunner: QueryRunner): Promise<void> {}
 }

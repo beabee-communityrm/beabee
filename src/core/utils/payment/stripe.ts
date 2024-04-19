@@ -12,8 +12,6 @@ import { log as mainLogger } from "@core/logging";
 import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
 
-import ContentTransformer from "@api/transformers/ContentTransformer";
-
 import config from "@config";
 
 const log = mainLogger.child({ app: "stripe-utils" });
@@ -84,7 +82,7 @@ export async function createSubscription(
   // If no tax rates are provided, we fetch the default tax rate from stripe
   // Currently, this should always be the case
   if (!defaultTaxRates) {
-    const taxRate = await stripeTaxRateGetDefault();
+    const taxRate = await stripeTaxRateGetDefault(true);
     if (taxRate) {
       defaultTaxRates = [taxRate.id];
     }
@@ -151,7 +149,7 @@ export async function updateSubscription(
     // If no tax rates are provided, we fetch the default tax rate from stripe
     // Currently, this should always be the case
     if (!defaultTaxRates) {
-      const taxRate = await stripeTaxRateGetDefault();
+      const taxRate = await stripeTaxRateGetDefault(true);
       if (taxRate) {
         defaultTaxRates = [taxRate.id];
       }

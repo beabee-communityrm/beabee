@@ -8,8 +8,11 @@ export const stripe = new Stripe(config.stripe.secretKey, {
   typescript: true
 });
 
-export const stripeTaxRateGetByDisplayName = async (displayName: string) => {
-  return (await stripe.taxRates.list({ active: true })).data.find(
+export const stripeTaxRatesGetByDisplayName = async (
+  displayName: string,
+  params?: Stripe.TaxRateListParams
+) => {
+  return (await stripe.taxRates.list(params)).data.filter(
     (taxRate) => taxRate.display_name === displayName
   );
 };
@@ -23,17 +26,62 @@ export const stripeTaxRateGetDefaultDisplayName = () =>
   (currentLocale().membershipBuilder.steps.joinForm as any).taxRate ||
   locales.en.membershipBuilder.steps.joinForm.taxRate;
 
-export const stripeTaxRateGetDefault = async () => {
+/**
+ * Get the default tax rate
+ *
+ * @param active The active status of the tax rate, keep undefined to get all tax rates
+ * @returns The default tax rate
+ */
+export const stripeTaxRateGetDefault = async (
+  active?: boolean
+): Promise<Stripe.TaxRate | undefined> => {
   const defaultId = OptionsService.get("tax-rate-stripe-default-id").value;
   if (defaultId) {
     const taxRate = await stripe.taxRates.retrieve(defaultId);
-    if (taxRate.active) {
+    if (taxRate.active === active) {
       return taxRate;
     }
   }
-  return await stripeTaxRateGetByDisplayName(
-    stripeTaxRateGetDefaultDisplayName()
-  );
+  const params: Stripe.TaxRateListParams = { limit: 1 };
+  if (active) {
+    params.active = active;
+  }
+  return (
+    await stripeTaxRatesGetByDisplayName(
+      stripeTaxRateGetDefaultDisplayName(),
+      params
+    )
+  )?.[0];
+};
+
+/**
+ * Rename the tax rate.
+ * When existing tex rates are archived, we rename them with this function.
+ * @param displayName
+ * @param percentage
+ * @returns
+ */
+const renameTaxRate = (displayName: string, percentage: number) => {
+  return displayName + ` (${percentage}%)`;
+};
+
+/**
+ * Get the old tax rate by id, display name or renamed display name
+ * @param defaultDisplayName
+ * @param percentage
+ * @param id
+ * @returns
+ */
+const getOldTaxRates = async (
+  defaultDisplayName: string,
+  percentage: number
+) => {
+  return [
+    ...(await stripeTaxRatesGetByDisplayName(defaultDisplayName)),
+    ...(await stripeTaxRatesGetByDisplayName(
+      renameTaxRate(defaultDisplayName, percentage)
+    ))
+  ];
 };
 
 /**
@@ -41,6 +89,13 @@ export const stripeTaxRateGetDefault = async () => {
  * we currently only support this single tax rate.
  *
  * The tax rate cannot be changed for an existing tax object, so we have to create a new tax object if the tax rate is changed.
+ *
+ * Cases:
+ * - If the tax rate percentage is not the same, we need to create a new tax rate and disable the old tax rate
+ * - If the tax rate percentage is the same, we don't need to create a new tax rate, we just update the tax rate
+ * - If the tax rate is not active, we don't need to create a new tax rate, we just update the tax rate if it exists
+ * - If the tax rate is active but the old tax rate with the same percentage is found, we can just enable the old tax rate
+ * - If the tax rate is active and the old tax rate with the same percentage is not found, we need to create a new tax rate
  *
  * @param data The tax rate data
  * @param percentage The tax rate percentage, seperate because it's not allowed to be updated
@@ -51,63 +106,63 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
   percentage: number,
   data: Stripe.TaxRateUpdateParams &
     Pick<Stripe.TaxRateCreateParams, "metadata"> = {},
-  id: string = OptionsService.get("tax-rate-stripe-default-id").value,
   options?: Stripe.RequestOptions
 ) {
+  // Enabled if undefined or true
+  data.active = data.active !== false;
+
   // Fallback to english if no locale is set for the current language
   const defaultDisplayName =
     data.display_name || stripeTaxRateGetDefaultDisplayName();
 
-  const oldTaxRate = id
-    ? await stripe.taxRates.retrieve(id)
-    : await stripeTaxRateGetByDisplayName(defaultDisplayName);
-
-  // If the tax rate percentage is not the same, we need to create a new tax rate
-  const needCreate =
-    (percentage &&
-      // undefined or true
-      data.active !== false &&
-      oldTaxRate &&
-      oldTaxRate.active &&
-      oldTaxRate.percentage !== percentage) ||
-    !oldTaxRate?.active;
+  const oldTaxRates = await getOldTaxRates(defaultDisplayName, percentage);
 
   let taxRateResult: Stripe.TaxRate | undefined;
 
-  // Disable old tax rate if it exists and we need to create a new one (delete an existing tax rate is not possible)
-  if (needCreate && oldTaxRate?.id) {
-    taxRateResult = await stripe.taxRates.update(
-      oldTaxRate.id,
-      {
-        active: false,
-        display_name: defaultDisplayName + ` (${oldTaxRate.percentage}%)`
-      },
-      options
-    );
-  }
-  // Update old tax rate if it exists and we don't need to create a new one
-  // Or disable the tax rate if `active` is false
-  else if (oldTaxRate?.id) {
-    taxRateResult = await stripe.taxRates.update(
-      oldTaxRate.id,
-      {
-        ...data,
-        active: data.active !== false,
-        display_name: defaultDisplayName,
-        country: config.stripe.country
-      },
-      options
-    );
-  } else {
-    console.warn("Tax rate is not active, not creating");
+  let activeUpdates = 0;
+
+  for (const oldTaxRate of oldTaxRates) {
+    // If the percentage is the same, we can update the existing tax rate
+    if (
+      activeUpdates === 0 &&
+      percentage &&
+      oldTaxRate?.percentage &&
+      oldTaxRate.percentage === percentage
+    ) {
+      taxRateResult = await stripe.taxRates.update(
+        oldTaxRate.id,
+        {
+          ...data,
+          display_name: data.active
+            ? defaultDisplayName
+            : renameTaxRate(defaultDisplayName, oldTaxRate.percentage),
+          country: config.stripe.country
+        },
+        options
+      );
+      // Only count active updates, because we can disable all tax rates at once but only want to enable one
+      if (data.active) {
+        activeUpdates++;
+      }
+    }
+    // Otherwise we need to disable the old tax rate and create a new one
+    else if (oldTaxRate) {
+      await stripe.taxRates.update(
+        oldTaxRate.id,
+        {
+          active: false,
+          display_name: renameTaxRate(defaultDisplayName, oldTaxRate.percentage)
+        },
+        options
+      );
+    }
   }
 
-  // Create a new tax rate if it doesn't exist or we need to create a new one
-  if (needCreate || !taxRateResult) {
+  // If no updates were made and the tax rate is active, we need to create a new tax rate
+  if (activeUpdates === 0 && data.active) {
     taxRateResult = await stripe.taxRates.create(
       {
         ...data,
-        active: true,
         display_name: defaultDisplayName,
         inclusive: true,
         country: config.stripe.country,

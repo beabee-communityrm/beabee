@@ -7,5 +7,5 @@ export class AddEmptyGeneralContent1650535712817 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> { }
+  public async down(queryRunner: QueryRunner): Promise<void> {}
 }
