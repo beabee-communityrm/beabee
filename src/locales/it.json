@@ -272,7 +272,15 @@
   },
   "editCallout": {},
   "editNotice": {},
-  "footer": {},
+  "footer": {
+    "contactUs": "Contact us at",
+    "handbookResources": "Handbook & Resources",
+    "impressum": "Impressum",
+    "joinCommunity": "Join the Community",
+    "poweredBy": "powering independent local newsrooms",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms and Conditions"
+  },
   "forgotPassword": {},
   "form": {
     "errorMessages": {
