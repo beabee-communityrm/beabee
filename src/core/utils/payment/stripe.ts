@@ -5,11 +5,7 @@ import {
   PaymentSource
 } from "@beabee/beabee-common";
 import { differenceInMonths } from "date-fns";
-import {
-  Stripe,
-  stripeTaxRateGetDefaultDisplayName,
-  stripeTaxRateGetByDisplayName
-} from "@core/lib/stripe";
+import { Stripe, stripeTaxRateGetDefault } from "@core/lib/stripe";
 
 import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
@@ -88,9 +84,7 @@ export async function createSubscription(
   // If no tax rates are provided, we fetch the default tax rate from stripe
   // Currently, this should always be the case
   if (!defaultTaxRates) {
-    const taxRate = await stripeTaxRateGetByDisplayName(
-      stripeTaxRateGetDefaultDisplayName()
-    );
+    const taxRate = await stripeTaxRateGetDefault();
     if (taxRate) {
       defaultTaxRates = [taxRate.id];
     }
@@ -157,9 +151,7 @@ export async function updateSubscription(
     // If no tax rates are provided, we fetch the default tax rate from stripe
     // Currently, this should always be the case
     if (!defaultTaxRates) {
-      const taxRate = await stripeTaxRateGetByDisplayName(
-        stripeTaxRateGetDefaultDisplayName()
-      );
+      const taxRate = await stripeTaxRateGetDefault();
       if (taxRate) {
         defaultTaxRates = [taxRate.id];
       }

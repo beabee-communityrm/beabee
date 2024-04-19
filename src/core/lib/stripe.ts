@@ -23,6 +23,19 @@ export const stripeTaxRateGetDefaultDisplayName = () =>
   (currentLocale().membershipBuilder.steps.joinForm as any).taxRate ||
   locales.en.membershipBuilder.steps.joinForm.taxRate;
 
+export const stripeTaxRateGetDefault = async () => {
+  const defaultId = OptionsService.get("tax-rate-stripe-default-id").value;
+  if (defaultId) {
+    const taxRate = await stripe.taxRates.retrieve(defaultId);
+    if (taxRate.active) {
+      return taxRate;
+    }
+  }
+  return await stripeTaxRateGetByDisplayName(
+    stripeTaxRateGetDefaultDisplayName()
+  );
+};
+
 /**
  * Create or recreate the Beabee default tax rate on Stripe,
  * we currently only support this single tax rate.
