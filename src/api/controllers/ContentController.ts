@@ -62,7 +62,9 @@ export class ContentController {
     @PartialBody() data: GetContentJoinDto
   ): Promise<GetContentJoinDto> {
     if (data.taxRate) {
-      await stripeTaxRateCreateOrRecreateDefault(data.taxRate);
+      await stripeTaxRateCreateOrRecreateDefault(data.taxRate, {
+        active: data.taxRateEnabled
+      });
     }
     await ContentTransformer.updateOne("join", data);
     return ContentTransformer.fetchOne("join");

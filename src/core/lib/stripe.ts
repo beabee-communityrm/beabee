@@ -52,6 +52,8 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
   // If the tax rate percentage is not the same, we need to create a new tax rate
   const needCreate =
     (percentage &&
+      // undefined or true
+      data.active !== false &&
       oldTaxRate &&
       oldTaxRate.active &&
       oldTaxRate.percentage !== percentage) ||
@@ -70,18 +72,21 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
       options
     );
   }
-  // Enable and update old tax rate if it exists and we don't need to create a new one
+  // Update old tax rate if it exists and we don't need to create a new one
+  // Or disable the tax rate if `active` is false
   else if (oldTaxRate?.id) {
     taxRateResult = await stripe.taxRates.update(
       oldTaxRate.id,
       {
         ...data,
-        active: true,
+        active: data.active !== false,
         display_name: defaultDisplayName,
         country: config.stripe.country
       },
       options
     );
+  } else {
+    console.warn("Tax rate is not active, not creating");
   }
 
   // Create a new tax rate if it doesn't exist or we need to create a new one
