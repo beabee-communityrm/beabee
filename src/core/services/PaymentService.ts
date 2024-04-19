@@ -178,12 +178,11 @@ class PaymentService {
         p.cancelContribution(false)
       );
 
-      // TODO: clear contribution properly
-      contribution.method = newMethod;
-      contribution.cancelledAt = new Date();
-      contribution.customerId = null;
-      contribution.mandateId = null;
-      contribution.subscriptionId = null;
+      // Clear the old payment data, set the new method
+      Object.assign(contribution, {
+        ...ContactContribution.empty,
+        method: newMethod
+      });
       await getRepository(ContactContribution).save(contribution);
     }
 

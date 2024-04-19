@@ -31,4 +31,16 @@ export default class ContactContribution {
 
   @Column({ type: Date, nullable: true })
   cancelledAt!: Date | null;
+
+  static get empty(): Omit<ContactContribution, "contact" | "contactId"> {
+    return {
+      method: null,
+      customerId: null,
+      mandateId: null,
+      subscriptionId: null,
+      payFee: null,
+      nextAmount: null,
+      cancelledAt: null
+    };
+  }
 }
