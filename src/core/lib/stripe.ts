@@ -8,6 +8,12 @@ export const stripe = new Stripe(config.stripe.secretKey, {
   typescript: true
 });
 
+/**
+ * Get the tax rates by display name
+ * @param displayName The display name
+ * @param params The stripe request options, e.g. `{ limit: 1, active: true }`
+ * @returns The tax rates
+ */
 export const stripeTaxRatesGetByDisplayName = async (
   displayName: string,
   params?: Stripe.TaxRateListParams
@@ -18,7 +24,7 @@ export const stripeTaxRatesGetByDisplayName = async (
 };
 
 /**
- * Get the default display name for the tax rate
+ * Get the default display name for the tax rate.
  *
  * @returns The default display name
  */
@@ -27,9 +33,10 @@ export const stripeTaxRateGetDefaultDisplayName = () =>
   locales.en.membershipBuilder.steps.joinForm.taxRate;
 
 /**
- * Get the default tax rate
+ * Get the default tax rate.
+ * This method gets the tax rate directly from stripe, so no request to our own database is made.
  *
- * @param active The active status of the tax rate, keep undefined to get all tax rates
+ * @param active The active status of the tax rate, keep undefined to get all tax rates, also the disabled ones
  * @returns The default tax rate
  */
 export const stripeTaxRateGetDefault = async (
@@ -66,7 +73,7 @@ const renameTaxRate = (displayName: string, percentage: number) => {
 };
 
 /**
- * Get the old tax rate by id, display name or renamed display name
+ * Get the old tax rates by display name and percentage
  * @param defaultDisplayName
  * @param percentage
  * @param id
@@ -105,7 +112,7 @@ const getOldTaxRates = async (
 export const stripeTaxRateCreateOrRecreateDefault = async function (
   percentage: number,
   data: Stripe.TaxRateUpdateParams &
-    Pick<Stripe.TaxRateCreateParams, "metadata"> = {},
+    Pick<Stripe.TaxRateCreateParams, "metadata" | "country"> = {},
   options?: Stripe.RequestOptions
 ) {
   // Enabled if undefined or true
@@ -140,12 +147,12 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
         },
         options
       );
-      // Only count active updates, because we can disable all tax rates at once but only want to enable one
+      // Only count active updates, because we only want to enable one
       if (data.active) {
         activeUpdates++;
       }
     }
-    // Otherwise we need to disable the old tax rate and create a new one
+    // The others can be disabledOtherwise we need to disable the old tax rate and create a new one
     else if (oldTaxRate) {
       await stripe.taxRates.update(
         oldTaxRate.id,
