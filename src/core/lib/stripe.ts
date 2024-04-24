@@ -63,7 +63,7 @@ export const stripeTaxRateGetDefault = async (
 
 /**
  * Rename the tax rate.
- * When existing tex rates are archived, we rename them with this function.
+ * When existing tax rates are archived, we rename them with this function.
  * @param displayName
  * @param percentage
  * @returns
@@ -152,7 +152,7 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
         activeUpdates++;
       }
     }
-    // The others can be disabledOtherwise we need to disable the old tax rate and create a new one
+    // Otherwise we need to disable the old tax rate (and create a new one)
     else if (oldTaxRate) {
       await stripe.taxRates.update(
         oldTaxRate.id,
