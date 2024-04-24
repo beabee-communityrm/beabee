@@ -1,5 +1,8 @@
 {
   "accountPage": {
+    "contactInformation": "Informazioni di contatto",
+    "deliveryAddress": "Indirizzo",
+    "loginDetail": "Credenziali",
     "mfa": {
       "codeInput": {},
       "confirmDelete": {},
@@ -10,13 +13,18 @@
       "validateButton": {}
     },
     "newsletter": {
-      "currentStatus": {}
-    }
+      "currentStatus": {},
+      "title": "Newsletter"
+    },
+    "savedPassword": "Nuova password salvata",
+    "subTitle": "I campi obbligatori sono indicati con un asterisco. Le informazioni inviate qui sono private.",
+    "title": "Account"
   },
   "actions": {
     "add": "Aggiungi",
     "back": "Indietro",
-    "continue": "Prosegui"
+    "continue": "Prosegui",
+    "update": "Aggiorna"
   },
   "addContact": {
     "errors": {}
@@ -38,7 +46,10 @@
     "email": {},
     "general": {
       "footer": {
-        "dataPrivacy": {},
+        "dataPrivacy": {
+          "privacyUrl": "Url della privacy",
+          "termsUrl": "Url dei termini di servizio"
+        },
         "otherLinks": {}
       },
       "socialSharing": {}
@@ -108,7 +119,13 @@
   },
   "calloutResponsesPage": {},
   "callouts": {
-    "data": {}
+    "archive": "Archivio",
+    "data": {
+      "callout": "Callout",
+      "endDate": "Data fine"
+    },
+    "noArchivedCallouts": "Nessuna callout",
+    "search": "Cerca un callout"
   },
   "calloutsAdmin": {
     "data": {},
@@ -168,7 +185,11 @@
     "yes": "Sì"
   },
   "contactContribution": {
-    "confirmCancel": {},
+    "confirmCancel": {
+      "confirm": "Sì, sono sicuro",
+      "text": "Sei sicuro di voler cancellare il contributo? Non potrà essere ripristinato",
+      "title": "Cancellare il contributo?"
+    },
     "updateNotice": {}
   },
   "contactOverview": {
@@ -182,8 +203,14 @@
     "dataGroup": {}
   },
   "contribution": {
+    "contributing": "Il tuo contributo è",
     "paymentHistory": {},
-    "paymentMethod": "Metodo di pagamento"
+    "paymentMethod": "Metodo di pagamento",
+    "restartContribution": "Ripristina contributo",
+    "startContribution": "Avvia contirbuto",
+    "updateContribution": "Aggiorna il tuo contributo",
+    "updatePaymentType": "Aggiorna il metodo di pagamento",
+    "willRenew": "Il tuo contributo sarà aggiornato il {renewalDate}."
   },
   "createCallout": {
     "steps": {
@@ -273,16 +300,24 @@
   "editCallout": {},
   "editNotice": {},
   "footer": {
-    "contactUs": "Contact us at",
-    "handbookResources": "Handbook & Resources",
+    "contactUs": "Contattaci a",
+    "handbookResources": "Manuale & risorse",
     "impressum": "Impressum",
-    "joinCommunity": "Join the Community",
+    "joinCommunity": "Unisciti alla nostra community",
     "poweredBy": "powering independent local newsrooms",
-    "privacyPolicy": "Privacy Policy",
-    "terms": "Terms and Conditions"
+    "privacyPolicy": "Privacy",
+    "terms": "Termini e condizioni"
   },
-  "forgotPassword": {},
+  "forgotPassword": {
+    "backToLogin": "Torna alla pagina di login ",
+    "description": "Inserisci la tua mail. Ti invieremo le istruzioni su come reimpostare la tua password.",
+    "message": "Se esiste già un account associato a {email}, riceverai una mail a breve. Controlla anche la tua cartella spam.",
+    "title": "Hai dimenticato la password?"
+  },
   "form": {
+    "addressLine1": "Dettagli indirizzo 1",
+    "addressLine2": "Dettagli indirizzo 2",
+    "cityOrTown": "Città",
     "errorMessages": {
       "api": {}
     },
@@ -306,7 +341,10 @@
     "firstName": "Nome",
     "lastName": "Cognome",
     "passwordInfo": "Crea una password sicura: almeno 8 caratteri, un numero, una lettera minuscola e una maiuscola.",
-    "richtext": {}
+    "postCode": "CAP",
+    "richtext": {},
+    "saved": "Salvato!",
+    "updated": "Aggiornato"
   },
   "formRenderer": {
     "components": {
@@ -315,7 +353,14 @@
     }
   },
   "homePage": {
-    "welcome": "Benvenutə!"
+    "manageContribution": "Gestisci il tuo contributo",
+    "openCallouts": "Callout in corso",
+    "quickActions": "Azioni veloci",
+    "title": "Home",
+    "viewAllCallouts": "Vedi tutte le callout",
+    "viewOpenCallouts": "Vedi le callout in corso",
+    "welcome": "Benvenutə!",
+    "yourProfile": "Il tuo profilo"
   },
   "item": {
     "status": {}
@@ -337,7 +382,8 @@
     "login": "Log in",
     "memberAccount": "Il tuo account",
     "memberAlready": "Sei già iscritto?",
-    "paymentMethod": "Metodo di pagamento"
+    "paymentMethod": "Metodo di pagamento",
+    "privacy": "Privacy"
   },
   "joinPayment": {
     "genericError": "Ops! Qualcosa è andato storto",
@@ -352,12 +398,18 @@
     "welcome": "Benvenutə {firstName}!"
   },
   "login": {
+    "backTo": "Torna a  {newsroomName}",
     "forgotPassword": "Hai dimenticato la password?",
     "joinNow": "Iscriviti!",
+    "lostMfaDevice": "Hai perso il tuo dispositivo 2FA?",
     "notMember": "Non sei iscritto?",
     "title": "Accedi al tuo account"
   },
-  "lostDevice": {},
+  "lostDevice": {
+    "description": "Inserisci la tua mail. Ti invieremo le istruzioni su come reimpostare il tuo 2FA.",
+    "message": "Se esiste già un account associato a {email}, riceverai una mail a breve. Controlla anche la tua cartella spam.",
+    "title": "Hai perso il tuo dispositivo 2FA?"
+  },
   "membershipBuilder": {
     "steps": {
       "accountConfirmation": {
@@ -368,7 +420,22 @@
       "joinForm": {}
     }
   },
-  "menu": {},
+  "menu": {
+    "account": "Account",
+    "admin": "Amministrazione",
+    "adminSettings": "Impostazioni",
+    "callouts": "Callout",
+    "contacts": "Contatti",
+    "contribution": "Contribuisci",
+    "dashboard": "Dashboard",
+    "home": "Home",
+    "legacyApp": "Vecchia dashboard",
+    "logout": "Log out",
+    "notices": "Notifiche",
+    "payments": "Pagamenti",
+    "settings": "Impostazioni",
+    "yourProfile": "Il tuo profilo"
+  },
   "notFound": {},
   "noticeAdminOverview": {
     "actions": {
@@ -403,7 +470,10 @@
     "filter": {}
   },
   "resetDevice": {},
-  "resetPassword": {},
+  "resetPassword": {
+    "login": "Accedi al tuo account. ",
+    "title": "Vuoi reimpostare la tua password?"
+  },
   "roleEditor": {
     "confirmDelete": {},
     "expires": {
@@ -413,7 +483,10 @@
       "opts": {}
     }
   },
-  "setPassword": {},
+  "setPassword": {
+    "description": "Imposta una nuova password.",
+    "title": "Impposta una password"
+  },
   "tagEditor": {
     "confirmDelete": {}
   }
