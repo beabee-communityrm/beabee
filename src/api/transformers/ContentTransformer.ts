@@ -13,7 +13,7 @@ import {
   GetContentJoinSetupDto,
   GetContentProfileDto,
   GetContentShareDto,
-  GetContentStripeDto
+  GetContentPaymentDto
 } from "@api/dto/ContentDto";
 
 import Content from "@models/Content";
@@ -36,7 +36,7 @@ class ContentTransformer {
       "join/setup": GetContentJoinSetupDto,
       profile: GetContentProfileDto,
       share: GetContentShareDto,
-      stripe: GetContentStripeDto
+      payment: GetContentPaymentDto
     }[id];
 
     return plainToInstance(Dto as any, data);
@@ -204,9 +204,9 @@ const contentData = {
     title: ["option", "share-title", "text"],
     twitterHandle: ["option", "share-twitter-handle", "text"]
   }),
-  stripe: withValue<"stripe">({
-    publicKey: ["readonly", () => config.stripe.publicKey],
-    country: ["readonly", () => config.stripe.country],
+  payment: withValue<"payment">({
+    stripePublicKey: ["readonly", () => config.stripe.publicKey],
+    stripeCountry: ["readonly", () => config.stripe.country],
     taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
     taxRate: ["option", "tax-rate-percentage", "int"]
   })

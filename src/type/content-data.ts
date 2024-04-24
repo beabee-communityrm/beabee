@@ -83,9 +83,9 @@ export interface ContentShareData {
   twitterHandle: string;
 }
 
-export interface ContentStripeData {
-  publicKey: string;
-  country: StripeFeeCountry;
+export interface ContentPaymentData {
+  stripePublicKey: string;
+  stripeCountry: StripeFeeCountry;
   taxRateEnabled: boolean;
   taxRate: number;
 }
@@ -105,6 +105,6 @@ export type ContentData<Id extends ContentId = ContentId> =
               ? ContentProfileData
               : never | Id extends "share"
                 ? ContentShareData
-                : never | Id extends "stripe"
-                  ? ContentStripeData
+                : never | Id extends "payment"
+                  ? ContentPaymentData
                   : never;

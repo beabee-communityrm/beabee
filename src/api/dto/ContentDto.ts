@@ -27,7 +27,7 @@ import {
   ContentJoinSetupData,
   ContentProfileData,
   ContentShareData,
-  ContentStripeData
+  ContentPaymentData
 } from "@type/content-data";
 import { ContentId } from "@type/content-id";
 
@@ -190,12 +190,12 @@ export class GetContentShareDto implements ContentShareData {
   twitterHandle!: string;
 }
 
-export class GetContentStripeDto implements ContentStripeData {
+export class GetContentPaymentDto implements ContentPaymentData {
   @IsString()
-  publicKey!: string;
+  stripePublicKey!: string;
 
   @IsIn(["eu", "gb", "ca"])
-  country!: StripeFeeCountry;
+  stripeCountry!: StripeFeeCountry;
 
   @IsBoolean()
   taxRateEnabled!: boolean;
@@ -219,6 +219,6 @@ export type GetContentDto<Id extends ContentId = ContentId> =
               ? GetContentProfileDto
               : never | Id extends "share"
                 ? GetContentShareDto
-                : never | Id extends "stripe"
-                  ? GetContentStripeDto
+                : never | Id extends "payment"
+                  ? GetContentPaymentDto
                   : never;
