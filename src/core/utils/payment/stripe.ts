@@ -106,6 +106,14 @@ export async function createSubscription(
   return await stripe.subscriptions.create(params);
 }
 
+/**
+ * Update a subscription with a new payment method.
+ * @param subscriptionId
+ * @param paymentForm
+ * @param paymentMethod
+ * @param defaultTaxRates Set this to `[(await stripeTaxRateGetDefault(true)).id]` to use the default tax rate, currently not used until we know what to do with existing subscriptions
+ * @returns
+ */
 export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm,
@@ -146,15 +154,6 @@ export async function updateSubscription(
   const startNow = prorationAmount === 0 || paymentForm.prorate;
 
   if (startNow) {
-    // If no tax rates are provided, we fetch the default tax rate from stripe
-    // Currently, this should always be the case
-    if (!defaultTaxRates) {
-      const taxRate = await stripeTaxRateGetDefault(true);
-      if (taxRate) {
-        defaultTaxRates = [taxRate.id];
-      }
-    }
-
     const params: Stripe.SubscriptionUpdateParams = {
       items: [newSubscriptionItem],
       ...(prorationAmount > 0

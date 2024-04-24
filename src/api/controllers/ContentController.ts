@@ -98,7 +98,7 @@ export class ContentController {
   async updatePayment(
     @PartialBody() data: GetContentPaymentDto
   ): Promise<GetContentPaymentDto> {
-    if (data.taxRate) {
+    if (data.taxRate !== undefined) {
       await stripeTaxRateCreateOrRecreateDefault(data.taxRate, {
         active: data.taxRateEnabled,
         country: data.stripeCountry

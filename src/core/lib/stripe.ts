@@ -62,14 +62,14 @@ export const stripeTaxRateGetDefault = async (
 };
 
 /**
- * Rename the tax rate.
+ * Get the tax rate name.
  * When existing tax rates are archived, we rename them with this function.
  * @param displayName
  * @param percentage
  * @returns
  */
-const renameTaxRate = (displayName: string, percentage: number) => {
-  return displayName + ` (${percentage}%)`;
+const getTaxRateName = (prefix: string, percentage: number) => {
+  return prefix + ` (${percentage}%)`;
 };
 
 /**
@@ -86,7 +86,7 @@ const getOldTaxRates = async (
   return [
     ...(await stripeTaxRatesGetByDisplayName(defaultDisplayName)),
     ...(await stripeTaxRatesGetByDisplayName(
-      renameTaxRate(defaultDisplayName, percentage)
+      getTaxRateName(defaultDisplayName, percentage)
     ))
   ];
 };
@@ -118,6 +118,8 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
   // Enabled if undefined or true
   data.active = data.active !== false;
 
+  data.country ||= config.stripe.country;
+
   // Fallback to english if no locale is set for the current language
   const defaultDisplayName =
     data.display_name || stripeTaxRateGetDefaultDisplayName();
@@ -142,8 +144,7 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
           ...data,
           display_name: data.active
             ? defaultDisplayName
-            : renameTaxRate(defaultDisplayName, oldTaxRate.percentage),
-          country: config.stripe.country
+            : getTaxRateName(defaultDisplayName, oldTaxRate.percentage)
         },
         options
       );
@@ -158,7 +159,10 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
         oldTaxRate.id,
         {
           active: false,
-          display_name: renameTaxRate(defaultDisplayName, oldTaxRate.percentage)
+          display_name: getTaxRateName(
+            defaultDisplayName,
+            oldTaxRate.percentage
+          )
         },
         options
       );
@@ -172,7 +176,6 @@ export const stripeTaxRateCreateOrRecreateDefault = async function (
         ...data,
         display_name: defaultDisplayName,
         inclusive: true,
-        country: config.stripe.country,
         percentage
       },
       options
