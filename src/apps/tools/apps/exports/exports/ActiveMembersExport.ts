@@ -46,7 +46,7 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
     if (this.ex!.params?.hasActiveSubscription) {
       query
         .innerJoin(ContactContribution, "cc", "cc.contactId = m.id")
-        .andWhere("cc.data ->> 'subscriptionId' IS NOT NULL");
+        .andWhere("cc.subscriptionId IS NOT NULL");
     }
 
     return query;

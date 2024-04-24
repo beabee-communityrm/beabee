@@ -49,7 +49,7 @@ export abstract class BaseContactTransformer<
     membershipExpires: membershipField("dateExpires"),
     contributionCancelled: contributionField("cancelledAt"),
     manualPaymentSource: (qb, args) => {
-      contributionField("data ->> 'source'")(qb, args);
+      contributionField("mandateId")(qb, args);
       qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
     }
   };
@@ -112,7 +112,7 @@ function profileField(field: keyof ContactProfile): FilterHandler {
   };
 }
 
-function contributionField(field: string): FilterHandler {
+function contributionField(field: keyof ContactContribution): FilterHandler {
   return (qb, { fieldPrefix, convertToWhereClause }) => {
     const subQb = createQueryBuilder()
       .subQuery()

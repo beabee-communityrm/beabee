@@ -1,14 +1,14 @@
 dt Paying fee?
-dd= paymentData.payFee ? 'Yes' : 'No'
+dd= contribution.payFee ? 'Yes' : 'No'
 dt Method
 dd= paymentMethod
 if access('superadmin')
 	dt Customer ID
-	dd= paymentData.customerId
+	dd= contribution.customerId
 	dt Mandate ID
-	dd= paymentData.mandateId
+	dd= contribution.mandateId
 	dt Subscription ID
-	dd= paymentData.subscriptionId
-if paymentData.cancelledAt
+	dd= contribution.subscriptionId
+if contribution.cancelledAt
 	dt Cancelled
-	dd= moment(paymentData.cancelledAt).format('HH:mm:ss DD/MM/YYYY')
+	dd= moment(contribution.cancelledAt).format('HH:mm:ss DD/MM/YYYY')

@@ -397,12 +397,10 @@ class ContactsService {
       contributionMonthlyAmount: monthlyAmount
     });
 
-    await PaymentService.updateDataBy(contact, "source", data.source || null);
-    await PaymentService.updateDataBy(
-      contact,
-      "reference",
-      data.reference || null
-    );
+    await PaymentService.updateData(contact, {
+      mandateId: data.source || null,
+      customerId: data.reference || null
+    });
   }
 
   /**
