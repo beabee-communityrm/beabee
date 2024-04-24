@@ -2,35 +2,29 @@
   "organisation": "UK Makerspace",
   "software-name": "Membership System",
   "logo": "",
-
   "home-text": "Hello there Makers!",
   "home-link-text": "Find out more",
   "home-link-url": "http://example.com/about",
   "home-redirect-url": "/login",
-
   "user-home-url": "/profile",
   "admin-home-url": "/admin",
   "referral-short-url": "http://example.com/refer",
-
   "support-email": "membership@example.com",
   "support-email-from": "UK Makerspace Membership",
-
   "contribution-min-monthly-amount": "1",
-  "tax-rate": "7",
+  "tax-rate-enabled": "false",
+  "tax-rate-percentage": "7",
+  "tax-rate-stripe-default-id": "",
   "show-absorb-fee": "true",
   "show-mail-opt-in": "",
-
   "available-tags": "",
   "available-manual-payment-sources": "",
-
   "join-survey": "",
   "cancellation-survey": "",
-
   "share-twitter-handle": "",
   "share-title": "",
   "share-description": "",
   "share-image": "",
-
   "footer-strapline": "",
   "footer-impressum-link-url": "",
   "footer-privacy-link-text": "Privacy policy",
@@ -39,24 +33,18 @@
   "footer-terms-link-url": "http://example.com/terms",
   "footer-facebook-link-url": "",
   "footer-twitter-link-url": "",
-
   "email-templates": "{}",
-
   "newsletter-active-member-tag": "Active member",
   "newsletter-default-groups": "",
   "newsletter-archive-on-expired": "true",
   "newsletter-resync-status": "",
   "newsletter-resync-data": "",
-
   "tracking-code": "",
-
   "switch-webhook-gc": "true",
   "switch-webhook-mailchimp": "true",
   "switch-webhook-stripe": "true",
-
   "locale": "en",
   "theme": "{}",
-
   "flash-logged-in": "Login successful",
   "flash-logged-out": "Logged out",
   "flash-login-failed": "Login unsuccessful",
@@ -65,34 +53,25 @@
   "flash-inactive-membership": "Your membership is inactive",
   "flash-403": "You do not have access to this area",
   "flash-information-ommited": "Important information was ommited",
-
   "flash-password-changed": "Password changed",
   "flash-password-invalid": "Incorrect current password",
   "flash-password-reset-code-err": "Invalid password reset code",
-
   "flash-password-reset": "If there is an account associated with % you will receive an email shortly",
   "flash-password-reset-attempt": "Since your last login someone requested a password reset, this has now been cancelled",
-
   "flash-email-duplicate": "Email address already in use",
-
   "flash-account-locked": "Maximum number of password attempts exceeded",
   "flash-account-attempts": "There has been % attempt(s) to login to your account since you last logged in",
-
   "flash-member-added": "Contact added",
   "flash-member-updated": "Contact updated",
   "flash-member-permanently-deleted": "Contact permanently deleted",
   "flash-member-login-override-generated": "Login override code generated",
   "flash-member-password-reset-generated": "Password reset code generated",
   "flash-member-add-invalid-direct-debit": "Invalid direct debit, you must specify the first and last name",
-
   "flash-account-updated": "Your account details have been updated",
   "flash-delivery-updated": "Your delivery details have been updated",
-
   "flash-emails-sent": "Email sent",
   "flash-emails-templates-updated": "Email templates updated",
-
   "flash-newsletter-resync-started": "The resyncing process has started",
-
   "flash-permission-404": "Permission not found",
   "flash-permission-created": "Permission created",
   "flash-permission-updated": "Permission updated",
@@ -101,9 +80,7 @@
   "flash-permission-name-required": "Permissions must have a name",
   "flash-permission-slug-required": "Permissions must have a slug",
   "flash-permission-duplicate": "User already has this permission",
-
   "flash-gocardless-updated": "GoCardless updated",
-
   "flash-contribution-cancelled": "Contribution cancelled",
   "flash-contribution-cancellation-err": "Error cancelling contribution",
   "flash-contribution-updated": "Contribution updated",
@@ -114,7 +91,6 @@
   "flash-contribution-doesnt-exist": "You don't have an active contribution",
   "flash-contribution-restarted": "You have successfully restarted your membership",
   "flash-contribution-restart-code-err": "Invalid restart code",
-
   "flash-2fa-disabled": "Two factor authentication has been disabled",
   "flash-2fa-enabled": "Two factor authentication has been enabled",
   "flash-2fa-setup-failed": "The verification code did not match",
@@ -126,34 +102,26 @@
   "flash-2fa-already-enabled": "Two factor authentication is already enabled",
   "flash-2fa-already-disabled": "Two factor authentication is already disabled",
   "flash-2fa-unable-to-disable": "Unable to disable two factor authentication",
-
   "flash-transaction-date-in-future": "Transactions do not occour in the future",
-
   "flash-option-404": "Option not found",
   "flash-option-updated": "Option updated",
   "flash-option-reset": "Option reset to default",
-
   "flash-exports-created": "Export created",
   "flash-exports-added": "Added items to export",
   "flash-exports-added-one": "Added item to export",
   "flash-exports-updated": "Updated export status",
   "flash-exports-deleted": "Export deleted",
   "flash-exports-ineligible": "Item is not eligible to be in this export.",
-
   "flash-gifts-date-in-the-past": "The gift start date can't be in the past",
   "flash-gifts-email-duplicate": "The giftee's email address is already registered",
   "flash-gifts-already-activated": "The gift has already been activated, please login to continue",
-
   "flash-migration-manual-to-auto-sent": "Email sent to manual contributors",
-
   "flash-notices-created": "Notice created",
   "flash-notices-updated": "Notice updated",
   "flash-notices-deleted": "Notice deleted",
-
   "flash-pages-created": "Page settings created",
   "flash-pages-updated": "Page settings updated",
   "flash-pages-deleted": "Page settings deleted",
-
   "flash-polls-created": "Callout created",
   "flash-polls-updated": "Callout updated",
   "flash-polls-deleted": "Callout deleted",
@@ -164,54 +132,42 @@
   "flash-polls-guest-fields-missing": "Please provide your name and email address",
   "flash-polls-only-anonymous": "This poll only allows anonymous submissions",
   "flash-polls-responses-password-protected": "This poll's responses are passsword protected",
-
   "flash-project-created": "Project created",
   "flash-project-updated": "Project updated",
   "flash-project-deleted": "Project deleted",
   "flash-project-members-added": "Members have been added to project",
-
   "flash-referral-gifts-updated": "Referral gift updated",
   "flash-referral-gifts-options-updated": "Referral gift options updated",
   "flash-referral-gifts-stock-updated": "Referral gift stock updated",
   "flash-referral-gifts-deleted": "Referral gift deleted",
   "flash-referral-gifts-option-deleted": "Referral gift option deleted",
   "flash-referral-gifts-stock-deleted": "Referral gift stock deleted",
-
   "flash-segment-created": "Segment created",
   "flash-segment-updated": "Segment updated",
   "flash-segment-deleted": "Segment deleted",
   "flash-segment-no-rule-group": "No filters found for the segment",
   "flash-segment-created-ongoing-email": "An ongoing email has been setup for the segment",
   "flash-segment-preview-email": "Preview the email below before sending",
-
   "flash-transactional-email-created": "Email created",
   "flash-transactional-email-updated": "Email updated",
   "flash-transactional-email-sending": "Email is sending!",
   "flash-transactional-email-deleted": "Email and mailings deleted",
-
   "flash-referral-code-invalid": "Invalid referral code",
   "flash-referral-gift-invalid": "This gift is not available",
   "flash-referral-gift-chosen": "You have chosen your referral gift",
-
   "flash-address-required": "Address is required",
-
   "flash-validation-error-generic": "The data you provided was invalid",
-
   "flash-validation-error.amount-minimum": "The minimum contribution is £1",
   "flash-validation-error.amount-required": "Contribution amount is required",
   "flash-validation-error.period-required": "Contribution period is required",
   "flash-validation-error.amountOther-minimum": "The minimum contribution is £1",
   "flash-validation-error.payFee-required": "You must absorb the transaction fee for £1 contributions",
-
   "flash-validation-error.delivery_line1-required": "Delivery address line 1 is required",
   "flash-validation-error.delivery_city-required": "Delivery town/city is required",
-
   "flash-validation-error.verify-const": "Passwords did not match",
-
   "flash-validation-error.email-format": "Email was invalid",
   "flash-validation-error.postcode-format": "Postcode was invalid",
   "flash-validation-error.password-format": "Password must be at least 8 characters and with at least one number, lower and upper case letter",
   "flash-validation-error.url-format": "URL was invalid",
-
   "flash-validation-error.candidates-maxItems": "You can only choose at most three candidates"
 }

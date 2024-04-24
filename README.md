@@ -101,12 +101,10 @@ changes
 
 ```
 docker compose start db
-docker compose run app npm run typeorm migration:generate src/migrations/MigrationName
+docker compose run -u root app npm run typeorm migration:generate src/migrations/MigrationName
 npm run build
-docker compose run app npm run typeorm migration:run
+docker compose run -u root app npm run typeorm migration:run
 ```
-
-> Note: If you get an `EACCES: permission denied` error, you may need to run the above commands with `docker compose run -u root`.
 
 ### 📰 Documentation
 

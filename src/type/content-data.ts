@@ -12,18 +12,18 @@ interface FooterLink {
   text: string;
 }
 
-export interface ContactsContentData {
+export interface ContentContactsData {
   tags: string[];
   manualPaymentSources: string[];
 }
 
-export interface EmailContentData {
+export interface ContentEmailData {
   supportEmail: string;
   supportEmailName: string;
   footer: string;
 }
 
-export interface GeneralContentData {
+export interface ContentGeneralData {
   organisationName: string;
   logoUrl: string;
   siteUrl: string;
@@ -40,27 +40,24 @@ export interface GeneralContentData {
   footerLinks: FooterLink[];
 }
 
-export interface JoinContentPeriodData {
+export interface ContentJoinPeriodData {
   name: ContributionPeriod;
   presetAmounts: number[];
 }
 
-export interface JoinContentData {
+export interface ContentJoinData {
   title: string;
   subtitle: string;
   initialAmount: number;
   initialPeriod: ContributionPeriod;
   minMonthlyAmount: number;
-  periods: JoinContentPeriodData[];
+  periods: ContentJoinPeriodData[];
   showAbsorbFee: boolean;
   showNoContribution: boolean;
   paymentMethods: PaymentMethod[];
-  stripePublicKey: string;
-  stripeCountry: StripeFeeCountry;
-  taxRate: number;
 }
 
-export interface JoinSetupContentData {
+export interface ContentJoinSetupData {
   welcome: string;
   newsletterText: string;
   newsletterOptIn: string;
@@ -75,30 +72,39 @@ export interface JoinSetupContentData {
   surveyText: string;
 }
 
-export interface ProfileContentData {
+export interface ContentProfileData {
   introMessage: string;
 }
 
-export interface ShareContentData {
+export interface ContentShareData {
   title: string;
   description: string;
   image: string;
   twitterHandle: string;
 }
 
+export interface ContentStripeData {
+  publicKey: string;
+  country: StripeFeeCountry;
+  taxRateEnabled: boolean;
+  taxRate: number;
+}
+
 export type ContentData<Id extends ContentId = ContentId> =
   Id extends "contacts"
-    ? ContactsContentData
+    ? ContentContactsData
     : never | Id extends "email"
-      ? EmailContentData
+      ? ContentEmailData
       : never | Id extends "general"
-        ? GeneralContentData
+        ? ContentGeneralData
         : never | Id extends "join"
-          ? JoinContentData
+          ? ContentJoinData
           : never | Id extends "join/setup"
-            ? JoinSetupContentData
+            ? ContentJoinSetupData
             : never | Id extends "profile"
-              ? ProfileContentData
+              ? ContentProfileData
               : never | Id extends "share"
-                ? ShareContentData
-                : never;
+                ? ContentShareData
+                : never | Id extends "stripe"
+                  ? ContentStripeData
+                  : never;

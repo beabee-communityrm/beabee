@@ -5,7 +5,7 @@ import { In } from "typeorm";
 
 import { getRepository } from "@core/database";
 import { runApp } from "@core/server";
-import stripe from "@core/lib/stripe";
+import { stripe } from "@core/lib/stripe";
 import ContactsService from "@core/services/ContactsService";
 
 import PaymentData, { StripePaymentData } from "@models/PaymentData";

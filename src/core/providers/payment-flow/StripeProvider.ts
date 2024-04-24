@@ -1,4 +1,4 @@
-import stripe from "@core/lib/stripe";
+import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
 import { paymentMethodToStripeType } from "@core/utils/payment/stripe";
 

@@ -4,7 +4,7 @@ import moment from "moment";
 
 import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import stripe from "@core/lib/stripe";
+import { stripe, Stripe } from "@core/lib/stripe";
 import { isDuplicateIndex } from "@core/utils";
 import { generateContactCode } from "@core/utils/contact";
 
@@ -24,12 +24,21 @@ const log = mainLogger.child({ app: "gift-service" });
 export default class GiftService {
   private static readonly giftMonthlyAmount = 3;
 
-  static async createGiftFlow(giftForm: GiftForm): Promise<string> {
+  /**
+   * Create a gift flow and return the Stripe session ID
+   * @param giftForm
+   * @param defaultTaxRates Tax rate IDs to apply to the checkout, currently unused and untested, see https://docs.stripe.com/billing/taxes/collect-taxes?tax-calculation=tax-rates&lang=node#adding-tax-rates-to-checkout
+   * @returns Stripe session ID
+   */
+  static async createGiftFlow(
+    giftForm: GiftForm,
+    defaultTaxRates?: string[]
+  ): Promise<string> {
     log.info("Create gift flow", giftForm);
 
     const giftFlow = await GiftService.createGiftFlowWithCode(giftForm);
 
-    const session = await stripe.checkout.sessions.create({
+    const params: Stripe.Checkout.SessionCreateParams = {
       success_url: config.audience + "/gift/thanks/" + giftFlow.id,
       cancel_url: config.audience + "/gift",
       customer_email: giftForm.fromEmail,
@@ -48,7 +57,15 @@ export default class GiftService {
           }
         }
       ]
-    });
+    };
+
+    if (defaultTaxRates) {
+      params.subscription_data = {
+        default_tax_rates: defaultTaxRates
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(params);
 
     await getRepository(GiftFlow).update(giftFlow.id, {
       sessionId: session.id
