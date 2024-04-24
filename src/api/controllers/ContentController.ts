@@ -16,7 +16,8 @@ import {
   GetContentJoinDto,
   GetContentJoinSetupDto,
   GetContentProfileDto,
-  GetContentShareDto
+  GetContentShareDto,
+  GetContentStripeDto
 } from "@api/dto/ContentDto";
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
@@ -61,11 +62,6 @@ export class ContentController {
   async updateJoin(
     @PartialBody() data: GetContentJoinDto
   ): Promise<GetContentJoinDto> {
-    if (data.taxRate) {
-      await stripeTaxRateCreateOrRecreateDefault(data.taxRate, {
-        active: data.taxRateEnabled
-      });
-    }
     await ContentTransformer.updateOne("join", data);
     return ContentTransformer.fetchOne("join");
   }
@@ -95,5 +91,20 @@ export class ContentController {
   ): Promise<GetContentShareDto> {
     await ContentTransformer.updateOne("share", data);
     return ContentTransformer.fetchOne("share");
+  }
+
+  @Authorized("admin")
+  @Patch("/stripe")
+  async updateStripe(
+    @PartialBody() data: GetContentStripeDto
+  ): Promise<GetContentStripeDto> {
+    if (data.taxRate) {
+      await stripeTaxRateCreateOrRecreateDefault(data.taxRate, {
+        active: data.taxRateEnabled,
+        country: data.country
+      });
+    }
+    await ContentTransformer.updateOne("stripe", data);
+    return ContentTransformer.fetchOne("stripe");
   }
 }

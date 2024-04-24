@@ -26,7 +26,8 @@ import {
   ContentJoinPeriodData,
   ContentJoinSetupData,
   ContentProfileData,
-  ContentShareData
+  ContentShareData,
+  ContentStripeData
 } from "@type/content-data";
 import { ContentId } from "@type/content-id";
 
@@ -130,18 +131,6 @@ export class GetContentJoinDto implements ContentJoinData {
 
   @IsBoolean()
   showAbsorbFee!: boolean;
-
-  @IsString()
-  stripePublicKey!: string;
-
-  @IsIn(["eu", "gb", "ca"])
-  stripeCountry!: StripeFeeCountry;
-
-  @IsBoolean()
-  taxRateEnabled!: boolean;
-
-  @IsNumber()
-  taxRate!: number;
 }
 
 export class GetContentJoinSetupDto implements ContentJoinSetupData {
@@ -201,6 +190,20 @@ export class GetContentShareDto implements ContentShareData {
   twitterHandle!: string;
 }
 
+export class GetContentStripeDto implements ContentStripeData {
+  @IsString()
+  publicKey!: string;
+
+  @IsIn(["eu", "gb", "ca"])
+  country!: StripeFeeCountry;
+
+  @IsBoolean()
+  taxRateEnabled!: boolean;
+
+  @IsNumber()
+  taxRate!: number;
+}
+
 export type GetContentDto<Id extends ContentId = ContentId> =
   Id extends "contacts"
     ? GetContentContactsDto
@@ -216,4 +219,6 @@ export type GetContentDto<Id extends ContentId = ContentId> =
               ? GetContentProfileDto
               : never | Id extends "share"
                 ? GetContentShareDto
-                : never;
+                : never | Id extends "stripe"
+                  ? GetContentStripeDto
+                  : never;

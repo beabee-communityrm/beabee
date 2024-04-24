@@ -55,10 +55,6 @@ export interface ContentJoinData {
   showAbsorbFee: boolean;
   showNoContribution: boolean;
   paymentMethods: PaymentMethod[];
-  stripePublicKey: string;
-  stripeCountry: StripeFeeCountry;
-  taxRateEnabled: boolean;
-  taxRate: number;
 }
 
 export interface ContentJoinSetupData {
@@ -87,6 +83,13 @@ export interface ContentShareData {
   twitterHandle: string;
 }
 
+export interface ContentStripeData {
+  publicKey: string;
+  country: StripeFeeCountry;
+  taxRateEnabled: boolean;
+  taxRate: number;
+}
+
 export type ContentData<Id extends ContentId = ContentId> =
   Id extends "contacts"
     ? ContentContactsData
@@ -102,4 +105,6 @@ export type ContentData<Id extends ContentId = ContentId> =
               ? ContentProfileData
               : never | Id extends "share"
                 ? ContentShareData
-                : never;
+                : never | Id extends "stripe"
+                  ? ContentStripeData
+                  : never;

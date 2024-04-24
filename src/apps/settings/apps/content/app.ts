@@ -27,7 +27,8 @@ app.get(
       general: get("general"),
       join: get("join"),
       joinSetup: get("join/setup"),
-      profile: get("profile")
+      profile: get("profile"),
+      stripe: get("stripe")
     });
   })
 );
@@ -57,7 +58,8 @@ const parseData = {
   profile: (d: any) => d,
   contacts: (d: any) => d,
   share: (d: any) => d,
-  email: (d: any) => d
+  email: (d: any) => d,
+  stripe: (d: any) => d
 } as const;
 
 // urlencoding parser doesn't support overwriting if the same query param
