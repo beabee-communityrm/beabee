@@ -4,26 +4,28 @@ import {
   PaginatedQuery,
   Rule,
   RuleGroup,
+  contactCalloutFilters,
   contactFilters,
   getCalloutFilters,
   isRuleGroup
 } from "@beabee/beabee-common";
+import { isUUID } from "class-validator";
 import { Brackets } from "typeorm";
 
 import { createQueryBuilder, getRepository } from "@core/database";
 
+import { individualAnswerFilterHandler } from "@api/transformers/BaseCalloutResponseTransformer";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
+import { prefixKeys } from "@api/utils";
 
+import Callout from "@models/Callout";
+import CalloutResponse from "@models/CalloutResponse";
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
 import ContactContribution from "@models/ContactContribution";
 
 import { FilterHandler, FilterHandlers } from "@type/filter-handlers";
-import Callout from "@models/Callout";
-import { isUUID } from "class-validator";
-import { individualAnswerFilterHandler } from "./BaseCalloutResponseTransformer";
-import CalloutResponse from "@models/CalloutResponse";
 
 function flattenRules(rules: RuleGroup): Rule[] {
   return rules.rules.flatMap((rule) =>
@@ -73,13 +75,14 @@ export abstract class BaseContactTransformer<
     for (const calloutId of calloutIds) {
       const callout = await getRepository(Callout).findOneBy({ id: calloutId });
       if (callout) {
-        filters[`callouts.${calloutId}.hasAnswered`] = { type: "boolean" };
-
-        const calloutFilters = getCalloutFilters(callout.formSchema);
-        for (const key in calloutFilters) {
-          filters[`callouts.${calloutId}.responses.${key}`] =
-            calloutFilters[key];
-        }
+        Object.assign(
+          filters,
+          prefixKeys(`callouts.${calloutId}.`, contactCalloutFilters),
+          prefixKeys(
+            `callouts.${calloutId}.responses.`,
+            getCalloutFilters(callout.formSchema)
+          )
+        );
       }
     }
 
