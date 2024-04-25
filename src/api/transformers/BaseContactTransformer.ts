@@ -73,6 +73,8 @@ export abstract class BaseContactTransformer<
     for (const calloutId of calloutIds) {
       const callout = await getRepository(Callout).findOneBy({ id: calloutId });
       if (callout) {
+        filters[`callouts.${calloutId}.hasAnswered`] = { type: "boolean" };
+
         const calloutFilters = getCalloutFilters(callout.formSchema);
         for (const key in calloutFilters) {
           filters[`callouts.${calloutId}.responses.${key}`] =
@@ -81,7 +83,7 @@ export abstract class BaseContactTransformer<
       }
     }
 
-    return [filters, { "callouts.": calloutResponseFilterHandler }];
+    return [filters, { "callouts.": calloutsFilterHandler }];
   }
 }
 
@@ -151,25 +153,57 @@ const activePermission: FilterHandler = (qb, args) => {
   }
 };
 
-const calloutResponseFilterHandler: FilterHandler = (qb, args) => {
-  // Split out callouts.<id>.responses.<answerFields...>
-  const [, calloutId, , ...answerFields] = args.field.split(".");
+const calloutsFilterHandler: FilterHandler = (qb, args) => {
+  // Split out callouts.<id>.<filterName>[.<answerFields...>]
+  const [, calloutId, subField, ...answerFields] = args.field.split(".");
 
-  const subQb = createQueryBuilder()
-    .subQuery()
-    .select("item.contactId")
-    .from(CalloutResponse, "item");
+  let params;
 
-  const answerParams = individualAnswerFilterHandler(subQb, {
-    ...args,
-    field: answerFields.join(".")
-  });
+  switch (subField) {
+    /**
+     * Filter contacts by their answers to a callout, uses the same filters as
+     * callout responses endpoints
 
-  subQb
-    .andWhere(args.addParamSuffix("item.calloutId = :calloutId"))
-    .andWhere("item.contactId IS NOT NULL");
+     * Filter field: callout.<id>.responses.<answerFields>
+     */
+    case "responses": {
+      const subQb = createQueryBuilder()
+        .subQuery()
+        .select("item.contactId")
+        .from(CalloutResponse, "item");
 
-  qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
+      params = individualAnswerFilterHandler(subQb, {
+        ...args,
+        field: answerFields.join(".")
+      });
 
-  return { calloutId, ...answerParams };
+      subQb
+        .andWhere(args.addParamSuffix("item.calloutId = :calloutId"))
+        .andWhere("item.contactId IS NOT NULL");
+
+      qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
+      break;
+    }
+
+    /**
+     * Filter contacts by whether they have answered a callout
+     *
+     * Filter field: callout.<id>.hasAnswered
+     */
+    case "hasAnswered": {
+      const subQb = createQueryBuilder()
+        .subQuery()
+        .select("item.contactId")
+        .from(CalloutResponse, "item")
+        .where(args.addParamSuffix(`item.calloutId = :calloutId`))
+        .andWhere("item.contactId IS NOT NULL");
+
+      const operator = args.value[0] ? "IN" : "NOT IN";
+
+      qb.where(`${args.fieldPrefix}id ${operator} ${subQb.getQuery()}`);
+      break;
+    }
+  }
+
+  return { calloutId, ...params };
 };
