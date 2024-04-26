@@ -210,8 +210,7 @@ const contentData = {
     stripePublicKey: ["readonly", () => config.stripe.publicKey],
     stripeCountry: ["readonly", () => config.stripe.country],
     taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
-    taxRate: ["option", "tax-rate-percentage", "int"],
-    stripeTaxRateId: ["option", "tax-rate-stripe-default-id", "text"]
+    taxRate: ["option", "tax-rate-percentage", "int"]
   })
 } as const;
 

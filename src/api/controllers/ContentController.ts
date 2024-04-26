@@ -4,7 +4,8 @@ import {
   Get,
   JsonController,
   Params,
-  Patch
+  Patch,
+  BadRequestError
 } from "routing-controllers";
 
 import PartialBody from "@api/decorators/PartialBody";
@@ -22,6 +23,7 @@ import {
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
 import { stripeTaxRateUpdateOrCreateDefault } from "@core/lib/stripe";
+import OptionsService from "@core/services/OptionsService";
 
 @JsonController("/content")
 export class ContentController {
@@ -98,15 +100,21 @@ export class ContentController {
   async updatePayment(
     @PartialBody() data: GetContentPaymentDto
   ): Promise<GetContentPaymentDto> {
+    if (data.taxRate === undefined && data.taxRateEnabled === true) {
+      throw new BadRequestError(
+        "taxRate must be provided when taxRateEnabled is true"
+      );
+    }
+
     const taxRateObj = await stripeTaxRateUpdateOrCreateDefault(
       {
         active: data.taxRateEnabled,
-        country: data.stripeCountry,
         percentage: data.taxRate
       },
-      data.stripeTaxRateId
+      OptionsService.getText("tax-rate-stripe-default-id")
     );
-    data.stripeTaxRateId = taxRateObj.id;
+    await OptionsService.set("tax-rate-stripe-default-id", taxRateObj.id);
+
     await ContentTransformer.updateOne("payment", data);
     return ContentTransformer.fetchOne("payment");
   }
