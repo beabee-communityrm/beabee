@@ -55,6 +55,10 @@ export interface ContentJoinData {
   showAbsorbFee: boolean;
   showNoContribution: boolean;
   paymentMethods: PaymentMethod[];
+  /** @deprecated Use {@link ContentPaymentData.stripePublicKey} instead. */
+  stripePublicKey: string;
+  /** @deprecated Use {@link ContentPaymentData.stripeCountry} instead. */
+  stripeCountry: StripeFeeCountry;
 }
 
 export interface ContentJoinSetupData {

@@ -131,6 +131,14 @@ export class GetContentJoinDto implements ContentJoinData {
 
   @IsBoolean()
   showAbsorbFee!: boolean;
+
+  /** @deprecated Use {@link GetContentPaymentDto.stripePublicKey} instead. */
+  @IsString()
+  stripePublicKey!: string;
+
+  /** @deprecated Use {@link GetContentPaymentDto.stripeCountry} instead. */
+  @IsIn(["eu", "gb", "ca"])
+  stripeCountry!: StripeFeeCountry;
 }
 
 export class GetContentJoinSetupDto implements ContentJoinSetupData {

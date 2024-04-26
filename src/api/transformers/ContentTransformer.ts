@@ -178,6 +178,8 @@ const contentData = {
     paymentMethods: ["data", []],
     showAbsorbFee: ["option", "show-absorb-fee", "bool"],
     showNoContribution: ["data", false],
+    stripeCountry: ["readonly", () => config.stripe.country],
+    stripePublicKey: ["readonly", () => config.stripe.publicKey],
     subtitle: ["data", ""],
     title: ["data", ""]
   }),
