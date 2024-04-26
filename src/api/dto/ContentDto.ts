@@ -197,6 +197,9 @@ export class GetContentPaymentDto implements ContentPaymentData {
   @IsIn(["eu", "gb", "ca"])
   stripeCountry!: StripeFeeCountry;
 
+  @IsString()
+  stripeTaxRateId!: string;
+
   @IsBoolean()
   taxRateEnabled!: boolean;
 

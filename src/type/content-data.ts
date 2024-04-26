@@ -86,6 +86,7 @@ export interface ContentShareData {
 export interface ContentPaymentData {
   stripePublicKey: string;
   stripeCountry: StripeFeeCountry;
+  stripeTaxRateId: string;
   taxRateEnabled: boolean;
   taxRate: number;
 }

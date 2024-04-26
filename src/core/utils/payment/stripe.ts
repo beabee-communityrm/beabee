@@ -5,12 +5,13 @@ import {
   PaymentSource
 } from "@beabee/beabee-common";
 import { differenceInMonths } from "date-fns";
-import { Stripe, stripeTaxRateGetDefault } from "@core/lib/stripe";
+import { Stripe } from "@core/lib/stripe";
 
 import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
 import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
+import ContentTransformer from "@api/transformers/ContentTransformer";
 
 import config from "@config";
 
@@ -71,22 +72,12 @@ export async function createSubscription(
   customerId: string,
   paymentForm: PaymentForm,
   paymentMethod: PaymentMethod,
-  renewalDate?: Date,
-  defaultTaxRates?: string[]
+  renewalDate?: Date
 ): Promise<Stripe.Subscription> {
   log.info("Creating subscription on " + customerId, {
     paymentForm,
     renewalDate
   });
-
-  // If no tax rates are provided, we fetch the default tax rate from stripe
-  // Currently, this should always be the case
-  if (!defaultTaxRates) {
-    const taxRate = await stripeTaxRateGetDefault(true);
-    if (taxRate) {
-      defaultTaxRates = [taxRate.id];
-    }
-  }
 
   const params: Stripe.SubscriptionCreateParams = {
     customer: customerId,
@@ -99,8 +90,10 @@ export async function createSubscription(
       })
   };
 
-  if (defaultTaxRates) {
-    params.default_tax_rates = defaultTaxRates;
+  const payment = await ContentTransformer.fetchOne("payment");
+
+  if (payment.taxRateEnabled) {
+    params.default_tax_rates = [payment.stripeTaxRateId];
   }
 
   return await stripe.subscriptions.create(params);
@@ -111,14 +104,12 @@ export async function createSubscription(
  * @param subscriptionId
  * @param paymentForm
  * @param paymentMethod
- * @param defaultTaxRates Set this to `[(await stripeTaxRateGetDefault(true)).id]` to use the default tax rate, currently not used until we know what to do with existing subscriptions
  * @returns
  */
 export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm,
-  paymentMethod: PaymentMethod,
-  defaultTaxRates?: string[]
+  paymentMethod: PaymentMethod
 ): Promise<{ subscription: Stripe.Subscription; startNow: boolean }> {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
     expand: ["schedule"]
@@ -169,10 +160,6 @@ export async function updateSubscription(
             trial_end: subscription.current_period_end
           })
     };
-
-    if (defaultTaxRates) {
-      params.default_tax_rates = defaultTaxRates;
-    }
 
     // Start new contribution immediately (monthly or prorated annuals)
     log.info(`Updating subscription for ${subscription.id}`);

@@ -21,7 +21,7 @@ import {
 } from "@api/dto/ContentDto";
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
-import { stripeTaxRateCreateOrRecreateDefault } from "@core/lib/stripe";
+import { stripeTaxRateUpdateOrCreateDefault } from "@core/lib/stripe";
 
 @JsonController("/content")
 export class ContentController {
@@ -98,12 +98,15 @@ export class ContentController {
   async updatePayment(
     @PartialBody() data: GetContentPaymentDto
   ): Promise<GetContentPaymentDto> {
-    if (data.taxRate !== undefined) {
-      await stripeTaxRateCreateOrRecreateDefault(data.taxRate, {
+    const taxRateObj = await stripeTaxRateUpdateOrCreateDefault(
+      {
         active: data.taxRateEnabled,
-        country: data.stripeCountry
-      });
-    }
+        country: data.stripeCountry,
+        percentage: data.taxRate
+      },
+      data.stripeTaxRateId
+    );
+    data.stripeTaxRateId = taxRateObj.id;
     await ContentTransformer.updateOne("payment", data);
     return ContentTransformer.fetchOne("payment");
   }
