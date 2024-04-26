@@ -153,6 +153,7 @@
       },
       "socialSharing": {}
     },
+    "payment": {},
     "theme": {
       "colorNames": {},
       "presetColors": {}
@@ -737,7 +738,8 @@
     "now": "Entrar agora!",
     "paymentMethod": "Forma de pagamento",
     "poweredBy": "Powered by beabee",
-    "privacy": "Política de Privacidade"
+    "privacy": "Política de Privacidade",
+    "tax": {}
   },
   "joinPayment": {
     "genericError": "Ups, houve aqui um erro. Fala connosco se isto voltar a acontecer.",
@@ -748,7 +750,7 @@
   },
   "joinSetup": {
     "confirmDetails": "Por favor confirma os teus detalhes",
-    "continue": "Parece-nos tudo bem. Continuar",
+    "continue": "Tudo OK! Continuar",
     "welcome": "Boas-vindas, {firstName}!"
   },
   "login": {

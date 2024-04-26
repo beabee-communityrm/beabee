@@ -46,6 +46,7 @@
       },
       "socialSharing": {}
     },
+    "payment": {},
     "theme": {
       "colorNames": {},
       "presetColors": {}
@@ -321,7 +322,8 @@
     "errors": {
       "confirmEmail": {},
       "failed": {}
-    }
+    },
+    "tax": {}
   },
   "joinPayment": {},
   "joinSetup": {},

@@ -206,6 +206,11 @@
         "twitterHandle": "Twitter-Handle"
       }
     },
+    "payment": {
+      "paymentTitle": "Zahlungen",
+      "taxRate": "Steuersatz",
+      "taxRateEnabled": "Steuern aktivieren"
+    },
     "theme": {
       "bodyFont": "Text",
       "colorNames": {
@@ -1115,7 +1120,10 @@
     "now": "Jetzt Mitglied werden! ",
     "paymentMethod": "Zahlungsart",
     "poweredBy": "Powered by beabee",
-    "privacy": "Datenschutzerklärung"
+    "privacy": "Datenschutzerklärung",
+    "tax": {
+      "included": "Beitrag inklusive {taxRate}% MwSt."
+    }
   },
   "joinPayment": {
     "genericError": "Upps! Etwas ist schiefgelaufen. Bitte wenden Sie sich an den Support, sollte das erneut passieren.",
@@ -1188,9 +1196,6 @@
         "showAbsorbFee": "Nutzer um Ausgleich der Gebühren bitten",
         "showNoContribution": "Registrierung ohne Zahlung erlauben",
         "suggestedAmounts": "Beiträge vorschlagen",
-        "tax": "Steuerberechnung",
-        "taxRate": "Steuersatz",
-        "taxRateEnabled": "Steuern aktivieren",
         "text": "In diesem Abschnitt kannst du dein Registrierungsformular bearbeiten, optimieren und ansehen.",
         "title": "Registrierung"
       }

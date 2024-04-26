@@ -206,6 +206,11 @@
         "twitterHandle": "Twitter handle"
       }
     },
+    "payment": {
+      "paymentTitle": "Payment",
+      "taxRate": "Tax rate",
+      "taxRateEnabled": "Enable taxes"
+    },
     "theme": {
       "bodyFont": "Body text",
       "colorNames": {
@@ -1121,7 +1126,10 @@
     "now": "Join now!",
     "paymentMethod": "Payment method",
     "poweredBy": "Powered by beabee",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "tax": {
+      "included": "Contribution includes {taxRate}% VAT."
+    }
   },
   "joinPayment": {
     "genericError": "Oops, something went wrong! Contact support if this happens again.",
@@ -1194,9 +1202,6 @@
         "showAbsorbFee": "Ask user about absorbing the payment fee",
         "showNoContribution": "Allow user to join without a contribution",
         "suggestedAmounts": "Suggested contribution amounts",
-        "tax": "Tax Calculation",
-        "taxRate": "Tax rate",
-        "taxRateEnabled": "Enable taxes",
         "text": "In this section you can edit, fine tune and preview your membership join form.",
         "title": "Join form"
       }
