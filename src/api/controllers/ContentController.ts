@@ -100,7 +100,7 @@ export class ContentController {
   async updatePayment(
     @PartialBody() data: GetContentPaymentDto
   ): Promise<GetContentPaymentDto> {
-    if (data.taxRate === undefined && data.taxRateEnabled === true) {
+    if (data.taxRateEnabled && data.taxRate === undefined) {
       throw new BadRequestError(
         "taxRate must be provided when taxRateEnabled is true"
       );

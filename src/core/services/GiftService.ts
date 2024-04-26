@@ -57,10 +57,11 @@ export default class GiftService {
       ]
     };
 
-    const payment = await ContentTransformer.fetchOne("payment");
-    if (payment.taxRateEnabled) {
+    if (OptionsService.getBool("tax-rate-enabled")) {
       params.subscription_data = {
-        default_tax_rates: [payment.stripeTaxRateId]
+        default_tax_rates: [
+          OptionsService.getText("tax-rate-stripe-default-id")
+        ]
       };
     }
 
