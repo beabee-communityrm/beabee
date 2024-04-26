@@ -12,6 +12,8 @@ import EmailService from "@core/services/EmailService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
+import ContentTransformer from "@api/transformers/ContentTransformer";
+
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
 import ContactRole from "@models/ContactRole";
 
@@ -27,13 +29,9 @@ export default class GiftService {
   /**
    * Create a gift flow and return the Stripe session ID
    * @param giftForm
-   * @param defaultTaxRates Tax rate IDs to apply to the checkout, currently unused and untested, see https://docs.stripe.com/billing/taxes/collect-taxes?tax-calculation=tax-rates&lang=node#adding-tax-rates-to-checkout
    * @returns Stripe session ID
    */
-  static async createGiftFlow(
-    giftForm: GiftForm,
-    defaultTaxRates?: string[]
-  ): Promise<string> {
+  static async createGiftFlow(giftForm: GiftForm): Promise<string> {
     log.info("Create gift flow", giftForm);
 
     const giftFlow = await GiftService.createGiftFlowWithCode(giftForm);
@@ -59,9 +57,10 @@ export default class GiftService {
       ]
     };
 
-    if (defaultTaxRates) {
+    const payment = await ContentTransformer.fetchOne("payment");
+    if (payment.taxRateEnabled) {
       params.subscription_data = {
-        default_tax_rates: defaultTaxRates
+        default_tax_rates: [payment.stripeTaxRateId]
       };
     }
 

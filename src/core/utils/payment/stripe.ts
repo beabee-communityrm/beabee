@@ -11,6 +11,7 @@ import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
 import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
+
 import ContentTransformer from "@api/transformers/ContentTransformer";
 
 import config from "@config";
@@ -91,7 +92,6 @@ export async function createSubscription(
   };
 
   const payment = await ContentTransformer.fetchOne("payment");
-
   if (payment.taxRateEnabled) {
     params.default_tax_rates = [payment.stripeTaxRateId];
   }
