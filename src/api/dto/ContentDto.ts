@@ -15,6 +15,7 @@ import {
 } from "class-validator";
 
 import { LinkDto } from "@api/dto/LinkDto";
+import { GetContentTelegramDto } from "@api/dto/ContentTelegramDto";
 
 import { Locale } from "@locale";
 
@@ -229,4 +230,6 @@ export type GetContentDto<Id extends ContentId = ContentId> =
                 ? GetContentShareDto
                 : never | Id extends "payment"
                   ? GetContentPaymentDto
-                  : never;
+                  : never | Id extends "telegram"
+                    ? GetContentTelegramDto
+                    : never;

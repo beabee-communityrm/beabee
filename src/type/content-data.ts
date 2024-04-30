@@ -5,7 +5,7 @@ import {
 } from "@beabee/beabee-common";
 
 import { Locale } from "@locale";
-import { ContentId } from "./content-id";
+import { ContentId, ContentTelegramData } from "./index";
 
 interface FooterLink {
   url: string;
@@ -111,4 +111,6 @@ export type ContentData<Id extends ContentId = ContentId> =
                 ? ContentShareData
                 : never | Id extends "payment"
                   ? ContentPaymentData
-                  : never;
+                  : never | Id extends "telegram"
+                    ? ContentTelegramData
+                    : never;

@@ -13,7 +13,7 @@ const PATHS = [
   "./src/api/validators",
   "./src/enums",
   "./src/models",
-  "./src/type",
+  "./src/type"
 ];
 
 import { readdirSync, writeFileSync } from "fs";
@@ -29,10 +29,7 @@ const generateIndex = (paths: string[]) => {
     let indexContent = "";
 
     for (const file of files) {
-      if (
-        file.endsWith(".ts") &&
-        file !== "index.ts"
-      ) {
+      if (file.endsWith(".ts") && file !== "index.ts") {
         indexContent += `export * from "./${file.split(".")[0]}.js";\n`;
       }
     }

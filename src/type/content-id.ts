@@ -6,4 +6,5 @@ export type ContentId =
   | "contacts"
   | "share"
   | "email"
-  | "payment";
+  | "payment"
+  | "telegram";

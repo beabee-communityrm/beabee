@@ -13,8 +13,9 @@ import {
   GetContentJoinSetupDto,
   GetContentProfileDto,
   GetContentShareDto,
-  GetContentPaymentDto
-} from "@api/dto/ContentDto";
+  GetContentPaymentDto,
+  GetContentTelegramDto
+} from "@api/dto/index";
 
 import Content from "@models/Content";
 
@@ -36,7 +37,8 @@ class ContentTransformer {
       "join/setup": GetContentJoinSetupDto,
       profile: GetContentProfileDto,
       share: GetContentShareDto,
-      payment: GetContentPaymentDto
+      payment: GetContentPaymentDto,
+      telegram: GetContentTelegramDto
     }[id];
 
     return plainToInstance(Dto as any, data);
@@ -211,6 +213,9 @@ const contentData = {
     stripeCountry: ["readonly", () => config.stripe.country],
     taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
     taxRate: ["option", "tax-rate-percentage", "int"]
+  }),
+  telegram: withValue<"telegram">({
+    welcomeMessageMd: ["option", "telegram.welcome-message.md", "text"]
   })
 } as const;
 
