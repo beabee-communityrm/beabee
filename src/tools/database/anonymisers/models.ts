@@ -19,7 +19,7 @@ import Notice from "@models/Notice";
 import Option from "@models/Option";
 import PageSettings from "@models/PageSettings";
 import Payment from "@models/Payment";
-import PaymentData from "@models/PaymentData";
+import ContactContribution from "@models/ContactContribution";
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
 import CalloutResponseTag from "@models/CalloutResponseTag";
@@ -169,6 +169,16 @@ export const contactAnonymiser = createModelAnonymiser(Contact, {
   referralCode: uniqueCode
 });
 
+export const contactContributionAnonymiser = createModelAnonymiser(
+  ContactContribution,
+  {
+    contactId: () => uuidv4(),
+    customerId: randomId(12, "CU"),
+    mandateId: randomId(12, "MD"),
+    subscriptionId: randomId(12, "SB")
+  }
+);
+
 export const contactProfileAnonymiser = createModelAnonymiser(ContactProfile, {
   contactId: () => uuidv4(),
   description: () => chance.sentence(),
@@ -221,17 +231,6 @@ export const noticesAnonymiser = createModelAnonymiser(Notice);
 export const optionsAnonymiser = createModelAnonymiser(Option);
 
 export const pageSettingsAnonymiser = createModelAnonymiser(PageSettings);
-
-export const paymentDataAnonymiser = createModelAnonymiser(PaymentData, {
-  contactId: () => uuidv4(),
-  data: createObjectMap<PaymentData["data"]>({
-    customerId: randomId(12, "CU"),
-    mandateId: randomId(12, "MD"),
-    subscriptionId: randomId(12, "SB"),
-    source: () => chance.pickone(["Standing Order", "PayPal", "Cash in hand"]),
-    reference: () => chance.word()
-  })
-});
 
 export const paymentsAnonymiser = createModelAnonymiser(Payment, {
   id: () => uuidv4(),

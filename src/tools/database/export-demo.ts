@@ -9,7 +9,7 @@ import Contact from "@models/Contact";
 
 import {
   ModelAnonymiser,
-  paymentDataAnonymiser,
+  contactContributionAnonymiser,
   paymentsAnonymiser,
   contactAnonymiser,
   contactRoleAnonymiser,
@@ -34,7 +34,7 @@ const contactAnonymisers = [
   contactRoleAnonymiser,
   contactProfileAnonymiser,
   paymentsAnonymiser,
-  paymentDataAnonymiser
+  contactContributionAnonymiser
 ] as ModelAnonymiser[];
 
 const calloutsAnonymisers = [

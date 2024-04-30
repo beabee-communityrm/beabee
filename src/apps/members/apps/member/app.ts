@@ -37,8 +37,9 @@ app.use(
     });
     if (contact) {
       req.model = contact;
-      const { data, method } = await PaymentService.getData(contact);
-      res.locals.paymentData = data;
+      const { method, ...contribution } =
+        await PaymentService.getContribution(contact);
+      res.locals.contribution = contribution;
       res.locals.paymentMethod = method;
       next();
     } else {

@@ -11,8 +11,8 @@ export type FilterHandler = (
     field: string;
     operator: RuleOperator;
     value: RichRuleValue[];
-    whereFn: (field: string) => string;
-    suffixFn: (field: string) => string;
+    convertToWhereClause: (field: string) => string;
+    addParamSuffix: (field: string) => string;
   }
 ) => void | Record<string, unknown>;
 

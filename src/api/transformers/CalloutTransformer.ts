@@ -43,12 +43,20 @@ class CalloutTransformer extends BaseTransformer<
   protected model = Callout;
   protected modelIdField = "id";
   protected filters = calloutFilters;
-  protected filterHandlers = filterHandlers;
+  protected filterHandlers: FilterHandlers<CalloutFilterName> = {
+    status: statusFilterHandler,
+    title: (qb, args) => {
+      // Filter by variant title
+      qb.where(args.convertToWhereClause("cvd.title"));
+    }
+  };
 
-  protected transformFilters(
+  protected async transformFilters(
     query: GetCalloutOptsDto & PaginatedQuery,
     auth: AuthInfo | undefined
-  ): [Partial<Filters<CalloutFilterName>>, FilterHandlers<CalloutFilterName>] {
+  ): Promise<
+    [Partial<Filters<CalloutFilterName>>, FilterHandlers<CalloutFilterName>]
+  > {
     return [
       {},
       {
@@ -71,7 +79,7 @@ class CalloutTransformer extends BaseTransformer<
             .select("cr.calloutId")
             .distinctOn(["cr.calloutId"])
             .from(CalloutResponse, "cr")
-            .where(args.whereFn(`cr.contactId`))
+            .where(args.convertToWhereClause(`cr.contactId`))
             .orderBy("cr.calloutId");
 
           qb.where(`${args.fieldPrefix}id IN ${subQb.getQuery()}`);
@@ -276,13 +284,5 @@ class CalloutTransformer extends BaseTransformer<
     }
   }
 }
-
-const filterHandlers: FilterHandlers<CalloutFilterName> = {
-  status: statusFilterHandler,
-  title: (qb, args) => {
-    // Filter by variant title
-    qb.where(args.whereFn("cvd.title"));
-  }
-};
 
 export default new CalloutTransformer();

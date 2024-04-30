@@ -333,7 +333,10 @@ class ContactsService {
       paymentForm
     );
 
-    log.info("Updated contribution", { startNow, expiryDate });
+    log.info("Updated contribution for " + contact.id, {
+      startNow,
+      expiryDate
+    });
 
     await this.updateContact(contact, {
       contributionType: ContributionType.Automatic,
@@ -394,12 +397,10 @@ class ContactsService {
       contributionMonthlyAmount: monthlyAmount
     });
 
-    await PaymentService.updateDataBy(contact, "source", data.source || null);
-    await PaymentService.updateDataBy(
-      contact,
-      "reference",
-      data.reference || null
-    );
+    await PaymentService.updateData(contact, {
+      mandateId: data.source || null,
+      customerId: data.reference || null
+    });
   }
 
   /**

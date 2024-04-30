@@ -326,7 +326,8 @@ export class ContactController {
     @Body() data: StartJoinFlowDto
   ): Promise<GetPaymentFlowDto> {
     const paymentMethod =
-      data.paymentMethod || (await PaymentService.getData(target)).method;
+      data.paymentMethod ||
+      (await PaymentService.getContribution(target)).method;
     if (!paymentMethod) {
       throw new NoPaymentMethod();
     }
