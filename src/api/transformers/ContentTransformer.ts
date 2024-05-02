@@ -1,5 +1,5 @@
 import { plainToInstance } from "class-transformer";
-
+import { ContentId, ContentData } from "@beabee/beabee-common";
 import { createQueryBuilder, getRepository } from "@core/database";
 import { getEmailFooter } from "@core/utils/email";
 
@@ -20,9 +20,6 @@ import {
 import Content from "@models/Content";
 
 import config from "@config";
-
-import { ContentId } from "@type/content-id";
-import { ContentData } from "@type/content-data";
 
 class ContentTransformer {
   convert<Id extends ContentId>(

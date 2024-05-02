@@ -8,7 +8,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import Content from "@models/Content";
 
-import { ContentId } from "@type/content-id";
+import type { ContentId } from "@beabee/beabee-common";
 
 const app = express();
 

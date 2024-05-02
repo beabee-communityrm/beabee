@@ -1,7 +1,17 @@
 import {
   ContributionPeriod,
   PaymentMethod,
-  StripeFeeCountry
+  StripeFeeCountry,
+  ContentContactsData,
+  ContentEmailData,
+  ContentGeneralData,
+  ContentJoinData,
+  ContentJoinPeriodData,
+  ContentJoinSetupData,
+  ContentProfileData,
+  ContentShareData,
+  ContentPaymentData,
+  ContentId
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
@@ -18,19 +28,6 @@ import { LinkDto } from "@api/dto/LinkDto";
 import { GetContentTelegramDto } from "@api/dto/ContentTelegramDto";
 
 import { Locale } from "@locale";
-
-import {
-  ContentContactsData,
-  ContentEmailData,
-  ContentGeneralData,
-  ContentJoinData,
-  ContentJoinPeriodData,
-  ContentJoinSetupData,
-  ContentProfileData,
-  ContentShareData,
-  ContentPaymentData
-} from "@type/content-data";
-import { ContentId } from "@type/content-id";
 
 export class GetContentContactsDto implements ContentContactsData {
   @IsString({ each: true })
@@ -51,7 +48,7 @@ export class GetContentEmailDto implements ContentEmailData {
   footer!: string;
 }
 
-export class GetContentGeneralDto implements ContentGeneralData {
+export class GetContentGeneralDto implements ContentGeneralData<Locale> {
   @IsString()
   organisationName!: string;
 
