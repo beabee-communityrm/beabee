@@ -1,5 +1,6 @@
 export * from "./callout-access.js";
 export * from "./callout-captcha.js";
+export * from "./callout-channel.js";
 export * from "./contact-mfa-type.js";
 export * from "./get-contact-with.js";
 export * from "./login-codes.js";
