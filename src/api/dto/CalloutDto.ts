@@ -36,6 +36,7 @@ import { CalloutCaptcha } from "@enums/callout-captcha";
 import { CalloutData } from "@type/callout-data";
 import { CalloutMapSchema } from "@type/callout-map-schema";
 import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
+import { CalloutChannel } from "@enums/callout-channel";
 
 export enum GetCalloutWith {
   Form = "form",
@@ -43,7 +44,8 @@ export enum GetCalloutWith {
   ResponseCount = "responseCount",
   ResponseViewSchema = "responseViewSchema",
   VariantNames = "variantNames",
-  Variants = "variants"
+  Variants = "variants",
+  Channels = "channels"
 }
 
 export class GetCalloutOptsDto extends GetExportQuery {
@@ -262,4 +264,8 @@ export class GetCalloutDto extends BaseCalloutDto {
   @IsOptional()
   @IsString({ each: true })
   variantNames?: string[];
+
+  @IsOptional()
+  @IsEnum(CalloutChannel, { each: true })
+  channels?: CalloutChannel[];
 }

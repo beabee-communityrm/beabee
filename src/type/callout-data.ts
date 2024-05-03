@@ -1,5 +1,4 @@
-import { CalloutAccess } from "@enums/callout-access";
-import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutAccess, CalloutCaptcha, CalloutChannel } from "@enums/index";
 
 import { CalloutResponseViewSchema } from "./callout-response-view-schema";
 import { CalloutVariantData } from "./callout-variant-data";
@@ -16,6 +15,7 @@ export interface CalloutData {
   captcha: CalloutCaptcha;
   hidden: boolean;
   responseViewSchema?: CalloutResponseViewSchema | null;
+  channels?: CalloutChannel[];
 }
 
 export interface CreateCalloutData extends CalloutData {

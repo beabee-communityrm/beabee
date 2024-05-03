@@ -104,7 +104,7 @@ class CalloutsService {
 
     const { id: removeId, tags, variants, ...calloutData } = callout;
 
-    const data = {
+    const data: CreateCalloutData = {
       ...calloutData,
       variants: Object.fromEntries(
         variants.map((variant) => [variant.name, variant])

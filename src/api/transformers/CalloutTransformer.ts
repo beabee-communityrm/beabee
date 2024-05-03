@@ -155,6 +155,9 @@ class CalloutTransformer extends BaseTransformer<
       }),
       ...(opts?.with?.includes(GetCalloutWith.Variants) && {
         variants
+      }),
+      ...(opts?.with?.includes(GetCalloutWith.Channels) && {
+        channels: callout.channels
       })
     };
   }

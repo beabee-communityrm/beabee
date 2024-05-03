@@ -1,5 +1,4 @@
 export enum CalloutChannel {
-    // WEB = 'web',
-    TELEGRAM = 'telegram',
+  // WEB = 'web',
+  TELEGRAM = "telegram"
 }
-
