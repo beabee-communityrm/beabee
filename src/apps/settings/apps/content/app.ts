@@ -28,7 +28,8 @@ app.get(
       join: get("join"),
       joinSetup: get("join/setup"),
       profile: get("profile"),
-      payment: get("payment")
+      payment: get("payment"),
+      telegram: get("telegram")
     });
   })
 );
