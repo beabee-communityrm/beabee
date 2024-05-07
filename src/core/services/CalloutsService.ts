@@ -1,6 +1,8 @@
 import {
   GetCalloutFormSchema,
-  CalloutResponseAnswersSlide
+  CalloutResponseAnswersSlide,
+  CalloutAccess,
+  CreateCalloutData
 } from "@beabee/beabee-common";
 import slugify from "slugify";
 import { BadRequestError } from "routing-controllers";
@@ -25,9 +27,6 @@ import CalloutVariant from "@models/CalloutVariant";
 import DuplicateId from "@api/errors/DuplicateId";
 import InvalidCalloutResponse from "@api/errors/InvalidCalloutResponse";
 import NotFoundError from "@api/errors/NotFoundError";
-
-import { CalloutAccess } from "@enums/callout-access";
-import { CreateCalloutData } from "@type/callout-data";
 
 const log = mainLogger.child({ app: "callouts-service" });
 

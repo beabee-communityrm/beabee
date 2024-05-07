@@ -1,4 +1,10 @@
-import { ItemStatus } from "@beabee/beabee-common";
+import {
+  ItemStatus,
+  CalloutAccess,
+  CalloutCaptcha,
+  CalloutChannel,
+  CalloutData
+} from "@beabee/beabee-common";
 import {
   Transform,
   TransformFnParams,
@@ -30,13 +36,8 @@ import IsMapBounds from "@api/validators/IsMapBounds";
 import IsLngLat from "@api/validators/IsLngLat";
 import IsVariantsObject from "@api/validators/IsVariantsObject";
 
-import { CalloutAccess } from "@enums/callout-access";
-import { CalloutCaptcha } from "@enums/callout-captcha";
-
-import { CalloutData } from "@type/callout-data";
 import { CalloutMapSchema } from "@type/callout-map-schema";
 import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
-import { CalloutChannel } from "@enums/callout-channel";
 
 export enum GetCalloutWith {
   Form = "form",

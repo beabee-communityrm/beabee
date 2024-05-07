@@ -1,14 +1,14 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class CalloutChannels1714757828762 implements MigrationInterface {
-  name = "CalloutChannels1714757828762";
+export class CalloutChannels1715083484502 implements MigrationInterface {
+  name = "CalloutChannels1715083484502";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `CREATE TYPE "public"."callout_channels_enum" AS ENUM('telegram')`
     );
     await queryRunner.query(
-      `ALTER TABLE "callout" ADD "channels" "public"."callout_channels_enum" NOT NULL`
+      `ALTER TABLE "callout" ADD "channels" "public"."callout_channels_enum"`
     );
   }
 

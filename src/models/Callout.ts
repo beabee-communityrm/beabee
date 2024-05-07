@@ -6,15 +6,19 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import { CalloutAccess, CalloutCaptcha, CalloutChannel } from "@enums/index";
-
 import ItemWithStatus from "./ItemWithStatus";
 import type CalloutResponse from "./CalloutResponse";
 import type CalloutTag from "./CalloutTag";
 import type CalloutVariant from "./CalloutVariant";
 
-import { CalloutResponseViewSchema, CalloutData } from "@type/index";
-import { SetCalloutFormSchema } from "@beabee/beabee-common";
+import { CalloutResponseViewSchema } from "@type/index";
+import {
+  SetCalloutFormSchema,
+  CalloutData,
+  CalloutAccess,
+  CalloutCaptcha,
+  CalloutChannel
+} from "@beabee/beabee-common";
 
 @Entity()
 export default class Callout extends ItemWithStatus implements CalloutData {
@@ -73,6 +77,6 @@ export default class Callout extends ItemWithStatus implements CalloutData {
   hasAnswered?: boolean;
   responseCount?: number;
 
-  @Column({ type: "enum", enum: CalloutChannel })
-  channels?: CalloutChannel[];
+  @OneToMany("CalloutChannel", "callout")
+  channels!: CalloutChannel[];
 }
