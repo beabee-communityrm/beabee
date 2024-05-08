@@ -15,6 +15,10 @@ interface OptionWithDefault extends Option {
   default: boolean;
 }
 
+/**
+ * The OptionsService is a in-memory store with database persistence.
+ * It should really only be used for settings where they need to be read synchronously elsewhere in the application.
+ */
 class OptionsService {
   private optionCache: Record<OptionKey, OptionWithDefault> | undefined;
 

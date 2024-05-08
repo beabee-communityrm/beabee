@@ -119,7 +119,7 @@ changes
 ```
 
 docker compose start db
-docker compose run -u root app npm run typeorm migration:generate src/migrations/MigrationName
+docker compose run app npm run typeorm migration:generate src/migrations/MigrationName
 npm run build
 docker compose run app npm run typeorm migration:run
 
@@ -128,7 +128,9 @@ docker compose run app npm run typeorm migration:run
 If you are still in the development phase, you may want to undo your last database migration as follows:
 
 ```
+
 docker compose run app npm run typeorm migration:revert
+
 ```
 
 To find out more about this topic, take a look at the [TypeORM Migration Guide](https://typeorm.io/migrations).

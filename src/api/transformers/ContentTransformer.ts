@@ -212,7 +212,10 @@ const contentData = {
     taxRate: ["option", "tax-rate-percentage", "int"]
   }),
   telegram: withValue<"telegram">({
-    welcomeMessageMd: ["option", "telegram.welcome-message.md", "text"]
+    welcomeMessageMd: [
+      "data",
+      "*Hello*, I'm your Callout bot\\. Use me to list and answer callouts from [beabee](https://beabee.io/)\\."
+    ]
   })
 } as const;
 
