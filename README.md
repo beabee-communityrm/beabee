@@ -106,6 +106,14 @@ npm run build
 docker compose run -u root app npm run typeorm migration:run
 ```
 
+If you are still in the development phase, you may want to undo your last database migration as follows:
+
+```
+docker compose run -u root app npm run typeorm migration:revert
+```
+
+To find out more about this topic, take a look at the [TypeORM Migration Guide](https://typeorm.io/migrations).
+
 ### 📰 Documentation
 
 Documentation is currently very limited, email [will.franklin@beabee.io](mailto:will.franklin@beabee.io) if you have any questions.
