@@ -748,7 +748,7 @@
   },
   "joinSetup": {
     "confirmDetails": "Por favor confirma os teus detalhes",
-    "continue": "Parece-nos tudo bem. Continuar",
+    "continue": "Tudo OK! Continuar",
     "welcome": "Boas-vindas, {firstName}!"
   },
   "login": {

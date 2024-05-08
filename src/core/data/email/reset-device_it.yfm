@@ -1,0 +1,26 @@
+---
+subject: Reimposta l’autenticazione a più fattori
+---
+
+<p>Ciao *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Hai richiesto di reimpostare l’autenticazione a più fattori. Per reimpostare
+  il tuo dispositivo, clicca sul seguente link:
+</p>
+<p><br /></p>
+<p>
+  <a href="*|RPLINK|*"><strong>Reimposta un MFA Device</strong></a>
+</p>
+<p><br /></p>
+<p>
+  <b>Nota:</b> Se non hai fatto richiesta per reimpostare il tuo dispositivo o
+  lo hai fatto per sbaglio, ignora questa mail.
+</p>
+<p><br /></p>
+<p>
+  Il link è disponibile solo per un breve periodo, ti suggeriamo di non
+  attendere troppo prima di accedervi.
+</p>
+<p><br /></p>
+<p>Cordiali saluti</p>
