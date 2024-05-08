@@ -1,0 +1,24 @@
+---
+subject: Il tuo account esiste già
+---
+
+<p>Ciao *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Hai provato a creare un account ma ci risulta che tu ne abbia già uno con noi.
+  <b>Puoi effettuare l’accesso con la tua password al seguente link</b>
+</p>
+<p><br /></p>
+<p>
+  <a href="*|LOGINLINK|*"><b>Login</b></a>
+</p>
+<p><br /></p>
+<p>Se hai dimenticato la password, puoi reimpostarla nella stessa pagina.</p>
+<p><br /></p>
+<p>
+  <b>Nota:</b> i dettagli di pagamento che hai inserito non sono stati salvati.
+  Puoi cambiare queste impostazioni direttamente all’interno del tuo account una
+  volta effettuato l’accesso.
+</p>
+<p><br /></p>
+<p>Cordiali saluti</p>

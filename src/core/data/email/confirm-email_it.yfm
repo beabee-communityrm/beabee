@@ -1,0 +1,19 @@
+---
+subject: Conferma il tuo indirizzo mail
+---
+
+<p>Ciao *|FNAME|*,</p>
+<p><br /></p>
+<p>Conferma la tua iscrizione cliccando sul seguente link:</p>
+<p><br /></p>
+<p>
+  <a href="*|CONFIRMLINK|*"><b>Conferma email</b></a>
+</p>
+<p><br /></p>
+<p>
+  <b>Nota:</b> se non ti sei iscritto alla nostra community, ignora questa mail,
+  qualcuno potrebbe aver digitato per sbaglio il tuo indirizzo. Quest’ultimo non
+  sarà memorizzato nel nostro sistema.
+</p>
+<p><br /></p>
+<p>Cordiali saluti</p>
