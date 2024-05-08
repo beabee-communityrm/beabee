@@ -1,16 +1,20 @@
 # 🐝 beabee
 
-This repository hosts beabee's API and legacy app. [Go here](https://beabee.io/en/home/) to find out more about beabee.
+Welcome to the official GitHub repository for beabee, where you'll find both the backend API and the legacy frontend application for beabee. Discover more about beabee by visiting our website at [beabee.io](https://beabee.io/en/home/).
 
-If you are interested/have any questions please contact
-will.franklin@beabee.io, I'd love to hear from you!
+beabee was initially developed for the [South London Makerspace](http://southlondonmakerspace.org) and later adapted for use by [The Bristol Cable](https://thebristolcable.org).
 
-This system was originally created for
-[South London Makerspace](http://southlondonmakerspace.org)
-and repurposed by [The Bristol Cable](https://thebristolcable.org).
-
-![Deploy](https://github.com/beabee-communityrm/beabee/workflows/Deploy/badge.svg)
+![Deploy Status](https://github.com/beabee-communityrm/beabee/workflows/Deploy/badge.svg)
 ![Known Vulnerabilities](https://snyk.io/test/github/beabee-communityrm/beabee/badge.svg?targetFile=package.json)
+
+## Contact Us
+
+We're always excited to connect with our community, hear feedback, and answer any questions you might have! If you're interested in learning more about beabee or have any questions, please feel free to reach out:
+
+- **Issues**: [GitHub Issues](https://github.com/beabee-communityrm/beabee/issues)
+- **Email**: [tech@beabee.io](mailto:tech@beabee.io)
+
+Your input is invaluable to us as we continue to grow and improve beabee. Don't hesitate to get in touch!
 
 ## 💻 Install
 
@@ -46,8 +50,6 @@ docker compose run --rm app npm run typeorm migration:run
 docker compose up -d
 ```
 
-Go to: http://localhost:3001
-
 ### To get started
 
 #### Create a new super admin
@@ -56,6 +58,14 @@ Go to: http://localhost:3001
 docker compose run --rm app node built/tools/new-user
 ```
 
+### Payment methods and email domain
+
+```bash
+docker compose exec app node built/tools/configure
+```
+
+> ⚠️ If you only set up the system locally, it doesn't matter what email domain you specify, but it still has to be valid, e.g. `example.org`.
+
 #### Import some data
 
 Need some test data? Download it here: coming soon
@@ -63,6 +73,12 @@ Need some test data? Download it here: coming soon
 ```bash
 docker compose run --rm -T app node built/tools/database/import.js < <import file>
 ```
+
+#### Go to the frontend
+
+Now [check out the frontend](https://github.com/beabee-communityrm/beabee-frontend) in parallel / a separate directory and start it as described in the README.md.
+
+By default, this should now be accessible via http://localhost:3000 and communicate with the backend API / legacy frontend at http://localhost:3001.
 
 ## `</>` Development
 
@@ -81,16 +97,17 @@ npm run dev:api
 #### Rebuilding containers
 
 If you make changes to `.env` you need to recreate the Docker containers
-
-```
 docker compose up -d
+
 ```
 
 If you change the dependencies in `package.json` you must rebuild and recreate the Docker containers
 
 ```
+
 docker compose build
 docker compose up -d
+
 ```
 
 #### Generating database migrations
@@ -100,15 +117,17 @@ file. TypeORM will automatically generate a migration file based on your schema
 changes
 
 ```
+
 docker compose start db
 docker compose run -u root app npm run typeorm migration:generate src/migrations/MigrationName
 npm run build
-docker compose run -u root app npm run typeorm migration:run
+docker compose run app npm run typeorm migration:run
+
 ```
 
 ### 📰 Documentation
 
-Documentation is currently very limited, email [will.franklin@beabee.io](mailto:will.franklin@beabee.io) if you have any questions.
+Documentation is currently very limited, please [contact us](#contact-us) and we will try to adapt the documentation accordingly.
 
 The codebase is broadly split into a few different parts
 
@@ -116,53 +135,69 @@ The codebase is broadly split into a few different parts
 
   Shared between all services (API, webhooks and legacy)
 
-  ```
-  ./src/core
-  ./src/models - Data models and database entities
-  ./src/config - Config loader
-  ```
+```
+
+./src/core
+./src/models - Data models and database entities
+./src/config - Config loader
+
+```
 
 - **API service**
-  ```
-  ./src/api
-  ```
+```
+
+./src/api
+
+```
 - **Webhook service**
 
-  Handlers for webhooks from beabee's integrations (currently GoCardless, Mailchimp and Stripe)
+Handlers for webhooks from beabee's integrations (currently GoCardless, Mailchimp and Stripe)
 
-  ```
-  ./src/webhook
-  ```
+```
+
+./src/webhook
+
+```
 
 - **Legacy app**
 
-  This is slowly being removed, with business logic being moved into the API and frontend into the [new frontend](https://github.com/beabee-communityrm/beabee-frontend/).
+This is slowly being removed, with business logic being moved into the API and frontend into the [new frontend](https://github.com/beabee-communityrm/beabee-frontend/).
 
-  ```
-  ./src/apps
-  ./src/static
-  ./src/views
-  ```
+```
+
+./src/apps
+./src/static
+./src/views
+
+```
 
 - **Tools**
 
-  Various tools for administration, including nightly cron jobs
+Various tools for administration, including nightly cron jobs
 
-  ```
-  ./src/tools
-  ```
+```
+
+./src/tools
+
+```
 
 - **Database migrations**
 
-  Autogenerated by TypeORM
+Autogenerated by TypeORM
 
-  ```
-  ./src/migrations
-  ```
+```
+
+./src/migrations
+
+````
 
 #### 🤲 Common Package
 
 The backend and frontend share some code through the [beabee-common](https://github.com/beabee-communityrm/beabee-common) NPM package.
+
+#### 🖼️ Frontend
+
+You are currently browsing the repository that includes our legacy frontend application. This version is phased out and will be deprecated in due course. The revamped and currently active frontend, built with Vite and Vue, is accessible [here](https://github.com/beabee-communityrm/beabee-frontend).
 
 #### 📡 Webhooks
 
@@ -180,11 +215,11 @@ Webhooks are handled by the `webhook_app` service. This is a separate service fr
 
 #### Prepare for local development
 
-By default we are using [MailDev](https://github.com/maildev/maildev) for local development. For this to work it must be configured the first time, run the following command:
+By default we are using [MailDev](https://github.com/maildev/maildev) for local development. For this to work it must be configured the first time, run the following command if not already done:
 
 ```bash
 docker compose exec app node built/tools/configure
-```
+````
 
 If the Docker Compose Stack is started, you can reach MailDev via http://localhost:3025/ by default. If you now receive an e-mail during your tests, you will find it there.
 
