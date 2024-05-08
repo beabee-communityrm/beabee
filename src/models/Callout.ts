@@ -77,6 +77,6 @@ export default class Callout extends ItemWithStatus implements CalloutData {
   hasAnswered?: boolean;
   responseCount?: number;
 
-  @OneToMany("CalloutChannel", "callout")
+  @Column({ type: "jsonb", nullable: true })
   channels!: CalloutChannel[];
 }
