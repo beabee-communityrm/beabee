@@ -169,6 +169,5 @@
   "flash-validation-error.postcode-format": "Postcode was invalid",
   "flash-validation-error.password-format": "Password must be at least 8 characters and with at least one number, lower and upper case letter",
   "flash-validation-error.url-format": "URL was invalid",
-  "flash-validation-error.candidates-maxItems": "You can only choose at most three candidates",
-  "telegram.welcome-message.md": "*Hello*, I'm your Callout bot\\. Use me to list and answer callouts from [beabee](https://beabee.io/)\\."
+  "flash-validation-error.candidates-maxItems": "You can only choose at most three candidates"
 }
