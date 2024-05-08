@@ -3,7 +3,6 @@ export * from "./ApiKeyTransformer.js";
 export * from "./BaseCalloutResponseTransformer.js";
 export * from "./BaseContactTransformer.js";
 export * from "./BaseTransformer.js";
-export * from "./CalloutChannelTransformer.js";
 export * from "./CalloutResponseCommentTransformer.js";
 export * from "./CalloutResponseExporter.js";
 export * from "./CalloutResponseMapTransformer.js";

@@ -1,6 +1,5 @@
 export * from "./ApiKey.js";
 export * from "./Callout.js";
-export * from "./CalloutChannel.js";
 export * from "./CalloutResponse.js";
 export * from "./CalloutResponseComment.js";
 export * from "./CalloutResponseTag.js";

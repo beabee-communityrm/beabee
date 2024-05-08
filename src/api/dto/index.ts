@@ -1,7 +1,6 @@
 export * from "./AddressDto.js";
 export * from "./ApiKeyDto.js";
 export * from "./BaseDto.js";
-export * from "./CalloutChannelDto.js";
 export * from "./CalloutDto.js";
 export * from "./CalloutFormDto.js";
 export * from "./CalloutResponseCommentDto.js";
