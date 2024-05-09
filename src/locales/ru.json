@@ -314,6 +314,7 @@
     "pageCount": "Страница {pageNumber} из {pageTotal}",
     "paymentStatus": {
       "cancelled": "Отменён",
+      "draft": "Черновик",
       "failed": "Ошибка",
       "pending": "В работе",
       "successful": "Успех"
@@ -846,5 +847,8 @@
   },
   "tagEditor": {
     "confirmDelete": {}
+  },
+  "taxRate": {
+    "invoiceName": "???"
   }
 }

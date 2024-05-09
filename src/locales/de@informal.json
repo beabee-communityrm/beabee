@@ -207,9 +207,7 @@
       }
     },
     "payment": {
-      "paymentTitle": "Zahlungen",
-      "taxRate": "Steuersatz",
-      "taxRateEnabled": "Steuern aktivieren"
+      "paymentTitle": "Zahlungen"
     },
     "theme": {
       "bodyFont": "Text",
@@ -550,6 +548,7 @@
     "pageCount": "Seite {pageNumber} von {pageTotal}",
     "paymentStatus": {
       "cancelled": "Gekündigt",
+      "draft": "Entwurf",
       "failed": "Fehlgeschlagen",
       "pending": "In Bearbeitung",
       "successful": "Erfolgreich"
@@ -1360,5 +1359,8 @@
       "title": "Tag entfernen"
     },
     "name": "Name"
+  },
+  "taxRate": {
+    "invoiceName": "MwSt"
   }
 }

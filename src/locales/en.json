@@ -208,8 +208,8 @@
     },
     "payment": {
       "paymentTitle": "Payment",
-      "taxRate": "Tax rate",
-      "taxRateEnabled": "Enable taxes"
+      "taxRate": "VAT rate",
+      "taxRateEnabled": "Enable VAT"
     },
     "theme": {
       "bodyFont": "Body text",
@@ -554,6 +554,7 @@
     "pageCount": "Page {pageNumber} out of {pageTotal}",
     "paymentStatus": {
       "cancelled": "Cancelled",
+      "draft": "Draft",
       "failed": "Failed",
       "pending": "Pending",
       "successful": "Successful"
@@ -1366,5 +1367,8 @@
       "title": "Remove tag"
     },
     "name": "Name"
+  },
+  "taxRate": {
+    "invoiceName": "VAT"
   }
 }

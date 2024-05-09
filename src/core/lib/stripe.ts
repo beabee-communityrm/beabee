@@ -1,44 +1,12 @@
 import Stripe from "stripe";
 import config from "@config";
-import currentLocale, { locales } from "@locale";
+import currentLocale from "@locale";
 import type { StripeTaxRateCreateParams } from "@type/stripe-tax-rate-create-params";
 
 export const stripe = new Stripe(config.stripe.secretKey, {
   apiVersion: "2023-10-16",
   typescript: true
 });
-
-/**
- * Get the default translated display name for the tax rate.
- * If no translation is found, the default English display name is returned.
- *
- * @returns The default display name
- */
-export const stripeTaxRateGetDisplayName = () => {
-  return (
-    (
-      currentLocale().adminSettings.payment as
-        | { taxRate: string | undefined }
-        | undefined
-    )?.taxRate || locales.en.adminSettings.payment.taxRate
-  );
-};
-
-/**
- * Update a tax rate.
- *
- * @param id The id of the tax rate
- * @param data The data to update the tax rate with
- * @param options The options for the request
- * @returns
- */
-export const stripeTaxRateUpdate = async (
-  id: string,
-  data: Stripe.TaxRateUpdateParams,
-  options?: Stripe.RequestOptions
-): Promise<Stripe.Response<Stripe.TaxRate>> => {
-  return stripe.taxRates.update(id, data, options);
-};
 
 /**
  * Disable a tax rate.
@@ -77,7 +45,7 @@ export const stripeTaxRateCreateDefault = async (
         "created-by": "beabee",
         ...data.metadata
       },
-      display_name: data.display_name || stripeTaxRateGetDisplayName()
+      display_name: data.display_name || currentLocale().taxRate.invoiceName
     },
     options
   );
