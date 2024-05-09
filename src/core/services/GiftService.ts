@@ -12,8 +12,6 @@ import EmailService from "@core/services/EmailService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
-import ContentTransformer from "@api/transformers/ContentTransformer";
-
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
 import ContactRole from "@models/ContactRole";
 
