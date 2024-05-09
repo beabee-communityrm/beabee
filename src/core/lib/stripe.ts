@@ -52,7 +52,7 @@ export const stripeTaxRateDisable = async (
   options?: Stripe.RequestOptions
 ): Promise<Stripe.Response<Stripe.TaxRate>> => {
   console.debug("Disabling tax rate", id);
-  return stripeTaxRateUpdate(id, { active: false }, options);
+  return stripe.taxRates.update(id, { active: false }, options);
 };
 
 /**
@@ -100,7 +100,7 @@ export const stripeTaxRateUpdateOrCreateDefault = async (
   if (id) {
     // If the percentage is not set, we can just update the tax rate
     if (data.percentage === undefined) {
-      return stripeTaxRateUpdate(id, data, options);
+      return stripe.taxRates.update(id, data, options);
     }
 
     let oldTaxRate = await stripe.taxRates.retrieve(id);
@@ -112,7 +112,7 @@ export const stripeTaxRateUpdateOrCreateDefault = async (
         ...data
       };
       delete updateData.percentage;
-      return stripeTaxRateUpdate(id, updateData, options);
+      return stripe.taxRates.update(id, updateData, options);
     }
     // If the percentage is different, we need to disable the old tax rate and create a new one
     else {
