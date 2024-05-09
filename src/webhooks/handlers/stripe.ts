@@ -233,14 +233,14 @@ async function getContributionFromInvoice(
 async function findOrCreatePayment(
   invoice: Stripe.Invoice
 ): Promise<Payment | undefined> {
-  const contribution = await getContributionFromInvoice(invoice);
-  if (!contribution) {
-    return;
-  }
-
   const payment = await getRepository(Payment).findOneBy({ id: invoice.id });
   if (payment) {
     return payment;
+  }
+
+  const contribution = await getContributionFromInvoice(invoice);
+  if (!contribution) {
+    return;
   }
 
   const newPayment = new Payment();
