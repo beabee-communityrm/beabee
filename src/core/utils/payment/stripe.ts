@@ -261,6 +261,8 @@ export async function manadateToSource(
 export function convertStatus(status: Stripe.Invoice.Status): PaymentStatus {
   switch (status) {
     case "draft":
+      return PaymentStatus.Draft;
+
     case "open":
       return PaymentStatus.Pending;
 

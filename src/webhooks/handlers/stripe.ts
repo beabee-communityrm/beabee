@@ -148,7 +148,7 @@ export async function handleInvoiceUpdated(invoice: Stripe.Invoice) {
 
     payment.status = invoice.status
       ? convertStatus(invoice.status)
-      : PaymentStatus.Pending;
+      : PaymentStatus.Draft; // Not really possible for an updated invoice to have no status
     payment.description = invoice.description || "";
     payment.amount = invoice.total / 100;
     payment.chargeDate = new Date(invoice.created * 1000);
