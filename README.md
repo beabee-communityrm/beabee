@@ -58,7 +58,7 @@ docker compose up -d
 docker compose run --rm app node built/tools/new-user
 ```
 
-### Payment methods and email domain
+#### Payment methods and email domain
 
 ```bash
 docker compose exec app node built/tools/configure
@@ -102,12 +102,16 @@ If you make changes to `.env` you need to recreate the Docker containers
 docker compose up -d
 ```
 
+docker compose up -d
+
+````
+
 If you change the dependencies in `package.json` you must rebuild and recreate the Docker containers
 
 ```bash
 docker compose build
 docker compose up -d
-```
+````
 
 #### Generating database migrations
 
