@@ -1,5 +1,5 @@
 import { plainToInstance } from "class-transformer";
-
+import { ContentId, ContentData } from "@beabee/beabee-common";
 import { createQueryBuilder, getRepository } from "@core/database";
 import { getEmailFooter } from "@core/utils/email";
 
@@ -13,15 +13,13 @@ import {
   GetContentJoinSetupDto,
   GetContentProfileDto,
   GetContentShareDto,
-  GetContentPaymentDto
-} from "@api/dto/ContentDto";
+  GetContentPaymentDto,
+  GetContentTelegramDto
+} from "@api/dto/index";
 
 import Content from "@models/Content";
 
 import config from "@config";
-
-import { ContentId } from "@type/content-id";
-import { ContentData } from "@type/content-data";
 
 class ContentTransformer {
   convert<Id extends ContentId>(
@@ -36,7 +34,8 @@ class ContentTransformer {
       "join/setup": GetContentJoinSetupDto,
       profile: GetContentProfileDto,
       share: GetContentShareDto,
-      payment: GetContentPaymentDto
+      payment: GetContentPaymentDto,
+      telegram: GetContentTelegramDto
     }[id];
 
     return plainToInstance(Dto as any, data);
@@ -211,6 +210,12 @@ const contentData = {
     stripeCountry: ["readonly", () => config.stripe.country],
     taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
     taxRate: ["option", "tax-rate-percentage", "int"]
+  }),
+  telegram: withValue<"telegram">({
+    welcomeMessageMd: [
+      "data",
+      "*Hello*, I'm your Callout bot\\. Use me to list and answer callouts from [beabee](https://beabee.io/)\\."
+    ]
   })
 } as const;
 
