@@ -45,8 +45,7 @@ export enum GetCalloutWith {
   ResponseCount = "responseCount",
   ResponseViewSchema = "responseViewSchema",
   VariantNames = "variantNames",
-  Variants = "variants",
-  Channels = "channels"
+  Variants = "variants"
 }
 
 export class GetCalloutOptsDto extends GetExportQuery {
@@ -185,6 +184,10 @@ abstract class BaseCalloutDto implements CalloutData {
   @ValidateNested()
   @Type(() => CalloutResponseViewSchemaDto)
   responseViewSchema?: CalloutResponseViewSchemaDto | null;
+
+  @IsOptional()
+  @IsEnum(CalloutChannel, { each: true })
+  channels!: CalloutChannel[] | null;
 }
 
 function transformVariants(
@@ -265,8 +268,4 @@ export class GetCalloutDto extends BaseCalloutDto {
   @IsOptional()
   @IsString({ each: true })
   variantNames?: string[];
-
-  @IsOptional()
-  @IsEnum(CalloutChannel, { each: true })
-  channels?: CalloutChannel[];
 }
