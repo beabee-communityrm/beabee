@@ -68,5 +68,5 @@ export default class GiftFlow {
   @Column({ type: String, nullable: true })
   gifteeId!: string | null;
   @ManyToOne("Contact")
-  giftee?: Contact;
+  giftee!: Contact | null;
 }

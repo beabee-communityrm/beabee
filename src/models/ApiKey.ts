@@ -14,7 +14,9 @@ export default class ApiKey {
   @PrimaryColumn()
   id!: string;
 
-  @ManyToOne("Contact")
+  @Column({ type: String, nullable: true })
+  creatorId!: string | null;
+  @ManyToOne("Contact", { nullable: true })
   creator!: Contact;
 
   @CreateDateColumn()
