@@ -76,9 +76,9 @@ docker compose run --rm -T app node built/tools/database/import.js < <import fil
 
 #### Go to the frontend
 
-Now [check out the frontend](https://github.com/beabee-communityrm/beabee-frontend) in parallel / a separate directory and start it as described in the README.md.
+Now [check out the frontend](https://github.com/beabee-communityrm/beabee-frontend) in parallel in a separate directory and start it as described in the README.md.
 
-By default, this should now be accessible via http://localhost:3000 and communicate with the backend API / legacy frontend at http://localhost:3001.
+By default, this should now be accessible via http://localhost:3000 and communicate with the backend API over http://localhost:3001.
 
 ## `</>` Development
 
@@ -98,16 +98,20 @@ npm run dev:api
 
 If you make changes to `.env` you need to recreate the Docker containers
 
-```
+```bash
 docker compose up -d
 ```
+
+docker compose up -d
+
+````
 
 If you change the dependencies in `package.json` you must rebuild and recreate the Docker containers
 
-```
+```bash
 docker compose build
 docker compose up -d
-```
+````
 
 #### Generating database migrations
 
@@ -115,12 +119,20 @@ Whenever you make changes to a database model, you need to create a migration
 file. TypeORM will automatically generate a migration file based on your schema
 changes
 
-```
+```bash
 docker compose start db
-docker compose run app npm run typeorm migration:generate src/migrations/MigrationName
+docker compose run app npm run typeorm migration:generate src/migrations/MigrationName && npm run fix:prettier
 npm run build
 docker compose run app npm run typeorm migration:run
 ```
+
+If you are still in the development phase, you may want to undo your last database migration as follows:
+
+```bash
+docker compose run app npm run typeorm migration:revert
+```
+
+To find out more about this topic, take a look at the [TypeORM Migration Guide](https://typeorm.io/migrations).
 
 ### 📰 Documentation
 
