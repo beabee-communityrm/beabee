@@ -30,5 +30,5 @@ export interface NewsletterProvider {
   ): Promise<void>;
   upsertContacts(contacts: UpdateNewsletterContact[]): Promise<void>;
   archiveContacts(emails: string[]): Promise<void>;
-  deleteContacts(emails: string[]): Promise<void>;
+  permanentlyDeleteContacts(emails: string[]): Promise<void>;
 }
