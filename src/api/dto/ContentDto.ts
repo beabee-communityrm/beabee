@@ -19,18 +19,19 @@ import { LinkDto } from "@api/dto/LinkDto";
 import { Locale } from "@locale";
 
 import {
-  ContactsContentData,
-  EmailContentData,
-  GeneralContentData,
-  JoinContentData,
-  JoinContentPeriodData,
-  JoinSetupContentData,
-  ProfileContentData,
-  ShareContentData
+  ContentContactsData,
+  ContentEmailData,
+  ContentGeneralData,
+  ContentJoinData,
+  ContentJoinPeriodData,
+  ContentJoinSetupData,
+  ContentProfileData,
+  ContentShareData,
+  ContentPaymentData
 } from "@type/content-data";
 import { ContentId } from "@type/content-id";
 
-export class GetContactsContentDto implements ContactsContentData {
+export class GetContentContactsDto implements ContentContactsData {
   @IsString({ each: true })
   tags!: string[];
 
@@ -38,7 +39,7 @@ export class GetContactsContentDto implements ContactsContentData {
   manualPaymentSources!: string[];
 }
 
-export class GetEmailContentDto implements EmailContentData {
+export class GetContentEmailDto implements ContentEmailData {
   @IsString()
   supportEmail!: string;
 
@@ -49,7 +50,7 @@ export class GetEmailContentDto implements EmailContentData {
   footer!: string;
 }
 
-export class GetGeneralContentDto implements GeneralContentData {
+export class GetContentGeneralDto implements ContentGeneralData {
   @IsString()
   organisationName!: string;
 
@@ -94,7 +95,7 @@ export class GetGeneralContentDto implements GeneralContentData {
   footerLinks!: LinkDto[];
 }
 
-class GetJoinContentPeriodDto implements JoinContentPeriodData {
+class GetContentJoinPeriodDto implements ContentJoinPeriodData {
   @IsEnum(ContributionPeriod)
   name!: ContributionPeriod;
 
@@ -102,7 +103,7 @@ class GetJoinContentPeriodDto implements JoinContentPeriodData {
   presetAmounts!: number[];
 }
 
-export class GetJoinContentDto implements JoinContentData {
+export class GetContentJoinDto implements ContentJoinData {
   @IsString()
   title!: string;
 
@@ -116,8 +117,8 @@ export class GetJoinContentDto implements JoinContentData {
   initialPeriod!: ContributionPeriod;
 
   @ValidateNested({ each: true })
-  @Type(() => GetJoinContentPeriodDto)
-  periods!: GetJoinContentPeriodDto[];
+  @Type(() => GetContentJoinPeriodDto)
+  periods!: GetContentJoinPeriodDto[];
 
   @IsBoolean()
   showNoContribution!: boolean;
@@ -131,14 +132,16 @@ export class GetJoinContentDto implements JoinContentData {
   @IsBoolean()
   showAbsorbFee!: boolean;
 
+  /** @deprecated Use {@link GetContentPaymentDto.stripePublicKey} instead. */
   @IsString()
   stripePublicKey!: string;
 
+  /** @deprecated Use {@link GetContentPaymentDto.stripeCountry} instead. */
   @IsIn(["eu", "gb", "ca"])
   stripeCountry!: StripeFeeCountry;
 }
 
-export class GetJoinSetupContentDto implements JoinSetupContentData {
+export class GetContentJoinSetupDto implements ContentJoinSetupData {
   @IsString()
   welcome!: string;
 
@@ -176,12 +179,12 @@ export class GetJoinSetupContentDto implements JoinSetupContentData {
   surveySlug!: string;
 }
 
-export class GetProfileContentDto implements ProfileContentData {
+export class GetContentProfileDto implements ContentProfileData {
   @IsString()
   introMessage!: string;
 }
 
-export class GetShareContentDto implements ShareContentData {
+export class GetContentShareDto implements ContentShareData {
   @IsString()
   title!: string;
 
@@ -195,19 +198,35 @@ export class GetShareContentDto implements ShareContentData {
   twitterHandle!: string;
 }
 
+export class GetContentPaymentDto implements ContentPaymentData {
+  @IsString()
+  stripePublicKey!: string;
+
+  @IsIn(["eu", "gb", "ca"])
+  stripeCountry!: StripeFeeCountry;
+
+  @IsBoolean()
+  taxRateEnabled!: boolean;
+
+  @IsNumber()
+  taxRate!: number;
+}
+
 export type GetContentDto<Id extends ContentId = ContentId> =
   Id extends "contacts"
-    ? GetContactsContentDto
+    ? GetContentContactsDto
     : never | Id extends "email"
-      ? GetEmailContentDto
+      ? GetContentEmailDto
       : never | Id extends "general"
-        ? GetGeneralContentDto
+        ? GetContentGeneralDto
         : never | Id extends "join"
-          ? GetJoinContentDto
+          ? GetContentJoinDto
           : never | Id extends "join/setup"
-            ? GetJoinSetupContentDto
+            ? GetContentJoinSetupDto
             : never | Id extends "profile"
-              ? GetProfileContentDto
+              ? GetContentProfileDto
               : never | Id extends "share"
-                ? GetShareContentDto
-                : never;
+                ? GetContentShareDto
+                : never | Id extends "payment"
+                  ? GetContentPaymentDto
+                  : never;

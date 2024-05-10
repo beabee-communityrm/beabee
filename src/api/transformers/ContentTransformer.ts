@@ -5,14 +5,15 @@ import { getEmailFooter } from "@core/utils/email";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import {
-  GetContactsContentDto,
+  GetContentContactsDto,
   GetContentDto,
-  GetEmailContentDto,
-  GetGeneralContentDto,
-  GetJoinContentDto,
-  GetJoinSetupContentDto,
-  GetProfileContentDto,
-  GetShareContentDto
+  GetContentEmailDto,
+  GetContentGeneralDto,
+  GetContentJoinDto,
+  GetContentJoinSetupDto,
+  GetContentProfileDto,
+  GetContentShareDto,
+  GetContentPaymentDto
 } from "@api/dto/ContentDto";
 
 import Content from "@models/Content";
@@ -28,27 +29,28 @@ class ContentTransformer {
     data: ContentData<Id>
   ): GetContentDto<Id> {
     const Dto = {
-      contacts: GetContactsContentDto,
-      email: GetEmailContentDto,
-      general: GetGeneralContentDto,
-      join: GetJoinContentDto,
-      "join/setup": GetJoinSetupContentDto,
-      profile: GetProfileContentDto,
-      share: GetShareContentDto
+      contacts: GetContentContactsDto,
+      email: GetContentEmailDto,
+      general: GetContentGeneralDto,
+      join: GetContentJoinDto,
+      "join/setup": GetContentJoinSetupDto,
+      profile: GetContentProfileDto,
+      share: GetContentShareDto,
+      payment: GetContentPaymentDto
     }[id];
 
     return plainToInstance(Dto as any, data);
   }
 
   async fetchOne<Id extends ContentId>(id: Id): Promise<GetContentDto<Id>> {
-    const content = await getRepository(Content).findOneByOrFail({ id });
+    const content = await getRepository(Content).findOneBy({ id });
 
     const ret: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(contentData[id])) {
       switch (value[0]) {
         case "data":
-          ret[key] = content.data[key] || value[1];
+          ret[key] = content?.data[key] || value[1];
           break;
         case "option":
           ret[key] = OptionsService[optTypeGetter[value[2]]](value[1]);
@@ -203,6 +205,12 @@ const contentData = {
     image: ["option", "share-image", "text"],
     title: ["option", "share-title", "text"],
     twitterHandle: ["option", "share-twitter-handle", "text"]
+  }),
+  payment: withValue<"payment">({
+    stripePublicKey: ["readonly", () => config.stripe.publicKey],
+    stripeCountry: ["readonly", () => config.stripe.country],
+    taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
+    taxRate: ["option", "tax-rate-percentage", "int"]
   })
 } as const;
 

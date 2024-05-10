@@ -5,9 +5,10 @@ import {
   PaymentSource
 } from "@beabee/beabee-common";
 import { differenceInMonths } from "date-fns";
-import Stripe from "stripe";
 
-import stripe from "@core/lib/stripe";
+import OptionsService from "@core/services/OptionsService";
+
+import { stripe, Stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
 import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
@@ -78,7 +79,7 @@ export async function createSubscription(
     renewalDate
   });
 
-  return await stripe.subscriptions.create({
+  const params: Stripe.SubscriptionCreateParams = {
     customer: customerId,
     items: [{ price_data: getPriceData(paymentForm, paymentMethod) }],
     off_session: true,
@@ -87,9 +88,24 @@ export async function createSubscription(
         billing_cycle_anchor: Math.floor(+renewalDate / 1000),
         proration_behavior: "none"
       })
-  });
+  };
+
+  if (OptionsService.getBool("tax-rate-enabled")) {
+    params.default_tax_rates = [
+      OptionsService.getText("tax-rate-stripe-default-id")
+    ];
+  }
+
+  return await stripe.subscriptions.create(params);
 }
 
+/**
+ * Update a subscription with a new payment method.
+ * @param subscriptionId
+ * @param paymentForm
+ * @param paymentMethod
+ * @returns
+ */
 export async function updateSubscription(
   subscriptionId: string,
   paymentForm: PaymentForm,
@@ -129,9 +145,7 @@ export async function updateSubscription(
   const startNow = prorationAmount === 0 || paymentForm.prorate;
 
   if (startNow) {
-    // Start new contribution immediately (monthly or prorated annuals)
-    log.info(`Updating subscription for ${subscription.id}`);
-    await stripe.subscriptions.update(subscriptionId, {
+    const params: Stripe.SubscriptionUpdateParams = {
       items: [newSubscriptionItem],
       ...(prorationAmount > 0
         ? {
@@ -145,7 +159,11 @@ export async function updateSubscription(
             // Stripe starts the new billing cycle immediately
             trial_end: subscription.current_period_end
           })
-    });
+    };
+
+    // Start new contribution immediately (monthly or prorated annuals)
+    log.info(`Updating subscription for ${subscription.id}`);
+    await stripe.subscriptions.update(subscriptionId, params);
   } else {
     // Schedule the change for the next period
     log.info(`Creating new schedule for ${subscription.id}`);
