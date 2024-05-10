@@ -123,11 +123,6 @@ app.post(
         req.flash("success", "member-password-reset-generated");
         break;
       case "permanently-delete":
-        // TODO: anonymise data in callout answers
-
-        await ReferralsService.permanentlyDeleteContact(contact);
-        await PaymentService.permanentlyDeleteContact(contact);
-
         await ContactsService.permanentlyDeleteContact(contact);
 
         req.flash("success", "member-permanently-deleted");
