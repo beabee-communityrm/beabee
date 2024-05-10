@@ -11,8 +11,8 @@ block contents
 		.col-md-9
 			+page_header( member.fullname )
 
-			h4= paymentData.subscriptionId ? 'Update contribution' : 'Start contribution'
-			if !paymentData.mandateId
+			h4= contribution.subscriptionId ? 'Update contribution' : 'Start contribution'
+			if !contribution.mandateId
 				.alert.alert-warning User does not have an active payment method
 			else if !canChange
 				.alert.alert-warning Can't change contribution at the moment, probably due to pending payments
@@ -25,7 +25,7 @@ block contents
 						left: 3, right: 4, before: currencySymbol,
 						value: member.contributionMonthlyAmount
 					})
-					if !!paymentData.subscriptionId
+					if !!contribution.subscriptionId
 						input(type='hidden' name='period' value=member.contributionPeriod)
 						.form-group
 							label.col-md-3.control-label Period
@@ -39,7 +39,7 @@ block contents
 					+input( 'checkbox', 'Paying fee', 'payFee', {
 						left: 3, right: 4,
 						options: {'true': 'Yes'},
-						value: paymentData.payFee
+						value: contribution.payFee
 					})
 
 					if monthsLeft > 0
@@ -53,9 +53,9 @@ block contents
 										|
 										small (#{monthsLeft} months left until next payment)
 
-					+form_button( paymentData.subscriptionId ? 'Update' : 'Start', 'success', { left: 3 } )
+					+form_button( contribution.subscriptionId ? 'Update' : 'Start', 'success', { left: 3 } )
 
-			if paymentData.subscriptionId
+			if contribution.subscriptionId
 				hr
 
 				h4 Cancel contribution

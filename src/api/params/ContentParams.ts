@@ -9,7 +9,8 @@ export class ContentParams {
     "join",
     "join/setup",
     "profile",
-    "share"
+    "share",
+    "payment"
   ] satisfies ContentId[])
   id!: ContentId;
 }

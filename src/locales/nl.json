@@ -18,8 +18,10 @@
   },
   "actions": {
     "back": "Terug",
+    "copy": "Kopiëren",
     "getStarted": "Start",
     "next": "Volgende",
+    "share": "Delen",
     "submit": "Indienen"
   },
   "addContact": {
@@ -47,6 +49,7 @@
       },
       "socialSharing": {}
     },
+    "payment": {},
     "theme": {
       "colorNames": {},
       "presetColors": {}
@@ -106,7 +109,13 @@
   },
   "calloutBuilder": {
     "actions": {},
-    "nextSlide": {}
+    "nextSlide": {},
+    "translationFields": {
+      "description": "Description",
+      "label": "Label",
+      "option": "Option {n}",
+      "placeholder": "Placeholder"
+    }
   },
   "calloutResponse": {
     "data": {},
@@ -130,17 +139,18 @@
     "filter": {}
   },
   "common": {
+    "contributionPeriod": {},
     "contributionType": {},
-    "copy": "Kopiëren",
     "hello": "Hallo",
     "loading": "Ladt...",
     "newsletterStatus": {},
     "noResults": "Geen resultaten gevonden",
-    "paymentStatus": {},
+    "paymentStatus": {
+      "draft": "Ontwerp"
+    },
     "role": {},
     "selectNone": "Geen",
     "selectOne": "Kiies er één",
-    "share": "Delen",
     "show": "Laat zien",
     "status": {
       "draft": "Ontwerp",
@@ -209,12 +219,16 @@
             "addressProp": {},
             "bounds": {},
             "center": {},
+            "geocodeCountries": {},
             "initialZoom": {},
             "maxZoom": {},
             "minZoom": {},
             "style": {}
           },
           "multiple": {
+            "opts": {}
+          },
+          "requireCaptcha": {
             "opts": {}
           },
           "responseImageFilter": {},
@@ -305,13 +319,15 @@
         "switchToFileUpload": "Verander naar bestand upload",
         "takePicture": "Neem een foto",
         "useCamera": "gebruik je camera"
+      },
+      "multiple": {
+        "addAnother": "Een andere toevoegen"
       }
     }
   },
   "homePage": {},
   "item": {
     "status": {
-      "endedOn": "op {date}",
       "endsIn": "Beëindigd op {duration}",
       "startsIn": "Gestart in {duration}"
     }
@@ -320,11 +336,11 @@
     "errors": {
       "confirmEmail": {},
       "failed": {}
-    }
+    },
+    "tax": {}
   },
   "joinPayment": {},
   "joinSetup": {},
-  "locale": "nl",
   "login": {
     "lostMfaDevice": "2FA-apparaat kwijt?"
   },
@@ -369,6 +385,7 @@
     "gc_direct-debit": {},
     "s_bacs": {},
     "s_card": {},
+    "s_paypal": {},
     "s_sepa": {}
   },
   "payments": {
@@ -394,5 +411,8 @@
   "setPassword": {},
   "tagEditor": {
     "confirmDelete": {}
+  },
+  "taxRate": {
+    "invoiceName": "???"
   }
 }

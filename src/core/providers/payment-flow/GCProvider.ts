@@ -48,7 +48,7 @@ class GCProvider implements PaymentFlowProvider {
     log.info("Completed redirect flow " + redirectFlow.id);
 
     return {
-      paymentMethod: joinFlow.joinForm.paymentMethod,
+      joinForm: joinFlow.joinForm,
       customerId: redirectFlow.links!.customer!,
       mandateId: redirectFlow.links!.mandate!
     };

@@ -1,4 +1,4 @@
-export default interface Address {
+export interface Address {
   line1: string;
   line2?: string | undefined;
   city: string;

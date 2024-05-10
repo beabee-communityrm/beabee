@@ -54,3 +54,14 @@ export function groupBy<T>(
   }
   return result;
 }
+
+export function prefixKeys(
+  prefix: string,
+  obj: Record<string, unknown>
+): Record<string, unknown> {
+  const newObj: any = {};
+  for (const key in obj) {
+    newObj[`${prefix}${key}`] = obj[key];
+  }
+  return newObj;
+}

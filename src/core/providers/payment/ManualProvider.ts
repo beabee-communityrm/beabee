@@ -1,13 +1,10 @@
 import { PaymentForm } from "@core/utils";
 import Contact from "@models/Contact";
-import { ManualPaymentData } from "@models/PaymentData";
 import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "../payment-flow";
 import { ContributionInfo } from "@type/contribution-info";
 
-export default class ManualProvider extends PaymentProvider<
-  ManualPaymentData | {}
-> {
+export default class ManualProvider extends PaymentProvider {
   async canChangeContribution(useExistingMandate: boolean): Promise<boolean> {
     return !useExistingMandate;
   }
@@ -15,7 +12,12 @@ export default class ManualProvider extends PaymentProvider<
     return {
       paymentSource: {
         method: null,
-        ...this.data
+        ...(this.data.customerId && {
+          reference: this.data.customerId
+        }),
+        ...(this.data.mandateId && {
+          source: this.data.mandateId
+        })
       }
     };
   }

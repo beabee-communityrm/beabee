@@ -1,6 +1,0 @@
-{
-  "title": "Add contact",
-  "path": "add",
-  "permissions": ["superadmin"],
-  "priority": 50
-}

@@ -8,8 +8,6 @@ import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
 import ResetSecurityFlowService from "./ResetSecurityFlowService";
-
-import Address from "@models/Address";
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Contact from "@models/Contact";
@@ -29,6 +27,7 @@ import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
+import { Address } from "@type/address";
 import { CompleteUrls } from "@type/complete-urls";
 
 const paymentProviders = {
@@ -101,7 +100,7 @@ class PaymentFlowService implements PaymentFlowProvider {
   }
 
   async sendConfirmEmail(joinFlow: JoinFlow): Promise<void> {
-    log.info("Send confirm email for " + joinFlow.id);
+    log.info("Send confirm email for join flow " + joinFlow.id);
 
     const contact = await ContactsService.findOneBy({
       email: joinFlow.joinForm.email
@@ -206,7 +205,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     completeUrl: string,
     data: PaymentFlowData
   ): Promise<PaymentFlow> {
-    log.info("Create payment flow for " + joinFlow.id);
+    log.info("Create payment flow for join flow " + joinFlow.id);
     return paymentProviders[joinFlow.joinForm.paymentMethod].createPaymentFlow(
       joinFlow,
       completeUrl,
@@ -215,7 +214,7 @@ class PaymentFlowService implements PaymentFlowProvider {
   }
 
   async completePaymentFlow(joinFlow: JoinFlow): Promise<CompletedPaymentFlow> {
-    log.info("Complete payment flow for " + joinFlow.id);
+    log.info("Complete payment flow for join flow " + joinFlow.id);
     return paymentProviders[
       joinFlow.joinForm.paymentMethod
     ].completePaymentFlow(joinFlow);
@@ -225,7 +224,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<CompletedPaymentFlowData> {
     return paymentProviders[
-      completedPaymentFlow.paymentMethod
+      completedPaymentFlow.joinForm.paymentMethod
     ].getCompletedPaymentFlowData(completedPaymentFlow);
   }
 }

@@ -171,6 +171,8 @@ export async function hasPendingPayment(mandateId: string): Promise<boolean> {
 export function convertStatus(status: GCPaymentStatus): PaymentStatus {
   switch (status) {
     case GCPaymentStatus.PendingCustomerApproval:
+      return PaymentStatus.Draft;
+
     case GCPaymentStatus.PendingSubmission:
     case GCPaymentStatus.Submitted:
       return PaymentStatus.Pending;

@@ -1,3 +1,4 @@
+import { PaymentStatus } from "@beabee/beabee-common";
 import { plainToInstance } from "class-transformer";
 import {
   Authorized,
@@ -26,7 +27,10 @@ export class StatsController {
     const payments = await createQueryBuilder(Payment, "p")
       .select("SUM(p.amount)", "total")
       .addSelect("AVG(p.amount)", "average")
-      .where("p.chargeDate BETWEEN :from AND :to", query)
+      .where("p.chargeDate BETWEEN :from AND :to AND status = :status", {
+        ...query,
+        status: PaymentStatus.Successful
+      })
       .getRawOne<{ total: number | null; average: number | null }>();
 
     if (!payments) {

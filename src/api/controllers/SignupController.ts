@@ -14,12 +14,14 @@ import { generatePassword } from "@core/utils/auth";
 
 import PaymentFlowService from "@core/services/PaymentFlowService";
 
+import { GetContactDto } from "@api/dto/ContactDto";
 import { GetPaymentFlowDto } from "@api/dto/PaymentFlowDto";
 import {
   StartSignupFlowDto,
   CompleteSignupFlowDto
 } from "@api/dto/SignupFlowDto";
 import { SignupConfirmEmailParams } from "@api/params/SignupConfirmEmailParams";
+import ContactTransformer from "@api/transformers/ContactTransformer";
 import { login } from "@api/utils";
 
 import JoinFlow from "@models/JoinFlow";
@@ -68,21 +70,20 @@ export class SignupController {
       throw new NotFoundError();
     }
 
-    if (data.firstname || data.lastname) {
-      joinFlow.joinForm.firstname = data.firstname || null;
-      joinFlow.joinForm.lastname = data.lastname || null;
+    // Merge additional data into the join form
+    if (data.firstname || data.lastname || data.vatNumber) {
+      Object.assign(joinFlow.joinForm, data);
       await getRepository(JoinFlow).save(joinFlow);
     }
 
     await PaymentFlowService.sendConfirmEmail(joinFlow);
   }
 
-  @OnUndefined(204)
   @Post("/confirm-email")
   async confirmEmail(
     @Req() req: Request,
     @Body() { joinFlowId }: SignupConfirmEmailParams
-  ): Promise<void> {
+  ): Promise<GetContactDto> {
     const joinFlow = await getRepository(JoinFlow).findOneBy({
       id: joinFlowId
     });
@@ -92,5 +93,7 @@ export class SignupController {
 
     const contact = await PaymentFlowService.completeConfirmEmail(joinFlow);
     await login(req, contact);
+
+    return ContactTransformer.convert(contact);
   }
 }

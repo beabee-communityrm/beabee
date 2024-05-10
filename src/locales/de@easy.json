@@ -1,0 +1,397 @@
+{
+  "accountPage": {
+    "mfa": {
+      "codeInput": {},
+      "confirmDelete": {},
+      "enterCode": {},
+      "result": {},
+      "scan": {},
+      "secretInput": {},
+      "validateButton": {}
+    },
+    "newsletter": {
+      "currentStatus": {}
+    }
+  },
+  "actions": {
+    "back": "Hier kommst du zu deiner letzten Seite.",
+    "copy": "Hier kannst du es kopieren.",
+    "getStarted": "Hier kannst du starten.",
+    "next": "Hier kommst du auf die nächste Seite.",
+    "share": "Hier schickst du den Text / die Datei / das Bild an andere.",
+    "submit": "Hier wird deine Meldung weg-geschickt."
+  },
+  "addContact": {
+    "errors": {}
+  },
+  "addNotice": {
+    "form": {}
+  },
+  "adminDashboard": {
+    "latestCallout": {},
+    "mostRecentMembers": {},
+    "numbers": {}
+  },
+  "adminSettings": {
+    "apikey": {
+      "confirmCreate": {},
+      "confirmDelete": {},
+      "expires": {}
+    },
+    "email": {},
+    "general": {
+      "footer": {
+        "dataPrivacy": {},
+        "otherLinks": {}
+      },
+      "socialSharing": {}
+    },
+    "payment": {},
+    "theme": {
+      "colorNames": {},
+      "presetColors": {}
+    }
+  },
+  "advancedSearch": {
+    "matchType": {},
+    "matchWord": {},
+    "operators": {
+      "all": {},
+      "array": {},
+      "blob": {},
+      "boolean": {},
+      "date": {},
+      "enum": {},
+      "number": {},
+      "text": {}
+    },
+    "saveSegment": {
+      "createOrUpdate": {}
+    }
+  },
+  "apiKey": {
+    "data": {}
+  },
+  "callout": {
+    "actions": {},
+    "addAPoint": "Hier kannst du einen Ort rein-schreiben.",
+    "addLocation": "Hier kannst du einen neuen Ort rein-schreiben.",
+    "confirmHuman": "Du musst hier klicken. Dann weiß der Computer: Dass du ein Mensch bist. Und keine Maschine.",
+    "ended": "Den Aufruf gibt es nicht mehr.",
+    "form": {
+      "submittingResponseError": "Das hat nicht geklappt. Versuche es noch mal."
+    },
+    "fromMap": "Suche dir einen Punkt auf der Karte. Dann ziehe den Pfeil mit der Mouse.",
+    "fromMyLocation": "Das ist der Ort: Wo ich gerade bin.",
+    "getStarted": "Hier geht es los.",
+    "responseSubmitted": "Dein Brief / Deine Mail wurde weg-geschickt.",
+    "share": {
+      "address": "Hier kannst du den Aufruf an andere schicken. Drücke dazu hier.",
+      "services": "Diesen Aufruf kannst du hier auch an andere Menschen schicken. Zum Beispiel über Facebook oder über TikTok oder über Instagram."
+    },
+    "views": {
+      "gallery": "Bild-Sammlung / Galerie",
+      "map": "Karte"
+    }
+  },
+  "calloutAdmin": {},
+  "calloutAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    },
+    "dates": {},
+    "settings": {
+      "answers": {},
+      "contactInfo": {},
+      "endsWith": {},
+      "openTo": {}
+    }
+  },
+  "calloutBuilder": {
+    "actions": {},
+    "nextSlide": {},
+    "translationFields": {}
+  },
+  "calloutResponse": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "calloutResponseBuckets": {},
+  "calloutResponseComments": {
+    "actions": {},
+    "confirmDelete": {}
+  },
+  "calloutResponsePage": {
+    "actions": {},
+    "notifications": {}
+  },
+  "calloutResponsesPage": {},
+  "callouts": {
+    "data": {}
+  },
+  "calloutsAdmin": {
+    "data": {},
+    "filter": {}
+  },
+  "common": {
+    "contributionPeriod": {},
+    "contributionType": {},
+    "hello": "Hallo.",
+    "loading": "Der Computer arbeitet.",
+    "newsletterStatus": {},
+    "noResults": "Der Computer hat keine Ergebnisse gefunden.",
+    "paymentStatus": {
+      "draft": "Hier ist ein erster Vorschlag."
+    },
+    "role": {},
+    "selectNone": "keine",
+    "selectOne": "Hier kannst du ein Bild / eine Unterschrift / … aus-suchen",
+    "show": "Hier wird das Bild / der Text gezeigt.",
+    "status": {
+      "draft": "Hier ist ein erster Vorschlag.",
+      "ended": "… ist zu Ende.",
+      "open": "Open",
+      "scheduled": "Scheduled"
+    },
+    "thankYou": "Vielen Dank.",
+    "timeAgo": "vor",
+    "timeIn": "in"
+  },
+  "contactContribution": {
+    "confirmCancel": {},
+    "updateNotice": {}
+  },
+  "contactOverview": {
+    "annotation": {},
+    "security": {
+      "mfa": {}
+    }
+  },
+  "contacts": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "contribution": {
+    "paymentHistory": {}
+  },
+  "createCallout": {
+    "steps": {
+      "content": {},
+      "dates": {
+        "inputs": {
+          "expires": {
+            "opts": {}
+          },
+          "starts": {
+            "opts": {}
+          }
+        }
+      },
+      "endMessage": {
+        "inputs": {
+          "action": {
+            "opts": {}
+          },
+          "text": {},
+          "title": {},
+          "url": {}
+        }
+      },
+      "mailchimp": {},
+      "settings": {
+        "inputs": {
+          "anonymous": {
+            "opts": {}
+          },
+          "editable": {
+            "opts": {}
+          },
+          "mapSchema": {
+            "addressPattern": {},
+            "addressPatternProp": {},
+            "addressProp": {},
+            "bounds": {},
+            "center": {},
+            "geocodeCountries": {},
+            "initialZoom": {},
+            "maxZoom": {},
+            "minZoom": {},
+            "style": {}
+          },
+          "multiple": {
+            "opts": {}
+          },
+          "requireCaptcha": {
+            "opts": {}
+          },
+          "responseImageFilter": {},
+          "responseImageProp": {},
+          "responseLinks": {},
+          "responseTitleProp": {},
+          "showResponses": {},
+          "visible": {
+            "opts": {}
+          },
+          "whichResponseBuckets": {},
+          "whichResponseViews": {
+            "opts": {}
+          },
+          "who": {
+            "opts": {}
+          }
+        }
+      },
+      "titleAndImage": {
+        "inputs": {
+          "description": {},
+          "image": {},
+          "intro": {},
+          "overrideShare": {
+            "opts": {}
+          },
+          "shareDescription": {},
+          "shareTitle": {},
+          "slug": {
+            "opts": {}
+          },
+          "title": {}
+        }
+      }
+    }
+  },
+  "editCallout": {},
+  "editNotice": {},
+  "footer": {
+    "contactUs": "Schreibe uns. Nutze diese Adresse:",
+    "impressum": "Impressum",
+    "poweredBy": "Wir machen einige Journalisten stark. Diese Journalisten gehören zu keiner Organisation. Dazu sagt man auch: Sie sind un-abhängig.",
+    "privacyPolicy": "Datenschutzerklärung",
+    "terms": "Allgemeine Geschäftsbedingungen"
+  },
+  "forgotPassword": {},
+  "form": {
+    "email": "E-Mail",
+    "errorMessages": {
+      "api": {},
+      "generic": "Das ist nicht richtig. Hol dir Hilfe.",
+      "validation": "Das ist nicht richtig. Du hast ein Feld nicht richtig ausgefüllt. Suche das Feld. Versuche es noch mal."
+    },
+    "errors": {
+      "address": {},
+      "addressLine1": {},
+      "cityOrTown": {},
+      "color": {},
+      "confirmPassword": {},
+      "email": {},
+      "file": {
+        "rateLimited": "Das war nicht richtig. Das waren zu viele Sachen auf einmal. Du musst etwas warten. Dann versuche es noch mal.",
+        "tooBig": "Das war nicht richtig. Dein Text ist zu lang. Oder dein Bild ist zu groß. Man darf nur 20 MB hoch-laden."
+      },
+      "firstName": {},
+      "lastName": {},
+      "name": {},
+      "password": {},
+      "postCode": {},
+      "unknown": {},
+      "url": {},
+      "verifyCode": {}
+    },
+    "richtext": {}
+  },
+  "formRenderer": {
+    "components": {
+      "file": {
+        "browse": "Du musst warten: Bis sich das Rädchen nicht mehr dreht./ Bis der Balken blau ist.",
+        "dropFiles": "Du musst die Datei mit dem Pfeil von der Mouse hier her ziehen.",
+        "or": "oder",
+        "switchToFileUpload": "Hier wird dein Foto hoch-geladen.",
+        "takePicture": "Hier machst du ein Foto.",
+        "useCamera": "Du musst die Kamera an-machen."
+      },
+      "multiple": {
+        "addAnother": "Hier kannst du ein neues Foto hoch-laden./ Hier kannst du eine neue Datei hoch-laden."
+      }
+    }
+  },
+  "homePage": {},
+  "item": {
+    "status": {
+      "endsIn": "Das Hoch-laden ist gleich zu Ende.",
+      "startsIn": "Das Hoch-laden beginnt gleich."
+    }
+  },
+  "join": {
+    "errors": {
+      "confirmEmail": {},
+      "failed": {}
+    },
+    "tax": {}
+  },
+  "joinPayment": {},
+  "joinSetup": {},
+  "login": {},
+  "lostDevice": {},
+  "membershipBuilder": {
+    "steps": {
+      "accountConfirmation": {
+        "joinSurvey": {}
+      },
+      "emails": {},
+      "intro": {},
+      "joinForm": {}
+    }
+  },
+  "menu": {
+    "callouts": "Aufruf"
+  },
+  "notFound": {
+    "goBack": "Hier geht es zu einer neuen Seite. Die gibt dir eine Übersicht.",
+    "text": "Die Internet-Seite gibt es nicht mehr. Hol dir Hilfe."
+  },
+  "noticeAdminOverview": {
+    "actions": {
+      "confirmDelete": {}
+    }
+  },
+  "notices": {
+    "data": {}
+  },
+  "notification": {
+    "error": "Das war nicht richtig. Probiere es noch mal."
+  },
+  "pageTitle": {
+    "notFound": "Der Computer hat die Seite nicht gefunden."
+  },
+  "paymentMethods": {
+    "gc_direct-debit": {},
+    "s_bacs": {},
+    "s_card": {},
+    "s_paypal": {},
+    "s_sepa": {}
+  },
+  "payments": {
+    "data": {},
+    "dataGroup": {}
+  },
+  "paymentsAdmin": {
+    "filter": {}
+  },
+  "resetDevice": {},
+  "resetPassword": {},
+  "roleEditor": {
+    "confirmDelete": {},
+    "expires": {
+      "opts": {}
+    },
+    "starts": {
+      "opts": {}
+    }
+  },
+  "setPassword": {},
+  "tagEditor": {
+    "confirmDelete": {}
+  },
+  "taxRate": {
+    "invoiceName": "MwSt"
+  }
+}

@@ -5,14 +5,16 @@ import localeDeInformal from "./de@informal.json";
 import localeEn from "./en.json";
 import localePt from "./pt.json";
 import localeRu from "./ru.json";
+import localeIt from "./it.json";
 
-const locales = {
+export const locales = {
   de: localeDe,
   "de@informal": localeDeInformal,
   en: localeEn,
   nl: localeEn, // CNR only
   pt: localePt,
-  ru: localeRu
+  ru: localeRu,
+  it: localeIt
 } as const;
 
 export type Locale = keyof typeof locales;

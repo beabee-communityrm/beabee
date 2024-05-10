@@ -8,14 +8,14 @@ import { Equal, In } from "typeorm";
 
 import { createQueryBuilder, getRepository } from "@core/database";
 import { runApp } from "@core/server";
-import stripe from "@core/lib/stripe";
+import { stripe } from "@core/lib/stripe";
 import { stripeTypeToPaymentMethod } from "@core/utils/payment/stripe";
 
 import PaymentService from "@core/services/PaymentService";
 
 import Contact from "@models/Contact";
 import Payment from "@models/Payment";
-import PaymentData, { GCPaymentData } from "@models/PaymentData";
+import ContactContribution from "@models/ContactContribution";
 
 import config from "@config";
 
@@ -80,9 +80,9 @@ runApp(async () => {
     )
     // Only select those which haven't cancelled and use GoCardless
     .innerJoinAndSelect(
-      "contact.paymentData",
-      "pd",
-      "pd.cancelledAt IS NULL AND pd.method = :method",
+      "contact.contribution",
+      "cc",
+      "cc.cancelledAt IS NULL AND cc.method = :method",
       { method: PaymentMethod.GoCardlessDirectDebit }
     )
     .getMany();
@@ -99,20 +99,20 @@ runApp(async () => {
   for (const contact of contacts) {
     const contactPayments = payments.filter((p) => p.contactId === contact.id);
 
-    const paymentData = contact.paymentData.data as GCPaymentData;
+    const contribution = contact.contribution;
 
     const migrationRow = migrationData.find(
-      (row) => row.old_customer_id === paymentData.customerId
+      (row) => row.old_customer_id === contribution.customerId
     );
 
     if (!migrationRow) {
       console.error("ERROR: Contact has no migration row", contact.email);
-    } else if (migrationRow.old_source_id !== paymentData.mandateId) {
+    } else if (migrationRow.old_source_id !== contribution.mandateId) {
       console.error(
         "ERROR: mandate ID doesn't match one in database",
         contact.email,
         migrationRow.old_source_id,
-        paymentData.mandateId
+        contribution.mandateId
       );
     } else if (contactPayments.length > 0) {
       console.error(
@@ -140,19 +140,17 @@ runApp(async () => {
         // Cancel the GoCardless contribution
         await PaymentService.cancelContribution(contact);
 
-        // Update the payment data to point to the new Stripe customer
+        // Update the contribution data to point to the new Stripe customer
         // We do this directly rather than using updatePaymentMethod as it's not
         // meant for updating payment methods that are already associated with
         // the customer in Stripe
-        await getRepository(PaymentData).update(contact.id, {
+        await getRepository(ContactContribution).update(contact.id, {
           method: stripeTypeToPaymentMethod(migrationRow.type),
-          data: {
-            customerId: migrationRow.customer_id,
-            mandateId: migrationRow.source_id,
-            subscriptionId: null,
-            payFee: null,
-            nextAmount: null
-          }
+          customerId: migrationRow.customer_id,
+          mandateId: migrationRow.source_id,
+          subscriptionId: null,
+          payFee: null,
+          nextAmount: null
         });
 
         await stripe.customers.update(migrationRow.customer_id, {

@@ -67,10 +67,10 @@ export abstract class BaseTransformer<
    * @param auth The authentication info
    * @returns New filters and filter handlers
    */
-  protected transformFilters(
+  protected async transformFilters(
     query: Query,
     auth: AuthInfo | undefined
-  ): [Partial<Filters<FilterName>>, FilterHandlers<FilterName>] {
+  ): Promise<[Partial<Filters<FilterName>>, FilterHandlers<FilterName>]> {
     return [{}, {}];
   }
 
@@ -116,10 +116,10 @@ export abstract class BaseTransformer<
    * @param query The query
    * @param auth The contact who is requesting the results
    */
-  protected preFetch<T extends Query>(
+  protected async preFetch<T extends Query>(
     query: T,
     auth: AuthInfo | undefined
-  ): [T, Filters<FilterName>, FilterHandlers<FilterName>] {
+  ): Promise<[T, Filters<FilterName>, FilterHandlers<FilterName>]> {
     if (
       this.allowedRoles &&
       !this.allowedRoles.some((r) => auth?.roles.includes(r))
@@ -127,7 +127,7 @@ export abstract class BaseTransformer<
       throw new UnauthorizedError();
     }
 
-    const [filters, filterHandlers] = this.transformFilters(query, auth);
+    const [filters, filterHandlers] = await this.transformFilters(query, auth);
 
     return [
       this.transformQuery(query, auth),
@@ -147,7 +147,7 @@ export abstract class BaseTransformer<
     auth: AuthInfo | undefined,
     query_: Query
   ): Promise<PaginatedDto<GetDto>> {
-    const [query, filters, filterHandlers] = this.preFetch(query_, auth);
+    const [query, filters, filterHandlers] = await this.preFetch(query_, auth);
 
     const limit = query.limit || 50;
     const offset = query.offset || 0;

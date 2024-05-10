@@ -1,34 +1,40 @@
 import { ContributionType, NewsletterStatus } from "@beabee/beabee-common";
 import muhammara from "muhammara";
 import moment from "moment";
-import { getRepository } from "typeorm";
 
+import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import stripe from "@core/lib/stripe";
+import { stripe, Stripe } from "@core/lib/stripe";
 import { isDuplicateIndex } from "@core/utils";
+import { generateContactCode } from "@core/utils/contact";
 
 import EmailService from "@core/services/EmailService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 
-import Address from "@models/Address";
 import GiftFlow, { GiftForm } from "@models/GiftFlow";
 import ContactRole from "@models/ContactRole";
 
 import config from "@config";
-import { generateContactCode } from "@core/utils/contact";
+
+import { Address } from "@type/address";
 
 const log = mainLogger.child({ app: "gift-service" });
 
 export default class GiftService {
   private static readonly giftMonthlyAmount = 3;
 
+  /**
+   * Create a gift flow and return the Stripe session ID
+   * @param giftForm
+   * @returns Stripe session ID
+   */
   static async createGiftFlow(giftForm: GiftForm): Promise<string> {
     log.info("Create gift flow", giftForm);
 
     const giftFlow = await GiftService.createGiftFlowWithCode(giftForm);
 
-    const session = await stripe.checkout.sessions.create({
+    const params: Stripe.Checkout.SessionCreateParams = {
       success_url: config.audience + "/gift/thanks/" + giftFlow.id,
       cancel_url: config.audience + "/gift",
       customer_email: giftForm.fromEmail,
@@ -47,7 +53,17 @@ export default class GiftService {
           }
         }
       ]
-    });
+    };
+
+    if (OptionsService.getBool("tax-rate-enabled")) {
+      params.subscription_data = {
+        default_tax_rates: [
+          OptionsService.getText("tax-rate-stripe-default-id")
+        ]
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(params);
 
     await getRepository(GiftFlow).update(giftFlow.id, {
       sessionId: session.id

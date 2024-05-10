@@ -30,18 +30,6 @@ function getPeriod(
     : undefined;
 }
 
-export function minContributionAmount(
-  value: unknown,
-  period: unknown,
-  minMonthlyAmount: number
-): boolean {
-  if (!isNumber(value) || !isPeriod(period)) return false;
-
-  return period === ContributionPeriod.Monthly
-    ? value >= minMonthlyAmount
-    : value >= minMonthlyAmount * 12;
-}
-
 export default function MinContributionAmount(
   validationOptions?: ValidationOptions
 ): PropertyDecorator {
@@ -51,10 +39,7 @@ export default function MinContributionAmount(
       validator: {
         validate: (value, args) => {
           const period = getPeriod(args);
-          return (
-            !!period &&
-            minContributionAmount(value, getPeriod(args), getMinAmount(period))
-          );
+          return !!period && isNumber(value) && value >= getMinAmount(period);
         },
         defaultMessage: buildMessage((eachPrefix, args) => {
           const period = getPeriod(args);

@@ -9,8 +9,7 @@ import {
   updateSubscription,
   createSubscription,
   prorateSubscription,
-  hasPendingPayment,
-  getSubscriptionNextChargeDate
+  hasPendingPayment
 } from "@core/utils/payment/gocardless";
 import { calcRenewalDate } from "@core/utils/payment";
 
@@ -18,7 +17,6 @@ import { PaymentProvider, UpdateContributionResult } from ".";
 import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import Contact from "@models/Contact";
-import { GCPaymentData } from "@models/PaymentData";
 
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
@@ -28,7 +26,7 @@ import { ContributionInfo } from "@type/contribution-info";
 
 const log = mainLogger.child({ app: "gc-payment-provider" });
 
-export default class GCProvider extends PaymentProvider<GCPaymentData> {
+export default class GCProvider extends PaymentProvider {
   async getContributionInfo(): Promise<Partial<ContributionInfo>> {
     let paymentSource: PaymentSource | undefined;
     let pendingPayment = false;

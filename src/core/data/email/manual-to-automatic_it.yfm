@@ -1,0 +1,22 @@
+---
+subject: Il tuo pagamento è stato aggiornato
+---
+
+<p>Ciao *|FNAME|*,</p>
+<p><br /></p>
+<p>
+  Grazie per aver impostato il pagamento automatico attraverso il nostro sistema
+  di membership.
+</p>
+<p><br /></p>
+<p>
+  <b>
+    Inizieremo a raccogliere il tuo contributo nel prossimo periodo di
+    fatturazione. Tuttavia, ricordati di interrompere gli altri pagamenti per
+    evitare di pagare due volte.
+  </b>
+</p>
+<p><br /></p>
+<p>Se hai dubbi o domande, non esitare a contattarci.</p>
+<p><br /></p>
+<p>Cordiali saluti</p>

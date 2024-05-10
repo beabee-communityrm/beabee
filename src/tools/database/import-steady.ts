@@ -14,9 +14,10 @@ import { cleanEmailAddress } from "@core/utils";
 
 import ContactsService from "@core/services/ContactsService";
 
-import Address from "@models/Address";
 import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
+
+import { Address } from "@type/address";
 
 const headers = [
   "first_name",

@@ -67,6 +67,7 @@
     "chooseFile": "Datei auswählen",
     "close": "Schließen",
     "continue": "Weiter",
+    "copy": "Kopieren",
     "create": "Erstellen",
     "delete": "Löschen",
     "disable": "Deaktivieren",
@@ -75,6 +76,7 @@
     "endnow": "Jetzt beenden",
     "export": "Exportieren",
     "getStarted": "Starten",
+    "goBack": "Zurück",
     "next": "Weiter",
     "noBack": "Nein, gehe zurück",
     "participate": "Teilnehmen",
@@ -92,6 +94,7 @@
     "saveDraft": "Entwurf speichern",
     "schedule": "Planen",
     "search": "Suchen",
+    "share": "Teilen",
     "skip": "Überspringen",
     "submit": "Abschicken",
     "unpublish": "Veröffentlichung aufheben",
@@ -202,6 +205,9 @@
         "title": "Soziale Netzwerke",
         "twitterHandle": "Twitter-Handle"
       }
+    },
+    "payment": {
+      "paymentTitle": "Zahlungen"
     },
     "theme": {
       "bodyFont": "Text",
@@ -322,6 +328,7 @@
     },
     "addAPoint": "Klicken Sie dort auf die Karte, wo Sie einen Ort ergänzen möchten",
     "addLocation": "Neuen Ort eingeben",
+    "confirmHuman": "Bitte bestätigen Sie, dass Sie ein Mensch sind",
     "contactDetails": "Kontaktdaten",
     "ended": "Dieser Callout ist seit dem {date} beendet.",
     "form": {
@@ -344,7 +351,7 @@
     "updateContribution": "Bitte ändern Sie ihren Beitrag.",
     "views": {
       "gallery": "Galerie",
-      "map": "Karten"
+      "map": "Karte"
     },
     "youResponded": "Sie haben geantwortet ♥",
     "yourResponse": "Ihre Antwort"
@@ -409,7 +416,13 @@
     "prevButton": "Text für den Zurück-Button",
     "showAdvancedOptions": "Erweiterte Optionen anzeigen",
     "slideNo": "Slide {no}",
-    "submitButton": "Text für den Submit-Button"
+    "submitButton": "Text für den Submit-Button",
+    "translationFields": {
+      "description": "Description",
+      "label": "Label",
+      "option": "Option {n}",
+      "placeholder": "Placeholder"
+    }
   },
   "calloutResponse": {
     "data": {
@@ -506,24 +519,23 @@
     }
   },
   "common": {
-    "annually": "Jährlich",
     "backToHome": "Zurück zur Startseite",
     "contributing": "Ihr Beitrag",
+    "contributionPeriod": {
+      "annually": "Jährlich",
+      "monthly": "Monatlich"
+    },
     "contributionType": {
       "automatic": "Automatisch",
       "gift": "Geschenk",
       "manual": "Manuell",
       "none": "None"
     },
-    "copy": "Kopieren",
-    "goBack": "Zurück",
     "hello": "Hallo",
     "itemsPerPage": "{items} Einträge pro Seite",
     "joined": "Mitglied seit",
     "loading": "Lädt...",
     "login": "Login",
-    "month": "Monat | Monaten",
-    "monthly": "Monatlich",
     "newsletterStatus": {
       "cleaned": "Bereinigt",
       "none": "Kein Status",
@@ -536,10 +548,15 @@
     "pageCount": "Seite {pageNumber} von {pageTotal}",
     "paymentStatus": {
       "cancelled": "Gekündigt",
+      "draft": "Entwurf",
       "failed": "Fehlgeschlagen",
       "pending": "In Bearbeitung",
       "successful": "Erfolgreich"
     },
+    "perMonth": "/ Monat",
+    "perMonthText": "pro Monat",
+    "perYear": "/ Jahr",
+    "perYearText": "pro Jahr",
     "role": {
       "admin": "Admin",
       "member": "Mitglied",
@@ -547,7 +564,6 @@
     },
     "selectNone": "-- Keine --",
     "selectOne": "Auswählen",
-    "share": "Teilen",
     "show": "Anzeigen",
     "status": {
       "draft": "Entwurf",
@@ -559,7 +575,6 @@
     "timeAgo": "vor {time}",
     "timeIn": "in {time}",
     "until": "bis",
-    "year": "Jahr | Jahren",
     "yes": "Ja"
   },
   "contactContribution": {
@@ -659,7 +674,6 @@
     "changeBank": "Ändern Sie Ihre Bankverbindung.",
     "changeBankInfo": "Im nächsten Schritt können Sie Ihre neue Bankverbindung eingeben.",
     "contributing": "Sie zahlen",
-    "contributingAmount": "{amount} pro {period}",
     "contributionUpdateError": "Sie können Ihren Beitrag aktuell nicht ändern, weil eine Zahlung kurz bevorsteht.",
     "dueToRenew": "Ihre Mitgliedschaft wird am {renewalDate} erneuert.",
     "expired": "Ihre Mitgliedschaft ist ausgelaufen.",
@@ -674,8 +688,10 @@
     },
     "paymentMethod": "Zahlungsart",
     "paymentSourceUpdateError": "Sie können Ihre Bankverbindung aktuell nicht ändern, weil eine Zahlung kurz bevorsteht.",
-    "prorateDecreaseMessage": "Ihr Beitrag bleibt noch für {monthsLeft} {months} gleich. Der neue Beitrag wird am {renewalDate} zum ersten Mal eingezogen.",
-    "prorateIncreaseMessage": "Ihre Mitgliedschaft mit dem oben angezeigten Beitrag läuft noch {monthsLeft} {months}. Sie können aber eine Einmalzahlung in Höhe von {oneOffPayment} leisten um Ihre Mitgliedschaft sofort zu verlängern und den Beitrag zu erhöhen.",
+    "prorateDecreaseMessage": "Ihr Beitrag bleibt noch für 1 Monat gleich. | Ihr Beitrag bleibt noch für {n} Monaten gleich.",
+    "prorateDecreaseMessageWillStart": "Der neue Beitrag wird am {renewalDate} zum ersten Mal eingezogen.",
+    "prorateIncreaseMessage": "Ihre Mitgliedschaft mit dem oben angezeigten Beitrag läuft noch 1 Monat. | Ihre Mitgliedschaft mit dem oben angezeigten Beitrag läuft noch {n} Monaten.",
+    "prorateIncreaseMessageOneOff": "Sie können aber eine Einmalzahlung in Höhe von {oneOffPayment} leisten um Ihre Mitgliedschaft sofort zu verlängern und den Beitrag zu erhöhen.",
     "prorateNoText": "Wählen Sie diese Option, bleibt Ihr Beitrag bis zum neuen Abrechnungszeitrarum gleich.",
     "prorateNoTitle": "Ändern Sie meinen Beitrag ab dem {renewalDate}.",
     "prorateYesText": "Wählen Sie diese Option, buchen wir eine Einmalzahlung in Höhe von {oneOffPayment} ab und Ihre Mitgliedschaft wird mit Ihrem neuen Beitrag sofort verlängert.",
@@ -783,6 +799,7 @@
             "center": {
               "label": "Karten-Zentrum"
             },
+            "geocodeCountries": {},
             "initialZoom": {
               "label": "Voreingestellter Zoom"
             },
@@ -804,6 +821,15 @@
             "opts": {
               "no": "Nein, nur eine Teilnahme",
               "yes": "Ja"
+            }
+          },
+          "requireCaptcha": {
+            "help": "<p>Wenn du den <strong>Bot-Spam-Schutz</strong> aktivierst, müssen die Teilnehmenden ein Captcha ausfüllen, um zu bestätigen, dass sie Menschen sind. Das verhindert Spamming von Bots.</p>\n",
+            "label": "Bot-Spam-Schutz für den Callout aktivieren?",
+            "opts": {
+              "all": "Ja, alle Teilnehmenden müssen bestätigen, dass sie Menschen sind.",
+              "guests": "Ja, Gastteilnehmer müssen bestätigen, dass sie Menschen sind.",
+              "none": "Nein"
             }
           },
           "responseImageFilter": {
@@ -1038,11 +1064,14 @@
     "components": {
       "file": {
         "browse": "Upload vom Gerät",
-        "dropFiles": "Files hierher ziehen,",
+        "dropFiles": "Dateien hierher ziehen",
         "or": "oder",
         "switchToFileUpload": "Zum Upload wechseln",
         "takePicture": "Foto aufnehmen",
         "useCamera": "Kamera benutzen"
+      },
+      "multiple": {
+        "addAnother": "Neue hinzufügen"
       }
     }
   },
@@ -1060,7 +1089,6 @@
   },
   "item": {
     "status": {
-      "endedOn": "am {date}",
       "endsIn": "Endet in {duration}",
       "startsIn": "Startet in {duration}"
     }
@@ -1069,7 +1097,7 @@
     "absorbFeeForce": "Bei einem Beitrag von {amount}, müssen Sie die {fee} Transaktionskosten übernehmen.",
     "absorbFeeOptIn": "Ja, ich übernehme die {fee} Transaktionskosten.",
     "absorbFeeText": "Bei unserem Zahlungsdienstleister zahlen wir für jede einzelne Transaktion. Das heißt, wir erhalten weniger von Ihrem monatlichen Beitrag. Sie haben die Möglichkeit, die Kosten dafür für uns zu übernehmen. Möchten Sie das? Alternativ können Sie auch jährlich bezahlen.",
-    "contribute": "Mit {amount} pro {period} unterstützen.",
+    "contribute": "Mit {contribution} unterstützen.",
     "errors": {
       "confirmEmail": {
         "message": "Fast geschafft! Wir müssen nur noch Ihre E-Mail-Adresse bestätigen, um fortzufahren.",
@@ -1091,21 +1119,23 @@
     "now": "Jetzt Mitglied werden! ",
     "paymentMethod": "Zahlungsart",
     "poweredBy": "Powered by beabee",
-    "privacy": "Datenschutzerklärung"
+    "privacy": "Datenschutzerklärung",
+    "tax": {
+      "included": "Beitrag inklusive {taxRate}% MwSt."
+    }
   },
   "joinPayment": {
     "genericError": "Upps! Etwas ist schiefgelaufen. Bitte wenden Sie sich an den Support, sollte das erneut passieren.",
     "goBack": "Möchten Sie etwas ändern? {back}",
     "goBackButton": "Zurück zum letzten Schritt",
     "note": "Sie können Ihre Zahlungsdaten jederzeit in Ihrem Nutzer-Account ändern und dort auch sehen, wie viel Sie in der Vergangenheit bereits gezahlt haben. ",
-    "willBeContributing": "Sie zahlen {amount}/{period}"
+    "willBeContributing": "Sie zahlen {contribution}"
   },
   "joinSetup": {
     "confirmDetails": "Bitte bestätigen Sie Ihre Angaben:",
     "continue": "Weiter",
     "welcome": "Willkommen {firstName} {lastName}!"
   },
-  "locale": "de",
   "login": {
     "backTo": "Zurück zu {newsroomName}",
     "forgotPassword": "Passwort vergessen?",
@@ -1226,6 +1256,7 @@
     "notFound": "Seite nicht gefunden",
     "resetDevice": "Zweitgerät zurücksetzen",
     "resetPassword": "Passwort zurücksetzen",
+    "setPassword": "Passwort vergeben",
     "setup": "Account fertigstellen"
   },
   "paymentMethods": {
@@ -1243,6 +1274,11 @@
       "changeLabel": "Kreditkartendetails ändern",
       "label": "Kreditkarte",
       "setLabel": "Ihre Kreditkartendetails"
+    },
+    "s_paypal": {
+      "changeLabel": "PayPal ändern",
+      "label": "PayPal",
+      "setLabel": "Ihre PayPal-Daten"
     },
     "s_sepa": {
       "changeLabel": "Lastschrift ändern",
@@ -1323,5 +1359,8 @@
       "title": "Tag entfernen"
     },
     "name": "Name"
+  },
+  "taxRate": {
+    "invoiceName": "MwSt"
   }
 }
