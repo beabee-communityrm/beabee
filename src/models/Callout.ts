@@ -6,19 +6,22 @@ import {
   PrimaryGeneratedColumn
 } from "typeorm";
 
-import { CalloutAccess } from "@enums/callout-access";
-import { CalloutCaptcha } from "@enums/callout-captcha";
-
 import ItemWithStatus from "./ItemWithStatus";
 import type CalloutResponse from "./CalloutResponse";
 import type CalloutTag from "./CalloutTag";
 import type CalloutVariant from "./CalloutVariant";
 
-import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
-import { SetCalloutFormSchema } from "@beabee/beabee-common";
+import { CalloutResponseViewSchema } from "@type/index";
+import {
+  SetCalloutFormSchema,
+  CalloutData,
+  CalloutAccess,
+  CalloutCaptcha,
+  CalloutChannel
+} from "@beabee/beabee-common";
 
 @Entity()
-export default class Callout extends ItemWithStatus {
+export default class Callout extends ItemWithStatus implements CalloutData {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
@@ -73,4 +76,7 @@ export default class Callout extends ItemWithStatus {
   variantNames?: string[];
   hasAnswered?: boolean;
   responseCount?: number;
+
+  @Column({ type: "jsonb", nullable: true })
+  channels!: CalloutChannel[] | null;
 }
