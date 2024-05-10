@@ -18,8 +18,9 @@ import {
   GetContentJoinSetupDto,
   GetContentProfileDto,
   GetContentShareDto,
-  GetContentPaymentDto
-} from "@api/dto/ContentDto";
+  GetContentPaymentDto,
+  GetContentTelegramDto
+} from "@api/dto";
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
 import { stripeTaxRateUpdateOrCreateDefault } from "@core/lib/stripe";
@@ -117,5 +118,14 @@ export class ContentController {
 
     await ContentTransformer.updateOne("payment", data);
     return ContentTransformer.fetchOne("payment");
+  }
+
+  @Authorized("admin")
+  @Patch("/telegram")
+  async updateTelegram(
+    @PartialBody() data: GetContentTelegramDto
+  ): Promise<GetContentTelegramDto> {
+    await ContentTransformer.updateOne("telegram", data);
+    return ContentTransformer.fetchOne("telegram");
   }
 }

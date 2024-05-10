@@ -55,7 +55,7 @@ import CalloutResponseTag from "@models/CalloutResponseTag";
 import CalloutTag from "@models/CalloutTag";
 import Contact from "@models/Contact";
 
-import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutCaptcha } from "@beabee/beabee-common";
 
 import { AuthInfo } from "@type/auth-info";
 

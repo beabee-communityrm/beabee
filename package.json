@@ -24,6 +24,7 @@
     "dev:api:watch": "tsc-watch -p tsconfig.build.json --noClear --onSuccess 'docker compose restart api_app router'",
     "dev:api:logs": "while true; do docker compose logs -f --tail=0 api_app; sleep 1; done",
     "build": "rimraf built/ && gulp build && tsc -p ./tsconfig.build.json",
+    "generate:index": "ts-node scripts/generate-index.ts",
     "watch": "tsc-watch -p tsconfig.build.json --noClear",
     "check": "concurrently npm:check:*",
     "check:tsc": "tsc --noEmit",
@@ -34,7 +35,7 @@
     "test": "jest --setupFiles dotenv/config"
   },
   "dependencies": {
-    "@beabee/beabee-common": "^0.20.10",
+    "@beabee/beabee-common": "^0.21.0-alpha.9",
     "@captchafox/node": "^1.2.0",
     "@inquirer/prompts": "^3.3.0",
     "@sendgrid/mail": "^8.1.0",
@@ -132,7 +133,8 @@
     "ts-jest": "^29.1.1",
     "tsc-watch": "^6.0.4",
     "tsconfig": "^7.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
   },
   "browserslist": [
     "last 1 versions",

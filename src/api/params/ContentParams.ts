@@ -1,16 +1,7 @@
-import { ContentId } from "@type/content-id";
+import { ContentId, contentIds } from "@beabee/beabee-common";
 import { IsIn } from "class-validator";
 
 export class ContentParams {
-  @IsIn([
-    "contacts",
-    "email",
-    "general",
-    "join",
-    "join/setup",
-    "profile",
-    "share",
-    "payment"
-  ] satisfies ContentId[])
+  @IsIn(contentIds)
   id!: ContentId;
 }

@@ -1,3 +1,5 @@
+// TODO: Move this to it's own beabee-locale package because we use it beabee and beabee-frontend
+
 import OptionsService from "@core/services/OptionsService";
 
 import localeDe from "./de.json";
