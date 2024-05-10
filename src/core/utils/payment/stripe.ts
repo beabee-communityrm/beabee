@@ -249,6 +249,7 @@ export async function manadateToSource(
   if (method.type === "card" && method.card) {
     return {
       method: PaymentMethod.StripeCard,
+      isLink: false,
       last4: method.card.last4,
       expiryMonth: method.card.exp_month,
       expiryYear: method.card.exp_year
@@ -273,12 +274,20 @@ export async function manadateToSource(
       payerEmail: method.paypal.payer_email || "",
       payerId: method.paypal.payer_id || ""
     };
+  } else if (method.type === "link" && method.link) {
+    return {
+      method: PaymentMethod.StripeCard,
+      isLink: true,
+      email: method.link.email || ""
+    };
   }
 }
 
 export function convertStatus(status: Stripe.Invoice.Status): PaymentStatus {
   switch (status) {
     case "draft":
+      return PaymentStatus.Draft;
+
     case "open":
       return PaymentStatus.Pending;
 

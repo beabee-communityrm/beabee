@@ -343,6 +343,7 @@
     "pageCount": "Página {pageNumber} de {pageTotal}",
     "paymentStatus": {
       "cancelled": "Cancelado",
+      "draft": "Rascunho",
       "failed": "Falhado",
       "pending": "A aguardar",
       "successful": "Sucesso"
@@ -901,5 +902,8 @@
       "title": "Remover etiqueta"
     },
     "name": "Nome"
+  },
+  "taxRate": {
+    "invoiceName": "???"
   }
 }

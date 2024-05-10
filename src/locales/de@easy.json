@@ -140,7 +140,9 @@
     "loading": "Der Computer arbeitet.",
     "newsletterStatus": {},
     "noResults": "Der Computer hat keine Ergebnisse gefunden.",
-    "paymentStatus": {},
+    "paymentStatus": {
+      "draft": "Hier ist ein erster Vorschlag."
+    },
     "role": {},
     "selectNone": "keine",
     "selectOne": "Hier kannst du ein Bild / eine Unterschrift / … aus-suchen",
@@ -388,5 +390,8 @@
   "setPassword": {},
   "tagEditor": {
     "confirmDelete": {}
+  },
+  "taxRate": {
+    "invoiceName": "MwSt"
   }
 }
