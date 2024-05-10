@@ -132,7 +132,12 @@ export default class ReferralsService {
     return false;
   }
 
+  /**
+   * Permanently unlink all a contact's referrals
+   * @param contact The contact
+   */
   static async permanentlyDeleteContact(contact: Contact): Promise<void> {
+    log.info("Permanently delete contact referrals for contact " + contact.id);
     await getRepository(Referral).update(
       { referrerId: contact.id },
       { referrer: null }

@@ -7,6 +7,7 @@ import { buildSelectQuery } from "@api/utils/rules";
 
 import Contact from "@models/Contact";
 import Segment from "@models/Segment";
+import SegmentContact from "@models/SegmentContact";
 
 import { AuthInfo } from "@type/auth-info";
 
@@ -62,6 +63,14 @@ class SegmentService {
     updates: Partial<Segment>
   ): Promise<void> {
     await getRepository(Segment).update(segmentId, updates);
+  }
+
+  /**
+   * Permanently delete a contact's segment related data
+   * @param contact The contact
+   */
+  async permanentlyDeleteContact(contact: Contact): Promise<void> {
+    await getRepository(SegmentContact).delete({ contactId: contact.id });
   }
 }
 

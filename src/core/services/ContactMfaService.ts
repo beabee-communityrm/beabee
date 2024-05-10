@@ -128,6 +128,14 @@ class ContactMfaService {
   }
 
   /**
+   * Permanently delete the MFA data for a contact
+   * @param contact The contact
+   */
+  async permanentlyDeleteContact(contact: Contact): Promise<void> {
+    await getRepository(ContactMfa).delete({ contactId: contact.id });
+  }
+
+  /**
    * Get contact MFA by contact.
    *
    * ### ATTENTION
@@ -138,12 +146,8 @@ class ContactMfaService {
    * @returns The **insecure** contact MFA with the `secret` key
    */
   private async getInsecure(contact: Contact): Promise<ContactMfa | null> {
-    const mfa = await getRepository(ContactMfa).findOne({
-      where: {
-        contact: {
-          id: contact.id
-        }
-      }
+    const mfa = await getRepository(ContactMfa).findOneBy({
+      contactId: contact.id
     });
     return mfa || null;
   }
