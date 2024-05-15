@@ -16,7 +16,8 @@ import {
   GetJoinContentDto,
   GetJoinSetupContentDto,
   GetProfileContentDto,
-  GetShareContentDto
+  GetShareContentDto,
+  GetTelegramContentDto
 } from "@api/dto/ContentDto";
 import { ContentParams } from "@api/params/ContentParams";
 import ContentTransformer from "@api/transformers/ContentTransformer";
@@ -89,5 +90,14 @@ export class ContentController {
   ): Promise<GetShareContentDto> {
     ContentTransformer.updateOne("share", data);
     return ContentTransformer.fetchOne("share");
+  }
+
+  @Authorized("admin")
+  @Patch("/telegram")
+  async updateTelegram(
+    @PartialBody() data: GetTelegramContentDto
+  ): Promise<GetTelegramContentDto> {
+    await ContentTransformer.updateOne("telegram", data);
+    return ContentTransformer.fetchOne("telegram");
   }
 }
