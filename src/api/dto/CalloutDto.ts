@@ -32,6 +32,7 @@ import IsVariantsObject from "@api/validators/IsVariantsObject";
 
 import { CalloutAccess } from "@enums/callout-access";
 import { CalloutCaptcha } from "@enums/callout-captcha";
+import { CalloutChannel } from "@enums/callout-channel";
 
 import { CalloutData } from "@type/callout-data";
 import { CalloutMapSchema } from "@type/callout-map-schema";
@@ -182,6 +183,10 @@ abstract class BaseCalloutDto implements CalloutData {
   @ValidateNested()
   @Type(() => CalloutResponseViewSchemaDto)
   responseViewSchema?: CalloutResponseViewSchemaDto | null;
+
+  @IsOptional()
+  @IsEnum(CalloutChannel, { each: true })
+  channels!: CalloutChannel[] | null;
 }
 
 function transformVariants(

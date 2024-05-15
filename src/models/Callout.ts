@@ -1,3 +1,4 @@
+import { SetCalloutFormSchema } from "@beabee/beabee-common";
 import {
   Column,
   CreateDateColumn,
@@ -14,11 +15,12 @@ import type CalloutResponse from "./CalloutResponse";
 import type CalloutTag from "./CalloutTag";
 import type CalloutVariant from "./CalloutVariant";
 
+import { CalloutChannel } from "@enums/callout-channel";
 import { CalloutResponseViewSchema } from "@type/callout-response-view-schema";
-import { SetCalloutFormSchema } from "@beabee/beabee-common";
+import { CalloutData } from "@type/callout-data";
 
 @Entity()
-export default class Callout extends ItemWithStatus {
+export default class Callout extends ItemWithStatus implements CalloutData {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
@@ -73,4 +75,7 @@ export default class Callout extends ItemWithStatus {
   variantNames?: string[];
   hasAnswered?: boolean;
   responseCount?: number;
+
+  @Column({ type: "jsonb", nullable: true })
+  channels!: CalloutChannel[] | null;
 }

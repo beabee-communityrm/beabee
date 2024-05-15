@@ -128,6 +128,7 @@ class CalloutTransformer extends BaseTransformer<
       hidden: callout.hidden,
       starts: callout.starts,
       expires: callout.expires,
+      channels: callout.channels,
       ...(callout.hasAnswered !== undefined && {
         hasAnswered: callout.hasAnswered
       }),
