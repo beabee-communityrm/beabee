@@ -211,13 +211,19 @@ function prepareRule(
     }
 
     case "contact":
-      if (!contact) {
-        throw new Error("No contact provided to map contact field type");
-      }
-      // Map "me" to contact id
       return [
         simpleField,
-        rule.value.map((v) => (v === "me" ? contact.id : v))
+        rule.value.map((v) => {
+          // Map "me" to contact id
+          if (v === "me") {
+            if (!contact) {
+              throw new Error("No contact provided to map contact field type");
+            }
+            return contact.id;
+          } else {
+            return v;
+          }
+        })
       ];
 
     default:
