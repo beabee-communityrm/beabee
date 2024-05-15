@@ -12,7 +12,8 @@ import {
   GetJoinContentDto,
   GetJoinSetupContentDto,
   GetProfileContentDto,
-  GetShareContentDto
+  GetShareContentDto,
+  GetTelegramContentDto
 } from "@api/dto/ContentDto";
 
 import Content from "@models/Content";
@@ -34,7 +35,8 @@ class ContentTransformer {
       join: GetJoinContentDto,
       "join/setup": GetJoinSetupContentDto,
       profile: GetProfileContentDto,
-      share: GetShareContentDto
+      share: GetShareContentDto,
+      telegram: GetTelegramContentDto
     }[id];
 
     return plainToInstance(Dto as any, data);
@@ -203,6 +205,12 @@ const contentData = {
     image: ["option", "share-image", "text"],
     title: ["option", "share-title", "text"],
     twitterHandle: ["option", "share-twitter-handle", "text"]
+  }),
+  telegram: withValue<"telegram">({
+    welcomeMessageMd: [
+      "data",
+      "*Hello*, I'm your Callout bot\\. Use me to list and answer callouts from [beabee](https://beabee.io/)\\."
+    ]
   })
 } as const;
 

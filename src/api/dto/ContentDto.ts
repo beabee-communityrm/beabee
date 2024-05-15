@@ -26,7 +26,8 @@ import {
   JoinContentPeriodData,
   JoinSetupContentData,
   ProfileContentData,
-  ShareContentData
+  ShareContentData,
+  TelegramContentData
 } from "@type/content-data";
 import { ContentId } from "@type/content-id";
 
@@ -195,6 +196,12 @@ export class GetShareContentDto implements ShareContentData {
   twitterHandle!: string;
 }
 
+export class GetTelegramContentDto implements TelegramContentData {
+  /** Markdown formatted welcome message */
+  @IsString()
+  welcomeMessageMd!: string;
+}
+
 export type GetContentDto<Id extends ContentId = ContentId> =
   Id extends "contacts"
     ? GetContactsContentDto
@@ -210,4 +217,6 @@ export type GetContentDto<Id extends ContentId = ContentId> =
               ? GetProfileContentDto
               : never | Id extends "share"
                 ? GetShareContentDto
-                : never;
+                : never | Id extends "telegram"
+                  ? GetTelegramContentDto
+                  : never;

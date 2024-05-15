@@ -85,6 +85,10 @@ export interface ShareContentData {
   twitterHandle: string;
 }
 
+export interface TelegramContentData {
+  welcomeMessageMd: string;
+}
+
 export type ContentData<Id extends ContentId = ContentId> =
   Id extends "contacts"
     ? ContactsContentData
@@ -100,4 +104,6 @@ export type ContentData<Id extends ContentId = ContentId> =
               ? ProfileContentData
               : never | Id extends "share"
                 ? ShareContentData
-                : never;
+                : never | Id extends "telegram"
+                  ? TelegramContentData
+                  : never;
