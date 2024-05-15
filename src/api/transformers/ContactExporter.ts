@@ -27,9 +27,9 @@ class ContactExporter extends BaseContactTransformer<
       Joined: contact.joined.toISOString(),
       Tags: contact.profile.tags.join(", "),
       ContributionType: contact.contributionType,
-      ContributionMonthlyAmount: contact.contributionMonthlyAmount,
-      ContributionPeriod: contact.contributionPeriod,
-      ContributionDescription: contact.contributionDescription,
+      ContributionMonthlyAmount: contact.contribution.monthlyAmount,
+      ContributionPeriod: contact.contribution.period,
+      ContributionDescription: contact.contribution.description,
       ContributionCancelled:
         contact.contribution.cancelledAt?.toISOString() || "",
       MembershipStarts: contact.membership?.dateAdded.toISOString() || "",

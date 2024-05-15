@@ -62,8 +62,8 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
       PollsCode: contact.pollsCode,
       ContributionType: contact.contributionType,
       ContributionMonthlyAmount: contact.contributionMonthlyAmount,
-      ContributionPeriod: contact.contributionPeriod,
-      ContributionDescription: contact.contributionDescription
+      ContributionPeriod: contact.contribution.period,
+      ContributionDescription: contact.contribution.description
     }));
   }
 }

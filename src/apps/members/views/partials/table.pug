@@ -9,9 +9,9 @@ mixin contactsTable
 				+membersTableBasicInfo(contact)
 				span(style='flex: 0 1 120px')
 					= currencySymbol
-					= contact.contributionAmount
+					= contact.contribution.amount
 					| /
-					= contact.contributionPeriod
+					= contact.contribution.period
 
 if addToProject
 	form(method='POST' action='/projects/' + addToProject.id)

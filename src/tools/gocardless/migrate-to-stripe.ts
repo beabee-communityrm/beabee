@@ -120,10 +120,7 @@ runApp(async () => {
         contact.email,
         contactPayments.length
       );
-    } else if (
-      !contact.contributionPeriod ||
-      !contact.contributionMonthlyAmount
-    ) {
+    } else if (!contribution.period || !contribution.monthlyAmount) {
       console.error(
         "ERROR: Contact doesn't have a contribution amount or period"
       );
@@ -161,8 +158,8 @@ runApp(async () => {
 
         // Recreate the contribution
         await PaymentService.updateContribution(contact, {
-          monthlyAmount: contact.contributionMonthlyAmount,
-          period: contact.contributionPeriod,
+          monthlyAmount: contribution.monthlyAmount,
+          period: contribution.period,
           payFee: false,
           prorate: false
         });

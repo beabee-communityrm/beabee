@@ -53,8 +53,8 @@ class PaymentService {
     ).findOneByOrFail({
       contactId: contact.id
     });
-    // No need to refetch contact, just add it in
-    return { ...contribution, contact };
+    contribution.contact = contact; // No need to refetch contact, just add it in
+    return contribution;
   }
 
   async getContributionBy(
@@ -102,40 +102,46 @@ class PaymentService {
   }
 
   async getContributionInfo(contact: Contact): Promise<ContributionInfo> {
-    return await this.provider<ContributionInfo>(contact, async (p, d) => {
-      // Store payment data in contact for getMembershipStatus
-      // TODO: fix this!
-      contact.contribution = d;
+    return await this.provider<ContributionInfo>(
+      contact,
+      async (provider, contribution) => {
+        // Store contribution in contact for getMembershipStatus
+        // TODO: fix this!
+        contact.contribution = contribution;
 
-      const renewalDate = !d.cancelledAt && calcRenewalDate(contact);
+        const renewalDate =
+          !contribution.cancelledAt && calcRenewalDate(contact);
 
-      return {
-        type: contact.contributionType,
-        ...(contact.contributionAmount !== null && {
-          amount: contact.contributionAmount
-        }),
-        ...(contact.contributionPeriod !== null && {
-          period: contact.contributionPeriod
-        }),
-        ...(d.payFee !== null && {
-          payFee: d.payFee
-        }),
-        ...(d.nextAmount &&
-          contact.contributionPeriod && {
-            nextAmount: getActualAmount(
-              d.nextAmount.monthly,
-              contact.contributionPeriod
-            )
+        return {
+          type: contact.contributionType,
+          ...(contribution.amount !== null && {
+            amount: contribution.amount
           }),
-        ...(contact.membership?.dateExpires && {
-          membershipExpiryDate: contact.membership.dateExpires
-        }),
-        membershipStatus: getMembershipStatus(contact),
-        ...(await p.getContributionInfo()),
-        ...(d.cancelledAt && { cancellationDate: d.cancelledAt }),
-        ...(renewalDate && { renewalDate })
-      };
-    });
+          ...(contribution.period !== null && {
+            period: contribution.period
+          }),
+          ...(contribution.payFee !== null && {
+            payFee: contribution.payFee
+          }),
+          ...(contribution.nextAmount &&
+            contribution.period && {
+              nextAmount: getActualAmount(
+                contribution.nextAmount.monthly,
+                contribution.period
+              )
+            }),
+          ...(contribution.cancelledAt && {
+            cancellationDate: contribution.cancelledAt
+          }),
+          ...(contact.membership?.dateExpires && {
+            membershipExpiryDate: contact.membership.dateExpires
+          }),
+          membershipStatus: getMembershipStatus(contact),
+          ...(await provider.getContributionInfo()),
+          ...(renewalDate && { renewalDate })
+        };
+      }
+    );
   }
 
   async getPayments(contact: Contact): Promise<Payment[]> {
@@ -191,7 +197,7 @@ class PaymentService {
 
       // Clear the old payment data, set the new method
       Object.assign(contribution, {
-        ...ContactContribution.empty,
+        ...ContactContribution.none,
         method: newMethod
       });
       await getRepository(ContactContribution).save(contribution);

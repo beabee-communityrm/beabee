@@ -1,4 +1,8 @@
-import { PaymentMethod, PaymentSource } from "@beabee/beabee-common";
+import {
+  ContributionPeriod,
+  PaymentMethod,
+  PaymentSource
+} from "@beabee/beabee-common";
 import { Subscription } from "gocardless-nodejs";
 import moment from "moment";
 
@@ -82,8 +86,8 @@ export default class GCProvider extends PaymentProvider {
     // result in double charging
     return (
       (useExistingMandate &&
-        this.contact.contributionPeriod === "monthly" &&
-        paymentForm.period === "monthly") ||
+        this.data.period === ContributionPeriod.Monthly &&
+        paymentForm.period === ContributionPeriod.Monthly) ||
       !(this.data.mandateId && (await hasPendingPayment(this.data.mandateId)))
     );
   }
@@ -105,7 +109,7 @@ export default class GCProvider extends PaymentProvider {
     if (this.data.subscriptionId) {
       if (
         this.contact.membership?.isActive &&
-        this.contact.contributionPeriod === paymentForm.period
+        this.data.period === paymentForm.period
       ) {
         subscription = await updateSubscription(
           this.data.subscriptionId,
@@ -209,14 +213,11 @@ export default class GCProvider extends PaymentProvider {
       await gocardless.mandates.cancel(mandateId);
     }
 
-    if (
-      hadSubscription &&
-      this.contact.contributionPeriod &&
-      this.contact.contributionMonthlyAmount
-    ) {
+    // Recreate the subscription if the user had one
+    if (hadSubscription && this.data.period && this.data.monthlyAmount) {
       await this.updateContribution({
-        monthlyAmount: this.contact.contributionMonthlyAmount,
-        period: this.contact.contributionPeriod,
+        monthlyAmount: this.data.monthlyAmount,
+        period: this.data.period,
         payFee: !!this.data.payFee,
         prorate: false
       });

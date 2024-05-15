@@ -12,6 +12,7 @@ import MailchimpProvider from "@core/providers/newsletter/MailchimpProvider";
 import NoneProvider from "@core/providers/newsletter/NoneProvider";
 
 import Contact from "@models/Contact";
+import ContactContribution from "@models/ContactContribution";
 import ContactProfile from "@models/ContactProfile";
 
 import config from "@config";
@@ -40,6 +41,15 @@ async function contactToNlUpdate(
     });
   }
 
+  // TODO: Fix that it relies on contact.contribution being loaded
+  if (!contact.contribution) {
+    contact.contribution = await getRepository(
+      ContactContribution
+    ).findOneByOrFail({
+      contactId: contact.id
+    });
+  }
+
   if (contact.profile.newsletterStatus !== NewsletterStatus.None) {
     return {
       email: contact.email,
@@ -50,9 +60,9 @@ async function contactToNlUpdate(
       fields: {
         REFCODE: contact.referralCode || "",
         POLLSCODE: contact.pollsCode || "",
-        C_DESC: contact.contributionDescription,
-        C_MNTHAMT: contact.contributionMonthlyAmount?.toFixed(2) || "",
-        C_PERIOD: contact.contributionPeriod || ""
+        C_DESC: contact.contribution.description,
+        C_MNTHAMT: contact.contribution.monthlyAmount?.toFixed(2) || "",
+        C_PERIOD: contact.contribution.period || ""
       }
     };
   }
