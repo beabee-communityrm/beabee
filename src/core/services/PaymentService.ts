@@ -2,6 +2,7 @@ import { MembershipStatus, PaymentMethod } from "@beabee/beabee-common";
 
 import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
+import { getActualAmount } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
 
 import Contact from "@models/Contact";
@@ -116,6 +117,16 @@ class PaymentService {
         ...(contact.contributionPeriod !== null && {
           period: contact.contributionPeriod
         }),
+        ...(d.payFee !== null && {
+          payFee: d.payFee
+        }),
+        ...(d.nextAmount &&
+          contact.contributionPeriod && {
+            nextAmount: getActualAmount(
+              d.nextAmount.monthly,
+              contact.contributionPeriod
+            )
+          }),
         ...(contact.membership?.dateExpires && {
           membershipExpiryDate: contact.membership.dateExpires
         }),

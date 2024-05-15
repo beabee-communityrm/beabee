@@ -58,15 +58,7 @@ export default class GCProvider extends PaymentProvider {
     }
 
     return {
-      payFee: this.data.payFee || false,
       hasPendingPayment: pendingPayment,
-      ...(this.data.nextAmount &&
-        this.contact.contributionPeriod && {
-          nextAmount: getActualAmount(
-            this.data.nextAmount.monthly,
-            this.contact.contributionPeriod
-          )
-        }),
       ...(paymentSource && { paymentSource })
     };
   }

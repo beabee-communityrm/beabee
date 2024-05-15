@@ -55,16 +55,8 @@ export default class StripeProvider extends PaymentProvider {
     }
 
     return {
-      payFee: !!this.data.payFee,
       // TODO hasPendingPayment: await this.hasPendingPayment(),
-      ...(paymentSource && { paymentSource }),
-      ...(this.data.nextAmount &&
-        this.contact.contributionPeriod && {
-          nextAmount: getActualAmount(
-            this.data.nextAmount.monthly,
-            this.contact.contributionPeriod
-          )
-        })
+      ...(paymentSource && { paymentSource })
     };
   }
 
