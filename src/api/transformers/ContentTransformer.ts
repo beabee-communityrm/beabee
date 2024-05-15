@@ -43,14 +43,14 @@ class ContentTransformer {
   }
 
   async fetchOne<Id extends ContentId>(id: Id): Promise<GetContentDto<Id>> {
-    const content = await getRepository(Content).findOneByOrFail({ id });
+    const content = await getRepository(Content).findOneBy({ id });
 
     const ret: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(contentData[id])) {
       switch (value[0]) {
         case "data":
-          ret[key] = content.data[key] || value[1];
+          ret[key] = content?.data[key] || value[1];
           break;
         case "option":
           ret[key] = OptionsService[optTypeGetter[value[2]]](value[1]);
