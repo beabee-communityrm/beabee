@@ -1,7 +1,7 @@
-import JoinForm from "@models/JoinForm";
+import { PaymentMethod } from "@beabee/beabee-common";
 
 export interface CompletedPaymentFlow {
-  joinForm: JoinForm;
+  paymentMethod: PaymentMethod;
   customerId: string;
   mandateId: string;
 }

@@ -106,14 +106,15 @@ export default class StripeProvider extends PaymentProvider {
         email: this.contact.email,
         name: `${this.contact.firstname} ${this.contact.lastname}`,
         payment_method: flow.mandateId,
-        ...(flow.joinForm.vatNumber && {
-          tax_id_data: [
-            {
-              type: "eu_vat",
-              value: flow.joinForm.vatNumber
-            }
-          ]
-        }),
+        //  TODO: add VAT number support again
+        // ...(flow.joinForm.vatNumber && {
+        //   tax_id_data: [
+        //     {
+        //       type: "eu_vat",
+        //       value: flow.joinForm.vatNumber
+        //     }
+        //   ]
+        // }),
         ...customerData
       });
       this.data.customerId = customer.id;

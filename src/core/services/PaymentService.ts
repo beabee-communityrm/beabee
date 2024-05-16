@@ -185,7 +185,7 @@ class PaymentService {
     });
 
     const contribution = await this.getContribution(contact);
-    const newMethod = completedPaymentFlow.joinForm.paymentMethod;
+    const newMethod = completedPaymentFlow.paymentMethod;
     if (contribution.method !== newMethod) {
       log.info("Changing payment method, cancelling previous contribution", {
         contribution,
