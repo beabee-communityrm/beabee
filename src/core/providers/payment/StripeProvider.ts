@@ -2,12 +2,11 @@ import { ContributionType, PaymentSource } from "@beabee/beabee-common";
 import { add } from "date-fns";
 import Stripe from "stripe";
 
-import { PaymentProvider, UpdateContributionResult } from ".";
-import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+import { PaymentProvider } from ".";
 
 import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { getActualAmount, PaymentForm } from "@core/utils";
+import { getActualAmount } from "@core/utils";
 import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
 import {
   createSubscription,
@@ -22,7 +21,12 @@ import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
 import config from "@config";
 
-import { ContributionInfo } from "@type/contribution-info";
+import {
+  CompletedPaymentFlow,
+  ContributionInfo,
+  PaymentForm,
+  UpdateContributionResult
+} from "@type/index";
 
 const log = mainLogger.child({ app: "stripe-payment-provider" });
 

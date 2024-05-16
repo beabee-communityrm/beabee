@@ -1,19 +1,16 @@
 import { PaymentMethod } from "@beabee/beabee-common";
 
 import { getRepository } from "@core/database";
-import { PaymentForm } from "@core/utils";
-
-import { CompletedPaymentFlow } from "@core/providers/payment-flow";
 
 import Contact from "@models/Contact";
 import ContactContribution from "@models/ContactContribution";
 
-import { ContributionInfo } from "@type/contribution-info";
-
-export interface UpdateContributionResult {
-  startNow: boolean;
-  expiryDate: Date;
-}
+import {
+  CompletedPaymentFlow,
+  ContributionInfo,
+  PaymentForm,
+  UpdateContributionResult
+} from "@type/index";
 
 export abstract class PaymentProvider {
   protected readonly data: ContactContribution;

@@ -12,14 +12,7 @@ import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Contact from "@models/Contact";
 
-import {
-  CompletedPaymentFlow,
-  CompletedPaymentFlowData,
-  PaymentFlow,
-  PaymentFlowData,
-  PaymentFlowParams,
-  PaymentFlowProvider
-} from "@core/providers/payment-flow";
+import { PaymentFlowProvider } from "@core/providers/payment-flow";
 import StripeProvider from "@core/providers/payment-flow/StripeProvider";
 import GCProvider from "@core/providers/payment-flow/GCProvider";
 
@@ -27,8 +20,15 @@ import DuplicateEmailError from "@api/errors/DuplicateEmailError";
 
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 
-import { Address } from "@type/address";
-import { CompleteUrls } from "@type/complete-urls";
+import {
+  Address,
+  CompleteUrls,
+  CompletedPaymentFlow,
+  CompletedPaymentFlowData,
+  PaymentFlow,
+  PaymentFlowData,
+  PaymentFlowParams
+} from "@type/index";
 
 const paymentProviders = {
   [PaymentMethod.StripeCard]: StripeProvider,

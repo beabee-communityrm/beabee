@@ -8,7 +8,7 @@ import { FindManyOptions, FindOneOptions, FindOptionsWhere, In } from "typeorm";
 
 import { createQueryBuilder, getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import { cleanEmailAddress, isDuplicateIndex, PaymentForm } from "@core/utils";
+import { cleanEmailAddress, isDuplicateIndex } from "@core/utils";
 import { generatePassword, isValidPassword } from "@core/utils/auth";
 import { generateContactCode } from "@core/utils/contact";
 
@@ -34,6 +34,8 @@ import { CONTACT_MFA_TYPE } from "@enums/contact-mfa-type";
 import { LOGIN_CODES } from "@enums/login-codes";
 import { RESET_SECURITY_FLOW_TYPE } from "@enums/reset-security-flow-type";
 import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error-code";
+
+import { PaymentForm } from "@type/index";
 
 export type PartialContact = Pick<Contact, "email" | "contributionType"> &
   Partial<Contact>;
