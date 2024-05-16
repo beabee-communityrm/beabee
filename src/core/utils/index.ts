@@ -3,13 +3,6 @@ import { AuthInfo } from "@type/auth-info";
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { QueryFailedError } from "typeorm";
 
-export interface PaymentForm {
-  monthlyAmount: number;
-  period: ContributionPeriod;
-  payFee: boolean;
-  prorate: boolean;
-}
-
 export function getActualAmount(
   amount: number,
   period: ContributionPeriod

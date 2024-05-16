@@ -4,7 +4,7 @@ import moment from "moment";
 
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
-import { getActualAmount, PaymentForm } from "@core/utils";
+import { getActualAmount } from "@core/utils";
 import {
   updateSubscription,
   createSubscription,
@@ -13,8 +13,7 @@ import {
 } from "@core/utils/payment/gocardless";
 import { calcRenewalDate } from "@core/utils/payment";
 
-import { PaymentProvider, UpdateContributionResult } from ".";
-import { CompletedPaymentFlow } from "@core/providers/payment-flow";
+import { PaymentProvider } from ".";
 
 import Contact from "@models/Contact";
 
@@ -22,7 +21,12 @@ import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
 import config from "@config";
 
-import { ContributionInfo } from "@type/contribution-info";
+import {
+  CompletedPaymentFlow,
+  ContributionInfo,
+  PaymentForm,
+  UpdateContributionResult
+} from "@type/index";
 
 const log = mainLogger.child({ app: "gc-payment-provider" });
 

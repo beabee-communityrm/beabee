@@ -3,13 +3,13 @@ import { log as mainLogger } from "@core/logging";
 
 import JoinFlow from "@models/JoinFlow";
 
+import { PaymentFlowProvider } from ".";
 import {
   CompletedPaymentFlow,
   CompletedPaymentFlowData,
   PaymentFlow,
-  PaymentFlowData,
-  PaymentFlowProvider
-} from ".";
+  PaymentFlowData
+} from "@type/index";
 
 const log = mainLogger.child({ app: "gc-payment-flow-provider" });
 

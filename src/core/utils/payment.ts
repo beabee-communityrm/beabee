@@ -7,7 +7,9 @@ import {
 import config from "@config";
 import Contact from "@models/Contact";
 import { addMonths, getYear, setYear, sub, differenceInMonths } from "date-fns";
-import { getActualAmount, PaymentForm } from ".";
+import { getActualAmount } from ".";
+
+import { PaymentForm } from "@type/index";
 
 /**
  * Calculate the contact's membership renewal date based on their membership

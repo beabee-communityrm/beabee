@@ -2,14 +2,15 @@ import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
 import { paymentMethodToStripeType } from "@core/utils/payment/stripe";
 
+import { PaymentFlowProvider } from ".";
+
+import JoinFlow from "@models/JoinFlow";
+
 import {
   CompletedPaymentFlow,
   CompletedPaymentFlowData,
-  PaymentFlow,
-  PaymentFlowProvider
-} from ".";
-
-import JoinFlow from "@models/JoinFlow";
+  PaymentFlow
+} from "@type/index";
 
 const log = mainLogger.child({ app: "stripe-payment-flow-provider" });
 

@@ -10,10 +10,10 @@ import OptionsService from "@core/services/OptionsService";
 
 import { stripe, Stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { PaymentForm } from "@core/utils";
 import { getChargeableAmount } from "@core/utils/payment";
 
 import config from "@config";
+import { PaymentForm } from "@type/index";
 
 const log = mainLogger.child({ app: "stripe-utils" });
 

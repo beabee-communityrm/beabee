@@ -1,8 +1,12 @@
-import { PaymentForm } from "@core/utils";
 import Contact from "@models/Contact";
-import { PaymentProvider, UpdateContributionResult } from ".";
-import { CompletedPaymentFlow } from "../payment-flow";
-import { ContributionInfo } from "@type/contribution-info";
+import { PaymentProvider } from ".";
+
+import {
+  CompletedPaymentFlow,
+  ContributionInfo,
+  PaymentForm,
+  UpdateContributionResult
+} from "@type/index";
 
 export default class ManualProvider extends PaymentProvider {
   async canChangeContribution(useExistingMandate: boolean): Promise<boolean> {
