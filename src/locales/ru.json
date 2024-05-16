@@ -146,6 +146,7 @@
       },
       "socialSharing": {}
     },
+    "payment": {},
     "theme": {
       "colorNames": {},
       "presetColors": {}
@@ -313,6 +314,7 @@
     "pageCount": "Страница {pageNumber} из {pageTotal}",
     "paymentStatus": {
       "cancelled": "Отменён",
+      "draft": "Черновик",
       "failed": "Ошибка",
       "pending": "В работе",
       "successful": "Успех"
@@ -696,7 +698,8 @@
     "now": "Станьте участником комьюнити",
     "paymentMethod": "Способ оплаты",
     "poweredBy": "Технологии beabee",
-    "privacy": "Политика конфиденциальности"
+    "privacy": "Политика конфиденциальности",
+    "tax": {}
   },
   "joinPayment": {
     "genericError": "Что-то пошло не так! Если эта проблема возникнет снова, свяжитесь со службой поддержки.",
@@ -844,5 +847,8 @@
   },
   "tagEditor": {
     "confirmDelete": {}
+  },
+  "taxRate": {
+    "invoiceName": "???"
   }
 }

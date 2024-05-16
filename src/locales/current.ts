@@ -1,3 +1,5 @@
+// TODO: Move this to it's own beabee-locale package because we use it beabee and beabee-frontend
+
 import OptionsService from "@core/services/OptionsService";
 
 import localeDe from "./de.json";
@@ -7,7 +9,7 @@ import localePt from "./pt.json";
 import localeRu from "./ru.json";
 import localeIt from "./it.json";
 
-const locales = {
+export const locales = {
   de: localeDe,
   "de@informal": localeDeInformal,
   en: localeEn,

@@ -160,6 +160,7 @@
     "pageCount": "Pagina {pageNumber} di {pageTotal}",
     "paymentStatus": {
       "cancelled": "Cancellato",
+      "draft": "Bozza",
       "failed": "Errore",
       "pending": "In attesa",
       "successful": "Riuscito"
@@ -383,7 +384,8 @@
     "memberAccount": "Il tuo account",
     "memberAlready": "Sei già iscritto?",
     "paymentMethod": "Metodo di pagamento",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "tax": {}
   },
   "joinPayment": {
     "genericError": "Ops! Qualcosa è andato storto",
@@ -485,9 +487,12 @@
   },
   "setPassword": {
     "description": "Imposta una nuova password.",
-    "title": "Impposta una password"
+    "title": "Imposta una password"
   },
   "tagEditor": {
     "confirmDelete": {}
+  },
+  "taxRate": {
+    "invoiceName": "VAT"
   }
 }

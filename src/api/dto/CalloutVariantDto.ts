@@ -1,7 +1,7 @@
 import {
   CalloutVariantData,
   CalloutVariantNavigationData
-} from "@type/callout-variant-data";
+} from "@beabee/beabee-common";
 import { IsString, IsOptional, IsUrl, IsObject } from "class-validator";
 
 export class CalloutVariantDto implements CalloutVariantData {

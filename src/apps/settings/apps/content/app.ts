@@ -8,7 +8,7 @@ import OptionsService from "@core/services/OptionsService";
 
 import Content from "@models/Content";
 
-import { ContentId } from "@type/content-id";
+import type { ContentId } from "@beabee/beabee-common";
 
 const app = express();
 
@@ -28,6 +28,7 @@ app.get(
       join: get("join"),
       joinSetup: get("join/setup"),
       profile: get("profile"),
+      payment: get("payment"),
       telegram: get("telegram")
     });
   })
@@ -59,6 +60,7 @@ const parseData = {
   contacts: (d: any) => d,
   share: (d: any) => d,
   email: (d: any) => d,
+  payment: (d: any) => d,
   telegram: (d: any) => d
 } as const;
 

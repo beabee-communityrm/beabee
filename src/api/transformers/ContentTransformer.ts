@@ -1,27 +1,25 @@
 import { plainToInstance } from "class-transformer";
-
+import { ContentId, ContentData } from "@beabee/beabee-common";
 import { createQueryBuilder, getRepository } from "@core/database";
 import { getEmailFooter } from "@core/utils/email";
 
 import OptionsService, { OptionKey } from "@core/services/OptionsService";
 import {
-  GetContactsContentDto,
+  GetContentContactsDto,
   GetContentDto,
-  GetEmailContentDto,
-  GetGeneralContentDto,
-  GetJoinContentDto,
-  GetJoinSetupContentDto,
-  GetProfileContentDto,
-  GetShareContentDto,
-  GetTelegramContentDto
-} from "@api/dto/ContentDto";
+  GetContentEmailDto,
+  GetContentGeneralDto,
+  GetContentJoinDto,
+  GetContentJoinSetupDto,
+  GetContentProfileDto,
+  GetContentShareDto,
+  GetContentPaymentDto,
+  GetContentTelegramDto
+} from "@api/dto/index";
 
 import Content from "@models/Content";
 
 import config from "@config";
-
-import { ContentId } from "@type/content-id";
-import { ContentData } from "@type/content-data";
 
 class ContentTransformer {
   convert<Id extends ContentId>(
@@ -29,14 +27,15 @@ class ContentTransformer {
     data: ContentData<Id>
   ): GetContentDto<Id> {
     const Dto = {
-      contacts: GetContactsContentDto,
-      email: GetEmailContentDto,
-      general: GetGeneralContentDto,
-      join: GetJoinContentDto,
-      "join/setup": GetJoinSetupContentDto,
-      profile: GetProfileContentDto,
-      share: GetShareContentDto,
-      telegram: GetTelegramContentDto
+      contacts: GetContentContactsDto,
+      email: GetContentEmailDto,
+      general: GetContentGeneralDto,
+      join: GetContentJoinDto,
+      "join/setup": GetContentJoinSetupDto,
+      profile: GetContentProfileDto,
+      share: GetContentShareDto,
+      payment: GetContentPaymentDto,
+      telegram: GetContentTelegramDto
     }[id];
 
     return plainToInstance(Dto as any, data);
@@ -205,6 +204,12 @@ const contentData = {
     image: ["option", "share-image", "text"],
     title: ["option", "share-title", "text"],
     twitterHandle: ["option", "share-twitter-handle", "text"]
+  }),
+  payment: withValue<"payment">({
+    stripePublicKey: ["readonly", () => config.stripe.publicKey],
+    stripeCountry: ["readonly", () => config.stripe.country],
+    taxRateEnabled: ["option", "tax-rate-enabled", "bool"],
+    taxRate: ["option", "tax-rate-percentage", "int"]
   }),
   telegram: withValue<"telegram">({
     welcomeMessageMd: [

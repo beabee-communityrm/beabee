@@ -206,6 +206,11 @@
         "twitterHandle": "Twitter handle"
       }
     },
+    "payment": {
+      "paymentTitle": "Payment",
+      "taxRate": "VAT rate",
+      "taxRateEnabled": "Enable VAT"
+    },
     "theme": {
       "bodyFont": "Body text",
       "colorNames": {
@@ -549,6 +554,7 @@
     "pageCount": "Page {pageNumber} out of {pageTotal}",
     "paymentStatus": {
       "cancelled": "Cancelled",
+      "draft": "Draft",
       "failed": "Failed",
       "pending": "Pending",
       "successful": "Successful"
@@ -1121,7 +1127,10 @@
     "now": "Join now!",
     "paymentMethod": "Payment method",
     "poweredBy": "Powered by beabee",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "tax": {
+      "included": "Contribution includes {taxRate}% VAT."
+    }
   },
   "joinPayment": {
     "genericError": "Oops, something went wrong! Contact support if this happens again.",
@@ -1358,5 +1367,8 @@
       "title": "Remove tag"
     },
     "name": "Name"
+  },
+  "taxRate": {
+    "invoiceName": "VAT"
   }
 }

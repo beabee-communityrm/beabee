@@ -9,8 +9,7 @@ import {
   updateSubscription,
   createSubscription,
   prorateSubscription,
-  hasPendingPayment,
-  getSubscriptionNextChargeDate
+  hasPendingPayment
 } from "@core/utils/payment/gocardless";
 import { calcRenewalDate } from "@core/utils/payment";
 
