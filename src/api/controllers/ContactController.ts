@@ -191,6 +191,12 @@ export class ContactController {
     });
   }
 
+  @Delete("/:id")
+  @OnUndefined(204)
+  async deleteContact(@TargetUser() target: Contact): Promise<void> {
+    await ContactsService.permanentlyDeleteContact(target);
+  }
+
   @Get("/:id/contribution")
   async getContribution(
     @TargetUser() target: Contact

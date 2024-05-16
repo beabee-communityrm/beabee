@@ -4,7 +4,7 @@ import {
   PaymentMethod
 } from "@beabee/beabee-common";
 
-import { getRepository } from "@core/database";
+import { getRepository, runTransaction } from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { getActualAmount } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
@@ -267,10 +267,24 @@ class PaymentService {
     );
   }
 
+  /**
+   * Permanently delete or disassociate all payment related data for a contact.
+   * This will also cancel any active contributions
+   *
+   * @param contact The contact
+   */
   async permanentlyDeleteContact(contact: Contact): Promise<void> {
+    log.info("Permanently delete payment data for contact " + contact.id);
     await this.provider(contact, (p) => p.permanentlyDeleteContact());
-    await getRepository(ContactContribution).delete({ contactId: contact.id });
-    await getRepository(Payment).delete({ contactId: contact.id });
+
+    await runTransaction(async (em) => {
+      await em
+        .getRepository(ContactContribution)
+        .delete({ contactId: contact.id });
+      await em
+        .getRepository(Payment)
+        .update({ contactId: contact.id }, { contactId: null });
+    });
   }
 }
 

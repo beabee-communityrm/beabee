@@ -298,6 +298,22 @@ class CalloutsService {
   }
 
   /**
+   * Permanently delete or disassociate a contact's callout data
+   * @param contact
+   */
+  public async permanentlyDeleteContact(contact: Contact): Promise<void> {
+    log.info("Permanently delete callout data for contact " + contact.id);
+
+    await getRepository(CalloutResponseComment).delete({
+      contactId: contact.id
+    });
+    await getRepository(CalloutResponse).update(
+      { contactId: contact.id },
+      { contactId: null }
+    );
+  }
+
+  /**
    * Saves a callout and it's variants, handling duplicate slug errors
    * @param data
    * @returns The data

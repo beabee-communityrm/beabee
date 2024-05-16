@@ -6,23 +6,35 @@ import {
 } from "@beabee/beabee-common";
 import { FindManyOptions, FindOneOptions, FindOptionsWhere, In } from "typeorm";
 
-import { createQueryBuilder, getRepository } from "@core/database";
+import {
+  createQueryBuilder,
+  getRepository,
+  runTransaction
+} from "@core/database";
 import { log as mainLogger } from "@core/logging";
 import { cleanEmailAddress, isDuplicateIndex } from "@core/utils";
 import { generatePassword, isValidPassword } from "@core/utils/auth";
 import { generateContactCode } from "@core/utils/contact";
 
+import ApiKeyService from "@core/services/ApiKeyService";
+import CalloutsService from "@core/services/CalloutsService";
 import ContactMfaService from "@core/services/ContactMfaService";
 import EmailService from "@core/services/EmailService";
 import NewsletterService from "@core/services/NewsletterService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
+import ReferralsService from "@core/services/ReferralsService";
 import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+import SegmentService from "@core/services/SegmentService";
+import UploadFlowService from "@core/services/UploadFlowService";
 
 import Contact from "@models/Contact";
 import ContactProfile from "@models/ContactProfile";
 import ContactRole from "@models/ContactRole";
+import GiftFlow from "@models/GiftFlow";
 import Password from "@models/Password";
+import Project from "@models/Project";
+import ProjectEngagement from "@models/ProjectEngagement";
 
 import BadRequestError from "@api/errors/BadRequestError";
 import CantUpdateContribution from "@api/errors/CantUpdateContribution";
@@ -342,9 +354,49 @@ class ContactsService {
     });
   }
 
+  /**
+   * Permanently delete a contact and all associated data.
+   *
+   * @param contact The contact
+   */
   async permanentlyDeleteContact(contact: Contact): Promise<void> {
-    await getRepository(Contact).delete(contact.id);
-    await NewsletterService.deleteContacts([contact]);
+    // Delete external data first, this is more likely to fail so we'd exit the process early
+    await NewsletterService.permanentlyDeleteContacts([contact]);
+    await PaymentService.permanentlyDeleteContact(contact);
+
+    // Delete internal data after the external services are done, this should really never fail
+    await ResetSecurityFlowService.deleteAll(contact);
+    await ApiKeyService.permanentlyDeleteContact(contact);
+    await ReferralsService.permanentlyDeleteContact(contact);
+    await UploadFlowService.permanentlyDeleteContact(contact);
+    await SegmentService.permanentlyDeleteContact(contact);
+    await CalloutsService.permanentlyDeleteContact(contact);
+    await ContactMfaService.permanentlyDeleteContact(contact);
+
+    log.info("Permanently delete contact " + contact.id);
+    await runTransaction(async (em) => {
+      // Projects are only in the legacy app, so really no one should have any, but we'll delete them just in case
+      // TODO: Remove this when we've reworked projects
+      await em
+        .getRepository(ProjectEngagement)
+        .delete({ byContactId: contact.id });
+      await em
+        .getRepository(ProjectEngagement)
+        .delete({ toContactId: contact.id });
+      await em
+        .getRepository(Project)
+        .update({ ownerId: contact.id }, { ownerId: null });
+
+      // Gifts are only in the legacy app, so really no one should have any, but we'll delete them just in case
+      // TODO: Remove this when we've reworked gifts
+      await em
+        .getRepository(GiftFlow)
+        .update({ gifteeId: contact.id }, { gifteeId: null });
+
+      await em.getRepository(ContactRole).delete({ contactId: contact.id });
+      await em.getRepository(ContactProfile).delete({ contactId: contact.id });
+      await em.getRepository(Contact).delete(contact.id);
+    });
   }
 
   /**

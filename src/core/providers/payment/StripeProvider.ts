@@ -201,6 +201,8 @@ export default class StripeProvider extends PaymentProvider {
   }
 
   async permanentlyDeleteContact(): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (this.data.customerId) {
+      await stripe.customers.del(this.data.customerId);
+    }
   }
 }

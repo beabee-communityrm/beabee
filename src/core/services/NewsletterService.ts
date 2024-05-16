@@ -150,9 +150,14 @@ class NewsletterService {
     );
   }
 
-  async deleteContacts(contacts: Contact[]): Promise<void> {
+  /**
+   * Permanently remove contacts from the newsletter provider
+   *
+   * @param contacts The contacts to delete
+   */
+  async permanentlyDeleteContacts(contacts: Contact[]): Promise<void> {
     log.info(`Delete ${contacts.length} contacts`);
-    await this.provider.deleteContacts(
+    await this.provider.permanentlyDeleteContacts(
       (await getValidNlUpdates(contacts)).map((m) => m.email)
     );
   }

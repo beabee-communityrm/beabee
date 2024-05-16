@@ -13,11 +13,7 @@ import {
   Param
 } from "routing-controllers";
 
-import { getRepository } from "@core/database";
-import { generateApiKey } from "@core/utils/auth";
-
-import ApiKey from "@models/ApiKey";
-import Contact from "@models/Contact";
+import ApiKeyService from "@core/services/ApiKeyService";
 
 import { CurrentAuth } from "@api/decorators/CurrentAuth";
 import {
@@ -28,6 +24,8 @@ import {
 } from "@api/dto/ApiKeyDto";
 import { PaginatedDto } from "@api/dto/PaginatedDto";
 import ApiKeyTransformer from "@api/transformers/ApiKeyTransformer";
+
+import Contact from "@models/Contact";
 
 import { AuthInfo } from "@type/auth-info";
 
@@ -56,15 +54,11 @@ export class ApiKeyController {
     @CurrentUser({ required: true }) creator: Contact,
     @Body() data: CreateApiKeyDto
   ): Promise<NewApiKeyDto> {
-    const { id, secretHash, token } = generateApiKey();
-
-    await getRepository(ApiKey).save({
-      id,
-      secretHash,
+    const token = await ApiKeyService.create(
       creator,
-      description: data.description,
-      expires: data.expires
-    });
+      data.description,
+      data.expires
+    );
 
     return plainToInstance(NewApiKeyDto, { token });
   }
@@ -72,7 +66,8 @@ export class ApiKeyController {
   @OnUndefined(204)
   @Delete("/:id")
   async deleteApiKey(@Param("id") id: string): Promise<void> {
-    const result = await getRepository(ApiKey).delete(id);
-    if (!result.affected) throw new NotFoundError();
+    if (!(await ApiKeyService.delete(id))) {
+      throw new NotFoundError();
+    }
   }
 }

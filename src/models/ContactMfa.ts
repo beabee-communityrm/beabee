@@ -18,6 +18,8 @@ export default class ContactMfa {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column()
+  contactId!: string;
   @OneToOne("Contact", "mfa")
   @JoinColumn()
   contact!: Contact;
