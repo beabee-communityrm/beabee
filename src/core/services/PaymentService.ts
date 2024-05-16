@@ -3,13 +3,11 @@ import {
   MembershipStatus,
   PaymentMethod
 } from "@beabee/beabee-common";
+import { DeepPartial } from "typeorm";
 
 import { getRepository, runTransaction } from "@core/database";
 import { log as mainLogger } from "@core/logging";
-import { getActualAmount } from "@core/utils";
 import { calcRenewalDate } from "@core/utils/payment";
-
-import EmailService from "@core/services/EmailService";
 
 import { PaymentProvider } from "@core/providers/payment";
 import GCProvider from "@core/providers/payment/GCProvider";
@@ -129,13 +127,6 @@ class PaymentService {
           ...(contribution.payFee !== null && {
             payFee: contribution.payFee
           }),
-          ...(contribution.nextAmount &&
-            contribution.period && {
-              nextAmount: getActualAmount(
-                contribution.nextAmount.monthly,
-                contribution.period
-              )
-            }),
           ...(contribution.cancelledAt && {
             cancellationDate: contribution.cancelledAt
           }),
@@ -173,20 +164,20 @@ class PaymentService {
 
   async updateContribution(
     contact: Contact,
-    paymentForm: PaymentForm
+    form: PaymentForm
   ): Promise<UpdateContributionResult> {
-    log.info("Update contribution for contact " + contact.id);
-
     const contribution = await this.getContribution(contact);
-    // At the moment the only possibility is to go from whatever contribution
-    // type the user was before to an automatic contribution
-    // const wasManual = contribution.method === "manual";
+
+    log.info("Update contribution for contact " + contact.id, {
+      contribution,
+      form
+    });
 
     // Annual contributors can't change their period
     if (
       contact.membership?.isActive &&
       contribution.period === ContributionPeriod.Annually &&
-      paymentForm.period !== ContributionPeriod.Annually
+      form.period !== ContributionPeriod.Annually
     ) {
       log.info(
         "Can't change period for active annual contributor " + contact.id
@@ -196,49 +187,35 @@ class PaymentService {
 
     const result = await new PaymentProviders[contribution.method](
       contribution
-    ).updateContribution(paymentForm);
+    ).updateContribution(form);
 
-    log.info("Updated contribution for " + contact.id, { result });
+    log.info("Updated contribution for contact " + contact.id, { result });
 
-    const newContribution = getRepository(ContactContribution).create({
+    this.setNewContribution(contribution, {
       ...contribution,
       status: result.startNow ? "current" : "pending",
-      monthlyAmount: paymentForm.monthlyAmount,
-      period: paymentForm.period,
-      payFee: paymentForm.payFee,
+      monthlyAmount: form.monthlyAmount,
+      period: form.period,
+      payFee: form.payFee,
       subscriptionId: result.subscriptionId
     });
-
-    // Archive previous contribution
-    if (result.startNow) {
-      await getRepository(ContactContribution).update(contribution.id, {
-        status: null
-      });
-    }
-
-    await getRepository(ContactContribution).save(newContribution);
-
-    // TODO: how to handle manual conversions?
-    // if (wasManual) {
-    //   await EmailService.sendTemplateToContact(
-    //     "manual-to-automatic",
-    //     contact
-    //   );
-    // }
 
     return result;
   }
 
   async updatePaymentMethod(
     contact: Contact,
-    completedPaymentFlow: CompletedPaymentFlow
+    flow: CompletedPaymentFlow
   ): Promise<void> {
+    const contribution = await this.getContribution(contact);
+
     log.info("Update payment method for contact " + contact.id, {
-      completedPaymentFlow
+      flow,
+      contribution
     });
 
-    const contribution = await this.getContribution(contact);
-    const newMethod = completedPaymentFlow.paymentMethod;
+    const newMethod = flow.paymentMethod;
+    // TODO: think about this
     if (contribution.method !== newMethod) {
       log.info("Changing payment method, cancelling previous contribution", {
         contribution,
@@ -250,21 +227,40 @@ class PaymentService {
       ).cancelContribution(false);
     }
 
-    await new PaymentProviders[newMethod](contribution).updatePaymentMethod(
-      completedPaymentFlow
-    );
+    const result = await new PaymentProviders[newMethod](
+      contribution
+    ).updatePaymentMethod(flow);
+
+    log.info("Updated payment method for contact " + contact.id, { result });
+
+    await this.setNewContribution(contribution, {
+      ...contribution,
+      status: "current",
+      method: flow.paymentMethod,
+      mandateId: flow.mandateId,
+      customerId: flow.customerId,
+      ...result
+    });
   }
 
   async cancelContribution(
     contact: Contact,
     keepMandate = false
   ): Promise<void> {
-    log.info("Cancel contribution for contact " + contact.id);
-    await this.provider(contact, (p) => p.cancelContribution(keepMandate));
-    await getRepository(ContactContribution).update(
-      { contactId: contact.id },
-      { cancelledAt: new Date() }
-    );
+    log.info("Cancel contribution for contact " + contact.id, { keepMandate });
+
+    const contribution = await this.getContribution(contact);
+
+    await new PaymentProviders[contribution.method](
+      contribution
+    ).cancelContribution(keepMandate);
+
+    await this.setNewContribution(contribution, {
+      contactId: contact.id,
+      status: "current",
+      method: PaymentMethod.None,
+      cancelledAt: new Date()
+    });
   }
 
   /**
@@ -285,6 +281,18 @@ class PaymentService {
         .getRepository(Payment)
         .update({ contactId: contact.id }, { contactId: null });
     });
+  }
+
+  private async setNewContribution(
+    oldContribution: ContactContribution,
+    newContribution: DeepPartial<ContactContribution>
+  ) {
+    if (newContribution.status === "current") {
+      await getRepository(ContactContribution).update(oldContribution.id, {
+        status: null
+      });
+    }
+    await getRepository(ContactContribution).save(newContribution);
   }
 }
 

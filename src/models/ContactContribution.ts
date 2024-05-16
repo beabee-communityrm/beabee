@@ -55,9 +55,6 @@ export default class ContactContribution {
   @Column({ type: Boolean, nullable: true })
   payFee!: boolean | null;
 
-  @Column({ type: "jsonb", nullable: true })
-  nextAmount!: { chargeable: number; monthly: number } | null;
-
   @Column({ type: Date, nullable: true })
   cancelledAt!: Date | null;
 

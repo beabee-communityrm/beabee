@@ -62,17 +62,16 @@ export default class StripeProvider extends PaymentProvider {
   }
 
   async cancelContribution(keepMandate: boolean): Promise<void> {
+    log.info("Cancel contribution for contact " + this.contact.id, {
+      keepMandate
+    });
+
     if (this.data.mandateId && !keepMandate) {
       await stripe.paymentMethods.detach(this.data.mandateId);
-      this.data.mandateId = null;
     }
     if (this.data.subscriptionId) {
       await deleteSubscription(this.data.subscriptionId);
-      this.data.subscriptionId = null;
     }
-    this.data.nextAmount = null;
-
-    await this.updateData();
   }
 
   async updatePaymentMethod(
@@ -114,8 +113,6 @@ export default class StripeProvider extends PaymentProvider {
       log.info("Detach old payment method " + this.data.mandateId);
       await stripe.paymentMethods.detach(this.data.mandateId);
     }
-
-    this.data.mandateId = flow.mandateId;
 
     return { customerId };
   }

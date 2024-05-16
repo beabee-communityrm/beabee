@@ -1,7 +1,5 @@
 import { PaymentMethod } from "@beabee/beabee-common";
 
-import { getRepository } from "@core/database";
-
 import Contact from "@models/Contact";
 import ContactContribution from "@models/ContactContribution";
 
@@ -22,10 +20,6 @@ export abstract class PaymentProvider {
     this.data = data;
     this.contact = data.contact;
     this.method = data.method as PaymentMethod;
-  }
-
-  protected async updateData() {
-    await getRepository(ContactContribution).update(this.contact.id, this.data);
   }
 
   abstract canChangeContribution(

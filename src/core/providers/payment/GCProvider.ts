@@ -161,45 +161,32 @@ export default class GCProvider extends PaymentProvider {
   }
 
   async cancelContribution(keepMandate: boolean): Promise<void> {
-    log.info("Cancel subscription for " + this.contact.id, { keepMandate });
+    log.info("Cancel contribution for contact " + this.contact.id, {
+      keepMandate
+    });
 
-    const subscriptionId = this.data.subscriptionId;
-    const mandateId = this.data.mandateId;
-
-    this.data.nextAmount = null;
-    this.data.subscriptionId = null;
-    if (!keepMandate) {
-      this.data.mandateId = null;
+    if (this.data.mandateId && !keepMandate) {
+      await gocardless.mandates.cancel(this.data.mandateId);
     }
-    // Save before cancelling to stop the webhook triggering a cancelled email
-    await this.updateData();
-
-    if (mandateId && !keepMandate) {
-      await gocardless.mandates.cancel(mandateId);
-    }
-    if (subscriptionId) {
-      await gocardless.subscriptions.cancel(subscriptionId);
+    if (this.data.subscriptionId) {
+      await gocardless.subscriptions.cancel(this.data.subscriptionId);
     }
   }
 
-  async updatePaymentMethod(
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<UpdatePaymentMethodResult> {
-    log.info("Update payment source for " + this.contact.id, {
-      data: this.data,
-      completedPaymentFlow
-    });
+  async updatePaymentMethod(): Promise<UpdatePaymentMethodResult> {
+    log.info("Update payment method for contact " + this.contact.id);
 
-    const hadSubscription = !!this.data.subscriptionId;
-    const mandateId = this.data.mandateId;
-
-    if (mandateId) {
+    if (this.data.mandateId) {
       // This will also cancel the subscription
-      await gocardless.mandates.cancel(mandateId);
+      await gocardless.mandates.cancel(this.data.mandateId);
     }
 
     // Recreate the subscription if the user had one
-    if (hadSubscription && this.data.period && this.data.monthlyAmount) {
+    if (
+      this.data.subscriptionId &&
+      this.data.period &&
+      this.data.monthlyAmount
+    ) {
       const res = await this.updateContribution({
         monthlyAmount: this.data.monthlyAmount,
         period: this.data.period,
