@@ -12,6 +12,8 @@ export default class UploadFlow {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
+  @Column({ type: String, nullable: true })
+  contactId!: string | null;
   @ManyToOne("Contact", { nullable: true })
   contact!: Contact | null;
 

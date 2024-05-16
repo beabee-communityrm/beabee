@@ -39,7 +39,5 @@ export default class ManualProvider extends PaymentProvider {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  async permanentlyDeleteContact(): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
+  async permanentlyDeleteContact(): Promise<void> {}
 }
