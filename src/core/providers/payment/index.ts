@@ -9,7 +9,8 @@ import {
   CompletedPaymentFlow,
   ContributionInfo,
   PaymentForm,
-  UpdateContributionResult
+  UpdateContributionResult,
+  UpdatePaymentMethodResult
 } from "@type/index";
 
 export abstract class PaymentProvider {
@@ -44,7 +45,7 @@ export abstract class PaymentProvider {
 
   abstract updatePaymentMethod(
     completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<void>;
+  ): Promise<UpdatePaymentMethodResult>;
 
   abstract permanentlyDeleteContact(): Promise<void>;
 }

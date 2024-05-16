@@ -1,11 +1,13 @@
 import Contact from "@models/Contact";
+
 import { PaymentProvider } from ".";
 
 import {
   CompletedPaymentFlow,
   ContributionInfo,
   PaymentForm,
-  UpdateContributionResult
+  UpdateContributionResult,
+  UpdatePaymentMethodResult
 } from "@type/index";
 
 export default class ManualProvider extends PaymentProvider {
@@ -36,7 +38,7 @@ export default class ManualProvider extends PaymentProvider {
   }
   async updatePaymentMethod(
     completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<void> {
+  ): Promise<UpdatePaymentMethodResult> {
     throw new Error("Method not implemented.");
   }
   async permanentlyDeleteContact(): Promise<void> {

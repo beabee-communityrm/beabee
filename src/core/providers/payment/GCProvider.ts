@@ -8,7 +8,6 @@ import moment from "moment";
 
 import gocardless from "@core/lib/gocardless";
 import { log as mainLogger } from "@core/logging";
-import { getActualAmount } from "@core/utils";
 import {
   updateSubscription,
   createSubscription,
@@ -17,11 +16,11 @@ import {
 } from "@core/utils/payment/gocardless";
 import { calcRenewalDate } from "@core/utils/payment";
 
+import NoPaymentMethod from "@api/errors/NoPaymentMethod";
+
 import { PaymentProvider } from ".";
 
 import Contact from "@models/Contact";
-
-import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
 import config from "@config";
 
@@ -29,7 +28,8 @@ import {
   CompletedPaymentFlow,
   ContributionInfo,
   PaymentForm,
-  UpdateContributionResult
+  UpdateContributionResult,
+  UpdatePaymentMethodResult
 } from "@type/index";
 
 const log = mainLogger.child({ app: "gc-payment-provider" });
@@ -153,18 +153,11 @@ export default class GCProvider extends PaymentProvider {
       expiryDate
     });
 
-    this.data.subscriptionId = subscription.id!;
-    this.data.payFee = paymentForm.payFee;
-    this.data.nextAmount = startNow
-      ? null
-      : {
-          monthly: paymentForm.monthlyAmount,
-          chargeable: Number(subscription.amount)
-        };
-
-    await this.updateData();
-
-    return { startNow, expiryDate: moment.utc(expiryDate).toDate() };
+    return {
+      startNow,
+      expiryDate: moment.utc(expiryDate).toDate(),
+      subscriptionId: subscription.id!
+    };
   }
 
   async cancelContribution(keepMandate: boolean): Promise<void> {
@@ -191,22 +184,14 @@ export default class GCProvider extends PaymentProvider {
 
   async updatePaymentMethod(
     completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<void> {
+  ): Promise<UpdatePaymentMethodResult> {
     log.info("Update payment source for " + this.contact.id, {
-      userId: this.contact.id,
       data: this.data,
       completedPaymentFlow
     });
 
     const hadSubscription = !!this.data.subscriptionId;
     const mandateId = this.data.mandateId;
-
-    this.data.subscriptionId = null;
-    this.data.customerId = completedPaymentFlow.customerId;
-    this.data.mandateId = completedPaymentFlow.mandateId;
-
-    // Save before cancelling to stop the webhook triggering a cancelled email
-    await this.updateData();
 
     if (mandateId) {
       // This will also cancel the subscription
@@ -215,12 +200,15 @@ export default class GCProvider extends PaymentProvider {
 
     // Recreate the subscription if the user had one
     if (hadSubscription && this.data.period && this.data.monthlyAmount) {
-      await this.updateContribution({
+      const res = await this.updateContribution({
         monthlyAmount: this.data.monthlyAmount,
         period: this.data.period,
         payFee: !!this.data.payFee,
         prorate: false
       });
+      return { subscriptionId: res.subscriptionId };
+    } else {
+      return {};
     }
   }
 

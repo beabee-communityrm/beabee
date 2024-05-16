@@ -15,6 +15,8 @@ import { getChargeableAmount } from "@core/utils/payment";
 import config from "@config";
 import { PaymentForm } from "@type/index";
 
+import { CompletedPaymentFlow } from "@type/completed-payment-flow";
+
 const log = mainLogger.child({ app: "stripe-utils" });
 
 function getPriceData(
@@ -300,4 +302,27 @@ export function convertStatus(status: Stripe.Invoice.Status): PaymentStatus {
     case "uncollectible":
       return PaymentStatus.Failed;
   }
+}
+
+export async function getCustomerDataFromCompletedFlow(
+  flow: CompletedPaymentFlow
+): Promise<Stripe.CustomerUpdateParams> {
+  const paymentMethod = await stripe.paymentMethods.retrieve(flow.mandateId);
+  const address = paymentMethod.billing_details.address;
+
+  return {
+    invoice_settings: {
+      default_payment_method: flow.mandateId
+    },
+    address: address
+      ? {
+          line1: address.line1 || "",
+          ...(address.city && { city: address.city }),
+          ...(address.country && { country: address.country }),
+          ...(address.line2 && { line2: address.line2 }),
+          ...(address.postal_code && { postal_code: address.postal_code }),
+          ...(address.state && { state: address.state })
+        }
+      : null
+  };
 }

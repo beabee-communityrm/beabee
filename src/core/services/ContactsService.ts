@@ -101,7 +101,6 @@ class ContactsService {
         password: Password.none,
         firstname: "",
         lastname: "",
-        contributionType: ContributionType.None,
         ...partialContact,
         email: cleanEmailAddress(partialContact.email)
       });
@@ -113,7 +112,7 @@ class ContactsService {
       });
       await getRepository(ContactProfile).save(contact.profile);
 
-      await PaymentService.createContact(contact);
+      await PaymentService.onCreateContact(contact);
 
       if (opts.sync) {
         await NewsletterService.upsertContact(contact);
@@ -170,7 +169,7 @@ class ContactsService {
       await NewsletterService.upsertContact(contact, updates, oldEmail);
     }
 
-    await PaymentService.updateContact(contact, updates);
+    await PaymentService.onUpdateContact(contact, updates);
   }
 
   /**
@@ -314,31 +313,10 @@ class ContactsService {
     paymentForm: PaymentForm
   ): Promise<void> {
     log.info("Update contribution for " + contact.id, { paymentForm });
-    // At the moment the only possibility is to go from whatever contribution
-    // type the user was before to an automatic contribution
-    const wasManual = contact.contributionType === ContributionType.Manual;
-
-    // Some period changes on active members aren't allowed at the moment to
-    // prevent proration problems
-    if (
-      contact.membership?.isActive &&
-      // Annual contributors can't change their period
-      contact.contributionPeriod === ContributionPeriod.Annually &&
-      paymentForm.period !== ContributionPeriod.Annually
-    ) {
-      log.info("Can't update contribution for " + contact.id);
-      throw new CantUpdateContribution();
-    }
-
     const { startNow, expiryDate } = await PaymentService.updateContribution(
       contact,
       paymentForm
     );
-
-    log.info("Updated contribution for " + contact.id, {
-      startNow,
-      expiryDate
-    });
 
     await this.updateContact(contact, {
       contributionType: ContributionType.Automatic,
@@ -349,10 +327,6 @@ class ContactsService {
     });
 
     await this.extendContactRole(contact, "member", expiryDate);
-
-    if (wasManual) {
-      await EmailService.sendTemplateToContact("manual-to-automatic", contact);
-    }
   }
 
   async cancelContactContribution(

@@ -74,8 +74,11 @@ export default class Contact {
   @OneToOne("ContactProfile", "contact")
   profile!: ContactProfile;
 
-  @OneToOne("ContactContribution", "contact")
-  contribution!: ContactContribution;
+  @OneToMany("ContactContribution", "contact")
+  contributions!: ContactContribution[];
+
+  // @OneToOne("ContactContribution", "contact")
+  contribution!: ContactContribution; // TODO: Load this properly
 
   contributionInfo?: ContributionInfo;
 

@@ -2,15 +2,13 @@ import { ContributionType, PaymentSource } from "@beabee/beabee-common";
 import { add } from "date-fns";
 import Stripe from "stripe";
 
-import { PaymentProvider } from ".";
-
 import { stripe } from "@core/lib/stripe";
 import { log as mainLogger } from "@core/logging";
-import { getActualAmount } from "@core/utils";
-import { calcRenewalDate, getChargeableAmount } from "@core/utils/payment";
+import { calcRenewalDate } from "@core/utils/payment";
 import {
   createSubscription,
   deleteSubscription,
+  getCustomerDataFromCompletedFlow,
   manadateToSource,
   updateSubscription
 } from "@core/utils/payment/stripe";
@@ -19,13 +17,16 @@ import Contact from "@models/Contact";
 
 import NoPaymentMethod from "@api/errors/NoPaymentMethod";
 
+import { PaymentProvider } from ".";
+
 import config from "@config";
 
 import {
   CompletedPaymentFlow,
   ContributionInfo,
   PaymentForm,
-  UpdateContributionResult
+  UpdateContributionResult,
+  UpdatePaymentMethodResult
 } from "@type/index";
 
 const log = mainLogger.child({ app: "stripe-payment-provider" });
@@ -74,33 +75,22 @@ export default class StripeProvider extends PaymentProvider {
     await this.updateData();
   }
 
-  async updatePaymentMethod(flow: CompletedPaymentFlow): Promise<void> {
-    const paymentMethod = await stripe.paymentMethods.retrieve(flow.mandateId);
-    const address = paymentMethod.billing_details.address;
+  async updatePaymentMethod(
+    flow: CompletedPaymentFlow
+  ): Promise<UpdatePaymentMethodResult> {
+    const customerData = await getCustomerDataFromCompletedFlow(flow);
+    let customerId = this.data.customerId;
 
-    const customerData: Stripe.CustomerUpdateParams = {
-      invoice_settings: {
-        default_payment_method: flow.mandateId
-      },
-      address: address
-        ? {
-            line1: address.line1 || "",
-            ...(address.city && { city: address.city }),
-            ...(address.country && { country: address.country }),
-            ...(address.line2 && { line2: address.line2 }),
-            ...(address.postal_code && { postal_code: address.postal_code }),
-            ...(address.state && { state: address.state })
-          }
-        : null
-    };
-
-    if (this.data.customerId) {
-      log.info("Attach new payment source to " + this.data.customerId);
+    // Attach payment method to existing customer
+    if (customerId) {
+      log.info("Attach new payment source to " + customerId);
       await stripe.paymentMethods.attach(flow.mandateId, {
-        customer: this.data.customerId
+        customer: customerId
       });
-      await stripe.customers.update(this.data.customerId, customerData);
-    } else {
+      await stripe.customers.update(customerId, customerData);
+    }
+    // Create a new customer
+    else {
       log.info("Create new customer");
       const customer = await stripe.customers.create({
         email: this.contact.email,
@@ -117,7 +107,7 @@ export default class StripeProvider extends PaymentProvider {
         // }),
         ...customerData
       });
-      this.data.customerId = customer.id;
+      customerId = customer.id;
     }
 
     if (this.data.mandateId) {
@@ -127,7 +117,7 @@ export default class StripeProvider extends PaymentProvider {
 
     this.data.mandateId = flow.mandateId;
 
-    await this.updateData();
+    return { customerId };
   }
 
   async updateContribution(
@@ -148,7 +138,7 @@ export default class StripeProvider extends PaymentProvider {
         this.data.customerId,
         {
           ...paymentForm,
-          monthlyAmount: this.contact.contributionMonthlyAmount || 0
+          monthlyAmount: this.data.monthlyAmount || 0
         },
         this.method,
         calcRenewalDate(this.contact)
@@ -160,23 +150,13 @@ export default class StripeProvider extends PaymentProvider {
     const { subscription, startNow } =
       await this.updateOrCreateContribution(paymentForm);
 
-    this.data.subscriptionId = subscription.id;
-    this.data.payFee = paymentForm.payFee;
-    this.data.nextAmount = startNow
-      ? null
-      : {
-          chargeable: getChargeableAmount(paymentForm, this.method),
-          monthly: paymentForm.monthlyAmount
-        };
-
-    await this.updateData();
-
     return {
       startNow,
       expiryDate: add(
         new Date(subscription.current_period_end * 1000),
         config.gracePeriod
-      )
+      ),
+      subscriptionId: subscription.id
     };
   }
 
