@@ -25,7 +25,6 @@ import Contact from "@models/Contact";
 import config from "@config";
 
 import {
-  CompletedPaymentFlow,
   ContributionInfo,
   PaymentForm,
   UpdateContributionResult,

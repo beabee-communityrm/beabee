@@ -338,7 +338,9 @@ class ContactsService {
       })
     });
 
-    await this.extendContactRole(contact, "member", expiryDate);
+    if (expiryDate) {
+      await this.extendContactRole(contact, "member", expiryDate);
+    }
   }
 
   async cancelContactContribution(
