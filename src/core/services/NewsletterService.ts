@@ -21,13 +21,16 @@ const log = mainLogger.child({ app: "newsletter-service" });
 
 function shouldUpdate(updates: Partial<Contact>): boolean {
   return !!(
-    updates.email ||
-    updates.firstname ||
-    updates.lastname ||
-    updates.referralCode ||
-    updates.pollsCode ||
-    updates.contributionPeriod ||
-    updates.contributionMonthlyAmount
+    (
+      updates.email ||
+      updates.firstname ||
+      updates.lastname ||
+      updates.referralCode ||
+      updates.pollsCode
+    )
+    // TODO
+    // updates.contributionPeriod ||
+    // updates.contributionMonthlyAmount
   );
 }
 

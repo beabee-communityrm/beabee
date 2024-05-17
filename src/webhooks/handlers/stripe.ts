@@ -185,12 +185,13 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice) {
     add(new Date(line.period.end * 1000), config.gracePeriod)
   );
 
-  if (line.amount === contribution.nextAmount?.chargeable) {
-    await ContactsService.updateContact(contribution.contact, {
-      contributionMonthlyAmount: contribution.nextAmount.monthly
-    });
-    await PaymentService.updateData(contribution.contact, { nextAmount: null });
-  }
+  // TODO
+  // if (line.amount === contribution.nextAmount?.chargeable) {
+  //   await ContactsService.updateContact(contribution.contact, {
+  //     contributionMonthlyAmount: contribution.nextAmount.monthly
+  //   });
+  //   await PaymentService.updateData(contribution.contact, { nextAmount: null });
+  // }
 }
 
 // Payment method has been detached, remove any reference to it in our system

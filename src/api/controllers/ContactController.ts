@@ -109,12 +109,13 @@ export class ContactController {
       }
     }
 
-    if (data.contribution) {
-      await ContactsService.forceUpdateContactContribution(
-        contact,
-        data.contribution
-      );
-    }
+    // TODO
+    // if (data.contribution) {
+    //   await ContactsService.forceUpdateContactContribution(
+    //     contact,
+    //     data.contribution
+    //   );
+    // }
 
     return ContactTransformer.convert(
       contact,
@@ -301,15 +302,15 @@ export class ContactController {
    * @param data
    * @returns
    */
-  @Authorized("admin")
-  @Patch("/:id/contribution/force")
-  async forceUpdateContribution(
-    @TargetUser() target: Contact,
-    @Body() data: ForceUpdateContributionDto
-  ): Promise<GetContributionInfoDto> {
-    await ContactsService.forceUpdateContactContribution(target, data);
-    return await this.getContribution(target);
-  }
+  // @Authorized("admin")
+  // @Patch("/:id/contribution/force")
+  // async forceUpdateContribution(
+  //   @TargetUser() target: Contact,
+  //   @Body() data: ForceUpdateContributionDto
+  // ): Promise<GetContributionInfoDto> {
+  //   await ContactsService.forceUpdateContactContribution(target, data);
+  //   return await this.getContribution(target);
+  // }
 
   @Get("/:id/payment")
   async getPayments(

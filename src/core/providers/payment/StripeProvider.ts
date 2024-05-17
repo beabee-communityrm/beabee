@@ -1,4 +1,8 @@
-import { ContributionType, PaymentSource } from "@beabee/beabee-common";
+import {
+  ContributionType,
+  PaymentMethod,
+  PaymentSource
+} from "@beabee/beabee-common";
 import { add } from "date-fns";
 import Stripe from "stripe";
 
@@ -128,7 +132,8 @@ export default class StripeProvider extends PaymentProvider {
     // their previous amount so Stripe can automatically handle any proration
     if (
       this.contact.membership?.isActive &&
-      this.contact.contributionType === ContributionType.Manual
+      // TODO: how to check previous method?
+      this.data.method === PaymentMethod.Manual
     ) {
       log.info("Creating new subscription for manual contributor");
       const newSubscription = await createSubscription(

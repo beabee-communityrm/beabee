@@ -142,7 +142,7 @@ export default class GCProvider extends PaymentProvider {
         this.data.mandateId,
         renewalDate,
         paymentForm,
-        this.contact.contributionMonthlyAmount || 0
+        this.data.monthlyAmount || 0
       ));
 
     log.info("Activate contribution for " + this.contact.id, {

@@ -88,7 +88,6 @@ runApp(async () => {
     firstname: answers.firstname,
     lastname: answers.lastname,
     email: answers.email,
-    contributionType: ContributionType.None,
     roles: roles,
     ...(answers.password && {
       password: await generatePassword(answers.password)

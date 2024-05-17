@@ -35,6 +35,11 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
     const query = super
       .getNewItemsQuery()
       .innerJoin("m.roles", "mp")
+      .innerJoinAndSelect(
+        ContactContribution,
+        "contribution",
+        "contribution.contactId = m.id AND contribution.status = 'current'"
+      )
       .andWhere("mp.type = 'member' AND mp.dateAdded <= :now")
       .andWhere(
         new Brackets((qb) => {
@@ -44,9 +49,7 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
       .setParameters({ now: new Date() });
 
     if (this.ex!.params?.hasActiveSubscription) {
-      query
-        .innerJoin(ContactContribution, "cc", "cc.contactId = m.id")
-        .andWhere("cc.subscriptionId IS NOT NULL");
+      query.andWhere("contribution.subscriptionId IS NOT NULL");
     }
 
     return query;
@@ -60,8 +63,8 @@ export default class ActiveMembersExport extends BaseExport<Contact> {
       LastName: contact.lastname,
       ReferralCode: contact.referralCode,
       PollsCode: contact.pollsCode,
-      ContributionType: contact.contributionType,
-      ContributionMonthlyAmount: contact.contributionMonthlyAmount,
+      ContributionType: contact.contribution.method,
+      ContributionMonthlyAmount: contact.contribution.monthlyAmount,
       ContributionPeriod: contact.contribution.period,
       ContributionDescription: contact.contribution.description
     }));

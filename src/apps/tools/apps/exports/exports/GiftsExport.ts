@@ -47,8 +47,8 @@ export default class GiftsExport extends BaseExport<GiftFlow> {
               .find((p) => p.type === "member")
               ?.dateExpires?.toISOString(),
             GifteeHasActivated: !giftee.password.hash,
-            GifteeHasConverted:
-              giftee.contributionType !== ContributionType.Gift,
+            GifteeHasConverted: true, // TODO
+            // giftee.contributionType !== ContributionType.Gift,
             ...addressFields(giftee.profile.deliveryAddress)
           }
         : {

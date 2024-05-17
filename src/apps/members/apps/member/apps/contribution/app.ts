@@ -1,4 +1,4 @@
-import { ContributionType } from "@beabee/beabee-common";
+import { ContributionType, PaymentMethod } from "@beabee/beabee-common";
 import express from "express";
 
 import { wrapAsync } from "@core/utils";
@@ -17,7 +17,12 @@ app.get(
   "/",
   wrapAsync(async (req, res) => {
     const contact = req.model as Contact;
-    if (contact.contributionType === ContributionType.Automatic) {
+    if (
+      contact.contribution.method === PaymentMethod.Manual ||
+      contact.contribution.method === PaymentMethod.None
+    ) {
+      res.render("manual", { member: contact });
+    } else {
       const payments = await PaymentService.getPayments(contact);
 
       const successfulPayments = payments
@@ -34,13 +39,6 @@ app.get(
         payments,
         total
       });
-    } else if (
-      contact.contributionType === ContributionType.Manual ||
-      contact.contributionType === ContributionType.None
-    ) {
-      res.render("manual", { member: contact });
-    } else {
-      res.render("none", { member: contact });
     }
   })
 );
@@ -68,17 +66,17 @@ app.post(
         );
         break;
 
-      case "force-update":
-        await ContactsService.forceUpdateContactContribution(contact, {
-          type: req.body.type,
-          amount: req.body.amount,
-          period: req.body.period,
-          source: req.body.source,
-          reference: req.body.reference
-        });
+      // case "force-update":
+      //   await ContactsService.forceUpdateContactContribution(contact, {
+      //     type: req.body.type,
+      //     amount: req.body.amount,
+      //     period: req.body.period,
+      //     source: req.body.source,
+      //     reference: req.body.reference
+      //   });
 
-        req.flash("success", "contribution-updated");
-        break;
+      //   req.flash("success", "contribution-updated");
+      //   break;
     }
 
     res.redirect(req.originalUrl);

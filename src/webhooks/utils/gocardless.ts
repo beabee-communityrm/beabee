@@ -107,12 +107,14 @@ async function confirmPayment(payment: Payment): Promise<void> {
   const contribution = await PaymentService.getCurrentContribution(
     payment.contact
   );
-  if (payment.amount === contribution.nextAmount?.chargeable) {
-    await ContactsService.updateContact(payment.contact, {
-      contributionMonthlyAmount: contribution.nextAmount?.monthly
-    });
-    await PaymentService.updateData(payment.contact, { nextAmount: null });
-  }
+
+  // TODO
+  // if (payment.amount === contribution.nextAmount?.chargeable) {
+  //   await ContactsService.updateContact(payment.contact, {
+  //     contributionMonthlyAmount: contribution.nextAmount?.monthly
+  //   });
+  //   await PaymentService.updateData(payment.contact, { nextAmount: null });
+  // }
   // TODO: resubscribe to newsletter
 }
 

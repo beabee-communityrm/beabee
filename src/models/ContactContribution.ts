@@ -27,6 +27,7 @@ export default class ContactContribution {
   @UpdateDateColumn()
   updatedAt!: Date;
 
+  @Column()
   contactId!: string;
   @ManyToOne("Contact", "contribution")
   contact!: Contact;

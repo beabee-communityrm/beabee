@@ -118,7 +118,7 @@ class PaymentService {
           !contribution.cancelledAt && calcRenewalDate(contact);
 
         return {
-          type: contact.contributionType,
+          method: contribution.method,
           ...(contribution.amount !== null && {
             amount: contribution.amount
           }),

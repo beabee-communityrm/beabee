@@ -36,11 +36,12 @@ app.use(
       relations: { profile: true }
     });
     if (contact) {
+      const contribution = await PaymentService.getCurrentContribution(contact);
+      contact.contribution = contribution;
+
       req.model = contact;
-      const { method, ...contribution } =
-        await PaymentService.getCurrentContribution(contact);
       res.locals.contribution = contribution;
-      res.locals.paymentMethod = method;
+      res.locals.paymentMethod = contribution.method;
       next();
     } else {
       next("route");

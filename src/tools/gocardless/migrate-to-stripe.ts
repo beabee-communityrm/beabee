@@ -146,8 +146,7 @@ runApp(async () => {
           customerId: migrationRow.customer_id,
           mandateId: migrationRow.source_id,
           subscriptionId: null,
-          payFee: null,
-          nextAmount: null
+          payFee: null
         });
 
         await stripe.customers.update(migrationRow.customer_id, {

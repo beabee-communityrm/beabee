@@ -26,7 +26,7 @@ class ContactExporter extends BaseContactTransformer<
       LastName: contact.lastname,
       Joined: contact.joined.toISOString(),
       Tags: contact.profile.tags.join(", "),
-      ContributionType: contact.contributionType,
+      PaymentMethod: contact.contribution.method,
       ContributionMonthlyAmount: contact.contribution.monthlyAmount,
       ContributionPeriod: contact.contribution.period,
       ContributionDescription: contact.contribution.description,
@@ -51,7 +51,11 @@ class ContactExporter extends BaseContactTransformer<
     qb.orderBy(`${fieldPrefix}joined`);
     qb.leftJoinAndSelect(`${fieldPrefix}roles`, "roles");
     qb.leftJoinAndSelect(`${fieldPrefix}profile`, "profile");
-    qb.leftJoinAndSelect(`${fieldPrefix}contribution`, "contribution");
+    qb.leftJoinAndSelect(
+      `${fieldPrefix}contribution`,
+      "contribution",
+      "contribution.status = 'current'"
+    );
   }
 
   async export(

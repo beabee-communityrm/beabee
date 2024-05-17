@@ -52,7 +52,8 @@ export abstract class BaseContactTransformer<
     contributionCancelled: contributionField("cancelledAt"),
     manualPaymentSource: (qb, args) => {
       contributionField("mandateId")(qb, args);
-      qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
+      // TODO
+      // qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
     }
   };
 
@@ -123,7 +124,8 @@ function contributionField(field: keyof ContactContribution): FilterHandler {
       .subQuery()
       .select(`cc.contactId`)
       .from(ContactContribution, "cc")
-      .where(convertToWhereClause(`cc.${field}`));
+      .where("cc.status = 'current'")
+      .andWhere(convertToWhereClause(`cc.${field}`));
 
     qb.where(`${fieldPrefix}id IN ${subQb.getQuery()}`);
   };

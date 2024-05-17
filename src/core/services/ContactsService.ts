@@ -49,8 +49,7 @@ import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error
 
 import { PaymentForm } from "@type/index";
 
-export type PartialContact = Pick<Contact, "email" | "contributionType"> &
-  Partial<Contact>;
+export type PartialContact = Pick<Contact, "email"> & Partial<Contact>;
 
 interface ForceUpdateContribution {
   type: ContributionType.Manual | ContributionType.None;
@@ -325,18 +324,10 @@ class ContactsService {
     paymentForm: PaymentForm
   ): Promise<void> {
     log.info("Update contribution for " + contact.id, { paymentForm });
-    const { startNow, expiryDate } = await PaymentService.updateContribution(
+    const { expiryDate } = await PaymentService.updateContribution(
       contact,
       paymentForm
     );
-
-    await this.updateContact(contact, {
-      contributionType: ContributionType.Automatic,
-      contributionPeriod: paymentForm.period,
-      ...(startNow && {
-        contributionMonthlyAmount: paymentForm.monthlyAmount
-      })
-    });
 
     if (expiryDate) {
       await this.extendContactRole(contact, "member", expiryDate);
@@ -407,31 +398,31 @@ class ContactsService {
    * @param contact
    * @param data
    */
-  async forceUpdateContactContribution(
-    contact: Contact,
-    data: ForceUpdateContribution
-  ): Promise<void> {
-    if (contact.contributionType === ContributionType.Automatic) {
-      throw new CantUpdateContribution();
-    }
+  // async forceUpdateContactContribution(
+  //   contact: Contact,
+  //   data: ForceUpdateContribution
+  // ): Promise<void> {
+  //   if (contact.contributionType === ContributionType.Automatic) {
+  //     throw new CantUpdateContribution();
+  //   }
 
-    const period = data.period && data.amount ? data.period : null;
-    const monthlyAmount =
-      data.period && data.amount
-        ? data.amount / (data.period === ContributionPeriod.Annually ? 12 : 1)
-        : null;
+  //   const period = data.period && data.amount ? data.period : null;
+  //   const monthlyAmount =
+  //     data.period && data.amount
+  //       ? data.amount / (data.period === ContributionPeriod.Annually ? 12 : 1)
+  //       : null;
 
-    await this.updateContact(contact, {
-      contributionType: data.type,
-      contributionPeriod: period,
-      contributionMonthlyAmount: monthlyAmount
-    });
+  //   await this.updateContact(contact, {
+  //     contributionType: data.type,
+  //     contributionPeriod: period,
+  //     contributionMonthlyAmount: monthlyAmount
+  //   });
 
-    await PaymentService.updateData(contact, {
-      mandateId: data.source || null,
-      customerId: data.reference || null
-    });
-  }
+  //   await PaymentService.updateData(contact, {
+  //     mandateId: data.source || null,
+  //     customerId: data.reference || null
+  //   });
+  // }
 
   /**
    * Increment the number of password tries for a contact.
