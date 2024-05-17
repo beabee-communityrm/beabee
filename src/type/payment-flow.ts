@@ -1,4 +1,4 @@
-import { PaymentFlowParams } from ".";
+import { PaymentFlowParams } from "@beabee/beabee-common";
 
 export interface PaymentFlow {
   id: string;

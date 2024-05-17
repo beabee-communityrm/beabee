@@ -26,15 +26,15 @@ block contents
 						value: member.contributionMonthlyAmount
 					})
 					if !!contribution.subscriptionId
-						input(type='hidden' name='period' value=member.contributionPeriod)
+						input(type='hidden' name='period' value=contribution.period)
 						.form-group
 							label.col-md-3.control-label Period
-							.col-md-4.form-control-static= member.contributionPeriod
+							.col-md-4.form-control-static= contribution.period
 					else
 						+input( 'radio', 'Period', 'period', {
 							left: 3, right: 4,
 							options: {'monthly': 'Monthly', 'annually': 'Annually'},
-							value: member.contributionPeriod
+							value: contribution.period
 						})
 					+input( 'checkbox', 'Paying fee', 'payFee', {
 						left: 3, right: 4,

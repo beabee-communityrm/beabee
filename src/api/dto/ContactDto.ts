@@ -5,7 +5,8 @@ import {
   NewsletterStatus,
   RoleType,
   RoleTypes,
-  PaymentSource
+  PaymentSource,
+  PaymentMethod
 } from "@beabee/beabee-common";
 import { Type } from "class-transformer";
 import {
@@ -69,16 +70,12 @@ export class ListContactsDto extends GetPaginatedQuery {
 }
 
 export class GetContributionInfoDto implements ContributionInfo {
-  @IsEnum(ContributionType)
-  type!: ContributionType;
+  @IsEnum(PaymentMethod)
+  method!: PaymentMethod;
 
   @IsOptional()
   @IsNumber()
   amount?: number;
-
-  @IsOptional()
-  @IsNumber()
-  nextAmount?: number;
 
   @IsOptional()
   @IsEnum(ContributionPeriod)
@@ -190,7 +187,7 @@ export interface ExportContactDto {
   LastName: string;
   Joined: string;
   Tags: string;
-  ContributionType: ContributionType;
+  PaymentMethod: PaymentMethod;
   ContributionMonthlyAmount: number | null;
   ContributionPeriod: ContributionPeriod | null;
   ContributionDescription: string;

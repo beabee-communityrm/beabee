@@ -24,7 +24,7 @@ export function calcRenewalDate(
 ): Date | undefined {
   if (
     !contact.membership?.isActive ||
-    contact.contributionType === ContributionType.None
+    contact.contribution.method === PaymentMethod.None
   ) {
     return;
   }
@@ -36,7 +36,7 @@ export function calcRenewalDate(
   if (contact.membership.dateExpires) {
     // Simple case, use their expiry date
     renewalDate = sub(contact.membership.dateExpires, config.gracePeriod);
-  } else if (contact.contributionPeriod === ContributionPeriod.Annually) {
+  } else if (contact.contribution.period === ContributionPeriod.Annually) {
     // Annual contribution, calculate based on their start date
     const thisYear = getYear(now);
     // Find the next time their renewal occurs (either later this year or next year)
@@ -52,7 +52,7 @@ export function calcRenewalDate(
   // manual contributors had their expiry date set arbritarily in the future
   const maxDate = addMonths(
     now,
-    contact.contributionPeriod === ContributionPeriod.Annually ? 12 : 1
+    contact.contribution.period === ContributionPeriod.Annually ? 12 : 1
   );
   return renewalDate > maxDate ? maxDate : renewalDate;
 }

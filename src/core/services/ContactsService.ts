@@ -49,8 +49,7 @@ import { RESET_SECURITY_FLOW_ERROR_CODE } from "@enums/reset-security-flow-error
 
 import { PaymentForm } from "@type/index";
 
-export type PartialContact = Pick<Contact, "email" | "contributionType"> &
-  Partial<Contact>;
+export type PartialContact = Pick<Contact, "email"> & Partial<Contact>;
 
 interface ForceUpdateContribution {
   type: ContributionType.Manual | ContributionType.None;
@@ -113,7 +112,6 @@ class ContactsService {
         password: Password.none,
         firstname: "",
         lastname: "",
-        contributionType: ContributionType.None,
         ...partialContact,
         email: cleanEmailAddress(partialContact.email)
       });
@@ -125,7 +123,7 @@ class ContactsService {
       });
       await getRepository(ContactProfile).save(contact.profile);
 
-      await PaymentService.createContact(contact);
+      await PaymentService.onCreateContact(contact);
 
       if (opts.sync) {
         await NewsletterService.upsertContact(contact);
@@ -182,7 +180,7 @@ class ContactsService {
       await NewsletterService.upsertContact(contact, updates, oldEmail);
     }
 
-    await PaymentService.updateContact(contact, updates);
+    await PaymentService.onUpdateContact(contact, updates);
   }
 
   /**
@@ -326,44 +324,13 @@ class ContactsService {
     paymentForm: PaymentForm
   ): Promise<void> {
     log.info("Update contribution for " + contact.id, { paymentForm });
-    // At the moment the only possibility is to go from whatever contribution
-    // type the user was before to an automatic contribution
-    const wasManual = contact.contributionType === ContributionType.Manual;
-
-    // Some period changes on active members aren't allowed at the moment to
-    // prevent proration problems
-    if (
-      contact.membership?.isActive &&
-      // Annual contributors can't change their period
-      contact.contributionPeriod === ContributionPeriod.Annually &&
-      paymentForm.period !== ContributionPeriod.Annually
-    ) {
-      log.info("Can't update contribution for " + contact.id);
-      throw new CantUpdateContribution();
-    }
-
-    const { startNow, expiryDate } = await PaymentService.updateContribution(
+    const { expiryDate } = await PaymentService.updateContribution(
       contact,
       paymentForm
     );
 
-    log.info("Updated contribution for " + contact.id, {
-      startNow,
-      expiryDate
-    });
-
-    await this.updateContact(contact, {
-      contributionType: ContributionType.Automatic,
-      contributionPeriod: paymentForm.period,
-      ...(startNow && {
-        contributionMonthlyAmount: paymentForm.monthlyAmount
-      })
-    });
-
-    await this.extendContactRole(contact, "member", expiryDate);
-
-    if (wasManual) {
-      await EmailService.sendTemplateToContact("manual-to-automatic", contact);
+    if (expiryDate) {
+      await this.extendContactRole(contact, "member", expiryDate);
     }
   }
 
@@ -431,31 +398,31 @@ class ContactsService {
    * @param contact
    * @param data
    */
-  async forceUpdateContactContribution(
-    contact: Contact,
-    data: ForceUpdateContribution
-  ): Promise<void> {
-    if (contact.contributionType === ContributionType.Automatic) {
-      throw new CantUpdateContribution();
-    }
+  // async forceUpdateContactContribution(
+  //   contact: Contact,
+  //   data: ForceUpdateContribution
+  // ): Promise<void> {
+  //   if (contact.contributionType === ContributionType.Automatic) {
+  //     throw new CantUpdateContribution();
+  //   }
 
-    const period = data.period && data.amount ? data.period : null;
-    const monthlyAmount =
-      data.period && data.amount
-        ? data.amount / (data.period === ContributionPeriod.Annually ? 12 : 1)
-        : null;
+  //   const period = data.period && data.amount ? data.period : null;
+  //   const monthlyAmount =
+  //     data.period && data.amount
+  //       ? data.amount / (data.period === ContributionPeriod.Annually ? 12 : 1)
+  //       : null;
 
-    await this.updateContact(contact, {
-      contributionType: data.type,
-      contributionPeriod: period,
-      contributionMonthlyAmount: monthlyAmount
-    });
+  //   await this.updateContact(contact, {
+  //     contributionType: data.type,
+  //     contributionPeriod: period,
+  //     contributionMonthlyAmount: monthlyAmount
+  //   });
 
-    await PaymentService.updateData(contact, {
-      mandateId: data.source || null,
-      customerId: data.reference || null
-    });
-  }
+  //   await PaymentService.updateData(contact, {
+  //     mandateId: data.source || null,
+  //     customerId: data.reference || null
+  //   });
+  // }
 
   /**
    * Increment the number of password tries for a contact.

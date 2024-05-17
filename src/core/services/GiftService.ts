@@ -141,8 +141,9 @@ export default class GiftService {
         firstname,
         lastname,
         email,
-        contributionType: ContributionType.Gift,
-        contributionMonthlyAmount: GiftService.giftMonthlyAmount,
+        // TODO:
+        // contributionType: ContributionType.Gift,
+        // contributionMonthlyAmount: GiftService.giftMonthlyAmount,
         roles: [role]
       },
       {

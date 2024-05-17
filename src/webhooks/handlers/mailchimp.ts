@@ -156,7 +156,6 @@ async function handleSubscribe(data: MCProfileData) {
     await ContactsService.createContact(
       {
         email,
-        contributionType: ContributionType.None,
         firstname: data.merges.FNAME || "",
         lastname: data.merges.LNAME || ""
       },

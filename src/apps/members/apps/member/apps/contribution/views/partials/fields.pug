@@ -14,12 +14,12 @@
   .js-reveal-type(data-type='Manual')
     +input( 'number', 'Amount', 'amount', {
       left: 3, right: 4, before: currencySymbol,
-      value: member.contributionAmount
+      value: contribution.amount
     })
     +input( 'radio', 'Period', 'period', {
       left: 3, right: 4,
       options: {'monthly': 'Monthly', 'annually': 'Annually'},
-      value: member.contributionPeriod
+      value: contribution.period
     })
 
     .form-group

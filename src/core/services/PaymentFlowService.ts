@@ -1,4 +1,8 @@
-import { ContributionPeriod, PaymentMethod } from "@beabee/beabee-common";
+import {
+  ContributionPeriod,
+  PaymentFlowParams,
+  PaymentMethod
+} from "@beabee/beabee-common";
 
 import { getRepository } from "@core/database";
 import { log as mainLogger } from "@core/logging";
@@ -7,7 +11,8 @@ import EmailService from "@core/services/EmailService";
 import ContactsService from "@core/services/ContactsService";
 import OptionsService from "@core/services/OptionsService";
 import PaymentService from "@core/services/PaymentService";
-import ResetSecurityFlowService from "./ResetSecurityFlowService";
+import ResetSecurityFlowService from "@core/services/ResetSecurityFlowService";
+
 import JoinFlow from "@models/JoinFlow";
 import JoinForm from "@models/JoinForm";
 import Contact from "@models/Contact";
@@ -26,11 +31,12 @@ import {
   CompletedPaymentFlow,
   CompletedPaymentFlowData,
   PaymentFlow,
-  PaymentFlowData,
-  PaymentFlowParams
+  PaymentFlowData
 } from "@type/index";
 
 const paymentProviders = {
+  [PaymentMethod.None]: StripeProvider, // TODO
+  [PaymentMethod.Manual]: StripeProvider, // TODO
   [PaymentMethod.StripeCard]: StripeProvider,
   [PaymentMethod.StripeSEPA]: StripeProvider,
   [PaymentMethod.StripeBACS]: StripeProvider,
@@ -224,7 +230,7 @@ class PaymentFlowService implements PaymentFlowProvider {
     completedPaymentFlow: CompletedPaymentFlow
   ): Promise<CompletedPaymentFlowData> {
     return paymentProviders[
-      completedPaymentFlow.joinForm.paymentMethod
+      completedPaymentFlow.paymentMethod
     ].getCompletedPaymentFlowData(completedPaymentFlow);
   }
 }

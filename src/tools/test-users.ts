@@ -21,6 +21,7 @@ import ContactContribution from "@models/ContactContribution";
 async function logContact(type: string, conditions: Brackets[]) {
   const qb = createQueryBuilder(Contact, "m")
     .innerJoinAndSelect("m.roles", "mp")
+    .innerJoinAndSelect("m.contribution", "cc")
     .where("TRUE");
 
   for (const condition of conditions) {
@@ -53,13 +54,10 @@ async function logContactVaryContributions(
         [
           ...conditions,
           new Brackets((qb) =>
-            qb.where(
-              "m.contributionMonthlyAmount = :amount AND m.contributionPeriod = :period",
-              {
-                amount,
-                period
-              }
-            )
+            qb.where("cc.monthlyAmount = :amount AND cc.period = :period", {
+              amount,
+              period
+            })
           )
         ]
       );

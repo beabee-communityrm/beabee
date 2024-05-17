@@ -12,6 +12,7 @@ import MailchimpProvider from "@core/providers/newsletter/MailchimpProvider";
 import NoneProvider from "@core/providers/newsletter/NoneProvider";
 
 import Contact from "@models/Contact";
+import ContactContribution from "@models/ContactContribution";
 import ContactProfile from "@models/ContactProfile";
 
 import config from "@config";
@@ -20,13 +21,16 @@ const log = mainLogger.child({ app: "newsletter-service" });
 
 function shouldUpdate(updates: Partial<Contact>): boolean {
   return !!(
-    updates.email ||
-    updates.firstname ||
-    updates.lastname ||
-    updates.referralCode ||
-    updates.pollsCode ||
-    updates.contributionPeriod ||
-    updates.contributionMonthlyAmount
+    (
+      updates.email ||
+      updates.firstname ||
+      updates.lastname ||
+      updates.referralCode ||
+      updates.pollsCode
+    )
+    // TODO
+    // updates.contributionPeriod ||
+    // updates.contributionMonthlyAmount
   );
 }
 
@@ -36,6 +40,15 @@ async function contactToNlUpdate(
   // TODO: Fix that it relies on contact.profile being loaded
   if (!contact.profile) {
     contact.profile = await getRepository(ContactProfile).findOneByOrFail({
+      contactId: contact.id
+    });
+  }
+
+  // TODO: Fix that it relies on contact.contribution being loaded
+  if (!contact.contribution) {
+    contact.contribution = await getRepository(
+      ContactContribution
+    ).findOneByOrFail({
       contactId: contact.id
     });
   }
@@ -50,9 +63,9 @@ async function contactToNlUpdate(
       fields: {
         REFCODE: contact.referralCode || "",
         POLLSCODE: contact.pollsCode || "",
-        C_DESC: contact.contributionDescription,
-        C_MNTHAMT: contact.contributionMonthlyAmount?.toFixed(2) || "",
-        C_PERIOD: contact.contributionPeriod || ""
+        C_DESC: contact.contribution.description,
+        C_MNTHAMT: contact.contribution.monthlyAmount?.toFixed(2) || "",
+        C_PERIOD: contact.contribution.period || ""
       }
     };
   }

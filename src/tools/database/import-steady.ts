@@ -3,7 +3,8 @@ import "module-alias/register";
 import {
   ContributionPeriod,
   ContributionType,
-  NewsletterStatus
+  NewsletterStatus,
+  PaymentMethod
 } from "@beabee/beabee-common";
 import { parse } from "csv-parse";
 import { In } from "typeorm";
@@ -18,6 +19,7 @@ import Contact from "@models/Contact";
 import ContactRole from "@models/ContactRole";
 
 import { Address } from "@type/address";
+import PaymentService from "@core/services/PaymentService";
 
 const headers = [
   "first_name",
@@ -128,16 +130,17 @@ function getDeliveryAddress(row: SteadyRow): [boolean, Address | null] {
 }
 
 async function setContributionData(contact: Contact, row: SteadyRow) {
-  const period = convertPeriod(row.subscription_period);
+  await PaymentService.updatePaymentMethod(contact, {
+    mandateId: "Steady",
+    customerId: row.plan_name,
+    paymentMethod: PaymentMethod.Manual
+  });
 
-  await ContactsService.forceUpdateContactContribution(contact, {
-    type: ContributionType.Manual,
-    source: "Steady",
-    reference: row.plan_name,
-    period,
-    amount:
-      (row.plan_monthly_amount_cents / 100) *
-      (period === ContributionPeriod.Annually ? 12 : 1)
+  await PaymentService.updateContribution(contact, {
+    monthlyAmount: row.plan_monthly_amount_cents / 100,
+    period: convertPeriod(row.subscription_period),
+    payFee: false,
+    prorate: false
   });
 }
 
@@ -149,9 +152,9 @@ async function setContributionData(contact: Contact, row: SteadyRow) {
  * @returns
  */
 async function updateExistingContact(contact: Contact, row: SteadyRow) {
-  if (contact.contributionType !== ContributionType.Manual) {
+  if (contact.contribution.method !== PaymentMethod.Manual) {
     console.error(
-      `${contact.email} has contribution type ${contact.contributionType}, can't update`
+      `${contact.email} has contribution method ${contact.contribution.method}, can't update`
     );
     return;
   }
@@ -162,7 +165,6 @@ async function updateExistingContact(contact: Contact, row: SteadyRow) {
   }
 
   await ContactsService.updateContact(contact, {
-    contributionMonthlyAmount: row.plan_monthly_amount_cents / 100,
     firstname: row.first_name,
     lastname: row.last_name
   });
@@ -236,7 +238,8 @@ async function processRows(rows: SteadyRow[]) {
   console.error(`Processing ${rows.length} rows`);
 
   const existingContacts = await getRepository(Contact).find({
-    where: { email: In(rows.map((row) => row.email)) }
+    where: { email: In(rows.map((row) => row.email)) },
+    relations: { contribution: true }
   });
 
   const existingEmails = existingContacts.map((c) => c.email);

@@ -1,11 +1,9 @@
-import Contact from "@models/Contact";
 import { PaymentProvider } from ".";
 
 import {
-  CompletedPaymentFlow,
   ContributionInfo,
-  PaymentForm,
-  UpdateContributionResult
+  UpdateContributionResult,
+  UpdatePaymentMethodResult
 } from "@type/index";
 
 export default class ManualProvider extends PaymentProvider {
@@ -26,18 +24,14 @@ export default class ManualProvider extends PaymentProvider {
     };
   }
 
-  async cancelContribution(keepMandate: boolean): Promise<void> {}
-  async updateContact(updates: Partial<Contact>): Promise<void> {}
+  async cancelContribution(): Promise<void> {}
+  async updateContact(): Promise<void> {}
 
-  async updateContribution(
-    paymentForm: PaymentForm
-  ): Promise<UpdateContributionResult> {
-    throw new Error("Method not implemented.");
+  async updateContribution(): Promise<UpdateContributionResult> {
+    return { startNow: true, subscriptionId: "" };
   }
-  async updatePaymentMethod(
-    completedPaymentFlow: CompletedPaymentFlow
-  ): Promise<void> {
-    throw new Error("Method not implemented.");
+  async updatePaymentMethod(): Promise<UpdatePaymentMethodResult> {
+    return {};
   }
   async permanentlyDeleteContact(): Promise<void> {}
 }

@@ -74,8 +74,8 @@ export default class EditionExport extends ActiveMembersExport {
         City: deliveryAddress.city,
         Postcode: deliveryAddress.postcode.trim().toUpperCase(),
         ReferralCode: contact.referralCode,
-        IsGift: contact.contributionType === ContributionType.Gift,
-        ContributionMonthlyAmount: contact.contributionMonthlyAmount
+        // IsGift: contact.contributionType === ContributionType.Gift,
+        ContributionMonthlyAmount: contact.contribution.monthlyAmount
       };
     });
   }

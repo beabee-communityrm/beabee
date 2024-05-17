@@ -40,11 +40,11 @@ class ContactTransformer extends BaseContactTransformer<
       ...(contact.lastSeen && {
         lastSeen: contact.lastSeen
       }),
-      ...(contact.contributionAmount && {
-        contributionAmount: contact.contributionAmount
+      ...(contact.contribution.amount !== null && {
+        contributionAmount: contact.contribution.amount
       }),
-      ...(contact.contributionPeriod && {
-        contributionPeriod: contact.contributionPeriod
+      ...(contact.contribution.period && {
+        contributionPeriod: contact.contribution.period
       }),
       ...(opts?.with?.includes(GetContactWith.Profile) &&
         contact.profile && {
@@ -86,6 +86,8 @@ class ContactTransformer extends BaseContactTransformer<
     query: ListContactsDto
   ): void {
     {
+      qb.innerJoinAndSelect(`${fieldPrefix}contribution`, "contribution");
+
       if (query.with?.includes(GetContactWith.Profile)) {
         qb.innerJoinAndSelect(`${fieldPrefix}profile`, "profile");
       }

@@ -71,13 +71,13 @@ export default class ReferralsService {
       referrerId: referrer?.id,
       refereeId: referee.id,
       giftForm,
-      refereeAmount: referee.contributionMonthlyAmount
+      refereeAmount: referee.contribution.monthlyAmount
     });
 
     const referral = new Referral();
     referral.referrer = referrer || null;
     referral.referee = referee;
-    referral.refereeAmount = referee.contributionMonthlyAmount || 0;
+    referral.refereeAmount = referee.contribution.monthlyAmount || 0;
     referral.refereeGift = {
       name: giftForm.referralGift || ""
     } as ReferralGift;
@@ -94,8 +94,8 @@ export default class ReferralsService {
         {
           refereeName: referee.firstname,
           isEligible:
-            !!referee.contributionMonthlyAmount &&
-            referee.contributionMonthlyAmount >= 3
+            !!referee.contribution.monthlyAmount &&
+            referee.contribution.monthlyAmount >= 3
         }
       );
     }

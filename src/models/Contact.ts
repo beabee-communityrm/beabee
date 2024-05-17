@@ -53,15 +53,6 @@ export default class Contact {
   @Column({ type: "jsonb", nullable: true })
   loginOverride!: LoginOverride | null;
 
-  @Column()
-  contributionType!: ContributionType;
-
-  @Column({ type: String, nullable: true })
-  contributionPeriod!: ContributionPeriod | null;
-
-  @Column({ type: "real", nullable: true })
-  contributionMonthlyAmount!: number | null;
-
   @Column({ type: String, unique: true, nullable: true })
   referralCode!: string | null;
 
@@ -74,8 +65,11 @@ export default class Contact {
   @OneToOne("ContactProfile", "contact")
   profile!: ContactProfile;
 
-  @OneToOne("ContactContribution", "contact")
-  contribution!: ContactContribution;
+  @OneToMany("ContactContribution", "contact")
+  contributions!: ContactContribution[];
+
+  // @OneToOne("ContactContribution", "contact")
+  contribution!: ContactContribution; // TODO: Load this properly
 
   contributionInfo?: ContributionInfo;
 
@@ -100,30 +94,30 @@ export default class Contact {
       : "";
   }
 
-  get contributionAmount(): number | null {
-    return this.contributionMonthlyAmount === null
-      ? null
-      : getActualAmount(
-          this.contributionMonthlyAmount,
-          this.contributionPeriod!
-        );
-  }
+  // get contributionAmount(): number | null {
+  //   return this.contributionMonthlyAmount === null
+  //     ? null
+  //     : getActualAmount(
+  //         this.contributionMonthlyAmount,
+  //         this.contributionPeriod!
+  //       );
+  // }
 
-  get contributionDescription(): string {
-    if (this.contributionType === "Gift") {
-      return "Gift";
-    } else if (
-      this.contributionType === "None" ||
-      !this.contributionPeriod ||
-      !this.contributionMonthlyAmount
-    ) {
-      return "None";
-    } else {
-      return `${config.currencySymbol}${this.contributionAmount}/${
-        this.contributionPeriod === "monthly" ? "month" : "year"
-      }`;
-    }
-  }
+  // get contributionDescription(): string {
+  //   if (this.contributionType === "Gift") {
+  //     return "Gift";
+  //   } else if (
+  //     this.contributionType === "None" ||
+  //     !this.contributionPeriod ||
+  //     !this.contributionMonthlyAmount
+  //   ) {
+  //     return "None";
+  //   } else {
+  //     return `${config.currencySymbol}${this.contributionAmount}/${
+  //       this.contributionPeriod === "monthly" ? "month" : "year"
+  //     }`;
+  //   }
+  // }
 
   get membership(): ContactRole | undefined {
     return this.roles.find((p) => p.type === "member");
