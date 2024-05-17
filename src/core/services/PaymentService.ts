@@ -3,7 +3,6 @@ import {
   MembershipStatus,
   PaymentMethod
 } from "@beabee/beabee-common";
-import { DeepPartial } from "typeorm";
 
 import { getRepository, runTransaction } from "@core/database";
 import { log as mainLogger } from "@core/logging";
@@ -30,7 +29,7 @@ import {
 const log = mainLogger.child({ app: "payment-service" });
 
 const PaymentProviders = {
-  [PaymentMethod.None]: ManualProvider,
+  [PaymentMethod.None]: ManualProvider, // TODO
   [PaymentMethod.Manual]: ManualProvider,
   [PaymentMethod.StripeCard]: StripeProvider,
   [PaymentMethod.StripeSEPA]: StripeProvider,
@@ -54,8 +53,10 @@ type ProviderFn<T> = (
   contribution: ContactContribution
 ) => Promise<T>;
 
+type UpdateFn<T> = (c: ContactContribution, p: PaymentProvider) => Promise<T>;
+
 class PaymentService {
-  async getContribution(contact: Contact): Promise<ContactContribution> {
+  async getCurrentContribution(contact: Contact): Promise<ContactContribution> {
     const contribution = await getRepository(
       ContactContribution
     ).findOneByOrFail({
@@ -84,7 +85,7 @@ class PaymentService {
   private async provider(contact: Contact, fn: ProviderFn<void>): Promise<void>;
   private async provider<T>(contact: Contact, fn: ProviderFn<T>): Promise<T>;
   private async provider<T>(contact: Contact, fn: ProviderFn<T>): Promise<T> {
-    const contribution = await this.getContribution(contact);
+    const contribution = await this.getCurrentContribution(contact);
     return await fn(
       new PaymentProviders[contribution.method](contribution),
       contribution
@@ -166,80 +167,74 @@ class PaymentService {
     contact: Contact,
     form: PaymentForm
   ): Promise<UpdateContributionResult> {
-    const contribution = await this.getContribution(contact);
+    return await this.wrapUpdate(contact, async (contribution, provider) => {
+      log.info("Update contribution for contact " + contact.id, {
+        contribution,
+        form
+      });
 
-    log.info("Update contribution for contact " + contact.id, {
-      contribution,
-      form
+      // Annual contributors can't change their period
+      if (
+        contact.membership?.isActive &&
+        contribution.period === ContributionPeriod.Annually &&
+        form.period !== ContributionPeriod.Annually
+      ) {
+        log.info(
+          "Can't change period for active annual contributor " + contact.id
+        );
+        throw new CantUpdateContribution();
+      }
+
+      const result = await provider.updateContribution(form);
+
+      log.info("Updated contribution for contact " + contact.id, { result });
+
+      const newContribution = {
+        ...contribution,
+        status: result.startNow ? ("current" as const) : ("pending" as const),
+        monthlyAmount: form.monthlyAmount,
+        period: form.period,
+        payFee: form.payFee,
+        subscriptionId: result.subscriptionId
+      };
+
+      return [newContribution, result];
     });
-
-    // Annual contributors can't change their period
-    if (
-      contact.membership?.isActive &&
-      contribution.period === ContributionPeriod.Annually &&
-      form.period !== ContributionPeriod.Annually
-    ) {
-      log.info(
-        "Can't change period for active annual contributor " + contact.id
-      );
-      throw new CantUpdateContribution();
-    }
-
-    const result = await new PaymentProviders[contribution.method](
-      contribution
-    ).updateContribution(form);
-
-    log.info("Updated contribution for contact " + contact.id, { result });
-
-    this.setNewContribution(contribution, {
-      ...contribution,
-      status: result.startNow ? "current" : "pending",
-      monthlyAmount: form.monthlyAmount,
-      period: form.period,
-      payFee: form.payFee,
-      subscriptionId: result.subscriptionId
-    });
-
-    return result;
   }
 
   async updatePaymentMethod(
     contact: Contact,
     flow: CompletedPaymentFlow
   ): Promise<void> {
-    const contribution = await this.getContribution(contact);
-
-    log.info("Update payment method for contact " + contact.id, {
-      flow,
-      contribution
-    });
-
-    const newMethod = flow.paymentMethod;
-    // TODO: think about this
-    if (contribution.method !== newMethod) {
-      log.info("Changing payment method, cancelling previous contribution", {
-        contribution,
-        newMethod
+    await this.wrapUpdate(contact, async (contribution, provider) => {
+      log.info("Update payment method for contact " + contact.id, {
+        flow,
+        contribution
       });
 
-      await new PaymentProviders[contribution.method](
-        contribution
-      ).cancelContribution(false);
-    }
+      if (contribution.method !== flow.paymentMethod) {
+        log.info("Changing payment method for contact " + contact.id);
 
-    const result = await new PaymentProviders[newMethod](
-      contribution
-    ).updatePaymentMethod(flow);
+        await provider.cancelContribution(false);
+        // TODO: how to store this??
+        contribution.subscriptionId = null;
+      }
 
-    log.info("Updated payment method for contact " + contact.id, { result });
+      const result = await provider.updatePaymentMethod(flow);
 
-    await this.setNewContribution(contribution, {
-      ...contribution,
-      status: "current",
-      method: flow.paymentMethod,
-      mandateId: flow.mandateId,
-      customerId: flow.customerId,
-      ...result
+      log.info("Updated payment method for contact " + contact.id, { result });
+
+      return [
+        {
+          ...contribution,
+          status: "current",
+          method: flow.paymentMethod,
+          mandateId: flow.mandateId,
+          customerId: flow.customerId,
+          ...result
+        },
+        undefined
+      ];
     });
   }
 
@@ -247,19 +242,23 @@ class PaymentService {
     contact: Contact,
     keepMandate = false
   ): Promise<void> {
-    log.info("Cancel contribution for contact " + contact.id, { keepMandate });
+    await this.wrapUpdate(contact, async (contribution, provider) => {
+      log.info("Cancel contribution for contact " + contact.id, {
+        contribution,
+        keepMandate
+      });
 
-    const contribution = await this.getContribution(contact);
+      await provider.cancelContribution(keepMandate);
 
-    await new PaymentProviders[contribution.method](
-      contribution
-    ).cancelContribution(keepMandate);
-
-    await this.setNewContribution(contribution, {
-      contactId: contact.id,
-      status: "current",
-      method: PaymentMethod.None,
-      cancelledAt: new Date()
+      return [
+        {
+          contactId: contact.id,
+          status: "current",
+          method: PaymentMethod.None,
+          cancelledAt: new Date()
+        },
+        undefined
+      ];
     });
   }
 
@@ -283,16 +282,31 @@ class PaymentService {
     });
   }
 
-  private async setNewContribution(
-    oldContribution: ContactContribution,
-    newContribution: DeepPartial<ContactContribution>
-  ) {
-    if (newContribution.status === "current") {
-      await getRepository(ContactContribution).update(oldContribution.id, {
-        status: null
-      });
-    }
-    await getRepository(ContactContribution).save(newContribution);
+  private async wrapUpdate<T>(
+    contact: Contact,
+    fn: UpdateFn<[Partial<ContactContribution>]>
+  ): Promise<undefined>;
+  private async wrapUpdate<T>(
+    contact: Contact,
+    fn: UpdateFn<[Partial<ContactContribution>, T]>
+  ): Promise<T>;
+  private async wrapUpdate<T>(
+    contact: Contact,
+    fn: UpdateFn<[Partial<ContactContribution>, T?]>
+  ): Promise<T | undefined> {
+    const contribution = await this.getCurrentContribution(contact);
+    const provider = new PaymentProviders[contribution.method](contribution);
+    const [newContribution, ret] = await fn(contribution, provider);
+    await runTransaction(async (em) => {
+      if (newContribution.status === "current") {
+        delete newContribution.id; // Always create a new contribution
+        await em.getRepository(ContactContribution).update(contribution.id, {
+          status: null
+        });
+      }
+      await em.getRepository(ContactContribution).save(newContribution);
+    });
+    return ret;
   }
 }
 

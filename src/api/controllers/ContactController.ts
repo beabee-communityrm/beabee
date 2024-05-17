@@ -333,7 +333,7 @@ export class ContactController {
   ): Promise<GetPaymentFlowDto> {
     const paymentMethod =
       data.paymentMethod ||
-      (await PaymentService.getContribution(target)).method;
+      (await PaymentService.getCurrentContribution(target)).method;
     if (!paymentMethod) {
       throw new NoPaymentMethod();
     }

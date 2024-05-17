@@ -104,7 +104,9 @@ async function confirmPayment(payment: Payment): Promise<void> {
     await calcConfirmedPaymentPeriodEnd(payment)
   );
 
-  const contribution = await PaymentService.getContribution(payment.contact);
+  const contribution = await PaymentService.getCurrentContribution(
+    payment.contact
+  );
   if (payment.amount === contribution.nextAmount?.chargeable) {
     await ContactsService.updateContact(payment.contact, {
       contributionMonthlyAmount: contribution.nextAmount?.monthly

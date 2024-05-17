@@ -38,7 +38,7 @@ app.use(
     if (contact) {
       req.model = contact;
       const { method, ...contribution } =
-        await PaymentService.getContribution(contact);
+        await PaymentService.getCurrentContribution(contact);
       res.locals.contribution = contribution;
       res.locals.paymentMethod = method;
       next();
