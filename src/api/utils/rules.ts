@@ -232,6 +232,31 @@ function prepareRule(
 }
 
 /**
+ * Find the filter handler for a field. If there isn't a specific handler then
+ * it will try to find a catch all handler. Catch all handlers end in a "."
+ *
+ * i.e. "callouts." will match any fields starting with "callouts.", e.g.
+ * "callouts.id", "callouts.foo"
+ *
+ * @param filterHandlers A set of filter handlers
+ * @param field The field name
+ * @returns The most appropriate filter handler
+ */
+export function getFilterHandler(
+  filterHandlers: FilterHandlers<string> | undefined,
+  field: string
+): FilterHandler {
+  let filterHandler = filterHandlers?.[field];
+  // See if there is a catch all field handler for subfields
+  if (!filterHandler && field.includes(".")) {
+    const catchallField = field.split(".", 1)[0] + ".";
+    filterHandler = filterHandlers?.[catchallField];
+  }
+
+  return filterHandler || simpleFilterHandler;
+}
+
+/**
  * The query builder doesn't support having the same parameter names for
  * different parts of the query and subqueries, so we have to ensure each query
  * parameter has a unique name. We do this by appending a suffix "_<ruleNo>" to
@@ -255,17 +280,6 @@ export function convertRulesToWhereClause(
   };
   let ruleNo = 0;
 
-  function getFilterHandler(field: string): FilterHandler {
-    let filterHandler = filterHandlers?.[field];
-    // See if there is a catch all field handler for subfields
-    if (!filterHandler && field.includes(".")) {
-      const catchallField = field.split(".", 1)[0] + ".";
-      filterHandler = filterHandlers?.[catchallField];
-    }
-
-    return filterHandler || simpleFilterHandler;
-  }
-
   function parseRule(rule: ValidatedRule<string>) {
     return (qb: WhereExpressionBuilder): void => {
       const applyOperator = operatorsWhereByType[rule.type][rule.operator];
@@ -285,7 +299,7 @@ export function convertRulesToWhereClause(
       const addParamSuffix = (field: string) =>
         field.replace(/[^:]:[a-zA-Z]+/g, "$&" + paramSuffix);
 
-      const newParams = getFilterHandler(rule.field)(qb, {
+      const newParams = getFilterHandler(filterHandlers, rule.field)(qb, {
         fieldPrefix,
         field: rule.field,
         operator: rule.operator,

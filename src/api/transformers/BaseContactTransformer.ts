@@ -14,9 +14,9 @@ import { Brackets } from "typeorm";
 
 import { createQueryBuilder, getRepository } from "@core/database";
 
-import { individualAnswerFilterHandler } from "@api/transformers/BaseCalloutResponseTransformer";
 import { BaseTransformer } from "@api/transformers/BaseTransformer";
-import { prefixKeys } from "@api/utils";
+import CalloutResponseTransformer from "@api/transformers/CalloutResponseTransformer";
+import { getFilterHandler, prefixKeys } from "@api/utils";
 
 import Callout from "@models/Callout";
 import CalloutResponse from "@models/CalloutResponse";
@@ -53,7 +53,8 @@ export abstract class BaseContactTransformer<
     manualPaymentSource: (qb, args) => {
       contributionField("mandateId")(qb, args);
       qb.andWhere(`${args.fieldPrefix}contributionType = 'Manual'`);
-    }
+    },
+    "callouts.": calloutsFilterHandler
   };
 
   protected async transformFilters(
@@ -78,15 +79,15 @@ export abstract class BaseContactTransformer<
         Object.assign(
           filters,
           prefixKeys(`callouts.${calloutId}.`, contactCalloutFilters),
-          prefixKeys(
-            `callouts.${calloutId}.responses.`,
-            getCalloutFilters(callout.formSchema)
-          )
+          prefixKeys(`callouts.${calloutId}.responses.`, {
+            ...CalloutResponseTransformer.filters,
+            ...getCalloutFilters(callout.formSchema)
+          })
         );
       }
     }
 
-    return [filters, { "callouts.": calloutsFilterHandler }];
+    return [filters, {}];
   }
 }
 
@@ -157,17 +158,17 @@ const activePermission: FilterHandler = (qb, args) => {
 };
 
 const calloutsFilterHandler: FilterHandler = (qb, args) => {
-  // Split out callouts.<id>.<filterName>[.<answerFields...>]
-  const [, calloutId, subField, ...answerFields] = args.field.split(".");
+  // Split out callouts.<id>.<filterName>[.<restFields...>]
+  const [, calloutId, subField, ...restFields] = args.field.split(".");
 
   let params;
 
   switch (subField) {
     /**
-     * Filter contacts by their answers to a callout, uses the same filters as
+     * Filter contacts by their responses to a callout, uses the same filters as
      * callout responses endpoints
 
-     * Filter field: callout.<id>.responses.<answerFields>
+     * Filter field: callout.<id>.responses.<restFields>
      */
     case "responses": {
       const subQb = createQueryBuilder()
@@ -175,10 +176,12 @@ const calloutsFilterHandler: FilterHandler = (qb, args) => {
         .select("item.contactId")
         .from(CalloutResponse, "item");
 
-      params = individualAnswerFilterHandler(subQb, {
-        ...args,
-        field: answerFields.join(".")
-      });
+      const responseField = restFields.join(".");
+      const filterHandler = getFilterHandler(
+        CalloutResponseTransformer.filterHandlers,
+        responseField
+      );
+      params = filterHandler(subQb, { ...args, field: responseField });
 
       subQb
         .andWhere(args.addParamSuffix("item.calloutId = :calloutId"))
